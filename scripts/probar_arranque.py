@@ -14,6 +14,13 @@ CHECKS = [
     ('ps', '/init'),
     ('echo $((6*7))', '42'),
     ('ls /proc/self/fd', '0'),
+    # Guardians on the ULTRA kernel itself: CET, a UB trap and the box.
+    ('minas --cet', 'ACTIVA (shstk)'),
+    ('minas retorno-secuestrado', 'SEGV_CPERR'),
+    ('minas entero-desborde', 'GUARDIAN-UB'),
+    ('minas copia-pila', 'buffer overflow detected'),
+    ('grep x86_Thread /proc/1/status', 'shstk'),
+    ('probar-caja', 'RESUMEN CAJA: VERDE=11 ROJO=0'),
 ]
 
 def read_until(conn, marker, timeout):
@@ -30,7 +37,8 @@ def read_until(conn, marker, timeout):
 
 def main():
     qemu = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '512',
-                             '-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic',
+                             '-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic quiet '
+                             'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on',
                              '-nic', 'none', '-display', 'none', '-no-reboot',
                              '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on'],
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -45,7 +53,7 @@ def main():
         transcript += read_until(conn, 'ultra:', 30)
         for command, expected in CHECKS:
             conn.sendall(command.encode() + b'\n')
-            out = read_until(conn, 'ultra:', 10)
+            out = read_until(conn, 'ultra:', 30)
             transcript += out
             print(('VERDE' if expected in out else 'ROJO'), f'[{command}]')
             if expected not in out: failures.append(command)

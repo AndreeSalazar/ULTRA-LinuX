@@ -1,0 +1,90 @@
+gcc (GCC) 16.2.1 20260810
+
+== Minas de compilacion: el codigo no debe compilar ==
+VERDE    analizador-doble-free: el analizador ve dos free sobre el mismo puntero
+         bandera: analizador-doble-free.c:4:46: error: pointer 'p' used after 'free' [-Werror=use-after-
+VERDE    analizador-nulo: malloc puede devolver NULL y se usa sin comprobar
+         bandera: analizador-nulo.c:4:48: error: dereference of possibly-NULL 'p' [CWE-690] [-Werror=ana
+VERDE    analizador-uso-tras-free: el analizador ve un uso tras free en compilacion, aunque produccion no lo detecte al ejecutar
+         bandera: analizador-uso-tras-free.c:4:87: error: pointer 'p' used after 'free' [-Werror=use-aft
+VERDE    caida-switch: un case sin break cae al siguiente sin que se note
+         bandera: caida-switch.c:3:50: error: this statement may fall through [-Werror=implicit-fallthro
+VERDE    formato: printf con texto del usuario como formato permite leer y escribir memoria
+         bandera: formato.c:4:1: error: format not a string literal and no format arguments [-Werror=for
+VERDE    fuga: el analizador encuentra un camino donde malloc nunca se libera
+         bandera: fuga.c:4:71: error: leak of 'p' [CWE-401] [-Werror=analyzer-malloc-leak]
+VERDE    len-puntero: ULTRA_LEN sobre un puntero daria 8/1 en vez del tamano real
+         bandera: ../ultra_guard.h:39:16: error: division 'sizeof (char *) / sizeof (char)' does not com
+VERDE    signo: un int negativo convertido a size_t se vuelve un tamano gigante
+         bandera: signo.c:4:26: error: conversion to 'size_t' {aka 'long unsigned int'} from 'int' may c
+VERDE    sin-inicializar: leer una variable sin valor es UB
+         bandera: sin-inicializar.c:3:44: error: use of uninitialized value 'x' [CWE-457] [-Werror=analy
+VERDE    sin-return: una funcion int que termina sin return devuelve basura
+         bandera: sin-return.c:3:33: error: control reaches end of non-void function [-Werror=return-typ
+VERDE    sombra: una variable interna tapa a otra con el mismo nombre
+         bandera: sombra.c:3:33: error: declaration of 'r' shadows a previous local [-Werror=shadow]
+VERDE    sprintf: sprintf escribe sin limite; envenenado, usar snprintf
+         bandera: sprintf.c:4:26: error: attempt to use poisoned 'sprintf'
+VERDE    strcpy: strcpy no conoce el tamano del destino; envenenado por ultra_guard.h
+         bandera: strcpy.c:4:34: error: attempt to use poisoned 'strcpy'
+VERDE    truncado: un long en int pierde bits sin avisar
+         bandera: truncado.c:3:24: error: conversion from 'long int' to 'int' may change value [-Werror=
+VERDE    vla: un arreglo de tamano variable en la pila puede saltar la pagina de guarda
+         bandera: vla.c:4:1: error: ISO C90 forbids variable length array 'buf' [-Werror=vla]
+
+== Minas de ejecucion: produccion (trampas, FORTIFY, CET) / diagnostico (ASan+UBSan) ==
+pila sombra en produccion: ACTIVA (shstk)
+VERDE    entero-desborde: int con signo pasa de INT_MAX: en C es UB y el optimizador puede borrar tus comprobaciones
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:23:56: runtime error: signed integer overflow: 2147483647 + 1 cannot be represented in type 'int
+VERDE    division-cero: dividir por cero es UB; en x86 suele matar, pero el compilador puede asumir que nunca pasa
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:24:52: runtime error: division by zero
+VERDE    desplazamiento: desplazar 40 bits un int de 32 es UB; el resultado depende de la CPU
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:25:51: runtime error: shift exponent 40 is too large for 32-bit type 'int'
+VERDE    indice-fuera: escribir a[6] en un arreglo de 4 pisa memoria vecina sin avisar
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:26:49: runtime error: index 6 out of bounds for type 'int [4]'
+VERDE    copia-pila: memcpy de 16 bytes en un buffer de 8: clasico desborde de pila
+         produccion: *** buffer overflow detected ***: terminated
+         diagnostico: ==1852==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b354eef0048 at pc 0x7f3552929714 bp 0x7ffdab1ae000 sp 0x7ffdab1ad7a8
+VERDE    desborde-heap: memset de 16 bytes en un malloc de 8 corrompe el heap
+         produccion: *** buffer overflow detected ***: terminated
+         diagnostico: ==1880==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7b2789de0018 at pc 0x7f078c528a47 bp 0x7ffd3ed0ee60 sp 0x7ffd3ed0e618
+AMARILLO uso-tras-free: leer memoria ya liberada: puede contener datos de otro objeto
+         produccion: NO DETECTADA (salida 99)
+         diagnostico: ==1905==ERROR: AddressSanitizer: heap-use-after-free on address 0x7c1d689e0080 at pc 0x55968dac0959 bp 0x7ffc40cda810 sp 0x7ffc40cda800
+VERDE    doble-free: liberar dos veces corrompe el allocator; base de muchos exploits
+         produccion: free(): double free detected in tcache 2
+         diagnostico: ==1923==ERROR: AddressSanitizer: attempting double-free on 0x7c545e9e0080 in thread T0:
+VERDE    puntero-nulo: escribir a traves de NULL; el compilador puede asumir que nunca es NULL
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:52:58: runtime error: store to null pointer of type 'int'
+VERDE    pila-destruida: un bucle escribe 64 bytes en un buffer de 8 hasta pisar el retorno
+         produccion: *** stack smashing detected ***: terminated
+         diagnostico: ==1979==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b62c2bf0048 at pc 0x55cc4c93c3e7 bp 0x7ffc4a957d60 sp 0x7ffc4a957d50
+VERDE    bool-invalido: un bool con valor 7 rompe la logica: ni true ni false
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:62:24: runtime error: load of value 7, which is not a valid value for type 'bool'
+VERDE    desalineado: leer un int desde una direccion impar es UB en C
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:67:22: runtime error: load of misaligned address 0x7b376e1f0061 for type 'int', which requires 4
+VERDE    puntero-vuelta: aritmetica de punteros que da la vuelta al espacio de direcciones
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:71:26: runtime error: pointer index expression with base 0xfffffffffffffffd overflowed to 0x0000
+VERDE    float-a-int: convertir 1e20 a int no cabe: UB
+         produccion: ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico: minas.c:74:1: runtime error: 1e+20 is outside the range of representable values of type 'int'
+VERDE    retorno-secuestrado: sobrescribir la direccion de retorno: base del ROP; solo CET lo bloquea en el retorno
+         produccion: ROJO [FRONTERA-MEMORIA: acceso a memoria no valida o retorno rechazado por la pila sombra]
+         programa=minas senal=11 code=10 (SEGV_CPERR: la pila sombra CET bloqueo un retorno falso) direccion=0x0 pc=inicio+0x3900
+         diagnostico: ROJO [FRONTERA-MEMORIA: acceso a memoria no valida o retorno rechazado por la pila sombra]
+VERDE    ultra-suma: ULTRA_ADD: el guardian explicito comprueba la suma antes de usarla
+         produccion: ROJO [UB-DESBORDE] /home/builder/linux-reconstruido/lab/guardian/minas.c:86: suma desborda su tipo
+         diagnostico: minas.c:86: suma desborda su tipo
+VERDE    ultra-indice: ULTRA_AT: el guardian explicito comprueba el indice antes de acceder
+         produccion: ROJO [FRONTERA-INDICE] /home/builder/linux-reconstruido/lab/guardian/minas.c:87: indice fuera del arreglo
+         diagnostico: minas.c:87: indice fuera del arreglo
+
+RESUMEN: VERDE=31 AMARILLO=1 ROJO=0

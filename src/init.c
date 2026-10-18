@@ -18,6 +18,8 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+/* Last: it poisons unsafe functions after the system headers are parsed. */
+#include "guardian/ultra_guard.h"
 
 enum { RESPAWN_WINDOW_S = 2, RESPAWN_LIMIT = 5, RESPAWN_PAUSE_S = 5 };
 
@@ -35,7 +37,7 @@ static void emit(const char *s) {
 }
 
 static void report(const char *level, const char *code, const char *detail) {
-    char line[256];
+    char line[384];
     int n = snprintf(line, sizeof(line), "%s [%s]: %s\n", level, code, detail);
     if (n < 0) return;
     /* Truncation is visible, not silent. */
@@ -60,11 +62,15 @@ static void mount_fs(const char *type, const char *target, unsigned long flags) 
     report("VERDE", "MONTAJE", detail);
 }
 
+/* A console descriptor that landed on 0..2 stays open for the life of the process. */
+static int console_fd = -1;
+
 static void attach_console(void) {
     int fd = open("/dev/console", O_RDWR);
     if (fd < 0) return;
     for (int i = 0; i < 3; i++) (void)dup2(fd, i);
     if (fd > 2) close(fd);
+    else console_fd = fd;
 }
 
 static pid_t spawn_shell(void) {
@@ -79,8 +85,13 @@ static pid_t spawn_shell(void) {
     (void)ioctl(STDIN_FILENO, TIOCSCTTY, 1);
     static char arg0[] = "-sh";
     static char home[] = "HOME=/root", path[] = "PATH=/bin:/sbin", term[] = "TERM=linux";
+    static char tunables[160];
     char *const argv[] = {arg0, NULL};
-    char *const envp[] = {home, path, term, NULL};
+    char *envp[] = {home, path, term, NULL, NULL};
+    /* The kernel command line hands GLIBC_TUNABLES to PID 1; pass it on so CET reaches every program. */
+    const char *t = getenv("GLIBC_TUNABLES");
+    if (t && ULTRA_COPY(tunables, "GLIBC_TUNABLES=") && ULTRA_APPEND(tunables, t)) envp[3] = tunables;
+    else if (t) report("AMARILLO", "CET", "GLIBC_TUNABLES demasiado largo; la shell arranca sin pila sombra");
     if (chdir("/root") < 0 && chdir("/") < 0) report("AMARILLO", "DIRECTORIO", strerror(errno));
     execve("/bin/sh", argv, envp);
     report("ROJO", "SHELL-AUSENTE", strerror(errno));
@@ -111,13 +122,15 @@ int main(void) {
     }
     mount_fs("devtmpfs", "/dev", MS_NOSUID);
     attach_console();
+    /* If PID 1 itself trips a guardian, the flag prints before the kernel panics. */
+    ultra_guard_install("init");
     mount_fs("proc", "/proc", MS_NOSUID | MS_NODEV | MS_NOEXEC);
     mount_fs("sysfs", "/sys", MS_NOSUID | MS_NODEV | MS_NOEXEC);
     mount_fs("tmpfs", "/tmp", MS_NOSUID | MS_NODEV);
     mount_fs("tmpfs", "/run", MS_NOSUID | MS_NODEV);
 
     struct utsname u;
-    char detail[200];
+    char detail[320];
     if (uname(&u) == 0) snprintf(detail, sizeof(detail), "%s %s %s", u.sysname, u.release, u.machine);
     else snprintf(detail, sizeof(detail), "uname: %s", strerror(errno));
     emit("\nULTRA LinuX: INIT C READY\n");
@@ -155,10 +168,15 @@ int main(void) {
         int status;
         pid_t dead;
         while ((dead = waitpid(-1, &status, WNOHANG)) > 0) {
-            if (dead != shell) continue; /* Orphans are reaped here as well. */
-            if (WIFSIGNALED(status)) snprintf(detail, sizeof(detail), "shell terminada por senal %d", WTERMSIG(status));
-            else snprintf(detail, sizeof(detail), "shell salio con codigo %d", WEXITSTATUS(status));
-            report("AMARILLO", "SHELL", detail);
+            /* Orphans are reaped here too; a guardian death is flagged even for them. */
+            int sig_dead = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
+            bool guardian = sig_dead == SIGILL || sig_dead == SIGSEGV || sig_dead == SIGBUS ||
+                            sig_dead == SIGFPE || sig_dead == SIGABRT || sig_dead == SIGSYS;
+            const char *who = dead == shell ? "shell" : "huerfano";
+            if (sig_dead) snprintf(detail, sizeof(detail), "%s pid %d senal %d: %s", who, (int)dead, sig_dead, ultra_explain_signal(sig_dead));
+            else snprintf(detail, sizeof(detail), "%s pid %d salio con codigo %d", who, (int)dead, WEXITSTATUS(status));
+            if (guardian || dead == shell) report(guardian ? "ROJO" : "AMARILLO", guardian ? "GUARDIAN" : "SHELL", detail);
+            if (dead != shell) continue;
             fast_exits = time(NULL) - started < RESPAWN_WINDOW_S ? fast_exits + 1 : 0;
             if (fast_exits >= RESPAWN_LIMIT) {
                 report("ROJO", "SHELL-BUCLE", "la shell muere al arrancar; pausa antes de reintentar");
