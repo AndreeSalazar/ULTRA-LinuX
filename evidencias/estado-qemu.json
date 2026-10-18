@@ -7,9 +7,12 @@
   "Make": "4.4.1",
   "CProgramCompiledAndExecuted": true,
   "SourceArchiveSHA256VerifiedInGuest": true,
-  "KernelCheckoutVerified": false,
+  "KernelCheckoutVerified": true,
   "KernelBuildCompleted": false,
   "ExperimentalKernelBooted": false,
   "PhysicalDiskAttached": false,
-  "Pending": "Initial git clone processing in guest; kernel build and boot tests pending"
+  "Pending": "Kernel compilation and boot tests pending; cloud-init retains historical scripts_user error after manual recovery.",
+  "MissingTrackedFiles": 0,
+  "ManualRecoveryVerified": true,
+  "BootstrapClean": false
 }

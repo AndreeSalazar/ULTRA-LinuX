@@ -1,0 +1,13 @@
+{
+  "WindowsCMake": "4.4.4",
+  "WindowsCMakePath": "C:/Program Files/CMake/bin/cmake.exe",
+  "WindowsGCCFound": false,
+  "KernelCompilerLocation": "QEMU Arch Linux",
+  "LinuxGCC": "16.2.1 20260810",
+  "LinuxMake": "4.4.1",
+  "LinuxCMake": "4.4.4",
+  "LinuxNinja": "1.13.2",
+  "C17CompileAndRunPassed": true,
+  "KernelBuildSystem": "Kbuild and GNU Make",
+  "KernelCompilationCompleted": false
+}

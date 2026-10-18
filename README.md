@@ -28,7 +28,7 @@ La VM reserva 4 GiB de RAM y 4 CPU virtuales usando TCG con reloj por instruccio
 .\conectar-taller.ps1
 ```
 
-Preparar requiere la imagen y las herramientas locales ya descargadas. Iniciar rechaza puertos ocupados y discos ausentes. El primer arranque instala paquetes oficiales Arch y copia el repositorio original al disco Linux. Estado solo declara listo tras comprobar la marca de finalización, GCC, herramientas, cloud-init y commit del kernel. Revisar `vm/serial.log`, `vm/qemu.log` y `vm/http.log` ante fallos.
+Preparar requiere la imagen y las herramientas locales ya descargadas. Iniciar rechaza puertos ocupados y discos ausentes. El primer arranque instala paquetes oficiales Arch y copia el repositorio original al disco Linux. Estado comprueba por separado la marca de finalización, herramientas, commit y ausencia de archivos borrados; muestra además el diagnóstico de cloud-init sin confundir un error histórico con una prueba aprobada. Revisar `vm/serial.log`, `vm/qemu.log` y `vm/http.log` ante fallos.
 
 SSH se publica únicamente en `127.0.0.1:12222`, autenticado por la clave generada en `vm/`. El servidor local `127.0.0.1:18765` entrega solo la copia de las fuentes. QMP usa `127.0.0.1:14444`. El usuario `builder` tiene sudo en esta VM de laboratorio y no usa contraseña SSH. No reutilizar esta imagen/configuración como servidor público.
 
@@ -61,3 +61,17 @@ Fuentes oficiales:
 - https://www.kernel.org/doc/html/latest/process/license-rules.html
 - https://wiki.archlinux.org/title/Arch_Linux_on_a_VPS
 - https://github.com/archlinux/arch-boxes
+## Herramientas comprobadas
+
+GCC 16.2.1 y GNU Make 4.4.1 se ejecutaron dentro de QEMU, y una prueba C17 compilada con avisos tratados como errores produjo `Linux Reconstruido: GCC C OK`. CMake 4.4.4 se instaló en Windows desde el MSI oficial de Kitware con SHA-256 y firma verificados. Abrir una terminal nueva para recoger su cambio de PATH.
+
+El kernel usa Make/Kbuild y GCC; no usa CMake como sistema de construcción. No se instala un GCC MinGW de Windows para compilar este kernel: la cadena elegida vive en Linux dentro de QEMU. El taller incluye además CMake y Ninja para otros proyectos del ecosistema.
+
+El despliegue usa `git worktree`: los clones locales de un origen superficial ignoran `--local` y rehacen el índice mediante transporte. Se conservaron los intentos incompletos en el disco virtual como diagnóstico. La copia del repositorio dentro de Linux ajusta symlinks, permisos y sensibilidad a mayúsculas; el origen Windows no se altera.
+## Resultado de esta preparación
+
+Taller QEMU iniciado; GCC, Make, CMake y Ninja ejecutados. Programa C17 compilado y ejecutado. Fuentes desplegadas con el commit esperado y sin archivos rastreados ausentes. No se ha compilado el kernel completo ni probado su arranque.
+
+La cancelación de un clon inicial coincidió con el despliegue y dejó 25.870 archivos ausentes. Se restauraron únicamente desde el índice del repositorio verificado y se repitió la comprobación de archivos ausentes. El inicializador recuperado también se ejecutó correctamente. Cloud-init conserva el error histórico `scripts_user` del intento interrumpido: se registra como AMARILLO y no se certifica un arranque limpio del taller. El informe separa ese diagnóstico de las comprobaciones de herramientas y fuentes.
+
+Antes de modificar código, la siguiente referencia debe incluir compilación del kernel sin cambios y su arranque QEMU. Esa prueba sigue pendiente. El kernel conserva también el ensamblador y los demás componentes de upstream: usar GCC y C como base no significa reescribir todo el árbol en C.

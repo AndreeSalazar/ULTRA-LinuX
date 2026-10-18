@@ -56,8 +56,10 @@ packages:
   - gdb
   - ccache
   - pkgconf
+  - cmake
+  - ninja
 runcmd:
-  - [bash, -lc, 'set -eu; mkdir -p /home/builder/linux-reconstruido/upstream; cd /home/builder/linux-reconstruido/upstream; curl --fail --retry 3 http://10.0.2.2:18765/kernel-repo.tar -o kernel-repo.tar; echo "{digest}  kernel-repo.tar" | sha256sum -c -; tar -xf kernel-repo.tar; rm kernel-repo.tar; git clone --local --no-hardlinks linux.git ../kernel; chown -R builder:builder /home/builder/linux-reconstruido; touch /var/lib/cloud/reconstruido-ready']
+  - [bash, -lc, 'set -eu; mkdir -p /home/builder/linux-reconstruido/upstream; cd /home/builder/linux-reconstruido/upstream; curl --fail --retry 3 http://10.0.2.2:18765/kernel-repo.tar -o kernel-repo.tar; echo "{digest}  kernel-repo.tar" | sha256sum -c -; tar -xf kernel-repo.tar; rm kernel-repo.tar; git --git-dir=linux.git config core.symlinks true; git --git-dir=linux.git config core.filemode true; git --git-dir=linux.git config core.ignorecase false; git --git-dir=linux.git worktree add --detach ../kernel HEAD; chown -R builder:builder /home/builder/linux-reconstruido; touch /var/lib/cloud/reconstruido-ready']
 final_message: "Linux Reconstruido: cloud-init finalizado; comprobar paquetes y repositorio antes de declarar listo."
 '''
     meta='instance-id: linux-reconstruido-arch-v1\nlocal-hostname: linux-reconstruido-taller\n'
@@ -88,12 +90,18 @@ def ssh(command):
     return run('ssh','-i',key,'-p','12222','-o','BatchMode=yes','-o','KexAlgorithms=curve25519-sha256','-o','ConnectTimeout=30','-o','StrictHostKeyChecking=accept-new','-o',f'UserKnownHostsFile={VM/"known_hosts"}','builder@127.0.0.1',command)
 
 def status():
-    command="test -f /var/lib/cloud/reconstruido-ready && command -v gcc make ld bison flex bc gdb && gcc --version | head -1 && git -C /home/builder/linux-reconstruido/kernel rev-parse HEAD && cloud-init status --long"
-    result=ssh(command);print(result.stdout)
+    command="test -f /var/lib/cloud/reconstruido-ready && command -v gcc make ld bison flex bc gdb cmake ninja && test -f /home/builder/linux-reconstruido/kernel/Makefile && test -z \"$(git -C /home/builder/linux-reconstruido/kernel ls-files --deleted)\" && gcc --version | head -1 && git -C /home/builder/linux-reconstruido/kernel rev-parse HEAD"
+    result=ssh(command)
     expected=json.loads((ROOT/'evidencias/origen-inicial.json').read_text(encoding='utf-8-sig'))['Commit']
     if expected not in result.stdout:raise RuntimeError('No se verifico el commit original dentro de la VM.')
-    (ROOT/'evidencias/taller-qemu.txt').write_text(result.stdout,encoding='utf-8')
-    print('VERDE: GCC y commit original comprobados dentro de QEMU. Compilacion del kernel pendiente.')
+    # Bootstrap diagnostics are recorded independently; an old error is never called a pass.
+    bootstrap=ssh('cloud-init status --long; code=$?; printf "BOOTSTRAP_EXIT=%s\\n" "$code"; exit 0')
+    report=result.stdout+'\nBOOTSTRAP DIAGNOSTIC (separate from tool/source checks):\n'+bootstrap.stdout
+    print(report)
+    (ROOT/'evidencias/taller-qemu.txt').write_text(report,encoding='utf-8')
+    print('VERDE: herramientas y commit original comprobados; sin archivos ausentes. Compilacion del kernel pendiente.')
+    if 'status: error' in bootstrap.stdout:
+        print('AMARILLO: cloud-init conserva error historico del clon interrumpido; inicializador recuperado y comprobado manualmente. No se certifica un arranque limpio.')
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('action',choices=['prepare','start','status']);args=parser.parse_args()

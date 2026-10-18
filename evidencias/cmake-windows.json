@@ -1,0 +1,8 @@
+{
+  "Version": "cmake version 4.4.4",
+  "Path": "C:/Program Files/CMake/bin/cmake.exe",
+  "SHA256": "F7AAC962E8EEA82C0A1C603BB11EE3514806A43A35147D5B1E9D69926FFD7D7E",
+  "Signature": "CN=\"Kitware, Inc.\", O=\"Kitware, Inc.\", L=Clifton Park, S=New York, C=US, SERIALNUMBER=2235734, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.2=New York, OID.1.3.6.1.4.1.311.60.2.1.3=US",
+  "MSIExitCode": 0,
+  "Role": "Host utility; kernel compilation stays in QEMU"
+}
