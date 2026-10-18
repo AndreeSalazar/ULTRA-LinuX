@@ -1,0 +1,5 @@
+gcc (GCC) 16.2.1 20260810
+-std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -fanalyzer
+-fsanitize=undefined -fsanitize-trap=all -fstack-protector-strong -D_FORTIFY_SOURCE=3 -ftrivial-auto-var-init=zero -fno-strict-aliasing
+-O2
+-static

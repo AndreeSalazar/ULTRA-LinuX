@@ -1,5 +1,7 @@
 # Linux Reconstruido
 
+Taller de **ULTRA LinuX**: kernel oficial + init C con guardianes + BusyBox, compilados con GCC. Plan, guardianes y fases en [docs/ULTRA-LINUX.md](docs/ULTRA-LINUX.md).
+
 Laboratorio personal x86-64 para modificar el Linux oficial con C y GCC. Inspirado en el control de Arch. Perfil físico inicial: Ryzen 5 5600X y MSI A320M-A PRO MAX.
 
 ## Ruta elegida: QEMU y después metal

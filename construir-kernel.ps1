@@ -35,9 +35,13 @@ function Invoke-Guest([string]$Command){
     if($LASTEXITCODE -ne 0){throw 'ROJO: la operacion Linux fallo; revisar su motivo antes de avanzar.'}
 }
 if($Accion -eq 'Compilar'){
-    Invoke-Guest 'mkdir -p /home/builder/linux-reconstruido/lab'
+    Invoke-Guest 'mkdir -p /home/builder/linux-reconstruido/lab && rm -rf /home/builder/linux-reconstruido/lab/rootfs'
+    # BusyBox comes from the official Arch repository; the build rejects it if not static.
+    Invoke-Guest 'pacman -Q busybox >/dev/null 2>&1 || sudo pacman -S --noconfirm --needed busybox'
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/init.c') (Join-Path $project 'scripts/build-baseline.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia de fuentes incompleta.'}
+    & scp.exe -r -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/rootfs') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
+    if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia del rootfs incompleta.'}
     Invoke-Guest 'if systemctl is-active --quiet linux-reconstruido-build; then echo "La compilacion ya esta en curso"; else sudo systemctl reset-failed linux-reconstruido-build 2>/dev/null || true; sudo systemd-run --collect --unit=linux-reconstruido-build --uid=builder --setenv=HOME=/home/builder /bin/bash /home/builder/linux-reconstruido/lab/build-baseline.sh; fi'
 }elseif($Accion -eq 'Estado'){
     Invoke-Guest 'systemctl show linux-reconstruido-build -p ActiveState -p SubState -p ExecMainStatus; tail -n 20 /home/builder/linux-reconstruido/build/tiny64-baseline/build.log'
@@ -45,7 +49,7 @@ if($Accion -eq 'Compilar'){
     Invoke-Guest 'test -f /home/builder/linux-reconstruido/artifacts/build-complete'
     $out=Join-Path $project 'build/baseline'
     New-Item -ItemType Directory -Force $out | Out-Null
-    foreach($file in @('bzImage-tiny64','tiny64.config','kernelrelease.txt','SHA256SUMS')){
+    foreach($file in @('bzImage-tiny64','tiny64.config','kernelrelease.txt','guardianes.txt','SHA256SUMS')){
         & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known ('builder@127.0.0.1:/home/builder/linux-reconstruido/artifacts/'+$file) $out
         if($LASTEXITCODE -ne 0){throw "ROJO: falta descargar $file"}
     }
@@ -58,6 +62,6 @@ if($Accion -eq 'Compilar'){
     $expected=((Get-Content (Join-Path $project 'build/baseline/SHA256SUMS') -First 1) -split '\s+')[0]
     if((Get-FileHash $kernel).Hash -ine $expected){throw 'ROJO: kernel distinto del artefacto verificado.'}
     $qemu=Join-Path $env:ProgramFiles 'qemu/qemu-system-x86_64.exe'
-    & $qemu -name 'Linux Reconstruido - baseline GCC' -machine pc -accel whpx -cpu host -smp 1 -m 512 -kernel $kernel -append 'console=ttyS0,115200 console=tty0 rdinit=/init panic=-1 noapic' -nic none -display gtk -serial stdio -no-reboot
+    & $qemu -name 'ULTRA LinuX - fase 1' -machine pc -accel whpx -cpu host -smp 1 -m 512 -kernel $kernel -append 'console=ttyS0,115200 console=tty0 rdinit=/init panic=-1 noapic' -nic none -display gtk -serial stdio -no-reboot
     if($LASTEXITCODE -ne 0){throw 'ROJO: QEMU no pudo ejecutar el kernel; revisar aceleracion y salida.'}
 }
