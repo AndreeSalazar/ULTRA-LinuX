@@ -3,7 +3,9 @@ param([ValidateSet('Compilar','Estado','Descargar','Ver')][string]$Accion='Estad
 $ErrorActionPreference='Stop'
 $project=$PSScriptRoot
 $key=Join-Path $project 'vm/builder_ed25519'
-$known='UserKnownHostsFile='+(Join-Path $project 'vm/known_hosts')
+# ssh splits option values on spaces, and this folder name has one: use a relative path.
+Set-Location -LiteralPath $project
+$known='UserKnownHostsFile=vm/known_hosts'
 # Reject an absent workshop before SSH: build failure is not a compiler failure.
 if($Accion -ne 'Ver'){
     $running=$false

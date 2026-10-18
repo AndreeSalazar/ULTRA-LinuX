@@ -4,8 +4,11 @@ set -euo pipefail
 base="$HOME/linux-reconstruido"
 src="$base/kernel"
 out="$base/build/tiny64-baseline"
+# Userspace lives outside O=: Kbuild needs $out/init as a directory for init/main.c.
+user="$base/build/init-c"
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
-mkdir -p "$out" "$base/artifacts"
+mkdir -p "$out" "$user" "$base/artifacts"
+[[ -d "$out/init" || ! -e "$out/init" ]] || rm -f "$out/init"
 rm -f "$base/artifacts/build-complete"
 exec > >(tee "$out/build.log") 2>&1
 trap 'echo "ROJO: build fallo en linea $LINENO"' ERR
@@ -14,14 +17,14 @@ expected=32c52ec87d6245ee2d12ed5dd509e40062939b50
 [[ -z $(git -C "$src" ls-files --deleted) ]] || { echo 'ROJO: archivos fuente ausentes'; exit 1; }
 gcc --version | head -n 1
 # Static userspace built separately from the unmodified kernel sources.
-gcc -std=c17 -static -Os -Wall -Wextra -Werror "$lab/init.c" -o "$out/init"
+gcc -std=c17 -static -Os -Wall -Wextra -Werror "$lab/init.c" -o "$user/init"
 cat > "$out/initramfs.list" <<CPIO
 dir /dev 0755 0 0
 dir /proc 0755 0 0
 dir /sys 0755 0 0
 nod /dev/console 0600 0 0 c 5 1
 nod /dev/ttyS0 0600 0 0 c 4 64
-file /init $out/init 0755 0 0
+file /init $user/init 0755 0 0
 CPIO
 if [[ ! -f "$out/.config" ]]; then
     make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc tinyconfig
@@ -38,6 +41,6 @@ make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc -j2 bzImage
 cp "$out/arch/x86/boot/bzImage" "$base/artifacts/bzImage-tiny64"
 cp "$out/.config" "$base/artifacts/tiny64.config"
 make -s -C "$src" O="$out" ARCH=x86_64 kernelrelease > "$base/artifacts/kernelrelease.txt"
-sha256sum "$base/artifacts/bzImage-tiny64" "$out/init" > "$base/artifacts/SHA256SUMS"
+sha256sum "$base/artifacts/bzImage-tiny64" "$user/init" > "$base/artifacts/SHA256SUMS"
 printf 'VERDE: kernel e init C compilados. Arranque QEMU todavia pendiente.\n'
 touch "$base/artifacts/build-complete"

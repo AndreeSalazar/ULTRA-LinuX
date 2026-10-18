@@ -11,15 +11,11 @@ gcc (GCC) 16.2.1 20260810
 32c52ec87d6245ee2d12ed5dd509e40062939b50
 
 BOOTSTRAP DIAGNOSTIC (separate from tool/source checks):
-status: error
-extended_status: error - done
+status: done
+extended_status: done
 boot_status_code: enabled-by-generator
-last_update: Thu, 01 Jan 1970 00:45:28 +0000
+last_update: Thu, 01 Jan 1970 00:01:24 +0000
 detail: DataSourceNoCloud [seed=/dev/sr0]
-errors:
-	- ('scripts_user', RuntimeError('Runparts: 1 failures (runcmd) in 1 attempted commands'))
-recoverable_errors:
-WARNING:
-	- Failed to run module scripts_user (scripts in /var/lib/cloud/instance/scripts)
-	- Running module scripts_user (<module 'cloudinit.config.cc_scripts_user' from '/usr/lib/python3.14/site-packages/cloudinit/config/cc_scripts_user.py'>) failed
-BOOTSTRAP_EXIT=1
+errors: []
+recoverable_errors: {}
+BOOTSTRAP_EXIT=0

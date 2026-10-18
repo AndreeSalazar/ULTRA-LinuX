@@ -75,8 +75,13 @@ def start(accel="whpx"):
     for port in [12222,18765,14444]:free(port)
     if not (VM/'seed.iso').exists():raise RuntimeError('Ejecutar prepare primero.')
     if accel == 'whpx':
-        probe=subprocess.run([str(QEMU/'qemu-system-x86_64.exe'),'-machine','pc','-accel','whpx','-cpu','host','-S','-m','128','-display','none','-monitor','stdio','-serial','none'],input='quit\n',capture_output=True,text=True,timeout=15,creationflags=HIDDEN)
-        if probe.returncode:raise RuntimeError('WHPX no disponible: comprobar SVM activado en BIOS y completar el reinicio de Windows tras habilitar HypervisorPlatform. El taller no se inicio. Detalle QEMU: '+probe.stderr.strip())
+        # The stdio monitor ignores piped input on Windows; a live process after 5 s means WHPX accepted the VM.
+        probe=subprocess.Popen([str(QEMU/'qemu-system-x86_64.exe'),'-machine','pc','-accel','whpx','-cpu','host','-S','-m','128','-display','none','-monitor','none','-serial','none','-nodefaults'],stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,text=True,creationflags=HIDDEN)
+        try:
+            _,detail=probe.communicate(timeout=5)
+            raise RuntimeError('WHPX no disponible: comprobar SVM activado en BIOS y completar el reinicio de Windows tras habilitar HypervisorPlatform. El taller no se inicio. Detalle QEMU: '+detail.strip())
+        except subprocess.TimeoutExpired:
+            probe.kill();probe.communicate()
     clock=['-accel','whpx','-cpu','host'] if accel=='whpx' else ['-accel','tcg,thread=single','-icount','shift=auto','-cpu','qemu64']
     http_log=(VM/'http.log').open('ab')
     server=subprocess.Popen([sys.executable,'-m','http.server','18765','--bind','127.0.0.1','--directory',str(VM/'public')],stdout=http_log,stderr=subprocess.STDOUT,creationflags=HIDDEN)
@@ -91,7 +96,7 @@ def start(accel="whpx"):
 
 def ssh(command):
     key=VM/'builder_ed25519'
-    return run('ssh','-i',key,'-p','12222','-o','BatchMode=yes','-o','KexAlgorithms=curve25519-sha256','-o','ConnectTimeout=30','-o','StrictHostKeyChecking=accept-new','-o',f'UserKnownHostsFile={VM/"known_hosts"}','builder@127.0.0.1',command)
+    return run('ssh','-i',key,'-p','12222','-o','BatchMode=yes','-o','KexAlgorithms=curve25519-sha256','-o','ConnectTimeout=30','-o','StrictHostKeyChecking=accept-new','-o',f'UserKnownHostsFile="{(VM/"known_hosts").as_posix()}"','builder@127.0.0.1',command)
 
 def status():
     command="test -f /var/lib/cloud/reconstruido-ready && command -v gcc make ld bison flex bc gdb cmake ninja && test -f /home/builder/linux-reconstruido/kernel/Makefile && test -z \"$(git -C /home/builder/linux-reconstruido/kernel ls-files --deleted)\" && gcc --version | head -1 && git -C /home/builder/linux-reconstruido/kernel rev-parse HEAD"

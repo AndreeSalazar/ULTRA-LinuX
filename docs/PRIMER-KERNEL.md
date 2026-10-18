@@ -10,9 +10,11 @@ El perfil `tiny64-baseline` es una referencia mínima para QEMU: consola, teclad
 
 - El init se compiló con GCC como ELF x86-64 estático, con avisos tratados como errores.
 - La configuración habilita 64 bits, ELF, initramfs y consola serie/VGA.
-- La construcción se detuvo ordenadamente para preparar aceleración.
-- Todavía no hay kernel completo ni prueba de arranque de este perfil.
-- Los lanzadores de compilación y pantalla están preparados; falta validarlos con el kernel terminado.
+- SVM activado y WHPX validado: el taller arranca en unos 12 s.
+- Kernel `7.3.0-rc7+` compilado con GCC 16.2.1 (`bzImage-tiny64`, SHA-256 `95326e3b…f2958`).
+- Arranque sin pantalla en QEMU/WHPX aprobado: `/init` corre como PID 1 y muestra `LINUX RECONSTRUIDO: INIT C READY` y el prompt `metal>` (`evidencias/arranque-tiny64-serial.log`).
+- Pendiente: probar los comandos por teclado con `-Accion Ver`. Las líneas salen duplicadas en la serie porque el init escribe en `/dev/console` y en `ttyS0`, que aquí son el mismo dispositivo.
+- Corregido: el binario del init se generaba en `O=/init` y bloqueaba el directorio `init/` de Kbuild; ahora vive en `build/init-c/`.
 
 ## Acción manual: SVM y reinicio
 
