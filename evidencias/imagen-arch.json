@@ -1,0 +1,8 @@
+{
+  "URL": "https://geo.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg-20261015.611680.qcow2",
+  "SHA256": "08754E28D91B1680086C6211EF4DF13559E766FFF7CDB4006489B14B5D281F08",
+  "ChecksumMatched": true,
+  "SignatureVerified": false,
+  "Role": "QEMU build workshop; not reconstructed kernel",
+  "Image": "Arch-Linux-x86_64-cloudimg-20261015.611680.qcow2"
+}

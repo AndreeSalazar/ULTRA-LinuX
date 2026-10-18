@@ -1,0 +1,29 @@
+[H[J[1;1H[?25l[m[H[J[1;1H[2;28HGNU GRUB  version 2:2.16-1
+
+[m[4;2H+----------------------------------------------------------------------------+[5;2H|[5;79H|[6;2H|[6;79H|[7;2H|[7;79H|[8;2H|[8;79H|[9;2H|[9;79H|[10;2H|[10;79H|[11;2H|[11;79H|[12;2H|[12;79H|[13;2H|[13;79H|[14;2H|[14;79H|[15;2H|[15;79H|[16;2H|[16;79H|[17;2H+----------------------------------------------------------------------------+[m[18;2H[19;2H[m     Use the ^ and v keys to select which entry is highlighted.          
+      Press enter to boot the selected OS, `e' to edit the commands       
+      before booting or `c' for a command-line.                           [5;80H [7m[5;3H*Arch Linux                                                                 [m[5;78H[m[m[6;3H Advanced options for Arch Linux                                            [m[6;78H[m[m[7;3H                                                                            [m[7;78H[m[m[8;3H                                                                            [m[8;78H[m[m[9;3H                                                                            [m[9;78H[m[m[10;3H                                                                            [m[10;78H[m[m[11;3H                                                                            [m[11;78H[m[m[12;3H                                                                            [m[12;78H[m[m[13;3H                                                                            [m[13;78H[m[m[14;3H                                                                            [m[14;78H[m[m[15;3H                                                                            [m[15;78H[m[m[16;3H                                                                            [m[16;78H[m[16;80H [5;78H[22;1H   The highlighted entry will be executed automatically in 1s.                 [5;78H[22;1H   The highlighted entry will be executed automatically in 0s.                 [5;78H[?25h[H[J[1;1H  Booting `Arch Linux'
+
+Loading Linux linux ...
+Loading initial ramdisk ...
+[    0.577993] ..MP-BIOS bug: 8254 timer not connected to IO-APIC
+[    0.765451] Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot with apic=debug and send a report.  Then try booting with the 'noapic' option.
+[    0.767469] CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Not tainted 7.2.9-arch1-1 #1 PREEMPT(full)  227f612332c55d5b5b0a0c054e4cd1f76a9a914f
+[    0.768963] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.17.0-0-gb52ca86e094d-prebuilt.qemu.org 04/01/2014
+[    0.770232] Call Trace:
+[    0.771442]  <TASK>
+[    0.772302]  dump_stack_lvl+0x5d/0x80
+[    0.773047]  vpanic+0x20a/0x410
+[    0.773362]  panic+0x6b/0x70
+[    0.773656]  setup_IO_APIC+0x79f/0x7e0
+[    0.774049]  ? _raw_spin_unlock_irqrestore+0x1d/0x40
+[    0.774611]  ? clear_IO_APIC_pin+0x12c/0x1f0
+[    0.774916]  ? ioapic_read_entry+0x3d/0x50
+[    0.775144]  apic_intr_mode_init+0xcc/0xe0
+[    0.775384]  x86_late_time_init+0x2d/0x50
+[    0.775624]  start_kernel+0x9d4/0xa80
+[    0.775827]  x86_64_start_reservations+0x24/0x30
+[    0.776111]  x86_64_start_kernel+0xda/0xe0
+[    0.776919]  common_startup_64+0x13e/0x151
+[    0.777492]  </TASK>
+[    0.779460] ---[ end Kernel panic - not syncing: IO-APIC + timer doesn't work!  Boot with apic=debug and send a report.  Then try booting with the 'noapic' option. ]---

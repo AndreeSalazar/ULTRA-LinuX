@@ -1,0 +1,15 @@
+{
+  "Route": "QEMU -> physical PC",
+  "WSLUsed": false,
+  "Workshop": "Official Arch cloud image",
+  "VMStarted": true,
+  "GCC": "16.2.1 20260810",
+  "Make": "4.4.1",
+  "CProgramCompiledAndExecuted": true,
+  "SourceArchiveSHA256VerifiedInGuest": true,
+  "KernelCheckoutVerified": false,
+  "KernelBuildCompleted": false,
+  "ExperimentalKernelBooted": false,
+  "PhysicalDiskAttached": false,
+  "Pending": "Initial git clone processing in guest; kernel build and boot tests pending"
+}

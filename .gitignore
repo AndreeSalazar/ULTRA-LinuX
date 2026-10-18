@@ -2,3 +2,5 @@
 /build/
 /herramientas/
 /evidencias/wsl-msi.log
+/vm/
+__pycache__/

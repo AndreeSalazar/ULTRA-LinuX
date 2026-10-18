@@ -1,59 +1,63 @@
 # Linux Reconstruido
 
-Laboratorio personal x86-64 para entender y modificar Linux, inspirado en la sencillez y el control de Arch. Primer perfil: Ryzen 5 5600X y MSI A320M-A PRO MAX. Objetivo: acceso amplio al ecosistema Linux x86-64, incluyendo aplicaciones gráficas, herramientas de desarrollo, servicios, redes y juegos compatibles. Chromium será una prueba entre varias; no define todo el alcance.
+Laboratorio personal x86-64 para modificar el Linux oficial con C y GCC. Inspirado en el control de Arch. Perfil físico inicial: Ryzen 5 5600X y MSI A320M-A PRO MAX.
 
-## Qué hay aquí
+## Ruta elegida: QEMU y después metal
 
-- `upstream/linux.git`: repositorio oficial de Linus obtenido de kernel.org, como espejo bare superficial del estado inicial. No incluye todo el historial.
-- `upstream/origen.json`: URL y commit exacto descargado, una vez completada la descarga.
-- `docs/PLAN.md`: etapas, contratos y criterios de avance.
-- `scripts/preparar-linux.sh`: despliega una copia de trabajo en un sistema de archivos Linux, conservando el origen.
-- `evidencias/`: resultados medidos de futuras compilaciones y arranques.
+El taller es una máquina Arch Linux dentro de QEMU. Las fuentes, GCC y la compilación viven en su disco Linux. Windows solo ejecuta QEMU y los lanzadores; WSL no forma parte de esta ruta. WSL se instaló durante la preparación anterior, pero aquí no se utiliza y no se desinstala automáticamente.
 
-El kernel no constituye una distribución completa. Todavía no se ha compilado ni arrancado este proyecto. La instalación del entorno WSL se registra en `evidencias/wsl-instalacion.json`; no se considera operativo hasta verificar Debian y GCC. No se han cambiado discos, entradas UEFI ni el proyecto TALK-CPU.
+La imagen Arch aporta el taller de trabajo; el kernel que reconstruimos es el original de Linus, conservado por separado. No confundir el kernel de la imagen Arch con el kernel experimental. El sistema final y sus decisiones de paquetes todavía están pendientes.
 
-## Punto de partida fijado
+## Componentes
 
-Linux **7.3-rc7**, commit `32c52ec87d6245ee2d12ed5dd509e40062939b50` del repositorio oficial. Es una versión candidata de mainline, no una publicación estable. La conectividad de los objetos se comprobó con Git; no se verificó una firma de publicación. El registro rastreado está en `evidencias/origen-inicial.json`.
+- `upstream/linux.git`: repositorio oficial de Linus, bare y superficial; no incluye todo el historial.
+- `evidencias/origen-inicial.json`: commit original fijado, `32c52ec87d6245ee2d12ed5dd509e40062939b50`, Linux 7.3-rc7. Es una candidata, no una publicación estable.
+- `evidencias/imagen-arch.json`: origen y SHA-256 de la imagen oficial del taller; no se afirma verificación de firma.
+- `vm/`: imagen base, disco de trabajo de 64 GiB virtuales, configuración inicial y clave local. Todo excluido de Git.
+- `scripts/taller_qemu.py`: prepara el disco y cloud-init, inicia QEMU y comprueba GCC/fuentes por SSH.
+- `docs/PLAN.md`: etapas y criterios de avance.
 
-## Entorno de trabajo
+La VM reserva 4 GiB de RAM y 4 CPU virtuales usando TCG con reloj por instrucciones (`icount`) y un hilo de emulación. Los primeros perfiles Q35/PC sin ese reloj fallaron al comprobar el temporizador; sus registros están en evidencias. No necesita WSL ni reiniciar Windows para usar ese emulador. Compilar un kernel completo con emulación puede ser lento. No se conectan discos físicos a la VM.
 
-Compilar con GCC en un entorno Linux. Conservar la copia de trabajo en su sistema de archivos Linux, por ejemplo en `~/linux-reconstruido/kernel`, para respetar nombres sensibles a mayúsculas y semántica de archivos. El repositorio bare puede permanecer en esta carpeta de Windows.
-
-Tras disponer de un entorno Linux con Git, desde esta carpeta accesible en él:
-
-```sh
-bash scripts/preparar-linux.sh "$HOME/linux-reconstruido/kernel"
-```
-
-El script rechaza destinos existentes. Después deben instalarse las dependencias indicadas por `Documentation/process/changes.rst` de la versión descargada. La primera compilación será una base sin modificaciones, seguida de una prueba en QEMU. Este README no afirma que Chromium funcione todavía.
-
-## Cambios y guardianes
-
-Primero establecer una referencia reproducible; después modificar una cosa por vez. Evitar eliminar interfaces o controladores por antigüedad: comprobar primero su uso, dependencias y efecto medido. Compatibilidad objetivo inicial: programas x86-64 de Linux; el alcance POSIX se documentará por interfaces y pruebas, sin anunciar conformidad completa.
-
-ROJO: detener el avance si falla compilación, arranque de referencia o una prueba obligatoria. AMARILLO: comportamiento no medido, degradación o dependencia pendiente. VERDE: comprobación concreta aprobada; no significa seguridad universal. Cada resultado debe incluir motivo, evidencia y siguiente acción.
-
-## Procedencia y licencias
-
-El código del kernel conserva `COPYING`, `LICENSES/`, avisos y licencias por archivo. Su distribución global es GPL versión 2 solamente, con la nota de llamadas al sistema descrita por upstream. Los archivos originales de este laboratorio se ofrecen bajo GPL-2.0-only; no se relicencian los componentes de terceros. Chromium y el resto del entorno conservarán sus propias licencias.
-
-Fuentes: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git y https://www.kernel.org/doc/html/latest/process/license-rules.html.
-## Preparar las herramientas
-
-Desde PowerShell, después de cualquier reinicio requerido por la instalación de WSL:
+## Uso
 
 ```powershell
-.\preparar-entorno.ps1
+.\preparar-entorno.ps1 -Accion Preparar
+.\preparar-entorno.ps1 -Accion Iniciar
+.\preparar-entorno.ps1 -Accion Estado
+.\conectar-taller.ps1
 ```
 
-Debian WSL sirve como taller de compilación; no decide la distribución final. El preparador instala GCC, binutils, make, dependencias del kernel, depurador, QEMU y utilidades para initramfs. Conserva fuentes y compilación en `/root/linux-reconstruido` dentro de Linux; registros y configuración quedan en esta carpeta. No habilita acceso remoto ni crea contraseñas.
+Preparar requiere la imagen y las herramientas locales ya descargadas. Iniciar rechaza puertos ocupados y discos ausentes. El primer arranque instala paquetes oficiales Arch y copia el repositorio original al disco Linux. Estado solo declara listo tras comprobar la marca de finalización, GCC, herramientas, cloud-init y commit del kernel. Revisar `vm/serial.log`, `vm/qemu.log` y `vm/http.log` ante fallos.
 
-El objetivo es compatibilidad amplia con el ecosistema, no prometer todos los programas de todas las distribuciones. Se comprobarán por separado ABI Linux x86-64, bibliotecas, carga dinámica, procesos, memoria, red, gráficos, sonido y aislamiento. Los paquetes de distintas distribuciones no son intercambiables automáticamente. No se eliminarán mecanismos de compatibilidad sin identificar qué aplicaciones dependen de ellos.
-## Estado real de instalación
+SSH se publica únicamente en `127.0.0.1:12222`, autenticado por la clave generada en `vm/`. El servidor local `127.0.0.1:18765` entrega solo la copia de las fuentes. QMP usa `127.0.0.1:14444`. El usuario `builder` tiene sudo en esta VM de laboratorio y no usa contraseña SSH. No reutilizar esta imagen/configuración como servidor público.
 
-WSL 3.0.3.0 instalado desde el MSI oficial, con SHA-256 y firma Authenticode de Microsoft verificados. Windows solicita reiniciar para activar VirtualMachinePlatform. El intento de instalar Debian terminó indicando ese reinicio; no se afirma que Debian esté registrado o que GCC esté instalado aún. No se reinició automáticamente.
+Dentro de la VM, las fuentes están en `/home/builder/linux-reconstruido/kernel`. Para apagarla limpiamente: `sudo poweroff`. El servidor local de fuentes puede seguir en marcha hasta cerrarlo mediante el PID registrado en `vm/session.json`; no se deben terminar procesos por nombre global.
 
-Después del reinicio manual, ejecutar `preparar-entorno.ps1` para instalar/completar Debian y las herramientas. El kernel de ejecución que incorpora WSL pertenece al taller: es distinto del kernel oficial fijado en `upstream/linux.git` que vamos a compilar y probar por separado.
+## Ecosistema y guardianes
 
-Referencia de instalación: https://learn.microsoft.com/windows/wsl/install.
+Objetivo: acceso amplio al ecosistema Linux, incluyendo aplicaciones gráficas, compiladores, herramientas, servicios, redes, sonido y juegos compatibles. Chromium será una prueba entre varias. No existe un paquete que incluya todo el ecosistema ni una promesa automática de compatibilidad universal.
+
+Primero se preservan la ABI Linux x86-64 y las dependencias necesarias; después se miden cambios. POSIX se documentará por interfaces y pruebas. No se eliminarán componentes por antigüedad sin identificar sus usos.
+
+ROJO: falla una condición obligatoria y se detiene ese avance. AMARILLO: comportamiento no medido o dependencia pendiente. VERDE: comprobación concreta aprobada, sin extrapolarla al sistema completo. Cada guardián debe explicar motivo, evidencia, acción y coste.
+
+## Próximos hitos
+
+1. Herramientas y fuentes verificadas dentro de QEMU.
+2. Kernel oficial sin cambios compilado con GCC, configuración e informe reproducibles.
+3. Arranque de ese kernel con initramfs y consola en otra prueba QEMU.
+4. Entorno de usuario y pruebas de compatibilidad, gráficos, USB, red y sonido.
+5. Arranque en el PC real conservando recuperación y las entradas actuales.
+
+Todavía no se afirma que el kernel experimental haya compilado o arrancado. Los registros distinguen instalación de herramientas, compilación y ejecución.
+
+## Licencias y procedencia
+
+El kernel conserva `COPYING`, `LICENSES/` y los avisos por archivo. Los archivos originales del laboratorio se ofrecen bajo GPL-2.0-only; los componentes de terceros mantienen sus licencias. La licencia no se determina por usar C o GCC.
+
+Fuentes oficiales:
+- https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+- https://www.kernel.org/doc/html/latest/process/license-rules.html
+- https://wiki.archlinux.org/title/Arch_Linux_on_a_VPS
+- https://github.com/archlinux/arch-boxes

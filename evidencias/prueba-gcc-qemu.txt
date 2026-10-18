@@ -1,0 +1,9 @@
+Linux Reconstruido: GCC C OK
+gcc (GCC) 16.2.1 20260810
+GNU Make 4.4.1
+    PID COMMAND             ELAPSED COMMAND
+   4913 ps                    00:00 ps -eo pid,comm,etime,args --sort=-pcpu
+   4782 git                   03:41 /usr/lib/git-core/git --shallow-file /home/builder/linux-reconstruido/kernel/.git/shallow_nGiD05 index-pack --stdin --fix-thin --keep=fetch-pack 4778 on linux-reconstruido-taller --check-self-contained-and-connected
+   4895 systemd               00:06 /usr/lib/systemd/systemd --user
+   4781 git                   03:41 /usr/lib/git-core/git --shallow-file  pack-objects --revs --stdout --thin --shallow --delta-base-offset --quiet
+   4914 head                  00:00 head -n 6
