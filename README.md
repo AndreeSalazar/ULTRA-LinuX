@@ -12,6 +12,10 @@ Laboratorio personal x86-64 para entender y modificar Linux, inspirado en la sen
 
 El kernel no constituye una distribución completa. Todavía no se ha compilado ni arrancado este proyecto. WSL no está instalado en el equipo al preparar esta base. No se han cambiado discos, entradas UEFI ni el proyecto TALK-CPU.
 
+## Punto de partida fijado
+
+Linux **7.3-rc7**, commit `32c52ec87d6245ee2d12ed5dd509e40062939b50` del repositorio oficial. Es una versión candidata de mainline, no una publicación estable. La conectividad de los objetos se comprobó con Git; no se verificó una firma de publicación. El registro rastreado está en `evidencias/origen-inicial.json`.
+
 ## Entorno de trabajo
 
 Compilar con GCC en un entorno Linux. Conservar la copia de trabajo en su sistema de archivos Linux, por ejemplo en `~/linux-reconstruido/kernel`, para respetar nombres sensibles a mayúsculas y semántica de archivos. El repositorio bare puede permanecer en esta carpeta de Windows.
