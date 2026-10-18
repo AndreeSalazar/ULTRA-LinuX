@@ -1,0 +1,14 @@
+{
+  "UserChoice": "Enable SVM and prepare acceleration",
+  "WindowsReportedVirtualizationFirmwareEnabled": false,
+  "HypervisorPlatformRequested": true,
+  "RestartRequired": true,
+  "RestartInitiated": false,
+  "WHPXValidated": false,
+  "InitCCompiled": true,
+  "KernelBuildComplete": false,
+  "KernelBootValidated": false,
+  "BuildStoppedForRestart": true,
+  "NextAction": "Enable SVM in BIOS, boot Windows, start QEMU with WHPX and resume build",
+  "WorkshopShutdownConfirmed": true
+}

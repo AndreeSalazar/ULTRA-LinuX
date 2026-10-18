@@ -71,18 +71,22 @@ final_message: "Linux Reconstruido: cloud-init finalizado; comprobar paquetes y 
     if not disk.exists():run(QEMU/'qemu-img.exe','create','-f','qcow2','-F','qcow2','-b',image,disk,'64G')
     print('Seed y disco Linux de 64 GiB virtuales preparados. Base oficial conservada.')
 
-def start():
+def start(accel="whpx"):
     for port in [12222,18765,14444]:free(port)
     if not (VM/'seed.iso').exists():raise RuntimeError('Ejecutar prepare primero.')
+    if accel == 'whpx':
+        probe=subprocess.run([str(QEMU/'qemu-system-x86_64.exe'),'-machine','pc','-accel','whpx','-cpu','host','-S','-m','128','-display','none','-monitor','stdio','-serial','none'],input='quit\n',capture_output=True,text=True,timeout=15,creationflags=HIDDEN)
+        if probe.returncode:raise RuntimeError('WHPX no operativo. Activar SVM, reiniciar y comprobar HypervisorPlatform. '+probe.stderr)
+    clock=['-accel','whpx','-cpu','host'] if accel=='whpx' else ['-accel','tcg,thread=single','-icount','shift=auto','-cpu','qemu64']
     http_log=(VM/'http.log').open('ab')
     server=subprocess.Popen([sys.executable,'-m','http.server','18765','--bind','127.0.0.1','--directory',str(VM/'public')],stdout=http_log,stderr=subprocess.STDOUT,creationflags=HIDDEN)
-    args=[str(QEMU/'qemu-system-x86_64.exe'),'-name','Linux Reconstruido - taller GCC','-machine','pc','-accel','tcg,thread=single','-icount','shift=auto','-cpu','qemu64','-smp','4','-m','4096','-drive',f'file={VM/"taller.qcow2"},format=qcow2,if=virtio','-drive',f'file={VM/"seed.iso"},format=raw,media=cdrom,readonly=on','-device','virtio-net-pci,netdev=net0','-netdev','user,id=net0,hostfwd=tcp:127.0.0.1:12222-:22','-qmp','tcp:127.0.0.1:14444,server=on,wait=off','-serial',f'file:{VM/"serial.log"}','-display','none']
+    args=[str(QEMU/'qemu-system-x86_64.exe'),'-name','Linux Reconstruido - taller GCC','-machine','pc',*clock,'-smp','4','-m','4096','-drive',f'file={VM/"taller.qcow2"},format=qcow2,if=virtio','-drive',f'file={VM/"seed.iso"},format=raw,media=cdrom,readonly=on','-device','virtio-net-pci,netdev=net0','-netdev','user,id=net0,hostfwd=tcp:127.0.0.1:12222-:22','-qmp','tcp:127.0.0.1:14444,server=on,wait=off','-serial',f'file:{VM/"serial.log"}','-display','none']
     log=(VM/'qemu.log').open('ab')
     try:proc=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT,creationflags=HIDDEN)
     except Exception:server.terminate();raise
     time.sleep(2)
     if proc.poll() is not None:server.terminate();raise RuntimeError((VM/'qemu.log').read_text())
-    (VM/'session.json').write_text(json.dumps({'QEMU':proc.pid,'HTTP':server.pid,'SSH':'127.0.0.1:12222','Accelerator':'TCG single-thread with icount shift=auto','RAMMiB':4096,'VCPUs':4},indent=2))
+    (VM/'session.json').write_text(json.dumps({'QEMU':proc.pid,'HTTP':server.pid,'SSH':'127.0.0.1:12222','Accelerator':accel,'RAMMiB':4096,'VCPUs':4},indent=2))
     print('Taller iniciado. Instalacion interna en curso; SSH local puerto 12222.')
 
 def ssh(command):
@@ -104,7 +108,9 @@ def status():
         print('AMARILLO: cloud-init conserva error historico del clon interrumpido; inicializador recuperado y comprobado manualmente. No se certifica un arranque limpio.')
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['prepare','start','status']);args=parser.parse_args()
-    try:globals()[args.action]()
+    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['prepare','start','status']);parser.add_argument('--accel',choices=['whpx','tcg'],default='whpx');args=parser.parse_args()
+    try:
+        if args.action=='start':start(args.accel)
+        else:globals()[args.action]()
     except subprocess.CalledProcessError as exc:print('AMARILLO/ROJO:',exc.stderr or exc.stdout or str(exc),file=sys.stderr);sys.exit(1)
     except Exception as exc:print('AMARILLO/ROJO:',exc,file=sys.stderr);sys.exit(1)

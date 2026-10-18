@@ -1,0 +1,8 @@
+/home/builder/linux-reconstruido/build/tiny64-baseline/init: ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=eb89338c36447c1c23cb5d1c1d802febddf65b3f, for GNU/Linux 4.4.0, not stripped
+37d5ab6cf19172c415df56e1029ed7d938ba30aaacbf225a666a68377cd81046  /home/builder/linux-reconstruido/build/tiny64-baseline/init
+CONFIG_BLK_DEV_INITRD=y
+CONFIG_64BIT=y
+CONFIG_BINFMT_ELF=y
+CONFIG_VT_CONSOLE=y
+CONFIG_SERIAL_8250_CONSOLE=y
+inactive

@@ -1,0 +1,56 @@
+gcc (GCC) 16.2.1 20260810
+make: Entering directory '/home/builder/linux-reconstruido/kernel'
+make[1]: Entering directory '/home/builder/linux-reconstruido/build/tiny64-baseline'
+  UPD     /home/builder/linux-reconstruido/build/tiny64-baseline/Makefile
+  HOSTCC  scripts/basic/fixdep
+  HOSTCC  scripts/kconfig/conf.o
+  HOSTCC  scripts/kconfig/confdata.o
+  HOSTCC  scripts/kconfig/expr.o
+  LEX     scripts/kconfig/lexer.lex.c
+  YACC    scripts/kconfig/parser.tab.[ch]
+  HOSTCC  scripts/kconfig/lexer.lex.o
+  HOSTCC  scripts/kconfig/menu.o
+  HOSTCC  scripts/kconfig/parser.tab.o
+  HOSTCC  scripts/kconfig/preprocess.o
+  HOSTCC  scripts/kconfig/symbol.o
+  HOSTCC  scripts/kconfig/util.o
+  HOSTLD  scripts/kconfig/conf
+#
+# configuration written to .config
+#
+Using .config as base
+Merging /home/builder/linux-reconstruido/kernel/kernel/configs/tiny.config
+Value of CONFIG_KERNEL_XZ is redefined by fragment /home/builder/linux-reconstruido/kernel/kernel/configs/tiny.config:
+Previous value: # CONFIG_KERNEL_XZ is not set
+New value: CONFIG_KERNEL_XZ=y
+
+Value of CONFIG_CC_OPTIMIZE_FOR_SIZE is redefined by fragment /home/builder/linux-reconstruido/kernel/kernel/configs/tiny.config:
+Previous value: # CONFIG_CC_OPTIMIZE_FOR_SIZE is not set
+New value: CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+
+Value of CONFIG_SLUB_TINY is redefined by fragment /home/builder/linux-reconstruido/kernel/kernel/configs/tiny.config:
+Previous value: # CONFIG_SLUB_TINY is not set
+New value: CONFIG_SLUB_TINY=y
+
+Merging /home/builder/linux-reconstruido/kernel/arch/x86/configs/tiny.config
+Value of CONFIG_UNWINDER_GUESS is redefined by fragment /home/builder/linux-reconstruido/kernel/arch/x86/configs/tiny.config:
+Previous value: # CONFIG_UNWINDER_GUESS is not set
+New value: CONFIG_UNWINDER_GUESS=y
+
+#
+# merged configuration written to .config (needs make)
+#
+#
+# configuration written to .config
+#
+make[1]: Leaving directory '/home/builder/linux-reconstruido/build/tiny64-baseline'
+make: Leaving directory '/home/builder/linux-reconstruido/kernel'
+make: Entering directory '/home/builder/linux-reconstruido/kernel'
+make[1]: Entering directory '/home/builder/linux-reconstruido/build/tiny64-baseline'
+#
+# configuration written to .config
+#
+make[1]: Leaving directory '/home/builder/linux-reconstruido/build/tiny64-baseline'
+make: Leaving directory '/home/builder/linux-reconstruido/kernel'
+make: Entering directory '/home/builder/linux-reconstruido/kernel'
+make[1]: Entering directory '/home/builder/linux-reconstruido/build/tiny64-baseline'
