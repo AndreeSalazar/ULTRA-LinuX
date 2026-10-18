@@ -76,7 +76,7 @@ def start(accel="whpx"):
     if not (VM/'seed.iso').exists():raise RuntimeError('Ejecutar prepare primero.')
     if accel == 'whpx':
         probe=subprocess.run([str(QEMU/'qemu-system-x86_64.exe'),'-machine','pc','-accel','whpx','-cpu','host','-S','-m','128','-display','none','-monitor','stdio','-serial','none'],input='quit\n',capture_output=True,text=True,timeout=15,creationflags=HIDDEN)
-        if probe.returncode:raise RuntimeError('WHPX no operativo. Activar SVM, reiniciar y comprobar HypervisorPlatform. '+probe.stderr)
+        if probe.returncode:raise RuntimeError('WHPX no disponible: comprobar SVM activado en BIOS y completar el reinicio de Windows tras habilitar HypervisorPlatform. El taller no se inicio. Detalle QEMU: '+probe.stderr.strip())
     clock=['-accel','whpx','-cpu','host'] if accel=='whpx' else ['-accel','tcg,thread=single','-icount','shift=auto','-cpu','qemu64']
     http_log=(VM/'http.log').open('ab')
     server=subprocess.Popen([sys.executable,'-m','http.server','18765','--bind','127.0.0.1','--directory',str(VM/'public')],stdout=http_log,stderr=subprocess.STDOUT,creationflags=HIDDEN)

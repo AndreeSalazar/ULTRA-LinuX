@@ -55,3 +55,8 @@ Primero guardar kernel, configuración, versión de GCC, hashes y resultado de a
 Arch inspira la organización y el control de paquetes; CachyOS aporta ejemplos de perfiles y cambios del kernel que se pueden estudiar. No se han aplicado sus parches ni se declara superioridad. Fuente: https://wiki.cachyos.org/features/kernel/.
 
 El paso al metal se preparará después de demostrar este arranque y de contar con un perfil completo para la placa. El núcleo mínimo de esta prueba no se presenta como sistema de escritorio ni imagen instalable en SSD.
+## Rechazo observado antes del reinicio
+
+La captura `evidencias/whpx-rechazo-antes-reinicio.png` muestra WHPX no disponible y, después, SSH rechazado al intentar compilar. Las comprobaciones locales confirmaron SVM desactivado y reinicio pendiente. No se llegó a ejecutar GCC en ese intento.
+
+El lanzador de compilación ahora comprueba proceso QEMU y puerto local antes de invocar SSH. Si el taller está apagado, devuelve `TALLER-APAGADO` y la acción necesaria, sin producir la cascada de SSH y excepción. El aviso del iniciador también conserva el motivo WHPX sin añadir una traza PowerShell genérica. Se comprobó la salida 2 del guardián de taller apagado; activar SVM y reiniciar sigue siendo una acción manual pendiente.

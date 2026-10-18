@@ -4,6 +4,30 @@ $ErrorActionPreference='Stop'
 $project=$PSScriptRoot
 $key=Join-Path $project 'vm/builder_ed25519'
 $known='UserKnownHostsFile='+(Join-Path $project 'vm/known_hosts')
+# Reject an absent workshop before SSH: build failure is not a compiler failure.
+if($Accion -ne 'Ver'){
+    $running=$false
+    $record=Join-Path $project 'vm/session.json'
+    if(Test-Path -LiteralPath $record){
+        try{
+            $session=Get-Content -LiteralPath $record -Raw | ConvertFrom-Json
+            $process=Get-Process -Id ([int]$session.QEMU) -ErrorAction SilentlyContinue
+            $running=($null -ne $process -and $process.ProcessName -eq 'qemu-system-x86_64')
+        }catch{$running=$false}
+    }
+    if(-not $running){
+        Write-Host 'AMARILLO [TALLER-APAGADO]: QEMU no esta ejecutando el taller. No se intento SSH ni compilacion.' -ForegroundColor Yellow
+        Write-Host 'Primero: .\preparar-entorno.ps1 -Accion Iniciar'
+        Write-Host 'Si WHPX falla: activar SVM en BIOS, guardar y reiniciar Windows para completar HypervisorPlatform.'
+        exit 2
+    }
+    $client=[Net.Sockets.TcpClient]::new()
+    try{$connection=$client.ConnectAsync('127.0.0.1',12222);$ready=$connection.Wait(1500) -and $client.Connected}catch{$ready=$false}finally{$client.Dispose()}
+    if(-not $ready){
+        Write-Host 'AMARILLO [SSH-NO-LISTO]: el taller existe, pero su acceso local aun no responde. Espera a que termine de arrancar y vuelve a Estado.' -ForegroundColor Yellow
+        exit 2
+    }
+}
 function Invoke-Guest([string]$Command){
     & ssh.exe -i $key -p 12222 -o BatchMode=yes -o ConnectTimeout=30 -o KexAlgorithms=curve25519-sha256 -o $known builder@127.0.0.1 $Command
     if($LASTEXITCODE -ne 0){throw 'ROJO: la operacion Linux fallo; revisar su motivo antes de avanzar.'}

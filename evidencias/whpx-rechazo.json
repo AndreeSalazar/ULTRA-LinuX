@@ -1,0 +1,9 @@
+{
+  "VirtualizationFirmwareEnabled": false,
+  "RebootPending": true,
+  "LastBoot": "2026-10-18T11:37:33",
+  "WorkshopStarted": false,
+  "BuildAttemptReachedCompiler": false,
+  "PhotoSHA256": "37F87D548A7A0D010CD02EFD04D352B20A207913030D8259F10A85D32E4617D4",
+  "Resolution": "Enable SVM and reboot to complete HypervisorPlatform before starting workshop"
+}
