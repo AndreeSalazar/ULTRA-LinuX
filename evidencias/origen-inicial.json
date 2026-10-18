@@ -1,0 +1,11 @@
+{
+  "URL": "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git",
+  "Commit": "32c52ec87d6245ee2d12ed5dd509e40062939b50",
+  "Subject": "x86/insn-eval: Fix shadowed segment index in get_seg_reg_override_idx()",
+  "Shallow": true,
+  "Checkout": false,
+  "Source": "Linus Torvalds official mainline repository",
+  "SignatureVerified": false,
+  "Built": false,
+  "BootTested": false
+}
