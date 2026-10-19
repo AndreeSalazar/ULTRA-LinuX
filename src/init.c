@@ -240,6 +240,7 @@ int main(void) {
     /* The profile first, so its state shows on the card. */
     choose_profile(data);
     show_card();
+    show_logo();
 
     /* Signals are taken synchronously: no handler code runs at arbitrary points. */
     sigset_t watched;

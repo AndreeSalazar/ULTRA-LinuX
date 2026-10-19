@@ -270,6 +270,8 @@ def main():
             # The boot card, plain on the serial port: guardians asked to the kernel, not assumed.
             expect_boot(first, '[TARJETA]: ', 'arranque 1: tarjeta de arranque', failures)
             expect_boot(first, ' CET Landlock seccomp FORTIFY', 'arranque 1: los cuatro guardianes activos', failures)
+            # The ULTRA logo drawn on the framebuffer, top-right corner.
+            expect_boot(first, 'VERDE [LOGO]: 248x300 en la pantalla', 'arranque 1: logo en la pantalla', failures)
             transcript += run(conn, BOOT1, failures)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
             # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU

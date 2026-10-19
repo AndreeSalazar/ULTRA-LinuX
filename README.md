@@ -11,6 +11,8 @@ ULTRA LinuX arrancando en el PC real (Ryzen 5 5600X, MSI A320M-A PRO MAX, RTX 30
 | Antes, con los dos kernels | **2009 ms** | La placa revisaba los puertos SATA uno por uno (arranque escalonado) |
 | Kernel `pc` (Zen 3), guiado | **920 ms** | `libahci.ignore_sss=1`: los cuatro puertos a la vez. Módulos cargados en paralelo (17,4 → 12,5 ms) |
 
+El logo de ULTRA (el pingüino rojo y metálico de `src/logo/ultra-tux.webp`) lo dibuja el propio init en la esquina de la pantalla, a través de `/dev/fb0` y sin modificar el kernel (`src/logo.c`, captura en `evidencias/pantalla-logo-ultra.png`). Está basado en Tux, de Larry Ewing (lewing@isc.tamu.edu), hecho con The GIMP.
+
 Medido por el propio init en cada arranque, y confirmado en el `dmesg`: `Run /init` pasó de 2,27 s a 1,17 s, y desapareció la línea `parallel bus scan disabled`. Datos completos en [`evidencias/pc-real/`](evidencias/pc-real/). El camino hasta aquí (pantalla negra, el `dmesg` que delató al SATA, el primer intento con el nombre de parámetro equivocado) está en [PRUEBA-PC-REAL.md](docs/PRUEBA-PC-REAL.md), y Linux medido por categorías en [ANTI3M-LINUX.md](docs/ANTI3M-LINUX.md).
 
 El [Museo viviente de C y sus guardianes](docs/MUSEO-UB.md) reune ejemplos estudiados,
