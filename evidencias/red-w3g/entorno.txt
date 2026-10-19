@@ -1,0 +1,1 @@
+Linux linux-reconstruido-taller 7.2.11-arch1-1 #1 SMP PREEMPT_DYNAMIC Fri, 16 Oct 2026 00:28:58 +0000 x86_64 GNU/Linux

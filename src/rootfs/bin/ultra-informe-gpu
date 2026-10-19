@@ -21,6 +21,10 @@ tmp=$out.$$
     done
     printf '\n[PREPARACION DE NODOS]\n'
     [[ ! -r /run/ultra-escritorio/nodos.log ]] || cat /run/ultra-escritorio/nodos.log
+    printf '\n[RED: preparacion de esta sesion]\n'
+    if [[ -r /run/ultra-escritorio/red.log ]]; then cat /run/ultra-escritorio/red.log;
+    else printf 'NA: no se llego a preparar la red\n'; fi
+    /usr/bin/bash /usr/local/libexec/ultra-informe-red
     printf '\n[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]\n'
     if [[ -r /run/ultra-escritorio/medicion.log ]]; then
         cat /run/ultra-escritorio/medicion.log

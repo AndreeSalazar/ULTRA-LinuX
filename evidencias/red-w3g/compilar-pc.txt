@@ -1,0 +1,4 @@
+gcc: warning: linker hardening options not enabled by '-fhardened' because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by '-fhardened' because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by '-fhardened' because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by '-fhardened' because other link options were specified on the command line

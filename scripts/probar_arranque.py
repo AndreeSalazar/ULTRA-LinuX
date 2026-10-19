@@ -105,6 +105,9 @@ elif PERFIL == 'generico':
     # The generic image stays without NVIDIA: it is the safety net if the driver ever fails.
     BOOT1 += [('ls /sistema/usr/bin/nvidia-smi 2>&1', 'No such file')]
 if PERFIL in ('pc', 'generico'):
+    BOOT1 += [('test -s /sistema/usr/lib/firmware/rtl_nic/rtl8168h-2.fw && echo REALTEK-FW-$((4+5))', 'REALTEK-FW-9'),
+              ('cat /sys/module/firmware_class/parameters/path', '/sistema/usr/lib/firmware'),
+              ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/local/libexec/ultra-red-contadores', 'RED ')]
     # QEMU has no NVIDIA: explicit acceleration must reject, never pretend software is GPU.
     BOOT1 += [('ultra-escritorio --nvidia 2>&1', 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA'),
               ('ultra-escritorio --nvidia >/tmp/gpu-rechazo.log 2>&1; echo GPU-ESTADO-$?', 'GPU-ESTADO-1')]
@@ -664,7 +667,10 @@ def main():
                                         ('grep -q "^AUSENTE /dev/nvidiactl$" /bmo/ULTRA/informe/gpu-fallo-$(uname -r).txt && echo GPU-FALLO-$((2+3))', 'GPU-FALLO-5'),
                                         ('grep -Eq "^RAM total_kB=[0-9]+ disponible_kB=[0-9]+ usada_estimada_kB=[0-9]+" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RAM-MEDIDA-$((3+3))', 'RAM-MEDIDA-6'),
                                         ('grep -q "^PROCESO .*nombre=Hyprland .*pss_kB=[0-9]" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo PSS-CLIENTE-$((3+4))', 'PSS-CLIENTE-7'),
-                                        ('grep -q "^GPU NA modo_software_o_nodos_ausentes" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && test ! -S /arch/run/seatd.sock && echo OBSERVADOR-FINAL-$((4+4))', 'OBSERVADOR-FINAL-8')], failures)
+                                        ('grep -q "^GPU NA modo_software_o_nodos_ausentes" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && test ! -S /arch/run/seatd.sock && echo OBSERVADOR-FINAL-$((4+4))', 'OBSERVADOR-FINAL-8'),
+                                        ('grep -q "ETHERNET: estado posterior" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && grep -q "contadores globales acumulados" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RED-EXPORTADA-$((4+5))', 'RED-EXPORTADA-9')], failures)
+                if BRAVE:
+                    transcript += run(conn, [('grep -Eq "^RED iface=.* rx_bytes=[0-9]+ rx_packets=[0-9]+" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RED-C-MEDIDA-$((5+5))', 'RED-C-MEDIDA-10')], failures)
                 # Extract the actual measurements, without exposing BMO to apps.
                 conn.sendall(b'busybox base64 /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt\n')
                 encoded = read_until(conn, 'ultra:', 30)

@@ -1,0 +1,31 @@
+{
+  "FechaUtc": "2026-10-19T23:37:02.9619318Z",
+  "Archivos": [
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "SHA256": "AAEF85082CAAB382736F18A0F9C51AA6F48571FB076466C022B46BE7503F6FBA"
+    },
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "SHA256": "6552C39A33B68E0004738ADF45FE4F7154FEDE44FB16E3438E251B357709577A"
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "SHA256": "140F656225A72AF113C752C92EC4D8C130347B165F0FE2719996087396A04840"
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "SHA256": "9299EE2FAB8F13B68382DF2391BD8D380D910B31C1B3105D06F5C4DDDD121FC1"
+    }
+  ],
+  "DatosSinCambio": true,
+  "DatosSHA256": "9F92598782619A52B7873D39A91B5F10F216987BCD79F712BFC43A4ABCD33275",
+  "GenericoPruebas": 100,
+  "PcPruebas": 104,
+  "Fallidas": 0,
+  "Respaldo": "C:\\Users\\Salazar\\Documents\\Linux Reconstruido\\build\\antes-red-00e25910bfd0486293a7f9fae0cc4295"
+}

@@ -1,0 +1,122 @@
+{
+  "build\\generico\\gpu-qemu-software-hyprland.txt": {
+    "intervalos": [
+      {
+        "interfaz": "ens3",
+        "indice": 2,
+        "segundos": 5.2115098,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "ens3",
+        "indice": 2,
+        "segundos": 5.1799826,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "ens3",
+        "indice": 2,
+        "segundos": 5.443943,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "ens3",
+        "indice": 2,
+        "segundos": 5.7574366,
+        "delta": {
+          "rx_bytes": 57129,
+          "tx_bytes": 24090,
+          "rx_packets": 101,
+          "tx_packets": 97,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.07938116070613786,
+        "rx_paquetes_s": 17.542529256857122,
+        "tx_Mbit_s": 0.033473230082985195,
+        "tx_paquetes_s": 16.84777562292219
+      },
+      {
+        "interfaz": "ens3",
+        "indice": 2,
+        "segundos": 7.5264006,
+        "delta": {
+          "rx_bytes": 3527282,
+          "tx_bytes": 112296,
+          "rx_packets": 2645,
+          "tx_packets": 948,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 3.749236520841051,
+        "rx_paquetes_s": 351.42960633798845,
+        "tx_Mbit_s": 0.11936223538247485,
+        "tx_paquetes_s": 125.95662261187638
+      },
+      {
+        "interfaz": "ens3",
+        "indice": 2,
+        "segundos": 7.3643213,
+        "delta": {
+          "rx_bytes": 1065783,
+          "tx_bytes": 29958,
+          "rx_packets": 782,
+          "tx_packets": 189,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 1.1577800115809722,
+        "rx_paquetes_s": 106.18765370815638,
+        "tx_Mbit_s": 0.0325439358546184,
+        "tx_paquetes_s": 25.664279476779484
+      }
+    ],
+    "discontinuidades_o_muestras_invalidas": 0,
+    "nota": "Contadores de interfaz, no bytes fisicos en cable ni capacidad maxima. GRO/TSO y el driver afectan las cuentas; errores/descartes dependen del punto de medida. Muestras no atomicas. En informes se usa solo el historial de la sesion. Sin dos muestras compatibles no se calcula tasa."
+  }
+}

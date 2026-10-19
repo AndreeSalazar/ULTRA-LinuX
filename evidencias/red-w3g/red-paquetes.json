@@ -1,0 +1,95 @@
+{
+  "entorno": "VM taller, veth/netem privados, sin NIC fisica ni TLS",
+  "casos": [
+    {
+      "caso": "TCP base: envios y lecturas con tamanos diferentes",
+      "bytes_utiles": 1048576,
+      "segundos": 0.015025151999907393,
+      "Mbit_s_aplicacion": 558.3043685715594,
+      "sha256_correcto": true
+    },
+    {
+      "caso": "UDP base",
+      "enviados": 100,
+      "unicos_recibidos": 100,
+      "duplicados": 0
+    },
+    {
+      "caso": "UDP perdida total: no se inventan entregas",
+      "enviados": 100,
+      "unicos_recibidos": 0,
+      "duplicados": 0
+    },
+    {
+      "caso": "TCP perdida total: timeout acotado",
+      "segundos": 0.40034259499952896
+    },
+    {
+      "caso": "TCP retardo y duplicados: integridad conservada",
+      "bytes_utiles": 1048576,
+      "segundos": 0.028256902000066475,
+      "Mbit_s_aplicacion": 296.8693454073722,
+      "sha256_correcto": true
+    },
+    {
+      "caso": "UDP retardo y duplicados: secuencias contadas",
+      "enviados": 100,
+      "unicos_recibidos": 100,
+      "duplicados": 5
+    },
+    {
+      "caso": "TCP recuperacion tras quitar los fallos",
+      "bytes_utiles": 1048576,
+      "segundos": 0.002063717000055476,
+      "Mbit_s_aplicacion": 4064.805397142389,
+      "sha256_correcto": true
+    }
+  ],
+  "qdisc_perdida": "qdisc netem 8004: root refcnt 5 limit 1000 loss 100% seed 7037843752757069132\n Sent 0 bytes 0 pkt (dropped 105, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\n  delayed 0 dropped 105 corrupted 0 duplicated 0 reordered 0 ecn_marked 0\n",
+  "qdisc_retardo": "qdisc netem 8004: root refcnt 5 limit 1000 delay 3ms duplicate 10% seed 7037843752757069132\n Sent 1232346 bytes 889 pkt (dropped 105, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\n  delayed 167 dropped 105 corrupted 0 duplicated 7 reordered 0 ecn_marked 0\n",
+  "muestras_C": "RED iface=red0 indice=3 monotonic_s=5188.902366771 rx_bytes=90 rx_packets=1 rx_errors=0 rx_dropped=0 tx_bytes=90 tx_packets=1 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=10000 mtu=1500\nRED iface=red0 indice=3 monotonic_s=5189.686084241 rx_bytes=61522 rx_packets=191 rx_errors=0 rx_dropped=0 tx_bytes=1115158 tx_packets=269 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=10000 mtu=1500\nRED iface=red0 indice=3 monotonic_s=5191.521564993 rx_bytes=131054 rx_packets=465 rx_errors=0 rx_dropped=0 tx_bytes=3358864 tx_packets=594 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=10000 mtu=1500\n",
+  "tasas": {
+    "intervalos": [
+      {
+        "interfaz": "red0",
+        "indice": 3,
+        "segundos": 0.78371747,
+        "delta": {
+          "rx_bytes": 61432,
+          "tx_bytes": 1115068,
+          "rx_packets": 190,
+          "tx_packets": 268,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.6270831247388169,
+        "rx_paquetes_s": 242.4343048011932,
+        "tx_Mbit_s": 11.382346753097133,
+        "tx_paquetes_s": 341.9599667722094
+      },
+      {
+        "interfaz": "red0",
+        "indice": 3,
+        "segundos": 1.835480752,
+        "delta": {
+          "rx_bytes": 69532,
+          "tx_bytes": 2243706,
+          "rx_packets": 274,
+          "tx_packets": 325,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.3030573866786046,
+        "rx_paquetes_s": 149.27969127512813,
+        "tx_Mbit_s": 9.779262452325623,
+        "tx_paquetes_s": 177.0653272423965
+      }
+    ],
+    "discontinuidades_o_muestras_invalidas": 0,
+    "nota": "Contadores de interfaz, no bytes fisicos en cable ni capacidad maxima. GRO/TSO y el driver afectan las cuentas; errores/descartes dependen del punto de medida. Muestras no atomicas. Sin dos muestras compatibles no se calcula tasa."
+  }
+}

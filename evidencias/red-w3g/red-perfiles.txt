@@ -1,0 +1,32 @@
+PERFIL=generico
+0b4beab008e308f28296c13188ee23edfeff7d865e398a7ade170495c8cec7e6  /home/builder/linux-reconstruido/artifacts/generico/sistema-a/usr/lib/firmware/rtl_nic/rtl8168h-2.fw
+  GNU_RELRO      0x00000000000c6ea8 0x00000000000c7ea8 0x00000000000c7ea8
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE
+CONFIG_CMDLINE="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
+CONFIG_RPS=y
+CONFIG_RFS_ACCEL=y
+CONFIG_XPS=y
+# CONFIG_FW_LOADER_COMPRESS is not set
+CONFIG_R8169=m
+CONFIG_KFENCE=y
+CONFIG_KFENCE_SAMPLE_INTERVAL=100
+CONFIG_KFENCE_NUM_OBJECTS=255
+# CONFIG_KFENCE_DEFERRABLE is not set
+CONFIG_KFENCE_STRESS_TEST_FAULTS=0
+PERFIL=pc
+0b4beab008e308f28296c13188ee23edfeff7d865e398a7ade170495c8cec7e6  /home/builder/linux-reconstruido/artifacts/pc/sistema-a/usr/lib/firmware/rtl_nic/rtl8168h-2.fw
+  GNU_RELRO      0x00000000000c6e88 0x00000000000c7e88 0x00000000000c7e88
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE
+CONFIG_CMDLINE="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware nvidia-drm.modeset=1 nvidia-drm.fbdev=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
+CONFIG_RPS=y
+CONFIG_RFS_ACCEL=y
+CONFIG_XPS=y
+# CONFIG_FW_LOADER_COMPRESS is not set
+CONFIG_R8169=m
+CONFIG_KFENCE=y
+CONFIG_KFENCE_SAMPLE_INTERVAL=100
+CONFIG_KFENCE_NUM_OBJECTS=255
+# CONFIG_KFENCE_DEFERRABLE is not set
+CONFIG_KFENCE_STRESS_TEST_FAULTS=0

@@ -1,0 +1,35 @@
+{
+  "entorno": "VM taller; HTTPS en loopback aislado; curl UID1000 sin capacidades",
+  "casos": [
+    {
+      "caso": "HTTPS: certificado desconocido se rechaza",
+      "salida_curl": 60,
+      "respuesta": "",
+      "diagnostico": "curl: (60) SSL certificate OpenSSL verify result: self-signed certificate (18)\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimacy of the server and therefore could not\nestablish a secure connection to it. To learn more about this situation and\nhow to fix it, please visit the webpage mentioned above."
+    },
+    {
+      "caso": "HTTPS: confianza explicita y nombre correcto",
+      "salida_curl": 0,
+      "respuesta": "ULTRA-TLS-LOCAL\n",
+      "diagnostico": ""
+    },
+    {
+      "caso": "HTTPS: nombre incorrecto se rechaza aun con CA confiada",
+      "salida_curl": 60,
+      "respuesta": "",
+      "diagnostico": "curl: (60) SSL: no alternative certificate subject name matches target IPv4 address '127.0.0.1'\nMore details here: https://curl.se/docs/sslcerts.html\n\ncurl failed to verify the legitimacy of the server and therefore could not\nestablish a secure connection to it. To learn more about this situation and\nhow to fix it, please visit the webpage mentioned above."
+    }
+  ],
+  "alertas_servidor": [
+    {
+      "tipo": "BrokenPipeError",
+      "esperada": true,
+      "detalle": "[Errno 32] Broken pipe"
+    },
+    {
+      "tipo": "BrokenPipeError",
+      "esperada": true,
+      "detalle": "[Errno 32] Broken pipe"
+    }
+  ]
+}

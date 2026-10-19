@@ -1,0 +1,4456 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x5,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x5,0x0)
+VERDE [MONTAJE]: devtmpfs en /dev
+VERDE [MONTAJE]: proc en /proc
+VERDE [MONTAJE]: sysfs en /sys
+VERDE [MONTAJE]: tmpfs en /tmp
+VERDE [MONTAJE]: tmpfs en /run
+VERDE [MONTAJE]: devpts en /dev/pts
+VERDE [MONTAJE]: tmpfs en /dev/shm
+
+ULTRA LinuX: INIT C READY
+ULTRA LinuX - Influencia BMO-X
+Eddi Salazar: creador de un sistema propio, sin ser un OS
+
+VERDE [KERNEL]: Linux 7.3.0-rc7-pc-g32c52ec87d62 x86_64
+VERDE [PARTICION]: BMO (/dev/vda2, vfat) en /bmo
+VERDE [PARTICION]: ULTRA-SISTEMA-A <- /bmo/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs (/dev/loop0, erofs, solo lectura) en /sistema
+VERDE [PARTICION]: ULTRA-DATOS <- /bmo/ULTRA/datos.ext4 (/dev/loop1, ext4) en /datos
+VERDE [HARDWARE]: primer arranque en este PC (no hay PC.configuracion valida): deteccion completa
+VERDE [HARDWARE]: 8 componentes, 1 modulos necesarios (6 cargados, 0 de otros kernels, 0 fallos); deteccion 544 us + carga 27840 us
+[    0.848791] snd_hda_intel 0000:00:04.0: no codecs found!
+VERDE [HARDWARE]: guardado en /datos/PC.configuración
+VERDE [MEDIDA]: hasta el hardware: 850 ms; primer arranque medido con este kernel
+VERDE [SISTEMA]: base Arch en /arch (328 paquetes, glibc 2.44; EROFS + capa en memoria); entra con: ultra-entrar
+VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 1966 MiB | 7.3.0-rc7-pc-g32c52ec87d62 | 850 ms (antes -1) | CET Landlock seccomp FORTIFY
+VERDE [LOGO]: 248x300 en la pantalla de 1280x800
+VERDE [CONSOLA]: shell en /dev/tty1
+VERDE [CONSOLA]: shell en /dev/ttyS0
+ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).
+Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff
+Recomendacion: ultra-entrar  (entra en el sistema Arch: bash, coreutils, grep, sed, less; exit para volver)
+Escritorio: e  (menu con flechas y Enter; GPU, recuperacion y diagnostico)
+ultra:~# cat /etc/os-release
+NAME="ULTRA LinuX"
+PRETTY_NAME="ULTRA LinuX (fase 1: kernel + init C + BusyBox)"
+ID=ultra
+ID_LIKE=arch
+VERSION_ID=0.1
+HOME_URL="https://github.com/AndreeSalazar"
+ultra:~# uname -sm
+Linux x86_64
+ultra:~# ps
+PID   USER     TIME  COMMAND
+    1 0         0:00 /init
+    2 0         0:00 [kthreadd]
+    3 0         0:00 [pool_workqueue_]
+    4 0         0:00 [kworker/R-rcu_g]
+    5 0         0:00 [kworker/R-sync_]
+    6 0         0:00 [kworker/R-kvfre]
+    7 0         0:00 [kworker/R-slub_]
+    8 0         0:00 [kworker/R-netns]
+    9 0         0:00 [kworker/0:0-eve]
+   10 0         0:00 [kworker/0:0H-kb]
+   11 0         0:00 [kworker/0:1+eve]
+   12 0         0:00 [kworker/u4:0-ev]
+   13 0         0:00 [kworker/R-mm_pe]
+   14 0         0:00 [kworker/u4:1-tr]
+   15 0         0:00 [ksoftirqd/0]
+   16 0         0:00 [rcu_preempt]
+   17 0         0:00 [rcu_exp_par_gp_]
+   18 0         0:00 [rcu_exp_gp_kthr]
+   19 0         0:00 [migration/0]
+   20 0         0:00 [kprobe-optimize]
+   21 0         0:00 [cpuhp/0]
+   22 0         0:00 [kdevtmpfs]
+   23 0         0:00 [kworker/R-inet_]
+   24 0         0:00 [rcu_tasks_kthre]
+   25 0         0:00 [kauditd]
+   26 0         0:00 [pr/ttyS0]
+   27 0         0:00 [oom_reaper]
+   28 0         0:00 [kworker/R-write]
+   29 0         0:00 [kcompactd0]
+   30 0         0:00 [kworker/R-bio_c]
+   31 0         0:00 [kworker/R-kbloc]
+   32 0         0:00 [irq/9-acpi]
+   33 0         0:00 [kworker/R-ata_s]
+   34 0         0:00 [kworker/R-md_bi]
+   35 0         0:00 [kworker/u4:2-tr]
+   36 0         0:00 [kworker/R-quota]
+   37 0         0:00 [kworker/R-rpcio]
+   38 0         0:00 [kworker/R-xprti]
+   39 0         0:00 [kworker/R-cfg80]
+   40 0         0:00 [kworker/u4:3-ex]
+   41 0         0:00 [kswapd0]
+   42 0         0:00 [kworker/u4:4-tt]
+   43 0         0:00 [kworker/R-nfsio]
+   44 0         0:00 [kworker/u5:0]
+   45 0         0:00 [kworker/R-acpi_]
+   46 0         0:00 [card0-crtc0]
+   47 0         0:00 [kworker/0:2-ata]
+   48 0         0:00 [kworker/0:1H-kb]
+   49 0         0:00 [kworker/R-nvme-]
+   50 0         0:00 [kworker/R-nvme-]
+   51 0         0:00 [kworker/R-nvme-]
+   52 0         0:00 [scsi_eh_0]
+   53 0         0:00 [kworker/R-scsi_]
+   54 0         0:00 [scsi_eh_1]
+   55 0         0:00 [kworker/R-scsi_]
+   56 0         0:00 [kworker/u4:5-sc]
+   57 0         0:00 [kworker/u4:6]
+   58 0         0:00 [kworker/0:3-eve]
+   59 0         0:00 [kworker/R-mld]
+   60 0         0:00 [kworker/R-ipv6_]
+   64 0         0:00 [kworker/0:4]
+   65 0         0:00 [jbd2/loop1-8]
+   66 0         0:00 [kworker/R-ext4-]
+   67 0         0:00 [ext4lazyinit]
+   68 0         0:00 -sh
+   70 0         0:00 -sh
+   74 0         0:00 {ps} -sh
+ultra:~# echo $((6*7))
+42
+ultra:~# ls /proc/self/fd
+[1;36m0[m   [1;36m1[m   [1;36m10[m  [1;36m2[m   [1;36m3[m
+ultra:~# minas --cet
+ACTIVA (shstk)
+ultra:~# minas retorno-secuestrado
+MINA retorno-secuestrado: sobrescribir la direccion de retorno: base del ROP; solo CET lo bloquea en el retorno
+ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+  programa=minas senal=11 code=10 (SEGV_CPERR: la pila sombra CET bloqueo un retorno falso) direccion=0x0 pc=inicio+0xb640
+Segmentation fault[    1.019224] minas[77] control protection ip:7f0d943eb640 sp:7ffc092132f8 ssp:7f0d943d7fe8 error:1(near ret) in minas[b640,7f0d943e8000+85000]
+
+ultra:~# minas entero-desborde
+MINA entero-desborde: int con signo pasa de INT_MAX: en C es UB y el optimizador puede borrar tus comprobaciones
+ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+  programa=minas senal=4 code=2 pc=inicio+0xa878
+Illegal instruction
+ultra:~# minas copia-pila
+MINA copia-pila: memcpy de 16 bytes en un buffer de 8: clasico desborde de pila
+*** buffer overflow detected ***: terminated
+ROJO [ABORTO-GUARDIAN: FORTIFY, protector de pila o glibc detecto corrupcion (ver la linea anterior)]
+  programa=minas senal=6 code=-6 pc=inicio+0x19ea5
+Aborted
+ultra:~# minas memcpy-solapado
+MINA memcpy-solapado: memcpy con origen y destino solapados es UB; usar memmove
+ROJO [FRONTERA-SOLAPE] /home/builder/linux-reconstruido/lab/guardian/laboratorio/minas.c:126: memcpy con regiones solapadas es UB; usar memmove
+ROJO [ABORTO-GUARDIAN: FORTIFY, protector de pila o glibc detecto corrupcion (ver la linea anterior)]
+  programa=minas senal=6 code=-6 pc=inicio+0x19ea5
+Aborted
+ultra:~# minas alias-estricto
+MINA alias-estricto: leer un int por un float*: con alias estricto el optimizador devuelve un valor viejo
+NEUTRALIZADA: resultado definido 0 (0: la memoria real)
+ultra:~# minas secuestrar-arranque
+MINA secuestrar-arranque: sobrescribir un puntero de init_array, como un ataque a la GOT
+ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+  programa=minas senal=11 code=2 (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable) direccion=0x7f49b3717580 pc=inicio+0xaeb4
+Segmentation fault
+ultra:~# grep x86_Thread /proc/1/status
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+ultra:~# probar-caja
+VERDE    caja lector cat /etc/os-release
+         NAME="ULTRA LinuX"
+         PRETTY_NAME="ULTRA LinuX (fase 1: kernel + init C + BusyBox)"
+VERDE    caja lector sh -c echo PID=$$
+         PID=1
+VERDE    caja lector uname -n
+         caja
+VERDE    caja lector id
+         uid=65534 gid=65534
+VERDE    caja lector sh -c echo fuga > /tmp/fuera
+         sh: can't create /tmp/fuera: Permission denied
+VERDE    caja lector cat /proc/version
+         cat: can't open '/proc/version': Permission denied
+VERDE    caja taller cat /etc/os-release
+         cat: can't open '/etc/os-release': Permission denied
+VERDE    caja taller sh -c echo dentro > /tmp/dentro && cat /tmp/dentro
+VERDE    caja lector nc 10.0.2.2 80
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: socket (41) en pid 182; la caja se destruye
+VERDE    caja lector mount -t tmpfs none /tmp
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: mount (165) en pid 194; la caja se destruye
+VERDE    caja lector sh -c kill -9 1
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: kill (62) en pid 206; la caja se destruye
+VERDE    caja lector sh -c echo no-debe-escribir >&9
+VERDE    caja taller sh -c (kill -0 1; echo NO-DEBE-CONTINUAR); echo NO-DEBE-CONTINUAR
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: kill (62) en pid 231; la caja se destruye
+RESUMEN CAJA: VERDE=13 ROJO=0
+ultra:~# dmesg | grep -m1 "kfence: init"
+[    0.039248] kfence: initialized - using 2097152 bytes for 255 objects at 0x(____ptrval____)-0x(____ptrval____)
+ultra:~# uname -r
+7.3.0-rc7-pc-g32c52ec87d62
+ultra:~# ls /sys/bus/pci/drivers
+[1;34m8139too[m        [1;34mata_piix[m       [1;34mi801_smbus[m     [1;34mpata_oldpiix[m   [1;34muhci_hcd[m
+[1;34m8250_lpss[m      [1;34me100[m           [1;34mi915[m           [1;34mpata_sch[m       [1;34mvirtio-pci[m
+[1;34m8250_mid[m       [1;34me1000[m          [1;34miosf_mbi_pci[m   [1;34mpcieport[m       [1;34mxhci_hcd[m
+[1;34m8250_mxpcie[m    [1;34me1000e[m         [1;34mmei_me[m         [1;34mserial[m         [1;34myenta_cardbus[m
+[1;34m8250_pericom[m   [1;34mehci-pci[m       [1;34mnvme[m           [1;34msky2[m
+[1;34magpgart-intel[m  [1;34mexar_serial[m    [1;34mohci-pci[m       [1;34msnd_hda_intel[m
+[1;34mahci[m           [1;34mforcedeth[m      [1;34mpata_amd[m       [1;34mtg3[m
+ultra:~# grep -c processor /proc/cpuinfo
+1
+ultra:~# cat /proc/filesystems
+nodev	sysfs
+nodev	tmpfs
+nodev	proc
+nodev	cgroup
+nodev	cgroup2
+nodev	devtmpfs
+nodev	binfmt_misc
+nodev	debugfs
+nodev	tracefs
+nodev	sockfs
+nodev	pipefs
+nodev	ramfs
+nodev	hugetlbfs
+nodev	rpc_pipefs
+nodev	devpts
+	ext3
+	ext2
+	ext4
+	vfat
+	msdos
+	iso9660
+nodev	nfs
+nodev	nfs4
+nodev	autofs
+nodev	overlay
+nodev	9p
+nodev	efivarfs
+	erofs
+nodev	mqueue
+ultra:~# cat /sys/firmware/efi/fw_platform_size
+64
+ultra:~# cat /proc/cmdline
+console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware nvidia-drm.modeset=1 nvidia-drm.fbdev=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on
+ultra:~# echo SSS-$(cat /sys/module/libahci/parameters/ignore_sss)
+SSS-1
+ultra:~# echo FIN-$(sed "s/.*x86_shstk=on//" /proc/cmdline | wc -c)
+FIN-1
+ultra:~# cat /sys/class/tty/console/active
+tty0 ttyS0
+ultra:~# grep " /sistema " /proc/mounts
+/dev/loop0 /sistema erofs ro,nosuid,nodev,relatime,user_xattr,acl,cache_strategy=readaround 0 0
+ultra:~# grep " /datos " /proc/mounts
+/dev/loop1 /datos ext4 rw,nosuid,nodev,relatime 0 0
+ultra:~# cat /sistema/ULTRA-SISTEMA
+ULTRA-SISTEMA-A
+kernel=7.3.0-rc7-pc-g32c52ec87d62
+base=arch
+paquetes=328
+ultra:~# touch /sistema/intruso
+touch: /sistema/intruso: Read-only file system
+ultra:~# cat /datos/PC.config*
+# ULTRA LinuX - PC.configuración
+# Escrito por el init en el primer arranque en este PC. Borrarlo fuerza otra deteccion.
+# Solo elige modulos: el codigo sale de ULTRA-SISTEMA-A, que es de solo lectura.
+kernel=7.3.0-rc7-pc-g32c52ec87d62
+huella_pci=396533b26a11b1f2
+deteccion_us=544
+carga_us=27840
+modulos_kernel=7.3.0-rc7-pc-g32c52ec87d62 0eb81fbef2fa2e56
+
+[componentes]
+pci 0000:00:00.0 | Intel 8086:1237 puente de host | driver=- | modulos=- | pci:v00008086d00001237sv00001AF4sd00001100bc06sc00i00
+pci 0000:00:01.0 | Intel 8086:7000 puente ISA | driver=- | modulos=- | pci:v00008086d00007000sv00001AF4sd00001100bc06sc01i00
+pci 0000:00:01.1 | Intel 8086:7010 IDE | driver=ata_piix | modulos=- | pci:v00008086d00007010sv00001AF4sd00001100bc01sc01i80
+pci 0000:00:01.3 | Intel 8086:7113 otro | driver=- | modulos=- | pci:v00008086d00007113sv00001AF4sd00001100bc06sc80i00
+pci 0000:00:02.0 | virtio 1af4:1050 pantalla | driver=virtio-pci | modulos=- | pci:v00001AF4d00001050sv00001AF4sd00001100bc03sc00i00
+pci 0000:00:03.0 | virtio 1af4:1000 red Ethernet | driver=virtio-pci | modulos=- | pci:v00001AF4d00001000sv00001AF4sd00000001bc02sc00i00
+pci 0000:00:04.0 | Intel 8086:2668 sonido HD | driver=snd_hda_intel | modulos=snd_hda_intel | pci:v00008086d00002668sv00001AF4sd00001100bc04sc03i00
+pci 0000:00:05.0 | virtio 1af4:1001 SCSI | driver=virtio-pci | modulos=- | pci:v00001AF4d00001001sv00001AF4sd00000002bc01sc00i00
+
+[modulos]
+snd_hda_intel
+ultra:~# lsmod
+snd_hda_intel 53248 0 - Live 0xffffffffc0231000
+snd_hda_codec 184320 1 snd_hda_intel, Live 0xffffffffc0220000
+snd_hda_core 131072 2 snd_hda_intel,snd_hda_codec, Live 0xffffffffc0216000
+snd_pcm 176128 3 snd_hda_intel,snd_hda_codec,snd_hda_core, Live 0xffffffffc0203000
+snd_hwdep 20480 1 snd_hda_codec, Live 0xffffffffc0201000
+snd_intel_dspcfg 16384 1 snd_hda_intel, Live 0xffffffffc0200000
+ultra:~# echo PERSISTE-9c2dadc8 > /datos/prueba-persistencia; sync; echo ESCRITO
+-$((1+1))
+ESCRITO-2
+ultra:~# ultra-entrar /usr/bin/bash -c 'echo ARCH-$BASH_VERSION'
+ARCH-5.3.20(1)-release
+ultra:~# ultra-entrar /usr/bin/ls --version
+ls (GNU coreutils) 9.12
+Copyright (C) 2026 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by Richard M. Stallman and David MacKenzie.
+ultra:~# echo HOST-$(hostname)
+HOST-ultra
+ultra:~# ultra-entrar /usr/bin/bash -lc 'echo LISTO'
+Dentro del sistema Arch de ULTRA LinuX. exit: volver a la shell de ULTRA.
+LISTO
+ultra:~# ultra-entrar /usr/bin/grep x86_Thread /proc/self/status
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+ultra:~# ultra-entrar /usr/bin/ls /datos
+ LEEME.txt			 arranques.log	 prueba-persistencia
+'PC.configuraci'$'\303\263''n'	 lost+found
+ultra:~# ultra-entrar /usr/bin/bash -c 'echo capa-$((2+2)) > /etc/prueba-capa &&
+ cat /etc/prueba-capa'
+capa-4
+ultra:~# grep -c prueba-capa /sistema/etc/prueba-capa 2>&1; echo IMAGEN-$((1+1))
+grep: /sistema/etc/prueba-capa: No such file or directory
+IMAGEN-2
+ultra:~# ls /sistema/lib/modules/$(uname -r)/kernel/drivers/video/
+[0;0mnvidia-drm.ko[m      [0;0mnvidia-peermem.ko[m  [0;0mnvidia.ko[m
+[0;0mnvidia-modeset.ko[m  [0;0mnvidia-uvm.ko[m
+ultra:~# ls /sistema/usr/lib/firmware/nvidia/*/
+[0;0mgsp_ga10x.bin[m     [0;0mgsp_tu10x.bin[m     [0;0mucodes_ga10x.bin[m  [0;0mucodes_tu10x.bin[m
+ultra:~# cat /proc/cmdline
+console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware nvidia-drm.modeset=1 nvidia-drm.fbdev=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on
+ultra:~# ultra-entrar /usr/bin/nvidia-smi
+NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.
+
+ultra:~# test -s /sistema/usr/lib/firmware/rtl_nic/rtl8168h-2.fw && echo REALTEK
+-FW-$((4+5))
+REALTEK-FW-9
+ultra:~# cat /sys/module/firmware_class/parameters/path
+/sistema/usr/lib/firmware
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/local/libexec/ultra-red-contadores
+RED iface=eth0 indice=2 monotonic_s=2.366843618 rx_bytes=0 rx_packets=0 rx_errors=0 rx_dropped=0 tx_bytes=0 tx_packets=0 tx_errors=0 tx_dropped=0 carrier=NA speed_Mbps=NA mtu=1500
+ultra:~# ultra-escritorio --nvidia 2>&1
+Starting systemd-udevd version 262.1-1-arch
+ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA
+VERDE [INFORME-GPU]: /bmo/ULTRA/informe/gpu-7.3.0-rc7-pc-g32c52ec87d62.txt
+ultra:~# ultra-escritorio --nvidia >/tmp/gpu-rechazo.log 2>&1; echo GPU-ESTADO-$
+?
+GPU-ESTADO-1
+ultra:~# ultra-entrar /opt/brave/brave --version
+Brave Browser 155.1.97.59 unknown
+ultra:~# test -e /proc/sys/user/max_user_namespaces && echo USERNS-DISPONIBLE-$(
+(4+4))
+USERNS-DISPONIBLE-8
+ultra:~# grep " /bmo " /proc/mounts
+/dev/vda2 /bmo vfat rw,nosuid,nodev,noexec,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro 0 0
+ultra:~# echo VFAT-$(grep -c vfat /proc/mounts)
+VFAT-1
+ultra:~# ls /bmo/ULTRA/informe
+[1;32mPC-configuracion.txt[m
+[1;32marranques.txt[m
+[1;32mdmesg-7.3.0-rc7-pc-g32c52ec87d62.txt[m
+[1;32mgpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-cage.txt[m
+[1;32mgpu-7.3.0-rc7-pc-g32c52ec87d62.txt[m
+[1;32mgpu-fallo-7.3.0-rc7-pc-g32c52ec87d62.txt[m
+ultra:~# echo DMESG-$(cat /bmo/ULTRA/informe/dmesg-*.txt | grep -c "Linux versio
+n")
+DMESG-1
+ultra:~# e
+[H[2JULTRA LinuX - Escritorio
+
+Flechas arriba/abajo y Enter. 1-6 para seleccionar. Esc o Q para salir.
+
+[7m > 1. Hyprland automatico (ventanas) [0m
+   2. Hyprland NVIDIA (GPU y ventanas)
+   3. Cage software (recuperacion)
+   4. Ver ultimo diagnostico
+   5. Ver estado NVIDIA
+   6. Volver a la consola
+
+Al cerrar Hyprland con Super+Shift+M vuelves al menu. Cage: exit.
+^[[B[H[2JULTRA LinuX - Escritorio
+
+Flechas arriba/abajo y Enter. 1-6 para seleccionar. Esc o Q para salir.
+
+   1. Hyprland automatico (ventanas)
+[7m > 2. Hyprland NVIDIA (GPU y ventanas) [0m
+   3. Cage software (recuperacion)
+   4. Ver ultimo diagnostico
+   5. Ver estado NVIDIA
+   6. Volver a la consola
+
+Al cerrar Hyprland con Super+Shift+M vuelves al menu. Cage: exit.
+
+[H[2JAbriendo escritorio...
+
+Sesion terminada (codigo 1).
+ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA
+
+Pulsa una tecla para volver al menu...x[H[2JULTRA LinuX - Escritorio
+
+Flechas arriba/abajo y Enter. 1-6 para seleccionar. Esc o Q para salir.
+
+   1. Hyprland automatico (ventanas)
+[7m > 2. Hyprland NVIDIA (GPU y ventanas) [0m
+   3. Cage software (recuperacion)
+   4. Ver ultimo diagnostico
+   5. Ver estado NVIDIA
+   6. Volver a la consola
+
+Al cerrar Hyprland con Super+Shift+M vuelves al menu. Cage: exit.
+4[H[2JULTRA LinuX - Escritorio
+
+Flechas arriba/abajo y Enter. 1-6 para seleccionar. Esc o Q para salir.
+
+   1. Hyprland automatico (ventanas)
+   2. Hyprland NVIDIA (GPU y ventanas)
+   3. Cage software (recuperacion)
+[7m > 4. Ver ultimo diagnostico [0m
+   5. Ver estado NVIDIA
+   6. Volver a la consola
+
+Al cerrar Hyprland con Super+Shift+M vuelves al menu. Cage: exit.
+
+[H[2JULTIMO INTENTO REGISTRADO (temporal, puede ser de una sesion anterior)
+
+--- /run/ultra-escritorio/informe-gpu.txt (resumen) ---
+RED iface=ens3 indice=2 monotonic_s=15.840614118 rx_bytes=1290 rx_packets=3 rx_errors=0 rx_dropped=0 tx_bytes=1496 tx_packets=14 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+Ip: Forwarding DefaultTTL InReceives InHdrErrors InAddrErrors ForwDatagrams InUnknownProtos InDiscards InDelivers OutRequests OutDiscards OutNoRoutes ReasmTimeout ReasmReqds ReasmOKs ReasmFails FragOKs FragFails FragCreates OutTransmits
+Icmp: InMsgs InErrors InCsumErrors InDestUnreachs InTimeExcds InParmProbs InSrcQuenchs InRedirects InEchos InEchoReps InTimestamps InTimestampReps InAddrMasks InAddrMaskReps OutMsgs OutErrors OutRateLimitGlobal OutRateLimitHost OutDestUnreachs OutTimeExcds OutParmProbs OutSrcQuenchs OutRedirects OutEchos OutEchoReps OutTimestamps OutTimestampReps OutAddrMasks OutAddrMaskReps
+Tcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors
+Udp: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors
+IpExt: InNoRoutes InTruncatedPkts InMcastPkts OutMcastPkts InBcastPkts OutBcastPkts InOctets OutOctets InMcastOctets OutMcastOctets InBcastOctets OutBcastOctets InCsumErrors InNoECTPkts InECT1Pkts InECT0Pkts InCEPkts ReasmOverlaps
+/sys/class/net/ens3/queues/tx-0/xps_cpus=head: error reading '/sys/class/net/ens3/queues/tx-0/xps_cpus': No such file or directory
+[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]
+[KERNEL: GPU y audio, ultimas 70 coincidencias]
+[    0.166164] [drm] Initialized virtio_gpu 0.1.0 for 0000:00:02.0 on minor 0
+[    0.168380] fbcon: virtio_gpudrmfb (fb0) is primary device
+[    0.199996] virtio-pci 0000:00:02.0: [drm] fb0: virtio_gpudrmfb frame buffer device
+
+--- /run/ultra-escritorio/lanzador.log (resumen) ---
+ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA
+
+Pulsa una tecla para volver al menu...x[H[2JULTRA LinuX - Escritorio
+
+Flechas arriba/abajo y Enter. 1-6 para seleccionar. Esc o Q para salir.
+
+   1. Hyprland automatico (ventanas)
+   2. Hyprland NVIDIA (GPU y ventanas)
+   3. Cage software (recuperacion)
+[7m > 4. Ver ultimo diagnostico [0m
+   5. Ver estado NVIDIA
+   6. Volver a la consola
+
+Al cerrar Hyprland con Super+Shift+M vuelves al menu. Cage: exit.
+qVERDE [INFORME-GPU]: /bmo/ULTRA/informe/gpu-7.3.0-rc7-pc-g32c52ec87d62.txt
+ultra:~# ultra-escritorio --auto > /tmp/escritorio.log 2>&1 &
+ultra:~# for n in cage foot; do for p in $(pidof "$n"); do echo ULTRA-CRED-$n; c
+at /proc/$p/status; echo ULTRA-CRED-FIN; done; done
+ULTRA-CRED-cage
+Name:	cage
+Umask:	0022
+State:	S (sleeping)
+Tgid:	649
+Ngid:	0
+Pid:	649
+PPid:	617
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	256
+Groups:	987 1000
+NStgid:	649
+NSpid:	649
+NSpgid:	616
+NSsid:	70
+Kthread:	0
+VmPeak:	 1083272 kB
+VmSize:	 1083128 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	   20196 kB
+VmRSS:	   20196 kB
+RssAnon:	    3300 kB
+RssFile:	    9024 kB
+RssShmem:	    7872 kB
+VmData:	    2860 kB
+VmStk:	    8324 kB
+VmExe:	      24 kB
+VmLib:	    8676 kB
+VmPTE:	     124 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	1
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000004002
+SigIgn:	0000000000000000
+SigCgt:	0000000000000000
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional enabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	307
+nonvoluntary_ctxt_switches:	260
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+ULTRA-CRED-FIN
+ULTRA-CRED-foot
+Name:	foot
+Umask:	0022
+State:	S (sleeping)
+Tgid:	659
+Ngid:	0
+Pid:	659
+PPid:	649
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	64
+Groups:	987 1000
+NStgid:	659
+NSpid:	659
+NSpgid:	616
+NSsid:	70
+Kthread:	0
+VmPeak:	 1376812 kB
+VmSize:	 1376668 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	   20000 kB
+VmRSS:	   20000 kB
+RssAnon:	    2932 kB
+RssFile:	    8924 kB
+RssShmem:	    8144 kB
+VmData:	   35556 kB
+VmStk:	   16516 kB
+VmExe:	     320 kB
+VmLib:	    6972 kB
+VmPTE:	     140 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	2
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001001
+SigCgt:	0000000100014a02
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional enabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	77
+nonvoluntary_ctxt_switches:	60
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+ULTRA-CRED-FIN
+ultra:~#
+[1]+  Done                       ultra-escritorio --auto 1>/tmp/escritorio.log 2>&1
+ultra:~# echo SINC-$((3+3))
+SINC-6
+ultra:~# echo CAGE-$(grep -c "cage termino (salida 0)" /tmp/escritorio.log)
+CAGE-1
+ultra:~# test ! -S /arch/run/seatd.sock && echo SEATD-LIMPIO
+SEATD-LIMPIO
+ultra:~# ultra-escritorio --hyprland --software > /tmp/hyprland-session.log 2>&1
+ &
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+no such instance
+
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 12],
+    "size": [1256, 776],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 12],
+    "size": [621, 776],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 12],
+    "size": [621, 776],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [621, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [621, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 4,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 176],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+},{
+    "address": "0x5566a16a2180",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 243],
+    "size": [301, 171],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "brave-browser",
+    "title": "ULTRA | Brave - Brave",
+    "initialClass": "brave-browser",
+    "initialTitle": "Untitled - Brave",
+    "pid": 1026,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000006"
+}]
+HYPR-IPC-7
+ultra:~# echo BRAVE-BROKER; cat /proc/1026/status; echo ns_user=$(readlink /proc
+/1026/ns/user); echo ns_pid=$(readlink /proc/1026/ns/pid); echo BRAVE-BROKER-FIN
+; for p in /proc/[0-9]*; do args=$(tr "\0" " " < "$p/cmdline" 2>/dev/null); case
+ "$args" in /opt/brave/brave*--type=renderer*) echo BRAVE-RENDERER; cat "$p/stat
+us"; echo ns_user=$(readlink "$p/ns/user"); echo ns_pid=$(readlink "$p/ns/pid");
+ cat "$p/uid_map"; echo BRAVE-RENDERER-FIN;; esac; done; echo BRAVE-CRED-LISTO-$
+((9+4))
+BRAVE-BROKER
+Name:	brave
+Umask:	0022
+State:	R (running)
+Tgid:	1026
+Ngid:	0
+Pid:	1026
+PPid:	793
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	1024
+Groups:	987 1000
+NStgid:	1026
+NSpid:	1026
+NSpgid:	727
+NSsid:	70
+Kthread:	0
+VmPeak:	55478836 kB
+VmSize:	55474740 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	  265456 kB
+VmRSS:	  264848 kB
+RssAnon:	   54148 kB
+RssFile:	  204956 kB
+RssShmem:	    5744 kB
+VmData:	  311512 kB
+VmStk:	     132 kB
+VmExe:	  247776 kB
+VmLib:	  131544 kB
+VmPTE:	    1328 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	33
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001000
+SigCgt:	00000001418144ff
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional enabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	4528
+nonvoluntary_ctxt_switches:	1902
+x86_Thread_features:
+x86_Thread_features_locked:
+ns_user=user:[4026531837]
+ns_pid=pid:[4026531836]
+BRAVE-BROKER-FIN
+BRAVE-RENDERER
+Name:	brave
+Umask:	0022
+State:	S (sleeping)
+Tgid:	1128
+Ngid:	0
+Pid:	1128
+PPid:	1060
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	512
+Groups:	987 1000
+NStgid:	1128	12	1
+NSpid:	1128	12	1
+NSpgid:	727	0	0
+NSsid:	70	0	0
+Kthread:	0
+VmPeak:	1518807956 kB
+VmSize:	1518308536 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	   80480 kB
+VmRSS:	   80480 kB
+RssAnon:	   22344 kB
+RssFile:	   57856 kB
+RssShmem:	     280 kB
+VmData:	  605176 kB
+VmStk:	     160 kB
+VmExe:	  247776 kB
+VmLib:	   20016 kB
+VmPTE:	     712 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	9
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001002
+SigCgt:	0000000141814efd
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	000001ffffffffff
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	2
+Seccomp_filters:	1
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional force disabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	120
+nonvoluntary_ctxt_switches:	69
+x86_Thread_features:
+x86_Thread_features_locked:
+ns_user=user:[4026532598]
+ns_pid=pid:[4026532600]
+      1000       1000          1
+BRAVE-RENDERER-FIN
+BRAVE-RENDERER
+Name:	brave
+Umask:	0022
+State:	S (sleeping)
+Tgid:	1129
+Ngid:	0
+Pid:	1129
+PPid:	1060
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	512
+Groups:	987 1000
+NStgid:	1129	13	1
+NSpid:	1129	13	1
+NSpgid:	727	0	0
+NSsid:	70	0	0
+Kthread:	0
+VmPeak:	1518807956 kB
+VmSize:	1518322544 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	  126312 kB
+VmRSS:	  126312 kB
+RssAnon:	   25960 kB
+RssFile:	   95872 kB
+RssShmem:	    4480 kB
+VmData:	  617360 kB
+VmStk:	     160 kB
+VmExe:	  247776 kB
+VmLib:	   20016 kB
+VmPTE:	     812 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	10
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001002
+SigCgt:	0000000141814efd
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	000001ffffffffff
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	2
+Seccomp_filters:	1
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional force disabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	816
+nonvoluntary_ctxt_switches:	179
+x86_Thread_features:
+x86_Thread_features_locked:
+ns_user=user:[4026532598]
+ns_pid=pid:[4026532601]
+      1000       1000          1
+BRAVE-RENDERER-FIN
+BRAVE-CRED-LISTO-13
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 4,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 176],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+},{
+    "address": "0x5566a16a2180",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 243],
+    "size": [301, 171],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "brave-browser",
+    "title": "ULTRA | Brave - Brave",
+    "initialClass": "brave-browser",
+    "initialTitle": "Untitled - Brave",
+    "pid": 1026,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000006"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 4,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 176],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+},{
+    "address": "0x5566a16a2180",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 243],
+    "size": [301, 171],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "brave-browser",
+    "title": "Example Domain - Brave",
+    "initialClass": "brave-browser",
+    "initialTitle": "Untitled - Brave",
+    "pid": 1026,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000006"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [962, 53],
+    "size": [306, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [301, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/curl --fail --silent --show-error --max-time 12 -
+I https://example.com && echo HTTPS-VERIFICADO-$((3+5)); echo HTTPS-FIN-$((4+5))
+HTTP/2 200
+[1mdate[0m: Mon, 19 Oct 2026 23:35:34 GMT
+[1mcontent-type[0m: text/html; charset=utf-8
+[1mserver[0m: cloudflare
+[1mlast-modified[0m: Tue, 13 Oct 2026 22:05:48 GMT
+[1mallow[0m: GET, HEAD
+[1maccept-ranges[0m: bytes
+[1mage[0m: 2044
+[1mcf-cache-status[0m: HIT
+[1mcf-ray[0m: a4d39998a8704831-EZE
+[1malt-svc[0m: h3=":443"; ma=86400
+
+HTTPS-VERIFICADO-8
+HTTPS-FIN-9
+ultra:~# test -n "$(pidof fuzzel)" && echo LANZADOR-$((2+2)); echo HYPR-QUERY-$(
+(2+3))
+LANZADOR-4
+HYPR-QUERY-5
+ultra:~# for p in $(pidof Hyprland); do echo HYPR-CRED-Hyprland; cat /proc/$p/st
+atus; echo HYPR-CRED-FIN; done; for p in 835; do echo HYPR-CRED-foot; cat /proc/
+$p/status; echo HYPR-CRED-FIN; done; for p in 910; do echo HYPR-CRED-mousepad; c
+at /proc/$p/status; echo HYPR-CRED-FIN; done; for p in 935; do echo HYPR-CRED-th
+unar; cat /proc/$p/status; echo HYPR-CRED-FIN; done; echo HYPR-CRED-LISTO-$((4+7
+))
+HYPR-CRED-Hyprland
+Name:	Hyprland
+Umask:	0022
+State:	R (running)
+Tgid:	793
+Ngid:	0
+Pid:	793
+PPid:	787
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	128
+Groups:	987 1000
+NStgid:	793
+NSpid:	793
+NSpgid:	727
+NSsid:	70
+Kthread:	0
+VmPeak:	 3369100 kB
+VmSize:	 2347192 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	  254240 kB
+VmRSS:	  246632 kB
+RssAnon:	  113780 kB
+RssFile:	  128900 kB
+RssShmem:	    3952 kB
+VmData:	  227928 kB
+VmStk:	   98468 kB
+VmExe:	   10972 kB
+VmLib:	  261284 kB
+VmPTE:	    1148 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	12
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000004000
+SigIgn:	0000000000001000
+SigCgt:	0000000100000620
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional enabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	5141
+nonvoluntary_ctxt_switches:	4884
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+HYPR-CRED-FIN
+HYPR-CRED-foot
+Name:	foot
+Umask:	0022
+State:	S (sleeping)
+Tgid:	835
+Ngid:	0
+Pid:	835
+PPid:	793
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	64
+Groups:	987 1000
+NStgid:	835
+NSpid:	835
+NSpgid:	727
+NSsid:	70
+Kthread:	0
+VmPeak:	 1310004 kB
+VmSize:	  785716 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	   15624 kB
+VmRSS:	   12760 kB
+RssAnon:	    2852 kB
+RssFile:	    9008 kB
+RssShmem:	     900 kB
+VmData:	   35408 kB
+VmStk:	   16516 kB
+VmExe:	     320 kB
+VmLib:	    6972 kB
+VmPTE:	     120 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	2
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001001
+SigCgt:	0000000100014a02
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional enabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	51
+nonvoluntary_ctxt_switches:	71
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+HYPR-CRED-FIN
+HYPR-CRED-mousepad
+Name:	mousepad
+Umask:	0022
+State:	S (sleeping)
+Tgid:	910
+Ngid:	0
+Pid:	910
+PPid:	793
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	128
+Groups:	987 1000
+NStgid:	910
+NSpid:	910
+NSpgid:	727
+NSsid:	70
+Kthread:	0
+VmPeak:	  689436 kB
+VmSize:	  678760 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	   49936 kB
+VmRSS:	   49644 kB
+RssAnon:	   17020 kB
+RssFile:	   31884 kB
+RssShmem:	     740 kB
+VmData:	   77708 kB
+VmStk:	   59524 kB
+VmExe:	       4 kB
+VmLib:	   28016 kB
+VmPTE:	     304 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	11
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001000
+SigCgt:	0000000100004003
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional enabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	342
+nonvoluntary_ctxt_switches:	207
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+HYPR-CRED-FIN
+HYPR-CRED-thunar
+Name:	thunar
+Umask:	0022
+State:	S (sleeping)
+Tgid:	935
+Ngid:	0
+Pid:	935
+PPid:	793
+TracerPid:	0
+Uid:	1000	1000	1000	1000
+Gid:	1000	1000	1000	1000
+FDSize:	128
+Groups:	987 1000
+NStgid:	935
+NSpid:	935
+NSpgid:	727
+NSsid:	70
+Kthread:	0
+VmPeak:	  766656 kB
+VmSize:	  692996 kB
+VmLck:	       0 kB
+VmPin:	       0 kB
+VmHWM:	   43364 kB
+VmRSS:	   43212 kB
+RssAnon:	    9460 kB
+RssFile:	   32992 kB
+RssShmem:	     760 kB
+VmData:	   92448 kB
+VmStk:	   59524 kB
+VmExe:	     564 kB
+VmLib:	   27864 kB
+VmPTE:	     316 kB
+VmSwap:	       0 kB
+HugetlbPages:	       0 kB
+CoreDumping:	0
+THP_enabled:	0
+untag_mask:	0xffffffffffffffff
+Threads:	11
+SigQ:	0/7819
+SigPnd:	0000000000000000
+ShdPnd:	0000000000000000
+SigBlk:	0000000000000000
+SigIgn:	0000000000001000
+SigCgt:	0000000100000000
+CapInh:	0000000000000000
+CapPrm:	0000000000000000
+CapEff:	0000000000000000
+CapBnd:	0000000000000000
+CapAmb:	0000000000000000
+NoNewPrivs:	1
+Seccomp:	0
+Seccomp_filters:	0
+Speculation_Store_Bypass:	thread vulnerable
+SpeculationIndirectBranch:	conditional enabled
+Cpus_allowed:	1
+Cpus_allowed_list:	0
+Mems_allowed:	1
+Mems_allowed_list:	0
+voluntary_ctxt_switches:	348
+nonvoluntary_ctxt_switches:	416
+x86_Thread_features:	shstk
+x86_Thread_features_locked:	shstk wrss
+HYPR-CRED-FIN
+HYPR-CRED-LISTO-11
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [621, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [624, 52],
+    "size": [347, 369],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": true,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 3,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [621, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+},{
+    "address": "0x5566a0ff44c0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [624, 52],
+    "size": [347, 369],
+    "workspace": {
+        "id": 2,
+        "name": "2"
+    },
+    "floating": true,
+    "monitor": 0,
+    "class": "thunar",
+    "title": "ultra - Thunar",
+    "initialClass": "thunar",
+    "initialTitle": "ultra - Thunar",
+    "pid": 935,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000005"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5566a0ebb250",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [12, 53],
+    "size": [621, 735],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 836,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x5566a16dbd60",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 428],
+    "size": [621, 360],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 835,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5566a0eee650",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [647, 53],
+    "size": [621, 361],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 910,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000004"
+}]
+HYPR-IPC-7
+ultra:~# test -n "$(pidof swaybg)" && echo FONDO-$((2+2)); echo FONDO-FIN-$((4+3
+))
+FONDO-4
+FONDO-FIN-7
+ultra:~#
+[1]+  Done                       ultra-escritorio --hyprland --software 1>/tmp/hyprland-session.log 2>&1
+ultra:~# echo HYPR-SINC-$((3+4))
+HYPR-SINC-7
+ultra:~# echo HYPR-$(grep -c "hyprland termino (salida 0)" /tmp/hyprland-session
+.log)
+HYPR-1
+ultra:~# test ! -S /arch/run/seatd.sock && echo HYPR-SEATD-LIMPIO
+HYPR-SEATD-LIMPIO
+ultra:~# test -s /bmo/ULTRA/informe/gpu-$(uname -r).txt && echo GPU-INFORME-$((2
++2))
+GPU-INFORME-4
+ultra:~# grep -q "^AUSENTE /dev/nvidiactl$" /bmo/ULTRA/informe/gpu-fallo-$(uname
+ -r).txt && echo GPU-FALLO-$((2+3))
+GPU-FALLO-5
+ultra:~# grep -Eq "^RAM total_kB=[0-9]+ disponible_kB=[0-9]+ usada_estimada_kB=[
+0-9]+" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RAM-MEDI
+DA-$((3+3))
+RAM-MEDIDA-6
+ultra:~# grep -q "^PROCESO .*nombre=Hyprland .*pss_kB=[0-9]" /bmo/ULTRA/informe/
+gpu-$(uname -r)-software-hyprland.txt && echo PSS-CLIENTE-$((3+4))
+PSS-CLIENTE-7
+ultra:~# grep -q "^GPU NA modo_software_o_nodos_ausentes" /bmo/ULTRA/informe/gpu
+-$(uname -r)-software-hyprland.txt && test ! -S /arch/run/seatd.sock && echo OBS
+ERVADOR-FINAL-$((4+4))
+OBSERVADOR-FINAL-8
+ultra:~# grep -q "ETHERNET: estado posterior" /bmo/ULTRA/informe/gpu-$(uname -r)
+-software-hyprland.txt && grep -q "contadores globales acumulados" /bmo/ULTRA/in
+forme/gpu-$(uname -r)-software-hyprland.txt && echo RED-EXPORTADA-$((4+5))
+RED-EXPORTADA-9
+ultra:~# grep -Eq "^RED iface=.* rx_bytes=[0-9]+ rx_packets=[0-9]+" /bmo/ULTRA/i
+nforme/gpu-$(uname -r)-software-hyprland.txt && echo RED-C-MEDIDA-$((5+5))
+RED-C-MEDIDA-10
+ultra:~# busybox base64 /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt
+VUxUUkEgR1BVIC0gdWx0aW1vIGludGVudG8KZmVjaGFfdXRjPTIwMjYtMTAtMTlUMjM6MzU6MTBa
+Cmtlcm5lbD03LjMuMC1yYzctcGMtZzMyYzUyZWM4N2Q2Mgptb2RvPXNvZnR3YXJlCmNvbXBvc2l0
+b3I9aHlwcmxhbmQKc2FsaWRhPTAKCltOT0RPUzogZXN0YWRvIHBvc3RlcmlvciBhbCBpbnRlbnRv
+LCBzaW4gZWplY3V0YXIgbnZpZGlhLXNtaV0KQVVTRU5URSAvZGV2L252aWRpYTAKQVVTRU5URSAv
+ZGV2L252aWRpYWN0bApBVVNFTlRFIC9kZXYvbnZpZGlhLW1vZGVzZXQKL2Rldi9kcmkvY2FyZDAg
+dGlwbz1jaGFyYWN0ZXIgc3BlY2lhbCBmaWxlIG1ham9yX21pbm9yX2hleD1lMjowIHVpZD0wIGdp
+ZD05ODMgcGVybWlzb3M9NjYwCi9kZXYvZHJpL3JlbmRlckQxMjggdGlwbz1jaGFyYWN0ZXIgc3Bl
+Y2lhbCBmaWxlIG1ham9yX21pbm9yX2hleD1lMjo4MCB1aWQ9MCBnaWQ9OTg3IHBlcm1pc29zPTY2
+NgoKW0RSSVZFUl0KCltQUkVQQVJBQ0lPTiBERSBOT0RPU10KCltSRUQ6IHByZXBhcmFjaW9uIGRl
+IGVzdGEgc2VzaW9uXQpVTFRSQSBSRUQKVkVSREUgW1JFRF06IHlhIGhheSBydXRhIElQdjQKZW5z
+MyAgICAgICAgICAgICBVUCAgICAgICAgICAgICAxMC4wLjIuMTUvMjQgCgpbRVRIRVJORVQ6IGVz
+dGFkbyBwb3N0ZXJpb3IgYSBsYSBzZXNpb247IGNvbnRhZG9yZXMgbm8gYXRvbWljb3NdCnJlZF9m
+ZWNoYV91dGM9MjAyNi0xMC0xOVQyMzozNToxMFoKUkVEIGlmYWNlPWVuczMgaW5kaWNlPTIgbW9u
+b3RvbmljX3M9NjMuMTA5NzM1OTE4IHJ4X2J5dGVzPTI0NTIzMzY5IHJ4X3BhY2tldHM9MTY4OTMg
+cnhfZXJyb3JzPTAgcnhfZHJvcHBlZD0wIHR4X2J5dGVzPTIzOTQ0NiB0eF9wYWNrZXRzPTIzNDgg
+dHhfZXJyb3JzPTAgdHhfZHJvcHBlZD0wIGNhcnJpZXI9MSBzcGVlZF9NYnBzPU5BIG10dT0xNTAw
+CmRlZmF1bHQgdmlhIDEwLjAuMi4yIGRldiBlbnMzIHByb3RvIGRoY3Agc3JjIDEwLjAuMi4xNSBt
+ZXRyaWMgMTAwMiAKW1RDUC9JUDogY29udGFkb3JlcyBnbG9iYWxlcyBhY3VtdWxhZG9zIGRlc2Rl
+IGFycmFucXVlLCBubyBwb3IgYXBsaWNhY2lvbl0KSXA6IEZvcndhcmRpbmcgRGVmYXVsdFRUTCBJ
+blJlY2VpdmVzIEluSGRyRXJyb3JzIEluQWRkckVycm9ycyBGb3J3RGF0YWdyYW1zIEluVW5rbm93
+blByb3RvcyBJbkRpc2NhcmRzIEluRGVsaXZlcnMgT3V0UmVxdWVzdHMgT3V0RGlzY2FyZHMgT3V0
+Tm9Sb3V0ZXMgUmVhc21UaW1lb3V0IFJlYXNtUmVxZHMgUmVhc21PS3MgUmVhc21GYWlscyBGcmFn
+T0tzIEZyYWdGYWlscyBGcmFnQ3JlYXRlcyBPdXRUcmFuc21pdHMKSXA6IDIgNjQgOTk0MyAwIDAg
+MCAwIDAgOTk0MSAyMjgwIDAgMCAwIDAgMCAwIDAgMCAwIDIyODAKSWNtcDogSW5Nc2dzIEluRXJy
+b3JzIEluQ3N1bUVycm9ycyBJbkRlc3RVbnJlYWNocyBJblRpbWVFeGNkcyBJblBhcm1Qcm9icyBJ
+blNyY1F1ZW5jaHMgSW5SZWRpcmVjdHMgSW5FY2hvcyBJbkVjaG9SZXBzIEluVGltZXN0YW1wcyBJ
+blRpbWVzdGFtcFJlcHMgSW5BZGRyTWFza3MgSW5BZGRyTWFza1JlcHMgT3V0TXNncyBPdXRFcnJv
+cnMgT3V0UmF0ZUxpbWl0R2xvYmFsIE91dFJhdGVMaW1pdEhvc3QgT3V0RGVzdFVucmVhY2hzIE91
+dFRpbWVFeGNkcyBPdXRQYXJtUHJvYnMgT3V0U3JjUXVlbmNocyBPdXRSZWRpcmVjdHMgT3V0RWNo
+b3MgT3V0RWNob1JlcHMgT3V0VGltZXN0YW1wcyBPdXRUaW1lc3RhbXBSZXBzIE91dEFkZHJNYXNr
+cyBPdXRBZGRyTWFza1JlcHMKSWNtcDogMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDEgMCAw
+IDAgMSAwIDAgMCAwIDAgMCAwIDAgMCAwCkljbXBNc2c6IE91dFR5cGUzCkljbXBNc2c6IDEKVGNw
+OiBSdG9BbGdvcml0aG0gUnRvTWluIFJ0b01heCBNYXhDb25uIEFjdGl2ZU9wZW5zIFBhc3NpdmVP
+cGVucyBBdHRlbXB0RmFpbHMgRXN0YWJSZXNldHMgQ3VyckVzdGFiIEluU2VncyBPdXRTZWdzIFJl
+dHJhbnNTZWdzIEluRXJycyBPdXRSc3RzIEluQ3N1bUVycm9ycwpUY3A6IDEgMjAwIDEyMDAwMCAt
+MSA1NiAwIDAgMSAwIDg1MDQgMjA5OCAwIDAgMzkgMApVZHA6IEluRGF0YWdyYW1zIE5vUG9ydHMg
+SW5FcnJvcnMgT3V0RGF0YWdyYW1zIFJjdmJ1ZkVycm9ycyBTbmRidWZFcnJvcnMgSW5Dc3VtRXJy
+b3JzIElnbm9yZWRNdWx0aSBNZW1FcnJvcnMKVWRwOiAxMzU2IDEgMCAyMzIgMCAwIDAgMCAwClRj
+cEV4dDogU3luY29va2llc1NlbnQgU3luY29va2llc1JlY3YgU3luY29va2llc0ZhaWxlZCBFbWJy
+eW9uaWNSc3RzIFBydW5lQ2FsbGVkIFJjdlBydW5lZCBPZm9QcnVuZWQgT3V0T2ZXaW5kb3dJY21w
+cyBMb2NrRHJvcHBlZEljbXBzIEFycEZpbHRlciBUVyBUV1JlY3ljbGVkIFRXS2lsbGVkIFBBV1NB
+Y3RpdmUgUEFXU0VzdGFiIEJleW9uZFdpbmRvdyBUU0VjclJlamVjdGVkIFBBV1NPbGRBY2sgUEFX
+U1RpbWV3YWl0IERlbGF5ZWRBQ0tzIERlbGF5ZWRBQ0tMb2NrZWQgRGVsYXllZEFDS0xvc3QgTGlz
+dGVuT3ZlcmZsb3dzIExpc3RlbkRyb3BzIFRDUEhQSGl0cyBUQ1BQdXJlQWNrcyBUQ1BIUEFja3Mg
+VENQUmVub1JlY292ZXJ5IFRDUFNhY2tSZWNvdmVyeSBUQ1BTQUNLUmVuZWdpbmcgVENQU0FDS1Jl
+b3JkZXIgVENQUmVub1Jlb3JkZXIgVENQVFNSZW9yZGVyIFRDUEZ1bGxVbmRvIFRDUFBhcnRpYWxV
+bmRvIFRDUERTQUNLVW5kbyBUQ1BMb3NzVW5kbyBUQ1BMb3N0UmV0cmFuc21pdCBUQ1BSZW5vRmFp
+bHVyZXMgVENQU2Fja0ZhaWx1cmVzIFRDUExvc3NGYWlsdXJlcyBUQ1BGYXN0UmV0cmFucyBUQ1BT
+bG93U3RhcnRSZXRyYW5zIFRDUFRpbWVvdXRzIFRDUExvc3NQcm9iZXMgVENQTG9zc1Byb2JlUmVj
+b3ZlcnkgVENQUmVub1JlY292ZXJ5RmFpbCBUQ1BTYWNrUmVjb3ZlcnlGYWlsIFRDUFJjdkNvbGxh
+cHNlZCBUQ1BCYWNrbG9nQ29hbGVzY2UgVENQRFNBQ0tPbGRTZW50IFRDUERTQUNLT2ZvU2VudCBU
+Q1BEU0FDS1JlY3YgVENQRFNBQ0tPZm9SZWN2IFRDUEFib3J0T25EYXRhIFRDUEFib3J0T25DbG9z
+ZSBUQ1BBYm9ydE9uTWVtb3J5IFRDUEFib3J0T25UaW1lb3V0IFRDUEFib3J0T25MaW5nZXIgVENQ
+QWJvcnRGYWlsZWQgVENQTWVtb3J5UHJlc3N1cmVzIFRDUE1lbW9yeVByZXNzdXJlc0Nocm9ubyBU
+Q1BTQUNLRGlzY2FyZCBUQ1BEU0FDS0lnbm9yZWRPbGQgVENQRFNBQ0tJZ25vcmVkTm9VbmRvIFRD
+UFNwdXJpb3VzUlRPcyBUQ1BNRDVOb3RGb3VuZCBUQ1BNRDVVbmV4cGVjdGVkIFRDUE1ENUZhaWx1
+cmUgVENQU2Fja1NoaWZ0ZWQgVENQU2Fja01lcmdlZCBUQ1BTYWNrU2hpZnRGYWxsYmFjayBUQ1BC
+YWNrbG9nRHJvcCBQRk1lbWFsbG9jRHJvcCBUQ1BNaW5UVExEcm9wIFRDUERlZmVyQWNjZXB0RHJv
+cCBJUFJldmVyc2VQYXRoRmlsdGVyIFRDUFRpbWVXYWl0T3ZlcmZsb3cgVENQUmVxUUZ1bGxEb0Nv
+b2tpZXMgVENQUmVxUUZ1bGxEcm9wIFRDUFJldHJhbnNGYWlsIFRDUFJjdkNvYWxlc2NlIFRDUE9G
+T1F1ZXVlIFRDUE9GT0Ryb3AgVENQT0ZPTWVyZ2UgVENQQ2hhbGxlbmdlQUNLIFRDUFNZTkNoYWxs
+ZW5nZSBUQ1BGYXN0T3BlbkFjdGl2ZSBUQ1BGYXN0T3BlbkFjdGl2ZUZhaWwgVENQRmFzdE9wZW5Q
+YXNzaXZlIFRDUEZhc3RPcGVuUGFzc2l2ZUZhaWwgVENQRmFzdE9wZW5MaXN0ZW5PdmVyZmxvdyBU
+Q1BGYXN0T3BlbkNvb2tpZVJlcWQgVENQRmFzdE9wZW5CbGFja2hvbGUgVENQU3B1cmlvdXNSdHhI
+b3N0UXVldWVzIEJ1c3lQb2xsUnhQYWNrZXRzIFRDUEF1dG9Db3JraW5nIFRDUEZyb21aZXJvV2lu
+ZG93QWR2IFRDUFRvWmVyb1dpbmRvd0FkdiBUQ1BXYW50WmVyb1dpbmRvd0FkdiBUQ1BTeW5SZXRy
+YW5zIFRDUE9yaWdEYXRhU2VudCBUQ1BIeXN0YXJ0VHJhaW5EZXRlY3QgVENQSHlzdGFydFRyYWlu
+Q3duZCBUQ1BIeXN0YXJ0RGVsYXlEZXRlY3QgVENQSHlzdGFydERlbGF5Q3duZCBUQ1BBQ0tTa2lw
+cGVkU3luUmVjdiBUQ1BBQ0tTa2lwcGVkUEFXUyBUQ1BBQ0tTa2lwcGVkU2VxIFRDUEFDS1NraXBw
+ZWRGaW5XYWl0MiBUQ1BBQ0tTa2lwcGVkVGltZVdhaXQgVENQQUNLU2tpcHBlZENoYWxsZW5nZSBU
+Q1BXaW5Qcm9iZSBUQ1BLZWVwQWxpdmUgVENQTVRVUEZhaWwgVENQTVRVUFN1Y2Nlc3MgVENQRGVs
+aXZlcmVkIFRDUERlbGl2ZXJlZENFIFRDUEFja0NvbXByZXNzZWQgVENQWmVyb1dpbmRvd0Ryb3Ag
+VENQUmN2UURyb3AgVENQV3F1ZXVlVG9vQmlnIFRDUEZhc3RPcGVuUGFzc2l2ZUFsdEtleSBUY3BU
+aW1lb3V0UmVoYXNoIFRjcER1cGxpY2F0ZURhdGFSZWhhc2ggVENQRFNBQ0tSZWN2U2VncyBUQ1BE
+U0FDS0lnbm9yZWREdWJpb3VzIFRDUE1pZ3JhdGVSZXFTdWNjZXNzIFRDUE1pZ3JhdGVSZXFGYWls
+dXJlIFRDUFBMQlJlaGFzaCBUQ1BBT1JlcXVpcmVkIFRDUEFPQmFkIFRDUEFPS2V5Tm90Rm91bmQg
+VENQQU9Hb29kIFRDUEFPRHJvcHBlZEljbXBzClRjcEV4dDogMCAwIDAgMCAwIDAgMCAwIDAgMCAz
+MyAwIDAgMCAwIDAgMCAwIDAgOCAwIDAgMCAwIDMwODYgMzMgMTk3IDAgMCAwIDAgMCAwIDAgMCAw
+IDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgNDUyIDAgMCAwIDAgMCAxIDAgMCAwIDAgMCAwIDAg
+MCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAyIDAgMCAwIDAgNjMzOSAwIDAgMCAwIDAgMCAwIDAg
+MCAwIDAgMCAwIDAgMSAwIDAgMCAwIDIzNSAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMjY5
+IDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwCklwRXh0OiBJbk5vUm91dGVzIElu
+VHJ1bmNhdGVkUGt0cyBJbk1jYXN0UGt0cyBPdXRNY2FzdFBrdHMgSW5CY2FzdFBrdHMgT3V0QmNh
+c3RQa3RzIEluT2N0ZXRzIE91dE9jdGV0cyBJbk1jYXN0T2N0ZXRzIE91dE1jYXN0T2N0ZXRzIElu
+QmNhc3RPY3RldHMgT3V0QmNhc3RPY3RldHMgSW5Dc3VtRXJyb3JzIEluTm9FQ1RQa3RzIEluRUNU
+MVBrdHMgSW5FQ1QwUGt0cyBJbkNFUGt0cyBSZWFzbU92ZXJsYXBzCklwRXh0OiAwIDAgMCAwIDAg
+MCAyNDAwODc1OSAyMDI0MjYgMCAwIDAgMCAwIDE2ODg5IDAgMCAwIDAKCltTT0ZUTkVUOiBjb250
+YWRvcmVzIGhleCBwb3IgQ1BVOyBjb2x1bW5hcyBzZWd1biB2ZXJzaW9uIGRlbCBrZXJuZWxdCjAw
+MDAyNmRiIDAwMDAwMDAwIDAwMDAwMDAxIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAw
+MDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAw
+IDAwMDAwMDAwIDAwMDAwMDAwCgpbSU5URVJGQVogZW5zMzogZHJpdmVyLCBlbmxhY2UsIG9mZmxv
+YWRzLCBjb2xhcywgY29hbGVzY2VuY2lhLCBlc3RhZGlzdGljYXNdCmRyaXZlcjogdmlydGlvX25l
+dAp2ZXJzaW9uOiAxLjAuMApmaXJtd2FyZS12ZXJzaW9uOiAKZXhwYW5zaW9uLXJvbS12ZXJzaW9u
+OiAKYnVzLWluZm86IDAwMDA6MDA6MDMuMApzdXBwb3J0cy1zdGF0aXN0aWNzOiB5ZXMKc3VwcG9y
+dHMtdGVzdDogbm8Kc3VwcG9ydHMtZWVwcm9tLWFjY2Vzczogbm8Kc3VwcG9ydHMtcmVnaXN0ZXIt
+ZHVtcDogbm8Kc3VwcG9ydHMtcHJpdi1mbGFnczogbm8KClNldHRpbmdzIGZvciBlbnMzOgoJU3Vw
+cG9ydGVkIHBvcnRzOiBbICBdCglTdXBwb3J0ZWQgbGluayBtb2RlczogICBOb3QgcmVwb3J0ZWQK
+CVN1cHBvcnRlZCBwYXVzZSBmcmFtZSB1c2U6IE5vCglTdXBwb3J0cyBhdXRvLW5lZ290aWF0aW9u
+OiBObwoJU3VwcG9ydGVkIEZFQyBtb2RlczogTm90IHJlcG9ydGVkCglBZHZlcnRpc2VkIGxpbmsg
+bW9kZXM6ICBOb3QgcmVwb3J0ZWQKCUFkdmVydGlzZWQgcGF1c2UgZnJhbWUgdXNlOiBObwoJQWR2
+ZXJ0aXNlZCBhdXRvLW5lZ290aWF0aW9uOiBObwoJQWR2ZXJ0aXNlZCBGRUMgbW9kZXM6IE5vdCBy
+ZXBvcnRlZAoJU3BlZWQ6IFVua25vd24hCglEdXBsZXg6IFVua25vd24hICgyNTUpCglBdXRvLW5l
+Z290aWF0aW9uOiBvZmYKCVBvcnQ6IE90aGVyCglQSFlBRDogMAoJVHJhbnNjZWl2ZXI6IGludGVy
+bmFsCglMaW5rIGRldGVjdGVkOiB5ZXMKCkZlYXR1cmVzIGZvciBlbnMzOgpyeC1jaGVja3N1bW1p
+bmc6IG9uIFtmaXhlZF0KdHgtY2hlY2tzdW1taW5nOiBvZmYKCXR4LWNoZWNrc3VtLWlwdjQ6IG9m
+ZiBbZml4ZWRdCgl0eC1jaGVja3N1bS1pcC1nZW5lcmljOiBvZmYgW2ZpeGVkXQoJdHgtY2hlY2tz
+dW0taXB2Njogb2ZmIFtmaXhlZF0KCXR4LWNoZWNrc3VtLWZjb2UtY3JjOiBvZmYgW2ZpeGVkXQoJ
+dHgtY2hlY2tzdW0tc2N0cDogb2ZmIFtmaXhlZF0Kc2NhdHRlci1nYXRoZXI6IG9mZgoJdHgtc2Nh
+dHRlci1nYXRoZXI6IG9mZiBbZml4ZWRdCgl0eC1zY2F0dGVyLWdhdGhlci1mcmFnbGlzdDogb2Zm
+IFtmaXhlZF0KdGNwLXNlZ21lbnRhdGlvbi1vZmZsb2FkOiBvZmYKCXR4LXRjcC1zZWdtZW50YXRp
+b246IG9mZiBbZml4ZWRdCgl0eC10Y3AtZWNuLXNlZ21lbnRhdGlvbjogb2ZmIFtmaXhlZF0KCXR4
+LXRjcC1tYW5nbGVpZC1zZWdtZW50YXRpb246IG9mZiBbZml4ZWRdCgl0eC10Y3A2LXNlZ21lbnRh
+dGlvbjogb2ZmIFtmaXhlZF0KCXR4LXRjcC1hY2NlY24tc2VnbWVudGF0aW9uOiBvZmYgW2ZpeGVk
+XQpnZW5lcmljLXNlZ21lbnRhdGlvbi1vZmZsb2FkOiBvZmYgW3JlcXVlc3RlZCBvbl0KZ2VuZXJp
+Yy1yZWNlaXZlLW9mZmxvYWQ6IG9uCmxhcmdlLXJlY2VpdmUtb2ZmbG9hZDogb2ZmIFtmaXhlZF0K
+cngtdmxhbi1vZmZsb2FkOiBvZmYgW2ZpeGVkXQp0eC12bGFuLW9mZmxvYWQ6IG9mZiBbZml4ZWRd
+Cm50dXBsZS1maWx0ZXJzOiBvZmYgW2ZpeGVkXQpyZWNlaXZlLWhhc2hpbmc6IG9mZiBbZml4ZWRd
+CmhpZ2hkbWE6IG9uIFtmaXhlZF0Kcngtdmxhbi1maWx0ZXI6IG9uIFtmaXhlZF0Kdmxhbi1jaGFs
+bGVuZ2VkOiBvZmYgW2ZpeGVkXQp0eC1nc28tcm9idXN0OiBvZmYgW2ZpeGVkXQp0eC1mY29lLXNl
+Z21lbnRhdGlvbjogb2ZmIFtmaXhlZF0KdHgtZ3JlLXNlZ21lbnRhdGlvbjogb2ZmIFtmaXhlZF0K
+dHgtZ3JlLWNzdW0tc2VnbWVudGF0aW9uOiBvZmYgW2ZpeGVkXQp0eC1pcHhpcDQtc2VnbWVudGF0
+aW9uOiBvZmYgW2ZpeGVkXQp0eC1pcHhpcDYtc2VnbWVudGF0aW9uOiBvZmYgW2ZpeGVkXQp0eC11
+ZHBfdG5sLXNlZ21lbnRhdGlvbjogb2ZmIFtmaXhlZF0KdHgtdWRwX3RubC1jc3VtLXNlZ21lbnRh
+dGlvbjogb2ZmIFtmaXhlZF0KdHgtZ3NvLXBhcnRpYWw6IG9mZiBbZml4ZWRdCnR4LXR1bm5lbC1y
+ZW1jc3VtLXNlZ21lbnRhdGlvbjogb2ZmIFtmaXhlZF0KdHgtc2N0cC1zZWdtZW50YXRpb246IG9m
+ZiBbZml4ZWRdCnR4LWVzcC1zZWdtZW50YXRpb246IG9mZiBbZml4ZWRdCnR4LXVkcC1zZWdtZW50
+YXRpb246IG9mZiBbZml4ZWRdCnR4LWdzby1saXN0OiBvZmYgW2ZpeGVkXQp0eC1ub2NhY2hlLWNv
+cHk6IG9mZgpsb29wYmFjazogb2ZmIFtmaXhlZF0KcngtZmNzOiBvZmYgW2ZpeGVkXQpyeC1hbGw6
+IG9mZiBbZml4ZWRdCnR4LXZsYW4tc3RhZy1ody1pbnNlcnQ6IG9mZiBbZml4ZWRdCnJ4LXZsYW4t
+c3RhZy1ody1wYXJzZTogb2ZmIFtmaXhlZF0Kcngtdmxhbi1zdGFnLWZpbHRlcjogb2ZmIFtmaXhl
+ZF0KbDItZndkLW9mZmxvYWQ6IG9mZiBbZml4ZWRdCmh3LXRjLW9mZmxvYWQ6IG9mZiBbZml4ZWRd
+CmVzcC1ody1vZmZsb2FkOiBvZmYgW2ZpeGVkXQplc3AtdHgtY3N1bS1ody1vZmZsb2FkOiBvZmYg
+W2ZpeGVkXQpyeC11ZHBfdHVubmVsLXBvcnQtb2ZmbG9hZDogb2ZmIFtmaXhlZF0KdGxzLWh3LXR4
+LW9mZmxvYWQ6IG9mZiBbZml4ZWRdCnRscy1ody1yeC1vZmZsb2FkOiBvZmYgW2ZpeGVkXQpyeC1n
+cm8taHc6IG9mZiBbZml4ZWRdCnJ4LWdyby1saXN0OiBvZmYKbWFjc2VjLWh3LW9mZmxvYWQ6IG9m
+ZiBbZml4ZWRdCnJ4LXVkcC1ncm8tZm9yd2FyZGluZzogb2ZmCmhzci10YWctaW5zLW9mZmxvYWQ6
+IG9mZiBbZml4ZWRdCmhzci10YWctcm0tb2ZmbG9hZDogb2ZmIFtmaXhlZF0KaHNyLWZ3ZC1vZmZs
+b2FkOiBvZmYgW2ZpeGVkXQpoc3ItZHVwLW9mZmxvYWQ6IG9mZiBbZml4ZWRdCgpDaGFubmVsIHBh
+cmFtZXRlcnMgZm9yIGVuczM6ClByZS1zZXQgbWF4aW11bXM6ClJYOgkJbi9hClRYOgkJbi9hCk90
+aGVyOgkJbi9hCkNvbWJpbmVkOgkxCkN1cnJlbnQgaGFyZHdhcmUgc2V0dGluZ3M6ClJYOgkJbi9h
+ClRYOgkJbi9hCk90aGVyOgkJbi9hCkNvbWJpbmVkOgkxCgpDb2FsZXNjZSBwYXJhbWV0ZXJzIGZv
+ciBlbnMzOgpBZGFwdGl2ZSBSWDogb2ZmICBUWDogbi9hCnN0YXRzLWJsb2NrLXVzZWNzOgluL2EK
+c2FtcGxlLWludGVydmFsOgluL2EKcGt0LXJhdGUtbG93OgkJbi9hCnBrdC1yYXRlLWhpZ2g6CQlu
+L2EKCnJ4LXVzZWNzOgkwCnJ4LWZyYW1lczoJMQpyeC11c2Vjcy1pcnE6CW4vYQpyeC1mcmFtZXMt
+aXJxOgluL2EKCnR4LXVzZWNzOgkwCnR4LWZyYW1lczoJMQp0eC11c2Vjcy1pcnE6CW4vYQp0eC1m
+cmFtZXMtaXJxOgluL2EKCnJ4LXVzZWNzLWxvdzoJbi9hCnJ4LWZyYW1lLWxvdzoJbi9hCnR4LXVz
+ZWNzLWxvdzoJbi9hCnR4LWZyYW1lLWxvdzoJbi9hCgpyeC11c2Vjcy1oaWdoOgluL2EKcngtZnJh
+bWUtaGlnaDoJbi9hCnR4LXVzZWNzLWhpZ2g6CW4vYQp0eC1mcmFtZS1oaWdoOgluL2EKCkNRRSBt
+b2RlIFJYOiBuL2EgIFRYOiBuL2EKCnR4LWFnZ3ItbWF4LWJ5dGVzOgluL2EKdHgtYWdnci1tYXgt
+ZnJhbWVzOgluL2EKdHgtYWdnci10aW1lLXVzZWNzOgluL2EKCnJ4LWNxZS1mcmFtZXM6CQluL2EK
+cngtY3FlLW5zZWNzOgkJbi9hCgoKTklDIHN0YXRpc3RpY3M6CiAgICAgcnhfZHJvcHM6IDAKICAg
+ICByeF94ZHBfcGFja2V0czogMAogICAgIHJ4X3hkcF90eDogMAogICAgIHJ4X3hkcF9yZWRpcmVj
+dHM6IDAKICAgICByeF94ZHBfZHJvcHM6IDAKICAgICByeF9raWNrczogMQogICAgIHR4X3hkcF90
+eDogMAogICAgIHR4X3hkcF90eF9kcm9wczogMAogICAgIHR4X2tpY2tzOiAyMjgwCiAgICAgdHhf
+dHhfdGltZW91dHM6IDAKICAgICByeDBfZHJvcHM6IDAKICAgICByeDBfeGRwX3BhY2tldHM6IDAK
+ICAgICByeDBfeGRwX3R4OiAwCiAgICAgcngwX3hkcF9yZWRpcmVjdHM6IDAKICAgICByeDBfeGRw
+X2Ryb3BzOiAwCiAgICAgcngwX2tpY2tzOiAxCiAgICAgdHgwX3hkcF90eDogMAogICAgIHR4MF94
+ZHBfdHhfZHJvcHM6IDAKICAgICB0eDBfa2lja3M6IDIyODAKICAgICB0eDBfdHhfdGltZW91dHM6
+IDAKCi9zeXMvY2xhc3MvbmV0L2VuczMvcXVldWVzL3J4LTAvcnBzX2NwdXM9MAoKL3N5cy9jbGFz
+cy9uZXQvZW5zMy9xdWV1ZXMvcngtMC9ycHNfZmxvd19jbnQ9MAoKL3N5cy9jbGFzcy9uZXQvZW5z
+My9xdWV1ZXMvdHgtMC94cHNfY3B1cz1oZWFkOiBlcnJvciByZWFkaW5nICcvc3lzL2NsYXNzL25l
+dC9lbnMzL3F1ZXVlcy90eC0wL3hwc19jcHVzJzogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQoK
+CltNRURJQ0lPTiBEVVJBTlRFIExBIFNFU0lPTjogbm8gZXMgY29uc3VtbyBwb3N0ZXJpb3IgYWwg
+Y2llcnJlXQpVTFRSQSBNRURJQ0lPTiB2MQprZXJuZWw9Ny4zLjAtcmM3LXBjLWczMmM1MmVjODdk
+NjIgbW9kbz1zb2Z0d2FyZSBpbnRlcnZhbG9fbWluaW1vX3M9NSBsaW1pdGVfbXVlc3RyYXM9MTIw
+ClJBTToga0I7IHVzYWRhX2VzdGltYWRhPU1lbVRvdGFsLU1lbUF2YWlsYWJsZS4gVUlEIDEwMDA6
+IG1heGltbyAxMjggcHJvY2Vzb3MsIG5vIHNvbG8gY29tcG9zaXRvci4KUlNTIGNvbXBhcnRlIHBh
+Z2luYXM7IG5vIHN1bWFyIFJTUyBjb21vIFJBTSBleGNsdXNpdmEuIFBTUyByZXBhcnRlIHBhZ2lu
+YXMgY29tcGFydGlkYXMuIE5BIG5vIHNpZ25pZmljYSBjZXJvLgpHUFUgQ1NWOiB1dWlkLHBjaS5i
+dXNfaWQsbWVtb3J5LnRvdGFsX01pQixtZW1vcnkudXNlZF9NaUIsdXRpbGl6YXRpb24uZ3B1X3Bj
+dCx0ZW1wZXJhdHVyZS5ncHVfQyxwb3dlci5kcmF3X1cKbXVlc3RyYV91dGM9MjAyNi0xMC0xOVQy
+MzozNDozMVoKUkFNIHRvdGFsX2tCPTIwMTMzNDQgZGlzcG9uaWJsZV9rQj0xOTE5Njg4IHVzYWRh
+X2VzdGltYWRhX2tCPTkzNjU2IHN3YXBfdG90YWxfa0I9MCBzd2FwX2xpYnJlX2tCPTAKQ1BVX2Nv
+bnRhZG9yZXMgY3B1ICAxMDEgMCAxMDMxIDEyNDUgMjIgMCAxIDAgMCAwClJFRCBpZmFjZT1lbnMz
+IGluZGljZT0yIG1vbm90b25pY19zPTI0LjIxMzUwOTExOCByeF9ieXRlcz0xMjkwIHJ4X3BhY2tl
+dHM9MyByeF9lcnJvcnM9MCByeF9kcm9wcGVkPTAgdHhfYnl0ZXM9MTQ5NiB0eF9wYWNrZXRzPTE0
+IHR4X2Vycm9ycz0wIHR4X2Ryb3BwZWQ9MCBjYXJyaWVyPTEgc3BlZWRfTWJwcz1OQSBtdHU9MTUw
+MApQUk9DRVNPIHBpZD03NzUgbm9tYnJlPWRidXMtcnVuLXNlc3NpbyByc3Nfa0I9MjQxMiBwc3Nf
+a0I9NTM4ClVJRDEwMDAgcHJvY2Vzb3M9MSBtZWRpZG9zPTEgdHJ1bmNhZG89MCByc3Nfc3VtYV9w
+YXJjaWFsX2tCPTI0MTIgcHNzX3N1bWFfcGFyY2lhbF9rQj01MzgKR1BVIE5BIG1vZG9fc29mdHdh
+cmVfb19ub2Rvc19hdXNlbnRlcwptdWVzdHJhX3V0Yz0yMDI2LTEwLTE5VDIzOjM0OjM2WgpSQU0g
+dG90YWxfa0I9MjAxMzM0NCBkaXNwb25pYmxlX2tCPTE5MTMyMDAgdXNhZGFfZXN0aW1hZGFfa0I9
+MTAwMTQ0IHN3YXBfdG90YWxfa0I9MCBzd2FwX2xpYnJlX2tCPTAKQ1BVX2NvbnRhZG9yZXMgY3B1
+ICAxMTYgMCAxNTI1IDEyNDUgMjQgMCAxIDAgMCAwClJFRCBpZmFjZT1lbnMzIGluZGljZT0yIG1v
+bm90b25pY19zPTI5LjM1NTYwMDcxOCByeF9ieXRlcz0xMjkwIHJ4X3BhY2tldHM9MyByeF9lcnJv
+cnM9MCByeF9kcm9wcGVkPTAgdHhfYnl0ZXM9MTQ5NiB0eF9wYWNrZXRzPTE0IHR4X2Vycm9ycz0w
+IHR4X2Ryb3BwZWQ9MCBjYXJyaWVyPTEgc3BlZWRfTWJwcz1OQSBtdHU9MTUwMApQUk9DRVNPIHBp
+ZD03NzUgbm9tYnJlPWRidXMtcnVuLXNlc3NpbyByc3Nfa0I9MjQxMiBwc3Nfa0I9NTU0ClBST0NF
+U08gcGlkPTc4NiBub21icmU9ZGJ1cy1kYWVtb24gcnNzX2tCPTM0MzYgcHNzX2tCPTEzNTkKUFJP
+Q0VTTyBwaWQ9Nzg3IG5vbWJyZT1zdGFydC1oeXBybGFuZCByc3Nfa0I9NDc4OCBwc3Nfa0I9MTk4
+OApQUk9DRVNPIHBpZD03OTMgbm9tYnJlPUh5cHJsYW5kIHJzc19rQj02Nzg2OCBwc3Nfa0I9NjQ0
+ODYKVUlEMTAwMCBwcm9jZXNvcz00IG1lZGlkb3M9NCB0cnVuY2Fkbz0wIHJzc19zdW1hX3BhcmNp
+YWxfa0I9Nzg1MDQgcHNzX3N1bWFfcGFyY2lhbF9rQj02ODM4NwpHUFUgTkEgbW9kb19zb2Z0d2Fy
+ZV9vX25vZG9zX2F1c2VudGVzCm11ZXN0cmFfdXRjPTIwMjYtMTAtMTlUMjM6MzQ6NDFaClJBTSB0
+b3RhbF9rQj0yMDEzMzQ0IGRpc3BvbmlibGVfa0I9MTgwMTg5MiB1c2FkYV9lc3RpbWFkYV9rQj0y
+MTE0NTIgc3dhcF90b3RhbF9rQj0wIHN3YXBfbGlicmVfa0I9MApDUFVfY29udGFkb3JlcyBjcHUg
+IDE2OCAwIDE5ODIgMTI0NyAyNyAwIDEgMCAwIDAKUkVEIGlmYWNlPWVuczMgaW5kaWNlPTIgbW9u
+b3RvbmljX3M9MzQuNTMzMTE2ODE4IHJ4X2J5dGVzPTEyOTAgcnhfcGFja2V0cz0zIHJ4X2Vycm9y
+cz0wIHJ4X2Ryb3BwZWQ9MCB0eF9ieXRlcz0xNDk2IHR4X3BhY2tldHM9MTQgdHhfZXJyb3JzPTAg
+dHhfZHJvcHBlZD0wIGNhcnJpZXI9MSBzcGVlZF9NYnBzPU5BIG10dT0xNTAwClBST0NFU08gcGlk
+PTc3NSBub21icmU9ZGJ1cy1ydW4tc2Vzc2lvIHJzc19rQj0yNDEyIHBzc19rQj00MzAKUFJPQ0VT
+TyBwaWQ9Nzg2IG5vbWJyZT1kYnVzLWRhZW1vbiByc3Nfa0I9NDIwNCBwc3Nfa0I9MTUxMQpQUk9D
+RVNPIHBpZD03ODcgbm9tYnJlPXN0YXJ0LWh5cHJsYW5kIHJzc19rQj00Nzg4IHBzc19rQj0xNDQx
+ClBST0NFU08gcGlkPTc5MyBub21icmU9SHlwcmxhbmQgcnNzX2tCPTIzNjA1MiBwc3Nfa0I9MjIz
+MDE0ClBST0NFU08gcGlkPTgyNyBub21icmU9ZGNvbmYtc2VydmljZSByc3Nfa0I9NjQwOCBwc3Nf
+a0I9MTg5NgpQUk9DRVNPIHBpZD04MzMgbm9tYnJlPXN3YXliZyByc3Nfa0I9MTQxODggcHNzX2tC
+PTczOTYKUFJPQ0VTTyBwaWQ9ODM0IG5vbWJyZT13YXliYXIgcnNzX2tCPTg1OTIgcHNzX2tCPTYy
+NTYKUFJPQ0VTTyBwaWQ9ODM1IG5vbWJyZT1mb290IHJzc19rQj0xMTA0OCBwc3Nfa0I9NDU4MgpQ
+Uk9DRVNPIHBpZD04MzYgbm9tYnJlPWZvb3QgcnNzX2tCPTE5OTU2IHBzc19rQj0xMTMyNQpQUk9D
+RVNPIHBpZD04NDMgbm9tYnJlPVh3YXlsYW5kIHJzc19rQj0yMDYwIHBzc19rQj0xMTczClBST0NF
+U08gcGlkPTg0OCBub21icmU9bGVzcyByc3Nfa0I9MzE4OCBwc3Nfa0I9OTU1ClBST0NFU08gcGlk
+PTg0OSBub21icmU9YmFzaCByc3Nfa0I9NDUzNiBwc3Nfa0I9MTQ5NgpVSUQxMDAwIHByb2Nlc29z
+PTEyIG1lZGlkb3M9MTIgdHJ1bmNhZG89MCByc3Nfc3VtYV9wYXJjaWFsX2tCPTMxNzQzMiBwc3Nf
+c3VtYV9wYXJjaWFsX2tCPTI2MTQ3NQpHUFUgTkEgbW9kb19zb2Z0d2FyZV9vX25vZG9zX2F1c2Vu
+dGVzCm11ZXN0cmFfdXRjPTIwMjYtMTAtMTlUMjM6MzQ6NDZaClJBTSB0b3RhbF9rQj0yMDEzMzQ0
+IGRpc3BvbmlibGVfa0I9MTY4MjU4MCB1c2FkYV9lc3RpbWFkYV9rQj0zMzA3NjQgc3dhcF90b3Rh
+bF9rQj0wIHN3YXBfbGlicmVfa0I9MApDUFVfY29udGFkb3JlcyBjcHUgIDMwMiAwIDIzMDkgMTMz
+MCAzMCAwIDEgMCAwIDAKUkVEIGlmYWNlPWVuczMgaW5kaWNlPTIgbW9ub3RvbmljX3M9MzkuOTgz
+MjI2NDE4IHJ4X2J5dGVzPTEyOTAgcnhfcGFja2V0cz0zIHJ4X2Vycm9ycz0wIHJ4X2Ryb3BwZWQ9
+MCB0eF9ieXRlcz0xNDk2IHR4X3BhY2tldHM9MTQgdHhfZXJyb3JzPTAgdHhfZHJvcHBlZD0wIGNh
+cnJpZXI9MSBzcGVlZF9NYnBzPU5BIG10dT0xNTAwClBST0NFU08gcGlkPTEwMDAgbm9tYnJlPWJ3
+cmFwIHJzc19rQj0yMDg4IHBzc19rQj0xNjcKUFJPQ0VTTyBwaWQ9MTAwMSBub21icmU9YndyYXAg
+cnNzX2tCPTEzMDggcHNzX2tCPTEzNApQUk9DRVNPIHBpZD0xMDAyIG5vbWJyZT1nbHljaW4taW1h
+Z2UtcnMgcnNzX2tCPTc5ODAgcHNzX2tCPTM1MzgKUFJPQ0VTTyBwaWQ9MTAyNiBub21icmU9YnJh
+dmUgcnNzX2tCPTY5ODYwIHBzc19rQj01NDMzMApQUk9DRVNPIHBpZD0xMDMwIG5vbWJyZT1icmF2
+ZSByc3Nfa0I9MTY4MjggcHNzX2tCPTgyNzgKUFJPQ0VTTyBwaWQ9Nzc1IG5vbWJyZT1kYnVzLXJ1
+bi1zZXNzaW8gcnNzX2tCPTI0MTIgcHNzX2tCPTI4NwpQUk9DRVNPIHBpZD03ODYgbm9tYnJlPWRi
+dXMtZGFlbW9uIHJzc19rQj00Mzc2IHBzc19rQj0xMDE1ClBST0NFU08gcGlkPTc4NyBub21icmU9
+c3RhcnQtaHlwcmxhbmQgcnNzX2tCPTQ3ODggcHNzX2tCPTExMDQKUFJPQ0VTTyBwaWQ9NzkzIG5v
+bWJyZT1IeXBybGFuZCByc3Nfa0I9MjQyNTg0IHBzc19rQj0xOTY4NDMKUFJPQ0VTTyBwaWQ9ODI3
+IG5vbWJyZT1kY29uZi1zZXJ2aWNlIHJzc19rQj02NDI0IHBzc19rQj0xMDUxClBST0NFU08gcGlk
+PTgzMyBub21icmU9c3dheWJnIHJzc19rQj0xNjM2OCBwc3Nfa0I9NDgxNApQUk9DRVNPIHBpZD04
+MzQgbm9tYnJlPXdheWJhciByc3Nfa0I9NDY2MTIgcHNzX2tCPTI2MDc2ClBST0NFU08gcGlkPTgz
+NSBub21icmU9Zm9vdCByc3Nfa0I9MTI3NjAgcHNzX2tCPTQ3MjgKUFJPQ0VTTyBwaWQ9ODM2IG5v
+bWJyZT1mb290IHJzc19rQj0xMzc5NiBwc3Nfa0I9NTIzNApQUk9DRVNPIHBpZD04NDMgbm9tYnJl
+PVh3YXlsYW5kIHJzc19rQj05ODg0OCBwc3Nfa0I9NjM5NTAKUFJPQ0VTTyBwaWQ9ODQ4IG5vbWJy
+ZT1sZXNzIHJzc19rQj0zMTg4IHBzc19rQj04NzQKUFJPQ0VTTyBwaWQ9ODQ5IG5vbWJyZT1iYXNo
+IHJzc19rQj00NTM2IHBzc19rQj0xNDMwClBST0NFU08gcGlkPTg2OCBub21icmU9YndyYXAgcnNz
+X2tCPTIwODQgcHNzX2tCPTE2NApQUk9DRVNPIHBpZD04Njkgbm9tYnJlPWJ3cmFwIHJzc19rQj0x
+MzAwIHBzc19rQj0xMzIKUFJPQ0VTTyBwaWQ9ODcwIG5vbWJyZT1nbHljaW4tc3ZnIHJzc19rQj0z
+MDczMiBwc3Nfa0I9MTU2MDIKUFJPQ0VTTyBwaWQ9ODkwIG5vbWJyZT1hdC1zcGktYnVzLWxhdW4g
+cnNzX2tCPTc1MDAgcHNzX2tCPTE0MzMKUFJPQ0VTTyBwaWQ9ODk4IG5vbWJyZT1kYnVzLWRhZW1v
+biByc3Nfa0I9NDI2OCBwc3Nfa0I9ODQxClBST0NFU08gcGlkPTkwMiBub21icmU9YXQtc3BpMi1y
+ZWdpc3RyIHJzc19rQj03NDA4IHBzc19rQj0xMzEwClBST0NFU08gcGlkPTkxMCBub21icmU9bW91
+c2VwYWQgcnNzX2tCPTQ5NjQ4IHBzc19rQj0yNTUxMApQUk9DRVNPIHBpZD05MjUgbm9tYnJlPWJ3
+cmFwIHJzc19rQj0yMTQ4IHBzc19rQj0xNjIKUFJPQ0VTTyBwaWQ9OTI2IG5vbWJyZT1id3JhcCBy
+c3Nfa0I9MTI4NCBwc3Nfa0I9MTI5ClBST0NFU08gcGlkPTkyNyBub21icmU9Z2x5Y2luLWltYWdl
+LXJzIHJzc19rQj03NzI4IHBzc19rQj0zMzQ3ClBST0NFU08gcGlkPTkzNSBub21icmU9dGh1bmFy
+IHJzc19rQj00MzMxMiBwc3Nfa0I9MTg1MzMKUFJPQ0VTTyBwaWQ9OTQxIG5vbWJyZT14ZmNvbmZk
+IHJzc19rQj02NTgwIHBzc19rQj0xMDk0ClBST0NFU08gcGlkPTk2MyBub21icmU9YndyYXAgcnNz
+X2tCPTIxNTYgcHNzX2tCPTE2NwpQUk9DRVNPIHBpZD05NjQgbm9tYnJlPWJ3cmFwIHJzc19rQj0x
+Mzg4IHBzc19rQj0xMzQKUFJPQ0VTTyBwaWQ9OTY1IG5vbWJyZT1nbHljaW4tc3ZnIHJzc19rQj0x
+Nzc0NCBwc3Nfa0I9NTYyMwpVSUQxMDAwIHByb2Nlc29zPTMyIG1lZGlkb3M9MzIgdHJ1bmNhZG89
+MCByc3Nfc3VtYV9wYXJjaWFsX2tCPTc0MDAzNiBwc3Nfc3VtYV9wYXJjaWFsX2tCPTQ0ODAzNApH
+UFUgTkEgbW9kb19zb2Z0d2FyZV9vX25vZG9zX2F1c2VudGVzCltIWVBSTEFORCBzaXN0ZW1hIHkg
+bW9uaXRvcmVzOyBjb25zdWx0YSBVSUQxMDAwXQpIeXBybGFuZCAwLjU2LjIgYnVpbHQgZnJvbSBi
+cmFuY2ggdjAuNTYuMiBhdCBjb21taXQgZWZiNTA5OTM3ODAwNzk0NjBiMGNiZWQxMzYzZTIxNjZh
+MmRlMWQ5ZiBjbGVhbiAoW2doYV0gTml4OiB1cGRhdGUgaW5wdXRzKS4KRGF0ZTogV2VkIEF1ZyA1
+IDE0OjEzOjIxIDIwMjYKVGFnOiB2MC41Ni4yLCBjb21taXRzOiA3NjYxCgpMaWJyYXJpZXM6Ckh5
+cHJncmFwaGljczogYnVpbHQgYWdhaW5zdCAwLjUuMSwgc3lzdGVtIGhhcyAwLjUuMQpIeXBydXRp
+bHM6IGJ1aWx0IGFnYWluc3QgMC4xNC4yLCBzeXN0ZW0gaGFzIDAuMTQuMgpIeXByY3Vyc29yOiBi
+dWlsdCBhZ2FpbnN0IDAuMS4xMywgc3lzdGVtIGhhcyAwLjEuMTMKSHlwcmxhbmc6IGJ1aWx0IGFn
+YWluc3QgMC42LjgsIHN5c3RlbSBoYXMgMC42LjgKQXF1YW1hcmluZTogYnVpbHQgYWdhaW5zdCAw
+LjE1LjEsIHN5c3RlbSBoYXMgMC4xNS4xCgpWZXJzaW9uIEFCSSBzdHJpbmc6IGVmYjUwOTkzNzgw
+MDc5NDYwYjBjYmVkMTM2M2UyMTY2YTJkZTFkOWZfYXFfMC4xNV9odV8wLjE0X2hnXzAuNV9oY18w
+LjFfaGxnXzAuNgpubyBmbGFncyB3ZXJlIHNldAoKClN5c3RlbSBJbmZvcm1hdGlvbjoKU3lzdGVt
+IG5hbWU6IExpbnV4Ck5vZGUgbmFtZTogdWx0cmEKUmVsZWFzZTogNy4zLjAtcmM3LXBjLWczMmM1
+MmVjODdkNjIKVmVyc2lvbjogIzI2IFNNUCBQUkVFTVBUX0RZTkFNSUMgTW9uIE9jdCAxOSAyMzoy
+NjozNCBVVEMgMjAyNgoKTGlicmFyaWVzOgpIeXByZ3JhcGhpY3M6IGJ1aWx0IGFnYWluc3QgMC41
+LjEsIHN5c3RlbSBoYXMgMC41LjEKSHlwcnV0aWxzOiBidWlsdCBhZ2FpbnN0IDAuMTQuMiwgc3lz
+dGVtIGhhcyAwLjE0LjIKSHlwcmN1cnNvcjogYnVpbHQgYWdhaW5zdCAwLjEuMTMsIHN5c3RlbSBo
+YXMgMC4xLjEzCkh5cHJsYW5nOiBidWlsdCBhZ2FpbnN0IDAuNi44LCBzeXN0ZW0gaGFzIDAuNi44
+CkFxdWFtYXJpbmU6IGJ1aWx0IGFnYWluc3QgMC4xNS4xLCBzeXN0ZW0gaGFzIDAuMTUuMQoKCgpH
+UFUgaW5mb3JtYXRpb246IAoKCm9zLXJlbGVhc2U6IGVycm9yCgpwbHVnaW5zOgoKRXhwbGljaXQg
+c3luYzogbWlzc2luZwpHTCB2ZXI6IDMuMgpCYWNrZW5kOiBkcm0KCk1vbml0b3IgaW5mbzoKCVBh
+bmVsIFZpcnR1YWwtMTogMTI4MHg4MDAsIFZpcnR1YWwtMSBSZWQgSGF0LCBJbmMuIFFFTVUgTW9u
+aXRvciAgLT4gYmFja2VuZCBkcm0KCQlleHBsaWNpdCDinJTvuI8KCQllZGlkOgoJCQloZHIg4p2M
+CgkJCWNocm9tYSDinJTvuI8KCQkJYnQyMDIwIOKdjAoJCXZyciBjYXBhYmxlIOKdjAoJCW5vbi1k
+ZXNrdG9wIOKdjAoJCQoKU3RhdGU6Cgpjb25maWdQcm92aWRlcjogbHVhCmJhY2tlbmQ6IGRybQoK
+CgpNb25pdG9yIFZpcnR1YWwtMSAoSUQgMCk6CgkxMjgweDgwMEA3NC45OTQwMCBhdCAweDAKCWRl
+c2NyaXB0aW9uOiBSZWQgSGF0IEluYy4gUUVNVSBNb25pdG9yCgltYWtlOiBSZWQgSGF0LCBJbmMu
+Cgltb2RlbDogUUVNVSBNb25pdG9yCglwaHlzaWNhbCBzaXplIChtbSk6IDMyMHgyMDAKCXNlcmlh
+bDogCglhY3RpdmUgd29ya3NwYWNlOiAxICgxKQoJc3BlY2lhbCB3b3Jrc3BhY2U6IDAgKCkKCXJl
+c2VydmVkOiAwIDQxIDAgMAoJc2NhbGU6IDEKCXRyYW5zZm9ybTogMAoJZm9jdXNlZDogeWVzCglk
+cG1zU3RhdHVzOiAxCgl2cnI6IGZhbHNlCglzb2xpdGFyeTogMAoJc29saXRhcnlCbG9ja2VkQnk6
+IHdpbmRvd2VkIG1vZGUsbWlzc2luZyBjYW5kaWRhdGUKCWFjdGl2ZWx5VGVhcmluZzogZmFsc2UK
+CXRlYXJpbmdCbG9ja2VkQnk6IG5leHQgZnJhbWUgaXMgbm90IHRvcm4sdXNlciBzZXR0aW5ncyxt
+aXNzaW5nIGNhbmRpZGF0ZQoJZGlyZWN0U2Nhbm91dFRvOiAwCglkaXJlY3RTY2Fub3V0QmxvY2tl
+ZEJ5OiB1c2VyIHNldHRpbmdzLHNvZnR3YXJlIHJlbmRlcnMvY3Vyc29ycyxtaXNzaW5nIGNhbmRp
+ZGF0ZQoJZGlzYWJsZWQ6IGZhbHNlCgljdXJyZW50Rm9ybWF0OiBYUkdCODg4OAoJbWlycm9yT2Y6
+IG5vbmUKCWF2YWlsYWJsZU1vZGVzOiAxMjgweDgwMEA3NC45OUh6IDUxMjB4MjE2MEA1MC4wMEh6
+IDQwOTZ4MjE2MEA1MC4wMEh6IDM4NDB4MjE2MEA2MC4wMEh6IDM4NDB4MjE2MEA1OS45NEh6IDM4
+NDB4MjE2MEA1MC4wMEh6IDE5MjB4MTQ0MEA2MC4wMEh6IDI1NjB4MTA4MEA1MC4wMEh6IDE4NTZ4
+MTM5MkA1OS45OUh6IDE3OTJ4MTM0NEA2MC4wMEh6IDIwNDh4MTE1MkA2MC4wMEh6IDE5MjB4MTIw
+MEA1OS44OEh6IDE5MjB4MTA4MEA2MC4wMEh6IDE5MjB4MTA4MEA1MC4wMEh6IDE2MDB4MTIwMEA2
+MC4wMEh6IDE2ODB4MTA1MEA1OS45NUh6IDE0MDB4MTA1MEA1OS45OEh6IDEyODB4MTAyNEA2MC4w
+Mkh6IDE0NDB4OTAwQDU5Ljg5SHogMTI4MHg5NjBANjAuMDBIeiAxMzYweDc2OEA2MC4wMkh6IDEy
+ODB4NzY4QDU5Ljg3SHogMTAyNHg3NjhANjAuMDBIeiA4MDB4NjAwQDYwLjMySHogNjQweDQ4MEA2
+MC4wMEh6IDY0MHg0ODBANTkuOTRIeiAKCWNvbG9yTWFuYWdlbWVudFByZXNldDogc3JnYgoJc2Ry
+QnJpZ2h0bmVzczogMQoJc2RyU2F0dXJhdGlvbjogMQoJc2RyTWluTHVtaW5hbmNlOiAwLjIKCXNk
+ck1heEx1bWluYW5jZTogODAKCWhhcmR3YXJlQ3Vyc29yc0luVXNlOiB0cnVlCgoKClsvSFlQUkxB
+TkRdCm11ZXN0cmFfdXRjPTIwMjYtMTAtMTlUMjM6MzQ6NTJaClJBTSB0b3RhbF9rQj0yMDEzMzQ0
+IGRpc3BvbmlibGVfa0I9MTU3OTQ3MiB1c2FkYV9lc3RpbWFkYV9rQj00MzM4NzIgc3dhcF90b3Rh
+bF9rQj0wIHN3YXBfbGlicmVfa0I9MApDUFVfY29udGFkb3JlcyBjcHUgIDM0MSAwIDI4NDIgMTMz
+MCAzMyAwIDEgMCAwIDAKUkVEIGlmYWNlPWVuczMgaW5kaWNlPTIgbW9ub3RvbmljX3M9NDUuNzY1
+MDczMjE4IHJ4X2J5dGVzPTIzMjggcnhfcGFja2V0cz05IHJ4X2Vycm9ycz0wIHJ4X2Ryb3BwZWQ9
+MCB0eF9ieXRlcz0yMDU2IHR4X3BhY2tldHM9MjIgdHhfZXJyb3JzPTAgdHhfZHJvcHBlZD0wIGNh
+cnJpZXI9MSBzcGVlZF9NYnBzPU5BIG10dT0xNTAwClBST0NFU08gcGlkPTEwMDAgbm9tYnJlPWJ3
+cmFwIHJzc19rQj0yMDg4IHBzc19rQj0xNTgKUFJPQ0VTTyBwaWQ9MTAwMSBub21icmU9YndyYXAg
+cnNzX2tCPTEzMDggcHNzX2tCPTEyOQpQUk9DRVNPIHBpZD0xMDAyIG5vbWJyZT1nbHljaW4taW1h
+Z2UtcnMgcnNzX2tCPTc5ODAgcHNzX2tCPTM1MTUKUFJPQ0VTTyBwaWQ9MTAyNiBub21icmU9YnJh
+dmUgcnNzX2tCPTIxNDA0OCBwc3Nfa0I9MTIyMTU1ClBST0NFU08gcGlkPTEwMzQgbm9tYnJlPWNo
+cm9tZV9jcmFzaHBhZCByc3Nfa0I9NDA3MiBwc3Nfa0I9MTI0NApQUk9DRVNPIHBpZD0xMDM3IG5v
+bWJyZT1jaHJvbWVfY3Jhc2hwYWQgcnNzX2tCPTM4NDQgcHNzX2tCPTEwMzgKUFJPQ0VTTyBwaWQ9
+MTA1NSBub21icmU9YnJhdmUgcnNzX2tCPTc1NTA4IHBzc19rQj0yMTA2NwpQUk9DRVNPIHBpZD0x
+MDU2IG5vbWJyZT1icmF2ZSByc3Nfa0I9NzU0NTYgcHNzX2tCPTE4NTQxClBST0NFU08gcGlkPTEw
+NjAgbm9tYnJlPWJyYXZlIHJzc19rQj0yMDMwOCBwc3Nfa0I9NjI4NApQUk9DRVNPIHBpZD0xMDg3
+IG5vbWJyZT1icmF2ZSByc3Nfa0I9MTUzMjI0IHBzc19rQj02ODE5NQpQUk9DRVNPIHBpZD0xMDkx
+IG5vbWJyZT1icmF2ZSByc3Nfa0I9MTEyMzI4IHBzc19rQj00NTk2MApQUk9DRVNPIHBpZD0xMTEw
+IG5vbWJyZT1icmF2ZSByc3Nfa0I9NTA0MTIgcHNzX2tCPTExODk5ClBST0NFU08gcGlkPTc3NSBu
+b21icmU9ZGJ1cy1ydW4tc2Vzc2lvIHJzc19rQj0yNDEyIHBzc19rQj0yNjcKUFJPQ0VTTyBwaWQ9
+Nzg2IG5vbWJyZT1kYnVzLWRhZW1vbiByc3Nfa0I9NDQxMiBwc3Nfa0I9MTAxNgpQUk9DRVNPIHBp
+ZD03ODcgbm9tYnJlPXN0YXJ0LWh5cHJsYW5kIHJzc19rQj00Nzg4IHBzc19rQj0xMDQ5ClBST0NF
+U08gcGlkPTc5MyBub21icmU9SHlwcmxhbmQgcnNzX2tCPTI0MjU4NCBwc3Nfa0I9MTg0OTczClBS
+T0NFU08gcGlkPTgyNyBub21icmU9ZGNvbmYtc2VydmljZSByc3Nfa0I9NjQyNCBwc3Nfa0I9OTg2
+ClBST0NFU08gcGlkPTgzMyBub21icmU9c3dheWJnIHJzc19rQj0xNjM2OCBwc3Nfa0I9NDY2OApQ
+Uk9DRVNPIHBpZD04MzQgbm9tYnJlPXdheWJhciByc3Nfa0I9NDY2MTIgcHNzX2tCPTI1MTE0ClBS
+T0NFU08gcGlkPTgzNSBub21icmU9Zm9vdCByc3Nfa0I9MTI3NjAgcHNzX2tCPTQ2MzYKUFJPQ0VT
+TyBwaWQ9ODM2IG5vbWJyZT1mb290IHJzc19rQj0xMzc5NiBwc3Nfa0I9NTE0MApQUk9DRVNPIHBp
+ZD04NDMgbm9tYnJlPVh3YXlsYW5kIHJzc19rQj05ODg0OCBwc3Nfa0I9NTAzMDIKUFJPQ0VTTyBw
+aWQ9ODQ4IG5vbWJyZT1sZXNzIHJzc19rQj0zMTg4IHBzc19rQj04NTkKUFJPQ0VTTyBwaWQ9ODQ5
+IG5vbWJyZT1iYXNoIHJzc19rQj00NTM2IHBzc19rQj0xNDMwClBST0NFU08gcGlkPTg2OCBub21i
+cmU9YndyYXAgcnNzX2tCPTIwODQgcHNzX2tCPTE1NwpQUk9DRVNPIHBpZD04Njkgbm9tYnJlPWJ3
+cmFwIHJzc19rQj0xMzAwIHBzc19rQj0xMjcKUFJPQ0VTTyBwaWQ9ODcwIG5vbWJyZT1nbHljaW4t
+c3ZnIHJzc19rQj0zMDczMiBwc3Nfa0I9MTUzNzYKUFJPQ0VTTyBwaWQ9ODkwIG5vbWJyZT1hdC1z
+cGktYnVzLWxhdW4gcnNzX2tCPTc1MDAgcHNzX2tCPTEzNDgKUFJPQ0VTTyBwaWQ9ODk4IG5vbWJy
+ZT1kYnVzLWRhZW1vbiByc3Nfa0I9NDI2OCBwc3Nfa0I9ODE4ClBST0NFU08gcGlkPTkwMiBub21i
+cmU9YXQtc3BpMi1yZWdpc3RyIHJzc19rQj03NDA4IHBzc19rQj0xMjA5ClBST0NFU08gcGlkPTkx
+MCBub21icmU9bW91c2VwYWQgcnNzX2tCPTQ5NjQ4IHBzc19rQj0yNDY5NwpQUk9DRVNPIHBpZD05
+MjUgbm9tYnJlPWJ3cmFwIHJzc19rQj0yMTQ4IHBzc19rQj0xNTcKUFJPQ0VTTyBwaWQ9OTI2IG5v
+bWJyZT1id3JhcCByc3Nfa0I9MTI4NCBwc3Nfa0I9MTI2ClBST0NFU08gcGlkPTkyNyBub21icmU9
+Z2x5Y2luLWltYWdlLXJzIHJzc19rQj03NzI4IHBzc19rQj0zMzM3ClBST0NFU08gcGlkPTkzNSBu
+b21icmU9dGh1bmFyIHJzc19rQj00MzMxMiBwc3Nfa0I9MTc1MTcKUFJPQ0VTTyBwaWQ9OTQxIG5v
+bWJyZT14ZmNvbmZkIHJzc19rQj02NTg0IHBzc19rQj0xMDM2ClBST0NFU08gcGlkPTk2MyBub21i
+cmU9YndyYXAgcnNzX2tCPTIxNTYgcHNzX2tCPTE2MQpQUk9DRVNPIHBpZD05NjQgbm9tYnJlPWJ3
+cmFwIHJzc19rQj0xMzg4IHBzc19rQj0xMzAKUFJPQ0VTTyBwaWQ9OTY1IG5vbWJyZT1nbHljaW4t
+c3ZnIHJzc19rQj0xNzc0NCBwc3Nfa0I9NTQ4NApVSUQxMDAwIHByb2Nlc29zPTM5IG1lZGlkb3M9
+MzkgdHJ1bmNhZG89MCByc3Nfc3VtYV9wYXJjaWFsX2tCPTEzNjI1ODggcHNzX3N1bWFfcGFyY2lh
+bF9rQj02NTIzMDUKR1BVIE5BIG1vZG9fc29mdHdhcmVfb19ub2Rvc19hdXNlbnRlcwptdWVzdHJh
+X3V0Yz0yMDI2LTEwLTE5VDIzOjM0OjU4WgpSQU0gdG90YWxfa0I9MjAxMzM0NCBkaXNwb25pYmxl
+X2tCPTE0NzgyMTIgdXNhZGFfZXN0aW1hZGFfa0I9NTM1MTMyIHN3YXBfdG90YWxfa0I9MCBzd2Fw
+X2xpYnJlX2tCPTAKQ1BVX2NvbnRhZG9yZXMgY3B1ICA0NTEgMCAzMjI4IDE0MTEgMzMgMCAyMSAw
+IDAgMApSRUQgaWZhY2U9ZW5zMyBpbmRpY2U9MiBtb25vdG9uaWNfcz01MS43NzYxMjQ5MTggcnhf
+Ynl0ZXM9MTM3Mjk0MjcgcnhfcGFja2V0cz05NDU1IHJ4X2Vycm9ycz0wIHJ4X2Ryb3BwZWQ9MCB0
+eF9ieXRlcz0xNTM0NjEgdHhfcGFja2V0cz0xNzYwIHR4X2Vycm9ycz0wIHR4X2Ryb3BwZWQ9MCBj
+YXJyaWVyPTEgc3BlZWRfTWJwcz1OQSBtdHU9MTUwMApQUk9DRVNPIHBpZD0xMDAwIG5vbWJyZT1i
+d3JhcCByc3Nfa0I9MjA4OCBwc3Nfa0I9MTU4ClBST0NFU08gcGlkPTEwMDEgbm9tYnJlPWJ3cmFw
+IHJzc19rQj0xMzA4IHBzc19rQj0xMjkKUFJPQ0VTTyBwaWQ9MTAwMiBub21icmU9Z2x5Y2luLWlt
+YWdlLXJzIHJzc19rQj03OTgwIHBzc19rQj0zNTE0ClBST0NFU08gcGlkPTEwMjYgbm9tYnJlPWJy
+YXZlIHJzc19rQj0yNzY4MzIgcHNzX2tCPTE1OTE1MApQUk9DRVNPIHBpZD0xMDM0IG5vbWJyZT1j
+aHJvbWVfY3Jhc2hwYWQgcnNzX2tCPTQwNzIgcHNzX2tCPTEyNDQKUFJPQ0VTTyBwaWQ9MTAzNyBu
+b21icmU9Y2hyb21lX2NyYXNocGFkIHJzc19rQj0zODQ0IHBzc19rQj0xMDM3ClBST0NFU08gcGlk
+PTEwNTUgbm9tYnJlPWJyYXZlIHJzc19rQj03NTUwOCBwc3Nfa0I9MjAxMzUKUFJPQ0VTTyBwaWQ9
+MTA1NiBub21icmU9YnJhdmUgcnNzX2tCPTc1NDU2IHBzc19rQj0xNTIxNwpQUk9DRVNPIHBpZD0x
+MDYwIG5vbWJyZT1icmF2ZSByc3Nfa0I9MjA2MzIgcHNzX2tCPTQxMTQKUFJPQ0VTTyBwaWQ9MTA4
+NyBub21icmU9YnJhdmUgcnNzX2tCPTE3NDgxMiBwc3Nfa0I9NzQzMTYKUFJPQ0VTTyBwaWQ9MTA5
+MSBub21icmU9YnJhdmUgcnNzX2tCPTEyMjEyNCBwc3Nfa0I9NDU0MjYKUFJPQ0VTTyBwaWQ9MTEx
+MCBub21icmU9YnJhdmUgcnNzX2tCPTUwNzM2IHBzc19rQj0xMDMyMApQUk9DRVNPIHBpZD0xMTI4
+IG5vbWJyZT1icmF2ZSByc3Nfa0I9ODA0ODAgcHNzX2tCPTIyOTY2ClBST0NFU08gcGlkPTExMjkg
+bm9tYnJlPWJyYXZlIHJzc19rQj0xMzMyNzIgcHNzX2tCPTU3NTE3ClBST0NFU08gcGlkPTc3NSBu
+b21icmU9ZGJ1cy1ydW4tc2Vzc2lvIHJzc19rQj0yNDEyIHBzc19rQj0yNjcKUFJPQ0VTTyBwaWQ9
+Nzg2IG5vbWJyZT1kYnVzLWRhZW1vbiByc3Nfa0I9NDQxMiBwc3Nfa0I9MTAxNgpQUk9DRVNPIHBp
+ZD03ODcgbm9tYnJlPXN0YXJ0LWh5cHJsYW5kIHJzc19rQj00Nzg4IHBzc19rQj0xMDQ5ClBST0NF
+U08gcGlkPTc5MyBub21icmU9SHlwcmxhbmQgcnNzX2tCPTI0NzA2NCBwc3Nfa0I9MTg5MjAzClBS
+T0NFU08gcGlkPTgyNyBub21icmU9ZGNvbmYtc2VydmljZSByc3Nfa0I9NjQyNCBwc3Nfa0I9OTg2
+ClBST0NFU08gcGlkPTgzMyBub21icmU9c3dheWJnIHJzc19rQj0xNjM2OCBwc3Nfa0I9NDY2NwpQ
+Uk9DRVNPIHBpZD04MzQgbm9tYnJlPXdheWJhciByc3Nfa0I9NDY4NTYgcHNzX2tCPTI1MTcyClBS
+T0NFU08gcGlkPTgzNSBub21icmU9Zm9vdCByc3Nfa0I9MTI3NjAgcHNzX2tCPTQ2MDEKUFJPQ0VT
+TyBwaWQ9ODM2IG5vbWJyZT1mb290IHJzc19rQj0xMzc5NiBwc3Nfa0I9NTEwNgpQUk9DRVNPIHBp
+ZD04NDMgbm9tYnJlPVh3YXlsYW5kIHJzc19rQj05ODg0OCBwc3Nfa0I9NTAzMDAKUFJPQ0VTTyBw
+aWQ9ODQ4IG5vbWJyZT1sZXNzIHJzc19rQj0zMTg4IHBzc19rQj04NTgKUFJPQ0VTTyBwaWQ9ODQ5
+IG5vbWJyZT1iYXNoIHJzc19rQj00NTM2IHBzc19rQj0xNDI5ClBST0NFU08gcGlkPTg2OCBub21i
+cmU9YndyYXAgcnNzX2tCPTIwODQgcHNzX2tCPTE1NwpQUk9DRVNPIHBpZD04Njkgbm9tYnJlPWJ3
+cmFwIHJzc19rQj0xMzAwIHBzc19rQj0xMjcKUFJPQ0VTTyBwaWQ9ODcwIG5vbWJyZT1nbHljaW4t
+c3ZnIHJzc19rQj0zMDczMiBwc3Nfa0I9MTUzNjQKUFJPQ0VTTyBwaWQ9ODkwIG5vbWJyZT1hdC1z
+cGktYnVzLWxhdW4gcnNzX2tCPTc1NjAgcHNzX2tCPTEzNDYKUFJPQ0VTTyBwaWQ9ODk4IG5vbWJy
+ZT1kYnVzLWRhZW1vbiByc3Nfa0I9NDI2OCBwc3Nfa0I9ODE3ClBST0NFU08gcGlkPTkwMiBub21i
+cmU9YXQtc3BpMi1yZWdpc3RyIHJzc19rQj03NDA4IHBzc19rQj0xMjA5ClBST0NFU08gcGlkPTkx
+MCBub21icmU9bW91c2VwYWQgcnNzX2tCPTQ5NjQ0IHBzc19rQj0yNDY2NgpQUk9DRVNPIHBpZD05
+MjUgbm9tYnJlPWJ3cmFwIHJzc19rQj0yMTQ4IHBzc19rQj0xNTcKUFJPQ0VTTyBwaWQ9OTI2IG5v
+bWJyZT1id3JhcCByc3Nfa0I9MTI4NCBwc3Nfa0I9MTI2ClBST0NFU08gcGlkPTkyNyBub21icmU9
+Z2x5Y2luLWltYWdlLXJzIHJzc19rQj03NzI4IHBzc19rQj0zMzM1ClBST0NFU08gcGlkPTkzNSBu
+b21icmU9dGh1bmFyIHJzc19rQj00Mjg2MCBwc3Nfa0I9MTcwMjkKUFJPQ0VTTyBwaWQ9OTQxIG5v
+bWJyZT14ZmNvbmZkIHJzc19rQj02NzA4IHBzc19rQj0xMDM4ClBST0NFU08gcGlkPTk2MyBub21i
+cmU9YndyYXAgcnNzX2tCPTIxNTYgcHNzX2tCPTE2MQpQUk9DRVNPIHBpZD05NjQgbm9tYnJlPWJ3
+cmFwIHJzc19rQj0xMzg4IHBzc19rQj0xMzAKUFJPQ0VTTyBwaWQ9OTY1IG5vbWJyZT1nbHljaW4t
+c3ZnIHJzc19rQj0xNzc0NCBwc3Nfa0I9NTQ4MwpVSUQxMDAwIHByb2Nlc29zPTQxIG1lZGlkb3M9
+NDEgdHJ1bmNhZG89MCByc3Nfc3VtYV9wYXJjaWFsX2tCPTE2NzU2MDggcHNzX3N1bWFfcGFyY2lh
+bF9rQj03NzEwNDIKR1BVIE5BIG1vZG9fc29mdHdhcmVfb19ub2Rvc19hdXNlbnRlcwptdWVzdHJh
+X3V0Yz0yMDI2LTEwLTE5VDIzOjM1OjA1WgpSQU0gdG90YWxfa0I9MjAxMzM0NCBkaXNwb25pYmxl
+X2tCPTE2MTI3OTYgdXNhZGFfZXN0aW1hZGFfa0I9NDAwNTQ4IHN3YXBfdG90YWxfa0I9MCBzd2Fw
+X2xpYnJlX2tCPTAKQ1BVX2NvbnRhZG9yZXMgY3B1ICA2MjAgMCAzNjM0IDE0NzkgMzMgMCAzOCAw
+IDAgMApSRUQgaWZhY2U9ZW5zMyBpbmRpY2U9MiBtb25vdG9uaWNfcz01OC40OTI0NDkzMTggcnhf
+Ynl0ZXM9MjQ1MjMzNjkgcnhfcGFja2V0cz0xNjg5MyByeF9lcnJvcnM9MCByeF9kcm9wcGVkPTAg
+dHhfYnl0ZXM9MjM5NDQ2IHR4X3BhY2tldHM9MjM0OCB0eF9lcnJvcnM9MCB0eF9kcm9wcGVkPTAg
+Y2Fycmllcj0xIHNwZWVkX01icHM9TkEgbXR1PTE1MDAKUFJPQ0VTTyBwaWQ9MTAwMCBub21icmU9
+YndyYXAgcnNzX2tCPTIwODggcHNzX2tCPTE2NwpQUk9DRVNPIHBpZD0xMDAxIG5vbWJyZT1id3Jh
+cCByc3Nfa0I9MTMwOCBwc3Nfa0I9MTM0ClBST0NFU08gcGlkPTEwMDIgbm9tYnJlPWdseWNpbi1p
+bWFnZS1ycyByc3Nfa0I9Nzk4MCBwc3Nfa0I9MzUzNgpQUk9DRVNPIHBpZD0xMzg0IG5vbWJyZT1m
+dXp6ZWwgcnNzX2tCPTExOTAwIHBzc19rQj00MjA5ClBST0NFU08gcGlkPTc3NSBub21icmU9ZGJ1
+cy1ydW4tc2Vzc2lvIHJzc19rQj0yNDEyIHBzc19rQj0yOTAKUFJPQ0VTTyBwaWQ9Nzg2IG5vbWJy
+ZT1kYnVzLWRhZW1vbiByc3Nfa0I9NDQxMiBwc3Nfa0I9MTA1NApQUk9DRVNPIHBpZD03ODcgbm9t
+YnJlPXN0YXJ0LWh5cHJsYW5kIHJzc19rQj00Nzg4IHBzc19rQj0xMTA0ClBST0NFU08gcGlkPTc5
+MyBub21icmU9SHlwcmxhbmQgcnNzX2tCPTI0NjY0NCBwc3Nfa0I9MjAwODg0ClBST0NFU08gcGlk
+PTgyNyBub21icmU9ZGNvbmYtc2VydmljZSByc3Nfa0I9NjQyNCBwc3Nfa0I9MTA2MgpQUk9DRVNP
+IHBpZD04MzMgbm9tYnJlPXN3YXliZyByc3Nfa0I9MTYzNjggcHNzX2tCPTQ4MDQKUFJPQ0VTTyBw
+aWQ9ODM0IG5vbWJyZT13YXliYXIgcnNzX2tCPTQ2ODU2IHBzc19rQj0yNjI2MgpQUk9DRVNPIHBp
+ZD04MzUgbm9tYnJlPWZvb3QgcnNzX2tCPTEyNzYwIHBzc19rQj00NjIwClBST0NFU08gcGlkPTgz
+NiBub21icmU9Zm9vdCByc3Nfa0I9MTM3OTYgcHNzX2tCPTUwOTEKUFJPQ0VTTyBwaWQ9ODQzIG5v
+bWJyZT1Yd2F5bGFuZCByc3Nfa0I9OTg4NDggcHNzX2tCPTY0MTExClBST0NFU08gcGlkPTg0OCBu
+b21icmU9bGVzcyByc3Nfa0I9MzE4OCBwc3Nfa0I9ODgxClBST0NFU08gcGlkPTg0OSBub21icmU9
+YmFzaCByc3Nfa0I9NDUzNiBwc3Nfa0I9MTQ1MgpQUk9DRVNPIHBpZD04Njggbm9tYnJlPWJ3cmFw
+IHJzc19rQj0yMDg0IHBzc19rQj0xNjYKUFJPQ0VTTyBwaWQ9ODY5IG5vbWJyZT1id3JhcCByc3Nf
+a0I9MTMwMCBwc3Nfa0I9MTMyClBST0NFU08gcGlkPTg3MCBub21icmU9Z2x5Y2luLXN2ZyByc3Nf
+a0I9MzA3MzIgcHNzX2tCPTE1NjE2ClBST0NFU08gcGlkPTg5MCBub21icmU9YXQtc3BpLWJ1cy1s
+YXVuIHJzc19rQj03NTYwIHBzc19rQj0xNDQ0ClBST0NFU08gcGlkPTg5OCBub21icmU9ZGJ1cy1k
+YWVtb24gcnNzX2tCPTQyNjggcHNzX2tCPTg0NgpQUk9DRVNPIHBpZD05MDIgbm9tYnJlPWF0LXNw
+aTItcmVnaXN0ciByc3Nfa0I9NzQwOCBwc3Nfa0I9MTMzNwpQUk9DRVNPIHBpZD05MTAgbm9tYnJl
+PW1vdXNlcGFkIHJzc19rQj00OTY0NCBwc3Nfa0I9MjU1ODUKUFJPQ0VTTyBwaWQ9OTI1IG5vbWJy
+ZT1id3JhcCByc3Nfa0I9MjE0OCBwc3Nfa0I9MTY3ClBST0NFU08gcGlkPTkyNiBub21icmU9Yndy
+YXAgcnNzX2tCPTEyODQgcHNzX2tCPTEzMApQUk9DRVNPIHBpZD05Mjcgbm9tYnJlPWdseWNpbi1p
+bWFnZS1ycyByc3Nfa0I9NzcyOCBwc3Nfa0I9MzM1NgpQUk9DRVNPIHBpZD05MzUgbm9tYnJlPXRo
+dW5hciByc3Nfa0I9NDMyMjggcHNzX2tCPTE4NzUxClBST0NFU08gcGlkPTk0MSBub21icmU9eGZj
+b25mZCByc3Nfa0I9NjcwOCBwc3Nfa0I9MTExMQpQUk9DRVNPIHBpZD05NjMgbm9tYnJlPWJ3cmFw
+IHJzc19rQj0yMTU2IHBzc19rQj0xNjkKUFJPQ0VTTyBwaWQ9OTY0IG5vbWJyZT1id3JhcCByc3Nf
+a0I9MTM4OCBwc3Nfa0I9MTM1ClBST0NFU08gcGlkPTk2NSBub21icmU9Z2x5Y2luLXN2ZyByc3Nf
+a0I9MTc3NDQgcHNzX2tCPTU2NTQKVUlEMTAwMCBwcm9jZXNvcz0zMSBtZWRpZG9zPTMxIHRydW5j
+YWRvPTAgcnNzX3N1bWFfcGFyY2lhbF9rQj02Njk2ODggcHNzX3N1bWFfcGFyY2lhbF9rQj0zOTQy
+NjAKR1BVIE5BIG1vZG9fc29mdHdhcmVfb19ub2Rvc19hdXNlbnRlcwpmaW5fbWVkaWNpb24gbXVl
+c3RyYXM9NwoKW0tFUk5FTDogR1BVIHkgYXVkaW8sIHVsdGltYXMgNzAgY29pbmNpZGVuY2lhc10K
+WyAgICAwLjAyOTM1NV0gS2VybmVsIGNvbW1hbmQgbGluZTogY29uc29sZT10dHkwIGNvbnNvbGU9
+dHR5UzAsMTE1MjAwIHJkaW5pdD0vaW5pdCBwYW5pYz0tMSBxdWlldCBsaWJhaGNpLmlnbm9yZV9z
+c3M9MSBmaXJtd2FyZV9jbGFzcy5wYXRoPS9zaXN0ZW1hL3Vzci9saWIvZmlybXdhcmUgbnZpZGlh
+LWRybS5tb2Rlc2V0PTEgbnZpZGlhLWRybS5mYmRldj0xIEdMSUJDX1RVTkFCTEVTPWdsaWJjLmNw
+dS5od2NhcHM9U0hTVEs6Z2xpYmMuY3B1Lng4Nl9zaHN0az1vbgpbICAgIDAuMTYzMjMwXSBBQ1BJ
+OiBidXMgdHlwZSBkcm1fY29ubmVjdG9yIHJlZ2lzdGVyZWQKWyAgICAwLjE2MzQwMF0gW2RybV0g
+cGNpOiB2aXJ0aW8tdmdhIGRldGVjdGVkIGF0IDAwMDA6MDA6MDIuMApbICAgIDAuMTYzNTkyXSBb
+ZHJtXSBmZWF0dXJlczogLXZpcmdsICtlZGlkIC1yZXNvdXJjZV9ibG9iIC1ob3N0X3Zpc2libGUK
+WyAgICAwLjE2MzU5M10gW2RybV0gZmVhdHVyZXM6IC1jb250ZXh0X2luaXQgLWJsb2JfYWxpZ25t
+ZW50ClsgICAgMC4xNjUyNjRdIFtkcm1dIG51bWJlciBvZiBzY2Fub3V0czogMQpbICAgIDAuMTY1
+MjcyXSBbZHJtXSBudW1iZXIgb2YgY2FwIHNldHM6IDAKWyAgICAwLjE2NjE2NF0gW2RybV0gSW5p
+dGlhbGl6ZWQgdmlydGlvX2dwdSAwLjEuMCBmb3IgMDAwMDowMDowMi4wIG9uIG1pbm9yIDAKWyAg
+ICAwLjE2ODM4MF0gZmJjb246IHZpcnRpb19ncHVkcm1mYiAoZmIwKSBpcyBwcmltYXJ5IGRldmlj
+ZQpbICAgIDAuMTk5OTk2XSB2aXJ0aW8tcGNpIDAwMDA6MDA6MDIuMDogW2RybV0gZmIwOiB2aXJ0
+aW9fZ3B1ZHJtZmIgZnJhbWUgYnVmZmVyIGRldmljZQpbICAgIDAuODQ4NzkxXSBzbmRfaGRhX2lu
+dGVsIDAwMDA6MDA6MDQuMDogbm8gY29kZWNzIGZvdW5kIQoKW0xBTlpBTUlFTlRPIERFTCBDTElF
+TlRFOiBwdWVkZSBmYWx0YXIgc2kgbGEgcHJlcGFyYWNpb24gZmFsbG9dClZFUkRFIFtDUkVERU5D
+SUFMRVNdOiB1aWQ9MTAwMCBnaWQ9MTAwMCBjYXBhY2lkYWRlcz0wIE5vTmV3UHJpdnM9MQpBTUFS
+SUxMTyBbSFlQUkxBTkRdOiBsYWJvcmF0b3JpbyBHTEVTIHBvciBzb2Z0d2FyZTsgcmVxdWllcmUg
+RFJNL0dCTSBjb21wYXRpYmxlChtbMTszM21XQVJOIBtbMG1mcm9tIHN0YXJ0LWh5cHJsYW5kIF06
+IEFyZ3VtZW50cyBhZnRlciAtLSBhcmUgcGFzc2VkIHRvIEh5cHJsYW5kChtbMTszMm1ERUJVRyAb
+WzBtXTogVXNlci1zcGVjaWZpZWQgY29uZmlnIGxvY2F0aW9uOiAnL2V0Yy91bHRyYS9oeXBybGFu
+ZC5sdWEnCldlbGNvbWUgdG8gSHlwcmxhbmQhCgogICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICBZWSAgICBVSiAgICAg
+ICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgIFlZWSAgICBVVUogICAgICAgICAg
+ICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgWFhYWSAgICBVVVVVICAgICAgICAgICAgICAg
+ICAgIAogICAgICAgICAgICAgICAgICB6WFhYWCAgICBVVVVVVSAgICAgICAgICAgICAgICAgIAog
+ICAgICAgICAgICAgICAgenp6elggICAgICAgIFVVVVVKICAgICAgICAgICAgICAgIAogICAgICAg
+ICAgICAgICBjY3p6eiAgICAgICAgICBVVVVVSiAgICAgICAgICAgICAgIAogICAgICAgICAgICAg
+dmNjY2N6ICAgICAgICAgICAgVVVVVVVKICAgICAgICAgICAgIAogICAgICAgICAgICB2dmNjY2Mg
+ICAgICAgICAgICAgIFVVVVVVSiAgICAgICAgICAgIAogICAgICAgICAgIHZ2dnZ2ICAgICAgICAg
+ICAgICAgICAgVVVVVUogICAgICAgICAgIAogICAgICAgICAgdXV1dnYgICAgICAgICAgICAgICAg
+ICAgIFVVVVVKICAgICAgICAgIAogICAgICAgICB1dXV1dSAgICAgICAgICAgICAgICAgICAgICBV
+VVVVVSAgICAgICAgIAogICAgICAgIG5ubnV1ICAgICAgICAgICAgICAgICAgICAgICAgVVVVVVUg
+ICAgICAgIAogICAgICAgbm5ubm4gICAgICAgICAgICAgICAgICAgICAgICAgIFlVVVVVICAgICAg
+IAogICAgICAgeHhubiAgICAgICAgICAgICAgICAgICAgICAgICAgICBZVVVVICAgICAgIAogICAg
+ICAgeHh4biAgICAgICAgICAgICAgICAgICAgICAgICAgICBZWVVVICAgICAgIAogICAgICB4eHh4
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgWVlVVSAgICAgIAogICAgICByeHh4ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgWVlZWSAgICAgIAogICAgICBycnJ4ICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgWVlZWSAgICAgIAogICAgICAgcnJyeCAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICBYWFhZICAgICAgIAogICAgICAgcnJyciAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBYWFhYICAgICAgIAogICAgICAgIHJycnIgICAgICAgICAgICAgICAgICAgICAgICAgIHp6
+WFggICAgICAgIAogICAgICAgICBycnJyICAgICAgICAgICAgICAgICAgICAgICAgenp6eiAgICAg
+ICAgIAogICAgICAgICAgcnJycnIgICAgICAgICAgICAgICAgICAgIGNjY3p6ICAgICAgICAgIAog
+ICAgICAgICAgIHJycnJyeCAgICAgICAgICAgICAgICB2Y2NjY2MgICAgICAgICAgIAogICAgICAg
+ICAgICAgcnJycnh4eHggICAgICAgIHV1dnZ2dnZjICAgICAgICAgICAgIAogICAgICAgICAgICAg
+ICAgcnJ4eHh4eHhubm5udXV1dXV2ICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAg
+IHh4eHh4bm5ubnUgICAgICAgICAgICAgICAgICAgIAoKCgpERUJVRyBdOiBPbGQgcmxpbWl0OiBz
+b2Z0IC0+IDEwMjQsIGhhcmQgLT4gNDA5NgpERUJVRyBdOiBOZXcgcmxpbWl0OiBzb2Z0IC0+IDQw
+OTYsIGhhcmQgLT4gNDA5NgpERUJVRyBdOiBDcmVhdGluZyB0aGUgRXZlbnRMb29wTWFuYWdlciEK
+REVCVUcgXTogQ3JlYXRpbmcgdGhlIEtleWJpbmRNYW5hZ2VyIQpERUJVRyBdOiBDcmVhdGluZyB0
+aGUgQW5pbWF0aW9uTWFuYWdlciEKREVCVUcgXTogQ3JlYXRpbmcgdGhlIER5bmFtaWNQZXJtaXNz
+aW9uTWFuYWdlciEKREVCVUcgXTogQ3JlYXRpbmcgdGhlIE1vbml0b3JTdGF0ZSEKREVCVUcgXTog
+Q3JlYXRpbmcgdGhlIFdvcmtzcGFjZVN0YXRlIQpERUJVRyBdOiBDcmVhdGluZyB0aGUgQ29uZmln
+TWFuYWdlciEKREVCVUcgXTogW2NmZ10gQ29uZmlnIGlzIGVpdGhlciBleHBsaWNpdCBvciBzcGVj
+aWFsLgpERUJVRyBdOiBbY2ZnXSBDb25maWcgaXMgbHVhLCBsb2FkaW5nIGx1YSBtZ3IKREVCVUcg
+XTogQ3JlYXRpbmcgdGhlIEVycm9yIE92ZXJsYXkhCkRFQlVHIF06IENyZWF0aW5nIHRoZSBMYXlv
+dXRNYW5hZ2VyIQpERUJVRyBdOiBDcmVhdGluZyB0aGUgVG9rZW5NYW5hZ2VyIQpERUJVRyBdOiBD
+cmVhdGluZyB0aGUgRXZlbnRNYW5hZ2VyIQpERUJVRyBdOiBDcmVhdGluZyB0aGUgUG9pbnRlck1h
+bmFnZXIhCkRFQlVHIF06IENyZWF0aW5nIHRoZSBBc3luY1Jlc291cmNlR2F0aGVyZXIhCmRidXMt
+ZGFlbW9uWzc4Nl06IFtzZXNzaW9uIHVpZD0xMDAwIHBpZD03ODYgcGlkZmQ9NV0gQWN0aXZhdGlu
+ZyBzZXJ2aWNlIG5hbWU9J2NhLmRlc3J0LmRjb25mJyByZXF1ZXN0ZWQgYnkgJzoxLjAnICh1aWQ9
+MTAwMCBwaWQ9NzkzIGNvbW09Ikh5cHJsYW5kIC0td2F0Y2hkb2ctZmQgNCAtLWNvbmZpZyAvZXRj
+L3VsdHJhL2h5cHJsIikKZGJ1cy1kYWVtb25bNzg2XTogW3Nlc3Npb24gdWlkPTEwMDAgcGlkPTc4
+NiBwaWRmZD01XSBTdWNjZXNzZnVsbHkgYWN0aXZhdGVkIHNlcnZpY2UgJ2NhLmRlc3J0LmRjb25m
+JwobWzE7MzJtREVCVUcgG1swbWZyb20gc3RhcnQtaHlwcmxhbmQgXTogZ290IGFuIGV2ZW50IGZy
+b20gaHlwcmxhbmQKZGJ1cy1kYWVtb25bNzg2XTogW3Nlc3Npb24gdWlkPTEwMDAgcGlkPTc4NiBw
+aWRmZD01XSBBY3RpdmF0aW5nIHNlcnZpY2UgbmFtZT0nb3JnLmExMXkuQnVzJyByZXF1ZXN0ZWQg
+YnkgJzoxLjMnICh1aWQ9MTAwMCBwaWQ9ODM0IGNvbW09IndheWJhciAtYyAvZXRjL3VsdHJhL3dh
+eWJhci5qc29uYyAtcyAvZXRjL3VsdHJhL3dhIikKUmVmdXNpbmcgdG8gdHJ5IGdsYW1vciBvbiBs
+bHZtcGlwZQpYV0FZTEFORDogRGlzYWJsaW5nIEdMQU1PUiBzdXBwb3J0CkVHTCBzZXR1cCBmYWls
+ZWQsIGRpc2FibGluZyBnbGFtb3IKRmFpbGVkIHRvIGluaXRpYWxpemUgZ2xhbW9yLCBmYWxsaW5n
+IGJhY2sgdG8gc3cKZGJ1cy1kYWVtb25bNzg2XTogW3Nlc3Npb24gdWlkPTEwMDAgcGlkPTc4NiBw
+aWRmZD01XSBTdWNjZXNzZnVsbHkgYWN0aXZhdGVkIHNlcnZpY2UgJ29yZy5hMTF5LkJ1cycKTUVT
+QS1FR0w6IHdhcm5pbmc6IGZhaWxlZCB0byBvcGVuIC9kZXYvZHJpL2NhcmQwOiBQZXJtaXNzaW9u
+IGRlbmllZApUaGUgWEtFWUJPQVJEIGtleW1hcCBjb21waWxlciAoeGtiY29tcCkgcmVwb3J0czoK
+PiBXYXJuaW5nOiAgICAgICAgICBNdWx0aXBsZSBzeW1ib2xzIGZvciBsZXZlbCAxL2dyb3VwIDEg
+b24ga2V5IDxGSzIzPgo+ICAgICAgICAgICAgICAgICAgIFVzaW5nIEYyMywgaWdub3JpbmcgWEY4
+NlRvdWNocGFkT2ZmCj4gV2FybmluZzogICAgICAgICAgU3ltYm9sIG1hcCBmb3Iga2V5IDxGSzIz
+PiByZWRlZmluZWQKPiAgICAgICAgICAgICAgICAgICBVc2luZyBsYXN0IGRlZmluaXRpb24gZm9y
+IGNvbmZsaWN0aW5nIGZpZWxkcwo+IFdhcm5pbmc6ICAgICAgICAgIFN5bWJvbCBtYXAgZm9yIGtl
+eSA8RksyND4gcmVkZWZpbmVkCj4gICAgICAgICAgICAgICAgICAgVXNpbmcgbGFzdCBkZWZpbml0
+aW9uIGZvciBjb25mbGljdGluZyBmaWVsZHMKRXJyb3JzIGZyb20geGtiY29tcCBhcmUgbm90IGZh
+dGFsIHRvIHRoZSBYIHNlcnZlcgpkYnVzLWRhZW1vbls4OThdOiBBY3RpdmF0aW5nIHNlcnZpY2Ug
+bmFtZT0nb3JnLmExMXkuYXRzcGkuUmVnaXN0cnknIHJlcXVlc3RlZCBieSAnOjEuMScgKHVpZD0x
+MDAwIHBpZD04MzQgY29tbT0id2F5YmFyIC1jIC9ldGMvdWx0cmEvd2F5YmFyLmpzb25jIC1zIC9l
+dGMvdWx0cmEvd2EiKQpkYnVzLWRhZW1vbls4OThdOiBTdWNjZXNzZnVsbHkgYWN0aXZhdGVkIHNl
+cnZpY2UgJ29yZy5hMTF5LmF0c3BpLlJlZ2lzdHJ5JwpTcGlSZWdpc3RyeSBkYWVtb24gaXMgcnVu
+bmluZyB3aXRoIHdlbGwta25vd24gbmFtZSAtIG9yZy5hMTF5LmF0c3BpLlJlZ2lzdHJ5ClRoZSBY
+S0VZQk9BUkQga2V5bWFwIGNvbXBpbGVyICh4a2Jjb21wKSByZXBvcnRzOgo+IFdhcm5pbmc6ICAg
+ICAgICAgIFVuc3VwcG9ydGVkIG1heGltdW0ga2V5Y29kZSA3MDksIGNsaXBwaW5nLgo+ICAgICAg
+ICAgICAgICAgICAgIFgxMSBjYW5ub3Qgc3VwcG9ydCBrZXljb2RlcyBhYm92ZSAyNTUuCj4gV2Fy
+bmluZzogICAgICAgICAgVmlydHVhbCBtb2RpZmllciBIeXBlciBtdWx0aXBseSBkZWZpbmVkCj4g
+ICAgICAgICAgICAgICAgICAgVXNpbmcgMCwgaWdub3JpbmcgMAo+IFdhcm5pbmc6ICAgICAgICAg
+IFZpcnR1YWwgbW9kaWZpZXIgU2Nyb2xsTG9jayBtdWx0aXBseSBkZWZpbmVkCj4gICAgICAgICAg
+ICAgICAgICAgVXNpbmcgMCwgaWdub3JpbmcgMApFcnJvcnMgZnJvbSB4a2Jjb21wIGFyZSBub3Qg
+ZmF0YWwgdG8gdGhlIFggc2VydmVyCmRidXMtZGFlbW9uWzc4Nl06IFtzZXNzaW9uIHVpZD0xMDAw
+IHBpZD03ODYgcGlkZmQ9NV0gQWN0aXZhdGluZyBzZXJ2aWNlIG5hbWU9J29yZy54ZmNlLlhmY29u
+ZicgcmVxdWVzdGVkIGJ5ICc6MS45JyAodWlkPTEwMDAgcGlkPTkzNSBjb21tPSJ0aHVuYXIiKQpk
+YnVzLWRhZW1vbls3ODZdOiBbc2Vzc2lvbiB1aWQ9MTAwMCBwaWQ9Nzg2IHBpZGZkPTVdIFN1Y2Nl
+c3NmdWxseSBhY3RpdmF0ZWQgc2VydmljZSAnb3JnLnhmY2UuWGZjb25mJwobWzE7MzJtREVCVUcg
+G1swbWZyb20gc3RhcnQtaHlwcmxhbmQgXTogZ290IGFuIGV2ZW50IGZyb20gaHlwcmxhbmQKKEVF
+KSBmYWlsZWQgdG8gcmVhZCBXYXlsYW5kIGV2ZW50czogQnJva2VuIHBpcGUKG1sxOzMybURFQlVH
+IBtbMG1mcm9tIHN0YXJ0LWh5cHJsYW5kIF06IGh5cHJsYW5kIGV4aXQsIGJyZWFraW5nIHBvbGws
+IGNoZWNraW5nIHN0YXRlChtbMTszMm1ERUJVRyAbWzBtZnJvbSBzdGFydC1oeXBybGFuZCBdOiBI
+eXBybGFuZCBleGl0IGNsZWFubHkuCgooeGZjb25mZDo5NDEpOiB4ZmNvbmZkLVdBUk5JTkcgKio6
+IDIzOjM1OjA5Ljk2NDogTmFtZSBvcmcueGZjZS5YZmNvbmYgbG9zdCBvbiB0aGUgbWVzc2FnZSBk
+YnVzLCBleGl0aW5nLgo=
+ultra:~# reboot
+AMARILLO [APAGADO]: reinicio
+ultra:~# VERDE [DESMONTAJE]: /datos desmontado limpio
+VERDE [DESMONTAJE]: /bmo desmontado limpio
+[   69.075830] reboot: Restarting system
+===== ARRANQUE 2 =====
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x5,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x5,0x0)
+VERDE [MONTAJE]: devtmpfs en /dev
+VERDE [MONTAJE]: proc en /proc
+VERDE [MONTAJE]: sysfs en /sys
+VERDE [MONTAJE]: tmpfs en /tmp
+VERDE [MONTAJE]: tmpfs en /run
+VERDE [MONTAJE]: devpts en /dev/pts
+VERDE [MONTAJE]: tmpfs en /dev/shm
+
+ULTRA LinuX: INIT C READY
+ULTRA LinuX - Influencia BMO-X
+Eddi Salazar: creador de un sistema propio, sin ser un OS
+
+VERDE [KERNEL]: Linux 7.3.0-rc7-pc-g32c52ec87d62 x86_64
+VERDE [PARTICION]: BMO (/dev/vda2, vfat) en /bmo
+VERDE [PARTICION]: ULTRA-SISTEMA-A <- /bmo/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs (/dev/loop0, erofs, solo lectura) en /sistema
+VERDE [PARTICION]: ULTRA-DATOS <- /bmo/ULTRA/datos.ext4 (/dev/loop1, ext4) en /datos
+VERDE [HARDWARE]: arranque guiado por PC.configuracion: 1 modulos (6 cargados); lectura 2424 us + carga 27663 us = 30087 us; primer arranque 28384 us; ganado -1703 us
+VERDE [MEDIDA]: hasta el hardware: 710 ms; el anterior con este kernel: 850 ms (-140 ms); arranque 2 con este kernel
+[    0.717923] snd_hda_intel 0000:00:04.0: no codecs found!
+VERDE [SISTEMA]: base Arch en /arch (328 paquetes, glibc 2.44; EROFS + capa en memoria); entra con: ultra-entrar
+VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 1966 MiB | 7.3.0-rc7-pc-g32c52ec87d62 | 710 ms (antes 850) | CET Landlock seccomp FORTIFY
+VERDE [LOGO]: 248x300 en la pantalla de 1280x800
+VERDE [CONSOLA]: shell en /dev/tty1
+VERDE [CONSOLA]: shell en /dev/ttyS0
+ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).
+Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff
+Recomendacion: ultra-entrar  (entra en el sistema Arch: bash, coreutils, grep, sed, less; exit para volver)
+Escritorio: e  (menu con flechas y Enter; GPU, recuperacion y diagnostico)
+ultra:~# cat /datos/prueba-persistencia
+PERSISTE-9c2dadc8
+ultra:~# lsmod
+snd_hda_intel 53248 0 - Live 0xffffffffc0431000
+snd_hda_codec 184320 1 snd_hda_intel, Live 0xffffffffc0420000
+snd_hda_core 131072 2 snd_hda_intel,snd_hda_codec, Live 0xffffffffc0416000
+snd_pcm 176128 3 snd_hda_intel,snd_hda_codec,snd_hda_core, Live 0xffffffffc0403000
+snd_hwdep 20480 1 snd_hda_codec, Live 0xffffffffc0401000
+snd_intel_dspcfg 16384 1 snd_hda_intel, Live 0xffffffffc0400000
+ultra:~# cat /datos/arranques.log
+arranque=deteccion kernel=7.3.0-rc7-pc-g32c52ec87d62 componentes=8 modulos=1 deteccion_us=544 carga_us=27840 total_us=28384 uptime_ms=850
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=1 lectura_us=2424 carga_us=27663 total_us=30087 ganado_us=-1703 uptime_ms=710
+ultra:~# cat /datos/arranques.log
+arranque=deteccion kernel=7.3.0-rc7-pc-g32c52ec87d62 componentes=8 modulos=1 deteccion_us=544 carga_us=27840 total_us=28384 uptime_ms=850
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=1 lectura_us=2424 carga_us=27663 total_us=30087 ganado_us=-1703 uptime_ms=710
+ultra:~# cat /bmo/ULTRA/informe/arranques.txt
+arranque=deteccion kernel=7.3.0-rc7-pc-g32c52ec87d62 componentes=8 modulos=1 deteccion_us=544 carga_us=27840 total_us=28384 uptime_ms=850
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=1 lectura_us=2424 carga_us=27663 total_us=30087 ganado_us=-1703 uptime_ms=710
+ultra:~# poweroff
+AMARILLO [APAGADO

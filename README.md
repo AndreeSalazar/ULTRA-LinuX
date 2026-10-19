@@ -26,6 +26,10 @@ Instalacion, pruebas y funciones pendientes en [BRAVE-W3F.md](docs/BRAVE-W3F.md)
 La [medicion por perfil](docs/MEDICION-W3E.md) registra RAM/CPU y, en NVIDIA,
 VRAM/ocupacion/temperatura/potencia durante la sesion.
 
+La [revision de Ethernet](docs/RED-W3G.md) incorpora firmware Realtek, contadores
+RX/TX en C con guardianes y un banco aislado de perdida, retardo y duplicados.
+Las pruebas virtuales no sustituyen la medicion del cable y la tarjeta fisica.
+
 ## ULTRA LinuX en el metal: de 2009 ms a 920 ms
 
 ![Tarjeta de arranque de ULTRA LinuX en el PC real: 920 ms](evidencias/pc-real/foto-tarjeta-pc-920ms.webp)

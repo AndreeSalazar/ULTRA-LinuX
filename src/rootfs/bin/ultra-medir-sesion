@@ -37,6 +37,8 @@ for ((sample=0;sample<120;sample++)); do
     # Raw aggregate CPU counters allow deltas; no guessed percentage at sample 0.
     read -r cpu_line < /proc/stat
     printf 'CPU_contadores %s\n' "$cpu_line"
+    # Same C guardians as init; no root or network socket needed for counters.
+    user_query /usr/local/libexec/ultra-red-contadores || printf 'RED NA consulta_fallida_o_timeout\n'
     count=0; rss_sum=0; pss_sum=0; measured=0; truncated=0
     for proc in /proc/[0-9]*; do
         uid=NA; name=NA

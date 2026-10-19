@@ -1,0 +1,16 @@
+gcc (GCC) 16.2.1 20260810
+7.2.11-arch1-1
+eaddc4ec1216ab230360260546adbab14d8627330ef6cd4cb289bd4ed68212bb  linux-reconstruido/build/init-c-generico/ultra-red-contadores
+      Properties: x86 feature: IBT, SHSTK
+	x86 feature used: x86, x87, XMM, YMM, ZMM, FXSR, XSAVE, XSAVEC, MASK
+ ausente=NA
+VERDE [RED-C]: 18 grupos de controles, limites y desbordamiento
+ ausente=NA
+VERDE [RED-C]: 18 grupos de controles, limites y desbordamiento
+ ausente=NA
+VERDE [RED-C]: 18 grupos de controles, limites y desbordamiento
+VERDE: RAM, UID, RSS/PSS parcial, GPU ausente y una muestra
+VERDE: modo NVIDIA sin nodos no consulta ni prepara dispositivos
+VERDE: MemAvailable ausente no se inventa
+VERDE: limite 128 procesos
+VERDE: parada previa sin atribuir una muestra inexistente

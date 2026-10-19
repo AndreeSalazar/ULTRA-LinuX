@@ -1,0 +1,2 @@
+ ausente=NA
+VERDE [RED-C]: 18 grupos de controles, limites y desbordamiento

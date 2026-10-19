@@ -29,7 +29,7 @@ trap finish EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 # Do not attribute a previous client log to a fresh failed preparation.
-rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log /run/ultra-escritorio/medicion.log /run/ultra-escritorio/medicion.stop
+rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log /run/ultra-escritorio/medicion.log /run/ultra-escritorio/medicion.stop /run/ultra-escritorio/red.log
 [[ ! -e /run/seatd.sock && ! -L /run/seatd.sock ]] || { echo 'ROJO [SESION]: socket seatd ya ocupado'; exit 1; }
 export SYSTEMD_IGNORE_CHROOT=1
 if ! udevadm control --ping 2>/dev/null; then
@@ -39,7 +39,7 @@ fi
 udevadm trigger --action=add --type=subsystems || exit 1
 udevadm trigger --action=add --type=devices || exit 1
 udevadm settle --timeout=15 || exit 1
-/usr/bin/bash /usr/local/libexec/ultra-preparar-red > /run/ultra-escritorio/red.log 2>&1 || echo 'AMARILLO [RED]: sin conexion; el escritorio puede abrir sin internet'
+/usr/bin/bash /usr/local/libexec/ultra-preparar-red > /run/ultra-escritorio/red.log 2>&1 9>&- || echo 'AMARILLO [RED]: sin conexion; el escritorio puede abrir sin internet'
 nvidia=(); software=(); cards=()
 for entry in /sys/class/drm/card*; do
     name=${entry##*/}

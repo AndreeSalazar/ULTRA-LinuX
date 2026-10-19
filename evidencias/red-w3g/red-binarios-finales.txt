@@ -1,0 +1,5 @@
+VERDE: fuente final con comentario netlink produce binario identico: generico
+eaddc4ec1216ab230360260546adbab14d8627330ef6cd4cb289bd4ed68212bb  /home/builder/red-c-current-generico
+VERDE: fuente final con comentario netlink produce binario identico: pc
+9955f02f28616d18826cdd6d17591f6dcc7aca56312cb3fdc8acd53ef8990b95  /home/builder/red-c-current-pc
+9365af4e6151c0cfc6d65cb2142828cacf600770fe881742ffb5863d2c269769  /home/builder/red-final/red.c

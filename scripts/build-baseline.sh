@@ -31,7 +31,7 @@ case $perfil in
         # the board sets staggered spin-up, so AHCI scanned the SATA ports one
         # by one and init waited ~1.6 s for it (evidencias/pc-real/dmesg-*). That protects spinning
         # disks from a power surge; this PC has only SSDs, so the ports are scanned in parallel.
-        cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
+        cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
         required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS FB_DEVICE OVERLAY_FS EROFS_FS_ZIP VIRTIO_BLK USER_NS) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
@@ -48,7 +48,7 @@ if [[ $perfil = pc ]]; then
     userflags=(-O3 -march=znver3 -flto=auto)
     # W3a: the RTX 3060 drives the screen with KMS (what Wayland needs) and its own console.
     # Its firmware (GSP) lives in the system image, mounted at /sistema before the module loads.
-    cmdline=${cmdline/ GLIBC_TUNABLES/ nvidia-drm.modeset=1 nvidia-drm.fbdev=1 firmware_class.path=\/sistema\/usr\/lib\/firmware GLIBC_TUNABLES}
+    cmdline=${cmdline/ GLIBC_TUNABLES/ nvidia-drm.modeset=1 nvidia-drm.fbdev=1 GLIBC_TUNABLES}
 fi
 base="$HOME/linux-reconstruido"
 src="$base/kernel"
@@ -71,17 +71,18 @@ echo "perfil: $perfil"
 # production build. static-pie keeps ASLR, BIND_NOW and CET in static binaries.
 source "$lab/guardianes.sh"
 init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c" "$lab/tarjeta.c" "$lab/efi.c" "$lab/perfil.c" "$lab/logo.c" "$lab/sistema.c")
-for file in "${init_src[@]}" "$lab/raiz.c" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; do
+for file in "${init_src[@]}" "$lab/raiz.c" "$lab/red.c" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; do
     ultra_revisar "$file" || { echo "ROJO: $file no pasa la revision de guardianes"; exit 1; }
 done
 # Static userspace built separately from the unmodified kernel sources.
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "${init_src[@]}" "$lab/guardian/ultra_guard.c" -o "$user/init"
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c" -o "$user/caja"
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/raiz.c" "$lab/guardian/ultra_guard.c" -o "$user/ultra-raiz"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/red.c" "$lab/guardian/ultra_guard.c" -o "$user/ultra-red-contadores"
 # Production build of the minefield, so the guardians can be watched on the ULTRA kernel itself.
 # Same options as init: a guardian that -O3 or LTO optimizes away shows up in the boot test.
 gcc "${ULTRA_PROD[@]}" "${userflags[@]}" -w -static-pie "$lab/guardian/minas.c" "$lab/guardian/ultra_guard.c" -o "$user/minas"
-for bin in "$user/init" "$user/caja" "$user/ultra-raiz"; do
+for bin in "$user/init" "$user/caja" "$user/ultra-raiz" "$user/ultra-red-contadores"; do
     readelf -n "$bin" | grep -q 'x86 feature: IBT, SHSTK' || { echo "ROJO: $bin sin marca CET"; exit 1; }
 done
 printf '%s
@@ -206,7 +207,8 @@ if [[ -n $cmdline ]]; then
     # (session), systemd only for its udevd (devices for libinput), and a font.
     arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow
         hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata swaybg librsvg
-        nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd)
+        nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
+        ethtool linux-firmware-realtek)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -222,9 +224,18 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red ultra-informe-red; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
+    sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
+    # These kernels have FW_LOADER_COMPRESS disabled. Ship plain Realtek NIC
+    # firmware rather than merely accepting an unreadable compressed package.
+    for firmware in "$sistema"/usr/lib/firmware/rtl_nic/*.zst; do
+        [[ -f $firmware ]] || continue
+        sudo zstd -dq -f -o "${firmware%.zst}" -- "$firmware"
+    done
+    [[ -s $sistema/usr/lib/firmware/rtl_nic/rtl8168h-2.fw ]] ||
+        { echo 'ROJO: falta firmware Ethernet RTL8168h'; exit 1; }
     sudo install -d -m 0755 "$sistema/etc/ultra"
     sudo install -m 0644 "$lab/rootfs/desktop/"* "$sistema/etc/ultra/"
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"

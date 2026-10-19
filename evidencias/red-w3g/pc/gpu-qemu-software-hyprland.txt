@@ -1,0 +1,628 @@
+ULTRA GPU - ultimo intento
+fecha_utc=2026-10-19T23:35:10Z
+kernel=7.3.0-rc7-pc-g32c52ec87d62
+modo=software
+compositor=hyprland
+salida=0
+
+[NODOS: estado posterior al intento, sin ejecutar nvidia-smi]
+AUSENTE /dev/nvidia0
+AUSENTE /dev/nvidiactl
+AUSENTE /dev/nvidia-modeset
+/dev/dri/card0 tipo=character special file major_minor_hex=e2:0 uid=0 gid=983 permisos=660
+/dev/dri/renderD128 tipo=character special file major_minor_hex=e2:80 uid=0 gid=987 permisos=666
+
+[DRIVER]
+
+[PREPARACION DE NODOS]
+
+[RED: preparacion de esta sesion]
+ULTRA RED
+VERDE [RED]: ya hay ruta IPv4
+ens3             UP             10.0.2.15/24
+
+[ETHERNET: estado posterior a la sesion; contadores no atomicos]
+red_fecha_utc=2026-10-19T23:35:10Z
+RED iface=ens3 indice=2 monotonic_s=63.109735918 rx_bytes=24523369 rx_packets=16893 rx_errors=0 rx_dropped=0 tx_bytes=239446 tx_packets=2348 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+default via 10.0.2.2 dev ens3 proto dhcp src 10.0.2.15 metric 1002
+[TCP/IP: contadores globales acumulados desde arranque, no por aplicacion]
+Ip: Forwarding DefaultTTL InReceives InHdrErrors InAddrErrors ForwDatagrams InUnknownProtos InDiscards InDelivers OutRequests OutDiscards OutNoRoutes ReasmTimeout ReasmReqds ReasmOKs ReasmFails FragOKs FragFails FragCreates OutTransmits
+Ip: 2 64 9943 0 0 0 0 0 9941 2280 0 0 0 0 0 0 0 0 0 2280
+Icmp: InMsgs InErrors InCsumErrors InDestUnreachs InTimeExcds InParmProbs InSrcQuenchs InRedirects InEchos InEchoReps InTimestamps InTimestampReps InAddrMasks InAddrMaskReps OutMsgs OutErrors OutRateLimitGlobal OutRateLimitHost OutDestUnreachs OutTimeExcds OutParmProbs OutSrcQuenchs OutRedirects OutEchos OutEchoReps OutTimestamps OutTimestampReps OutAddrMasks OutAddrMaskReps
+Icmp: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 0
+IcmpMsg: OutType3
+IcmpMsg: 1
+Tcp: RtoAlgorithm RtoMin RtoMax MaxConn ActiveOpens PassiveOpens AttemptFails EstabResets CurrEstab InSegs OutSegs RetransSegs InErrs OutRsts InCsumErrors
+Tcp: 1 200 120000 -1 56 0 0 1 0 8504 2098 0 0 39 0
+Udp: InDatagrams NoPorts InErrors OutDatagrams RcvbufErrors SndbufErrors InCsumErrors IgnoredMulti MemErrors
+Udp: 1356 1 0 232 0 0 0 0 0
+TcpExt: SyncookiesSent SyncookiesRecv SyncookiesFailed EmbryonicRsts PruneCalled RcvPruned OfoPruned OutOfWindowIcmps LockDroppedIcmps ArpFilter TW TWRecycled TWKilled PAWSActive PAWSEstab BeyondWindow TSEcrRejected PAWSOldAck PAWSTimewait DelayedACKs DelayedACKLocked DelayedACKLost ListenOverflows ListenDrops TCPHPHits TCPPureAcks TCPHPAcks TCPRenoRecovery TCPSackRecovery TCPSACKReneging TCPSACKReorder TCPRenoReorder TCPTSReorder TCPFullUndo TCPPartialUndo TCPDSACKUndo TCPLossUndo TCPLostRetransmit TCPRenoFailures TCPSackFailures TCPLossFailures TCPFastRetrans TCPSlowStartRetrans TCPTimeouts TCPLossProbes TCPLossProbeRecovery TCPRenoRecoveryFail TCPSackRecoveryFail TCPRcvCollapsed TCPBacklogCoalesce TCPDSACKOldSent TCPDSACKOfoSent TCPDSACKRecv TCPDSACKOfoRecv TCPAbortOnData TCPAbortOnClose TCPAbortOnMemory TCPAbortOnTimeout TCPAbortOnLinger TCPAbortFailed TCPMemoryPressures TCPMemoryPressuresChrono TCPSACKDiscard TCPDSACKIgnoredOld TCPDSACKIgnoredNoUndo TCPSpuriousRTOs TCPMD5NotFound TCPMD5Unexpected TCPMD5Failure TCPSackShifted TCPSackMerged TCPSackShiftFallback TCPBacklogDrop PFMemallocDrop TCPMinTTLDrop TCPDeferAcceptDrop IPReversePathFilter TCPTimeWaitOverflow TCPReqQFullDoCookies TCPReqQFullDrop TCPRetransFail TCPRcvCoalesce TCPOFOQueue TCPOFODrop TCPOFOMerge TCPChallengeACK TCPSYNChallenge TCPFastOpenActive TCPFastOpenActiveFail TCPFastOpenPassive TCPFastOpenPassiveFail TCPFastOpenListenOverflow TCPFastOpenCookieReqd TCPFastOpenBlackhole TCPSpuriousRtxHostQueues BusyPollRxPackets TCPAutoCorking TCPFromZeroWindowAdv TCPToZeroWindowAdv TCPWantZeroWindowAdv TCPSynRetrans TCPOrigDataSent TCPHystartTrainDetect TCPHystartTrainCwnd TCPHystartDelayDetect TCPHystartDelayCwnd TCPACKSkippedSynRecv TCPACKSkippedPAWS TCPACKSkippedSeq TCPACKSkippedFinWait2 TCPACKSkippedTimeWait TCPACKSkippedChallenge TCPWinProbe TCPKeepAlive TCPMTUPFail TCPMTUPSuccess TCPDelivered TCPDeliveredCE TCPAckCompressed TCPZeroWindowDrop TCPRcvQDrop TCPWqueueTooBig TCPFastOpenPassiveAltKey TcpTimeoutRehash TcpDuplicateDataRehash TCPDSACKRecvSegs TCPDSACKIgnoredDubious TCPMigrateReqSuccess TCPMigrateReqFailure TCPPLBRehash TCPAORequired TCPAOBad TCPAOKeyNotFound TCPAOGood TCPAODroppedIcmps
+TcpExt: 0 0 0 0 0 0 0 0 0 0 33 0 0 0 0 0 0 0 0 8 0 0 0 0 3086 33 197 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 452 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 6339 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 235 0 0 0 0 0 0 0 0 0 0 0 0 0 0 269 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+IpExt: InNoRoutes InTruncatedPkts InMcastPkts OutMcastPkts InBcastPkts OutBcastPkts InOctets OutOctets InMcastOctets OutMcastOctets InBcastOctets OutBcastOctets InCsumErrors InNoECTPkts InECT1Pkts InECT0Pkts InCEPkts ReasmOverlaps
+IpExt: 0 0 0 0 0 0 24008759 202426 0 0 0 0 0 16889 0 0 0 0
+
+[SOFTNET: contadores hex por CPU; columnas segun version del kernel]
+000026db 00000000 00000001 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+
+[INTERFAZ ens3: driver, enlace, offloads, colas, coalescencia, estadisticas]
+driver: virtio_net
+version: 1.0.0
+firmware-version:
+expansion-rom-version:
+bus-info: 0000:00:03.0
+supports-statistics: yes
+supports-test: no
+supports-eeprom-access: no
+supports-register-dump: no
+supports-priv-flags: no
+
+Settings for ens3:
+	Supported ports: [  ]
+	Supported link modes:   Not reported
+	Supported pause frame use: No
+	Supports auto-negotiation: No
+	Supported FEC modes: Not reported
+	Advertised link modes:  Not reported
+	Advertised pause frame use: No
+	Advertised auto-negotiation: No
+	Advertised FEC modes: Not reported
+	Speed: Unknown!
+	Duplex: Unknown! (255)
+	Auto-negotiation: off
+	Port: Other
+	PHYAD: 0
+	Transceiver: internal
+	Link detected: yes
+
+Features for ens3:
+rx-checksumming: on [fixed]
+tx-checksumming: off
+	tx-checksum-ipv4: off [fixed]
+	tx-checksum-ip-generic: off [fixed]
+	tx-checksum-ipv6: off [fixed]
+	tx-checksum-fcoe-crc: off [fixed]
+	tx-checksum-sctp: off [fixed]
+scatter-gather: off
+	tx-scatter-gather: off [fixed]
+	tx-scatter-gather-fraglist: off [fixed]
+tcp-segmentation-offload: off
+	tx-tcp-segmentation: off [fixed]
+	tx-tcp-ecn-segmentation: off [fixed]
+	tx-tcp-mangleid-segmentation: off [fixed]
+	tx-tcp6-segmentation: off [fixed]
+	tx-tcp-accecn-segmentation: off [fixed]
+generic-segmentation-offload: off [requested on]
+generic-receive-offload: on
+large-receive-offload: off [fixed]
+rx-vlan-offload: off [fixed]
+tx-vlan-offload: off [fixed]
+ntuple-filters: off [fixed]
+receive-hashing: off [fixed]
+highdma: on [fixed]
+rx-vlan-filter: on [fixed]
+vlan-challenged: off [fixed]
+tx-gso-robust: off [fixed]
+tx-fcoe-segmentation: off [fixed]
+tx-gre-segmentation: off [fixed]
+tx-gre-csum-segmentation: off [fixed]
+tx-ipxip4-segmentation: off [fixed]
+tx-ipxip6-segmentation: off [fixed]
+tx-udp_tnl-segmentation: off [fixed]
+tx-udp_tnl-csum-segmentation: off [fixed]
+tx-gso-partial: off [fixed]
+tx-tunnel-remcsum-segmentation: off [fixed]
+tx-sctp-segmentation: off [fixed]
+tx-esp-segmentation: off [fixed]
+tx-udp-segmentation: off [fixed]
+tx-gso-list: off [fixed]
+tx-nocache-copy: off
+loopback: off [fixed]
+rx-fcs: off [fixed]
+rx-all: off [fixed]
+tx-vlan-stag-hw-insert: off [fixed]
+rx-vlan-stag-hw-parse: off [fixed]
+rx-vlan-stag-filter: off [fixed]
+l2-fwd-offload: off [fixed]
+hw-tc-offload: off [fixed]
+esp-hw-offload: off [fixed]
+esp-tx-csum-hw-offload: off [fixed]
+rx-udp_tunnel-port-offload: off [fixed]
+tls-hw-tx-offload: off [fixed]
+tls-hw-rx-offload: off [fixed]
+rx-gro-hw: off [fixed]
+rx-gro-list: off
+macsec-hw-offload: off [fixed]
+rx-udp-gro-forwarding: off
+hsr-tag-ins-offload: off [fixed]
+hsr-tag-rm-offload: off [fixed]
+hsr-fwd-offload: off [fixed]
+hsr-dup-offload: off [fixed]
+
+Channel parameters for ens3:
+Pre-set maximums:
+RX:		n/a
+TX:		n/a
+Other:		n/a
+Combined:	1
+Current hardware settings:
+RX:		n/a
+TX:		n/a
+Other:		n/a
+Combined:	1
+
+Coalesce parameters for ens3:
+Adaptive RX: off  TX: n/a
+stats-block-usecs:	n/a
+sample-interval:	n/a
+pkt-rate-low:		n/a
+pkt-rate-high:		n/a
+
+rx-usecs:	0
+rx-frames:	1
+rx-usecs-irq:	n/a
+rx-frames-irq:	n/a
+
+tx-usecs:	0
+tx-frames:	1
+tx-usecs-irq:	n/a
+tx-frames-irq:	n/a
+
+rx-usecs-low:	n/a
+rx-frame-low:	n/a
+tx-usecs-low:	n/a
+tx-frame-low:	n/a
+
+rx-usecs-high:	n/a
+rx-frame-high:	n/a
+tx-usecs-high:	n/a
+tx-frame-high:	n/a
+
+CQE mode RX: n/a  TX: n/a
+
+tx-aggr-max-bytes:	n/a
+tx-aggr-max-frames:	n/a
+tx-aggr-time-usecs:	n/a
+
+rx-cqe-frames:		n/a
+rx-cqe-nsecs:		n/a
+
+
+NIC statistics:
+     rx_drops: 0
+     rx_xdp_packets: 0
+     rx_xdp_tx: 0
+     rx_xdp_redirects: 0
+     rx_xdp_drops: 0
+     rx_kicks: 1
+     tx_xdp_tx: 0
+     tx_xdp_tx_drops: 0
+     tx_kicks: 2280
+     tx_tx_timeouts: 0
+     rx0_drops: 0
+     rx0_xdp_packets: 0
+     rx0_xdp_tx: 0
+     rx0_xdp_redirects: 0
+     rx0_xdp_drops: 0
+     rx0_kicks: 1
+     tx0_xdp_tx: 0
+     tx0_xdp_tx_drops: 0
+     tx0_kicks: 2280
+     tx0_tx_timeouts: 0
+
+/sys/class/net/ens3/queues/rx-0/rps_cpus=0
+
+/sys/class/net/ens3/queues/rx-0/rps_flow_cnt=0
+
+/sys/class/net/ens3/queues/tx-0/xps_cpus=head: error reading '/sys/class/net/ens3/queues/tx-0/xps_cpus': No such file or directory
+
+
+[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]
+ULTRA MEDICION v1
+kernel=7.3.0-rc7-pc-g32c52ec87d62 modo=software intervalo_minimo_s=5 limite_muestras=120
+RAM: kB; usada_estimada=MemTotal-MemAvailable. UID 1000: maximo 128 procesos, no solo compositor.
+RSS comparte paginas; no sumar RSS como RAM exclusiva. PSS reparte paginas compartidas. NA no significa cero.
+GPU CSV: uuid,pci.bus_id,memory.total_MiB,memory.used_MiB,utilization.gpu_pct,temperature.gpu_C,power.draw_W
+muestra_utc=2026-10-19T23:34:31Z
+RAM total_kB=2013344 disponible_kB=1919688 usada_estimada_kB=93656 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  101 0 1031 1245 22 0 1 0 0 0
+RED iface=ens3 indice=2 monotonic_s=24.213509118 rx_bytes=1290 rx_packets=3 rx_errors=0 rx_dropped=0 tx_bytes=1496 tx_packets=14 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+PROCESO pid=775 nombre=dbus-run-sessio rss_kB=2412 pss_kB=538
+UID1000 procesos=1 medidos=1 truncado=0 rss_suma_parcial_kB=2412 pss_suma_parcial_kB=538
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T23:34:36Z
+RAM total_kB=2013344 disponible_kB=1913200 usada_estimada_kB=100144 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  116 0 1525 1245 24 0 1 0 0 0
+RED iface=ens3 indice=2 monotonic_s=29.355600718 rx_bytes=1290 rx_packets=3 rx_errors=0 rx_dropped=0 tx_bytes=1496 tx_packets=14 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+PROCESO pid=775 nombre=dbus-run-sessio rss_kB=2412 pss_kB=554
+PROCESO pid=786 nombre=dbus-daemon rss_kB=3436 pss_kB=1359
+PROCESO pid=787 nombre=start-hyprland rss_kB=4788 pss_kB=1988
+PROCESO pid=793 nombre=Hyprland rss_kB=67868 pss_kB=64486
+UID1000 procesos=4 medidos=4 truncado=0 rss_suma_parcial_kB=78504 pss_suma_parcial_kB=68387
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T23:34:41Z
+RAM total_kB=2013344 disponible_kB=1801892 usada_estimada_kB=211452 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  168 0 1982 1247 27 0 1 0 0 0
+RED iface=ens3 indice=2 monotonic_s=34.533116818 rx_bytes=1290 rx_packets=3 rx_errors=0 rx_dropped=0 tx_bytes=1496 tx_packets=14 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+PROCESO pid=775 nombre=dbus-run-sessio rss_kB=2412 pss_kB=430
+PROCESO pid=786 nombre=dbus-daemon rss_kB=4204 pss_kB=1511
+PROCESO pid=787 nombre=start-hyprland rss_kB=4788 pss_kB=1441
+PROCESO pid=793 nombre=Hyprland rss_kB=236052 pss_kB=223014
+PROCESO pid=827 nombre=dconf-service rss_kB=6408 pss_kB=1896
+PROCESO pid=833 nombre=swaybg rss_kB=14188 pss_kB=7396
+PROCESO pid=834 nombre=waybar rss_kB=8592 pss_kB=6256
+PROCESO pid=835 nombre=foot rss_kB=11048 pss_kB=4582
+PROCESO pid=836 nombre=foot rss_kB=19956 pss_kB=11325
+PROCESO pid=843 nombre=Xwayland rss_kB=2060 pss_kB=1173
+PROCESO pid=848 nombre=less rss_kB=3188 pss_kB=955
+PROCESO pid=849 nombre=bash rss_kB=4536 pss_kB=1496
+UID1000 procesos=12 medidos=12 truncado=0 rss_suma_parcial_kB=317432 pss_suma_parcial_kB=261475
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T23:34:46Z
+RAM total_kB=2013344 disponible_kB=1682580 usada_estimada_kB=330764 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  302 0 2309 1330 30 0 1 0 0 0
+RED iface=ens3 indice=2 monotonic_s=39.983226418 rx_bytes=1290 rx_packets=3 rx_errors=0 rx_dropped=0 tx_bytes=1496 tx_packets=14 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+PROCESO pid=1000 nombre=bwrap rss_kB=2088 pss_kB=167
+PROCESO pid=1001 nombre=bwrap rss_kB=1308 pss_kB=134
+PROCESO pid=1002 nombre=glycin-image-rs rss_kB=7980 pss_kB=3538
+PROCESO pid=1026 nombre=brave rss_kB=69860 pss_kB=54330
+PROCESO pid=1030 nombre=brave rss_kB=16828 pss_kB=8278
+PROCESO pid=775 nombre=dbus-run-sessio rss_kB=2412 pss_kB=287
+PROCESO pid=786 nombre=dbus-daemon rss_kB=4376 pss_kB=1015
+PROCESO pid=787 nombre=start-hyprland rss_kB=4788 pss_kB=1104
+PROCESO pid=793 nombre=Hyprland rss_kB=242584 pss_kB=196843
+PROCESO pid=827 nombre=dconf-service rss_kB=6424 pss_kB=1051
+PROCESO pid=833 nombre=swaybg rss_kB=16368 pss_kB=4814
+PROCESO pid=834 nombre=waybar rss_kB=46612 pss_kB=26076
+PROCESO pid=835 nombre=foot rss_kB=12760 pss_kB=4728
+PROCESO pid=836 nombre=foot rss_kB=13796 pss_kB=5234
+PROCESO pid=843 nombre=Xwayland rss_kB=98848 pss_kB=63950
+PROCESO pid=848 nombre=less rss_kB=3188 pss_kB=874
+PROCESO pid=849 nombre=bash rss_kB=4536 pss_kB=1430
+PROCESO pid=868 nombre=bwrap rss_kB=2084 pss_kB=164
+PROCESO pid=869 nombre=bwrap rss_kB=1300 pss_kB=132
+PROCESO pid=870 nombre=glycin-svg rss_kB=30732 pss_kB=15602
+PROCESO pid=890 nombre=at-spi-bus-laun rss_kB=7500 pss_kB=1433
+PROCESO pid=898 nombre=dbus-daemon rss_kB=4268 pss_kB=841
+PROCESO pid=902 nombre=at-spi2-registr rss_kB=7408 pss_kB=1310
+PROCESO pid=910 nombre=mousepad rss_kB=49648 pss_kB=25510
+PROCESO pid=925 nombre=bwrap rss_kB=2148 pss_kB=162
+PROCESO pid=926 nombre=bwrap rss_kB=1284 pss_kB=129
+PROCESO pid=927 nombre=glycin-image-rs rss_kB=7728 pss_kB=3347
+PROCESO pid=935 nombre=thunar rss_kB=43312 pss_kB=18533
+PROCESO pid=941 nombre=xfconfd rss_kB=6580 pss_kB=1094
+PROCESO pid=963 nombre=bwrap rss_kB=2156 pss_kB=167
+PROCESO pid=964 nombre=bwrap rss_kB=1388 pss_kB=134
+PROCESO pid=965 nombre=glycin-svg rss_kB=17744 pss_kB=5623
+UID1000 procesos=32 medidos=32 truncado=0 rss_suma_parcial_kB=740036 pss_suma_parcial_kB=448034
+GPU NA modo_software_o_nodos_ausentes
+[HYPRLAND sistema y monitores; consulta UID1000]
+Hyprland 0.56.2 built from branch v0.56.2 at commit efb50993780079460b0cbed1363e2166a2de1d9f clean ([gha] Nix: update inputs).
+Date: Wed Aug 5 14:13:21 2026
+Tag: v0.56.2, commits: 7661
+
+Libraries:
+Hyprgraphics: built against 0.5.1, system has 0.5.1
+Hyprutils: built against 0.14.2, system has 0.14.2
+Hyprcursor: built against 0.1.13, system has 0.1.13
+Hyprlang: built against 0.6.8, system has 0.6.8
+Aquamarine: built against 0.15.1, system has 0.15.1
+
+Version ABI string: efb50993780079460b0cbed1363e2166a2de1d9f_aq_0.15_hu_0.14_hg_0.5_hc_0.1_hlg_0.6
+no flags were set
+
+
+System Information:
+System name: Linux
+Node name: ultra
+Release: 7.3.0-rc7-pc-g32c52ec87d62
+Version: #26 SMP PREEMPT_DYNAMIC Mon Oct 19 23:26:34 UTC 2026
+
+Libraries:
+Hyprgraphics: built against 0.5.1, system has 0.5.1
+Hyprutils: built against 0.14.2, system has 0.14.2
+Hyprcursor: built against 0.1.13, system has 0.1.13
+Hyprlang: built against 0.6.8, system has 0.6.8
+Aquamarine: built against 0.15.1, system has 0.15.1
+
+
+
+GPU information:
+
+
+os-release: error
+
+plugins:
+
+Explicit sync: missing
+GL ver: 3.2
+Backend: drm
+
+Monitor info:
+	Panel Virtual-1: 1280x800, Virtual-1 Red Hat, Inc. QEMU Monitor  -> backend drm
+		explicit ✔️
+		edid:
+			hdr ❌
+			chroma ✔️
+			bt2020 ❌
+		vrr capable ❌
+		non-desktop ❌
+
+
+State:
+
+configProvider: lua
+backend: drm
+
+
+
+Monitor Virtual-1 (ID 0):
+	1280x800@74.99400 at 0x0
+	description: Red Hat Inc. QEMU Monitor
+	make: Red Hat, Inc.
+	model: QEMU Monitor
+	physical size (mm): 320x200
+	serial:
+	active workspace: 1 (1)
+	special workspace: 0 ()
+	reserved: 0 41 0 0
+	scale: 1
+	transform: 0
+	focused: yes
+	dpmsStatus: 1
+	vrr: false
+	solitary: 0
+	solitaryBlockedBy: windowed mode,missing candidate
+	activelyTearing: false
+	tearingBlockedBy: next frame is not torn,user settings,missing candidate
+	directScanoutTo: 0
+	directScanoutBlockedBy: user settings,software renders/cursors,missing candidate
+	disabled: false
+	currentFormat: XRGB8888
+	mirrorOf: none
+	availableModes: 1280x800@74.99Hz 5120x2160@50.00Hz 4096x2160@50.00Hz 3840x2160@60.00Hz 3840x2160@59.94Hz 3840x2160@50.00Hz 1920x1440@60.00Hz 2560x1080@50.00Hz 1856x1392@59.99Hz 1792x1344@60.00Hz 2048x1152@60.00Hz 1920x1200@59.88Hz 1920x1080@60.00Hz 1920x1080@50.00Hz 1600x1200@60.00Hz 1680x1050@59.95Hz 1400x1050@59.98Hz 1280x1024@60.02Hz 1440x900@59.89Hz 1280x960@60.00Hz 1360x768@60.02Hz 1280x768@59.87Hz 1024x768@60.00Hz 800x600@60.32Hz 640x480@60.00Hz 640x480@59.94Hz
+	colorManagementPreset: srgb
+	sdrBrightness: 1
+	sdrSaturation: 1
+	sdrMinLuminance: 0.2
+	sdrMaxLuminance: 80
+	hardwareCursorsInUse: true
+
+
+
+[/HYPRLAND]
+muestra_utc=2026-10-19T23:34:52Z
+RAM total_kB=2013344 disponible_kB=1579472 usada_estimada_kB=433872 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  341 0 2842 1330 33 0 1 0 0 0
+RED iface=ens3 indice=2 monotonic_s=45.765073218 rx_bytes=2328 rx_packets=9 rx_errors=0 rx_dropped=0 tx_bytes=2056 tx_packets=22 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+PROCESO pid=1000 nombre=bwrap rss_kB=2088 pss_kB=158
+PROCESO pid=1001 nombre=bwrap rss_kB=1308 pss_kB=129
+PROCESO pid=1002 nombre=glycin-image-rs rss_kB=7980 pss_kB=3515
+PROCESO pid=1026 nombre=brave rss_kB=214048 pss_kB=122155
+PROCESO pid=1034 nombre=chrome_crashpad rss_kB=4072 pss_kB=1244
+PROCESO pid=1037 nombre=chrome_crashpad rss_kB=3844 pss_kB=1038
+PROCESO pid=1055 nombre=brave rss_kB=75508 pss_kB=21067
+PROCESO pid=1056 nombre=brave rss_kB=75456 pss_kB=18541
+PROCESO pid=1060 nombre=brave rss_kB=20308 pss_kB=6284
+PROCESO pid=1087 nombre=brave rss_kB=153224 pss_kB=68195
+PROCESO pid=1091 nombre=brave rss_kB=112328 pss_kB=45960
+PROCESO pid=1110 nombre=brave rss_kB=50412 pss_kB=11899
+PROCESO pid=775 nombre=dbus-run-sessio rss_kB=2412 pss_kB=267
+PROCESO pid=786 nombre=dbus-daemon rss_kB=4412 pss_kB=1016
+PROCESO pid=787 nombre=start-hyprland rss_kB=4788 pss_kB=1049
+PROCESO pid=793 nombre=Hyprland rss_kB=242584 pss_kB=184973
+PROCESO pid=827 nombre=dconf-service rss_kB=6424 pss_kB=986
+PROCESO pid=833 nombre=swaybg rss_kB=16368 pss_kB=4668
+PROCESO pid=834 nombre=waybar rss_kB=46612 pss_kB=25114
+PROCESO pid=835 nombre=foot rss_kB=12760 pss_kB=4636
+PROCESO pid=836 nombre=foot rss_kB=13796 pss_kB=5140
+PROCESO pid=843 nombre=Xwayland rss_kB=98848 pss_kB=50302
+PROCESO pid=848 nombre=less rss_kB=3188 pss_kB=859
+PROCESO pid=849 nombre=bash rss_kB=4536 pss_kB=1430
+PROCESO pid=868 nombre=bwrap rss_kB=2084 pss_kB=157
+PROCESO pid=869 nombre=bwrap rss_kB=1300 pss_kB=127
+PROCESO pid=870 nombre=glycin-svg rss_kB=30732 pss_kB=15376
+PROCESO pid=890 nombre=at-spi-bus-laun rss_kB=7500 pss_kB=1348
+PROCESO pid=898 nombre=dbus-daemon rss_kB=4268 pss_kB=818
+PROCESO pid=902 nombre=at-spi2-registr rss_kB=7408 pss_kB=1209
+PROCESO pid=910 nombre=mousepad rss_kB=49648 pss_kB=24697
+PROCESO pid=925 nombre=bwrap rss_kB=2148 pss_kB=157
+PROCESO pid=926 nombre=bwrap rss_kB=1284 pss_kB=126
+PROCESO pid=927 nombre=glycin-image-rs rss_kB=7728 pss_kB=3337
+PROCESO pid=935 nombre=thunar rss_kB=43312 pss_kB=17517
+PROCESO pid=941 nombre=xfconfd rss_kB=6584 pss_kB=1036
+PROCESO pid=963 nombre=bwrap rss_kB=2156 pss_kB=161
+PROCESO pid=964 nombre=bwrap rss_kB=1388 pss_kB=130
+PROCESO pid=965 nombre=glycin-svg rss_kB=17744 pss_kB=5484
+UID1000 procesos=39 medidos=39 truncado=0 rss_suma_parcial_kB=1362588 pss_suma_parcial_kB=652305
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T23:34:58Z
+RAM total_kB=2013344 disponible_kB=1478212 usada_estimada_kB=535132 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  451 0 3228 1411 33 0 21 0 0 0
+RED iface=ens3 indice=2 monotonic_s=51.776124918 rx_bytes=13729427 rx_packets=9455 rx_errors=0 rx_dropped=0 tx_bytes=153461 tx_packets=1760 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+PROCESO pid=1000 nombre=bwrap rss_kB=2088 pss_kB=158
+PROCESO pid=1001 nombre=bwrap rss_kB=1308 pss_kB=129
+PROCESO pid=1002 nombre=glycin-image-rs rss_kB=7980 pss_kB=3514
+PROCESO pid=1026 nombre=brave rss_kB=276832 pss_kB=159150
+PROCESO pid=1034 nombre=chrome_crashpad rss_kB=4072 pss_kB=1244
+PROCESO pid=1037 nombre=chrome_crashpad rss_kB=3844 pss_kB=1037
+PROCESO pid=1055 nombre=brave rss_kB=75508 pss_kB=20135
+PROCESO pid=1056 nombre=brave rss_kB=75456 pss_kB=15217
+PROCESO pid=1060 nombre=brave rss_kB=20632 pss_kB=4114
+PROCESO pid=1087 nombre=brave rss_kB=174812 pss_kB=74316
+PROCESO pid=1091 nombre=brave rss_kB=122124 pss_kB=45426
+PROCESO pid=1110 nombre=brave rss_kB=50736 pss_kB=10320
+PROCESO pid=1128 nombre=brave rss_kB=80480 pss_kB=22966
+PROCESO pid=1129 nombre=brave rss_kB=133272 pss_kB=57517
+PROCESO pid=775 nombre=dbus-run-sessio rss_kB=2412 pss_kB=267
+PROCESO pid=786 nombre=dbus-daemon rss_kB=4412 pss_kB=1016
+PROCESO pid=787 nombre=start-hyprland rss_kB=4788 pss_kB=1049
+PROCESO pid=793 nombre=Hyprland rss_kB=247064 pss_kB=189203
+PROCESO pid=827 nombre=dconf-service rss_kB=6424 pss_kB=986
+PROCESO pid=833 nombre=swaybg rss_kB=16368 pss_kB=4667
+PROCESO pid=834 nombre=waybar rss_kB=46856 pss_kB=25172
+PROCESO pid=835 nombre=foot rss_kB=12760 pss_kB=4601
+PROCESO pid=836 nombre=foot rss_kB=13796 pss_kB=5106
+PROCESO pid=843 nombre=Xwayland rss_kB=98848 pss_kB=50300
+PROCESO pid=848 nombre=less rss_kB=3188 pss_kB=858
+PROCESO pid=849 nombre=bash rss_kB=4536 pss_kB=1429
+PROCESO pid=868 nombre=bwrap rss_kB=2084 pss_kB=157
+PROCESO pid=869 nombre=bwrap rss_kB=1300 pss_kB=127
+PROCESO pid=870 nombre=glycin-svg rss_kB=30732 pss_kB=15364
+PROCESO pid=890 nombre=at-spi-bus-laun rss_kB=7560 pss_kB=1346
+PROCESO pid=898 nombre=dbus-daemon rss_kB=4268 pss_kB=817
+PROCESO pid=902 nombre=at-spi2-registr rss_kB=7408 pss_kB=1209
+PROCESO pid=910 nombre=mousepad rss_kB=49644 pss_kB=24666
+PROCESO pid=925 nombre=bwrap rss_kB=2148 pss_kB=157
+PROCESO pid=926 nombre=bwrap rss_kB=1284 pss_kB=126
+PROCESO pid=927 nombre=glycin-image-rs rss_kB=7728 pss_kB=3335
+PROCESO pid=935 nombre=thunar rss_kB=42860 pss_kB=17029
+PROCESO pid=941 nombre=xfconfd rss_kB=6708 pss_kB=1038
+PROCESO pid=963 nombre=bwrap rss_kB=2156 pss_kB=161
+PROCESO pid=964 nombre=bwrap rss_kB=1388 pss_kB=130
+PROCESO pid=965 nombre=glycin-svg rss_kB=17744 pss_kB=5483
+UID1000 procesos=41 medidos=41 truncado=0 rss_suma_parcial_kB=1675608 pss_suma_parcial_kB=771042
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T23:35:05Z
+RAM total_kB=2013344 disponible_kB=1612796 usada_estimada_kB=400548 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  620 0 3634 1479 33 0 38 0 0 0
+RED iface=ens3 indice=2 monotonic_s=58.492449318 rx_bytes=24523369 rx_packets=16893 rx_errors=0 rx_dropped=0 tx_bytes=239446 tx_packets=2348 tx_errors=0 tx_dropped=0 carrier=1 speed_Mbps=NA mtu=1500
+PROCESO pid=1000 nombre=bwrap rss_kB=2088 pss_kB=167
+PROCESO pid=1001 nombre=bwrap rss_kB=1308 pss_kB=134
+PROCESO pid=1002 nombre=glycin-image-rs rss_kB=7980 pss_kB=3536
+PROCESO pid=1384 nombre=fuzzel rss_kB=11900 pss_kB=4209
+PROCESO pid=775 nombre=dbus-run-sessio rss_kB=2412 pss_kB=290
+PROCESO pid=786 nombre=dbus-daemon rss_kB=4412 pss_kB=1054
+PROCESO pid=787 nombre=start-hyprland rss_kB=4788 pss_kB=1104
+PROCESO pid=793 nombre=Hyprland rss_kB=246644 pss_kB=200884
+PROCESO pid=827 nombre=dconf-service rss_kB=6424 pss_kB=1062
+PROCESO pid=833 nombre=swaybg rss_kB=16368 pss_kB=4804
+PROCESO pid=834 nombre=waybar rss_kB=46856 pss_kB=26262
+PROCESO pid=835 nombre=foot rss_kB=12760 pss_kB=4620
+PROCESO pid=836 nombre=foot rss_kB=13796 pss_kB=5091
+PROCESO pid=843 nombre=Xwayland rss_kB=98848 pss_kB=64111
+PROCESO pid=848 nombre=less rss_kB=3188 pss_kB=881
+PROCESO pid=849 nombre=bash rss_kB=4536 pss_kB=1452
+PROCESO pid=868 nombre=bwrap rss_kB=2084 pss_kB=166
+PROCESO pid=869 nombre=bwrap rss_kB=1300 pss_kB=132
+PROCESO pid=870 nombre=glycin-svg rss_kB=30732 pss_kB=15616
+PROCESO pid=890 nombre=at-spi-bus-laun rss_kB=7560 pss_kB=1444
+PROCESO pid=898 nombre=dbus-daemon rss_kB=4268 pss_kB=846
+PROCESO pid=902 nombre=at-spi2-registr rss_kB=7408 pss_kB=1337
+PROCESO pid=910 nombre=mousepad rss_kB=49644 pss_kB=25585
+PROCESO pid=925 nombre=bwrap rss_kB=2148 pss_kB=167
+PROCESO pid=926 nombre=bwrap rss_kB=1284 pss_kB=130
+PROCESO pid=927 nombre=glycin-image-rs rss_kB=7728 pss_kB=3356
+PROCESO pid=935 nombre=thunar rss_kB=43228 pss_kB=18751
+PROCESO pid=941 nombre=xfconfd rss_kB=6708 pss_kB=1111
+PROCESO pid=963 nombre=bwrap rss_kB=2156 pss_kB=169
+PROCESO pid=964 nombre=bwrap rss_kB=1388 pss_kB=135
+PROCESO pid=965 nombre=glycin-svg rss_kB=17744 pss_kB=5654
+UID1000 procesos=31 medidos=31 truncado=0 rss_suma_parcial_kB=669688 pss_suma_parcial_kB=394260
+GPU NA modo_software_o_nodos_ausentes
+fin_medicion muestras=7
+
+[KERNEL: GPU y audio, ultimas 70 coincidencias]
+[    0.029355] Kernel command line: console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware nvidia-drm.modeset=1 nvidia-drm.fbdev=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on
+[    0.163230] ACPI: bus type drm_connector registered
+[    0.163400] [drm] pci: virtio-vga detected at 0000:00:02.0
+[    0.163592] [drm] features: -virgl +edid -resource_blob -host_visible
+[    0.163593] [drm] features: -context_init -blob_alignment
+[    0.165264] [drm] number of scanouts: 1
+[    0.165272] [drm] number of cap sets: 0
+[    0.166164] [drm] Initialized virtio_gpu 0.1.0 for 0000:00:02.0 on minor 0
+[    0.168380] fbcon: virtio_gpudrmfb (fb0) is primary device
+[    0.199996] virtio-pci 0000:00:02.0: [drm] fb0: virtio_gpudrmfb frame buffer device
+[    0.848791] snd_hda_intel 0000:00:04.0: no codecs found!
+
+[LANZAMIENTO DEL CLIENTE: puede faltar si la preparacion fallo]
+VERDE [CREDENCIALES]: uid=1000 gid=1000 capacidades=0 NoNewPrivs=1
+AMARILLO [HYPRLAND]: laboratorio GLES por software; requiere DRM/GBM compatible
+[1;33mWARN [0mfrom start-hyprland ]: Arguments after -- are passed to Hyprland
+[1;32mDEBUG [0m]: User-specified config location: '/etc/ultra/hyprland.lua'
+Welcome to Hyprland!
+
+
+                     YY    UJ
+                    YYY    UUJ
+                   XXXY    UUUU
+                  zXXXX    UUUUU
+                zzzzX        UUUUJ
+               cczzz          UUUUJ
+             vccccz            UUUUUJ
+            vvcccc              UUUUUJ
+           vvvvv                  UUUUJ
+          uuuvv                    UUUUJ
+         uuuuu                      UUUUU
+        nnnuu                        UUUUU
+       nnnnn                          YUUUU
+       xxnn                            YUUU
+       xxxn                            YYUU
+      xxxx                              YYUU
+      rxxx                              YYYY
+      rrrx                              YYYY
+       rrrx                            XXXY
+       rrrr                            XXXX
+        rrrr                          zzXX
+         rrrr                        zzzz
+          rrrrr                    ccczz
+           rrrrrx                vccccc
+             rrrrxxxx        uuvvvvvc
+                rrxxxxxxnnnnuuuuuv
+                    xxxxxnnnnu
+
+
+
+DEBUG ]: Old rlimit: soft -> 1024, hard -> 4096
+DEBUG ]: New rlimit: soft -> 4096, hard -> 4096
+DEBUG ]: Creating the EventLoopManager!
+DEBUG ]: Creating the KeybindManager!
+DEBUG ]: Creating the AnimationManager!
+DEBUG ]: Creating the DynamicPermissionManager!
+DEBUG ]: Creating the MonitorState!
+DEBUG ]: Creating the WorkspaceState!
+DEBUG ]: Creating the ConfigManager!
+DEBUG ]: [cfg] Config is either explicit or special.
+DEBUG ]: [cfg] Config is lua, loading lua mgr
+DEBUG ]: Creating the Error Overlay!
+DEBUG ]: Creating the LayoutManager!
+DEBUG ]: Creating the TokenManager!
+DEBUG ]: Creating the EventManager!
+DEBUG ]: Creating the PointerManager!
+DEBUG ]: Creating the AsyncResourceGatherer!
+dbus-daemon[786]: [session uid=1000 pid=786 pidfd=5] Activating service name='ca.desrt.dconf' requested by ':1.0' (uid=1000 pid=793 comm="Hyprland --watchdog-fd 4 --config /etc/ultra/hyprl")
+dbus-daemon[786]: [session uid=1000 pid=786 pidfd=5] Successfully activated service 'ca.desrt.dconf'
+[1;32mDEBUG [0mfrom start-hyprland ]: got an event from hyprland
+dbus-daemon[786]: [session uid=1000 pid=786 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.3' (uid=1000 pid=834 comm="waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/wa")
+Refusing to try glamor on llvmpipe
+XWAYLAND: Disabling GLAMOR support
+EGL setup failed, disabling glamor
+Failed to initialize glamor, falling back to sw
+dbus-daemon[786]: [session uid=1000 pid=786 pidfd=5] Successfully activated service 'org.a11y.Bus'
+MESA-EGL: warning: failed to open /dev/dri/card0: Permission denied
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Multiple symbols for level 1/group 1 on key <FK23>
+>                   Using F23, ignoring XF86TouchpadOff
+> Warning:          Symbol map for key <FK23> redefined
+>                   Using last definition for conflicting fields
+> Warning:          Symbol map for key <FK24> redefined
+>                   Using last definition for conflicting fields
+Errors from xkbcomp are not fatal to the X server
+dbus-daemon[898]: Activating service name='org.a11y.atspi.Registry' requested by ':1.1' (uid=1000 pid=834 comm="waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/wa")
+dbus-daemon[898]: Successfully activated service 'org.a11y.atspi.Registry'
+SpiRegistry daemon is running with well-known name - org.a11y.atspi.Registry
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Unsupported maximum keycode 709, clipping.
+>                   X11 cannot support keycodes above 255.
+> Warning:          Virtual modifier Hyper multiply defined
+>                   Using 0, ignoring 0
+> Warning:          Virtual modifier ScrollLock multiply defined
+>                   Using 0, ignoring 0
+Errors from xkbcomp are not fatal to the X server
+dbus-daemon[786]: [session uid=1000 pid=786 pidfd=5] Activating service name='org.xfce.Xfconf' requested by ':1.9' (uid=1000 pid=935 comm="thunar")
+dbus-daemon[786]: [session uid=1000 pid=786 pidfd=5] Successfully activated service 'org.xfce.Xfconf'
+[1;32mDEBUG [0mfrom start-hyprland ]: got an event from hyprland
+(EE) failed to read Wayland events: Broken pipe
+[1;32mDEBUG [0mfrom start-hyprland ]: hyprland exit, breaking poll, checking state
+[1;32mDEBUG [0mfrom start-hyprland ]: Hyprland exit cleanly.
+
+(xfconfd:941): xfconfd-WARNING **: 23:35:09.964: Name org.xfce.Xfconf lost on the message dbus, exiting.

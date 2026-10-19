@@ -1,0 +1,33 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Read-only snapshot; never change link, queue, IRQ, offload, MTU or TCP policy.
+set -uo pipefail
+export LC_ALL=C
+printf '\n[ETHERNET: estado posterior a la sesion; contadores no atomicos]\n'
+date -u '+red_fecha_utc=%Y-%m-%dT%H:%M:%SZ'
+timeout -k 1 2 /usr/local/libexec/ultra-red-contadores || echo 'RED NA consulta_fallida'
+timeout -k 1 2 ip -4 route show default
+printf '[TCP/IP: contadores globales acumulados desde arranque, no por aplicacion]\n'
+head -c 16384 /proc/net/snmp
+head -c 16384 /proc/net/netstat
+printf '\n[SOFTNET: contadores hex por CPU; columnas segun version del kernel]\n'
+head -n 128 /proc/net/softnet_stat
+count=0; deadline=$((SECONDS+12)); queue_count=0
+for entry in /sys/class/net/*; do
+    iface=${entry##*/}
+    [[ $iface != lo && $iface =~ ^[a-zA-Z0-9_.:-]+$ && ! -d $entry/wireless ]] || continue
+    ((count+=1)); ((count<=8)) || { echo 'RED NA detalle_truncado_limite_8'; break; }
+    printf '\n[INTERFAZ %s: driver, enlace, offloads, colas, coalescencia, estadisticas]\n' "$iface"
+    # Different NICs support different queries. Failure is explicit, not zero.
+    for query in -i '' -k -l -c -S; do
+        ((SECONDS<deadline)) || { echo 'RED NA limite_tiempo_detalle'; exit 0; }
+        if [[ -n $query ]]; then args=("$query" "$iface"); else args=("$iface"); fi
+        timeout -k 1 1 ethtool "${args[@]}" 2>&1 | head -c 8192 || printf '\nRED NA consulta_ethtool_no_disponible\n'
+        printf '\n'
+    done
+    for file in "$entry"/queues/rx-*/rps_cpus "$entry"/queues/rx-*/rps_flow_cnt "$entry"/queues/tx-*/xps_cpus; do
+        ((queue_count+=1)); ((queue_count<=256 && SECONDS<deadline)) || { echo 'RED NA limite_detalle_colas'; exit 0; }
+        [[ -r $file ]] || continue
+        printf '%s=' "$file"; head -c 256 "$file"; printf '\n'
+    done
+done
