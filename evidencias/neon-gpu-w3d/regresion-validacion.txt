@@ -1,0 +1,13 @@
+VERDE [nodos NVIDIA: valid, salida 0]
+VERDE [nodos NVIDIA: missing, salida 1]
+VERDE [nodos NVIDIA: fail, salida 1]
+VERDE [nodos NVIDIA: legacy-no-control, salida 1]
+VERDE [nodos NVIDIA: legacy-uvm, salida 1]
+[1;32mDEBUG [0m]: User-specified config location: '/tmp/ultra-neon/hyprland.lua'
+[1;32mDEBUG [0m]: [cfg] Config is either explicit or special.
+[1;32mDEBUG [0m]: [cfg] Config is lua, loading lua mgr
+
+
+======== Config parsing result:
+
+config ok

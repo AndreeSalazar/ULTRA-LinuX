@@ -1,0 +1,15 @@
+@define-color theme_bg_color #09111d;
+@define-color theme_fg_color #c2dce8;
+@define-color theme_base_color #050a12;
+@define-color theme_text_color #c2dce8;
+@define-color theme_selected_bg_color #123e50;
+@define-color theme_selected_fg_color #63f4ff;
+window, .background { background-color: #09111d; color: #c2dce8; }
+headerbar, toolbar, menubar { background-image: linear-gradient(to bottom, #122036, #09111d); color: #9fdce8; border-color: #21394c; }
+textview text, treeview.view, iconview.view, .view { background-color: #050a12; color: #c2dce8; }
+button { background-image: linear-gradient(to bottom, #14243a, #0a1423); color: #addce8; border-color: #284252; border-radius: 3px; }
+button:hover { background-image: none; background-color: #123343; color: #63f4ff; border-color: #00b6cc; }
+entry { background-color: #050a12; color: #c2dce8; border-color: #234455; }
+entry:focus { border-color: #00d4e8; }
+*:selected, selection { background-color: #123e50; color: #63f4ff; }
+.destructive-action { color: #ff7185; border-color: #743246; }

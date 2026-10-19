@@ -1,0 +1,30 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Invoked by the privileged preparer on exit, including failed device preparation.
+set -uo pipefail
+[[ $(id -u) == 0 ]] || exit 1
+out=/run/ultra-escritorio/informe-gpu.txt
+tmp=$out.$$
+{
+    printf 'ULTRA GPU - ultimo intento\n'
+    date -u '+fecha_utc=%Y-%m-%dT%H:%M:%SZ'
+    printf 'kernel=%s\nmodo=%s\ncompositor=%s\nsalida=%s\n' "$(uname -r)" "${1:-?}" "${2:-?}" "${3:-?}"
+    printf '\n[NODOS: estado posterior al intento, sin ejecutar nvidia-smi]\n'
+    for node in /dev/nvidia0 /dev/nvidiactl /dev/nvidia-modeset /dev/dri/card* /dev/dri/renderD*; do
+        if [[ -e $node ]]; then
+            stat -c '%n tipo=%F major_minor_hex=%t:%T uid=%u gid=%g permisos=%a' -- "$node"
+        else printf 'AUSENTE %s\n' "$node"; fi
+    done
+    printf '\n[DRIVER]\n'
+    for file in /proc/driver/nvidia/version /proc/driver/nvidia/gpus/*/information; do
+        [[ ! -r $file ]] || { printf '%s\n' "$file"; cat "$file"; }
+    done
+    printf '\n[PREPARACION DE NODOS]\n'
+    [[ ! -r /run/ultra-escritorio/nodos.log ]] || cat /run/ultra-escritorio/nodos.log
+    printf '\n[KERNEL: GPU y audio, ultimas 70 coincidencias]\n'
+    dmesg | grep -Ei 'NVRM|nvidia|drm|Xid|snd_hda' | tail -n 70
+    printf '\n[LANZAMIENTO DEL CLIENTE: puede faltar si la preparacion fallo]\n'
+    [[ ! -r /run/ultra-escritorio/ultima.log ]] || tail -n 160 /run/ultra-escritorio/ultima.log
+} > "$tmp" 2>&1
+mv -f -- "$tmp" "$out"
+if [[ ${3:-0} != 0 ]]; then cp -- "$out" /run/ultra-escritorio/informe-gpu-fallo.txt; fi

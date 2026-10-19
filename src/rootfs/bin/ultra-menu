@@ -59,11 +59,11 @@ while :; do
         3)
             printf 'ULTIMO INTENTO REGISTRADO (temporal, puede ser de una sesion anterior)\n'
             found=0
-            for log in /run/ultra-escritorio/lanzador.log /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log; do
+            for log in /run/ultra-escritorio/informe-gpu.txt /run/ultra-escritorio/nodos.log /run/ultra-escritorio/lanzador.log /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log; do
                 if [[ -f $log ]]; then
                     found=1
                     printf '\n--- %s (resumen) ---\n' "$log"
-                    /usr/bin/grep -Ei 'CREDENCIALES|GL.vendor|GL.renderer|GL_VENDOR|GL_RENDERER|EGL.vendor|EGL.driver|ROJO|WARN|ERR|CRIT|termino|GPU' "$log" | /usr/bin/tail -n 12
+                    /usr/bin/grep -Ei 'CREDENCIALES|GL.vendor|GL.renderer|GL_VENDOR|GL_RENDERER|EGL.vendor|EGL.driver|ROJO|WARN|ERR|CRIT|termino|GPU|AUSENTE|modo=|salida=|compositor=' "$log" | /usr/bin/tail -n 12
                 fi
             done
             (( found )) || printf 'Todavia no hay registros. Inicia un escritorio primero.\n'

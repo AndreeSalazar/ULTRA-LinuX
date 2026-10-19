@@ -1,0 +1,4 @@
+VERDE [COPIA]: A:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: A:\ULTRA\sistema-7.3.0-rc7-g32c52ec87d62.erofs
+AMARILLO [DATOS]: se conserva A:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX (7.3.0-rc7-g32c52ec87d62) instalado en A:\ (disco 0, particion 2). Siguiente: elegir ULTRA LinuX en F11

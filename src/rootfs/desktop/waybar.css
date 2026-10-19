@@ -1,5 +1,12 @@
-* { font-family: DejaVu Sans; font-size: 14px; }
-window#waybar { background: #162430; color: #f0f5fa; }
-#workspaces button { color: #f0f5fa; padding: 0 10px; }
-#workspaces button.active { background: #246d83; }
-#custom-apps, #custom-help, #custom-logout, #clock { padding: 6px 12px; }
+* { font-family: DejaVu Sans; font-size: 13px; font-weight: bold; min-height: 0; }
+window#waybar { background: linear-gradient(110deg, #03060b, #09172b, #050a12); color: #a9c8d6; border-bottom: 2px solid #12344a; }
+#workspaces button { color: #607a92; padding: 0 12px; border-radius: 0; border-bottom: 2px solid transparent; }
+#workspaces button.active { background: #082b38; color: #00e5ff; border-bottom: 2px solid #48ffb4; }
+#workspaces button:hover { background: #12364c; color: #d2fcff; }
+#custom-apps, #custom-help, #custom-logout, #clock { padding: 8px 16px; margin: 3px 4px; border-radius: 2px; }
+#custom-apps { color: #00e5ff; border: 1px solid #12546a; background: #071521; }
+#clock { color: #48ffb4; letter-spacing: 2px; }
+#custom-help { color: #8ab8dc; }
+#custom-logout { color: #ff647a; border: 1px solid #743246; background: linear-gradient(135deg, #37141e, #100b13); }
+#custom-apps:hover, #custom-help:hover { background: #123349; color: #e0ffff; }
+#custom-logout:hover { background: #681c32; color: #fff0f3; }

@@ -4,12 +4,17 @@ hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 hl.config({
     debug = { enable_stdout_logs = true },
     general = { gaps_in = 5, gaps_out = 10, border_size = 2, layout = "dwindle" },
-    decoration = { rounding = 5, blur = { enabled = false }, shadow = { enabled = false } },
+    decoration = { rounding = 3, blur = { enabled = false }, shadow = { enabled = false } },
     animations = { enabled = false },
     input = { kb_layout = "us", follow_mouse = 1 },
     misc = { disable_hyprland_logo = true, force_default_wallpaper = 0 },
 })
+hl.config({ general = { col = {
+    active_border = { colors = {"rgba(00e5ffff)", "rgba(48ffb4ff)"}, angle = 35 },
+    inactive_border = "rgba(23364dff)",
+} } })
 hl.on("hyprland.start", function()
+    hl.exec_cmd("swaybg -i /etc/ultra/wallpaper.svg -m fill")
     hl.exec_cmd("waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/waybar.css")
     hl.exec_cmd("foot --title=ULTRA-Bienvenida /usr/bin/less /etc/ultra/AYUDA.txt")
     hl.exec_cmd("foot --title=ULTRA-Terminal")

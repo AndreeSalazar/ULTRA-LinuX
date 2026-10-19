@@ -3,6 +3,24 @@
 # auto: NVIDIA GLES when a real NVIDIA DRM device exists, software otherwise.
 mode=auto
 compositor=cage
+exportar_informe() {
+    source=/arch/run/ultra-escritorio/informe-gpu.txt
+    [ -r "$source" ] || return 0
+    # Only the outer privileged shell sees BMO. No new mount is exposed to apps.
+    grep -q ' /bmo vfat ' /proc/mounts || return 0
+    [ -d /bmo/ULTRA/informe ] || return 0
+    release=$(uname -r)
+    case "$release" in *[!0-9A-Za-z.+_-]*|'') return 1;; esac
+    target=/bmo/ULTRA/informe/gpu-$release.txt
+    if cp "$source" "$target.tmp" && mv "$target.tmp" "$target"; then
+        if [ -r /arch/run/ultra-escritorio/informe-gpu-fallo.txt ]; then
+            cp /arch/run/ultra-escritorio/informe-gpu-fallo.txt "/bmo/ULTRA/informe/gpu-fallo-$release.txt.tmp" &&
+                mv "/bmo/ULTRA/informe/gpu-fallo-$release.txt.tmp" "/bmo/ULTRA/informe/gpu-fallo-$release.txt"
+        fi
+        sync
+        echo "VERDE [INFORME-GPU]: $target"
+    else echo 'AMARILLO [INFORME-GPU]: no se pudo exportar a BMO'; fi
+}
 if [ "${1:-}" = --hyprland ]; then compositor=hyprland; shift; fi
 # Keep unattended callers automatic; the console gets the keyboard menu.
 if [ "$compositor" = cage ] && [ $# -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
@@ -11,9 +29,11 @@ fi
 case "${1:-}" in
     --menu)
         [ $# -eq 1 ] || { echo 'Uso: ultra-escritorio --menu'; exit 2; }
-        exec chroot /arch /usr/bin/env -i PATH=/usr/local/bin:/usr/bin \
+        trap exportar_informe EXIT
+        chroot /arch /usr/bin/env -i PATH=/usr/local/bin:/usr/bin \
             GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
-            /usr/bin/bash /usr/local/libexec/ultra-menu ;;
+            /usr/bin/bash /usr/local/libexec/ultra-menu
+        exit $? ;;
     --auto) shift ;;
     --software) mode=software; shift ;;
     --nvidia) mode=nvidia; shift ;;
@@ -27,6 +47,8 @@ esac
 [ -x /arch/usr/local/libexec/ultra-sesion ] || { echo 'ROJO [ESCRITORIO]: falta ultra-sesion en Arch'; exit 1; }
 [ $# -gt 0 ] || set -- foot
 [ "$compositor" != hyprland ] || set -- --hyprland "$@"
-exec chroot /arch /usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
+trap exportar_informe EXIT
+chroot /arch /usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
     GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
     /usr/bin/bash /usr/local/libexec/ultra-sesion "$mode" "$@"
+exit $?

@@ -11,6 +11,20 @@ case "$mode" in auto|software|nvidia) ;; *) echo 'ROJO [SESION]: modo invalido';
 install -d -m 0700 -o 0 -g 0 /run/ultra-escritorio || exit 1
 exec 9>/run/ultra-escritorio/lock
 flock -n 9 || { echo 'ROJO [SESION]: ya hay una sesion de ULTRA'; exit 1; }
+seat_pid=''
+cleanup() {
+    if [[ -n $seat_pid ]]; then kill "$seat_pid" 2>/dev/null || true; wait "$seat_pid" 2>/dev/null || true; fi
+}
+finish() {
+    result=$?
+    cleanup
+    /usr/bin/bash /usr/local/libexec/ultra-informe-gpu "$mode" "$compositor" "$result" || echo 'AMARILLO [GPU]: no se pudo guardar el informe'
+}
+trap finish EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+# Do not attribute a previous client log to a fresh failed preparation.
+rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log
 [[ ! -e /run/seatd.sock && ! -L /run/seatd.sock ]] || { echo 'ROJO [SESION]: socket seatd ya ocupado'; exit 1; }
 export SYSTEMD_IGNORE_CHROOT=1
 if ! udevadm control --ping 2>/dev/null; then
@@ -36,9 +50,7 @@ if [[ $mode == nvidia ]]; then
     [[ -r /usr/share/glvnd/egl_vendor.d/10_nvidia.json ]] || { echo 'ROJO [GPU]: falta proveedor EGL NVIDIA'; exit 1; }
     # Module loading happened before udev started. Prepare vendor nodes as root;
     # the unprivileged compositor cannot invoke a setuid helper under NoNewPrivs.
-    # -u selects UVM instead of graphics nodes: never combine it with this step.
-    /usr/bin/nvidia-modprobe -c 0 -m || { echo 'ROJO [GPU]: no se pudieron preparar nodos NVIDIA'; exit 1; }
-    [[ -c /dev/nvidia0 && -c /dev/nvidiactl && -c /dev/nvidia-modeset ]] || { echo 'ROJO [GPU]: faltan nodos NVIDIA'; exit 1; }
+    /usr/bin/bash /usr/local/libexec/ultra-preparar-nvidia 2>&1 | tee /run/ultra-escritorio/nodos.log || exit 1
     card=${nvidia[0]}; renderer=gles2
 else
     if (( ${#software[@]} )); then card=${software[0]}
@@ -49,10 +61,6 @@ fi
 install -d -m 0700 -o 1000 -g 1000 /run/user/1000 || exit 1
 seatd -u ultra -g ultra -l info > /run/ultra-escritorio/seatd.log 2>&1 9>&- &
 seat_pid=$!
-cleanup() { kill "$seat_pid" 2>/dev/null || true; wait "$seat_pid" 2>/dev/null || true; }
-trap cleanup EXIT
-trap 'exit 130' INT
-trap 'exit 143' TERM
 ready=0
 for ((i=0;i<50;i++)); do
     if [[ -S /run/seatd.sock ]]; then ready=1; break; fi
@@ -60,7 +68,7 @@ for ((i=0;i<50;i++)); do
     sleep .1
 done
 (( ready )) || { echo 'ROJO [SESION]: seatd no preparo su socket'; exit 1; }
-echo "VERDE [ESCRITORIO]: modo=$mode renderer-solicitado=$renderer dispositivo=$card; usuario=ultra"
+echo "VERDE [ESCRITORIO]: compositor=$compositor modo=$mode dispositivo=$card; usuario=ultra"
 client_env=(HOME=/home/ultra USER=ultra LOGNAME=ultra XDG_RUNTIME_DIR=/run/user/1000
     "ULTRA_COMPOSITOR=$compositor" "ULTRA_RENDER_MODE=$mode"
     PATH=/usr/local/bin:/usr/bin LANG=C.UTF-8 TERM=linux
@@ -79,6 +87,6 @@ statuses=("${PIPESTATUS[@]}"); rc=${statuses[0]}
 if [[ $rc == 0 ]]; then
     echo "VERDE [ESCRITORIO]: $compositor termino (salida 0); vuelve la consola de ULTRA"
 else
-    echo "ROJO [ESCRITORIO]: cage termino (salida $rc); ver /arch/run/ultra-escritorio/ultima.log"
+    echo "ROJO [ESCRITORIO]: $compositor termino (salida $rc); ver /arch/run/ultra-escritorio/ultima.log"
 fi
 exit "$rc"

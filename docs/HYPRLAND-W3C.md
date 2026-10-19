@@ -1,5 +1,10 @@
 # W3c: Hyprland con aplicaciones
 
+Actualizacion: [W3d](GPU-NEON-W3D.md) corrige la omision del minor 255
+(nvidiactl), sustituye la prueba insuficiente y agrega informes persistentes
+y el tema neon. Las afirmaciones sobre -c 0 -m mas abajo son historicas y
+no describen la preparacion vigente.
+
 ## Alcance
 
 La imagen de ULTRA incorpora Hyprland oficial de Arch 0.56.2-4, revision

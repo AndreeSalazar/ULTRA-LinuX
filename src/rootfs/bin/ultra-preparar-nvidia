@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -uo pipefail
+[[ $(id -u) == 0 ]] || { echo 'ROJO [GPU]: preparar nodos requiere root'; exit 1; }
+# Every requested minor is explicit: 0=GPU, 255=control; -m adds modeset (254).
+# Neither -c0 alone nor UVM (-u) creates nvidiactl.
+/usr/bin/nvidia-modprobe -c 0 -c 255 -m || { echo 'ROJO [GPU]: fallo nvidia-modprobe (GPU/control/modeset)'; exit 1; }
+missing=0
+for node in /dev/nvidia0 /dev/nvidiactl /dev/nvidia-modeset; do
+    if [[ ! -c $node ]]; then
+        echo "ROJO [GPU]: falta dispositivo de caracteres $node"
+        missing=1
+    fi
+done
+(( missing == 0 )) || exit 1
+echo 'VERDE [GPU]: nodos GPU, control y modeset preparados'

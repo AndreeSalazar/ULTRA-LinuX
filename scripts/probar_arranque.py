@@ -105,7 +105,8 @@ elif PERFIL == 'generico':
     BOOT1 += [('ls /sistema/usr/bin/nvidia-smi 2>&1', 'No such file')]
 if PERFIL in ('pc', 'generico'):
     # QEMU has no NVIDIA: explicit acceleration must reject, never pretend software is GPU.
-    BOOT1 += [('ultra-escritorio --nvidia 2>&1', 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA')]
+    BOOT1 += [('ultra-escritorio --nvidia 2>&1', 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA'),
+              ('ultra-escritorio --nvidia >/tmp/gpu-rechazo.log 2>&1; echo GPU-ESTADO-$?', 'GPU-ESTADO-1')]
 BOOT2 = [
     ('cat /datos/prueba-persistencia', TOKEN),
     ('lsmod', 'snd_hda_intel'),
@@ -213,7 +214,7 @@ def check_window(conn, failures):
     """W2: the first Wayland window, seen on the emulated screen and closed with its keyboard.
 
     ultra-escritorio starts udevd, seatd and cage with foot. foot paints the whole screen
-    with its background (#242424); then "exit" typed on the PS/2 keyboard must reach foot
+    with its background (#050a12); then "exit" typed on the PS/2 keyboard must reach foot
     through udev, libinput and Wayland, and cage must end cleanly.
     """
     t = ''
@@ -234,7 +235,7 @@ def check_window(conn, failures):
             time.sleep(0.3)
             pixels = (tmp / 'ultra-ventana.ppm').read_bytes().split(maxsplit=4)[4]
             foot = sum(1 for i in range(0, len(pixels) - 2, 3)
-                       if all(abs(pixels[i + k] - 0x24) <= 6 for k in range(3)))
+                       if all(abs(pixels[i + k] - (5, 10, 18)[k]) <= 6 for k in range(3)))
             share = foot / max(1, len(pixels) // 3)
             if share > 0.6: break
         shutil.copyfile(png, LOG.with_name(LOG.stem + '-ventana.png'))
@@ -407,6 +408,19 @@ def check_hyprland(conn, failures):
         mon.sendall(b'sendkey meta_l-q\n')
         closed = wait_apps(lambda apps: len(apps) >= 2 and not any('thunar' in a.get('class', '').lower() for a in apps))
         expect(bool(closed), 'Hyprland: cambiar escritorio y cerrar solo la ventana activa')
+        conn.sendall(b'test -n "$(pidof swaybg)" && echo FONDO-$((2+2)); echo FONDO-FIN-$((4+3))\n')
+        bg = response('FONDO-FIN-7')
+        transcript += bg
+        expect('FONDO-4' in bg, 'Hyprland: fondo vectorial activo')
+        mon.sendall(b'sendkey meta_l-3\n')
+        time.sleep(2)
+        background = pathlib.Path(tempfile.gettempdir()) / 'ultra-neon-fondo.png'
+        background.unlink(missing_ok=True)
+        mon.sendall(f'screendump {background} -f png\n'.encode())
+        for _ in range(50):
+            if background.exists() and background.stat().st_size: break
+            time.sleep(.1)
+        shutil.copyfile(background, LOG.with_name(LOG.stem + '-fondo.png'))
         mon.sendall(b'sendkey meta_l-shift-m\n')
         time.sleep(4)
         conn.sendall(b'echo HYPR-SINC-$((3+4))\n')
@@ -559,6 +573,9 @@ def main():
             # Wayland stage W2: the first window, seen and closed through the emulated hardware.
             transcript += check_window(conn, failures)
             transcript += check_hyprland(conn, failures)
+            if BMO:
+                transcript += run(conn, [('test -s /bmo/ULTRA/informe/gpu-$(uname -r).txt && echo GPU-INFORME-$((2+2))', 'GPU-INFORME-4'),
+                                        ('grep -q "^AUSENTE /dev/nvidiactl$" /bmo/ULTRA/informe/gpu-fallo-$(uname -r).txt && echo GPU-FALLO-$((2+3))', 'GPU-FALLO-5')], failures)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
             # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU
             # boots the same disk: whatever /datos shows then came from the disk itself.

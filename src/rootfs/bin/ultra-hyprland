@@ -13,4 +13,5 @@ export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=Hyprland XDG_SESSION_TYP
 export XDG_CONFIG_HOME="$HOME/.config" XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share" HYPRLAND_NO_RT=1
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME"
+cd "$HOME"
 exec dbus-run-session -- start-hyprland -- --config /etc/ultra/hyprland.lua
