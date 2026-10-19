@@ -1,12 +1,16 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import hashlib, pathlib, socket, subprocess, sys, time
+import hashlib, pathlib, shutil, socket, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
+# --disco boots ultra-esp.img through UEFI firmware, with no -kernel and no boot loader.
+DISCO = '--disco' in sys.argv[2:]
+QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
 BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico'}[PERFIL]
 KERNEL = BUILD / 'bzImage-tiny64'
-LOG = BUILD / 'prueba-shell.log'
+IMG = BUILD / 'ultra-esp.img'
+LOG = BUILD / ('prueba-disco.log' if DISCO else 'prueba-shell.log')
 QEMU = pathlib.Path(r'C:\Program Files\qemu\qemu-system-x86_64.exe')
 PORT = 15555
 # Each command and a fragment its output must contain.
@@ -38,6 +42,13 @@ if PERFIL == 'generico':
         ('grep -c processor /proc/cpuinfo', '1'),
         ('cat /proc/filesystems', 'ext4'),
     ]
+if DISCO:
+    # Proof that the firmware ran the kernel itself and that the built-in arguments arrived.
+    CHECKS += [
+        ('cat /sys/firmware/efi/fw_platform_size', '64'),
+        ('cat /proc/cmdline', 'x86_shstk=on'),
+        ('cat /sys/class/tty/console/active', 'ttyS0'),
+    ]
 if PERFIL == 'vigia':
     CHECKS += [
         ('dmesg | grep -m1 "AddressSanitizer init"', 'initialized'),
@@ -65,17 +76,29 @@ def check_kernel():
         print(f'Primero: .\\construir-kernel.ps1 -Accion Estado -Perfil {PERFIL}  (esperar el VERDE)')
         print(f'Despues: .\\construir-kernel.ps1 -Accion Descargar -Perfil {PERFIL}')
         sys.exit(2)
-    expected = sums.read_text(encoding='utf-8').split()[0].lower()
-    if hashlib.sha256(KERNEL.read_bytes()).hexdigest() != expected:
-        print(f'ROJO [HASH]: {KERNEL.name} no coincide con SHA256SUMS; volver a descargar.')
-        sys.exit(1)
+    expected = {line.split()[1].rsplit('/', 1)[-1]: line.split()[0].lower()
+                for line in sums.read_text(encoding='utf-8').splitlines() if line.strip()}
+    for f in [KERNEL] + ([IMG] if DISCO else []):
+        if not f.exists() or f.name not in expected:
+            print(f'AMARILLO [SIN-DISCO]: falta {f.name}; el disco EFI solo existe en el perfil generico.')
+            sys.exit(2)
+        if hashlib.sha256(f.read_bytes()).hexdigest() != expected[f.name]:
+            print(f'ROJO [HASH]: {f.name} no coincide con SHA256SUMS; volver a descargar.')
+            sys.exit(1)
 
 def main():
     check_kernel()
+    if DISCO:
+        vars_copy = BUILD / 'ovmf-vars-prueba.fd'
+        shutil.copyfile(QEMU_SHARE / 'edk2-i386-vars.fd', vars_copy)
+        boot = ['-drive', f'if=pflash,format=raw,readonly=on,file={QEMU_SHARE / "edk2-x86_64-code.fd"}',
+                '-drive', f'if=pflash,format=raw,file={vars_copy}',
+                '-drive', f'file={IMG},format=raw,if=virtio,snapshot=on']
+    else:
+        boot = ['-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic quiet '
+                'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on']
     qemu = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '1024',
-                             '-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic quiet '
-                             'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on',
-                             '-nic', 'none', '-display', 'none', '-no-reboot',
+                             *boot, '-nic', 'none', '-display', 'none', '-no-reboot',
                              '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on'],
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     transcript, failures = '', []
@@ -86,7 +109,8 @@ def main():
             except OSError: time.sleep(0.2)
         else: raise ConnectionError('QEMU no abrio la consola serie')
         conn.settimeout(0.5)
-        transcript += read_until(conn, 'ultra:', 30)
+        # Firmware start-up adds seconds before the kernel runs.
+        transcript += read_until(conn, 'ultra:', 120 if DISCO else 30)
         for command, expected in CHECKS:
             conn.sendall(command.encode() + b'\n')
             out = read_until(conn, 'ultra:', 30)

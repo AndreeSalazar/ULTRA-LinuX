@@ -6,6 +6,8 @@ VERDE [MONTAJE]: tmpfs en /run
 
 ULTRA LinuX: INIT C READY
 VERDE [KERNEL]: Linux 7.3.0-rc7-g32c52ec87d62 x86_64
+VERDE [CONSOLA]: shell en /dev/tty1
+VERDE [CONSOLA]: shell en /dev/ttyS0
 ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).
 Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff
 ultra:~# cat /etc/os-release
@@ -27,13 +29,13 @@ PID   USER     TIME  COMMAND
     6 0         0:00 [kworker/R-kvfre]
     7 0         0:00 [kworker/R-slub_]
     8 0         0:00 [kworker/R-netns]
-    9 0         0:00 [kworker/0:0-ata]
+    9 0         0:00 [kworker/0:0-eve]
    10 0         0:00 [kworker/0:0H-kb]
-   11 0         0:00 [kworker/0:1+eve]
-   12 0         0:00 [kworker/u4:0-ev]
-   13 0         0:00 [kworker/R-mm_pe]
+   11 0         0:00 [kworker/u4:0-ev]
+   12 0         0:00 [kworker/R-mm_pe]
+   13 0         0:00 [ksoftirqd/0]
    14 0         0:00 [kworker/u4:1-tr]
-   15 0         0:00 [ksoftirqd/0]
+   15 0         0:00 [kworker/0:1+eve]
    16 0         0:00 [rcu_preempt]
    17 0         0:00 [rcu_exp_par_gp_]
    18 0         0:00 [rcu_exp_gp_kthr]
@@ -60,10 +62,10 @@ PID   USER     TIME  COMMAND
    39 0         0:00 [kworker/R-cfg80]
    40 0         0:00 [kworker/u4:3-tr]
    41 0         0:00 [kswapd0]
-   42 0         0:00 [kworker/u4:4-tt]
+   42 0         0:00 [kworker/u4:4-ev]
    43 0         0:00 [kworker/R-nfsio]
    44 0         0:00 [kworker/R-acpi_]
-   45 0         0:00 [kworker/u4:5-sc]
+   45 0         0:00 [kworker/u4:5-tt]
    46 0         0:00 [kworker/R-nvme-]
    47 0         0:00 [kworker/R-nvme-]
    48 0         0:00 [kworker/R-nvme-]
@@ -71,15 +73,16 @@ PID   USER     TIME  COMMAND
    50 0         0:00 [kworker/R-scsi_]
    51 0         0:00 [scsi_eh_1]
    52 0         0:00 [kworker/R-scsi_]
-   53 0         0:00 [kworker/u4:6-ev]
-   54 0         0:00 [kworker/0:2-eve]
-   55 0         0:00 [kworker/R-mld]
-   56 0         0:00 [kworker/R-ipv6_]
+   53 0         0:00 [kworker/u4:6-ip]
+   54 0         0:00 [kworker/R-mld]
+   55 0         0:00 [kworker/R-ipv6_]
+   56 0         0:00 [kworker/0:2-ata]
    57 0         0:00 [kworker/0:3-eve]
    61 0         0:00 [kworker/0:1H-kb]
    62 0         0:00 [kworker/0:4]
    63 0         0:00 -sh
-   66 0         0:00 {ps} -sh
+   64 0         0:00 -sh
+   67 0         0:00 {ps} -sh
 ultra:~# echo $((6*7))
 42
 ultra:~# ls /proc/self/fd
@@ -89,25 +92,25 @@ ACTIVA (shstk)
 ultra:~# minas retorno-secuestrado
 MINA retorno-secuestrado: sobrescribir la direccion de retorno: base del ROP; solo CET lo bloquea en el retorno
 ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
-  programa=minas senal=11 code=10 (SEGV_CPERR: la pila sombra CET bloqueo un retorno falso) direccion=0x0 pc=inicio+0xb2f0
+  programa=minas senal=11 code=10 (SEGV_CPERR: la pila sombra CET bloqueo un retorno falso) direccion=0x0 pc=inicio+0xb740
+[    0.516619] minas[70] control protection ip:7f030ea4e740 sp:7ffda4858e58 ssp:7f030ea3afe8 error:1(near ret) in minas[b740,7f030ea4b000+83000]
 Segmentation fault
-ultra:~# [    0.524407] minas[69] control protection ip:7f40ce6c02f0 sp:7fffecc2d158 ssp:7f40ce6acfe8 error:1(near ret) in minas[b2f0,7f40ce6bd000+83000]
-minas entero-desborde
+ultra:~# minas entero-desborde
 MINA entero-desborde: int con signo pasa de INT_MAX: en C es UB y el optimizador puede borrar tus comprobaciones
 ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
-  programa=minas senal=4 code=2 pc=inicio+0xa878
+  programa=minas senal=4 code=2 pc=inicio+0xa898
 Illegal instruction
 ultra:~# minas copia-pila
 MINA copia-pila: memcpy de 16 bytes en un buffer de 8: clasico desborde de pila
 *** buffer overflow detected ***: terminated
 ROJO [ABORTO-GUARDIAN: FORTIFY, protector de pila o glibc detecto corrupcion (ver la linea anterior)]
-  programa=minas senal=6 code=-6 pc=inicio+0x189c5
+  programa=minas senal=6 code=-6 pc=inicio+0x18f05
 Aborted
 ultra:~# minas memcpy-solapado
 MINA memcpy-solapado: memcpy con origen y destino solapados es UB; usar memmove
 ROJO [FRONTERA-SOLAPE] /home/builder/linux-reconstruido/lab/guardian/minas.c:126: memcpy con regiones solapadas es UB; usar memmove
 ROJO [ABORTO-GUARDIAN: FORTIFY, protector de pila o glibc detecto corrupcion (ver la linea anterior)]
-  programa=minas senal=6 code=-6 pc=inicio+0x189c5
+  programa=minas senal=6 code=-6 pc=inicio+0x18f05
 Aborted
 ultra:~# minas alias-estricto
 MINA alias-estricto: leer un int por un float*: con alias estricto el optimizador devuelve un valor viejo
@@ -115,7 +118,7 @@ NEUTRALIZADA: resultado definido 0 (0: la memoria real)
 ultra:~# minas secuestrar-arranque
 MINA secuestrar-arranque: sobrescribir un puntero de init_array, como un ataque a la GOT
 ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
-  programa=minas senal=11 code=2 (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable) direccion=0x7f33ab667900 pc=inicio+0xad54
+  programa=minas senal=11 code=2 (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable) direccion=0x7f3223fd46c0 pc=inicio+0xaf44
 Segmentation fault
 ultra:~# grep x86_Thread /proc/1/status
 x86_Thread_features:	shstk 
@@ -138,14 +141,14 @@ VERDE    caja taller cat /etc/os-release
          cat: can't open '/etc/os-release': Permission denied
 VERDE    caja taller sh -c echo dentro > /tmp/dentro && cat /tmp/dentro
 VERDE    caja lector nc 10.0.2.2 80
-         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: socket (41) en pid 142; la caja se destruye
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: socket (41) en pid 143; la caja se destruye
 VERDE    caja lector mount -t tmpfs none /tmp
-         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: mount (165) en pid 150; la caja se destruye
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: mount (165) en pid 151; la caja se destruye
 VERDE    caja lector sh -c kill -9 1
-         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: kill (62) en pid 158; la caja se destruye
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: kill (62) en pid 159; la caja se destruye
 RESUMEN CAJA: VERDE=11 ROJO=0
 ultra:~# dmesg | grep -m1 "kfence: init"
-[    0.059686] kfence: initialized - using 2097152 bytes for 255 objects at 0x(____ptrval____)-0x(____ptrval____)
+[    0.060038] kfence: initialized - using 2097152 bytes for 255 objects at 0x(____ptrval____)-0x(____ptrval____)
 ultra:~# ls /sys/bus/pci/drivers
 [1;34m8139too[m        [1;34mata_piix[m       [1;34mi801_smbus[m     [1;34mpata_oldpiix[m   [1;34mvirtio-pci[m
 [1;34m8250_lpss[m      [1;34me100[m           [1;34mi915[m           [1;34mpata_sch[m       [1;34mxhci_hcd[m
@@ -184,4 +187,6 @@ nodev	autofs
 nodev	9p
 nodev	mqueue
 ultra:~# poweroff
-AMARILLO [APAGADO
+AMARILLO [APAGADO]: apagado
+Terminated
+ultra:~# 

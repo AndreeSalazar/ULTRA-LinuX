@@ -93,7 +93,7 @@ Resultado (`evidencias/arranque-generico.log`):
 - El kernel ve el bus PCI (controladores `ahci`, `xhci_hcd`, `virtio-pci`…) y soporta ext4.
 
 Pendiente en esta fase:
-1. **Arrancar desde un disco**, no desde memoria: un disco virtual con una partición EFI y una raíz ext4, arrancado con el firmware UEFI de QEMU (OVMF), como lo haría el SSD.
+1. ~~**Arrancar desde un disco**~~ **Hecho, sin GRUB:** `ultra-esp.img` es una GPT con una sola ESP FAT32 y el kernel como `EFI/BOOT/BOOTX64.EFI`. El firmware UEFI de QEMU (OVMF) lo arranca directamente; la prueba completa sale VERDE (`evidencias/arranque-disco-efi.log`). Ver [ARRANQUE-SIN-GRUB.md](ARRANQUE-SIN-GRUB.md). Falta la raíz ext4 persistente.
 2. **Cargar módulos de verdad**: instalar `modulos.tar.gz` en esa raíz y comprobar que `modprobe` funciona.
 3. **Perfil de tu PC**: afinar para el Ryzen 5600X y la A320M, y preparar `nvidia-open` (un módulo externo compilado contra este árbol, con DRM/KMS activos) para la RTX 3060.
 4. Pasar los mismos detectores del perfil vigía sobre la configuración genérica.

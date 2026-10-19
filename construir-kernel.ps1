@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
-param([ValidateSet('Compilar','Estado','Descargar','Ver')][string]$Accion='Estado',
+param([ValidateSet('Compilar','Estado','Descargar','Ver','VerDisco')][string]$Accion='Estado',
       [ValidateSet('produccion','vigia','generico')][string]$Perfil='produccion')
 # Each profile keeps its own build tree and artifacts, so switching never rebuilds the other.
 $dirs=@{produccion='tiny64-baseline';vigia='tiny64-vigia';generico='x86_64-generico'}
@@ -11,7 +11,7 @@ $key=Join-Path $project 'vm/builder_ed25519'
 Set-Location -LiteralPath $project
 $known='UserKnownHostsFile=vm/known_hosts'
 # Reject an absent workshop before SSH: build failure is not a compiler failure.
-if($Accion -ne 'Ver'){
+if($Accion -notin @('Ver','VerDisco')){
     $running=$false
     $record=Join-Path $project 'vm/session.json'
     if(Test-Path -LiteralPath $record){
@@ -61,7 +61,7 @@ if($Accion -eq 'Compilar'){
     $out=Join-Path $project ('build/'+$local[$Perfil])
     New-Item -ItemType Directory -Force $out | Out-Null
     $files=@('bzImage-tiny64','tiny64.config','kernelrelease.txt','guardianes.txt','SHA256SUMS')
-    if($Perfil -eq 'generico'){$files+='modulos.tar.gz'}
+    if($Perfil -eq 'generico'){$files+='modulos.tar.gz';$files+='ultra-esp.img'}
     foreach($file in $files){
         & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known ('builder@127.0.0.1:/home/builder/linux-reconstruido/artifacts/'+$Perfil+'/'+$file) $out
         if($LASTEXITCODE -ne 0){throw "ROJO: falta descargar $file"}
@@ -77,4 +77,18 @@ if($Accion -eq 'Compilar'){
     $qemu=Join-Path $env:ProgramFiles 'qemu/qemu-system-x86_64.exe'
     & $qemu -name ('ULTRA LinuX - '+$Perfil) -machine pc -accel whpx -cpu host -smp 1 -m 1024 -kernel $kernel -append 'console=ttyS0,115200 console=tty0 rdinit=/init panic=-1 noapic quiet GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on' -nic none -display gtk -serial stdio -no-reboot
     if($LASTEXITCODE -ne 0){throw 'ROJO: QEMU no pudo ejecutar el kernel; revisar aceleracion y salida.'}
+}elseif($Accion -eq 'VerDisco'){
+    # Boots the disk image the way a PC does: UEFI firmware, GPT, ESP, BOOTX64.EFI. No -kernel, no GRUB.
+    $dir=Join-Path $project ('build/'+$local[$Perfil])
+    $img=Join-Path $dir 'ultra-esp.img'
+    if(-not(Test-Path -LiteralPath $img)){throw "AMARILLO [SIN-DISCO]: el perfil $Perfil no tiene ultra-esp.img; usar -Perfil generico tras Compilar y Descargar."}
+    $sums=Get-Content (Join-Path $dir 'SHA256SUMS')
+    $expected=(($sums | Where-Object {$_ -match 'ultra-esp\.img'}) -split '\s+')[0]
+    if((Get-FileHash $img).Hash -ine $expected){throw 'ROJO [HASH]: la imagen de disco no coincide con SHA256SUMS.'}
+    $share=Join-Path $env:ProgramFiles 'qemu/share'
+    $vars=Join-Path $dir 'ovmf-vars.fd'
+    Copy-Item (Join-Path $share 'edk2-i386-vars.fd') $vars -Force
+    $qemu=Join-Path $env:ProgramFiles 'qemu/qemu-system-x86_64.exe'
+    & $qemu -name ('ULTRA LinuX - disco EFI') -machine pc -accel whpx -cpu host -smp 2 -m 1024 -drive ('if=pflash,format=raw,readonly=on,file='+(Join-Path $share 'edk2-x86_64-code.fd')) -drive ('if=pflash,format=raw,file='+$vars) -drive ('file='+$img+',format=raw,if=virtio,snapshot=on') -nic none -display gtk -serial stdio -no-reboot
+    if($LASTEXITCODE -ne 0){throw 'ROJO: QEMU no pudo arrancar el disco; revisar firmware y salida.'}
 }

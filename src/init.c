@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * ULTRA LinuX init: PID 1 mounts the base filesystems, then supervises a
- * BusyBox shell. Every outcome is reported as VERDE, AMARILLO or ROJO with a
+ * ULTRA LinuX init: PID 1 mounts the base filesystems, then supervises one
+ * BusyBox shell per active kernel console (screen and serial alike). Every outcome is reported as VERDE, AMARILLO or ROJO with a
  * code, so a failure is never silent. PID 1 must not exit: the kernel panics.
  */
 #define _GNU_SOURCE
@@ -21,7 +21,16 @@
 /* Last: it poisons unsafe functions after the system headers are parsed. */
 #include "guardian/ultra_guard.h"
 
-enum { RESPAWN_WINDOW_S = 2, RESPAWN_LIMIT = 5, RESPAWN_PAUSE_S = 5 };
+enum { RESPAWN_WINDOW_S = 2, RESPAWN_LIMIT = 5, RESPAWN_PAUSE_S = 5, MAX_CONSOLES = 4 };
+
+struct console {
+    char dev[32];
+    pid_t shell;
+    time_t started;
+    int fast_exits;
+};
+static struct console consoles[MAX_CONSOLES];
+static size_t nconsoles;
 
 static void emit(const char *s) {
     size_t left = strlen(s);
@@ -65,15 +74,44 @@ static void mount_fs(const char *type, const char *target, unsigned long flags) 
 /* A console descriptor that landed on 0..2 stays open for the life of the process. */
 static int console_fd = -1;
 
-static void attach_console(void) {
-    int fd = open("/dev/console", O_RDWR);
+static void attach_tty(const char *dev) {
+    int fd = open(dev, O_RDWR);
     if (fd < 0) return;
     for (int i = 0; i < 3; i++) (void)dup2(fd, i);
     if (fd > 2) close(fd);
     else console_fd = fd;
 }
 
-static pid_t spawn_shell(void) {
+static void attach_console(void) { attach_tty("/dev/console"); }
+
+/*
+ * One shell per console the kernel writes to, read from sysfs. Without a boot
+ * loader the command line is built in, so the same image must serve the
+ * screen of a real PC and the serial port of the tests.
+ */
+static void find_consoles(void) {
+    char buf[128] = {0};
+    int fd = open("/sys/class/tty/console/active", O_RDONLY | O_CLOEXEC);
+    ssize_t n = fd >= 0 ? read(fd, buf, sizeof(buf) - 1) : -1;
+    if (fd >= 0) close(fd);
+    if (n > 0) {
+        buf[(size_t)n] = 0;
+        char *save = NULL;
+        for (char *tok = strtok_r(buf, " \n", &save); tok && nconsoles < MAX_CONSOLES; tok = strtok_r(NULL, " \n", &save)) {
+            /* tty0 means "whichever virtual terminal is current": pin the shell to tty1. */
+            const char *name = strcmp(tok, "tty0") ? tok : "tty1";
+            struct console *c = &consoles[nconsoles];
+            if (ULTRA_COPY(c->dev, "/dev/") && ULTRA_APPEND(c->dev, name)) nconsoles++;
+            else report("AMARILLO", "CONSOLA", "nombre de consola demasiado largo; se omite");
+        }
+    }
+    if (nconsoles == 0) {
+        report("AMARILLO", "CONSOLA", "sin lista de consolas activas; una sola shell en /dev/console");
+        if (ULTRA_COPY(consoles[0].dev, "/dev/console")) nconsoles = 1;
+    }
+}
+
+static pid_t spawn_shell(const char *dev) {
     pid_t pid = fork();
     if (pid != 0) return pid;
     sigset_t none;
@@ -81,7 +119,7 @@ static pid_t spawn_shell(void) {
     sigprocmask(SIG_SETMASK, &none, NULL);
     /* Own session and controlling terminal, so Ctrl-C reaches the shell, not PID 1. */
     setsid();
-    attach_console();
+    attach_tty(dev);
     (void)ioctl(STDIN_FILENO, TIOCSCTTY, 1);
     static char arg0[] = "-sh";
     static char home[] = "HOME=/root", path[] = "PATH=/bin:/sbin", term[] = "TERM=linux";
@@ -151,9 +189,13 @@ int main(void) {
     /* Ctrl-Alt-Del arrives as SIGINT instead of an instant reboot. */
     reboot(RB_DISABLE_CAD);
 
-    pid_t shell = spawn_shell();
-    time_t started = time(NULL);
-    int fast_exits = 0;
+    find_consoles();
+    for (size_t i = 0; i < nconsoles; i++) {
+        consoles[i].shell = spawn_shell(consoles[i].dev);
+        consoles[i].started = time(NULL);
+        snprintf(detail, sizeof(detail), "shell en %s", consoles[i].dev);
+        report("VERDE", "CONSOLA", detail);
+    }
     for (;;) {
         siginfo_t info;
         int sig = sigwaitinfo(&watched, &info);
@@ -172,19 +214,22 @@ int main(void) {
             int sig_dead = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
             bool guardian = sig_dead == SIGILL || sig_dead == SIGSEGV || sig_dead == SIGBUS ||
                             sig_dead == SIGFPE || sig_dead == SIGABRT || sig_dead == SIGSYS;
-            const char *who = dead == shell ? "shell" : "huerfano";
+            struct console *c = NULL;
+            for (size_t i = 0; i < nconsoles; i++)
+                if (consoles[i].shell == dead) c = &consoles[i];
+            const char *who = c ? c->dev : "huerfano";
             if (sig_dead) snprintf(detail, sizeof(detail), "%s pid %d senal %d: %s", who, (int)dead, sig_dead, ultra_explain_signal(sig_dead));
             else snprintf(detail, sizeof(detail), "%s pid %d salio con codigo %d", who, (int)dead, WEXITSTATUS(status));
-            if (guardian || dead == shell) report(guardian ? "ROJO" : "AMARILLO", guardian ? "GUARDIAN" : "SHELL", detail);
-            if (dead != shell) continue;
-            fast_exits = time(NULL) - started < RESPAWN_WINDOW_S ? fast_exits + 1 : 0;
-            if (fast_exits >= RESPAWN_LIMIT) {
+            if (guardian || c) report(guardian ? "ROJO" : "AMARILLO", guardian ? "GUARDIAN" : "SHELL", detail);
+            if (!c) continue;
+            c->fast_exits = time(NULL) - c->started < RESPAWN_WINDOW_S ? c->fast_exits + 1 : 0;
+            if (c->fast_exits >= RESPAWN_LIMIT) {
                 report("ROJO", "SHELL-BUCLE", "la shell muere al arrancar; pausa antes de reintentar");
                 sleep(RESPAWN_PAUSE_S);
-                fast_exits = 0;
+                c->fast_exits = 0;
             }
-            shell = spawn_shell();
-            started = time(NULL);
+            c->shell = spawn_shell(c->dev);
+            c->started = time(NULL);
         }
     }
 }
