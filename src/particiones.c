@@ -7,8 +7,8 @@
  *   (PARTNAME in /sys/class/block/<x>/uevent).
  *
  *   Files on a FAT32 partition labelled BMO (A:\ on Windows), for a PC with
- *   no spare disk: BMO\ULTRA\sistema-a.erofs and BMO\ULTRA\datos.ext4 are
- *   attached as loop devices. The label is read from the raw root directory,
+ *   no spare disk: BMO\ULTRA\sistema-<uname -r>.erofs (or sistema-a.erofs)
+ *   and BMO\ULTRA\datos.ext4 are attached as loop devices. The label is read from the raw root directory,
  *   because Windows leaves "NO NAME" in the boot sector.
  *
  * Nothing else is ever mounted, so the Windows partitions are never touched.
@@ -22,6 +22,7 @@
 #include <sys/ioctl.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
+#include <sys/utsname.h>
 #include <time.h>
 #include <unistd.h>
 #include "init.h"
@@ -231,16 +232,24 @@ static void mount_files(void) {
     }
     /* noexec: nothing runs from the FAT32 side; the system comes from the EROFS image. */
     if (!mount_one(fat_dev, FAT_TARGET, "vfat", MS_NODEV | MS_NOSUID | MS_NOEXEC, FAT_LABEL)) return;
+    /* Each kernel brings its own system image, so several kernels share one BMO and one datos.ext4. */
+    struct utsname u;
+    char own[300] = "";
+    if (uname(&u) == 0) {
+        int len = snprintf(own, sizeof(own), "%s/sistema-%s.erofs", FAT_DIR, u.release);
+        if (len < 0 || (size_t)len >= sizeof(own) || access(own, R_OK) < 0) own[0] = 0;
+    }
     for (size_t i = 0; i < ULTRA_LEN(parts); i++) {
         struct partition *p = &parts[i];
         bool read_only = (p->flags & MS_RDONLY) != 0;
-        int lo = attach_loop(p->file, read_only, p->dev, sizeof(p->dev));
+        const char *file = read_only && own[0] ? own : p->file;
+        int lo = attach_loop(file, read_only, p->dev, sizeof(p->dev));
         if (lo < 0) {
-            say("AMARILLO", "%s: %s; %s queda sin montar", p->file, strerror(errno), p->target);
+            say("AMARILLO", "%s: %s; %s queda sin montar", file, strerror(errno), p->target);
             continue;
         }
-        char what[96];
-        snprintf(what, sizeof(what), "%s <- %s", p->name, p->file);
+        char what[384];
+        snprintf(what, sizeof(what), "%s <- %s", p->name, file);
         mount_one(p->dev, p->target, p->type, p->flags, what);
         close(lo);
     }

@@ -76,6 +76,20 @@ Hay tres perfiles de kernel, que se eligen con `-Perfil`:
 | `produccion` | `tinyconfig` + guardianes + KFENCE | Laboratorio mínimo, rápido de compilar |
 | `vigia` | `produccion` + KASAN, UBSAN, KFENCE, lockdep y detectores de bloqueos | El kernel informa sus propios fallos; el registro debe quedar limpio |
 | `generico` | `x86_64_defconfig` + guardianes + KFENCE + módulos | Arrancar en cualquier PC x86-64 moderno |
+| `pc` | `generico` + `X86_NATIVE_CPU` (Zen 3) + init, caja y minas con `-O3 -march=znver3 -flto` | Solo el Ryzen 5 5600X de este proyecto; `uname -r` termina en `-pc-g…` |
+
+**Perfil `pc`: optimización máxima sin quitar guardianes.** El kernel se compila con `-march=native` (el taller corre con `-cpu host`, así que es el 5600X real), y el espacio de usuario con `-O3 -march=znver3 -flto=auto` **después** de `ULTRA_PROD`: `-fhardened`, las trampas UBSan, FORTIFY y CET siguen activos. La prueba completa sale VERDE (44/44): las minas siguen detonando su bandera con `-O3` y LTO.
+
+Lo que se descartó a propósito: `-O3` en el kernel (sin opción oficial y desaconsejado por los desarrolladores del kernel), LTO del kernel (solo con Clang) y `-Ofast`/`-ffast-math` (rompe la coma flotante IEEE: es comportamiento indefinido a cambio de velocidad).
+
+**Medida en QEMU** (`scripts/medir_perfiles.py`, 7 arranques por perfil sobre el disco de `A:\`, `evidencias/medida-perfiles-qemu.txt`):
+
+| Perfil | Hasta el fin de la etapa de hardware (`uptime`) | Etapa de hardware guiada | Carga de módulos |
+|---|---|---|---|
+| `generico` | 410 ms | 17,2 ms | 14,8 ms |
+| `pc` | 405 ms | 16,8 ms | 14,4 ms |
+
+**Sin diferencia real** (≈1 %, dentro del ruido; `uptime` avanza de 10 en 10 ms). El arranque no está limitado por la CPU, sino por esperar a dispositivos y leer de disco. `pc` gana donde hay cálculo, y eso llegará con programas de verdad (fase 3 y siguientes). Falta medirlo en el metal.
 
 El perfil `generico` añade:
 - almacenamiento NVMe, AHCI y virtio;

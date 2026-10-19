@@ -104,6 +104,16 @@ VERDE [HARDWARE]: arranque guiado por PC.configuracion: M modulos (...); lectura
 
 Haz varios reinicios para tener varias medidas. Para forzar otra detección: `rm /datos/PC.config*` y reiniciar.
 
+## 5b. Comparar `generico` y `pc` (Zen 3)
+
+Los dos kernels conviven en `A:\`: `ULTRA.EFI` y `ULTRA-PC.EFI`, cada uno con su propio `sistema-<versión>.erofs` y el mismo `datos.ext4`. Se instalan con `.\instalar-en-A.ps1 -Accion Copiar -Perfil pc` (y `-Perfil generico`), y `-Accion CrearEntrada -Perfil pc` añade al menú F11 la entrada **ULTRA LinuX PC (Zen 3)**.
+
+Arranca cada uno 4 o 5 veces, alternando, y apaga siempre con `poweroff`. Cada línea de `A:\ULTRA\arranques.txt` dice qué kernel arrancó (`kernel=…-pc-…` o sin `-pc`) y cuánto tardó:
+- `uptime_ms`: desde que arranca el kernel hasta que termina la etapa de hardware;
+- `total_us`: la etapa de hardware del init.
+
+Compara las medianas. En QEMU salieron iguales (410 frente a 405 ms).
+
 ## 6. Ver los resultados en Windows
 
 Apaga con `poweroff` y arranca Windows. En `A:\ULTRA\` están `PC-configuracion.txt` y `arranques.txt`, actualizados en cada arranque de ULTRA. Para el registro completo del kernel, antes de apagar:

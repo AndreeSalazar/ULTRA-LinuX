@@ -5,10 +5,11 @@ set -euo pipefail
 # detectors (KASAN, UBSAN, KFENCE, lockdep) so the kernel reports its mines.
 perfil=${1:-produccion}
 # start: the upstream config each profile grows from. modules: whether it ships loadable modules.
-start=tinyconfig modules=no modules_list=() cmdline=
+# userflags: extra GCC options for init, caja and minas. localversion: tells kernels apart in uname -r.
+start=tinyconfig modules=no modules_list=() cmdline= userflags=() localversion=
 case $perfil in
     produccion) dir=tiny64-baseline; extra=(KFENCE); required=(KFENCE) ;;
-    generico) dir=x86_64-generico start=defconfig modules=yes
+    generico|pc) dir=x86_64-generico start=defconfig modules=yes
         # Boots any modern x86-64 PC: storage, USB, EFI, a firmware framebuffer and
         # the AMD pieces of the target board. Module-capable for nvidia-open later.
         extra=(KFENCE MODULES MODULE_UNLOAD BLK_DEV_NVME ATA SATA_AHCI VIRTIO_PCI VIRTIO_BLK VIRTIO_NET
@@ -28,12 +29,20 @@ case $perfil in
         required=(KFENCE KASAN KASAN_GENERIC UBSAN UBSAN_BOUNDS PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR) ;;
     *) echo "ROJO: perfil desconocido $perfil"; exit 1 ;;
 esac
+if [[ $perfil = pc ]]; then
+    # generico tuned for this project's Ryzen 5 5600X: Zen 3 only, by design. The workshop
+    # VM runs with -cpu host, so -march=native here is the real CPU. Guardians stay intact:
+    # -O3 and LTO come after ULTRA_PROD, and must pass the same review and the same boot test.
+    dir=x86_64-pc localversion=-pc
+    extra+=(X86_NATIVE_CPU) required+=(X86_NATIVE_CPU)
+    userflags=(-O3 -march=znver3 -flto=auto)
+fi
 base="$HOME/linux-reconstruido"
 src="$base/kernel"
 out="$base/build/$dir"
 art="$base/artifacts/$perfil"
 # Userspace lives outside O=: Kbuild needs $out/init as a directory for init/main.c.
-user="$base/build/init-c"
+user="$base/build/init-c-$perfil"
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
 mkdir -p "$out" "$user" "$art"
 [[ -d "$out/init" || ! -e "$out/init" ]] || rm -f "$out/init"
@@ -53,15 +62,16 @@ for file in "${init_src[@]}" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; d
     ultra_revisar "$file" || { echo "ROJO: $file no pasa la revision de guardianes"; exit 1; }
 done
 # Static userspace built separately from the unmodified kernel sources.
-gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -static-pie "${init_src[@]}" "$lab/guardian/ultra_guard.c" -o "$user/init"
-gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -static-pie "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c" -o "$user/caja"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "${init_src[@]}" "$lab/guardian/ultra_guard.c" -o "$user/init"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c" -o "$user/caja"
 # Production build of the minefield, so the guardians can be watched on the ULTRA kernel itself.
-gcc "${ULTRA_PROD[@]}" -w -static-pie "$lab/guardian/minas.c" "$lab/guardian/ultra_guard.c" -o "$user/minas"
+# Same options as init: a guardian that -O3 or LTO optimizes away shows up in the boot test.
+gcc "${ULTRA_PROD[@]}" "${userflags[@]}" -w -static-pie "$lab/guardian/minas.c" "$lab/guardian/ultra_guard.c" -o "$user/minas"
 for bin in "$user/init" "$user/caja"; do
     readelf -n "$bin" | grep -q 'x86 feature: IBT, SHSTK' || { echo "ROJO: $bin sin marca CET"; exit 1; }
 done
 printf '%s
-' "$(gcc --version | head -n 1)" "revision: ${ULTRA_WARN[*]} -O0 -fanalyzer / -O2"     "produccion: ${ULTRA_WARN[*]} ${ULTRA_PROD[*]} -static-pie" "$GLIBC_TUNABLES" > "$user/guardianes.txt"
+' "$(gcc --version | head -n 1)" "revision: ${ULTRA_WARN[*]} -O0 -fanalyzer / -O2"     "produccion: ${ULTRA_WARN[*]} ${ULTRA_PROD[*]} ${userflags[*]} -static-pie" "$GLIBC_TUNABLES" > "$user/guardianes.txt"
 busybox=/usr/bin/busybox
 [[ -x $busybox ]] || { echo 'ROJO: falta busybox; instalar con pacman -S busybox'; exit 1; }
 # A dynamic BusyBox would need a libc that the initramfs does not carry.
@@ -92,6 +102,8 @@ done
 "$src/scripts/config" --file "$out/.config" --set-str INITRAMFS_SOURCE "$out/initramfs.list" --set-str LSM landlock --enable INITRAMFS_COMPRESSION_NONE --disable SLUB_TINY --disable DEBUG_INFO --disable DEBUG_INFO_BTF --disable WERROR
 [[ $modules = yes ]] || "$src/scripts/config" --file "$out/.config" --disable MODULES
 [[ -z $cmdline ]] || "$src/scripts/config" --file "$out/.config" --enable CMDLINE_BOOL --set-str CMDLINE "$cmdline"
+# Each profile has its own module tree; a different uname -r keeps them from mixing.
+"$src/scripts/config" --file "$out/.config" --set-str LOCALVERSION "$localversion"
 for option in "${modules_list[@]}"; do "$src/scripts/config" --file "$out/.config" --module "$option"; done
 make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc olddefconfig
 for option in 64BIT SERIAL_8250_CONSOLE BINFMT_ELF BLK_DEV_INITRD VT_CONSOLE POSIX_TIMERS EPOLL ACPI PID_NS NET_NS SYSVIPC IPC_NS SECCOMP_FILTER SECURITY_LANDLOCK X86_USER_SHADOW_STACK HARDENED_USERCOPY INIT_ON_ALLOC_DEFAULT_ON RANDOMIZE_BASE RANDOMIZE_KSTACK_OFFSET_DEFAULT STACKPROTECTOR_STRONG SLAB_FREELIST_RANDOM SLAB_FREELIST_HARDENED LIST_HARDENED FORTIFY_SOURCE "${required[@]}"; do
@@ -189,9 +201,11 @@ if [[ -n $cmdline ]]; then
     printf 'NO NAME    ' | dd of="$bmo" bs=1 seek=$(( a + 71 )) conv=notrunc status=none
     mmd -i "$bmo@@$a" ::/EFI ::/EFI/ULTRA ::/ULTRA
     mcopy -i "$bmo@@$a" "$art/bzImage-tiny64" ::/EFI/ULTRA/ULTRA.EFI
-    mcopy -i "$bmo@@$a" "$art/sistema-a.erofs" ::/ULTRA/sistema-a.erofs
+    # Each kernel brings its own system image, named after uname -r, so generico and pc
+    # can live side by side on A:\ with one shared datos.ext4.
+    mcopy -i "$bmo@@$a" "$art/sistema-a.erofs" "::/ULTRA/sistema-$release.erofs"
     mcopy -i "$bmo@@$a" "$art/datos.ext4" ::/ULTRA/datos.ext4
-    [[ $(mtype -i "$bmo@@$a" ::/ULTRA/sistema-a.erofs | sha256sum | cut -d' ' -f1) = $(sha256sum < "$art/sistema-a.erofs" | cut -d' ' -f1) ]] ||
+    [[ $(mtype -i "$bmo@@$a" "::/ULTRA/sistema-$release.erofs" | sha256sum | cut -d' ' -f1) = $(sha256sum < "$art/sistema-a.erofs" | cut -d' ' -f1) ]] ||
         { echo 'ROJO: sistema-a.erofs dentro de BMO no coincide'; exit 1; }
     mlabel -i "$bmo@@$a" -s :: | grep -q 'BMO' || { echo 'ROJO: la particion de prueba no se llama BMO'; exit 1; }
     echo "VERDE: disco de prueba $(basename "$bmo"): EFI de Windows simulada, FAT32 BMO con ULTRA en archivos y particion vacia"

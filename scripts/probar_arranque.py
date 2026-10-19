@@ -10,7 +10,7 @@ PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
 BMO = '--bmo' in sys.argv[2:]
 DISCO = BMO or '--disco' in sys.argv[2:]
 QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
-BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico'}[PERFIL]
+BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico', 'pc': 'pc'}[PERFIL]
 KERNEL = BUILD / 'bzImage-tiny64'
 IMG = BUILD / ('disco-bmo.img' if BMO else 'ultra-esp.img')
 # The disk test writes to /datos, so it boots a fresh copy and never the verified image.
@@ -40,7 +40,10 @@ CHECKS = [
 # The vigia kernel must show its detectors alive, then a clean log after the whole run.
 # The expected text differs from the typed command, so the shell's echo never matches it.
 REPORTS = 'BUG:|UBSAN:|KASAN:|KFENCE:|WARNING:|circular locking|recursive locking|INFO: task|soft lockup'
-if PERFIL == 'generico':
+if PERFIL == 'pc':
+    # The Zen 3 kernel: its own uname -r, and modules built for it.
+    CHECKS += [('uname -r', '-pc-g')]
+if PERFIL in ('generico', 'pc'):
     # The generic kernel sees the PC's buses and drivers, not only a serial console.
     CHECKS += [
         ('ls /sys/bus/pci/drivers', 'ahci'),

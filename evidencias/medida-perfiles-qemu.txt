@@ -1,0 +1,19 @@
+﻿generico arranque 1: deteccion uptime_ms=530 total_us=11492
+generico arranque 2: guiado uptime_ms=420 total_us=17277
+generico arranque 3: guiado uptime_ms=420 total_us=17822
+generico arranque 4: guiado uptime_ms=400 total_us=17209
+generico arranque 5: guiado uptime_ms=400 total_us=17700
+generico arranque 6: guiado uptime_ms=410 total_us=16791
+generico arranque 7: guiado uptime_ms=410 total_us=17217
+pc arranque 1: deteccion uptime_ms=520 total_us=12964
+pc arranque 2: guiado uptime_ms=410 total_us=17460
+pc arranque 3: guiado uptime_ms=400 total_us=16969
+pc arranque 4: guiado uptime_ms=410 total_us=17285
+pc arranque 5: guiado uptime_ms=410 total_us=16346
+pc arranque 6: guiado uptime_ms=400 total_us=16693
+pc arranque 7: guiado uptime_ms=400 total_us=16533
+
+MEDIANAS (arranques guiados; el primero es la deteccion completa)
+perfil      uptime_ms   etapa_us   carga_us  deteccion_us (1.er arranque)
+generico          410      17247      14833  716
+pc                405      16831      14428  741

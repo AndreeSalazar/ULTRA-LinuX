@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 param([ValidateSet('Compilar','Estado','Descargar','Ver','VerDisco')][string]$Accion='Estado',
-      [ValidateSet('produccion','vigia','generico')][string]$Perfil='produccion')
+      [ValidateSet('produccion','vigia','generico','pc')][string]$Perfil='produccion')
 # Each profile keeps its own build tree and artifacts, so switching never rebuilds the other.
-$dirs=@{produccion='tiny64-baseline';vigia='tiny64-vigia';generico='x86_64-generico'}
-$local=@{produccion='baseline';vigia='vigia';generico='generico'}
+$dirs=@{produccion='tiny64-baseline';vigia='tiny64-vigia';generico='x86_64-generico';pc='x86_64-pc'}
+$local=@{produccion='baseline';vigia='vigia';generico='generico';pc='pc'}
 $ErrorActionPreference='Stop'
 $project=$PSScriptRoot
 $key=Join-Path $project 'vm/builder_ed25519'
@@ -63,7 +63,7 @@ if($Accion -eq 'Compilar'){
     $out=Join-Path $project ('build/'+$local[$Perfil])
     New-Item -ItemType Directory -Force $out | Out-Null
     $files=@('bzImage-tiny64','tiny64.config','kernelrelease.txt','guardianes.txt','SHA256SUMS')
-    if($Perfil -eq 'generico'){$files+=@('modulos.tar.gz','ultra-esp.img','disco-bmo.img','sistema-a.erofs','datos.ext4')}
+    if($Perfil -in @('generico','pc')){$files+=@('modulos.tar.gz','ultra-esp.img','disco-bmo.img','sistema-a.erofs','datos.ext4')}
     foreach($file in $files){
         & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known ('builder@127.0.0.1:/home/builder/linux-reconstruido/artifacts/'+$Perfil+'/'+$file) $out
         if($LASTEXITCODE -ne 0){throw "ROJO: falta descargar $file"}

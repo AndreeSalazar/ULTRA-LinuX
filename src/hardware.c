@@ -457,6 +457,14 @@ static bool write_config(const char *kernel, uint64_t fingerprint, int64_t detec
     return true;
 }
 
+/* Milliseconds since the kernel started: the whole boot up to here, firmware excluded. */
+static int64_t uptime_ms(void) {
+    char buf[64];
+    if (!read_attr("/proc", "uptime", buf, sizeof(buf))) return -1;
+    double s = strtod(buf, NULL);
+    return s >= 0 && s < 1e9 ? (int64_t)(s * 1000.0) : -1;
+}
+
 /* One line per boot, so the gain can be compared across many boots. */
 static void log_boot(const char *line) {
     int fd = open(BOOT_LOG, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
@@ -498,28 +506,35 @@ void prepare_hardware(bool data) {
         say("AMARILLO", "sin modulos para el kernel %s en ULTRA-SISTEMA-A; no se carga ninguno", u.release);
         return;
     }
-    /* Guided boot: the saved list, if this is the same kernel on the same PC. */
+    /*
+     * Guided boot: the saved list, if this is the same PC. Another kernel of the
+     * same PC (generico and pc) may use it too: if any module of the list is
+     * missing or fails in this kernel, the full detection runs right after.
+     */
     struct saved s;
     int64_t t0 = now_us();
     const char *why = "no hay /datos: la deteccion se repetira en cada arranque";
     if (data && read_config(&s)) {
         ndevices = 0;
         scan_bus("pci", false);
-        if (strcmp(s.kernel, u.release) != 0) why = "PC.configuracion es de otro kernel";
-        else if (s.fingerprint != pci_fingerprint()) why = "la huella PCI cambio: otro PC u otra tarjeta";
+        if (s.fingerprint != pci_fingerprint()) why = "la huella PCI cambio: otro PC u otra tarjeta";
         else {
             int64_t t1 = now_us();
             load_wanted();
             int64_t t2 = now_us(), first = s.detect_us + s.load_us, now = t2 - t0;
-            say(nfailed ? "AMARILLO" : "VERDE",
-                "arranque guiado por PC.configuracion: %zu modulos (%zu cargados, %zu fallos); lectura %" PRId64
-                " us + carga %" PRId64 " us = %" PRId64 " us; primer arranque %" PRId64 " us; ganado %" PRId64 " us",
-                nwanted, nloaded, nfailed, t1 - t0, t2 - t1, now, first, first - now);
-            snprintf(line, sizeof(line), "arranque=guiado modulos=%zu lectura_us=%" PRId64 " carga_us=%" PRId64
-                     " total_us=%" PRId64 " ganado_us=%" PRId64 "\n", nwanted, t1 - t0, t2 - t1, now, first - now);
-            log_boot(line);
-            copy_for_windows();
-            return;
+            if (nfailed == 0) {
+                say("VERDE",
+                    "arranque guiado por PC.configuracion: %zu modulos (%zu cargados); lectura %" PRId64 " us + carga %" PRId64
+                    " us = %" PRId64 " us; primer arranque %" PRId64 " us; ganado %" PRId64 " us",
+                    nwanted, nloaded, t1 - t0, t2 - t1, now, first, first - now);
+                snprintf(line, sizeof(line), "arranque=guiado kernel=%s modulos=%zu lectura_us=%" PRId64 " carga_us=%" PRId64
+                         " total_us=%" PRId64 " ganado_us=%" PRId64 " uptime_ms=%" PRId64 "\n",
+                         u.release, nwanted, t1 - t0, t2 - t1, now, first - now, uptime_ms());
+                log_boot(line);
+                copy_for_windows();
+                return;
+            }
+            why = "un modulo de la lista falla en este kernel";
         }
     } else if (data) why = "no hay PC.configuracion valida";
     say("VERDE", "primer arranque en este PC (%s): deteccion completa", why);
@@ -538,8 +553,9 @@ void prepare_hardware(bool data) {
         ndevices, nwanted, nloaded, nfailed, d1 - d0, d2 - d1);
     if (!data) return;
     if (write_config(u.release, pci_fingerprint(), d1 - d0, d2 - d1)) say("VERDE", "guardado en " CONFIG_PATH);
-    snprintf(line, sizeof(line), "arranque=deteccion componentes=%zu modulos=%zu deteccion_us=%" PRId64
-             " carga_us=%" PRId64 " total_us=%" PRId64 "\n", ndevices, nwanted, d1 - d0, d2 - d1, d2 - d0);
+    snprintf(line, sizeof(line), "arranque=deteccion kernel=%s componentes=%zu modulos=%zu deteccion_us=%" PRId64
+             " carga_us=%" PRId64 " total_us=%" PRId64 " uptime_ms=%" PRId64 "\n",
+             u.release, ndevices, nwanted, d1 - d0, d2 - d1, d2 - d0, uptime_ms());
     log_boot(line);
     copy_for_windows();
 }

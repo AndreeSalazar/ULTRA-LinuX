@@ -5,14 +5,21 @@
 #   CrearEntrada   adds "ULTRA LinuX" to the board's F11 menu (a firmware boot entry)
 #   QuitarEntrada  removes that entry again
 #   Estado         shows what is installed and whether the entry exists
+# -Perfil pc installs the Zen 3 kernel beside generico: its own .EFI, its own system
+# image (named after uname -r) and its own F11 entry; datos.ext4 is shared.
 param([ValidateSet('Copiar','CrearEntrada','QuitarEntrada','Estado')][string]$Accion='Estado',
+      [ValidateSet('generico','pc')][string]$Perfil='generico',
       [string]$Unidad='A', [switch]$NuevosDatos)
 $ErrorActionPreference='Stop'
 $project=$PSScriptRoot
-$build=Join-Path $project 'build/generico'
+$build=Join-Path $project "build/$Perfil"
 $record=Join-Path $build 'entrada-f11.txt'
 $root="${Unidad}:\"
-$files=[ordered]@{'bzImage-tiny64'='EFI\ULTRA\ULTRA.EFI';'sistema-a.erofs'='ULTRA\sistema-a.erofs';'datos.ext4'='ULTRA\datos.ext4'}
+$efi=@{generico='EFI\ULTRA\ULTRA.EFI';pc='EFI\ULTRA\ULTRA-PC.EFI'}[$Perfil]
+$title=@{generico='ULTRA LinuX';pc='ULTRA LinuX PC (Zen 3)'}[$Perfil]
+$release=(Get-Content -LiteralPath (Join-Path $build 'kernelrelease.txt') -First 1).Trim()
+if($release -notmatch '^[0-9A-Za-z.+_-]+$'){throw "ROJO: kernelrelease.txt de $Perfil no es valido"}
+$files=[ordered]@{'bzImage-tiny64'=$efi;'sistema-a.erofs'="ULTRA\sistema-$release.erofs";'datos.ext4'='ULTRA\datos.ext4'}
 
 function Test-Destino {
     # Guardians: only a FAT32 data partition labelled BMO, never a system or boot partition.
@@ -55,25 +62,25 @@ if($Accion -eq 'Copiar'){
         if((Get-FileHash $dst).Hash -ine (Get-Esperado $name)){throw "ROJO [COPIA]: $dst no quedo igual que el original"}
         Write-Host "VERDE [COPIA]: $dst"
     }
-    $next=if(Get-Entrada){'elegir ULTRA LinuX en F11'}else{'-Accion CrearEntrada'}
-    Write-Host "VERDE: ULTRA LinuX instalado en ${Unidad}:\ (disco $($part.DiskNumber), particion $($part.PartitionNumber)). Siguiente: $next"
+    $next=if(Get-Entrada){"elegir $title en F11"}else{'-Accion CrearEntrada'}
+    Write-Host "VERDE: $title ($release) instalado en ${Unidad}:\ (disco $($part.DiskNumber), particion $($part.PartitionNumber)). Siguiente: $next"
 }elseif($Accion -eq 'CrearEntrada'){
     Test-Destino | Out-Null
-    if(-not(Test-Path -LiteralPath (Join-Path $root 'EFI\ULTRA\ULTRA.EFI'))){throw 'AMARILLO: primero -Accion Copiar'}
+    if(-not(Test-Path -LiteralPath (Join-Path $root $efi))){throw "AMARILLO: primero -Accion Copiar -Perfil $Perfil"}
     if(Get-Entrada){throw "AMARILLO: la entrada ya existe ($(Get-Entrada)); usar -Accion QuitarEntrada antes de crear otra"}
     # A copy of {bootmgr} is a firmware application entry; Windows writes it to the board's NVRAM.
-    $out=(& bcdedit.exe /copy '{bootmgr}' /d 'ULTRA LinuX') -join ' '
+    $out=(& bcdedit.exe /copy '{bootmgr}' /d $title) -join ' '
     if($LASTEXITCODE -ne 0 -or $out -notmatch '(\{[0-9a-fA-F-]{36}\})'){throw "ROJO [BCD]: bcdedit /copy fallo: $out"}
     $id=$Matches[1]
     Set-Content -LiteralPath $record -Value $id -Encoding ascii
-    foreach($set in @(@('device',"partition=${Unidad}:"),@('path','\EFI\ULTRA\ULTRA.EFI'))){
+    foreach($set in @(@('device',"partition=${Unidad}:"),@('path',"\$efi"))){
         & bcdedit.exe /set $id $set[0] $set[1] | Out-Null
         if($LASTEXITCODE -ne 0){& bcdedit.exe /delete $id | Out-Null; Remove-Item -LiteralPath $record; throw "ROJO [BCD]: no se pudo fijar $($set[0]); entrada borrada"}
     }
     # Last in the list: Windows stays the default boot; ULTRA is chosen from F11.
     & bcdedit.exe /set '{fwbootmgr}' displayorder $id /addlast | Out-Null
     if($LASTEXITCODE -ne 0){& bcdedit.exe /delete $id | Out-Null; Remove-Item -LiteralPath $record; throw 'ROJO [BCD]: no se pudo anadir al menu del firmware; entrada borrada'}
-    Write-Host "VERDE: entrada 'ULTRA LinuX' $id creada, al final del orden de arranque. Windows sigue siendo el predeterminado."
+    Write-Host "VERDE: entrada '$title' $id creada, al final del orden de arranque. Windows sigue siendo el predeterminado."
 }elseif($Accion -eq 'QuitarEntrada'){
     $id=Get-Entrada
     if(-not $id){Write-Host 'AMARILLO: no hay entrada registrada por este script.' -ForegroundColor Yellow; exit 0}
