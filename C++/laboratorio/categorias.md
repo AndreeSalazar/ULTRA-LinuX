@@ -1,6 +1,7 @@
 # Catalogo inicial C++ y graficos
 
-Todo pendiente salvo la sonda CPU que tenga evidencia de ejecucion.
+Primera sonda CPU y cinco controles EGL/GLES comprobados en ambos perfiles;
+ver [estado y limites](../README.md). El resto sigue pendiente.
 Cada caso futuro necesita control valido, resultado esperado, timeout,
 limites de recursos, versiones y log. Un error GL no se etiqueta como UB C++.
 

@@ -8,8 +8,8 @@ aislamiento de GPU. W3a esta instalado; la RTX aun requiere validacion real.
 ## Que usa cada capa
 
 El banco propio de C++ esta separado en [C++](../C++/README.md), con perfiles
-de produccion/diagnostico y una primera sonda CPU. Su estado no acredita
-Hyprland compilado ni contexto GL creado.
+de produccion/diagnostico y sondas CPU y EGL/GLES software comprobadas.
+Su estado no acredita Hyprland compilado ni aceleracion RTX.
 
 Wayland es el protocolo entre clientes y compositor. Hyprland tiene renderer
 OpenGL ES; desde 0.50 exige al menos GLES 3.0. EGL gestiona contextos y

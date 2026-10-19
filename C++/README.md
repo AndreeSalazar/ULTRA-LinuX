@@ -48,7 +48,7 @@ __cplusplus=202400 en este modo experimental. No hubo diagnosticos de
 ASan/UBSan en esa ejecucion. Es un control de infraestructura, no una suite
 de UB ni una demostracion de ausencia de fallos.
 
-## GL/EGL es el siguiente banco
+## GL/EGL: primer banco instalado y comprobado
 
 OpenGL/OpenGL ES son APIs: se compila una implementacion y el programa que
 la utiliza. Mesa y el proveedor NVIDIA son implementaciones distintas.
@@ -56,10 +56,37 @@ nvidia-open es el modulo del kernel; no significa que podamos reconstruir
 las bibliotecas GL de NVIDIA como si fueran Mesa. Primero identificar
 proveedor, versiones y licencias de cada componente instalado.
 
-El taller no encontro egl.pc ni glesv2.pc: faltan dependencias de desarrollo
-en su entorno. Antes de crear el contexto de prueba, preparar esas dependencias
-en un entorno de laboratorio y guardar su manifiesto. Empezar por Mesa software
-sin /dev/dri; registrar EGL_VENDOR/GL_VENDOR/GL_RENDERER/GL_VERSION y errores.
-No presentar ese resultado como prueba de RTX. No se ha compilado ni ejecutado
-GL/EGL en esta fase. [Categorias](laboratorio/categorias.md) y
+Se instalaron mesa 26.2.5 y libglvnd 1.7.0 con sus dependencias en la VM
+del taller. La [primera ejecucion grafica](../evidencias/cxx/grafica-04676d4802bd4c1599cd23038baacd2a/informe.txt)
+registra el manifiesto completo, hashes del snapshot y comandos de compilacion.
+Resultado: EGL 1.5, GLES 3.2, GLSL ES 3.20 y llvmpipe/LLVM 23.1.3.
+Produccion y ASan/UBSan terminaron con codigo 0: cinco controles por perfil.
+Se comprobaron pixel RGBA8, error de enum y recuperacion, shader invalido,
+shader valido posterior y liberacion de recursos EGL. El shader valido se
+compila; aun no se enlaza un programa ni se dibuja una geometria con el.
+
+Desde Windows, probar-grafica-cxx.ps1 crea un snapshot nuevo, compila ambos
+perfiles y ejecuta scripts/aislar-grafica-software.sh en la VM. En Linux,
+agregar -DULTRA_CXX_EGL=ON a las configuraciones anteriores y ejecutar
+ese aislamiento sobre laboratorio/sonda-egl del directorio de build.
+El sandbox no expone /dev/dri, red, home ni sockets del escritorio; fuerza
+llvmpipe, limita hilos a dos y aplica timeout/limites de recursos. /usr se
+expone en solo lectura y el kernel de la VM sigue siendo compartido.
+No se impone un limite duro de memoria total: antes de ampliar las cargas,
+agregar un cgroup de memoria para el proceso de laboratorio.
+
+Estas banderas instrumentan nuestro ejecutable C++, no las bibliotecas Mesa
+precompiladas. No se reconstruyo Mesa ni Hyprland, no se probo la RTX y no
+hay optimizacion de rendimiento demostrada. El perfil C++ conserva RTTI y
+excepciones y no usa fast-math ni LTO. Para reconstruir Mesa, usar su build
+Meson y perfiles por lenguaje/dependencia, sin imponerle este perfil C++.
+
+Mesa distribuye el trabajo entre src/egl, src/mesa, src/compiler y Gallium,
+incluido llvmpipe; no es un unico archivo OpenGL.cpp.
+[Arbol oficial](https://docs.mesa3d.org/sourcetree.html),
+[EGL en Mesa](https://docs.mesa3d.org/egl.html).
+En Hyprland, el renderer C++ y los shaders GLSL tienen compiladores y
+contratos diferentes. El banco toma GLES3 como base comun, pero no ejecuta
+los shaders ni el compositor de Hyprland todavia.
+[Categorias](laboratorio/categorias.md) y
 [plan grafico](../docs/HYPRLAND-LABORATORIO-GRAFICO.md).
