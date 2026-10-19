@@ -1,0 +1,1 @@
+AISLAMIENTO-OK: home ausente, artefactos RO, PID privado, sin rutas, entorno limpio, CapEff=0, NNP=1, limites CPU/core

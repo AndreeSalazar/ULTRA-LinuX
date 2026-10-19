@@ -190,6 +190,14 @@ static void mine_checked_add(void) { volatile int r = ULTRA_ADD(big, 1); (void)r
 static void mine_checked_sub(void) { volatile int r = ULTRA_SUB(int_min, 1); (void)r; }
 static void mine_checked_mul(void) { volatile int r = ULTRA_MUL(big, 2); (void)r; }
 static void mine_checked_size(void) { volatile size_t r = ULTRA_MUL(huge_count, (size_t)16); (void)r; }
+static void mine_checked_div_zero(void) { volatile int r = ULTRA_DIV_INT(1, zero); (void)r; }
+static void mine_checked_div_min(void) { volatile int r = ULTRA_DIV_INT(int_min, minus_one); (void)r; }
+static void mine_checked_rem_zero(void) { volatile int r = ULTRA_REM_INT(1, zero); (void)r; }
+static void mine_checked_rem_min(void) { volatile int r = ULTRA_REM_INT(int_min, minus_one); (void)r; }
+static void mine_checked_shl_negative(void) { volatile int r = ULTRA_SHL_INT(minus_one, 1); (void)r; }
+static void mine_checked_shl_count(void) { volatile int r = ULTRA_SHL_INT(1, minus_one); (void)r; }
+static void mine_checked_shl_width(void) { volatile int r = ULTRA_SHL_INT(1, (int)(sizeof(int) * CHAR_BIT)); (void)r; }
+static void mine_checked_shl_overflow(void) { volatile int r = ULTRA_SHL_INT(big, 1); (void)r; }
 static void mine_sub_overflow(void) { volatile int r = int_min - 1; (void)r; }
 static void mine_negative_shift(void) { volatile int r = 1 << minus_one; (void)r; }
 static void mine_checked_index(void) { int a[4] = {0}; ULTRA_AT(a, far_index) = 1; }
@@ -237,6 +245,14 @@ struct mine {
 };
 
 static const struct mine mines[] = {
+    {"ultra-division-cero", 'D', "division explicita rechaza cero antes de dividir", mine_checked_div_zero},
+    {"ultra-division-min", 'D', "division explicita rechaza INT_MIN / -1", mine_checked_div_min},
+    {"ultra-resto-cero", 'D', "resto explicito rechaza cero antes de calcular", mine_checked_rem_zero},
+    {"ultra-resto-min", 'D', "resto explicito rechaza INT_MIN % -1", mine_checked_rem_min},
+    {"ultra-shl-negativo", 'D', "desplazamiento explicito rechaza base negativa", mine_checked_shl_negative},
+    {"ultra-shl-contador", 'D', "desplazamiento explicito rechaza contador negativo", mine_checked_shl_count},
+    {"ultra-shl-ancho", 'D', "desplazamiento explicito rechaza contador igual al ancho", mine_checked_shl_width},
+    {"ultra-shl-desborde", 'D', "desplazamiento explicito rechaza resultado fuera de int", mine_checked_shl_overflow},
     {"producto-desborde", 'D', "multiplicacion con signo fuera de rango", mine_mul_overflow},
     {"negar-int-min", 'D', "-INT_MIN no cabe en int", mine_negate_min},
     {"resto-int-min", 'D', "INT_MIN % -1 tambien es UB", mine_remainder_min},

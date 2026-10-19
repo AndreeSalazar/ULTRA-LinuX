@@ -13,6 +13,8 @@ expect() {
         if [ "$want" = ok ] && [ $rc -eq 0 ]; then ok=yes; fi
         if [ "$want" = no ] && [ $rc -ne 0 ]; then ok=yes; fi
     fi
+    if printf '%s\n' "$out" | grep -q '^NO-DEBE-CONTINUAR$'; then ok=no; fi
+    if printf '%s\n' "$out" | grep -q '^CONTROL-LECTURA$'; then ok=no; fi
     if [ $ok = yes ]; then echo "VERDE    caja $*"; pass=$((pass+1)); else echo "ROJO     caja $* (salida $rc)"; fail=$((fail+1)); fi
     printf '%s\n' "$out" | grep -E 'ROJO|denied|NAME=|uid=|PID=|^caja$' | head -2 | sed 's/^/         /'
 }
@@ -27,5 +29,13 @@ expect ok 'VERDE \[CAJA-SALIDA'  taller sh -c 'echo dentro > /tmp/dentro && cat 
 expect no 'no declarada: socket' lector nc 10.0.2.2 80
 expect no 'no declarada: mount'  lector mount -t tmpfs none /tmp
 expect no 'no declarada: kill'   lector sh -c 'kill -9 1'
+expect no 'Bad file descriptor'  lector sh -c 'echo no-debe-escribir >&9' 9> /tmp/caja-fd-heredado
+expect no 'no declarada: kill'   taller sh -c '(kill -0 1; echo NO-DEBE-CONTINUAR); echo NO-DEBE-CONTINUAR'
+if [ "${1:-}" = --fixtures ]; then
+    expect no 'denied'           lector cat /datos/secreto
+    expect no 'denied'           lector sh -c ': > /etc/sentinel'
+    expect no 'denied'           taller cat /tmp/caja-enlace
+    expect no 'CAJA-EXEC'        taller /tmp/caja-noexec echo NO-DEBE-CONTINUAR
+fi
 echo "RESUMEN CAJA: VERDE=$pass ROJO=$fail"
 [ $fail -eq 0 ]

@@ -1,0 +1,4 @@
+5e76fb7d7194652257613b9e6abcebef1f2ea62a5db0bae7d39919c4fd551c7c  /home/builder/linux-reconstruido/build/syscalls/caja
+551b0976babf076c196358e03be94901fee59fb2b369d0914be8c5a39ee7e839  /home/builder/linux-reconstruido/build/syscalls/filtro.bpf
+8605dbbc08939bcf7cb08a1788031bd6e93af8ddb264f2a39929ab12fd3e7fac  /home/builder/linux-reconstruido/auditoria-syscalls/caja/seccomp-politica.h
+0d120fcd2b4524772b5c3bc58dcfcb2fc0eba701f4e1e5121d357fb36097f62e  /home/builder/linux-reconstruido/auditoria-syscalls/caja/syscalls-politica.h

@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+param([ValidateRange(1,999)][int]$Ronda=6)
 $ErrorActionPreference='Stop'
 Push-Location -LiteralPath $PSScriptRoot
 try {
@@ -19,8 +20,12 @@ try {
     if($testCode -ne 0){throw 'ROJO: auditoria fallida; revisar los registros en el taller. No se copian informes anteriores.'}
     $files=@('/home/builder/linux-reconstruido/build/minas/informe.txt',
              '/home/builder/linux-reconstruido/build/cruces/informe.txt',
-             '/home/builder/linux-reconstruido/build/hilos/informe.txt')
-    $targets=@('evidencias/campo-minas-ronda4.txt','evidencias/cruces-guardianes-ronda4.txt','evidencias/hilos-ronda4.txt')
+             '/home/builder/linux-reconstruido/build/hilos/informe.txt',
+             '/home/builder/linux-reconstruido/build/hilos/race.txt',
+             '/home/builder/linux-reconstruido/build/hilos/atomic.txt',
+             '/home/builder/linux-reconstruido/build/minas/aislamiento.txt')
+    $targets=@("evidencias/campo-minas-ronda$Ronda.txt","evidencias/cruces-guardianes-ronda$Ronda.txt","evidencias/hilos-ronda$Ronda.txt",
+               "evidencias/hilos-carrera-ronda$Ronda.txt","evidencias/hilos-control-ronda$Ronda.txt","evidencias/aislamiento-ronda$Ronda.txt")
     for($i=0;$i -lt $files.Count;$i++){
         & scp.exe @sshArgs -P 12222 "${guest}:$($files[$i])" $targets[$i]
         if($LASTEXITCODE -ne 0){throw 'No se pudo recuperar el informe de pruebas.'}

@@ -1,0 +1,423 @@
+numero,abi,nombre,entrada,simbolo,system_map,politica,motivo,observada,proposito,fuente_proposito
+0,common,read,sys_read,__x64_sys_read,simbolo_presente,permitida,leer descriptores; Landlock limita nuevas aperturas,si,read (2)             - read from a file descriptor,man-db seccion 2
+1,common,write,sys_write,__x64_sys_write,simbolo_presente,permitida,salida estandar y archivos concedidos,si,write (2)            - write to a file descriptor,man-db seccion 2
+2,common,open,sys_open,__x64_sys_open,simbolo_presente,permitida,aperturas heredadas BusyBox; Landlock comprueba rutas,si,open (2)             - open and possibly create a file,man-db seccion 2
+3,common,close,sys_close,__x64_sys_close,simbolo_presente,permitida,cerrar descriptores,si,close (2)            - close a file descriptor,man-db seccion 2
+4,common,stat,sys_newstat,__x64_sys_newstat,simbolo_presente,permitida,metadatos usados por BusyBox,si,stat (2)             - get file status,man-db seccion 2
+5,common,fstat,sys_newfstat,__x64_sys_newfstat,simbolo_presente,permitida,metadatos del descriptor,no_observada,fstat (2)            - get file status,man-db seccion 2
+6,common,lstat,sys_newlstat,__x64_sys_newlstat,simbolo_presente,permitida,metadatos sin seguir enlace final,si,lstat (2)            - get file status,man-db seccion 2
+7,common,poll,sys_poll,__x64_sys_poll,simbolo_presente,denegada,,no_observada,poll (2)             - wait for some event on a file descriptor,man-db seccion 2
+8,common,lseek,sys_lseek,__x64_sys_lseek,simbolo_presente,permitida,posicion de archivos,si,lseek (2)            - reposition read/write file offset,man-db seccion 2
+9,common,mmap,sys_mmap,__x64_sys_mmap,simbolo_presente,permitida_condicional,memoria de datos; PROT_EXEC prohibido por el filtro,si,mmap (2)             - map or unmap files or devices into memory,man-db seccion 2
+10,common,mprotect,sys_mprotect,__x64_sys_mprotect,simbolo_presente,permitida_condicional,permisos de datos; PROT_EXEC prohibido por el filtro,no_observada,mprotect (2)         - set protection on a region of memory,man-db seccion 2
+11,common,munmap,sys_munmap,__x64_sys_munmap,simbolo_presente,permitida,liberar mapas de memoria,si,munmap (2)           - map or unmap files or devices into memory,man-db seccion 2
+12,common,brk,sys_brk,__x64_sys_brk,simbolo_presente,permitida,heap del programa,si,brk (2)              - change data segment size,man-db seccion 2
+13,64,rt_sigaction,sys_rt_sigaction,__x64_sys_rt_sigaction,simbolo_presente,permitida,instalar manejadores,si,rt_sigaction (2)     - examine and change a signal action,man-db seccion 2
+14,common,rt_sigprocmask,sys_rt_sigprocmask,__x64_sys_rt_sigprocmask,simbolo_presente,permitida,mascara de senales,si,rt_sigprocmask (2)   - examine and change blocked signals,man-db seccion 2
+15,64,rt_sigreturn,sys_rt_sigreturn,__x64_sys_rt_sigreturn,simbolo_presente,permitida,regreso de manejadores,si,rt_sigreturn (2)     - return from signal handler and cleanup stack frame,man-db seccion 2
+16,64,ioctl,sys_ioctl,__x64_sys_ioctl,simbolo_presente,permitida,compatibilidad terminal; argumentos aun sin lista propia,si,ioctl (2)            - control device,man-db seccion 2
+17,common,pread64,sys_pread64,__x64_sys_pread64,simbolo_presente,denegada,,no_observada,pread64 (2)          - read from or write to a file descriptor at a given offset,man-db seccion 2
+18,common,pwrite64,sys_pwrite64,__x64_sys_pwrite64,simbolo_presente,denegada,,no_observada,pwrite64 (2)         - read from or write to a file descriptor at a given offset,man-db seccion 2
+19,64,readv,sys_readv,__x64_sys_readv,simbolo_presente,denegada,,no_observada,readv (2)            - read or write data into multiple buffers,man-db seccion 2
+20,64,writev,sys_writev,__x64_sys_writev,simbolo_presente,permitida,salida por vectores,si,writev (2)           - read or write data into multiple buffers,man-db seccion 2
+21,common,access,sys_access,__x64_sys_access,simbolo_presente,denegada,,no_observada,access (2)           - check user's permissions for a file,man-db seccion 2
+22,common,pipe,sys_pipe,__x64_sys_pipe,simbolo_presente,denegada,,no_observada,pipe (2)             - create pipe,man-db seccion 2
+23,common,select,sys_select,__x64_sys_select,simbolo_presente,denegada,,no_observada,select (2)           - synchronous I/O multiplexing,man-db seccion 2
+24,common,sched_yield,sys_sched_yield,__x64_sys_sched_yield,simbolo_presente,denegada,,no_observada,sched_yield (2)      - yield the processor,man-db seccion 2
+25,common,mremap,sys_mremap,__x64_sys_mremap,simbolo_presente,denegada,,no_observada,mremap (2)           - remap a virtual memory address,man-db seccion 2
+26,common,msync,sys_msync,__x64_sys_msync,simbolo_presente,denegada,,no_observada,msync (2)            - synchronize a file with a memory map,man-db seccion 2
+27,common,mincore,sys_mincore,__x64_sys_mincore,simbolo_presente,denegada,,no_observada,mincore (2)          - determine whether pages are resident in memory,man-db seccion 2
+28,common,madvise,sys_madvise,__x64_sys_madvise,simbolo_presente,denegada,,no_observada,madvise (2)          - give advice about use of memory,man-db seccion 2
+29,common,shmget,sys_shmget,__x64_sys_shmget,simbolo_presente,denegada,,no_observada,shmget (2)           - allocates a System V shared memory segment,man-db seccion 2
+30,common,shmat,sys_shmat,__x64_sys_shmat,simbolo_presente,denegada,,no_observada,shmat (2)            - System V shared memory operations,man-db seccion 2
+31,common,shmctl,sys_shmctl,__x64_sys_shmctl,simbolo_presente,denegada,,no_observada,shmctl (2)           - System V shared memory control,man-db seccion 2
+32,common,dup,sys_dup,__x64_sys_dup,simbolo_presente,denegada,,no_observada,dup (2)              - duplicate a file descriptor,man-db seccion 2
+33,common,dup2,sys_dup2,__x64_sys_dup2,simbolo_presente,permitida,redirecciones de la shell,no_observada,dup2 (2)             - duplicate a file descriptor,man-db seccion 2
+34,common,pause,sys_pause,__x64_sys_pause,simbolo_presente,denegada,,no_observada,pause (2)            - wait for signal,man-db seccion 2
+35,common,nanosleep,sys_nanosleep,__x64_sys_nanosleep,simbolo_presente,permitida,esperas BusyBox,si,nanosleep (2)        - high-resolution sleep,man-db seccion 2
+36,common,getitimer,sys_getitimer,__x64_sys_getitimer,simbolo_presente,denegada,,no_observada,getitimer (2)        - get or set value of an interval timer,man-db seccion 2
+37,common,alarm,sys_alarm,__x64_sys_alarm,simbolo_presente,denegada,,no_observada,alarm (2)            - set an alarm clock for delivery of a signal,man-db seccion 2
+38,common,setitimer,sys_setitimer,__x64_sys_setitimer,simbolo_presente,denegada,,no_observada,setitimer (2)        - get or set value of an interval timer,man-db seccion 2
+39,common,getpid,sys_getpid,__x64_sys_getpid,simbolo_presente,permitida,identidad del proceso,si,getpid (2)           - get process identification,man-db seccion 2
+40,common,sendfile,sys_sendfile64,__x64_sys_sendfile64,simbolo_presente,permitida,copias entre descriptores concedidos,si,sendfile (2)         - transfer data between file descriptors,man-db seccion 2
+41,common,socket,sys_socket,__x64_sys_socket,simbolo_presente,denegada,,no_observada,socket (2)           - create an endpoint for communication,man-db seccion 2
+42,common,connect,sys_connect,__x64_sys_connect,simbolo_presente,denegada,,no_observada,connect (2)          - initiate a connection on a socket,man-db seccion 2
+43,common,accept,sys_accept,__x64_sys_accept,simbolo_presente,denegada,,no_observada,accept (2)           - accept a connection on a socket,man-db seccion 2
+44,common,sendto,sys_sendto,__x64_sys_sendto,simbolo_presente,denegada,,no_observada,sendto (2)           - send a message on a socket,man-db seccion 2
+45,64,recvfrom,sys_recvfrom,__x64_sys_recvfrom,simbolo_presente,denegada,,no_observada,recvfrom (2)         - receive a message from a socket,man-db seccion 2
+46,64,sendmsg,sys_sendmsg,__x64_sys_sendmsg,simbolo_presente,denegada,,no_observada,sendmsg (2)          - send a message on a socket,man-db seccion 2
+47,64,recvmsg,sys_recvmsg,__x64_sys_recvmsg,simbolo_presente,denegada,,no_observada,recvmsg (2)          - receive a message from a socket,man-db seccion 2
+48,common,shutdown,sys_shutdown,__x64_sys_shutdown,simbolo_presente,denegada,,no_observada,shutdown (2)         - shut down part of a full-duplex connection,man-db seccion 2
+49,common,bind,sys_bind,__x64_sys_bind,simbolo_presente,denegada,,no_observada,bind (2)             - bind a name to a socket,man-db seccion 2
+50,common,listen,sys_listen,__x64_sys_listen,simbolo_presente,denegada,,no_observada,listen (2)           - listen for connections on a socket,man-db seccion 2
+51,common,getsockname,sys_getsockname,__x64_sys_getsockname,simbolo_presente,denegada,,no_observada,getsockname (2)      - get socket name,man-db seccion 2
+52,common,getpeername,sys_getpeername,__x64_sys_getpeername,simbolo_presente,denegada,,no_observada,getpeername (2)      - get name of connected peer socket,man-db seccion 2
+53,common,socketpair,sys_socketpair,__x64_sys_socketpair,simbolo_presente,denegada,,no_observada,socketpair (2)       - create a pair of connected sockets,man-db seccion 2
+54,64,setsockopt,sys_setsockopt,__x64_sys_setsockopt,simbolo_presente,denegada,,no_observada,setsockopt (2)       - get and set options on sockets,man-db seccion 2
+55,64,getsockopt,sys_getsockopt,__x64_sys_getsockopt,simbolo_presente,denegada,,no_observada,getsockopt (2)       - get and set options on sockets,man-db seccion 2
+56,common,clone,sys_clone,__x64_sys_clone,simbolo_presente,denegada,,no_observada,clone (2)            - create a child process,man-db seccion 2
+57,common,fork,sys_fork,__x64_sys_fork,simbolo_presente,permitida,subprocesos heredando filtros,si,fork (2)             - create a child process,man-db seccion 2
+58,common,vfork,sys_vfork,__x64_sys_vfork,simbolo_presente,permitida,subprocesos heredando filtros,no_observada,vfork (2)            - create a child process and block parent,man-db seccion 2
+59,64,execve,sys_execve,__x64_sys_execve,simbolo_presente,permitida,ejecutar binarios en rutas concedidas,si,execve (2)           - execute program,man-db seccion 2
+60,common,exit,sys_exit,__x64_sys_exit,simbolo_presente,permitida,terminar hilo,no_observada,exit (2)             - terminate the calling thread,man-db seccion 2
+61,common,wait4,sys_wait4,__x64_sys_wait4,simbolo_presente,permitida,recoger subprocesos,si,"wait4 (2)            - wait for process to change state, BSD style",man-db seccion 2
+62,common,kill,sys_kill,__x64_sys_kill,simbolo_presente,denegada,,no_observada,kill (2)             - send signal to a process,man-db seccion 2
+63,common,uname,sys_newuname,__x64_sys_newuname,simbolo_presente,permitida,consulta de nombre UTS privado,si,uname (2)            - get name and information about current kernel,man-db seccion 2
+64,common,semget,sys_semget,__x64_sys_semget,simbolo_presente,denegada,,no_observada,semget (2)           - get a System V semaphore set identifier,man-db seccion 2
+65,common,semop,sys_semop,__x64_sys_semop,simbolo_presente,denegada,,no_observada,semop (2)            - System V semaphore operations,man-db seccion 2
+66,common,semctl,sys_semctl,__x64_sys_semctl,simbolo_presente,denegada,,no_observada,semctl (2)           - System V semaphore control operations,man-db seccion 2
+67,common,shmdt,sys_shmdt,__x64_sys_shmdt,simbolo_presente,denegada,,no_observada,shmdt (2)            - System V shared memory operations,man-db seccion 2
+68,common,msgget,sys_msgget,__x64_sys_msgget,simbolo_presente,denegada,,no_observada,msgget (2)           - get a System V message queue identifier,man-db seccion 2
+69,common,msgsnd,sys_msgsnd,__x64_sys_msgsnd,simbolo_presente,denegada,,no_observada,msgsnd (2)           - System V message queue operations,man-db seccion 2
+70,common,msgrcv,sys_msgrcv,__x64_sys_msgrcv,simbolo_presente,denegada,,no_observada,msgrcv (2)           - System V message queue operations,man-db seccion 2
+71,common,msgctl,sys_msgctl,__x64_sys_msgctl,simbolo_presente,denegada,,no_observada,msgctl (2)           - System V message control operations,man-db seccion 2
+72,common,fcntl,sys_fcntl,__x64_sys_fcntl,simbolo_presente,permitida,flags de descriptores; argumentos aun sin lista propia,si,fcntl (2)            - manipulate file descriptor,man-db seccion 2
+73,common,flock,sys_flock,__x64_sys_flock,simbolo_presente,denegada,,no_observada,flock (2)            - apply or remove an advisory lock on an open file,man-db seccion 2
+74,common,fsync,sys_fsync,__x64_sys_fsync,simbolo_presente,denegada,,no_observada,fsync (2)            - synchronize a file's in-core state with storage device,man-db seccion 2
+75,common,fdatasync,sys_fdatasync,__x64_sys_fdatasync,simbolo_presente,denegada,,no_observada,fdatasync (2)        - synchronize a file's in-core state with storage device,man-db seccion 2
+76,common,truncate,sys_truncate,__x64_sys_truncate,simbolo_presente,denegada,,no_observada,truncate (2)         - truncate a file to a specified length,man-db seccion 2
+77,common,ftruncate,sys_ftruncate,__x64_sys_ftruncate,simbolo_presente,denegada,,no_observada,ftruncate (2)        - truncate a file to a specified length,man-db seccion 2
+78,common,getdents,sys_getdents,__x64_sys_getdents,simbolo_presente,denegada,,no_observada,getdents (2)         - get directory entries,man-db seccion 2
+79,common,getcwd,sys_getcwd,__x64_sys_getcwd,simbolo_presente,permitida,directorio actual,no_observada,getcwd (2)           - get current working directory,man-db seccion 2
+80,common,chdir,sys_chdir,__x64_sys_chdir,simbolo_presente,permitida,cambiar directorio; no concede lectura,no_observada,chdir (2)            - change working directory,man-db seccion 2
+81,common,fchdir,sys_fchdir,__x64_sys_fchdir,simbolo_presente,denegada,,no_observada,fchdir (2)           - change working directory,man-db seccion 2
+82,common,rename,sys_rename,__x64_sys_rename,simbolo_presente,denegada,,no_observada,rename (2)           - change the name or location of a file,man-db seccion 2
+83,common,mkdir,sys_mkdir,__x64_sys_mkdir,simbolo_presente,denegada,,no_observada,mkdir (2)            - create a directory,man-db seccion 2
+84,common,rmdir,sys_rmdir,__x64_sys_rmdir,simbolo_presente,denegada,,no_observada,rmdir (2)            - delete a directory,man-db seccion 2
+85,common,creat,sys_creat,__x64_sys_creat,simbolo_presente,denegada,,no_observada,creat (2)            - open and possibly create a file,man-db seccion 2
+86,common,link,sys_link,__x64_sys_link,simbolo_presente,denegada,,no_observada,link (2)             - make a new name for a file,man-db seccion 2
+87,common,unlink,sys_unlink,__x64_sys_unlink,simbolo_presente,denegada,,no_observada,unlink (2)           - delete a name and possibly the file it refers to,man-db seccion 2
+88,common,symlink,sys_symlink,__x64_sys_symlink,simbolo_presente,denegada,,no_observada,symlink (2)          - make a new name for a file,man-db seccion 2
+89,common,readlink,sys_readlink,__x64_sys_readlink,simbolo_presente,denegada,,no_observada,readlink (2)         - read value of a symbolic link,man-db seccion 2
+90,common,chmod,sys_chmod,__x64_sys_chmod,simbolo_presente,denegada,,no_observada,chmod (2)            - change permissions of a file,man-db seccion 2
+91,common,fchmod,sys_fchmod,__x64_sys_fchmod,simbolo_presente,denegada,,no_observada,fchmod (2)           - change permissions of a file,man-db seccion 2
+92,common,chown,sys_chown,__x64_sys_chown,simbolo_presente,denegada,,no_observada,chown (2)            - change ownership of a file,man-db seccion 2
+93,common,fchown,sys_fchown,__x64_sys_fchown,simbolo_presente,denegada,,no_observada,fchown (2)           - change ownership of a file,man-db seccion 2
+94,common,lchown,sys_lchown,__x64_sys_lchown,simbolo_presente,denegada,,no_observada,lchown (2)           - change ownership of a file,man-db seccion 2
+95,common,umask,sys_umask,__x64_sys_umask,simbolo_presente,denegada,,no_observada,umask (2)            - set file mode creation mask,man-db seccion 2
+96,common,gettimeofday,sys_gettimeofday,__x64_sys_gettimeofday,simbolo_presente,denegada,,no_observada,gettimeofday (2)     - get / set time,man-db seccion 2
+97,common,getrlimit,sys_getrlimit,__x64_sys_getrlimit,simbolo_presente,denegada,,no_observada,getrlimit (2)        - get/set resource limits,man-db seccion 2
+98,common,getrusage,sys_getrusage,__x64_sys_getrusage,simbolo_presente,denegada,,no_observada,getrusage (2)        - get resource usage,man-db seccion 2
+99,common,sysinfo,sys_sysinfo,__x64_sys_sysinfo,simbolo_presente,denegada,,no_observada,sysinfo (2)          - return system information,man-db seccion 2
+100,common,times,sys_times,__x64_sys_times,simbolo_presente,denegada,,no_observada,times (2)            - get process times,man-db seccion 2
+101,64,ptrace,sys_ptrace,__x64_sys_ptrace,simbolo_presente,denegada,,no_observada,ptrace (2)           - process trace,man-db seccion 2
+102,common,getuid,sys_getuid,__x64_sys_getuid,simbolo_presente,permitida,consulta de usuario,si,getuid (2)           - get user identity,man-db seccion 2
+103,common,syslog,sys_syslog,__x64_sys_syslog,simbolo_presente,denegada,,no_observada,syslog (2)           - read and/or clear kernel message ring buffer; set cons...,man-db seccion 2
+104,common,getgid,sys_getgid,__x64_sys_getgid,simbolo_presente,permitida,consulta de grupo,si,getgid (2)           - get group identity,man-db seccion 2
+105,common,setuid,sys_setuid,__x64_sys_setuid,simbolo_presente,permitida_condicional,BusyBox confirma identidad; solo UID 65534 autorizado,si,setuid (2)           - set user identity,man-db seccion 2
+106,common,setgid,sys_setgid,__x64_sys_setgid,simbolo_presente,permitida_condicional,BusyBox confirma identidad; solo GID 65534 autorizado,si,setgid (2)           - set group identity,man-db seccion 2
+107,common,geteuid,sys_geteuid,__x64_sys_geteuid,simbolo_presente,permitida,consulta de usuario efectivo,si,geteuid (2)          - get user identity,man-db seccion 2
+108,common,getegid,sys_getegid,__x64_sys_getegid,simbolo_presente,permitida,consulta de grupo efectivo,si,getegid (2)          - get group identity,man-db seccion 2
+109,common,setpgid,sys_setpgid,__x64_sys_setpgid,simbolo_presente,denegada,,no_observada,setpgid (2)          - set/get process group,man-db seccion 2
+110,common,getppid,sys_getppid,__x64_sys_getppid,simbolo_presente,permitida,identidad del padre,si,getppid (2)          - get process identification,man-db seccion 2
+111,common,getpgrp,sys_getpgrp,__x64_sys_getpgrp,simbolo_presente,denegada,,no_observada,getpgrp (2)          - set/get process group,man-db seccion 2
+112,common,setsid,sys_setsid,__x64_sys_setsid,simbolo_presente,denegada,,no_observada,setsid (2)           - creates a session and sets the process group ID,man-db seccion 2
+113,common,setreuid,sys_setreuid,__x64_sys_setreuid,simbolo_presente,denegada,,no_observada,setreuid (2)         - set real and/or effective user or group ID,man-db seccion 2
+114,common,setregid,sys_setregid,__x64_sys_setregid,simbolo_presente,denegada,,no_observada,setregid (2)         - set real and/or effective user or group ID,man-db seccion 2
+115,common,getgroups,sys_getgroups,__x64_sys_getgroups,simbolo_presente,permitida,consulta de grupos con id,si,getgroups (2)        - get/set list of supplementary group IDs,man-db seccion 2
+116,common,setgroups,sys_setgroups,__x64_sys_setgroups,simbolo_presente,denegada,,no_observada,setgroups (2)        - get/set list of supplementary group IDs,man-db seccion 2
+117,common,setresuid,sys_setresuid,__x64_sys_setresuid,simbolo_presente,denegada,,no_observada,"setresuid (2)        - set real, effective, and saved user or group ID",man-db seccion 2
+118,common,getresuid,sys_getresuid,__x64_sys_getresuid,simbolo_presente,denegada,,no_observada,"getresuid (2)        - get real, effective, and saved user/group IDs",man-db seccion 2
+119,common,setresgid,sys_setresgid,__x64_sys_setresgid,simbolo_presente,denegada,,no_observada,"setresgid (2)        - set real, effective, and saved user or group ID",man-db seccion 2
+120,common,getresgid,sys_getresgid,__x64_sys_getresgid,simbolo_presente,denegada,,no_observada,"getresgid (2)        - get real, effective, and saved user/group IDs",man-db seccion 2
+121,common,getpgid,sys_getpgid,__x64_sys_getpgid,simbolo_presente,denegada,,no_observada,getpgid (2)          - set/get process group,man-db seccion 2
+122,common,setfsuid,sys_setfsuid,__x64_sys_setfsuid,simbolo_presente,denegada,,no_observada,setfsuid (2)         - set user identity used for filesystem checks,man-db seccion 2
+123,common,setfsgid,sys_setfsgid,__x64_sys_setfsgid,simbolo_presente,denegada,,no_observada,setfsgid (2)         - set group identity used for filesystem checks,man-db seccion 2
+124,common,getsid,sys_getsid,__x64_sys_getsid,simbolo_presente,denegada,,no_observada,getsid (2)           - get session ID,man-db seccion 2
+125,common,capget,sys_capget,__x64_sys_capget,simbolo_presente,denegada,,no_observada,capget (2)           - set/get capabilities of thread(s),man-db seccion 2
+126,common,capset,sys_capset,__x64_sys_capset,simbolo_presente,denegada,,no_observada,capset (2)           - set/get capabilities of thread(s),man-db seccion 2
+127,64,rt_sigpending,sys_rt_sigpending,__x64_sys_rt_sigpending,simbolo_presente,denegada,,no_observada,rt_sigpending (2)    - examine pending signals,man-db seccion 2
+128,64,rt_sigtimedwait,sys_rt_sigtimedwait,__x64_sys_rt_sigtimedwait,simbolo_presente,denegada,,no_observada,rt_sigtimedwait (2)  - synchronously wait for queued signals,man-db seccion 2
+129,64,rt_sigqueueinfo,sys_rt_sigqueueinfo,__x64_sys_rt_sigqueueinfo,simbolo_presente,denegada,,no_observada,rt_sigqueueinfo (2)  - queue a signal and data,man-db seccion 2
+130,common,rt_sigsuspend,sys_rt_sigsuspend,__x64_sys_rt_sigsuspend,simbolo_presente,denegada,,no_observada,rt_sigsuspend (2)    - wait for a signal,man-db seccion 2
+131,64,sigaltstack,sys_sigaltstack,__x64_sys_sigaltstack,simbolo_presente,denegada,,no_observada,sigaltstack (2)      - set and/or get signal stack context,man-db seccion 2
+132,common,utime,sys_utime,__x64_sys_utime,simbolo_presente,denegada,,no_observada,utime (2)            - change file last access and modification times,man-db seccion 2
+133,common,mknod,sys_mknod,__x64_sys_mknod,simbolo_presente,denegada,,no_observada,mknod (2)            - create a special or ordinary file,man-db seccion 2
+134,64,uselib,,,sin_simbolo_identificado,denegada,,no_observada,uselib (2)           - load shared library,man-db seccion 2
+135,common,personality,sys_personality,__x64_sys_personality,simbolo_presente,denegada,,no_observada,personality (2)      - set the process execution domain,man-db seccion 2
+136,common,ustat,sys_ustat,__x64_sys_ustat,simbolo_presente,denegada,,no_observada,ustat (2)            - get filesystem statistics,man-db seccion 2
+137,common,statfs,sys_statfs,__x64_sys_statfs,simbolo_presente,denegada,,no_observada,statfs (2)           - get filesystem statistics,man-db seccion 2
+138,common,fstatfs,sys_fstatfs,__x64_sys_fstatfs,simbolo_presente,denegada,,no_observada,fstatfs (2)          - get filesystem statistics,man-db seccion 2
+139,common,sysfs,sys_sysfs,__x64_sys_sysfs,simbolo_presente,denegada,,no_observada,sysfs (2)            - get filesystem type information,man-db seccion 2
+140,common,getpriority,sys_getpriority,__x64_sys_getpriority,simbolo_presente,denegada,,no_observada,getpriority (2)      - get/set program scheduling priority,man-db seccion 2
+141,common,setpriority,sys_setpriority,__x64_sys_setpriority,simbolo_presente,denegada,,no_observada,setpriority (2)      - get/set program scheduling priority,man-db seccion 2
+142,common,sched_setparam,sys_sched_setparam,__x64_sys_sched_setparam,simbolo_presente,denegada,,no_observada,sched_setparam (2)   - set and get scheduling parameters,man-db seccion 2
+143,common,sched_getparam,sys_sched_getparam,__x64_sys_sched_getparam,simbolo_presente,denegada,,no_observada,sched_getparam (2)   - set and get scheduling parameters,man-db seccion 2
+144,common,sched_setscheduler,sys_sched_setscheduler,__x64_sys_sched_setscheduler,simbolo_presente,denegada,,no_observada,sched_setscheduler (2) - set and get scheduling policy/parameters,man-db seccion 2
+145,common,sched_getscheduler,sys_sched_getscheduler,__x64_sys_sched_getscheduler,simbolo_presente,denegada,,no_observada,sched_getscheduler (2) - set and get scheduling policy/parameters,man-db seccion 2
+146,common,sched_get_priority_max,sys_sched_get_priority_max,__x64_sys_sched_get_priority_max,simbolo_presente,denegada,,no_observada,sched_get_priority_max (2) - get static priority range,man-db seccion 2
+147,common,sched_get_priority_min,sys_sched_get_priority_min,__x64_sys_sched_get_priority_min,simbolo_presente,denegada,,no_observada,sched_get_priority_min (2) - get static priority range,man-db seccion 2
+148,common,sched_rr_get_interval,sys_sched_rr_get_interval,__x64_sys_sched_rr_get_interval,simbolo_presente,denegada,,no_observada,sched_rr_get_interval (2) - get the SCHED_RR interval for the named process,man-db seccion 2
+149,common,mlock,sys_mlock,__x64_sys_mlock,simbolo_presente,denegada,,no_observada,mlock (2)            - lock and unlock memory,man-db seccion 2
+150,common,munlock,sys_munlock,__x64_sys_munlock,simbolo_presente,denegada,,no_observada,munlock (2)          - lock and unlock memory,man-db seccion 2
+151,common,mlockall,sys_mlockall,__x64_sys_mlockall,simbolo_presente,denegada,,no_observada,mlockall (2)         - lock and unlock memory,man-db seccion 2
+152,common,munlockall,sys_munlockall,__x64_sys_munlockall,simbolo_presente,denegada,,no_observada,munlockall (2)       - lock and unlock memory,man-db seccion 2
+153,common,vhangup,sys_vhangup,__x64_sys_vhangup,simbolo_presente,denegada,,no_observada,vhangup (2)          - virtually hangup the current terminal,man-db seccion 2
+154,common,modify_ldt,sys_modify_ldt,__x64_sys_modify_ldt,simbolo_presente,denegada,,no_observada,modify_ldt (2)       - get or set a per-process LDT entry,man-db seccion 2
+155,common,pivot_root,sys_pivot_root,__x64_sys_pivot_root,simbolo_presente,denegada,,no_observada,pivot_root (2)       - change the root mount,man-db seccion 2
+156,64,_sysctl,sys_ni_syscall,__x64_sys_ni_syscall,simbolo_presente,denegada,,no_observada,_sysctl (2)          - read/write system parameters,man-db seccion 2
+157,common,prctl,sys_prctl,__x64_sys_prctl,simbolo_presente,permitida,compatibilidad libc; argumentos aun sin lista propia,si,prctl (2)            - operations on a process or thread,man-db seccion 2
+158,common,arch_prctl,sys_arch_prctl,__x64_sys_arch_prctl,simbolo_presente,permitida,inicializacion TLS de libc; argumentos aun sin lista propia,si,arch_prctl (2)       - set architecture-specific thread state,man-db seccion 2
+159,common,adjtimex,sys_adjtimex,__x64_sys_adjtimex,simbolo_presente,denegada,,no_observada,adjtimex (2)         - tune kernel clock,man-db seccion 2
+160,common,setrlimit,sys_setrlimit,__x64_sys_setrlimit,simbolo_presente,denegada,,no_observada,setrlimit (2)        - get/set resource limits,man-db seccion 2
+161,common,chroot,sys_chroot,__x64_sys_chroot,simbolo_presente,denegada,,no_observada,chroot (2)           - change root directory,man-db seccion 2
+162,common,sync,sys_sync,__x64_sys_sync,simbolo_presente,denegada,,no_observada,sync (2)             - commit filesystem caches to disk,man-db seccion 2
+163,common,acct,sys_acct,__x64_sys_acct,simbolo_presente,denegada,,no_observada,acct (2)             - switch process accounting on or off,man-db seccion 2
+164,common,settimeofday,sys_settimeofday,__x64_sys_settimeofday,simbolo_presente,denegada,,no_observada,settimeofday (2)     - get / set time,man-db seccion 2
+165,common,mount,sys_mount,__x64_sys_mount,simbolo_presente,denegada,,no_observada,mount (2)            - mount filesystem,man-db seccion 2
+166,common,umount2,sys_umount,__x64_sys_umount,simbolo_presente,denegada,,no_observada,umount2 (2)          - unmount filesystem,man-db seccion 2
+167,common,swapon,sys_swapon,__x64_sys_swapon,simbolo_presente,denegada,,no_observada,swapon (2)           - start/stop swapping to file/device,man-db seccion 2
+168,common,swapoff,sys_swapoff,__x64_sys_swapoff,simbolo_presente,denegada,,no_observada,swapoff (2)          - start/stop swapping to file/device,man-db seccion 2
+169,common,reboot,sys_reboot,__x64_sys_reboot,simbolo_presente,denegada,,no_observada,reboot (2)           - reboot or enable/disable Ctrl-Alt-Del,man-db seccion 2
+170,common,sethostname,sys_sethostname,__x64_sys_sethostname,simbolo_presente,denegada,,no_observada,sethostname (2)      - get/set hostname,man-db seccion 2
+171,common,setdomainname,sys_setdomainname,__x64_sys_setdomainname,simbolo_presente,denegada,,no_observada,setdomainname (2)    - get/set NIS domain name,man-db seccion 2
+172,common,iopl,sys_iopl,__x64_sys_iopl,simbolo_presente,denegada,,no_observada,iopl (2)             - change I/O privilege level,man-db seccion 2
+173,common,ioperm,sys_ioperm,__x64_sys_ioperm,simbolo_presente,denegada,,no_observada,ioperm (2)           - set port input/output permissions,man-db seccion 2
+174,64,create_module,,,sin_simbolo_identificado,denegada,,no_observada,create_module (2)    - create a loadable module entry,man-db seccion 2
+175,common,init_module,sys_init_module,__x64_sys_init_module,simbolo_presente,denegada,,no_observada,init_module (2)      - load a kernel module,man-db seccion 2
+176,common,delete_module,sys_delete_module,__x64_sys_delete_module,simbolo_presente,denegada,,no_observada,delete_module (2)    - unload a kernel module,man-db seccion 2
+177,64,get_kernel_syms,,,sin_simbolo_identificado,denegada,,no_observada,get_kernel_syms (2)  - retrieve exported kernel and module symbols,man-db seccion 2
+178,64,query_module,,,sin_simbolo_identificado,denegada,,no_observada,query_module (2)     - query the kernel for various bits pertaining to modules,man-db seccion 2
+179,common,quotactl,sys_quotactl,__x64_sys_quotactl,simbolo_presente,denegada,,no_observada,quotactl (2)         - manipulate disk quotas,man-db seccion 2
+180,64,nfsservctl,,,sin_simbolo_identificado,denegada,,no_observada,nfsservctl (2)       - syscall interface to kernel nfs daemon,man-db seccion 2
+181,common,getpmsg,,,sin_simbolo_identificado,denegada,,no_observada,getpmsg (2)          - unimplemented system calls,man-db seccion 2
+182,common,putpmsg,,,sin_simbolo_identificado,denegada,,no_observada,putpmsg (2)          - unimplemented system calls,man-db seccion 2
+183,common,afs_syscall,,,sin_simbolo_identificado,denegada,,no_observada,afs_syscall (2)      - unimplemented system calls,man-db seccion 2
+184,common,tuxcall,,,sin_simbolo_identificado,denegada,,no_observada,tuxcall (2)          - unimplemented system calls,man-db seccion 2
+185,common,security,,,sin_simbolo_identificado,denegada,,no_observada,security (2)         - unimplemented system calls,man-db seccion 2
+186,common,gettid,sys_gettid,__x64_sys_gettid,simbolo_presente,denegada,,no_observada,gettid (2)           - get thread identification,man-db seccion 2
+187,common,readahead,sys_readahead,__x64_sys_readahead,simbolo_presente,denegada,,no_observada,readahead (2)        - initiate file readahead into page cache,man-db seccion 2
+188,common,setxattr,sys_setxattr,__x64_sys_setxattr,simbolo_presente,denegada,,no_observada,setxattr (2)         - set an extended attribute value,man-db seccion 2
+189,common,lsetxattr,sys_lsetxattr,__x64_sys_lsetxattr,simbolo_presente,denegada,,no_observada,lsetxattr (2)        - set an extended attribute value,man-db seccion 2
+190,common,fsetxattr,sys_fsetxattr,__x64_sys_fsetxattr,simbolo_presente,denegada,,no_observada,fsetxattr (2)        - set an extended attribute value,man-db seccion 2
+191,common,getxattr,sys_getxattr,__x64_sys_getxattr,simbolo_presente,denegada,,no_observada,getxattr (2)         - retrieve an extended attribute value,man-db seccion 2
+192,common,lgetxattr,sys_lgetxattr,__x64_sys_lgetxattr,simbolo_presente,denegada,,no_observada,lgetxattr (2)        - retrieve an extended attribute value,man-db seccion 2
+193,common,fgetxattr,sys_fgetxattr,__x64_sys_fgetxattr,simbolo_presente,denegada,,no_observada,fgetxattr (2)        - retrieve an extended attribute value,man-db seccion 2
+194,common,listxattr,sys_listxattr,__x64_sys_listxattr,simbolo_presente,denegada,,no_observada,listxattr (2)        - list extended attribute names,man-db seccion 2
+195,common,llistxattr,sys_llistxattr,__x64_sys_llistxattr,simbolo_presente,denegada,,no_observada,llistxattr (2)       - list extended attribute names,man-db seccion 2
+196,common,flistxattr,sys_flistxattr,__x64_sys_flistxattr,simbolo_presente,denegada,,no_observada,flistxattr (2)       - list extended attribute names,man-db seccion 2
+197,common,removexattr,sys_removexattr,__x64_sys_removexattr,simbolo_presente,denegada,,no_observada,removexattr (2)      - remove an extended attribute,man-db seccion 2
+198,common,lremovexattr,sys_lremovexattr,__x64_sys_lremovexattr,simbolo_presente,denegada,,no_observada,lremovexattr (2)     - remove an extended attribute,man-db seccion 2
+199,common,fremovexattr,sys_fremovexattr,__x64_sys_fremovexattr,simbolo_presente,denegada,,no_observada,fremovexattr (2)     - remove an extended attribute,man-db seccion 2
+200,common,tkill,sys_tkill,__x64_sys_tkill,simbolo_presente,denegada,,no_observada,tkill (2)            - send a signal to a thread,man-db seccion 2
+201,common,time,sys_time,__x64_sys_time,simbolo_presente,denegada,,no_observada,time (2)             - get time in seconds,man-db seccion 2
+202,common,futex,sys_futex,__x64_sys_futex,simbolo_presente,denegada,,no_observada,futex (2)            - fast user-space locking,man-db seccion 2
+203,common,sched_setaffinity,sys_sched_setaffinity,__x64_sys_sched_setaffinity,simbolo_presente,denegada,,no_observada,sched_setaffinity (2) - set and get a thread's CPU affinity mask,man-db seccion 2
+204,common,sched_getaffinity,sys_sched_getaffinity,__x64_sys_sched_getaffinity,simbolo_presente,denegada,,no_observada,sched_getaffinity (2) - set and get a thread's CPU affinity mask,man-db seccion 2
+205,64,set_thread_area,,,sin_simbolo_identificado,denegada,,no_observada,set_thread_area (2)  - manipulate thread-local storage information,man-db seccion 2
+206,64,io_setup,sys_io_setup,__x64_sys_io_setup,simbolo_presente,denegada,,no_observada,io_setup (2)         - create an asynchronous I/O context,man-db seccion 2
+207,common,io_destroy,sys_io_destroy,__x64_sys_io_destroy,simbolo_presente,denegada,,no_observada,io_destroy (2)       - destroy an asynchronous I/O context,man-db seccion 2
+208,common,io_getevents,sys_io_getevents,__x64_sys_io_getevents,simbolo_presente,denegada,,no_observada,io_getevents (2)     - read asynchronous I/O events from the completion queue,man-db seccion 2
+209,64,io_submit,sys_io_submit,__x64_sys_io_submit,simbolo_presente,denegada,,no_observada,io_submit (2)        - submit asynchronous I/O blocks for processing,man-db seccion 2
+210,common,io_cancel,sys_io_cancel,__x64_sys_io_cancel,simbolo_presente,denegada,,no_observada,io_cancel (2)        - cancel an outstanding asynchronous I/O operation,man-db seccion 2
+211,64,get_thread_area,,,sin_simbolo_identificado,denegada,,no_observada,get_thread_area (2)  - manipulate thread-local storage information,man-db seccion 2
+212,common,lookup_dcookie,,,sin_simbolo_identificado,denegada,,no_observada,lookup_dcookie (2)   - return a directory entry's path,man-db seccion 2
+213,common,epoll_create,sys_epoll_create,__x64_sys_epoll_create,simbolo_presente,denegada,,no_observada,epoll_create (2)     - open an epoll file descriptor,man-db seccion 2
+214,64,epoll_ctl_old,,,sin_simbolo_identificado,denegada,,no_observada,"Numero historico reservado, sin punto de entrada en esta tabla",32c52ec87d6245ee2d12ed5dd509e40062939b50:arch/x86/entry/syscalls/syscall_64.tbl
+215,64,epoll_wait_old,,,sin_simbolo_identificado,denegada,,no_observada,"Numero historico reservado, sin punto de entrada en esta tabla",32c52ec87d6245ee2d12ed5dd509e40062939b50:arch/x86/entry/syscalls/syscall_64.tbl
+216,common,remap_file_pages,sys_remap_file_pages,__x64_sys_remap_file_pages,simbolo_presente,denegada,,no_observada,remap_file_pages (2) - create a nonlinear file mapping,man-db seccion 2
+217,common,getdents64,sys_getdents64,__x64_sys_getdents64,simbolo_presente,permitida,listar directorios permitidos,si,getdents64 (2)       - get directory entries,man-db seccion 2
+218,common,set_tid_address,sys_set_tid_address,__x64_sys_set_tid_address,simbolo_presente,permitida,inicializacion de libc,si,set_tid_address (2)  - set pointer to thread ID,man-db seccion 2
+219,common,restart_syscall,sys_restart_syscall,__x64_sys_restart_syscall,simbolo_presente,denegada,,no_observada,restart_syscall (2)  - restart a system call after interruption by a stop signal,man-db seccion 2
+220,common,semtimedop,sys_semtimedop,__x64_sys_semtimedop,simbolo_presente,denegada,,no_observada,semtimedop (2)       - System V semaphore operations,man-db seccion 2
+221,common,fadvise64,sys_fadvise64,__x64_sys_fadvise64,simbolo_presente,denegada,,no_observada,fadvise64 (2)        - predeclare an access pattern for file data,man-db seccion 2
+222,64,timer_create,sys_timer_create,__x64_sys_timer_create,simbolo_presente,denegada,,no_observada,timer_create (2)     - create a POSIX per-process timer,man-db seccion 2
+223,common,timer_settime,sys_timer_settime,__x64_sys_timer_settime,simbolo_presente,denegada,,no_observada,timer_settime (2)    - arm/disarm and fetch state of POSIX per-process timer,man-db seccion 2
+224,common,timer_gettime,sys_timer_gettime,__x64_sys_timer_gettime,simbolo_presente,denegada,,no_observada,timer_gettime (2)    - arm/disarm and fetch state of POSIX per-process timer,man-db seccion 2
+225,common,timer_getoverrun,sys_timer_getoverrun,__x64_sys_timer_getoverrun,simbolo_presente,denegada,,no_observada,timer_getoverrun (2) - get overrun count for a POSIX per-process timer,man-db seccion 2
+226,common,timer_delete,sys_timer_delete,__x64_sys_timer_delete,simbolo_presente,denegada,,no_observada,timer_delete (2)     - delete a POSIX per-process timer,man-db seccion 2
+227,common,clock_settime,sys_clock_settime,__x64_sys_clock_settime,simbolo_presente,denegada,,no_observada,clock_settime (2)    - clock and time functions,man-db seccion 2
+228,common,clock_gettime,sys_clock_gettime,__x64_sys_clock_gettime,simbolo_presente,denegada,,no_observada,clock_gettime (2)    - clock and time functions,man-db seccion 2
+229,common,clock_getres,sys_clock_getres,__x64_sys_clock_getres,simbolo_presente,denegada,,no_observada,clock_getres (2)     - clock and time functions,man-db seccion 2
+230,common,clock_nanosleep,sys_clock_nanosleep,__x64_sys_clock_nanosleep,simbolo_presente,permitida,esperas relativas o absolutas,no_observada,clock_nanosleep (2)  - high-resolution sleep with specifiable clock,man-db seccion 2
+231,common,exit_group,sys_exit_group,__x64_sys_exit_group,simbolo_presente,permitida,terminar programa,si,exit_group (2)       - exit all threads in a process,man-db seccion 2
+232,common,epoll_wait,sys_epoll_wait,__x64_sys_epoll_wait,simbolo_presente,denegada,,no_observada,epoll_wait (2)       - wait for an I/O event on an epoll file descriptor,man-db seccion 2
+233,common,epoll_ctl,sys_epoll_ctl,__x64_sys_epoll_ctl,simbolo_presente,denegada,,no_observada,epoll_ctl (2)        - control interface for an epoll file descriptor,man-db seccion 2
+234,common,tgkill,sys_tgkill,__x64_sys_tgkill,simbolo_presente,denegada,,no_observada,tgkill (2)           - send a signal to a thread,man-db seccion 2
+235,common,utimes,sys_utimes,__x64_sys_utimes,simbolo_presente,denegada,,no_observada,utimes (2)           - change file last access and modification times,man-db seccion 2
+236,64,vserver,,,sin_simbolo_identificado,denegada,,no_observada,vserver (2)          - unimplemented system calls,man-db seccion 2
+237,common,mbind,sys_mbind,__x64_sys_mbind,simbolo_presente,denegada,,no_observada,mbind (2)            - set memory policy for a memory range,man-db seccion 2
+238,common,set_mempolicy,sys_set_mempolicy,__x64_sys_set_mempolicy,simbolo_presente,denegada,,no_observada,set_mempolicy (2)    - set default NUMA memory policy for a thread and its ch...,man-db seccion 2
+239,common,get_mempolicy,sys_get_mempolicy,__x64_sys_get_mempolicy,simbolo_presente,denegada,,no_observada,get_mempolicy (2)    - retrieve NUMA memory policy for a thread,man-db seccion 2
+240,common,mq_open,sys_mq_open,__x64_sys_mq_open,simbolo_presente,denegada,,no_observada,mq_open (2)          - open a message queue,man-db seccion 2
+241,common,mq_unlink,sys_mq_unlink,__x64_sys_mq_unlink,simbolo_presente,denegada,,no_observada,mq_unlink (2)        - remove a message queue,man-db seccion 2
+242,common,mq_timedsend,sys_mq_timedsend,__x64_sys_mq_timedsend,simbolo_presente,denegada,,no_observada,mq_timedsend (2)     - send a message to a message queue,man-db seccion 2
+243,common,mq_timedreceive,sys_mq_timedreceive,__x64_sys_mq_timedreceive,simbolo_presente,denegada,,no_observada,mq_timedreceive (2)  - receive a message from a message queue,man-db seccion 2
+244,64,mq_notify,sys_mq_notify,__x64_sys_mq_notify,simbolo_presente,denegada,,no_observada,mq_notify (2)        - register for notification when a message is available,man-db seccion 2
+245,common,mq_getsetattr,sys_mq_getsetattr,__x64_sys_mq_getsetattr,simbolo_presente,denegada,,no_observada,mq_getsetattr (2)    - get/set message queue attributes,man-db seccion 2
+246,64,kexec_load,sys_kexec_load,__x64_sys_kexec_load,simbolo_presente,denegada,,no_observada,kexec_load (2)       - load a new kernel for later execution,man-db seccion 2
+247,64,waitid,sys_waitid,__x64_sys_waitid,simbolo_presente,denegada,,no_observada,waitid (2)           - wait for process to change state,man-db seccion 2
+248,common,add_key,sys_add_key,__x64_sys_add_key,simbolo_presente,denegada,,no_observada,add_key (2)          - add a key to the kernel's key management facility,man-db seccion 2
+249,common,request_key,sys_request_key,__x64_sys_request_key,simbolo_presente,denegada,,no_observada,request_key (2)      - request a key from the kernel's key management facility,man-db seccion 2
+250,common,keyctl,sys_keyctl,__x64_sys_keyctl,simbolo_presente,denegada,,no_observada,keyctl (2)           - manipulate the kernel's key management facility,man-db seccion 2
+251,common,ioprio_set,sys_ioprio_set,__x64_sys_ioprio_set,simbolo_presente,denegada,,no_observada,ioprio_set (2)       - get/set I/O scheduling class and priority,man-db seccion 2
+252,common,ioprio_get,sys_ioprio_get,__x64_sys_ioprio_get,simbolo_presente,denegada,,no_observada,ioprio_get (2)       - get/set I/O scheduling class and priority,man-db seccion 2
+253,common,inotify_init,sys_inotify_init,__x64_sys_inotify_init,simbolo_presente,denegada,,no_observada,inotify_init (2)     - initialize an inotify instance,man-db seccion 2
+254,common,inotify_add_watch,sys_inotify_add_watch,__x64_sys_inotify_add_watch,simbolo_presente,denegada,,no_observada,inotify_add_watch (2) - add a watch to an initialized inotify instance,man-db seccion 2
+255,common,inotify_rm_watch,sys_inotify_rm_watch,__x64_sys_inotify_rm_watch,simbolo_presente,denegada,,no_observada,inotify_rm_watch (2) - remove an existing watch from an inotify instance,man-db seccion 2
+256,common,migrate_pages,sys_migrate_pages,__x64_sys_migrate_pages,simbolo_presente,denegada,,no_observada,migrate_pages (2)    - move all pages in a process to another set of nodes,man-db seccion 2
+257,common,openat,sys_openat,__x64_sys_openat,simbolo_presente,permitida,aperturas relativas; Landlock comprueba rutas,no_observada,openat (2)           - open and possibly create a file,man-db seccion 2
+258,common,mkdirat,sys_mkdirat,__x64_sys_mkdirat,simbolo_presente,denegada,,no_observada,mkdirat (2)          - create a directory,man-db seccion 2
+259,common,mknodat,sys_mknodat,__x64_sys_mknodat,simbolo_presente,denegada,,no_observada,mknodat (2)          - create a special or ordinary file,man-db seccion 2
+260,common,fchownat,sys_fchownat,__x64_sys_fchownat,simbolo_presente,denegada,,no_observada,fchownat (2)         - change ownership of a file,man-db seccion 2
+261,common,futimesat,sys_futimesat,__x64_sys_futimesat,simbolo_presente,denegada,,no_observada,futimesat (2)        - change timestamps of a file relative to a directory fi...,man-db seccion 2
+262,common,newfstatat,sys_newfstatat,__x64_sys_newfstatat,simbolo_presente,permitida,metadatos relativos usados por libc,no_observada,newfstatat (2)       - get file status,man-db seccion 2
+263,common,unlinkat,sys_unlinkat,__x64_sys_unlinkat,simbolo_presente,denegada,,no_observada,unlinkat (2)         - delete a name and possibly the file it refers to,man-db seccion 2
+264,common,renameat,sys_renameat,__x64_sys_renameat,simbolo_presente,denegada,,no_observada,renameat (2)         - change the name or location of a file,man-db seccion 2
+265,common,linkat,sys_linkat,__x64_sys_linkat,simbolo_presente,denegada,,no_observada,linkat (2)           - make a new name for a file,man-db seccion 2
+266,common,symlinkat,sys_symlinkat,__x64_sys_symlinkat,simbolo_presente,denegada,,no_observada,symlinkat (2)        - make a new name for a file,man-db seccion 2
+267,common,readlinkat,sys_readlinkat,__x64_sys_readlinkat,simbolo_presente,denegada,,no_observada,readlinkat (2)       - read value of a symbolic link,man-db seccion 2
+268,common,fchmodat,sys_fchmodat,__x64_sys_fchmodat,simbolo_presente,denegada,,no_observada,fchmodat (2)         - change permissions of a file,man-db seccion 2
+269,common,faccessat,sys_faccessat,__x64_sys_faccessat,simbolo_presente,denegada,,no_observada,faccessat (2)        - check user's permissions for a file,man-db seccion 2
+270,common,pselect6,sys_pselect6,__x64_sys_pselect6,simbolo_presente,denegada,,no_observada,pselect6 (2)         - synchronous I/O multiplexing,man-db seccion 2
+271,common,ppoll,sys_ppoll,__x64_sys_ppoll,simbolo_presente,denegada,,no_observada,ppoll (2)            - wait for some event on a file descriptor,man-db seccion 2
+272,common,unshare,sys_unshare,__x64_sys_unshare,simbolo_presente,denegada,,no_observada,unshare (2)          - disassociate parts of the process execution context,man-db seccion 2
+273,64,set_robust_list,sys_set_robust_list,__x64_sys_set_robust_list,simbolo_presente,denegada,,no_observada,set_robust_list (2)  - get/set list of robust futexes,man-db seccion 2
+274,64,get_robust_list,sys_get_robust_list,__x64_sys_get_robust_list,simbolo_presente,denegada,,no_observada,get_robust_list (2)  - get/set list of robust futexes,man-db seccion 2
+275,common,splice,sys_splice,__x64_sys_splice,simbolo_presente,denegada,,no_observada,splice (2)           - splice data to/from a pipe,man-db seccion 2
+276,common,tee,sys_tee,__x64_sys_tee,simbolo_presente,denegada,,no_observada,tee (2)              - duplicating pipe content,man-db seccion 2
+277,common,sync_file_range,sys_sync_file_range,__x64_sys_sync_file_range,simbolo_presente,denegada,,no_observada,sync_file_range (2)  - sync a file segment with disk,man-db seccion 2
+278,64,vmsplice,sys_vmsplice,__x64_sys_vmsplice,simbolo_presente,denegada,,no_observada,vmsplice (2)         - splice user pages to/from a pipe,man-db seccion 2
+279,64,move_pages,sys_move_pages,__x64_sys_move_pages,simbolo_presente,denegada,,no_observada,move_pages (2)       - move individual pages of a process to another node,man-db seccion 2
+280,common,utimensat,sys_utimensat,__x64_sys_utimensat,simbolo_presente,denegada,,no_observada,utimensat (2)        - change file timestamps with nanosecond precision,man-db seccion 2
+281,common,epoll_pwait,sys_epoll_pwait,__x64_sys_epoll_pwait,simbolo_presente,denegada,,no_observada,epoll_pwait (2)      - wait for an I/O event on an epoll file descriptor,man-db seccion 2
+282,common,signalfd,sys_signalfd,__x64_sys_signalfd,simbolo_presente,denegada,,no_observada,signalfd (2)         - create a file descriptor for accepting signals,man-db seccion 2
+283,common,timerfd_create,sys_timerfd_create,__x64_sys_timerfd_create,simbolo_presente,denegada,,no_observada,timerfd_create (2)   - timers that notify via file descriptors,man-db seccion 2
+284,common,eventfd,sys_eventfd,__x64_sys_eventfd,simbolo_presente,denegada,,no_observada,eventfd (2)          - create a file descriptor for event notification,man-db seccion 2
+285,common,fallocate,sys_fallocate,__x64_sys_fallocate,simbolo_presente,denegada,,no_observada,fallocate (2)        - manipulate file space,man-db seccion 2
+286,common,timerfd_settime,sys_timerfd_settime,__x64_sys_timerfd_settime,simbolo_presente,denegada,,no_observada,timerfd_settime (2)  - timers that notify via file descriptors,man-db seccion 2
+287,common,timerfd_gettime,sys_timerfd_gettime,__x64_sys_timerfd_gettime,simbolo_presente,denegada,,no_observada,timerfd_gettime (2)  - timers that notify via file descriptors,man-db seccion 2
+288,common,accept4,sys_accept4,__x64_sys_accept4,simbolo_presente,denegada,,no_observada,accept4 (2)          - accept a connection on a socket,man-db seccion 2
+289,common,signalfd4,sys_signalfd4,__x64_sys_signalfd4,simbolo_presente,denegada,,no_observada,signalfd4 (2)        - create a file descriptor for accepting signals,man-db seccion 2
+290,common,eventfd2,sys_eventfd2,__x64_sys_eventfd2,simbolo_presente,denegada,,no_observada,eventfd2 (2)         - create a file descriptor for event notification,man-db seccion 2
+291,common,epoll_create1,sys_epoll_create1,__x64_sys_epoll_create1,simbolo_presente,denegada,,no_observada,epoll_create1 (2)    - open an epoll file descriptor,man-db seccion 2
+292,common,dup3,sys_dup3,__x64_sys_dup3,simbolo_presente,denegada,,no_observada,dup3 (2)             - duplicate a file descriptor,man-db seccion 2
+293,common,pipe2,sys_pipe2,__x64_sys_pipe2,simbolo_presente,denegada,,no_observada,pipe2 (2)            - create pipe,man-db seccion 2
+294,common,inotify_init1,sys_inotify_init1,__x64_sys_inotify_init1,simbolo_presente,denegada,,no_observada,inotify_init1 (2)    - initialize an inotify instance,man-db seccion 2
+295,64,preadv,sys_preadv,__x64_sys_preadv,simbolo_presente,denegada,,no_observada,preadv (2)           - read or write data into multiple buffers,man-db seccion 2
+296,64,pwritev,sys_pwritev,__x64_sys_pwritev,simbolo_presente,denegada,,no_observada,pwritev (2)          - read or write data into multiple buffers,man-db seccion 2
+297,64,rt_tgsigqueueinfo,sys_rt_tgsigqueueinfo,__x64_sys_rt_tgsigqueueinfo,simbolo_presente,denegada,,no_observada,rt_tgsigqueueinfo (2) - queue a signal and data,man-db seccion 2
+298,common,perf_event_open,sys_perf_event_open,__x64_sys_perf_event_open,simbolo_presente,denegada,,no_observada,perf_event_open (2)  - set up performance monitoring,man-db seccion 2
+299,64,recvmmsg,sys_recvmmsg,__x64_sys_recvmmsg,simbolo_presente,denegada,,no_observada,recvmmsg (2)         - receive multiple messages on a socket,man-db seccion 2
+300,common,fanotify_init,sys_fanotify_init,__x64_sys_fanotify_init,simbolo_presente,denegada,,no_observada,fanotify_init (2)    - create and initialize fanotify group,man-db seccion 2
+301,common,fanotify_mark,sys_fanotify_mark,__x64_sys_fanotify_mark,simbolo_presente,denegada,,no_observada,"fanotify_mark (2)    - add, remove, or modify an fanotify mark on a filesyste...",man-db seccion 2
+302,common,prlimit64,sys_prlimit64,__x64_sys_prlimit64,simbolo_presente,denegada,,no_observada,prlimit64 (2)        - get/set resource limits,man-db seccion 2
+303,common,name_to_handle_at,sys_name_to_handle_at,__x64_sys_name_to_handle_at,simbolo_presente,denegada,,no_observada,name_to_handle_at (2) - obtain handle for a pathname and open file via a handle,man-db seccion 2
+304,common,open_by_handle_at,sys_open_by_handle_at,__x64_sys_open_by_handle_at,simbolo_presente,denegada,,no_observada,open_by_handle_at (2) - obtain handle for a pathname and open file via a handle,man-db seccion 2
+305,common,clock_adjtime,sys_clock_adjtime,__x64_sys_clock_adjtime,simbolo_presente,denegada,,no_observada,clock_adjtime (2)    - tune kernel clock,man-db seccion 2
+306,common,syncfs,sys_syncfs,__x64_sys_syncfs,simbolo_presente,denegada,,no_observada,syncfs (2)           - commit filesystem caches to disk,man-db seccion 2
+307,64,sendmmsg,sys_sendmmsg,__x64_sys_sendmmsg,simbolo_presente,denegada,,no_observada,sendmmsg (2)         - send multiple messages on a socket,man-db seccion 2
+308,common,setns,sys_setns,__x64_sys_setns,simbolo_presente,denegada,,no_observada,setns (2)            - reassociate thread with a namespace,man-db seccion 2
+309,common,getcpu,sys_getcpu,__x64_sys_getcpu,simbolo_presente,denegada,,no_observada,getcpu (2)           - determine CPU and NUMA node on which the calling threa...,man-db seccion 2
+310,64,process_vm_readv,sys_process_vm_readv,__x64_sys_process_vm_readv,simbolo_presente,denegada,,no_observada,process_vm_readv (2) - transfer data between process address spaces,man-db seccion 2
+311,64,process_vm_writev,sys_process_vm_writev,__x64_sys_process_vm_writev,simbolo_presente,denegada,,no_observada,process_vm_writev (2) - transfer data between process address spaces,man-db seccion 2
+312,common,kcmp,sys_kcmp,__x64_sys_kcmp,simbolo_presente,denegada,,no_observada,kcmp (2)             - compare two processes to determine if they share a ker...,man-db seccion 2
+313,common,finit_module,sys_finit_module,__x64_sys_finit_module,simbolo_presente,denegada,,no_observada,finit_module (2)     - load a kernel module,man-db seccion 2
+314,common,sched_setattr,sys_sched_setattr,__x64_sys_sched_setattr,simbolo_presente,denegada,,no_observada,sched_setattr (2)    - set and get scheduling policy and attributes,man-db seccion 2
+315,common,sched_getattr,sys_sched_getattr,__x64_sys_sched_getattr,simbolo_presente,denegada,,no_observada,sched_getattr (2)    - set and get scheduling policy and attributes,man-db seccion 2
+316,common,renameat2,sys_renameat2,__x64_sys_renameat2,simbolo_presente,denegada,,no_observada,renameat2 (2)        - change the name or location of a file,man-db seccion 2
+317,common,seccomp,sys_seccomp,__x64_sys_seccomp,simbolo_presente,denegada,,no_observada,seccomp (2)          - operate on Secure Computing state of the process,man-db seccion 2
+318,common,getrandom,sys_getrandom,__x64_sys_getrandom,simbolo_presente,denegada,,no_observada,getrandom (2)        - obtain a series of random bytes,man-db seccion 2
+319,common,memfd_create,sys_memfd_create,__x64_sys_memfd_create,simbolo_presente,denegada,,no_observada,memfd_create (2)     - create an anonymous file,man-db seccion 2
+320,common,kexec_file_load,sys_kexec_file_load,__x64_sys_kexec_file_load,simbolo_presente,denegada,,no_observada,kexec_file_load (2)  - load a new kernel for later execution,man-db seccion 2
+321,common,bpf,sys_bpf,__x64_sys_bpf,simbolo_presente,denegada,,no_observada,bpf (2)              - perform a command on an extended BPF map or program,man-db seccion 2
+322,64,execveat,sys_execveat,__x64_sys_execveat,simbolo_presente,denegada,,no_observada,execveat (2)         - execute program relative to a directory file descriptor,man-db seccion 2
+323,common,userfaultfd,sys_userfaultfd,__x64_sys_userfaultfd,simbolo_presente,denegada,,no_observada,userfaultfd (2)      - create a file descriptor for handling page faults in u...,man-db seccion 2
+324,common,membarrier,sys_membarrier,__x64_sys_membarrier,simbolo_presente,denegada,,no_observada,membarrier (2)       - issue memory barriers on a set of threads,man-db seccion 2
+325,common,mlock2,sys_mlock2,__x64_sys_mlock2,simbolo_presente,denegada,,no_observada,mlock2 (2)           - lock and unlock memory,man-db seccion 2
+326,common,copy_file_range,sys_copy_file_range,__x64_sys_copy_file_range,simbolo_presente,denegada,,no_observada,copy_file_range (2)  - Copy a range of data from one file to another,man-db seccion 2
+327,64,preadv2,sys_preadv2,__x64_sys_preadv2,simbolo_presente,denegada,,no_observada,preadv2 (2)          - read or write data into multiple buffers,man-db seccion 2
+328,64,pwritev2,sys_pwritev2,__x64_sys_pwritev2,simbolo_presente,denegada,,no_observada,pwritev2 (2)         - read or write data into multiple buffers,man-db seccion 2
+329,common,pkey_mprotect,sys_pkey_mprotect,__x64_sys_pkey_mprotect,simbolo_presente,denegada,,no_observada,pkey_mprotect (2)    - set protection on a region of memory,man-db seccion 2
+330,common,pkey_alloc,sys_pkey_alloc,__x64_sys_pkey_alloc,simbolo_presente,denegada,,no_observada,pkey_alloc (2)       - allocate or free a protection key,man-db seccion 2
+331,common,pkey_free,sys_pkey_free,__x64_sys_pkey_free,simbolo_presente,denegada,,no_observada,pkey_free (2)        - allocate or free a protection key,man-db seccion 2
+332,common,statx,sys_statx,__x64_sys_statx,simbolo_presente,denegada,,no_observada,statx (2)            - get file status (extended),man-db seccion 2
+333,common,io_pgetevents,sys_io_pgetevents,__x64_sys_io_pgetevents,simbolo_presente,denegada,,no_observada,Recoger eventos AIO con timeout y mascara de senales,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/aio.c
+334,common,rseq,sys_rseq,__x64_sys_rseq,simbolo_presente,denegada,,no_observada,Registrar o retirar el area de secuencias reiniciables del hilo,32c52ec87d6245ee2d12ed5dd509e40062939b50:kernel/rseq.c
+335,common,uretprobe,sys_uretprobe,__x64_sys_uretprobe,simbolo_presente,denegada,,no_observada,uretprobe (2)        - execute pending return uprobes,man-db seccion 2
+336,common,uprobe,sys_uprobe,__x64_sys_uprobe,simbolo_presente,denegada,,no_observada,Entrada desde trampolines de uprobes x86; valida el origen del trampolin,32c52ec87d6245ee2d12ed5dd509e40062939b50:arch/x86/kernel/uprobes.c
+424,common,pidfd_send_signal,sys_pidfd_send_signal,__x64_sys_pidfd_send_signal,simbolo_presente,denegada,,no_observada,pidfd_send_signal (2) - send a signal to a process specified by a file descri...,man-db seccion 2
+425,common,io_uring_setup,sys_io_uring_setup,__x64_sys_io_uring_setup,simbolo_presente,denegada,,no_observada,io_uring_setup (2)   - setup a context for performing asynchronous I/O,man-db seccion 2
+426,common,io_uring_enter,sys_io_uring_enter,__x64_sys_io_uring_enter,simbolo_presente,denegada,,no_observada,io_uring_enter (2)   - initiate and/or complete asynchronous I/O,man-db seccion 2
+427,common,io_uring_register,sys_io_uring_register,__x64_sys_io_uring_register,simbolo_presente,denegada,,no_observada,io_uring_register (2) - register files or user buffers for asynchronous I/O,man-db seccion 2
+428,common,open_tree,sys_open_tree,__x64_sys_open_tree,simbolo_presente,denegada,,no_observada,open_tree (2)        - open path or create detached mount object and attach t...,man-db seccion 2
+429,common,move_mount,sys_move_mount,__x64_sys_move_mount,simbolo_presente,denegada,,no_observada,move_mount (2)       - move or attach mount object to filesystem,man-db seccion 2
+430,common,fsopen,sys_fsopen,__x64_sys_fsopen,simbolo_presente,denegada,,no_observada,fsopen (2)           - create a new filesystem context,man-db seccion 2
+431,common,fsconfig,sys_fsconfig,__x64_sys_fsconfig,simbolo_presente,denegada,,no_observada,fsconfig (2)         - configure new or existing filesystem context,man-db seccion 2
+432,common,fsmount,sys_fsmount,__x64_sys_fsmount,simbolo_presente,denegada,,no_observada,fsmount (2)          - instantiate mount object from filesystem context,man-db seccion 2
+433,common,fspick,sys_fspick,__x64_sys_fspick,simbolo_presente,denegada,,no_observada,fspick (2)           - select filesystem for reconfiguration,man-db seccion 2
+434,common,pidfd_open,sys_pidfd_open,__x64_sys_pidfd_open,simbolo_presente,denegada,,no_observada,pidfd_open (2)       - obtain a file descriptor that refers to a task,man-db seccion 2
+435,common,clone3,sys_clone3,__x64_sys_clone3,simbolo_presente,denegada,,no_observada,clone3 (2)           - create a child process,man-db seccion 2
+436,common,close_range,sys_close_range,__x64_sys_close_range,simbolo_presente,denegada,,no_observada,close_range (2)      - close all file descriptors in a given range,man-db seccion 2
+437,common,openat2,sys_openat2,__x64_sys_openat2,simbolo_presente,denegada,,no_observada,openat2 (2)          - open and possibly create a file (extended),man-db seccion 2
+438,common,pidfd_getfd,sys_pidfd_getfd,__x64_sys_pidfd_getfd,simbolo_presente,denegada,,no_observada,pidfd_getfd (2)      - obtain a duplicate of another process's file descriptor,man-db seccion 2
+439,common,faccessat2,sys_faccessat2,__x64_sys_faccessat2,simbolo_presente,denegada,,no_observada,faccessat2 (2)       - check user's permissions for a file,man-db seccion 2
+440,common,process_madvise,sys_process_madvise,__x64_sys_process_madvise,simbolo_presente,denegada,,no_observada,process_madvise (2)  - give advice about use of memory to a process,man-db seccion 2
+441,common,epoll_pwait2,sys_epoll_pwait2,__x64_sys_epoll_pwait2,simbolo_presente,denegada,,no_observada,epoll_pwait2 (2)     - wait for an I/O event on an epoll file descriptor,man-db seccion 2
+442,common,mount_setattr,sys_mount_setattr,__x64_sys_mount_setattr,simbolo_presente,denegada,,no_observada,mount_setattr (2)    - change properties of a mount or mount tree,man-db seccion 2
+443,common,quotactl_fd,sys_quotactl_fd,__x64_sys_quotactl_fd,simbolo_presente,denegada,,no_observada,quotactl_fd (2)      - manipulate disk quotas,man-db seccion 2
+444,common,landlock_create_ruleset,sys_landlock_create_ruleset,__x64_sys_landlock_create_ruleset,simbolo_presente,denegada,,no_observada,landlock_create_ruleset (2) - create a new Landlock ruleset,man-db seccion 2
+445,common,landlock_add_rule,sys_landlock_add_rule,__x64_sys_landlock_add_rule,simbolo_presente,denegada,,no_observada,landlock_add_rule (2) - add a new Landlock rule to a ruleset,man-db seccion 2
+446,common,landlock_restrict_self,sys_landlock_restrict_self,__x64_sys_landlock_restrict_self,simbolo_presente,denegada,,no_observada,landlock_restrict_self (2) - enforce a Landlock ruleset,man-db seccion 2
+447,common,memfd_secret,sys_memfd_secret,__x64_sys_memfd_secret,simbolo_presente,denegada,,no_observada,memfd_secret (2)     - create an anonymous RAM-based file to access secret me...,man-db seccion 2
+448,common,process_mrelease,sys_process_mrelease,__x64_sys_process_mrelease,simbolo_presente,denegada,,no_observada,Liberar memoria de un proceso en salida identificado por pidfd,32c52ec87d6245ee2d12ed5dd509e40062939b50:mm/oom_kill.c
+449,common,futex_waitv,sys_futex_waitv,__x64_sys_futex_waitv,simbolo_presente,denegada,,no_observada,futex_waitv (2)      - wait for FUTEX_WAKE operation on a vector of futexes,man-db seccion 2
+450,common,set_mempolicy_home_node,sys_set_mempolicy_home_node,__x64_sys_set_mempolicy_home_node,simbolo_presente,denegada,,no_observada,Asignar nodo de referencia NUMA a la politica de un rango de memoria,32c52ec87d6245ee2d12ed5dd509e40062939b50:mm/mempolicy.c
+451,common,cachestat,sys_cachestat,__x64_sys_cachestat,simbolo_presente,denegada,,no_observada,cachestat (2)        - query the page cache statistics of a file,man-db seccion 2
+452,common,fchmodat2,sys_fchmodat2,__x64_sys_fchmodat2,simbolo_presente,denegada,,no_observada,Cambiar permisos mediante ruta relativa y flags de resolucion,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/open.c
+453,common,map_shadow_stack,sys_map_shadow_stack,__x64_sys_map_shadow_stack,simbolo_presente,denegada,,no_observada,Crear un mapeo para pila sombra de usuario,32c52ec87d6245ee2d12ed5dd509e40062939b50:arch/x86/kernel/shstk.c
+454,common,futex_wake,sys_futex_wake,__x64_sys_futex_wake,simbolo_presente,denegada,,no_observada,FUTEX_WAKE (2const)  - wake waiters that are inside FUTEX_WAIT,man-db seccion 2
+455,common,futex_wait,sys_futex_wait,__x64_sys_futex_wait,simbolo_presente,denegada,,no_observada,FUTEX_WAIT (2const)  - sleep waiting for a FUTEX_WAKE operation,man-db seccion 2
+456,common,futex_requeue,sys_futex_requeue,__x64_sys_futex_requeue,simbolo_presente,denegada,,no_observada,"FUTEX_REQUEUE (2const) - wake some waiters, and requeue others",man-db seccion 2
+457,common,statmount,sys_statmount,__x64_sys_statmount,simbolo_presente,denegada,,no_observada,statmount (2)        - get a mount status,man-db seccion 2
+458,common,listmount,sys_listmount,__x64_sys_listmount,simbolo_presente,denegada,,no_observada,listmount (2)        - get a list of mount ID's,man-db seccion 2
+459,common,lsm_get_self_attr,sys_lsm_get_self_attr,__x64_sys_lsm_get_self_attr,simbolo_presente,denegada,,no_observada,Consultar un atributo LSM del proceso llamante,32c52ec87d6245ee2d12ed5dd509e40062939b50:security/lsm_syscalls.c
+460,common,lsm_set_self_attr,sys_lsm_set_self_attr,__x64_sys_lsm_set_self_attr,simbolo_presente,denegada,,no_observada,Modificar un atributo LSM del proceso llamante,32c52ec87d6245ee2d12ed5dd509e40062939b50:security/lsm_syscalls.c
+461,common,lsm_list_modules,sys_lsm_list_modules,__x64_sys_lsm_list_modules,simbolo_presente,denegada,,no_observada,Enumerar los identificadores de modulos LSM activos,32c52ec87d6245ee2d12ed5dd509e40062939b50:security/lsm_syscalls.c
+462,common,mseal,sys_mseal,__x64_sys_mseal,simbolo_presente,denegada,,no_observada,Sellar un rango de mapas frente a determinados cambios de memoria virtual,32c52ec87d6245ee2d12ed5dd509e40062939b50:mm/mseal.c
+463,common,setxattrat,sys_setxattrat,__x64_sys_setxattrat,simbolo_presente,denegada,,no_observada,Establecer atributo extendido mediante descriptor base y ruta,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/xattr.c
+464,common,getxattrat,sys_getxattrat,__x64_sys_getxattrat,simbolo_presente,denegada,,no_observada,Obtener atributo extendido mediante descriptor base y ruta,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/xattr.c
+465,common,listxattrat,sys_listxattrat,__x64_sys_listxattrat,simbolo_presente,denegada,,no_observada,Listar atributos extendidos mediante descriptor base y ruta,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/xattr.c
+466,common,removexattrat,sys_removexattrat,__x64_sys_removexattrat,simbolo_presente,denegada,,no_observada,Eliminar atributo extendido mediante descriptor base y ruta,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/xattr.c
+467,common,open_tree_attr,sys_open_tree_attr,__x64_sys_open_tree_attr,simbolo_presente,denegada,,no_observada,open_tree_attr (2)   - open path or create detached mount object and attach t...,man-db seccion 2
+468,common,file_getattr,sys_file_getattr,__x64_sys_file_getattr,simbolo_presente,denegada,,no_observada,Consultar atributos de archivo como flags y datos especificos del filesystem,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/file_attr.c
+469,common,file_setattr,sys_file_setattr,__x64_sys_file_setattr,simbolo_presente,denegada,,no_observada,Modificar atributos de archivo como flags y datos especificos del filesystem,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/file_attr.c
+470,common,listns,sys_listns,__x64_sys_listns,simbolo_presente,denegada,,no_observada,Enumerar identificadores de namespaces segun filtros y permisos,32c52ec87d6245ee2d12ed5dd509e40062939b50:kernel/nstree.c
+471,common,rseq_slice_yield,sys_rseq_slice_yield,__x64_sys_rseq_slice_yield,simbolo_presente,denegada,,no_observada,Ceder la extension de turno de CPU concedida a una seccion rseq,32c52ec87d6245ee2d12ed5dd509e40062939b50:kernel/rseq.c
+472,common,fchroot,sys_fchroot,__x64_sys_fchroot,simbolo_presente,denegada,,no_observada,Cambiar la raiz mediante descriptor o seleccionar la raiz especial failfs,32c52ec87d6245ee2d12ed5dd509e40062939b50:fs/open.c
+512,x32,rt_sigaction,compat_sys_rt_sigaction,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,rt_sigaction (2)     - examine and change a signal action,man-db seccion 2
+513,x32,rt_sigreturn,compat_sys_x32_rt_sigreturn,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,rt_sigreturn (2)     - return from signal handler and cleanup stack frame,man-db seccion 2
+514,x32,ioctl,compat_sys_ioctl,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,ioctl (2)            - control device,man-db seccion 2
+515,x32,readv,sys_readv,__x64_sys_readv,simbolo_presente,denegada,ABI x32 rechazada,no_observada,readv (2)            - read or write data into multiple buffers,man-db seccion 2
+516,x32,writev,sys_writev,__x64_sys_writev,simbolo_presente,denegada,ABI x32 rechazada,no_observada,writev (2)           - read or write data into multiple buffers,man-db seccion 2
+517,x32,recvfrom,compat_sys_recvfrom,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,recvfrom (2)         - receive a message from a socket,man-db seccion 2
+518,x32,sendmsg,compat_sys_sendmsg,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,sendmsg (2)          - send a message on a socket,man-db seccion 2
+519,x32,recvmsg,compat_sys_recvmsg,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,recvmsg (2)          - receive a message from a socket,man-db seccion 2
+520,x32,execve,compat_sys_execve,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,execve (2)           - execute program,man-db seccion 2
+521,x32,ptrace,compat_sys_ptrace,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,ptrace (2)           - process trace,man-db seccion 2
+522,x32,rt_sigpending,compat_sys_rt_sigpending,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,rt_sigpending (2)    - examine pending signals,man-db seccion 2
+523,x32,rt_sigtimedwait,compat_sys_rt_sigtimedwait_time64,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,rt_sigtimedwait (2)  - synchronously wait for queued signals,man-db seccion 2
+524,x32,rt_sigqueueinfo,compat_sys_rt_sigqueueinfo,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,rt_sigqueueinfo (2)  - queue a signal and data,man-db seccion 2
+525,x32,sigaltstack,compat_sys_sigaltstack,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,sigaltstack (2)      - set and/or get signal stack context,man-db seccion 2
+526,x32,timer_create,compat_sys_timer_create,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,timer_create (2)     - create a POSIX per-process timer,man-db seccion 2
+527,x32,mq_notify,compat_sys_mq_notify,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,mq_notify (2)        - register for notification when a message is available,man-db seccion 2
+528,x32,kexec_load,compat_sys_kexec_load,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,kexec_load (2)       - load a new kernel for later execution,man-db seccion 2
+529,x32,waitid,compat_sys_waitid,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,waitid (2)           - wait for process to change state,man-db seccion 2
+530,x32,set_robust_list,compat_sys_set_robust_list,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,set_robust_list (2)  - get/set list of robust futexes,man-db seccion 2
+531,x32,get_robust_list,compat_sys_get_robust_list,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,get_robust_list (2)  - get/set list of robust futexes,man-db seccion 2
+532,x32,vmsplice,sys_vmsplice,__x64_sys_vmsplice,simbolo_presente,denegada,ABI x32 rechazada,no_observada,vmsplice (2)         - splice user pages to/from a pipe,man-db seccion 2
+533,x32,move_pages,sys_move_pages,__x64_sys_move_pages,simbolo_presente,denegada,ABI x32 rechazada,no_observada,move_pages (2)       - move individual pages of a process to another node,man-db seccion 2
+534,x32,preadv,compat_sys_preadv64,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,preadv (2)           - read or write data into multiple buffers,man-db seccion 2
+535,x32,pwritev,compat_sys_pwritev64,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,pwritev (2)          - read or write data into multiple buffers,man-db seccion 2
+536,x32,rt_tgsigqueueinfo,compat_sys_rt_tgsigqueueinfo,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,rt_tgsigqueueinfo (2) - queue a signal and data,man-db seccion 2
+537,x32,recvmmsg,compat_sys_recvmmsg_time64,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,recvmmsg (2)         - receive multiple messages on a socket,man-db seccion 2
+538,x32,sendmmsg,compat_sys_sendmmsg,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,sendmmsg (2)         - send multiple messages on a socket,man-db seccion 2
+539,x32,process_vm_readv,sys_process_vm_readv,__x64_sys_process_vm_readv,simbolo_presente,denegada,ABI x32 rechazada,no_observada,process_vm_readv (2) - transfer data between process address spaces,man-db seccion 2
+540,x32,process_vm_writev,sys_process_vm_writev,__x64_sys_process_vm_writev,simbolo_presente,denegada,ABI x32 rechazada,no_observada,process_vm_writev (2) - transfer data between process address spaces,man-db seccion 2
+541,x32,setsockopt,sys_setsockopt,__x64_sys_setsockopt,simbolo_presente,denegada,ABI x32 rechazada,no_observada,setsockopt (2)       - get and set options on sockets,man-db seccion 2
+542,x32,getsockopt,sys_getsockopt,__x64_sys_getsockopt,simbolo_presente,denegada,ABI x32 rechazada,no_observada,getsockopt (2)       - get and set options on sockets,man-db seccion 2
+543,x32,io_setup,compat_sys_io_setup,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,io_setup (2)         - create an asynchronous I/O context,man-db seccion 2
+544,x32,io_submit,compat_sys_io_submit,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,io_submit (2)        - submit asynchronous I/O blocks for processing,man-db seccion 2
+545,x32,execveat,compat_sys_execveat,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,execveat (2)         - execute program relative to a directory file descriptor,man-db seccion 2
+546,x32,preadv2,compat_sys_preadv64v2,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,preadv2 (2)          - read or write data into multiple buffers,man-db seccion 2
+547,x32,pwritev2,compat_sys_pwritev64v2,,sin_simbolo_identificado,denegada,ABI x32 rechazada,no_observada,pwritev2 (2)         - read or write data into multiple buffers,man-db seccion 2

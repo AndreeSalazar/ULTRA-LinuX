@@ -1,5 +1,84 @@
 # Campo de minas de C
 
+## Ronda 6: terminacion estricta de PID 1
+
+El guardia imprime su bandera y sale inmediatamente cuando getpid() devuelve 1,
+para no reejecutar un fallo bajo las reglas especiales de senales del init de un
+namespace. Rechazo explicito y trampa se comprobaron por separado. Se repitieron
+las 62 minas: 53 VERDE, 1 NEUTRA, 8 AMARILLO, 0 ROJO; 36 rechazos de compilacion.
+Evidencia en `evidencias/campo-minas-ronda6.txt` y `guardian-pid1-*-ronda6.txt`.
+Las barreras y garantias delimitadas del frente syscall estan en
+[GARANTIAS-RONDA6.md](GARANTIAS-RONDA6.md).
+
+## Ronda 5: reglas explicitas antes de operar
+
+62 minas de ejecucion: **53 VERDE, 1 NEUTRA, 8 AMARILLO, 0 ROJO**; 36 minas de
+compilacion rechazadas. Se mantienen cuatro perfiles validos de cruces y el
+rechazo esperado de produccion O0; TSan detecta la carrera y acepta el control atomico.
+
+Ocho casos nuevos ejercitan `ULTRA_DIV_INT`, `ULTRA_REM_INT` y `ULTRA_SHL_INT`:
+las funciones comprueban divisor, extremos y desplazamientos **antes de operar**.
+El evaluador exige la bandera correspondiente, y los controles positivos
+comprueban extremos validos y evaluacion unica de argumentos. Estas API son
+explicitas y para int; no transforman operadores C ajenos ni validan UB al
+calcular un argumento. Detalles en [GUARDIAN-ARITMETICA-ESTRICTA.md](GUARDIAN-ARITMETICA-ESTRICTA.md).
+
+Evidencias actuales: `evidencias/campo-minas-ronda5.txt`,
+`cruces-guardianes-ronda5.txt`, `hilos-ronda5.txt` y `aislamiento-ronda5.txt`.
+El frente de permisos de kernel, probado por separado, esta en
+[GUARDIAN-SYSCALLS.md](GUARDIAN-SYSCALLS.md).
+
+## Ronda 4: nuevas familias y aislamiento por caso
+
+Se ejecutó en QEMU, con GCC 16.2.1, desde `probar-guardianes.ps1`:
+
+- 36 minas de compilación rechazadas.
+- 54 minas de ejecución: **45 VERDE, 1 NEUTRA, 8 AMARILLO, 0 ROJO**.
+- Diez casos nuevos: producto con signo, negación de INT_MIN, resto INT_MIN/-1,
+  VLA cero, índice negativo, límite de subobjeto, cadena sin NUL, uso tras bloque,
+  comparación y resta de punteros de reservas distintas.
+- Diagnóstico ampliado con `pointer-compare`, `pointer-subtract` y
+  `detect_invalid_pointer_pairs=2`. Estas comprobaciones necesitan ASan.
+- Hilos en un campo aparte: TSan detectó una carrera real; el control con
+  contador atómico dio exactamente 20000 y terminó sin avisos. La carrera es
+  AMARILLO: esta instrumentación no está en producción.
+- Se comprobó el rechazo de ASan+TSan y de producción O0 con FORTIFY. Los cuatro
+  perfiles válidos de los cruces pasaron sus controles dentro del aislamiento.
+
+`scripts/aislar-mina.sh` ejecuta **cada mina y cada control de ejecución** en un
+Bubblewrap nuevo dentro de la VM: user/PID/mount/net/IPC/UTS/cgroup namespaces,
+sin compartir la red del taller, sin montar `/home`, `/run` privado, `/usr` y
+artefactos en solo lectura, `/tmp` privado de 16 MiB, entorno limpio, capacidades
+eliminadas y `no_new_privs`. Se aplican límites de CPU (10 s), tiempo total (15 s),
+archivos escritos (1 MiB por archivo), descriptores, procesos y pila; sin core dumps.
+Bubblewrap se instaló como paquete oficial Arch en el taller.
+
+Antes de las minas, `control-aislamiento.c` comprueba: ausencia del home, escritura
+rechazada con EROFS, solo PID 1/reaper y PID 2/control visibles, ausencia de rutas
+IPv4, entorno sin variables heredadas, CapEff=0, NoNewPrivs=1 y límites CPU/core.
+Si falla, no se ejecutan las minas. Un fallo del sandbox, agotamiento declarado de
+memoria o timeout es ROJO de infraestructura: no puede quedar AMARILLO por una gemela.
+
+Esto contiene estas pruebas de usuario, **no constituye aislamiento absoluto**:
+los procesos comparten el kernel de la VM, no hay lista seccomp ni cgroup de memoria
+por caso y los rlimits no equivalen a cuotas agregadas. La compilación se ejecuta
+como builder en el taller; no se introduce código arbitrario de terceros en este flujo.
+El límite externo sigue siendo la VM. No se instala ningún kernel ni se endurecen
+automáticamente los programas del sistema al ejecutar esta auditoría.
+
+Los ocho AMARILLO son los cuatro anteriores y: cadena sin NUL, uso tras bloque,
+comparación y resta de punteros ajenos. El campo de hilos añade otra limitación
+separada. Más pruebas encontradas no significan menos protección.
+
+Informes: `evidencias/campo-minas-ronda4.txt`,
+`evidencias/cruces-guardianes-ronda4.txt`, `evidencias/hilos-ronda4.txt`.
+Diagnósticos: `evidencias/hilos-carrera-ronda4.txt`,
+`evidencias/hilos-control-ronda4.txt`, `evidencias/aislamiento-ronda4.txt`.
+Catálogo de familias y huecos: [COBERTURA-UB.md](COBERTURA-UB.md).
+
+Fuentes: [opciones de GCC](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html)
+y [diseño de Bubblewrap](https://github.com/containers/bubblewrap/blob/main/README.md).
+
 ## Ronda 3: evidencia y cruces
 
 Ejecutada en el taller QEMU con GCC 16.2.1. Informes:

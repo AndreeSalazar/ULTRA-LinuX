@@ -1,0 +1,1 @@
+HILOS-OK: contador atomico=20000

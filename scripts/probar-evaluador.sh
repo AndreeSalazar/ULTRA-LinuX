@@ -23,4 +23,7 @@ check 1 0 N alias-estricto
 printf 'NEUTRALIZADA: resultado definido 0\n' > "$tmp/log.out"
 check 0 0 N alias-estricto
 check 1 1 N alias-estricto
+printf 'bwrap: fallo al crear namespace\nROJO [GUARDIAN-UB: trampa]\n' > "$tmp/log"
+check 1 1 D entero-desborde
+mina_infra_error 1 "$tmp/log" || exit 1
 echo 'VERDE: evaluador rechaza errores de infraestructura y exige evidencia'

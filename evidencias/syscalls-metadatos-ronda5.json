@@ -1,0 +1,14 @@
+{
+  "commit": "32c52ec87d6245ee2d12ed5dd509e40062939b50",
+  "tabla_sha256": "37794e7f9eb8dde12f95257c9414b0255fb008a8767be010b77717379aaa37c2",
+  "nativas": 386,
+  "x32": 36,
+  "declaradas": 46,
+  "resumenes_pendientes": 0,
+  "inputs": {
+    "/home/builder/linux-reconstruido/auditoria-syscalls/caja/syscalls-politica.h": "6fdcfd546ac5a3a37da626c287443b16144eb0c37c2ca8de942633d619cc64ed",
+    "/home/builder/linux-reconstruido/build/syscalls/busybox.strace": "c6dc1fe09d5337efced0cb2754ff0420ebccacefbde0e3824d4661a7e7ad8715",
+    "/home/builder/linux-reconstruido/build/x86_64-generico/System.map": "188eb9bc5499367872c6e3d2e656354ebc9345a558cecc9a5e903577084951d6"
+  },
+  "advertencia": "Simbolo no prueba alcanzabilidad; no observado no prueba innecesario. No se conceden permisos automaticamente."
+}

@@ -1,0 +1,22 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=2)
+  Read of size 4 at 0x55e9329930e4 by thread T1:
+    #0 worker /home/builder/linux-reconstruido/auditoria-guardianes/guardian/minas-hilos.c:20 (hilos+0x12e7) (BuildId: 11e09dd1c51430cd6620bc2658c8a686e6592965)
+    #1 <null> <null> (libtsan.so.2+0x557e9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+
+  Previous write of size 4 at 0x55e9329930e4 by thread T2:
+    #0 worker /home/builder/linux-reconstruido/auditoria-guardianes/guardian/minas-hilos.c:20 (hilos+0x12fa) (BuildId: 11e09dd1c51430cd6620bc2658c8a686e6592965)
+    #1 <null> <null> (libtsan.so.2+0x557e9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+
+  Location is global 'raced_count' of size 4 at 0x55e9329930e4 (hilos+0x40e4)
+
+  Thread T1 (tid=4, running) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x616c9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+    #1 main /home/builder/linux-reconstruido/auditoria-guardianes/guardian/minas-hilos.c:30 (hilos+0x1400) (BuildId: 11e09dd1c51430cd6620bc2658c8a686e6592965)
+
+  Thread T2 (tid=5, finished) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x616c9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+    #1 main /home/builder/linux-reconstruido/auditoria-guardianes/guardian/minas-hilos.c:30 (hilos+0x1400) (BuildId: 11e09dd1c51430cd6620bc2658c8a686e6592965)
+
+SUMMARY: ThreadSanitizer: data race /home/builder/linux-reconstruido/auditoria-guardianes/guardian/minas-hilos.c:20 in worker
+==================

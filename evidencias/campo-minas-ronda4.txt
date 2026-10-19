@@ -1,5 +1,5 @@
 gcc (GCC) 16.2.1 20260810
-AISLAMIENTO-OK: home ausente, artefactos RO, PID privado, sin rutas, entorno limpio
+AISLAMIENTO-OK: home ausente, artefactos RO, PID privado, sin rutas, entorno limpio, CapEff=0, NNP=1, limites CPU/core
 
 == Minas de compilacion: el codigo no debe compilar ==
 VERDE    alloca: alloca reserva pila sin limite ni aviso de fallo
@@ -104,19 +104,19 @@ VERDE    subobjeto-fuera: cruzar del arreglo a al vecino b no valida el indice d
 AMARILLO cadena-sin-nul: strlen necesita un terminador dentro del objeto
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     explota en silencio: el programa siguio como si nada
-         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7bbece3e0018 at pc 0x7f9ed0a8841c bp 0x7ffc59a10de0 sp 0x7ffc59a10598
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7b57efde0018 at pc 0x7f37f248841c bp 0x7fffe7e80da0 sp 0x7fffe7e80558
 AMARILLO uso-tras-scope: la vida de una local termina al salir de su bloque
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     explota en silencio: el programa siguio como si nada
-         diagnostico:    ==2==ERROR: AddressSanitizer: stack-use-after-scope on address 0x7b9009bf0020 at pc 0x561cc0e79480 bp 0x7ffe8e39ef60 sp 0x7ffe8e39ef50
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-use-after-scope on address 0x7b69241f0020 at pc 0x560f4a4cf480 bp 0x7ffd668b1300 sp 0x7ffd668b12f0
 AMARILLO comparar-punteros-ajenos: comparacion relacional de dos reservas distintas
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     explota en silencio: el programa siguio como si nada
-         diagnostico:    ==2==ERROR: AddressSanitizer: invalid-pointer-pair: 0x7bdab63e0010 0x7bdab63e0030
+         diagnostico:    ==2==ERROR: AddressSanitizer: invalid-pointer-pair: 0x7c01727e0010 0x7c01727e0030
 AMARILLO restar-punteros-ajenos: resta de punteros que no pertenecen al mismo arreglo
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     explota en silencio: el programa siguio como si nada
-         diagnostico:    ==2==ERROR: AddressSanitizer: invalid-pointer-pair: 0x7b59a4be0010 0x7b59a4be0030
+         diagnostico:    ==2==ERROR: AddressSanitizer: invalid-pointer-pair: 0x7b80751e0010 0x7b80751e0030
 VERDE    entero-desborde: int con signo pasa de INT_MAX: en C es UB y el optimizador puede borrar tus comprobaciones
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
@@ -136,20 +136,20 @@ VERDE    indice-fuera: escribir a[6] en un arreglo de 4 pisa memoria vecina sin 
 VERDE    copia-pila: memcpy de 16 bytes en un buffer de 8: clasico desborde de pila
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     *** buffer overflow detected ***: terminated
-         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b50008f0040 at pc 0x5610cc555115 bp 0x7ffea199d1e0 sp 0x7ffea199d1d0
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b58128f0040 at pc 0x55fe0e56f115 bp 0x7ffe85527dc0 sp 0x7ffe85527db0
 VERDE    desborde-heap: memset de 16 bytes en un malloc de 8 corrompe el heap
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     *** buffer overflow detected ***: terminated
-         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7bfa5e3e0018 at pc 0x7fda60b28a47 bp 0x7fff49b01de0 sp 0x7fff49b01598
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7b96845e0018 at pc 0x7f7686d28a47 bp 0x7ffeb460d0e0 sp 0x7ffeb460c898
 AMARILLO uso-tras-free: leer memoria ya liberada: puede contener datos de otro objeto
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     explota en silencio: el programa siguio como si nada
-         diagnostico:    ==2==ERROR: AddressSanitizer: heap-use-after-free on address 0x7b5f1f5e0080 at pc 0x560789b14141 bp 0x7ffc91112cb0 sp 0x7ffc91112ca0
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-use-after-free on address 0x7c0a823e0080 at pc 0x55c25ee83141 bp 0x7fffdbc32340 sp 0x7fffdbc32330
          gemela de compilacion: analizador-uso-tras-free (la revision la para antes de ejecutar)
 VERDE    doble-free: liberar dos veces corrompe el allocator; base de muchos exploits
          sin guardianes: free(): double free detected in tcache 2
          produccion:     free(): double free detected in tcache 2
-         diagnostico:    ==2==ERROR: AddressSanitizer: attempting double-free on 0x7c415bbe0080 in thread T0:
+         diagnostico:    ==2==ERROR: AddressSanitizer: attempting double-free on 0x7b88de5e0080 in thread T0:
 VERDE    puntero-nulo: escribir a traves de NULL; el compilador puede asumir que nunca es NULL
          sin guardianes: muere sin explicacion (senal 11)
          produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
@@ -157,7 +157,7 @@ VERDE    puntero-nulo: escribir a traves de NULL; el compilador puede asumir que
 VERDE    pila-destruida: un bucle escribe 64 bytes en un buffer de 8 hasta pisar el retorno
          sin guardianes: muere sin explicacion (senal 11)
          produccion:     *** stack smashing detected ***: terminated
-         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b1afedf0048 at pc 0x5585c6d4eca4 bp 0x7fff160d2190 sp 0x7fff160d2180
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b6c909f0048 at pc 0x557889bf4ca4 bp 0x7ffca08ab250 sp 0x7ffca08ab240
 VERDE    bool-invalido: un bool con valor 7 rompe la logica: ni true ni false
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
@@ -165,7 +165,7 @@ VERDE    bool-invalido: un bool con valor 7 rompe la logica: ni true ni false
 VERDE    desalineado: leer un int desde una direccion impar es UB en C
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
-         diagnostico:    minas.c:71:22: runtime error: load of misaligned address 0x7beda87f0061 for type 'int',
+         diagnostico:    minas.c:71:22: runtime error: load of misaligned address 0x7b758bbf0061 for type 'int',
 VERDE    puntero-vuelta: aritmetica de punteros que da la vuelta al espacio de direcciones
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
@@ -222,7 +222,7 @@ VERDE    nonnull: pasar NULL a una funcion que prometio no recibirlo
 VERDE    tamano-vuelta: count*16 da la vuelta a 16 (sin UB); malloc pequeno y escritura grande: el clasico de los exploits
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     *** buffer overflow detected ***: terminated
-         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7bc3eefe0020 at pc 0x7fa3f1728a47 bp 0x7ffc5f1b0ff0 sp 0x7ffc5f1b07a8
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7bf6b81e0020 at pc 0x7fd6ba928a47 bp 0x7ffc5ee827f0 sp 0x7ffc5ee81fa8
 VERDE    recursion-infinita: la pila crece hasta la pagina de guarda
          sin guardianes: muere sin explicacion (senal 11)
          produccion:     ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
@@ -236,15 +236,15 @@ VERDE    alloca-gigante: alloca de 64 MiB salta la pagina de guarda hacia otra m
 VERDE    free-pila: liberar memoria que no vino de malloc
          sin guardianes: double free or corruption (out)
          produccion:     double free or corruption (out)
-         diagnostico:    ==2==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x7b07781f0040 in thread T0
+         diagnostico:    ==2==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x7b663aff0040 in thread T0
 VERDE    free-medio: liberar un puntero desplazado dentro del bloque
          sin guardianes: free(): invalid pointer
          produccion:     free(): invalid pointer
-         diagnostico:    ==2==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x7bbae27e0088 in thread T0
+         diagnostico:    ==2==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x7b73f57e0088 in thread T0
 VERDE    heap-subdesborde: escribir antes del bloque pisa la cabecera del allocator
          sin guardianes: double free or corruption (out)
          produccion:     double free or corruption (out)
-         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7b9d749e007f at pc 0x55ec9e3decab bp 0x7ffc2be21ee0 sp 0x7ffc2be21ed0
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7c4da51e007f at pc 0x55892c779cab bp 0x7fff56a9b780 sp 0x7fff56a9b770
 VERDE    formato-n: %n en un formato escribible: printf escribe en memoria
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     *** %n in writable segments detected ***
@@ -257,11 +257,11 @@ VERDE    memcpy-solapado: memcpy con origen y destino solapados es UB; usar memm
 AMARILLO lectura-fuera: leer p[6] de un arreglo de 4 a traves de un puntero: filtra memoria vecina
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     explota en silencio: el programa siguio como si nada
-         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b8ddbff0078 at pc 0x56104212507e bp 0x7ffdcb046f80 sp 0x7ffdcb046f70
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b98abdf0078 at pc 0x555f9931307e bp 0x7ffc4bacb140 sp 0x7ffc4bacb130
 AMARILLO uso-tras-retorno: usar la direccion de una local de una funcion que ya volvio
          sin guardianes: explota en silencio: el programa siguio como si nada
          produccion:     explota en silencio: el programa siguio como si nada
-         diagnostico:    ==2==ERROR: AddressSanitizer: stack-use-after-return on address 0x7bc3733f0030 at pc 0x55e0ae65c188 bp 0x7fff4b8fbb70 sp 0x7fff4b8fbb60
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-use-after-return on address 0x7b09faff0030 at pc 0x5577e6aeb188 bp 0x7ffdbe924910 sp 0x7ffdbe924900
          gemela de compilacion: retorna-local (la revision la para antes de ejecutar)
 VERDE    int-min-entre-menos-uno: INT_MIN / -1 desborda: UB y excepcion en x86
          sin guardianes: muere sin explicacion (senal 8)
@@ -293,7 +293,7 @@ VERDE    secuestrar-arranque: sobrescribir un puntero de init_array, como un ata
 VERDE    signo-tamano: un cast explicito convierte -1 en tamano gigante y calla al guardian de compilacion
          sin guardianes: muere sin explicacion (senal 11)
          produccion:     *** buffer overflow detected ***: terminated
-         diagnostico:    ==2==ERROR: AddressSanitizer: global-buffer-overflow on address 0x55b03d24f960 at pc 0x55b03d24ad05 bp 0x7ffca12fc640 sp 0x7ffca12fc630
+         diagnostico:    ==2==ERROR: AddressSanitizer: global-buffer-overflow on address 0x5649fe5e5960 at pc 0x5649fe5e0d05 bp 0x7ffe1493a740 sp 0x7ffe1493a730
 NEUTRA   alias-estricto: leer un int por un float*: con alias estricto el optimizador devuelve un valor viejo
          sin guardianes: UB VISIBLE: resultado 1, se esperaba 0: la memoria real
          produccion:     NEUTRALIZADA: resultado definido 0 (0: la memoria real)

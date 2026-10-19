@@ -13,7 +13,7 @@ mkdir -p "$out"
 report="$out/informe.txt"
 : > "$report"
 log() { printf '%s\n' "$*" | tee -a "$report"; }
-first() { grep -m1 -E "$1" "$2" | sed 's/^[[:space:]]*//' | cut -c1-150; }
+first() { grep -m1 -E "$1" "$2" | sed 's/^[[:space:]]*//' | cut -c1-150 | sed 's/[[:space:]]*$//'; }
 
 log "$(gcc --version | head -n 1)"
 for tool in bwrap prlimit timeout; do
@@ -75,7 +75,12 @@ while IFS='|' read -r name kind why twin; do
         { bash "$lab/aislar-mina.sh" "$out/minas-$mode" "$name" > "$out/$mode-$name.txt.out" 2> "$out/$mode-$name.txt"; } 2> /dev/null
         printf -v "rc_$mode" '%d' $?
     done
-    if mina_detectada "$rc_prod" "$kind" "$out/prod-$name.txt" "$name"; then
+    if mina_infra_error "$rc_crudo" "$out/crudo-$name.txt" ||
+       mina_infra_error "$rc_prod" "$out/prod-$name.txt" ||
+       mina_infra_error "$rc_diag" "$out/diag-$name.txt"; then
+        state=ROJO; missed=$((missed+1))
+        log "ROJO     infraestructura: $name (crudo=$rc_crudo prod=$rc_prod diag=$rc_diag)"
+    elif mina_detectada "$rc_prod" "$kind" "$out/prod-$name.txt" "$name"; then
         if [[ $kind = N ]]; then state=NEUTRA; neutralized=$((neutralized+1)); else state=VERDE; stopped=$((stopped+1)); fi
     elif mina_detectada "$rc_diag" "$kind" "$out/diag-$name.txt" "$name"; then state=AMARILLO; diag_only=$((diag_only+1))
     elif [[ -n $twin && -f "$g/minas-compilacion/$twin.c" ]] && ! ultra_revisar "$g/minas-compilacion/$twin.c" 2> /dev/null; then

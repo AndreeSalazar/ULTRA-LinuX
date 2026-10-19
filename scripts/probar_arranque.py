@@ -31,7 +31,7 @@ CHECKS = [
     ('minas alias-estricto', 'NEUTRALIZADA'),
     ('minas secuestrar-arranque', 'FRONTERA-MEMORIA'),
     ('grep x86_Thread /proc/1/status', 'shstk'),
-    ('probar-caja', 'RESUMEN CAJA: VERDE=11 ROJO=0'),
+    ('probar-caja', 'RESUMEN CAJA: VERDE=13 ROJO=0'),
     ('dmesg | grep -m1 "kfence: init"', 'bytes for'),
 ]
 # The vigia kernel must show its detectors alive, then a clean log after the whole run.

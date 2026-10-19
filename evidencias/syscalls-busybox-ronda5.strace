@@ -1,0 +1,376 @@
+176613 execve("/usr/bin/busybox", ["/usr/bin/busybox", "sh", "-c", "busybox cat /etc/os-release; bus"...], 0x7ffdca0874b8 /* 19 vars */) = 0
+176613 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176613 set_tid_address(0x53ed2c)        = 176613
+176613 prctl(PR_GET_NAME, "busybox")    = 0
+176613 getuid()                         = 1000
+176613 stat("/etc/busybox.conf", 0x7ffe57ebd640) = -1 ENOENT (No such file or directory)
+176613 getgid()                         = 1000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176613 setgid(1000)                     = 0
+176613 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176613 setuid(1000)                     = 0
+176613 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176613 brk(NULL)                        = 0x222d8000
+176613 brk(0x222da000)                  = 0x222da000
+176613 mmap(0x222d8000, 4096, PROT_NONE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x222d8000
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e12000
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e11000
+176613 getpid()                         = 176613
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e10000
+176613 rt_sigprocmask(SIG_UNBLOCK, [RT_1 RT_2], NULL, 8) = 0
+176613 rt_sigaction(SIGCHLD, {sa_handler=0x4735cc, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176613 getppid()                        = 176611
+176613 uname({sysname="Linux", nodename="linux-reconstruido-taller", ...}) = 0
+176613 stat("/home/builder", {st_mode=S_IFDIR|0700, st_size=126, ...}) = 0
+176613 stat(".", {st_mode=S_IFDIR|0700, st_size=126, ...}) = 0
+176613 rt_sigaction(SIGINT, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+176613 rt_sigaction(SIGINT, {sa_handler=0x4735cc, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176613 rt_sigaction(SIGQUIT, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+176613 rt_sigaction(SIGQUIT, {sa_handler=SIG_IGN, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176613 rt_sigaction(SIGTERM, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e0f000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], ~[KILL STOP RTMIN RT_1 RT_2], 8) = 0
+176613 fork()                           = 176614
+176614 set_tid_address(0x53ed2c <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176614 <... set_tid_address resumed>)   = 176614
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176614 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176614 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176614 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176613 wait4(-1 <unfinished ...>
+176614 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176614 rt_sigaction(SIGQUIT, {sa_handler=SIG_DFL, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176614 execve("/proc/self/exe", ["busybox", "cat", "/etc/os-release"], 0x7f6313e0f090 /* 19 vars */) = 0
+176614 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176614 set_tid_address(0x53ed2c)        = 176614
+176614 prctl(PR_GET_NAME, "exe")        = 0
+176614 prctl(PR_SET_NAME, "busybox")    = 0
+176614 getuid()                         = 1000
+176614 stat("/etc/busybox.conf", 0x7ffe9acfee90) = -1 ENOENT (No such file or directory)
+176614 getgid()                         = 1000
+176614 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176614 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176614 setgid(1000)                     = 0
+176614 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176614 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176614 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176614 setuid(1000)                     = 0
+176614 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176614 open("/etc/os-release", O_RDONLY|O_LARGEFILE) = 3
+176614 sendfile(1, 3, NULL, 16777216)   = 382
+176614 sendfile(1, 3, NULL, 16777216)   = 0
+176614 close(3)                         = 0
+176614 exit_group(0)                    = ?
+176613 <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 176614
+176613 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=176614, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+176613 rt_sigreturn({mask=[]})          = 176614
+176613 wait4(-1, 0x7ffe57ebcbd4, WNOHANG, NULL) = -1 ECHILD (No child processes)
+176613 munmap(0x7f6313e0f000, 4096)     = 0
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e0f000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], ~[KILL STOP RTMIN RT_1 RT_2], 8) = 0
+176613 fork()                           = 176615
+176615 set_tid_address(0x53ed2c <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176615 <... set_tid_address resumed>)   = 176615
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176615 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176615 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176615 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176613 wait4(-1 <unfinished ...>
+176615 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176615 rt_sigaction(SIGQUIT, {sa_handler=SIG_DFL, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176615 execve("/proc/self/exe", ["busybox", "echo", "control"], 0x7f6313e0f0a0 /* 19 vars */) = 0
+176615 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176615 set_tid_address(0x53ed2c)        = 176615
+176615 prctl(PR_GET_NAME, "exe")        = 0
+176615 prctl(PR_SET_NAME, "busybox")    = 0
+176615 getuid()                         = 1000
+176615 stat("/etc/busybox.conf", 0x7ffc7d7f8830) = -1 ENOENT (No such file or directory)
+176615 getgid()                         = 1000
+176615 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176615 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176615 setgid(1000)                     = 0
+176615 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176615 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176615 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176615 setuid(1000)                     = 0
+176615 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176615 brk(NULL)                        = 0xd72000
+176615 brk(0xd74000)                    = 0xd74000
+176615 mmap(0xd72000, 4096, PROT_NONE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xd72000
+176615 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fb3ea1e2000
+176615 write(1, "control\n", 8)         = 8
+176615 munmap(0x7fb3ea1e2000, 4096)     = 0
+176615 exit_group(0)                    = ?
+176613 <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 176615
+176613 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=176615, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+176613 rt_sigreturn({mask=[]})          = 176615
+176613 wait4(-1, 0x7ffe57ebcbd4, WNOHANG, NULL) = -1 ECHILD (No child processes)
+176613 munmap(0x7f6313e0f000, 4096)     = 0
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e0f000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], ~[KILL STOP RTMIN RT_1 RT_2], 8) = 0
+176613 fork()                           = 176616
+176616 set_tid_address(0x53ed2c <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176616 <... set_tid_address resumed>)   = 176616
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176616 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176616 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176616 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176613 wait4(-1 <unfinished ...>
+176616 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176616 rt_sigaction(SIGQUIT, {sa_handler=SIG_DFL, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176616 execve("/proc/self/exe", ["busybox", "ls", "/tmp"], 0x7f6313e0f0b0 /* 19 vars */) = 0
+176616 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176616 set_tid_address(0x53ed2c)        = 176616
+176616 prctl(PR_GET_NAME, "exe")        = 0
+176616 prctl(PR_SET_NAME, "busybox")    = 0
+176616 getuid()                         = 1000
+176616 stat("/etc/busybox.conf", 0x7ffdc2f0fb40) = -1 ENOENT (No such file or directory)
+176616 getgid()                         = 1000
+176616 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176616 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176616 setgid(1000)                     = 0
+176616 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176616 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176616 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176616 setuid(1000)                     = 0
+176616 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176616 ioctl(0, TIOCGWINSZ, 0x7ffdc2f0fc90) = -1 ENOTTY (Inappropriate ioctl for device)
+176616 ioctl(1, TIOCGWINSZ, 0x7ffdc2f0fcd0) = -1 ENOTTY (Inappropriate ioctl for device)
+176616 ioctl(1, TIOCGWINSZ, 0x7ffdc2f0fcd0) = -1 ENOTTY (Inappropriate ioctl for device)
+176616 brk(NULL)                        = 0x113ef000
+176616 brk(0x113f1000)                  = 0x113f1000
+176616 mmap(0x113ef000, 4096, PROT_NONE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x113ef000
+176616 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fc0ffbd9000
+176616 stat("/tmp", {st_mode=S_IFDIR|S_ISVTX|0777, st_size=440, ...}) = 0
+176616 open("/tmp", O_RDONLY|O_LARGEFILE|O_CLOEXEC|O_DIRECTORY) = 3
+176616 fcntl(3, F_SETFD, FD_CLOEXEC)    = 0
+176616 mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fc0ffbd7000
+176616 getdents64(3, 0x7fc0ffbd7048 /* 22 entries */, 2048) = 672
+176616 lstat("/tmp/rev", {st_mode=S_IFDIR|0755, st_size=180, ...}) = 0
+176616 lstat("/tmp/g", {st_mode=S_IFDIR|0755, st_size=100, ...}) = 0
+176616 lstat("/tmp/u", {st_mode=S_IFREG|0755, st_size=16072, ...}) = 0
+176616 lstat("/tmp/u.c", {st_mode=S_IFREG|0644, st_size=335, ...}) = 0
+176616 lstat("/tmp/x.txt", {st_mode=S_IFREG|0644, st_size=3, ...}) = 0
+176616 lstat("/tmp/bb.trace", {st_mode=S_IFREG|0644, st_size=24531, ...}) = 0
+176616 lstat("/tmp/cet", {st_mode=S_IFREG|0755, st_size=16264, ...}) = 0
+176616 lstat("/tmp/cet.c", {st_mode=S_IFREG|0644, st_size=429, ...}) = 0
+176616 lstat("/tmp/ss", {st_mode=S_IFREG|0755, st_size=856744, ...}) = 0
+176616 lstat("/tmp/s", {st_mode=S_IFREG|0755, st_size=16240, ...}) = 0
+176616 lstat("/tmp/s.c", {st_mode=S_IFREG|0644, st_size=156, ...}) = 0
+176616 lstat("/tmp/m_dyn", {st_mode=S_IFREG|0755, st_size=15776, ...}) = 0
+176616 lstat("/tmp/m.c", {st_mode=S_IFREG|0644, st_size=26, ...}) = 0
+176616 lstat("/tmp/t1", {st_mode=S_IFREG|0755, st_size=15704, ...}) = 0
+176616 lstat("/tmp/t.c", {st_mode=S_IFREG|0644, st_size=83, ...}) = 0
+176616 lstat("/tmp/systemd-private-de97a844e2eb422e8298b59ed9cce823-systemd-logind.service-1iDikU", {st_mode=S_IFDIR|0700, st_size=60, ...}) = 0
+176616 getdents64(3, 0x7fc0ffbd7048 /* 0 entries */, 2048) = 0
+176616 close(3)                         = 0
+176616 munmap(0x7fc0ffbd7000, 8192)     = 0
+176616 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fc0ffbd8000
+176616 ioctl(1, TIOCGWINSZ, 0x7ffdc2f0fbd0) = -1 ENOTTY (Inappropriate ioctl for device)
+176616 writev(1, [{iov_base="bb.trace", iov_len=8}, {iov_base="\n", iov_len=1}], 2) = 9
+176616 munmap(0x7fc0ffbd8000, 4096)     = 0
+176616 writev(1, [{iov_base="cet\ncet.c\ng\nm.c\nm_dyn\nrev\ns\ns.c\n"..., iov_len=133}, {iov_base=NULL, iov_len=0}], 2) = 133
+176616 exit_group(0)                    = ?
+176613 <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 176616
+176613 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=176616, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+176613 rt_sigreturn({mask=[]})          = 176616
+176613 wait4(-1, 0x7ffe57ebcd04, WNOHANG, NULL) = -1 ECHILD (No child processes)
+176613 munmap(0x7f6313e0f000, 4096)     = 0
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e0f000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], ~[KILL STOP RTMIN RT_1 RT_2], 8) = 0
+176613 fork()                           = 176617
+176617 set_tid_address(0x53ed2c <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176617 <... set_tid_address resumed>)   = 176617
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176617 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176617 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176617 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176613 wait4(-1 <unfinished ...>
+176617 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176617 rt_sigaction(SIGQUIT, {sa_handler=SIG_DFL, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176617 execve("/proc/self/exe", ["busybox", "wc", "-c", "/etc/os-release"], 0x7f6313e0f0c8 /* 19 vars */) = 0
+176617 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176617 set_tid_address(0x53ed2c)        = 176617
+176617 prctl(PR_GET_NAME, "exe")        = 0
+176617 prctl(PR_SET_NAME, "busybox")    = 0
+176617 getuid()                         = 1000
+176617 stat("/etc/busybox.conf", 0x7ffcd414ffb0) = -1 ENOENT (No such file or directory)
+176617 getgid()                         = 1000
+176617 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176617 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176617 setgid(1000)                     = 0
+176617 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176617 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176617 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176617 setuid(1000)                     = 0
+176617 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176617 open("/etc/os-release", O_RDONLY|O_LARGEFILE) = 3
+176617 brk(NULL)                        = 0xea8d000
+176617 brk(0xea8f000)                   = 0xea8f000
+176617 mmap(0xea8d000, 4096, PROT_NONE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xea8d000
+176617 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fd37c4d5000
+176617 read(3, "NAME=\"Arch Linux\"\nPRETTY_NAME=\"A"..., 1024) = 382
+176617 read(3, "", 1024)                = 0
+176617 close(3)                         = 0
+176617 munmap(0x7fd37c4d5000, 4096)     = 0
+176617 ioctl(1, TIOCGWINSZ, 0x7ffcd414fc60) = -1 ENOTTY (Inappropriate ioctl for device)
+176617 writev(1, [{iov_base="382 /etc/os-release", iov_len=19}, {iov_base="\n", iov_len=1}], 2) = 20
+176617 exit_group(0)                    = ?
+176613 <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 176617
+176613 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=176617, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+176613 rt_sigreturn({mask=[]})          = 176617
+176613 wait4(-1, 0x7ffe57ebce34, WNOHANG, NULL) = -1 ECHILD (No child processes)
+176613 munmap(0x7f6313e0f000, 4096)     = 0
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e0f000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], ~[KILL STOP RTMIN RT_1 RT_2], 8) = 0
+176613 fork()                           = 176618
+176618 set_tid_address(0x53ed2c <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176618 <... set_tid_address resumed>)   = 176618
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176618 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176618 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176618 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176613 wait4(-1 <unfinished ...>
+176618 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176618 rt_sigaction(SIGQUIT, {sa_handler=SIG_DFL, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176618 execve("/proc/self/exe", ["busybox", "uname", "-n"], 0x7f6313e0f0d0 /* 19 vars */) = 0
+176618 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176618 set_tid_address(0x53ed2c)        = 176618
+176618 prctl(PR_GET_NAME, "exe")        = 0
+176618 prctl(PR_SET_NAME, "busybox")    = 0
+176618 getuid()                         = 1000
+176618 stat("/etc/busybox.conf", 0x7ffcf0873470) = -1 ENOENT (No such file or directory)
+176618 getgid()                         = 1000
+176618 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176618 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176618 setgid(1000)                     = 0
+176618 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176618 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176618 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176618 setuid(1000)                     = 0
+176618 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176618 uname({sysname="Linux", nodename="linux-reconstruido-taller", ...}) = 0
+176618 ioctl(1, TIOCGWINSZ, 0x7ffcf08733c0) = -1 ENOTTY (Inappropriate ioctl for device)
+176618 writev(1, [{iov_base="linux-reconstruido-taller", iov_len=25}, {iov_base="\n", iov_len=1}], 2) = 26
+176618 exit_group(0)                    = ?
+176613 <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 176618
+176613 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=176618, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+176613 rt_sigreturn({mask=[]})          = 176618
+176613 wait4(-1, 0x7ffe57ebcf64, WNOHANG, NULL) = -1 ECHILD (No child processes)
+176613 munmap(0x7f6313e0f000, 4096)     = 0
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e0f000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], ~[KILL STOP RTMIN RT_1 RT_2], 8) = 0
+176613 fork()                           = 176619
+176619 set_tid_address(0x53ed2c <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176619 <... set_tid_address resumed>)   = 176619
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176619 rt_sigprocmask(SIG_SETMASK, ~[KILL STOP RTMIN RT_1 RT_2] <unfinished ...>
+176613 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176619 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176613 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176619 rt_sigprocmask(SIG_SETMASK, [] <unfinished ...>
+176613 wait4(-1 <unfinished ...>
+176619 <... rt_sigprocmask resumed>, NULL, 8) = 0
+176619 rt_sigaction(SIGQUIT, {sa_handler=SIG_DFL, sa_mask=~[RTMIN RT_1 RT_2], sa_flags=SA_RESTORER, sa_restorer=0x4defce}, NULL, 8) = 0
+176619 execve("/proc/self/exe", ["busybox", "sleep", "0.01"], 0x7f6313e0f0e0 /* 19 vars */) = 0
+176619 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176619 set_tid_address(0x53ed2c)        = 176619
+176619 prctl(PR_GET_NAME, "exe")        = 0
+176619 prctl(PR_SET_NAME, "busybox")    = 0
+176619 getuid()                         = 1000
+176619 stat("/etc/busybox.conf", 0x7fffcc7fdea0) = -1 ENOENT (No such file or directory)
+176619 getgid()                         = 1000
+176619 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176619 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176619 setgid(1000)                     = 0
+176619 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176619 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176619 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176619 setuid(1000)                     = 0
+176619 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176619 nanosleep({tv_sec=0, tv_nsec=10000000}, 0x7fffcc7fe038) = 0
+176619 exit_group(0)                    = ?
+176613 <... wait4 resumed>, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 176619
+176613 --- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=176619, si_uid=1000, si_status=0, si_utime=0, si_stime=0} ---
+176613 rt_sigreturn({mask=[]})          = 176619
+176613 wait4(-1, 0x7ffe57ebd094, WNOHANG, NULL) = -1 ECHILD (No child processes)
+176613 munmap(0x7f6313e0f000, 4096)     = 0
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f6313e0f000
+176613 execve("/proc/self/exe", ["busybox", "id"], 0x7f6313e0f028 /* 19 vars */) = 0
+176613 arch_prctl(ARCH_SET_FS, 0x53e2b8) = 0
+176613 set_tid_address(0x53ed2c)        = 176613
+176613 prctl(PR_GET_NAME, "exe")        = 0
+176613 prctl(PR_SET_NAME, "busybox")    = 0
+176613 getuid()                         = 1000
+176613 stat("/etc/busybox.conf", 0x7ffcb578d4f0) = -1 ENOENT (No such file or directory)
+176613 getgid()                         = 1000
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176613 setgid(1000)                     = 0
+176613 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[RTMIN RT_1 RT_2], [], 8) = 0
+176613 rt_sigprocmask(SIG_BLOCK, ~[], NULL, 8) = 0
+176613 setuid(1000)                     = 0
+176613 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+176613 getegid()                        = 1000
+176613 getgid()                         = 1000
+176613 geteuid()                        = 1000
+176613 getuid()                         = 1000
+176613 brk(NULL)                        = 0xe90a000
+176613 brk(0xe90c000)                   = 0xe90c000
+176613 mmap(0xe90a000, 4096, PROT_NONE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xe90a000
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fda2442d000
+176613 open("/etc/passwd", O_RDONLY|O_LARGEFILE) = 3
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fda2442c000
+176613 read(3, "root:x:0:0::/root:/usr/bin/bash\n"..., 1024) = 1024
+176613 read(3, ":1000:1000::/home/builder:/bin/b"..., 1024) = 87
+176613 lseek(3, -51, SEEK_CUR)          = 1060
+176613 close(3)                         = 0
+176613 munmap(0x7fda2442c000, 4096)     = 0
+176613 open("/etc/group", O_RDONLY|O_LARGEFILE) = 3
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fda2442c000
+176613 read(3, "root:x:0:root\nsys:x:3:bin\nmem:x:"..., 1024) = 746
+176613 lseek(3, -11, SEEK_CUR)          = 735
+176613 close(3)                         = 0
+176613 munmap(0x7fda2442c000, 4096)     = 0
+176613 getgroups(64, [998, 1000])       = 2
+176613 open("/etc/group", O_RDONLY|O_LARGEFILE) = 3
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fda2442c000
+176613 read(3, "root:x:0:root\nsys:x:3:bin\nmem:x:"..., 1024) = 746
+176613 lseek(3, -528, SEEK_CUR)         = 218
+176613 close(3)                         = 0
+176613 munmap(0x7fda2442c000, 4096)     = 0
+176613 open("/etc/group", O_RDONLY|O_LARGEFILE) = 3
+176613 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fda2442c000
+176613 read(3, "root:x:0:root\nsys:x:3:bin\nmem:x:"..., 1024) = 746
+176613 lseek(3, -11, SEEK_CUR)          = 735
+176613 close(3)                         = 0
+176613 munmap(0x7fda2442c000, 4096)     = 0
+176613 ioctl(1, TIOCGWINSZ, 0x7ffcb578d630) = -1 ENOTTY (Inappropriate ioctl for device)
+176613 writev(1, [{iov_base="uid=1000(builder) gid=1000(build"..., iov_len=67}, {iov_base="\n", iov_len=1}], 2) = 68
+176613 exit_group(0)                    = ?

@@ -90,6 +90,9 @@ static void flag_handler(int sig, siginfo_t *info, void *context) {
     put(" pc=inicio+");
     put_hex(pc - (uintptr_t)__executable_start);
     put("\n");
+    /* Namespace PID 1 has special default-signal rules. Never re-execute a
+     * fault there: exit_group ends the namespace and its descendants. */
+    if (getpid() == 1) _exit(128 + sig);
     /* SA_RESETHAND restored the default action: re-raise so the parent sees the real signal. */
     if (sig == SIGABRT || sig == SIGSYS) raise(sig);
     /* Faults re-execute the instruction and now die with the default action. */
@@ -120,6 +123,7 @@ _Noreturn void ultra_fail(const char *code, const char *file, int line, const ch
     put(": ");
     put(why);
     put("\n");
+    if (getpid() == 1) _exit(128 + SIGABRT);
     abort();
 }
 

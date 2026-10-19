@@ -5,12 +5,14 @@
  *
  * Every guardian that wakes up prints a flag (bandera) before stopping:
  *   ROJO [GUARDIAN-CODE] where: why
- * A guardian never lets the program continue in an undefined state.
+ * Explicit guards stop covered invalid operations before performing them.
+ * Ordinary C outside these APIs still needs review, sanitizers and isolation.
  */
 #ifndef ULTRA_GUARD_H
 #define ULTRA_GUARD_H
 
 #include <stdbool.h>
+#include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -64,6 +66,36 @@ const char *ultra_explain_signal(int sig);
     ({ __typeof__((a) * (b)) ultra_r_; \
        ULTRA_CHECK(!__builtin_mul_overflow((a), (b), &ultra_r_), "UB-DESBORDE", "multiplicacion desborda su tipo"); \
        ultra_r_; })
+
+/* Explicit int API: operands are evaluated once; checks precede the operation.
+ * Callers must supply int values: these functions cannot validate an earlier
+ * narrowing conversion, dangling pointer or UB used to calculate an operand.
+ */
+static inline int ultra_div_int(int a, int b, const char *file, int line) {
+    if (b == 0) ultra_fail("UB-DIVISION", file, line, "divisor cero");
+    if (a == INT_MIN && b == -1)
+        ultra_fail("UB-DIVISION", file, line, "INT_MIN / -1 no cabe en int");
+    return a / b;
+}
+static inline int ultra_rem_int(int a, int b, const char *file, int line) {
+    if (b == 0) ultra_fail("UB-RESTO", file, line, "divisor cero en resto");
+    if (a == INT_MIN && b == -1)
+        ultra_fail("UB-RESTO", file, line, "INT_MIN % -1 tambien es UB");
+    return a % b;
+}
+static inline int ultra_shl_int(int a, int count, const char *file, int line) {
+    /* This Linux/GCC API accepts nonnegative results representable in int.
+     * Checking the count first keeps the guard's own right shift defined.
+     */
+    if (count < 0 || (unsigned int)count >= sizeof(int) * CHAR_BIT)
+        ultra_fail("UB-DESPLAZAMIENTO", file, line, "contador fuera del ancho de int");
+    if (a < 0 || a > (INT_MAX >> count))
+        ultra_fail("UB-DESPLAZAMIENTO", file, line, "base negativa o resultado fuera de int");
+    return a << count;
+}
+#define ULTRA_DIV_INT(a, b) ultra_div_int((a), (b), __FILE__, __LINE__)
+#define ULTRA_REM_INT(a, b) ultra_rem_int((a), (b), __FILE__, __LINE__)
+#define ULTRA_SHL_INT(a, n) ultra_shl_int((a), (n), __FILE__, __LINE__)
 
 /*
  * Bounded copy and append: the destination size travels with the call.

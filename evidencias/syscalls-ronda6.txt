@@ -1,0 +1,46 @@
+KERNEL-TALLER: 7.2.11-arch1-1
+gcc (GCC) 16.2.1 20260810
+CATALOGO: nativas=386 x32=36 declaradas=46; resumenes pendientes=0
+FORMAL-OK: Z3 4.16.0; 156 instrucciones; equivalencia UNSAT para seccomp_data de 512 bits
+CONTROL-OK: filtro permitir-todo rechazado por contraejemplo
+BPF-SHA256: 551b0976babf076c196358e03be94901fee59fb2b369d0914be8c5a39ee7e839
+ALCANCE: semantica cBPF modelada y contrato declarado; no prueba correccion del kernel, C, hardware ni datos ya concedidos
+SECCOMP-OK: nativas=386 permitidas=46 denegadas=340; ioctl=65536 decisiones; comandos desconocidos rechazados; kernel=14/14
+PID1-OK: rechazo explicito y trampa terminan sin bucle
+VERDE    caja lector cat /etc/os-release
+         NAME="ULTRA LinuX"
+         PRETTY_NAME="ULTRA LinuX (fase 1: kernel + init C + BusyBox)"
+VERDE    caja lector sh -c echo PID=$$
+         PID=1
+VERDE    caja lector uname -n
+         caja
+VERDE    caja lector id
+         uid=65534 gid=65534
+VERDE    caja lector sh -c echo fuga > /tmp/fuera
+         sh: can't create /tmp/fuera: Permission denied
+VERDE    caja lector cat /proc/version
+         cat: can't open '/proc/version': Permission denied
+VERDE    caja taller cat /etc/os-release
+         cat: can't open '/etc/os-release': Permission denied
+VERDE    caja taller sh -c echo dentro > /tmp/dentro && cat /tmp/dentro
+VERDE    caja lector nc 10.0.2.2 80
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: socket (41) en pid 103; la caja se destruye
+VERDE    caja lector mount -t tmpfs none /tmp
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: mount (165) en pid 115; la caja se destruye
+VERDE    caja lector sh -c kill -9 1
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: kill (62) en pid 127; la caja se destruye
+VERDE    caja lector sh -c echo no-debe-escribir >&9
+VERDE    caja taller sh -c (kill -0 1; echo NO-DEBE-CONTINUAR); echo NO-DEBE-CONTINUAR
+         ROJO [CAJA-SECCOMP]: llamada al sistema no declarada: kill (62) en pid 152; la caja se destruye
+VERDE    caja lector cat /datos/secreto
+         cat: can't open '/datos/secreto': Permission denied
+VERDE    caja lector sh -c : > /etc/sentinel
+         sh: can't create /etc/sentinel: Permission denied
+VERDE    caja taller cat /tmp/caja-enlace
+         cat: can't open '/tmp/caja-enlace': Permission denied
+VERDE    caja taller /tmp/caja-noexec echo NO-DEBE-CONTINUAR
+         ROJO [CAJA-EXEC] /home/builder/linux-reconstruido/auditoria-syscalls/caja/caja.c:176: execve fallo dentro de la caja
+RESUMEN CAJA: VERDE=17 ROJO=0
+STDIO-OK: sockets en stdin/stdout/stderr rechazados antes de exec; sin datos enviados
+DATOS-OK: archivo de control conservado; lectura protegida y ejecucion en datos rechazadas
+AUDITORIA-SYSCALLS-OK: catalogo, BPF, kernel y caja real verificados en taller
