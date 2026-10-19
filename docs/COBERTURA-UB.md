@@ -1,5 +1,10 @@
 # Cobertura de C17 y GCC
 
+El [Museo viviente de C](MUSEO-UB.md) presenta 24 piezas con fragmentos, alternativas,
+referencias y estados tomados del informe. El registro editable es `museo-ub.json`;
+el generador rechaza nombres inventados y evidencia incompleta. Las fichas pendientes
+se mantienen visibles y no se convierten automaticamente en casos VERDE.
+
 Este catálogo organiza familias para ampliar el laboratorio; no enumera toda la
 norma ni certifica ausencia de UB. Un caso VERDE demuestra solo ese caso en el
 compilador, arquitectura, opciones y entradas probados. UBSan no instrumenta todo C.
