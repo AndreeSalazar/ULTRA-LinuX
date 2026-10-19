@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
- * ULTRA LinuX init: PID 1 mounts the base filesystems, then supervises one
+ * ULTRA LinuX init: PID 1 mounts the base filesystems and the ULTRA partitions,
+ * loads the PC's modules, then supervises one
  * BusyBox shell per active kernel console (screen and serial alike). Every outcome is reported as VERDE, AMARILLO or ROJO with a
  * code, so a failure is never silent. PID 1 must not exit: the kernel panics.
  */
@@ -18,6 +19,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include "init.h"
 /* Last: it poisons unsafe functions after the system headers are parsed. */
 #include "guardian/ultra_guard.h"
 
@@ -45,7 +47,7 @@ static void emit(const char *s) {
     }
 }
 
-static void report(const char *level, const char *code, const char *detail) {
+void report(const char *level, const char *code, const char *detail) {
     char line[384];
     int n = snprintf(line, sizeof(line), "%s [%s]: %s\n", level, code, detail);
     if (n < 0) return;
@@ -147,6 +149,7 @@ static void shut_down(int sig) {
     sleep(1);
     kill(-1, SIGKILL);
     sync();
+    unmount_data();
     reboot(how);
     report("ROJO", "APAGADO", strerror(errno));
 }
@@ -173,6 +176,7 @@ int main(void) {
     else snprintf(detail, sizeof(detail), "uname: %s", strerror(errno));
     emit("\nULTRA LinuX: INIT C READY\n");
     report("VERDE", "KERNEL", detail);
+    prepare_hardware(mount_partitions());
 
     /* Signals are taken synchronously: no handler code runs at arbitrary points. */
     sigset_t watched;

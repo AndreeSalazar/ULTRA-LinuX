@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import hashlib, pathlib, shutil, socket, subprocess, sys, time
+import hashlib, pathlib, secrets, shutil, socket, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
@@ -10,6 +10,8 @@ QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
 BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico'}[PERFIL]
 KERNEL = BUILD / 'bzImage-tiny64'
 IMG = BUILD / 'ultra-esp.img'
+# The disk test writes to /datos, so it boots a fresh copy and never the verified image.
+IMG_PRUEBA = BUILD / 'ultra-esp-prueba.img'
 LOG = BUILD / ('prueba-disco.log' if DISCO else 'prueba-shell.log')
 QEMU = pathlib.Path(r'C:\Program Files\qemu\qemu-system-x86_64.exe')
 PORT = 15555
@@ -49,6 +51,24 @@ if DISCO:
         ('cat /proc/cmdline', 'x86_shstk=on'),
         ('cat /sys/class/tty/console/active', 'ttyS0'),
     ]
+# Persistence: boot 1 detects the hardware and writes to /datos, then a real reboot.
+# QEMU adds an Intel HD Audio controller so detection has a module to find.
+TOKEN = 'PERSISTE-' + secrets.token_hex(4)
+BOOT1 = [
+    ('grep " /sistema " /proc/mounts', 'erofs ro'),
+    ('grep " /datos " /proc/mounts', 'ext4 rw'),
+    ('cat /sistema/ULTRA-SISTEMA', 'kernel=7.'),
+    ('touch /sistema/intruso', 'Read-only file system'),
+    ('cat /datos/PC.config*', 'snd_hda_intel'),
+    ('lsmod', 'snd_hda_intel'),
+    (f'echo {TOKEN} > /datos/prueba-persistencia; sync; echo ESCRITO-$((1+1))', 'ESCRITO-2'),
+]
+BOOT2 = [
+    ('cat /datos/prueba-persistencia', TOKEN),
+    ('lsmod', 'snd_hda_intel'),
+    ('cat /datos/arranques.log', 'arranque=deteccion'),
+    ('cat /datos/arranques.log', 'arranque=guiado'),
+]
 if PERFIL == 'vigia':
     CHECKS += [
         ('dmesg | grep -m1 "AddressSanitizer init"', 'initialized'),
@@ -56,15 +76,21 @@ if PERFIL == 'vigia':
         (f'dmesg | grep -E "{REPORTS}" || echo VIGIA-$((1))-LIMPIO', 'VIGIA-1-LIMPIO'),
     ]
 
+class Incomplete(Exception):
+    """A wait that failed; what did arrive still goes to the log."""
+    def __init__(self, why, partial):
+        super().__init__(why)
+        self.partial = partial
+
 def read_until(conn, marker, timeout):
     data, end = b'', time.time() + timeout
     while marker.encode() not in data:
-        if time.time() > end: raise TimeoutError(f'no aparecio {marker!r}')
+        if time.time() > end: raise Incomplete(f'no aparecio {marker!r}', data.decode(errors='replace'))
         try:
             chunk = conn.recv(4096)
         except socket.timeout:
             continue
-        if not chunk: raise ConnectionError('la consola serie se cerro')
+        if not chunk: raise Incomplete('la consola serie se cerro', data.decode(errors='replace'))
         data += chunk
     return data.decode(errors='replace')
 
@@ -86,45 +112,81 @@ def check_kernel():
             print(f'ROJO [HASH]: {f.name} no coincide con SHA256SUMS; volver a descargar.')
             sys.exit(1)
 
+def run(conn, checks, failures):
+    transcript = ''
+    for command, expected in checks:
+        conn.sendall(command.encode() + b'\n')
+        out = read_until(conn, 'ultra:', 30)
+        transcript += out
+        print(('VERDE' if expected in out else 'ROJO'), f'[{command}]')
+        if expected not in out: failures.append(command)
+    return transcript
+
+def expect_boot(boot, expected, label, failures):
+    """What PID 1 reported while booting, before the first prompt."""
+    print(('VERDE' if expected in boot else 'ROJO'), f'[{label}]')
+    if expected not in boot: failures.append(label)
+
 def main():
     check_kernel()
     if DISCO:
         vars_copy = BUILD / 'ovmf-vars-prueba.fd'
         shutil.copyfile(QEMU_SHARE / 'edk2-i386-vars.fd', vars_copy)
+        # A fresh copy every run: the first boot must really be a first boot.
+        shutil.copyfile(IMG, IMG_PRUEBA)
         boot = ['-drive', f'if=pflash,format=raw,readonly=on,file={QEMU_SHARE / "edk2-x86_64-code.fd"}',
                 '-drive', f'if=pflash,format=raw,file={vars_copy}',
-                '-drive', f'file={IMG},format=raw,if=virtio,snapshot=on']
+                '-drive', f'file={IMG_PRUEBA},format=raw,if=virtio', '-device', 'intel-hda']
     else:
         boot = ['-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic quiet '
                 'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on']
-    qemu = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '1024',
-                             *boot, '-nic', 'none', '-display', 'none', '-no-reboot',
-                             '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on'],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    transcript, failures = '', []
-    try:
+    def start():
+        proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '1024',
+                                 *boot, '-nic', 'none', '-display', 'none', '-no-reboot',
+                                 '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on'],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         for _ in range(50):
             try:
                 conn = socket.create_connection(('127.0.0.1', PORT), timeout=1); break
             except OSError: time.sleep(0.2)
-        else: raise ConnectionError('QEMU no abrio la consola serie')
+        else:
+            proc.kill(); raise ConnectionError('QEMU no abrio la consola serie')
         conn.settimeout(0.5)
+        return proc, conn
+    transcript, failures = '', []
+    qemu = None
+    try:
+        qemu, conn = start()
         # Firmware start-up adds seconds before the kernel runs.
-        transcript += read_until(conn, 'ultra:', 120 if DISCO else 30)
-        for command, expected in CHECKS:
-            conn.sendall(command.encode() + b'\n')
-            out = read_until(conn, 'ultra:', 30)
-            transcript += out
-            print(('VERDE' if expected in out else 'ROJO'), f'[{command}]')
-            if expected not in out: failures.append(command)
+        first = read_until(conn, 'ultra:', 120 if DISCO else 30)
+        transcript += first
+        transcript += run(conn, CHECKS, failures)
+        if DISCO:
+            expect_boot(first, 'VERDE [PARTICION]: ULTRA-DATOS', 'arranque 1: ULTRA-DATOS montada por nombre', failures)
+            expect_boot(first, 'primer arranque en este PC', 'arranque 1: deteccion completa', failures)
+            transcript += run(conn, BOOT1, failures)
+            # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
+            # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU
+            # boots the same disk: whatever /datos shows then came from the disk itself.
+            conn.sendall(b'reboot\n')
+            transcript += read_until(conn, 'Restarting system', 20)
+            qemu.wait(timeout=20)
+            expect_boot(transcript, 'VERDE [DESMONTAJE]: /datos desmontado limpio', 'reinicio: /datos desmontado limpio', failures)
+            conn.close()
+            qemu, conn = start()
+            second = read_until(conn, 'ultra:', 120)
+            transcript += '\n===== ARRANQUE 2 =====\n' + second
+            expect_boot(second, 'arranque guiado por PC.configuracion', 'arranque 2: guiado por PC.configuracion', failures)
+            transcript += run(conn, BOOT2, failures)
         conn.sendall(b'poweroff\n')
         transcript += read_until(conn, 'APAGADO', 10)
         qemu.wait(timeout=15)
         print('VERDE [poweroff]: init apago la maquina y QEMU termino')
     except Exception as exc:
+        transcript += getattr(exc, 'partial', '')
         failures.append(str(exc)); print('ROJO', exc)
     finally:
-        if qemu.poll() is None: qemu.kill()
+        if qemu and qemu.poll() is None: qemu.kill()
         LOG.write_text(transcript, encoding='utf-8')
     sys.exit(1 if failures else 0)
 
