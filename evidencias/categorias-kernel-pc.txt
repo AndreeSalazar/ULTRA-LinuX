@@ -1,0 +1,27 @@
+Perfil pc, kernel 32c52ec87d62, 2026-10-19
+Archivos compilados: 3157 .c/.S y 4276 cabeceras
+categoria             arbol    compilado   usado
+TOTAL              38267920      3888962   10.2%
+drivers            26420192      1271032    4.8%
+arch                2525833       242314    9.6%
+sound               1682975        50485    3.0%
+fs                  1653587       335677   20.3%
+include             1476844       714622   48.4%
+tools               1459127        23464    1.6%
+net                 1304423       513348   39.4%
+kernel               573978       307435   53.6%
+lib                  327873        99262   30.3%
+mm                   228917       143581   62.7%
+rust                 160644            0    0.0%
+security             129001        56521   43.8%
+crypto               104593        30765   29.4%
+block                 73393        42418   57.8%
+scripts               52104        16828   32.3%
+samples               38472            0    0.0%
+io_uring              27627        27001   97.7%
+virt                  11024            0    0.0%
+ipc                    9885         9885  100.0%
+init                   4771         3814   79.9%
+certs                  1066          474   44.5%
+usr                     882           36    4.1%
+Documentation           709            0    0.0%
