@@ -4,7 +4,7 @@ import hashlib, pathlib, socket, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
-BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia'}[PERFIL]
+BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico'}[PERFIL]
 KERNEL = BUILD / 'bzImage-tiny64'
 LOG = BUILD / 'prueba-shell.log'
 QEMU = pathlib.Path(r'C:\Program Files\qemu\qemu-system-x86_64.exe')
@@ -31,6 +31,13 @@ CHECKS = [
 # The vigia kernel must show its detectors alive, then a clean log after the whole run.
 # The expected text differs from the typed command, so the shell's echo never matches it.
 REPORTS = 'BUG:|UBSAN:|KASAN:|KFENCE:|WARNING:|circular locking|recursive locking|INFO: task|soft lockup'
+if PERFIL == 'generico':
+    # The generic kernel sees the PC's buses and drivers, not only a serial console.
+    CHECKS += [
+        ('ls /sys/bus/pci/drivers', 'ahci'),
+        ('grep -c processor /proc/cpuinfo', '1'),
+        ('cat /proc/filesystems', 'ext4'),
+    ]
 if PERFIL == 'vigia':
     CHECKS += [
         ('dmesg | grep -m1 "AddressSanitizer init"', 'initialized'),

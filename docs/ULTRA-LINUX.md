@@ -67,11 +67,44 @@ Para verlo en una ventana:
 .\construir-kernel.ps1 -Accion Ver
 ```
 
+## Fase 2: kernel genérico x86-64 (primer paso VERDE)
+
+Hay tres perfiles de kernel, que se eligen con `-Perfil`:
+
+| Perfil | Base | Para qué |
+|---|---|---|
+| `produccion` | `tinyconfig` + guardianes + KFENCE | Laboratorio mínimo, rápido de compilar |
+| `vigia` | `produccion` + KASAN, UBSAN, KFENCE, lockdep y detectores de bloqueos | El kernel informa sus propios fallos; el registro debe quedar limpio |
+| `generico` | `x86_64_defconfig` + guardianes + KFENCE + módulos | Arrancar en cualquier PC x86-64 moderno |
+
+El perfil `generico` añade:
+- almacenamiento NVMe, AHCI y virtio;
+- USB xHCI, almacenamiento USB y teclado o ratón HID;
+- ext4 y VFAT;
+- arranque EFI (`EFI_STUB`) y pantalla de firmware (`simpledrm`);
+- las piezas AMD: microcódigo, `amd-pstate` e IOMMU;
+- como módulos: la red Realtek `r8169`, el sonido `snd-hda-intel` y el sensor de temperatura `k10temp` del Ryzen.
+
+Si falta cualquiera de estas opciones obligatorias, la construcción se niega.
+
+Resultado (`evidencias/arranque-generico.log`):
+- Linux `7.3.0-rc7`: bzImage de 17,5 MB con el initramfs incorporado, 1661 opciones integradas y 24 opciones como módulo (21 archivos `.ko` en `modulos.tar.gz`).
+- La prueba completa sale VERDE: shell, minas, CET, la caja 11/11 y KFENCE.
+- El kernel ve el bus PCI (controladores `ahci`, `xhci_hcd`, `virtio-pci`…) y soporta ext4.
+
+Pendiente en esta fase:
+1. **Arrancar desde un disco**, no desde memoria: un disco virtual con una partición EFI y una raíz ext4, arrancado con el firmware UEFI de QEMU (OVMF), como lo haría el SSD.
+2. **Cargar módulos de verdad**: instalar `modulos.tar.gz` en esa raíz y comprobar que `modprobe` funciona.
+3. **Perfil de tu PC**: afinar para el Ryzen 5600X y la A320M, y preparar `nvidia-open` (un módulo externo compilado contra este árbol, con DRM/KMS activos) para la RTX 3060.
+4. Pasar los mismos detectores del perfil vigía sobre la configuración genérica.
+
+El laboratorio de velocidad está diseñado pero sin implementar: ver [LABORATORIO-VELOCIDAD.md](LABORATORIO-VELOCIDAD.md).
+
 ## Hoja de ruta
 
 1. **Fase 1: shell propia.** Hecha.
    **Fase 1.5: blindaje de C.** Hecha: tres guardianes, campo de minas y caja.
-2. **Fase 2: kernel genérico x86-64 + perfil de tu PC.** Arranque en cualquier PC moderno y perfil afinado para el Ryzen y la A320M: NVMe/SATA, USB, red, sonido, EFI y framebuffer. La RTX 3060 (Ampere) usará el módulo `nvidia-open`, que exige módulos de kernel activados.
+2. **Fase 2: kernel genérico x86-64 + perfil de tu PC.** Primer paso hecho (perfil `generico`); faltan el arranque desde disco y el perfil de tu PC. Arranque en cualquier PC moderno y perfil afinado para el Ryzen y la A320M: NVMe/SATA, USB, red, sonido, EFI y framebuffer. La RTX 3060 (Ampere) usará el módulo `nvidia-open`, que exige módulos de kernel activados.
 3. **Fase 3: sistema base.** Disco con glibc y pacman sobre tu kernel; supervisión al estilo Void hecha con el init C blindado y servicios en cajas.
 4. **Fase 4: gráficos y juegos.** Mesa, Vulkan con el driver NVIDIA, Wayland, KDE Plasma, gamescope y Steam.
 5. **Fase 5: identidad ULTRA.** Raíz inmutable A/B al estilo SteamOS y ajustes del kernel medidos frente a la referencia.

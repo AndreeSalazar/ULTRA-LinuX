@@ -4,8 +4,18 @@ set -euo pipefail
 # Profiles: produccion is what gets installed; vigia adds the kernel's own
 # detectors (KASAN, UBSAN, KFENCE, lockdep) so the kernel reports its mines.
 perfil=${1:-produccion}
+# start: the upstream config each profile grows from. modules: whether it ships loadable modules.
+start=tinyconfig modules=no modules_list=()
 case $perfil in
     produccion) dir=tiny64-baseline; extra=(KFENCE); required=(KFENCE) ;;
+    generico) dir=x86_64-generico start=defconfig modules=yes
+        # Boots any modern x86-64 PC: storage, USB, EFI, a firmware framebuffer and
+        # the AMD pieces of the target board. Module-capable for nvidia-open later.
+        extra=(KFENCE MODULES MODULE_UNLOAD BLK_DEV_NVME ATA SATA_AHCI VIRTIO_PCI VIRTIO_BLK VIRTIO_NET
+               USB_XHCI_HCD USB_STORAGE USB_HID HID_GENERIC EXT4_FS VFAT_FS EFI EFI_STUB DRM DRM_SIMPLEDRM
+               SYSFB_SIMPLEFB CPU_SUP_AMD MICROCODE_AMD X86_AMD_PSTATE AMD_IOMMU)
+        modules_list=(R8169 SND_HDA_INTEL SENSORS_K10TEMP)
+        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM VIRTIO_BLK) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
                UBSAN_BOOL PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR DEBUG_ATOMIC_SLEEP)
@@ -65,18 +75,29 @@ busybox=/usr/bin/busybox
     for f in "$lab"/rootfs/etc/*; do echo "file /etc/${f##*/} $f 0644 0 0"; done
 } > "$out/initramfs.list"
 if [[ ! -f "$out/.config" ]]; then
-    make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc tinyconfig
+    make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc "$start"
 fi
 for option in 64BIT PRINTK TTY VT VT_CONSOLE VGA_CONSOLE FONT_8x16 INPUT INPUT_KEYBOARD KEYBOARD_ATKBD SERIO SERIO_I8042 SERIAL_8250 SERIAL_8250_CONSOLE UNIX98_PTYS POSIX_TIMERS EPOLL SIGNALFD TIMERFD EVENTFD FILE_LOCKING PROC_SYSCTL PCI ACPI NET SMP RELOCATABLE RANDOMIZE_KSTACK_OFFSET NAMESPACES UTS_NS PID_NS NET_NS SECCOMP SECCOMP_FILTER SECURITY SECURITY_LANDLOCK X86_USER_SHADOW_STACK HARDENED_USERCOPY INIT_ON_ALLOC_DEFAULT_ON INIT_STACK_ALL_ZERO STACKPROTECTOR STACKPROTECTOR_STRONG RANDOMIZE_BASE RANDOMIZE_KSTACK_OFFSET_DEFAULT SLAB_FREELIST_RANDOM SLAB_FREELIST_HARDENED LIST_HARDENED BUG_ON_DATA_CORRUPTION SCHED_STACK_END_CHECK FORTIFY_SOURCE BINFMT_ELF BLK_DEV_INITRD DEVTMPFS DEVTMPFS_MOUNT PROC_FS SYSFS SHMEM TMPFS FUTEX MULTIUSER "${extra[@]}"; do
     "$src/scripts/config" --file "$out/.config" --enable "$option"
 done
-"$src/scripts/config" --file "$out/.config" --set-str INITRAMFS_SOURCE "$out/initramfs.list" --set-str LSM landlock --enable INITRAMFS_COMPRESSION_NONE --disable MODULES --disable SLUB_TINY --disable DEBUG_INFO --disable DEBUG_INFO_BTF --disable WERROR
+"$src/scripts/config" --file "$out/.config" --set-str INITRAMFS_SOURCE "$out/initramfs.list" --set-str LSM landlock --enable INITRAMFS_COMPRESSION_NONE --disable SLUB_TINY --disable DEBUG_INFO --disable DEBUG_INFO_BTF --disable WERROR
+[[ $modules = yes ]] || "$src/scripts/config" --file "$out/.config" --disable MODULES
+for option in "${modules_list[@]}"; do "$src/scripts/config" --file "$out/.config" --module "$option"; done
 make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc olddefconfig
 for option in 64BIT SERIAL_8250_CONSOLE BINFMT_ELF BLK_DEV_INITRD VT_CONSOLE POSIX_TIMERS EPOLL ACPI PID_NS NET_NS SECCOMP_FILTER SECURITY_LANDLOCK X86_USER_SHADOW_STACK HARDENED_USERCOPY INIT_ON_ALLOC_DEFAULT_ON RANDOMIZE_BASE RANDOMIZE_KSTACK_OFFSET_DEFAULT STACKPROTECTOR_STRONG SLAB_FREELIST_RANDOM SLAB_FREELIST_HARDENED LIST_HARDENED FORTIFY_SOURCE "${required[@]}"; do
     grep -qx "CONFIG_${option}=y" "$out/.config" || { echo "ROJO: falta CONFIG_$option"; exit 1; }
 done
 grep -qx 'CONFIG_LSM="landlock"' "$out/.config" || { echo 'ROJO: Landlock no esta en la lista de LSM activos'; exit 1; }
-make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc -j2 bzImage
+targets=(bzImage); [[ $modules = yes ]] && targets+=(modules)
+make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc -j"$(nproc)" "${targets[@]}"
+if [[ $modules = yes ]]; then
+    rm -rf "$art/modulos"
+    make -s -C "$src" O="$out" ARCH=x86_64 INSTALL_MOD_PATH="$art/modulos" INSTALL_MOD_STRIP=1 modules_install
+    tar -C "$art/modulos" -czf "$art/modulos.tar.gz" lib
+    for m in "${modules_list[@]}"; do
+        grep -qx "CONFIG_$m=m" "$out/.config" || { echo "ROJO: CONFIG_$m no quedo como modulo"; exit 1; }
+    done
+fi
 cp "$out/arch/x86/boot/bzImage" "$art/bzImage-tiny64"
 cp "$out/.config" "$art/tiny64.config"
 cp "$user/guardianes.txt" "$art/guardianes.txt"

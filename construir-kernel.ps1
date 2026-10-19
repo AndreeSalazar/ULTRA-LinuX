@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 param([ValidateSet('Compilar','Estado','Descargar','Ver')][string]$Accion='Estado',
-      [ValidateSet('produccion','vigia')][string]$Perfil='produccion')
+      [ValidateSet('produccion','vigia','generico')][string]$Perfil='produccion')
 # Each profile keeps its own build tree and artifacts, so switching never rebuilds the other.
-$dirs=@{produccion='tiny64-baseline';vigia='tiny64-vigia'}
-$local=@{produccion='baseline';vigia='vigia'}
+$dirs=@{produccion='tiny64-baseline';vigia='tiny64-vigia';generico='x86_64-generico'}
+$local=@{produccion='baseline';vigia='vigia';generico='generico'}
 $ErrorActionPreference='Stop'
 $project=$PSScriptRoot
 $key=Join-Path $project 'vm/builder_ed25519'
@@ -60,7 +60,9 @@ if($Accion -eq 'Compilar'){
     if($ready -ne 'listo'){throw "ROJO [SIN-KERNEL]: no hay kernel $Perfil completo; la ultima compilacion fallo o no se lanzo. Revisar con -Accion Estado -Perfil $Perfil."}
     $out=Join-Path $project ('build/'+$local[$Perfil])
     New-Item -ItemType Directory -Force $out | Out-Null
-    foreach($file in @('bzImage-tiny64','tiny64.config','kernelrelease.txt','guardianes.txt','SHA256SUMS')){
+    $files=@('bzImage-tiny64','tiny64.config','kernelrelease.txt','guardianes.txt','SHA256SUMS')
+    if($Perfil -eq 'generico'){$files+='modulos.tar.gz'}
+    foreach($file in $files){
         & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known ('builder@127.0.0.1:/home/builder/linux-reconstruido/artifacts/'+$Perfil+'/'+$file) $out
         if($LASTEXITCODE -ne 0){throw "ROJO: falta descargar $file"}
     }
