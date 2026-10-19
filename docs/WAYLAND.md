@@ -11,7 +11,7 @@ Wayland en sí es un protocolo pequeño. Lo grande es lo que tiene debajo: un es
 | **W2** | `udevd` (de Arch, sin systemd) + `seatd`, y `cage` + `foot` sobre `simpledrm` | **Hecha: la primera ventana** (en QEMU) |
 | W2b | Escritorio: labwc (ventanas flotantes) + panel + lanzador | Pendiente |
 | W3a | `nvidia-open`, firmware GSP y usuario NVIDIA en el perfil pc | Compilacion y controles QEMU; GPU real pendiente |
-| W3b | Escritorio sobre RTX 3060, Vulkan y aplicaciones | Pendiente de validar W3a en hardware |
+| W3b | Escritorio sobre RTX 3060, Vulkan y aplicaciones | Primer paso: Cage/GLES y sesion sin root; GPU real, Hyprland y Vulkan pendientes |
 
 ## W1: el sistema base de Arch dentro de ULTRA
 
@@ -66,6 +66,15 @@ Escribir `exit` en la terminal cierra `cage` y devuelve la consola de texto de U
 Resultados: `generico --bmo` 61/61, `pc --bmo` 62/62, `--disco` 55/55, `--auto` y `--auto-falla` en VERDE.
 
 **Siguiente (W2b):** un escritorio de verdad, con labwc (ventanas flotantes, usa `seatd`), un panel y un lanzador. Plasma necesita `logind` y D-Bus, y llega después.
+
+## W3b: seleccion GPU y sesion sin root
+
+La [sesion W3b](W3B-SESION-GPU.md) sustituye el pixman obligatorio por modos
+auto, --nvidia y --software. auto selecciona NVIDIA por su driver DRM cuando
+existe; --nvidia exige GLES y el proveedor EGL NVIDIA. El preparador root
+gestiona dispositivos y seatd; Cage/Foot pasan a UID/GID 1000, sin capacidades
+y con NoNewPrivs. El modo software y el perfil generico siguen como recuperacion.
+La evidencia QEMU acredita software y credenciales, no aceleracion RTX.
 
 ## W3a: NVIDIA por perfil y revision del cargador
 

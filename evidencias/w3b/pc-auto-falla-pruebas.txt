@@ -1,0 +1,6 @@
+VERDE [arranque 1: una tecla deja el generico]
+VERDE [echo roto > /bmo/EFI/ULTRA/ULTRA-PC.EFI; sync; echo ROTO-$((1+1))]
+VERDE [arranque 3: el firmware volvio al generico]
+VERDE [arranque 3: fallo detectado y entrada de ULTRA borrada]
+VERDE [cat /datos/perfil.estado]
+VERDE [poweroff]: init apago la maquina y QEMU termino

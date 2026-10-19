@@ -1,0 +1,20 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -euo pipefail
+[[ $(id -u) == 1000 && $(id -g) == 1000 ]] || { echo 'ROJO [CREDENCIALES]: se requiere ultra sin root'; exit 1; }
+uid_ok=0; gid_ok=0; caps=0; nnp=0
+while read -r key a b c d rest; do
+    case "$key" in
+        Uid:) [[ $a == 1000 && $b == 1000 && $c == 1000 && $d == 1000 ]] && uid_ok=1 ;;
+        Gid:) [[ $a == 1000 && $b == 1000 && $c == 1000 && $d == 1000 ]] && gid_ok=1 ;;
+        CapInh:|CapPrm:|CapEff:|CapBnd:|CapAmb:)
+            [[ $a =~ ^0+$ ]] || { echo 'ROJO [CREDENCIALES]: capacidades presentes'; exit 1; }
+            caps=$((caps+1)) ;;
+        NoNewPrivs:) [[ $a == 1 ]] && nnp=1 ;;
+    esac
+done < /proc/self/status
+[[ $uid_ok == 1 && $gid_ok == 1 && $caps == 5 && $nnp == 1 ]] || {
+    echo 'ROJO [CREDENCIALES]: privilegios inesperados'; exit 1;
+}
+echo 'VERDE [CREDENCIALES]: uid=1000 gid=1000 capacidades=0 NoNewPrivs=1'
+exec cage -D -s -- "$@"

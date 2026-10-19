@@ -1,0 +1,79 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Privileged device/session preparation. The compositor never inherits root.
+set -uo pipefail
+[[ $(id -u) == 0 ]] || { echo 'ROJO [SESION]: preparacion requiere root'; exit 1; }
+mode=$1; shift
+case "$mode" in auto|software|nvidia) ;; *) echo 'ROJO [SESION]: modo invalido'; exit 1;; esac
+[[ $(id -u ultra) == 1000 && $(id -g ultra) == 1000 ]] || { echo 'ROJO [SESION]: identidad ultra inesperada'; exit 1; }
+install -d -m 0700 -o 0 -g 0 /run/ultra-escritorio || exit 1
+exec 9>/run/ultra-escritorio/lock
+flock -n 9 || { echo 'ROJO [SESION]: ya hay una sesion de ULTRA'; exit 1; }
+[[ ! -e /run/seatd.sock && ! -L /run/seatd.sock ]] || { echo 'ROJO [SESION]: socket seatd ya ocupado'; exit 1; }
+export SYSTEMD_IGNORE_CHROOT=1
+if ! udevadm control --ping 2>/dev/null; then
+    # A long-lived daemon must not retain the exclusive session lock.
+    /usr/lib/systemd/systemd-udevd --daemon 9>&- || { echo 'ROJO [ESCRITORIO]: udevd no arranco'; exit 1; }
+fi
+udevadm trigger --action=add --type=subsystems || exit 1
+udevadm trigger --action=add --type=devices || exit 1
+udevadm settle --timeout=15 || exit 1
+nvidia=(); software=(); cards=()
+for entry in /sys/class/drm/card*; do
+    name=${entry##*/}
+    [[ $name =~ ^card[0-9]+$ && -c /dev/dri/$name ]] || continue
+    cards+=("/dev/dri/$name")
+    driver=$(readlink -f "$entry/device/driver" 2>/dev/null || true)
+    [[ ${driver##*/} != nvidia ]] || nvidia+=("/dev/dri/$name")
+    path=$(readlink -f "$entry")
+    [[ $path != *'/simple-framebuffer.'* ]] || software+=("/dev/dri/$name")
+done
+[[ $mode != auto ]] || { if (( ${#nvidia[@]} )); then mode=nvidia; else mode=software; fi; }
+if [[ $mode == nvidia ]]; then
+    (( ${#nvidia[@]} == 1 )) || { echo 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA'; exit 1; }
+    [[ -r /usr/share/glvnd/egl_vendor.d/10_nvidia.json ]] || { echo 'ROJO [GPU]: falta proveedor EGL NVIDIA'; exit 1; }
+    # Module loading happened before udev started. Prepare vendor nodes as root;
+    # the unprivileged compositor cannot invoke a setuid helper under NoNewPrivs.
+    /usr/bin/nvidia-modprobe -c0 -u || { echo 'ROJO [GPU]: no se pudieron preparar nodos NVIDIA'; exit 1; }
+    [[ -c /dev/nvidia0 && -c /dev/nvidiactl ]] || { echo 'ROJO [GPU]: faltan nodos NVIDIA'; exit 1; }
+    card=${nvidia[0]}; renderer=gles2
+else
+    if (( ${#software[@]} )); then card=${software[0]}
+    elif (( ${#cards[@]} )); then card=${cards[0]}
+    else echo 'ROJO [ESCRITORIO]: no hay pantalla DRM'; exit 1; fi
+    renderer=pixman
+fi
+install -d -m 0700 -o 1000 -g 1000 /run/user/1000 || exit 1
+seatd -u ultra -g ultra -l info > /run/ultra-escritorio/seatd.log 2>&1 9>&- &
+seat_pid=$!
+cleanup() { kill "$seat_pid" 2>/dev/null || true; wait "$seat_pid" 2>/dev/null || true; }
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+ready=0
+for ((i=0;i<50;i++)); do
+    if [[ -S /run/seatd.sock ]]; then ready=1; break; fi
+    kill -0 "$seat_pid" 2>/dev/null || break
+    sleep .1
+done
+(( ready )) || { echo 'ROJO [SESION]: seatd no preparo su socket'; exit 1; }
+echo "VERDE [ESCRITORIO]: modo=$mode renderer-solicitado=$renderer dispositivo=$card; usuario=ultra"
+client_env=(HOME=/home/ultra USER=ultra LOGNAME=ultra XDG_RUNTIME_DIR=/run/user/1000
+    PATH=/usr/local/bin:/usr/bin LANG=C.UTF-8 TERM=linux
+    "GLIBC_TUNABLES=${GLIBC_TUNABLES:-}" LIBSEAT_BACKEND=seatd SEATD_SOCK=/run/seatd.sock
+    WLR_BACKENDS=drm,libinput "WLR_DRM_DEVICES=$card" "WLR_RENDERER=$renderer")
+if [[ $mode == nvidia ]]; then
+    client_env+=(__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json)
+fi
+setpriv --reuid=ultra --regid=ultra --init-groups --no-new-privs \
+    --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+    /usr/bin/env -i "${client_env[@]}" /usr/bin/bash /usr/local/libexec/ultra-cliente "$@" \
+    9>&- 2>&1 | tee /run/ultra-escritorio/ultima.log
+statuses=("${PIPESTATUS[@]}"); rc=${statuses[0]}
+[[ ${statuses[1]} == 0 ]] || rc=1
+if [[ $rc == 0 ]]; then
+    echo 'VERDE [ESCRITORIO]: cage termino (salida 0); vuelve la consola de ULTRA'
+else
+    echo "ROJO [ESCRITORIO]: cage termino (salida $rc); ver /arch/run/ultra-escritorio/ultima.log"
+fi
+exit "$rc"

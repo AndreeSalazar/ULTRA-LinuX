@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import hashlib, pathlib, secrets, shutil, socket, subprocess, sys, tempfile, time
+import hashlib, pathlib, re, secrets, shutil, socket, subprocess, sys, tempfile, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
@@ -103,6 +103,9 @@ if PERFIL == 'pc':
 elif PERFIL == 'generico':
     # The generic image stays without NVIDIA: it is the safety net if the driver ever fails.
     BOOT1 += [('ls /sistema/usr/bin/nvidia-smi 2>&1', 'No such file')]
+if PERFIL in ('pc', 'generico'):
+    # QEMU has no NVIDIA: explicit acceleration must reject, never pretend software is GPU.
+    BOOT1 += [('ultra-escritorio --nvidia 2>&1', 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA')]
 BOOT2 = [
     ('cat /datos/prueba-persistencia', TOKEN),
     ('lsmod', 'snd_hda_intel'),
@@ -209,7 +212,24 @@ def check_window(conn, failures):
         shutil.copyfile(png, LOG.with_name(LOG.stem + '-ventana.png'))
         ok = share > 0.6
         print(('VERDE' if ok else 'ROJO'), f'[ventana Wayland: foot cubre el {share:.0%} de la pantalla]')
-        if not ok: failures.append('ventana Wayland')
+        if not ok:
+            failures.append('ventana Wayland')
+            t += run(conn, [('cat /tmp/escritorio.log; echo DIAG-ESCRITORIO', 'DIAG-ESCRITORIO')], failures)
+        # Inspect the running compositor and terminal, not just the launcher's declaration.
+        cred_command = 'for n in cage foot; do for p in $(pidof "$n"); do echo ULTRA-CRED-$n; cat /proc/$p/status; echo ULTRA-CRED-FIN; done; done'
+        credentials = run(conn, [(cred_command, 'ULTRA-CRED-cage')], failures)
+        t += credentials
+        seen = set()
+        for name, status in re.findall(r'^ULTRA-CRED-(cage|foot)\n(.*?)^ULTRA-CRED-FIN', credentials.replace('\r', ''), re.M | re.S):
+            good = all(re.search(rf'^{field}:\s+1000\s+1000\s+1000\s+1000\s*$', status, re.M)
+                       for field in ('Uid', 'Gid'))
+            good = good and all(re.search(rf'^{field}:\s+0+\s*$', status, re.M)
+                                for field in ('CapInh', 'CapPrm', 'CapEff', 'CapBnd', 'CapAmb'))
+            good = good and bool(re.search(r'^NoNewPrivs:\s+1\s*$', status, re.M))
+            if good: seen.add(name)
+        secured = seen == {'cage', 'foot'}
+        print(('VERDE' if secured else 'ROJO'), '[cage y foot: UID/GID 1000, capacidades cero y NoNewPrivs=1]')
+        if not secured: failures.append('credenciales de cage y foot')
         # Close it from the emulated keyboard: udev -> libinput -> cage -> foot.
         for key in ['e', 'x', 'i', 't', 'ret']:
             mon.sendall(f'sendkey {key}\n'.encode()); time.sleep(0.05)
@@ -221,6 +241,7 @@ def check_window(conn, failures):
     conn.sendall(b'echo SINC-$((3+3))\n')
     t += read_until(conn, 'SINC-6', 10) + read_until(conn, 'ultra:', 10)
     t += run(conn, [('echo CAGE-$(grep -c "cage termino (salida 0)" /tmp/escritorio.log)', 'CAGE-1')], failures)
+    t += run(conn, [('test ! -S /arch/run/seatd.sock && echo SEATD-LIMPIO', 'SEATD-LIMPIO')], failures)
     return t
 
 def check_screen(failures):

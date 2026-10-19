@@ -1,5 +1,11 @@
 # Revision de seguridad de W2 y W3a
 
+Actualizacion W3b: [la nueva sesion](W3B-SESION-GPU.md) separa udev/seatd root
+de Cage/Foot con UID/GID 1000, capacidades cero y NoNewPrivs. El test inspecciona
+sus procesos en ejecucion en QEMU. La sesion en RTX sigue pendiente de prueba;
+el usuario compartido y render nodes no equivalen a aislamiento por aplicacion.
+Los hallazgos de la revision historica que sigue conservan su contexto original.
+
 La propuesta del propietario para separar autoridad humana y programas,
 incluido el significado de root/ring 0/ring 3, queda anotada en
 [Autoridad personal](AUTORIDAD-PERSONAL.md). Es diseno pendiente, no una

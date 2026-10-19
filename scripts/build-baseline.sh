@@ -201,7 +201,7 @@ if [[ -n $cmdline ]]; then
         -e '/^DownloadUser/d' /etc/pacman.conf > "$art/pacman-sistema.conf"
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
-    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu)
+    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -209,6 +209,16 @@ if [[ -n $cmdline ]]; then
         -Sy --noconfirm "${arch_pkgs[@]}" > "$art/pacman-sistema.log" 2>&1 ||
         { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo instalar el sistema base de Arch'; exit 1; }
     sudo pacman --root "$sistema" --dbpath "$sistema/var/lib/pacman" -Q > "$art/sistema-paquetes.txt"
+    # Fixed session identity; render nodes only. KMS/input go through root seatd.
+    sudo systemd-sysusers --root="$sistema"
+    sudo chroot "$sistema" /usr/bin/groupadd -f -r render
+    sudo chroot "$sistema" /usr/bin/groupadd -g 1000 ultra
+    sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render -m -s /usr/bin/bash ultra
+    sudo chroot "$sistema" /usr/bin/usermod -L ultra
+    sudo install -d -m 0755 "$sistema/usr/local/libexec"
+    for helper in ultra-sesion ultra-cliente; do
+        sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
+    done
     # pacman's hook leaves udev's hardware database almost empty outside a booted system.
     if [[ -x $sistema/usr/bin/systemd-hwdb ]]; then sudo systemd-hwdb --root="$sistema" --usr update; fi
     sudo mkdir -p "$sistema/usr/lib/modules"

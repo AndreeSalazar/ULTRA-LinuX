@@ -1,0 +1,618 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x4,0x0)
+
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x4,0x0)
+
+VERDE [MONTAJE]: devtmpfs en /dev
+
+VERDE [MONTAJE]: proc en /proc
+
+VERDE [MONTAJE]: sysfs en /sys
+
+VERDE [MONTAJE]: tmpfs en /tmp
+
+VERDE [MONTAJE]: tmpfs en /run
+
+VERDE [MONTAJE]: devpts en /dev/pts
+
+VERDE [MONTAJE]: tmpfs en /dev/shm
+
+
+
+ULTRA LinuX: INIT C READY
+
+ULTRA LinuX - Influencia BMO-X
+
+Eddi Salazar: creador de un sistema propio, sin ser un OS
+
+
+
+VERDE [KERNEL]: Linux 7.3.0-rc7-g32c52ec87d62 x86_64
+
+VERDE [PARTICION]: BMO (/dev/vda2, vfat) en /bmo
+
+VERDE [PARTICION]: ULTRA-SISTEMA-A <- /bmo/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs (/dev/loop0, erofs, solo lectura) en /sistema
+
+VERDE [PARTICION]: ULTRA-DATOS <- /bmo/ULTRA/datos.ext4 (/dev/loop1, ext4) en /datos
+
+VERDE [HARDWARE]: primer arranque en este PC (no hay PC.configuracion valida): deteccion completa
+
+VERDE [HARDWARE]: 7 componentes, 1 modulos necesarios (6 cargados, 0 de otros kernels, 0 fallos); deteccion 500 us + carga 22956 us
+
+[    0.557058] snd_hda_intel 0000:00:03.0: no codecs found!
+
+VERDE [HARDWARE]: guardado en /datos/PC.configuraci�n
+
+VERDE [MEDIDA]: hasta el hardware: 560 ms; primer arranque medido con este kernel
+
+AMARILLO [PERFIL]: no hay version propia instalada en A:\ (ULTRA-PC.EFI y su sistema)
+
+VERDE [SISTEMA]: base Arch en /arch (142 paquetes, glibc 2.44; EROFS + capa en memoria); entra con: ultra-entrar
+
+VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 959 MiB | 7.3.0-rc7-g32c52ec87d62 | 560 ms (antes -1) | CET Landlock seccomp FORTIFY
+
+VERDE [LOGO]: 248x300 en la pantalla de 1280x800
+
+VERDE [CONSOLA]: shell en /dev/tty1
+
+VERDE [CONSOLA]: shell en /dev/ttyS0
+
+ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).
+
+Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff
+
+Recomendacion: ultra-entrar  (entra en el sistema Arch: bash, coreutils, grep, sed, less; exit para volver)
+
+Wayland: ultra-escritorio  (una terminal foot en pantalla completa; exit en la terminal para volver)
+
+ultra:
+~# ultra-entrar /usr/bin/sed -i 's/--daemon ||/--daemon 9>\&- ||/' /usr/lo
+
+
+cal/libexec/ultra-sesion; ultra-escritorio --nvidia; ultra-escritorio --software
+
+
+ >/tmp/escritorio.log 2>&1 &
+
+Starting systemd-udevd version 262.1-1-arch
+
+
+ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA
+
+ultra:
+~# cat /tmp/escritorio.log
+
+VERDE [ESCRITORIO]: modo=software renderer-solicitado=pixman dispositivo=/dev/dri/card0; usuario=ultra
+
+VERDE [CREDENCIALES]: uid=1000 gid=1000 capacidades=0 NoNewPrivs=1
+
+00:00:00.000 [INFO] [backend/backend.c:342] Loading user-specified backends due to WLR_BACKENDS: drm,libinput
+
+00:00:00.000 [INFO] [libseat] [libseat/libseat.c:62] Seat opened with backend 'seatd'
+
+00:00:00.000 [INFO] [libseat] [libseat/backend/seatd.c:218] Enabling seat
+
+00:00:00.000 [INFO] [backend/session/session.c:117] Successfully loaded libseat session
+
+00:00:00.000 [INFO] [backend/session/session.c:480] Opening fixed list of KMS devices from WLR_DRM_DEVICES: /dev/dri/card0
+
+00:00:00.000 [INFO] [backend/backend.c:248] Found 1 GPUs
+
+00:00:00.000 [INFO] [backend/drm/backend.c:225] Initializing DRM backend for /dev/dri/card0 (simpledrm)
+
+00:00:00.000 [DEBUG] [backend/drm/drm.c:112] Using atomic DRM interface
+
+00:00:00.001 [DEBUG] [backend/drm/drm.c:133] ADDFB2 modifiers supported
+
+00:00:00.001 [INFO] [backend/drm/drm.c:312] Found 1 DRM CRTCs
+
+00:00:00.001 [INFO] [backend/drm/drm.c:270] Found 1 DRM planes
+
+00:00:00.001 [INFO] [util/env.c:25] Loading WLR_RENDERER option: pixman
+
+00:00:00.001 [INFO] [render/pixman/renderer.c:328] Creating pixman renderer
+
+00:00:00.001 [DEBUG] [render/allocator/allocator.c:142] Trying to create drm dumb allocator
+
+00:00:00.001 [DEBUG] [render/allocator/drm_dumb.c:230] Created DRM dumb allocator
+
+00:00:00.001 [ERROR] [backend/drm/drm.c:2130] Unable to clone DRM fd for client fd: Permission denied
+
+00:00:00.001 [INFO] [types/wlr_drm_lease_v1.c:593] Skipping /dev/dri/card0: failed to get read-only DRM FD
+
+00:00:00.001 [DEBUG] [types/wlr_drm_lease_v1.c:679] No DRM backend supplied, failed to create wlr_drm_lease_v1_manager
+
+00:00:00.001 [INFO] [../cage/cage.c:521] Failed to create wlr_drm_lease_manager_v1
+
+00:00:00.001 [ERROR] [xwayland/server.c:473] Cannot find Xwayland binary "/usr/bin/Xwayland"
+
+00:00:00.001 [ERROR] [../cage/cage.c:567] Cannot create XWayland server
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1781] Scanning DRM connectors on /dev/dri/card0
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1836] Found connector 'Unknown-1'
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1861] 'Unknown-1' connected
+
+00:00:00.001 [DEBUG] [backend/drm/drm.c:1632] Current CRTC: 37
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1646] Detected modes:
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1670]   1280x800 @ 60.000 Hz (preferred)
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1707] Physical size: 338x211
+
+00:00:00.001 [DEBUG] [backend/drm/drm.c:1744] Connector has no EDID
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1895] connector Unknown-1: Requesting modeset
+
+00:00:00.001 [DEBUG] [types/output/render.c:123] Attaching empty buffer to output for modeset
+
+00:00:00.001 [DEBUG] [types/output/swapchain.c:27] Choosing primary buffer format XR24 (0x34325258) for output 'Unknown-1'
+
+00:00:00.001 [DEBUG] [types/output/swapchain.c:96] Testing swapchain for output 'Unknown-1'
+
+00:00:00.001 [DEBUG] [render/swapchain.c:103] Allocating new swapchain buffer
+
+00:00:00.006 [DEBUG] [render/allocator/drm_dumb.c:105] Allocated 1280x800 DRM dumb buffer
+
+00:00:00.007 [DEBUG] [render/pixman/renderer.c:186] Created pixman buffer 1280x800
+
+00:00:00.008 [DEBUG] [xcursor/wlr_xcursor.c:233] Loaded cursor theme 'default' at size 24 (26 available cursors)
+
+00:00:00.008 [DEBUG] [../cage/output.c:314] Enabling new output Unknown-1
+
+00:00:00.008 [DEBUG] [types/output/render.c:123] Attaching empty buffer to output for modeset
+
+00:00:00.008 [INFO] [backend/drm/drm.c:980] connector Unknown-1: Modesetting with 1280x800 @ 60.000 Hz
+
+00:00:00.009 [DEBUG] [backend/libinput/backend.c:88] Starting libinput backend
+
+00:00:00.026 [DEBUG] [backend/libinput/events.c:69] Adding Power Button [0:1]
+
+00:00:00.046 [DEBUG] [../cage/seat.c:364] Created keyboard group
+
+00:00:00.047 [DEBUG] [backend/libinput/events.c:69] Adding AT Translated Set 2 keyboard [1:1]
+
+00:00:00.051 [DEBUG] [../cage/seat.c:337] Added new keyboard to existing group
+
+00:00:00.051 [DEBUG] [backend/libinput/events.c:69] Adding ImExPS/2 Generic Explorer Mouse [2:6]
+
+00:00:00.051 [INFO] [../cage/seat.c:141] Input device ImExPS/2 Generic Explorer Mouse cannot be mapped to an output device
+
+
+
+00:00:00.051 [DEBUG] [types/output/cursor.c:205] Hardware cursor not supported
+
+00:00:00.051 [DEBUG] [types/output/cursor.c:309] Failed to render cursor buffer
+
+00:00:00.051 [DEBUG] [types/output/cursor.c:428] Falling back to software cursor on output 'Unknown-1'
+
+00:00:00.051 [DEBUG] [backend/libinput/backend.c:125] libinput successfully initialized
+
+00:00:00.051 [DEBUG] [../cage/cage.c:614] Cage 0.3.1-b7b774a (branch 'makepkg') is running on Wayland display wayland-0
+
+00:00:00.053 [DEBUG] [../cage/cage.c:174] Child process created with pid 132
+
+00:00:00.053 [DEBUG] [render/swapchain.c:103] Allocating new swapchain buffer
+
+00:00:00.080 [DEBUG] [render/allocator/drm_dumb.c:105] Allocated 1280x800 DRM dumb buffer
+
+00:00:00.080 [DEBUG] [render/pixman/renderer.c:186] Created pixman buffer 1280x800
+
+warn: wayland.c:1874: compositor does not implement XDG activation, bell.urgent will fall back to coloring the window margins red
+
+warn: wayland.c:1880: compositor does not implement fractional scaling
+
+warn: wayland.c:1883: compositor does not implement server-side cursors, falling back to client-side cursors
+
+warn: wayland.c:1888: compositor does not implement the xdg-toplevel-icon protocol
+
+warn: wayland.c:1893: text input interface not implemented by compositor; IME will be disabled
+
+00:00:00.317 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f22a0 (res 0x5581d4406bd0)
+
+00:00:00.317 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f2670 (res 0x5581d4406b40)
+
+00:00:00.317 [DEBUG] [types/xdg_shell/wlr_xdg_surface.c:441] new xdg_surface 0x5581d43f2a40 (res 0x5581d43c8d30)
+
+00:00:00.317 [DEBUG] [types/wlr_xdg_decoration_v1.c:220] new xdg_toplevel_decoration 0x5581d43f2ba0 (res 0x5581d43c8f70)
+
+00:00:00.317 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f0b80 (res 0x5581d43c9090)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f0f70 (res 0x5581d43c93f0)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4415d00 (res 0x5581d43c6ed0)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416110 (res 0x5581d43c7590)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416520 (res 0x5581d43c7c50)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416a10 (res 0x5581d43d9f10)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416f00 (res 0x5581d43d8e30)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d44173f0 (res 0x5581d43d80b0)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d44178e0 (res 0x5581d43d8770)
+
+00:00:00.340 [DEBUG] [types/output/output.c:1013] Direct scan-out disabled by software cursor
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:428] Falling back to software cursor on output 'Unknown-1'
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:205] Hardware cursor not supported
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:309] Failed to render cursor buffer
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:428] Falling back to software cursor on output 'Unknown-1'
+
+00:00:00.356 [DEBUG] [types/output/output.c:1013] Direct scan-out disabled by software cursor
+
+00:00:00.359 [DEBUG] [types/output/output.c:1013] Direct scan-out disabled by software cursor
+
+ultra:
+~# cat /arch/run/ultra-escritorio/seatd.log
+
+00:00:00.000 [INFO] [seatd/seat.c:48] Created VT-bound seat seat0
+
+00:00:00.000 [INFO] [seatd/seatd.c:194] seatd started
+
+00:00:00.331 [INFO] [seatd/server.c:145] New client connected (pid: 128, uid: 1000, gid: 1000)
+
+00:00:00.331 [INFO] [seatd/seat.c:248] Added client 1 to seat0
+
+00:00:00.331 [INFO] [seatd/seat.c:584] Opened client 1 on seat0
+
+ultra:
+~# cat /arch/run/ultra-escritorio/ultima.log
+
+VERDE [CREDENCIALES]: uid=1000 gid=1000 capacidades=0 NoNewPrivs=1
+
+00:00:00.000 [INFO] [backend/backend.c:342] Loading user-specified backends due to WLR_BACKENDS: drm,libinput
+
+00:00:00.000 [INFO] [libseat] [libseat/libseat.c:62] Seat opened with backend 'seatd'
+
+00:00:00.000 [INFO] [libseat] [libseat/backend/seatd.c:218] Enabling seat
+
+00:00:00.000 [INFO] [backend/session/session.c:117] Successfully loaded libseat session
+
+00:00:00.000 [INFO] [backend/session/session.c:480] Opening fixed list of KMS devices from WLR_DRM_DEVICES: /dev/dri/card0
+
+00:00:00.000 [INFO] [backend/backend.c:248] Found 1 GPUs
+
+00:00:00.000 [INFO] [backend/drm/backend.c:225] Initializing DRM backend for /dev/dri/card0 (simpledrm)
+
+00:00:00.000 [DEBUG] [backend/drm/drm.c:112] Using atomic DRM interface
+
+00:00:00.001 [DEBUG] [backend/drm/drm.c:133] ADDFB2 modifiers supported
+
+00:00:00.001 [INFO] [backend/drm/drm.c:312] Found 1 DRM CRTCs
+
+00:00:00.001 [INFO] [backend/drm/drm.c:270] Found 1 DRM planes
+
+00:00:00.001 [INFO] [util/env.c:25] Loading WLR_RENDERER option: pixman
+
+00:00:00.001 [INFO] [render/pixman/renderer.c:328] Creating pixman renderer
+
+00:00:00.001 [DEBUG] [render/allocator/allocator.c:142] Trying to create drm dumb allocator
+
+00:00:00.001 [DEBUG] [render/allocator/drm_dumb.c:230] Created DRM dumb allocator
+
+00:00:00.001 [ERROR] [backend/drm/drm.c:2130] Unable to clone DRM fd for client fd: Permission denied
+
+00:00:00.001 [INFO] [types/wlr_drm_lease_v1.c:593] Skipping /dev/dri/card0: failed to get read-only DRM FD
+
+00:00:00.001 [DEBUG] [types/wlr_drm_lease_v1.c:679] No DRM backend supplied, failed to create wlr_drm_lease_v1_manager
+
+00:00:00.001 [INFO] [../cage/cage.c:521] Failed to create wlr_drm_lease_manager_v1
+
+00:00:00.001 [ERROR] [xwayland/server.c:473] Cannot find Xwayland binary "/usr/bin/Xwayland"
+
+00:00:00.001 [ERROR] [../cage/cage.c:567] Cannot create XWayland server
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1781] Scanning DRM connectors on /dev/dri/card0
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1836] Found connector 'Unknown-1'
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1861] 'Unknown-1' connected
+
+00:00:00.001 [DEBUG] [backend/drm/drm.c:1632] Current CRTC: 37
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1646] Detected modes:
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1670]   1280x800 @ 60.000 Hz (preferred)
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1707] Physical size: 338x211
+
+00:00:00.001 [DEBUG] [backend/drm/drm.c:1744] Connector has no EDID
+
+00:00:00.001 [INFO] [backend/drm/drm.c:1895] connector Unknown-1: Requesting modeset
+
+00:00:00.001 [DEBUG] [types/output/render.c:123] Attaching empty buffer to output for modeset
+
+00:00:00.001 [DEBUG] [types/output/swapchain.c:27] Choosing primary buffer format XR24 (0x34325258) for output 'Unknown-1'
+
+00:00:00.001 [DEBUG] [types/output/swapchain.c:96] Testing swapchain for output 'Unknown-1'
+
+00:00:00.001 [DEBUG] [render/swapchain.c:103] Allocating new swapchain buffer
+
+00:00:00.006 [DEBUG] [render/allocator/drm_dumb.c:105] Allocated 1280x800 DRM dumb buffer
+
+00:00:00.007 [DEBUG] [render/pixman/renderer.c:186] Created pixman buffer 1280x800
+
+00:00:00.008 [DEBUG] [xcursor/wlr_xcursor.c:233] Loaded cursor theme 'default' at size 24 (26 available cursors)
+
+00:00:00.008 [DEBUG] [../cage/output.c:314] Enabling new output Unknown-1
+
+00:00:00.008 [DEBUG] [types/output/render.c:123] Attaching empty buffer to output for modeset
+
+00:00:00.008 [INFO] [backend/drm/drm.c:980] connector Unknown-1: Modesetting with 1280x800 @ 60.000 Hz
+
+00:00:00.009 [DEBUG] [backend/libinput/backend.c:88] Starting libinput backend
+
+00:00:00.026 [DEBUG] [backend/libinput/events.c:69] Adding Power Button [0:1]
+
+00:00:00.046 [DEBUG] [../cage/seat.c:364] Created keyboard group
+
+00:00:00.047 [DEBUG] [backend/libinput/events.c:69] Adding AT Translated Set 2 keyboard [1:1]
+
+00:00:00.051 [DEBUG] [../cage/seat.c:337] Added new keyboard to existing group
+
+00:00:00.051 [DEBUG] [backend/libinput/events.c:69] Adding ImExPS/2 Generic Explorer Mouse [2:6]
+
+00:00:00.051 [INFO] [../cage/seat.c:141] Input device ImExPS/2 Generic Explorer Mouse cannot be mapped to an output device
+
+
+
+00:00:00.051 [DEBUG] [types/output/cursor.c:205] Hardware cursor not supported
+
+00:00:00.051 [DEBUG] [types/output/cursor.c:309] Failed to render cursor buffer
+
+00:00:00.051 [DEBUG] [types/output/cursor.c:428] Falling back to software cursor on output 'Unknown-1'
+
+00:00:00.051 [DEBUG] [backend/libinput/backend.c:125] libinput successfully initialized
+
+00:00:00.051 [DEBUG] [../cage/cage.c:614] Cage 0.3.1-b7b774a (branch 'makepkg') is running on Wayland display wayland-0
+
+00:00:00.053 [DEBUG] [../cage/cage.c:174] Child process created with pid 132
+
+00:00:00.053 [DEBUG] [render/swapchain.c:103] Allocating new swapchain buffer
+
+00:00:00.080 [DEBUG] [render/allocator/drm_dumb.c:105] Allocated 1280x800 DRM dumb buffer
+
+00:00:00.080 [DEBUG] [render/pixman/renderer.c:186] Created pixman buffer 1280x800
+
+warn: wayland.c:1874: compositor does not implement XDG activation, bell.urgent will fall back to coloring the window margins red
+
+warn: wayland.c:1880: compositor does not implement fractional scaling
+
+warn: wayland.c:1883: compositor does not implement server-side cursors, falling back to client-side cursors
+
+warn: wayland.c:1888: compositor does not implement the xdg-toplevel-icon protocol
+
+warn: wayland.c:1893: text input interface not implemented by compositor; IME will be disabled
+
+00:00:00.317 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f22a0 (res 0x5581d4406bd0)
+
+00:00:00.317 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f2670 (res 0x5581d4406b40)
+
+00:00:00.317 [DEBUG] [types/xdg_shell/wlr_xdg_surface.c:441] new xdg_surface 0x5581d43f2a40 (res 0x5581d43c8d30)
+
+00:00:00.317 [DEBUG] [types/wlr_xdg_decoration_v1.c:220] new xdg_toplevel_decoration 0x5581d43f2ba0 (res 0x5581d43c8f70)
+
+00:00:00.317 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f0b80 (res 0x5581d43c9090)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d43f0f70 (res 0x5581d43c93f0)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4415d00 (res 0x5581d43c6ed0)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416110 (res 0x5581d43c7590)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416520 (res 0x5581d43c7c50)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416a10 (res 0x5581d43d9f10)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d4416f00 (res 0x5581d43d8e30)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d44173f0 (res 0x5581d43d80b0)
+
+00:00:00.340 [DEBUG] [types/wlr_compositor.c:785] New wlr_surface 0x5581d44178e0 (res 0x5581d43d8770)
+
+00:00:00.340 [DEBUG] [types/output/output.c:1013] Direct scan-out disabled by software cursor
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:428] Falling back to software cursor on output 'Unknown-1'
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:205] Hardware cursor not supported
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:309] Failed to render cursor buffer
+
+00:00:00.356 [DEBUG] [types/output/cursor.c:428] Falling back to software cursor on output 'Unknown-1'
+
+00:00:00.356 [DEBUG] [types/output/output.c:1013] Direct scan-out disabled by software cursor
+
+00:00:00.359 [DEBUG] [types/output/output.c:1013] Direct scan-out disabled by software cursor
+
+ultra:
+~# ps
+
+PID   USER     TIME  COMMAND
+
+    1 0         0:00 /init
+
+    2 0         0:00 [kthreadd]
+
+    3 0         0:00 [pool_workqueue_]
+
+    4 0         0:00 [kworker/R-rcu_g]
+
+    5 0         0:00 [kworker/R-sync_]
+
+    6 0         0:00 [kworker/R-kvfre]
+
+    7 0         0:00 [kworker/R-slub_]
+
+    8 0         0:00 [kworker/R-netns]
+
+    9 0         0:00 [kworker/0:0-ata]
+
+   10 0         0:00 [kworker/0:0H-kb]
+
+   11 0         0:00 [kworker/0:1-ata]
+
+   12 0         0:01 [kworker/u4:0-tt]
+
+   13 0         0:00 [kworker/R-mm_pe]
+
+   14 0         0:00 [kworker/u4:1-ev]
+
+   15 0         0:00 [ksoftirqd/0]
+
+   16 0         0:00 [rcu_preempt]
+
+   17 0         0:00 [rcu_exp_par_gp_]
+
+   18 0         0:00 [rcu_exp_gp_kthr]
+
+   19 0         0:00 [migration/0]
+
+   20 0         0:00 [kprobe-optimize]
+
+   21 0         0:00 [cpuhp/0]
+
+   22 0         0:00 [kdevtmpfs]
+
+   23 0         0:00 [kworker/R-inet_]
+
+   24 0         0:00 [rcu_tasks_kthre]
+
+   25 0         0:00 [kauditd]
+
+   26 0         0:00 [pr/ttyS0]
+
+   27 0         0:00 [oom_reaper]
+
+   28 0         0:00 [kworker/R-write]
+
+   29 0         0:00 [kcompactd0]
+
+   30 0         0:00 [kworker/R-bio_c]
+
+   31 0         0:00 [kworker/R-kbloc]
+
+   32 0         0:00 [irq/9-acpi]
+
+   33 0         0:00 [kworker/R-ata_s]
+
+   34 0         0:00 [kworker/R-md_bi]
+
+   35 0         0:00 [kworker/u4:2-ev]
+
+   36 0         0:00 [kworker/R-quota]
+
+   37 0         0:00 [kworker/R-rpcio]
+
+   38 0         0:00 [kworker/R-xprti]
+
+   39 0         0:00 [kworker/R-cfg80]
+
+   40 0         0:00 [kworker/u4:3-pm]
+
+   41 0         0:00 [kswapd0]
+
+   42 0         0:00 [kworker/u4:4-sc]
+
+   43 0         0:00 [kworker/R-nfsio]
+
+   44 0         0:00 [kworker/u5:0]
+
+   45 0         0:00 [kworker/R-acpi_]
+
+   46 0         0:00 [kworker/u4:5-as]
+
+   47 0         0:00 [kworker/0:1H-kb]
+
+   48 0         0:00 [kworker/R-nvme-]
+
+   49 0         0:00 [kworker/R-nvme-]
+
+   50 0         0:00 [kworker/R-nvme-]
+
+   51 0         0:00 [scsi_eh_0]
+
+   52 0         0:00 [kworker/R-scsi_]
+
+   53 0         0:00 [scsi_eh_1]
+
+   54 0         0:00 [kworker/R-scsi_]
+
+   55 0         0:00 [kworker/u4:6-ev]
+
+   56 0         0:00 [kworker/0:2-eve]
+
+   57 0         0:00 [kworker/R-mld]
+
+   58 0         0:00 [kworker/R-ipv6_]
+
+   62 0         0:00 [kworker/0:3-eve]
+
+   63 0         0:00 [jbd2/loop1-8]
+
+   64 0         0:00 [kworker/R-ext4-]
+
+   66 0         0:00 -sh
+
+   68 0         0:00 -sh
+
+   79 0         0:00 /usr/lib/systemd/systemd-udevd --daemon
+
+  104 0         0:00 /usr/bin/bash /usr/local/libexec/ultra-sesion software foo
+
+  126 0         0:00 seatd -u ultra -g ultra -l info
+
+  128 1000      0:00 cage -D -s -- foot
+
+  129 0         0:00 tee /run/ultra-escritorio/ultima.log
+
+  132 1000      0:00 foot
+
+  133 1000      0:00 /usr/bin/bash
+
+  140 0         0:00 (udev-worker)
+
+  144 0         0:00 {ps} -sh
+
+ultra:
+~# ls -l /proc/$(pidof systemd-udevd)/fd
+
+total 0
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m0[m -> [1;35m/arch/dev/null[m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m1[m -> [1;35m/arch/dev/null[m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m10[m -> [1;35msocket:[543][m
+
+lr-x------    1 0        0               64 Oct 19 15:48 [1;36m11[m -> [0;0m/arch/usr/lib/udev/hwdb.bin[m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m13[m -> [1;31manon_inode:[pidfd][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m14[m -> [1;31manon_inode:[pidfd][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m15[m -> [1;31manon_inode:[timerfd][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m2[m -> [1;35m/arch/dev/null[m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m3[m -> [1;31manon_inode:[eventpoll][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m4[m -> [1;31manon_inode:[signalfd][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m5[m -> [1;31manon_inode:[signalfd][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m6[m -> [1;31manon_inode:[signalfd][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m7[m -> [1;35msocket:[540][m
+
+lrwx------    1 0        0               64 Oct 19 15:48 [1;36m8[m -> [1;35msocket:[542][m
+
+lr-x------    1 0        0               64 Oct 19 15:48 [1;36m9[m -> [1;31manon_inode:inotify[m
+
+ultra:

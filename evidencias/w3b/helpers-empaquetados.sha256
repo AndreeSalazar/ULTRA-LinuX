@@ -1,0 +1,6 @@
+PERFIL-generico
+b9085fa1087c4b49bf3b8dd763d5978091bf3d6920e2c0d03c3fb4dfe8bb26a9  /home/builder/linux-reconstruido/artifacts/generico/sistema-a/usr/local/libexec/ultra-sesion
+2aff9a641d3845775fd568ee449982af7fb0a0481fde6457878f31fe68dca573  /home/builder/linux-reconstruido/artifacts/generico/sistema-a/usr/local/libexec/ultra-cliente
+PERFIL-pc
+b9085fa1087c4b49bf3b8dd763d5978091bf3d6920e2c0d03c3fb4dfe8bb26a9  /home/builder/linux-reconstruido/artifacts/pc/sistema-a/usr/local/libexec/ultra-sesion
+2aff9a641d3845775fd568ee449982af7fb0a0481fde6457878f31fe68dca573  /home/builder/linux-reconstruido/artifacts/pc/sistema-a/usr/local/libexec/ultra-cliente
