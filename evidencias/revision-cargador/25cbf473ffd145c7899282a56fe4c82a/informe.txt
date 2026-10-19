@@ -1,0 +1,9 @@
+gcc (GCC) 16.2.1 20260810
+c7df995edb76fbd87903a1ccaf5b29b001beb1a7d6f02954af667aaef4fafaf8  /home/builder/linux-reconstruido/revision-cargador-25cbf473ffd145c7899282a56fe4c82a/hardware.c
+a2bcda27d591a7a690215d00beb6ca8c4ae273b8e651451bc1eb3f3d26428f18  /home/builder/linux-reconstruido/revision-cargador-25cbf473ffd145c7899282a56fe4c82a/init.h
+54ae57426e8e185fa1e85df25ce743c21bd02bf7cb8e963344ff8576da046efb  /home/builder/linux-reconstruido/revision-cargador-25cbf473ffd145c7899282a56fe4c82a/guardian/produccion/ultra_guard.c
+ROJO [HARDWARE]: ultra_audit_absent_dependency: dependencia requerida ausente en modules.dep
+CONTROL: modulo opcional ajeno se omite como contempla W3a
+CONTROL: dependencia requerida ausente rechazada y contada
+CONTROL: dos omisiones de hijos llegan al padre sin truncamiento
+REVISION-CARGADOR: hallazgos=0; syscalls interceptadas=0; sin cargar modulos

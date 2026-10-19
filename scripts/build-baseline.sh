@@ -46,6 +46,9 @@ if [[ $perfil = pc ]]; then
     dir=x86_64-pc localversion=-pc
     extra+=(X86_NATIVE_CPU) required+=(X86_NATIVE_CPU)
     userflags=(-O3 -march=znver3 -flto=auto)
+    # W3a: the RTX 3060 drives the screen with KMS (what Wayland needs) and its own console.
+    # Its firmware (GSP) lives in the system image, mounted at /sistema before the module loads.
+    cmdline=${cmdline/ GLIBC_TUNABLES/ nvidia-drm.modeset=1 nvidia-drm.fbdev=1 firmware_class.path=\/sistema\/usr\/lib\/firmware GLIBC_TUNABLES}
 fi
 base="$HOME/linux-reconstruido"
 src="$base/kernel"
@@ -129,6 +132,39 @@ make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc -j"$(nproc)" "${targets[@]
 if [[ $modules = yes ]]; then
     rm -rf "$art/modulos"
     make -s -C "$src" O="$out" ARCH=x86_64 INSTALL_MOD_PATH="$art/modulos" INSTALL_MOD_STRIP=1 modules_install
+    if [[ $perfil = pc ]]; then
+        # W3a, the RTX 3060: nvidia-open from Arch's own source package, built against this very
+        # kernel, the same version as the nvidia-utils that goes into the system image.
+        mrel=$(make -s -C "$src" O="$out" ARCH=x86_64 kernelrelease)
+        # A fresh package database, so the module and the userspace come from the same release.
+        sudo pacman -Sy > /dev/null
+        nv_ver=$(pacman -Si nvidia-utils | sed -n 's/^Version *: *\([0-9.]*\)-.*/\1/p')
+        [[ -n $nv_ver ]] || { echo 'ROJO: no se pudo saber la version de nvidia-utils'; exit 1; }
+        sudo pacman -Sw --noconfirm "nvidia-open-dkms=$nv_ver" > /dev/null
+        nvpkg=$(ls /var/cache/pacman/pkg/nvidia-open-dkms-"$nv_ver"-*-x86_64.pkg.tar.zst | tail -1)
+        nvsrc="$base/build/nvidia-open"
+        rm -rf "$nvsrc" && mkdir -p "$nvsrc" && tar -C "$nvsrc" -xf "$nvpkg" usr/src
+        make -C "$nvsrc/usr/src/nvidia-$nv_ver" -j"$(nproc)" IGNORE_PREEMPT_RT_PRESENCE=1 NV_EXCLUDE_BUILD_MODULES='' \
+            SYSSRC="$src" SYSOUT="$out" CC=gcc modules > "$art/nvidia-build.log" 2>&1 ||
+            { tail -20 "$art/nvidia-build.log"; echo "ROJO: nvidia-open $nv_ver no compila contra $mrel"; exit 1; }
+        nvdest="$art/modulos/lib/modules/$mrel/kernel/drivers/video"
+        mkdir -p "$nvdest"
+        for m in nvidia nvidia-modeset nvidia-drm nvidia-uvm nvidia-peermem; do
+            install -m 0644 "$nvsrc/usr/src/nvidia-$nv_ver/kernel-open/$m.ko" "$nvdest/$m.ko"
+            strip --strip-debug "$nvdest/$m.ko"
+            # Guardian: a module for another kernel would not load, or worse, would load wrong.
+            [[ $(modinfo -F vermagic "$nvdest/$m.ko") = "$mrel "* ]] || { echo "ROJO: $m.ko no es para $mrel"; exit 1; }
+        done
+        depmod -b "$art/modulos" "$mrel"
+        grep -q 'nvidia' "$art/modulos/lib/modules/$mrel/modules.alias" || { echo 'ROJO: depmod no registro los alias de NVIDIA'; exit 1; }
+        # Guardian flag: functions returning without the return thunk weaken the SRSO (Inception)
+        # mitigation. Count observed warning lines, not unique functions or full protection.
+        naked=$(grep -c "'naked' return found in MITIGATION_RETHUNK build" "$art/nvidia-build.log" || true)
+        printf 'nvidia-open %s para %s\nAMARILLO [SRSO]: %s lineas de aviso objtool "naked return" (MITIGATION_RETHUNK); no son un recuento de funciones unicas. Cobertura efectiva pendiente de comprobar con microcodigo, sysfs y pruebas en hardware real.\n' \
+            "$nv_ver" "$mrel" "$naked" > "$art/nvidia-guardian.txt"
+        echo "VERDE: nvidia-open $nv_ver compilado para $mrel ($(du -sh "$nvdest" | cut -f1))"
+        echo "AMARILLO [SRSO]: $naked avisos observados; cobertura real pendiente (ver nvidia-guardian.txt)"
+    fi
     tar -C "$art/modulos" -czf "$art/modulos.tar.gz" lib
     for m in "${modules_list[@]}"; do
         grep -qx "CONFIG_$m=m" "$out/.config" || { echo "ROJO: CONFIG_$m no quedo como modulo"; exit 1; }
@@ -151,20 +187,6 @@ if [[ -n $cmdline ]]; then
     release=$(cat "$art/kernelrelease.txt")
     img="$art/ultra-esp.img" esp_type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B linux_type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
     export MTOOLS_SKIP_CHECK=1
-    rm -f "$img"
-    # 1 MiB for the GPT, ESP and data of 64 MiB, 400 MiB for the system, room for the backup GPT.
-    truncate -s 530M "$img"
-    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="ULTRA-ESP"\nsize=400MiB, type=%s, name="ULTRA-SISTEMA-A"\nsize=64MiB, type=%s, name="ULTRA-DATOS"\n' \
-        "$esp_type" "$linux_type" "$linux_type" | sfdisk -q "$img"
-    # part NAME 1 -> first sector, part NAME 2 -> size in sectors.
-    part() { sfdisk --dump "$img" | sed -n "s/.*start= *\([0-9]*\), size= *\([0-9]*\).*name=\"$1\".*/\\$2/p"; }
-    for name in ULTRA-ESP ULTRA-SISTEMA-A ULTRA-DATOS; do
-        [[ -n $(part "$name" 1) ]] || { echo "ROJO: la particion $name no aparece en la tabla GPT"; exit 1; }
-    done
-    offset=$(( $(part ULTRA-ESP 1) * 512 )) sectors=$(part ULTRA-ESP 2)
-    mkfs.fat -F 32 -s 1 -n ULTRA-ESP --offset=$(part ULTRA-ESP 1) "$img" $((sectors / 2)) > /dev/null
-    mmd -i "$img@@$offset" ::/EFI ::/EFI/BOOT
-    mcopy -i "$img@@$offset" "$art/bzImage-tiny64" ::/EFI/BOOT/BOOTX64.EFI
     # System A (Wayland stage W1): Arch's base system, installed with its own pacman into a
     # separate root, plus the modules of this kernel. Compatible with Arch, not a copy: the
     # packages come unchanged from Arch's repositories and their list is kept as evidence.
@@ -180,6 +202,9 @@ if [[ -n $cmdline ]]; then
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
     arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu)
+    # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
+    # nvidia-open module built above. The generic image stays without it: the safety net.
+    [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
     sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \
         -Sy --noconfirm "${arch_pkgs[@]}" > "$art/pacman-sistema.log" 2>&1 ||
         { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo instalar el sistema base de Arch'; exit 1; }
@@ -200,9 +225,24 @@ if [[ -n $cmdline ]]; then
     for f in usr/lib/libc.so.6 usr/bin/bash usr/bin/ls; do
         readelf -n "$sistema/$f" | grep -q 'x86 feature: IBT, SHSTK' || { echo "ROJO: $f sin marca CET"; exit 1; }
     done
-    sudo mkfs.erofs --quiet -zlz4hc -T 0 "$art/sistema-a.erofs" "$sistema"
+    sudo mkfs.erofs --quiet -zlzma,level=6 -T 0 "$art/sistema-a.erofs" "$sistema"
     sudo chown "$(id -u):$(id -g)" "$art/sistema-a.erofs"
-    echo "VERDE: sistema A con base Arch: ${#arch_pkgs[@]} pedidos, $(wc -l < "$art/sistema-paquetes.txt") instalados, EROFS lz4hc $(( $(stat -c %s "$art/sistema-a.erofs") / 1048576 )) MiB"
+    echo "VERDE: sistema A con base Arch: ${#arch_pkgs[@]} pedidos, $(wc -l < "$art/sistema-paquetes.txt") instalados, EROFS lzma $(( $(stat -c %s "$art/sistema-a.erofs") / 1048576 )) MiB"
+    rm -f "$img"
+    # Sized to the system just built: its EROFS plus 64 MiB of margin. GPT, ESP 64 MiB, data 64 MiB.
+    sys_mib=$(( $(stat -c %s "$art/sistema-a.erofs") / 1048576 + 64 ))
+    truncate -s $(( 1 + 64 + sys_mib + 64 + 1 ))M "$img"
+    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="ULTRA-ESP"\nsize=%sMiB, type=%s, name="ULTRA-SISTEMA-A"\nsize=64MiB, type=%s, name="ULTRA-DATOS"\n' \
+        "$esp_type" "$sys_mib" "$linux_type" "$linux_type" | sfdisk -q "$img"
+    # part NAME 1 -> first sector, part NAME 2 -> size in sectors.
+    part() { sfdisk --dump "$img" | sed -n "s/.*start= *\([0-9]*\), size= *\([0-9]*\).*name=\"$1\".*/\\$2/p"; }
+    for name in ULTRA-ESP ULTRA-SISTEMA-A ULTRA-DATOS; do
+        [[ -n $(part "$name" 1) ]] || { echo "ROJO: la particion $name no aparece en la tabla GPT"; exit 1; }
+    done
+    offset=$(( $(part ULTRA-ESP 1) * 512 )) sectors=$(part ULTRA-ESP 2)
+    mkfs.fat -F 32 -s 1 -n ULTRA-ESP --offset=$(part ULTRA-ESP 1) "$img" $((sectors / 2)) > /dev/null
+    mmd -i "$img@@$offset" ::/EFI ::/EFI/BOOT
+    mcopy -i "$img@@$offset" "$art/bzImage-tiny64" ::/EFI/BOOT/BOOTX64.EFI
     printf '%s\n' 'ULTRA-DATOS: lo que sobrevive a un reinicio.' \
         'PC.configuración: componentes y modulos de este PC, escrito por el init en el primer arranque.' \
         'arranques.log: una linea por arranque con los tiempos medidos.' > "$datos/LEEME.txt"
@@ -231,9 +271,12 @@ if [[ -n $cmdline ]]; then
     # QEMU starts the kernel from partition 1; the real PC from a firmware entry on BMO.
     bmo="$art/disco-bmo.img" basic_type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
     rm -f "$bmo"
-    truncate -s 882M "$bmo"
-    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="EFI system partition"\nsize=800MiB, type=%s, name="Basic data partition"\nsize=16MiB, type=%s, name="Basic data partition"\n' \
-        "$esp_type" "$basic_type" "$basic_type" | sfdisk -q "$bmo"
+    bmo_mib=$(( sys_mib + 20 + 64 + 32 ))
+    gen_erofs="$base/artifacts/generico/sistema-a.erofs"
+    [[ $perfil = pc && -f $gen_erofs ]] && bmo_mib=$(( bmo_mib + $(stat -c %s "$gen_erofs") / 1048576 + 40 ))
+    truncate -s $(( 1 + 64 + bmo_mib + 16 + 1 ))M "$bmo"
+    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="EFI system partition"\nsize=%sMiB, type=%s, name="Basic data partition"\nsize=16MiB, type=%s, name="Basic data partition"\n' \
+        "$esp_type" "$bmo_mib" "$basic_type" "$basic_type" | sfdisk -q "$bmo"
     bpart() { sfdisk --dump "$bmo" | sed -n "s/^[^ ]*$1 : start= *\([0-9]*\), size= *\([0-9]*\).*/\\$2/p"; }
     win=$(( $(bpart 1 1) * 512 )) a=$(( $(bpart 2 1) * 512 ))
     mkfs.fat -F 32 -s 1 --offset=$(bpart 1 1) "$bmo" $(( $(bpart 1 2) / 2 )) > /dev/null 2>&1

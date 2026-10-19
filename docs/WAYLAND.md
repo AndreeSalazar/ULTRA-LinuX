@@ -10,7 +10,8 @@ Wayland en sí es un protocolo pequeño. Lo grande es lo que tiene debajo: un es
 | W1b | La raíz por defecto pasa a ser Arch | Pendiente: antes, `caja` necesita reglas medidas para programas dinámicos |
 | **W2** | `udevd` (de Arch, sin systemd) + `seatd`, y `cage` + `foot` sobre `simpledrm` | **Hecha: la primera ventana** (en QEMU) |
 | W2b | Escritorio: labwc (ventanas flotantes) + panel + lanzador | Pendiente |
-| W3 | RTX 3060: `nvidia-open`, Vulkan, gamescope | Pendiente |
+| W3a | `nvidia-open`, firmware GSP y usuario NVIDIA en el perfil pc | Compilacion y controles QEMU; GPU real pendiente |
+| W3b | Escritorio sobre RTX 3060, Vulkan y aplicaciones | Pendiente de validar W3a en hardware |
 
 ## W1: el sistema base de Arch dentro de ULTRA
 
@@ -65,3 +66,58 @@ Escribir `exit` en la terminal cierra `cage` y devuelve la consola de texto de U
 Resultados: `generico --bmo` 61/61, `pc --bmo` 62/62, `--disco` 55/55, `--auto` y `--auto-falla` en VERDE.
 
 **Siguiente (W2b):** un escritorio de verdad, con labwc (ventanas flotantes, usa `seatd`), un panel y un lanzador. Plasma necesita `logind` y D-Bus, y llega después.
+
+## W3a: NVIDIA por perfil y revision del cargador
+
+El perfil pc incorpora nvidia-open compilado contra su kernel, la version
+correspondiente de nvidia-utils y firmware GSP. Comprueba vermagic y genera
+modules.dep/alias. El generico conserva el sistema sin NVIDIA como recuperacion.
+Las imagenes EROFS usan lzma y los discos de prueba se dimensionan segun la
+imagen producida. La version exacta y los tamanos pertenecen al manifiesto de
+cada compilacion, no a una garantia sobre futuras actualizaciones de Arch.
+
+La deteccion guarda una huella de modules.alias por kernel para repetir el
+descubrimiento si cambia su catalogo. Esa huella es una clave de cache, no
+una firma de seguridad. La lista compartida puede contener modulos ausentes
+del otro perfil: se omiten solo cuando son solicitudes de primer nivel.
+
+La revision de seguridad detecto y corrigio dos problemas: dependencias
+requeridas ausentes aceptadas y contadores de omisiones perdidos entre hijos
+y padre. Ahora se rechaza la dependencia requerida y cada hijo entrega por
+pipe sus contadores completos. Los mensajes incompletos y la ausencia de
+modules.dep se cuentan como fallos.
+
+La [regresion aislada](../evidencias/revision-cargador/c7c17edf010d4aca9274509e26fa96e0/informe.txt)
+conserva el caso opcional valido, exige rechazo de la dependencia, comprueba
+omisiones entre procesos y mensajes truncados. No carga modulos reales.
+
+Los avisos de objtool relativos a retornos se registran como observaciones:
+contar lineas no cuenta funciones unicas ni demuestra cobertura SRSO total.
+La validacion real requiere microcodigo y estado de mitigacion del PC.
+
+En QEMU sin NVIDIA, las pruebas de presencia de modulo/firmware y arranque
+de nvidia-smi con error esperado no demuestran aceleracion ni carga del driver.
+La prueba pendiente en el PC es consultar nvidia-smi, comprobar el driver DRM
+activo y verificar la salida del monitor con la RTX. La sesion grafica sin
+root sigue pendiente; ver [revision de seguridad](REVISION-SEGURIDAD-W3A.md).
+
+### Cierre comprobado de W3a (2026-10-19)
+
+Reconstruidos ambos perfiles con las correcciones del cargador. En QEMU:
+
+| Prueba | Controles en VERDE | ROJO |
+|---|---:|---:|
+| generico, BMO | 62 | 0 |
+| generico, disco | 56 | 0 |
+| pc, BMO | 66 | 0 |
+| seleccion automatica | 11 | 0 |
+| recuperacion ante EFI de PC invalido en disco de prueba | 6 | 0 |
+
+La [evidencia del cierre](../evidencias/w3a/README.md) incluye salidas,
+consolas y manifiestos. Se copiaron ambos perfiles a A: y se verificaron
+sus hashes contra los artefactos probados. datos.ext4 conserva su SHA256
+anterior. La prueba de recuperacion modifica solo la copia de disco de QEMU.
+
+Siguiente paso: arrancar el perfil PC desde F11, comprobar NVIDIA y salida
+fisica del monitor; despues medir las credenciales de la sesion y separar
+compositor/aplicaciones sin root antes de ampliar el escritorio.

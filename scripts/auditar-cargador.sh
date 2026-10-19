@@ -12,4 +12,4 @@ cat "$out/fuentes.sha256"
 printf 'kernel/ultra-audit-inert.ko:\n' > "$out/fixture/modules.dep"
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -ffunction-sections -fdata-sections -Wl,--gc-sections -static-pie \
     "$lab/guardian/laboratorio/revisar-cargador.c" "$lab/guardian/ultra_guard.c" -o "$out/revisar-cargador"
-bash "$lab/aislar-mina.sh" "$out/revisar-cargador"
+bash "$lab/aislar-mina.sh" "$out/revisar-cargador" --exigir-correccion

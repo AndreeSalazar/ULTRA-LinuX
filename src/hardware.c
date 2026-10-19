@@ -50,7 +50,7 @@ struct dep {
 static struct dep *deps;
 static size_t ndeps;
 static char tried[MAX_TRIED][NAME_LEN];
-static size_t ntried, nloaded, nfailed;
+static size_t ntried, nloaded, nfailed, nskipped;
 static char moddir[192];
 
 static int64_t now_us(void) {
@@ -282,6 +282,7 @@ static const struct dep *find_dep(const char *name) {
 static bool load_module(const char *name, unsigned depth) {
     if (depth > DEP_DEPTH) {
         say("ROJO", "%s: dependencias demasiado profundas", name);
+        nfailed++;
         return false;
     }
     for (size_t i = 0; i < ntried; i++)
@@ -293,9 +294,14 @@ static bool load_module(const char *name, unsigned depth) {
     if (access(path, F_OK) == 0) return true;
     const struct dep *d = find_dep(name);
     if (!d) {
-        say("AMARILLO", "%s no esta en modules.dep de este kernel", name);
-        nfailed++;
-        return false;
+        if (depth > 0) {
+            say("ROJO", "%s: dependencia requerida ausente en modules.dep", name);
+            nfailed++;
+            return false;
+        }
+        /* The list is shared by every kernel of this PC: another kernel needs it, not this one. */
+        nskipped++;
+        return true;
     }
     char list[1024], dep_name[NAME_LEN];
     if (!ULTRA_COPY(list, d->deps)) {
@@ -330,7 +336,25 @@ static bool load_module(const char *name, unsigned depth) {
     return true;
 }
 
+static bool write_all(int fd, const char *buf, size_t len);
+
+struct load_result { size_t loaded, failed, skipped; };
+
+static bool read_load_result(int fd, struct load_result *result) {
+    char *p = (char *)result;
+    size_t remaining = sizeof(*result);
+    while (remaining) {
+        ssize_t n = read(fd, p, remaining);
+        if (n < 0 && errno == EINTR) continue;
+        if (n <= 0) return false;
+        p += n;
+        remaining -= (size_t)n;
+    }
+    return true;
+}
+
 static void load_wanted(void) {
+    ntried = nloaded = nfailed = nskipped = 0;
     char path[256];
     snprintf(path, sizeof(path), "%s/modules.dep", moddir);
     char *buf = slurp(path);
@@ -339,6 +363,7 @@ static void load_wanted(void) {
     deps = lines ? calloc(n ? n : 1, sizeof(*deps)) : NULL;
     if (!deps) {
         say("ROJO", "no se pudo leer %s", path);
+        nfailed++;
         free(lines);
         free(buf);
         return;
@@ -354,33 +379,53 @@ static void load_wanted(void) {
         d->deps = colon + 1;
         if (module_name(d->path, d->name, sizeof(d->name))) ndeps++;
     }
-    ntried = nloaded = nfailed = 0;
     /*
      * Each module of the list loads in its own process, with its dependencies, all at
      * once: network, sound and sensor do not wait for each other. A shared dependency
      * is loaded once; the kernel makes the other loader wait and answers EEXIST.
-     * The exit code carries the result: bits 0-5 loaded, bit 6 a failure.
+     * A private pipe carries exact counters; exit status only confirms delivery.
      */
     pid_t pids[MAX_MODULES];
+    int results[MAX_MODULES];
+    size_t indices[MAX_MODULES];
     size_t npids = 0;
     for (size_t i = 0; i < nwanted; i++) {
-        pid_t pid = nwanted > 1 ? fork() : -1;
+        int channel[2] = {-1, -1};
+        bool channel_ok = nwanted > 1 && pipe2(channel, O_CLOEXEC) == 0;
+        pid_t pid = channel_ok ? fork() : -1;
         if (pid == 0) {
+            close(channel[0]);
+            for (size_t j = 0; j < npids; j++) close(results[j]);
+            ntried = nloaded = nfailed = nskipped = 0;
             load_module(wanted[i], 0);
-            _exit((int)(nloaded > 63 ? 63 : nloaded) | (nfailed ? 64 : 0));
+            const struct load_result result = {nloaded, nfailed, nskipped};
+            bool delivered = write_all(channel[1], (const char *)&result, sizeof(result));
+            close(channel[1]);
+            _exit(delivered ? 0 : 1);
         }
-        if (pid > 0) pids[npids++] = pid;
-        else load_module(wanted[i], 0);
+        if (channel_ok) close(channel[1]);
+        if (pid > 0) {
+            pids[npids] = pid;
+            results[npids] = channel[0];
+            indices[npids++] = i;
+        } else {
+            if (channel_ok) close(channel[0]);
+            load_module(wanted[i], 0);
+        }
     }
     for (size_t k = 0; k < npids; k++) {
         int status;
         pid_t got;
         while ((got = waitpid(pids[k], &status, 0)) < 0 && errno == EINTR) {}
-        if (got == pids[k] && WIFEXITED(status)) {
-            nloaded += (size_t)(WEXITSTATUS(status) & 63);
-            if (WEXITSTATUS(status) & 64) nfailed++;
+        struct load_result result;
+        bool delivered = read_load_result(results[k], &result);
+        close(results[k]);
+        if (got == pids[k] && WIFEXITED(status) && WEXITSTATUS(status) == 0 && delivered) {
+            nloaded += result.loaded;
+            nfailed += result.failed;
+            nskipped += result.skipped;
         } else {
-            say("ROJO", "el proceso que cargaba %s murio sin terminar", wanted[k]);
+            say("ROJO", "el proceso que cargaba %s no entrego un resultado completo", wanted[indices[k]]);
             nfailed++;
         }
     }
@@ -391,11 +436,34 @@ static void load_wanted(void) {
     free(buf);
 }
 
+enum { MAX_KERNELS = 8 };
+
 struct saved {
     char kernel[96];
     uint64_t fingerprint;
     int64_t detect_us, load_us;
+    /* modulos_kernel=<uname -r> <hash of its modules.alias>: one line per kernel of this PC. */
+    char kernels[MAX_KERNELS][96];
+    uint64_t module_hash[MAX_KERNELS];
+    size_t nkernels;
 };
+
+/* FNV-1a of this kernel's modules.alias: new modules (nvidia-open) give another value. */
+static uint64_t modules_hash(void) {
+    char path[256];
+    snprintf(path, sizeof(path), "%s/modules.alias", moddir);
+    char *buf = slurp(path);
+    uint64_t h = 0xcbf29ce484222325ULL;
+    for (const char *c = buf; c && *c; c++) h = (h ^ (unsigned char)*c) * 0x100000001b3ULL;
+    free(buf);
+    return h;
+}
+
+static int kernel_index(const struct saved *s, const char *release) {
+    for (size_t i = 0; i < s->nkernels; i++)
+        if (strcmp(s->kernels[i], release) == 0) return (int)i;
+    return -1;
+}
 
 /* Reads PC.configuración; the module list goes straight into wanted[]. */
 static bool read_config(struct saved *s) {
@@ -405,6 +473,7 @@ static bool read_config(struct saved *s) {
     s->kernel[0] = 0;
     s->fingerprint = 0;
     s->detect_us = s->load_us = -1;
+    s->nkernels = 0;
     nwanted = 0;
     char *save = NULL;
     for (char *line = strtok_r(buf, "\n", &save); line; line = strtok_r(NULL, "\n", &save)) {
@@ -417,6 +486,16 @@ static bool read_config(struct saved *s) {
         else if (strncmp(line, "huella_pci=", 11) == 0) s->fingerprint = strtoull(line + 11, NULL, 16);
         else if (strncmp(line, "deteccion_us=", 13) == 0) s->detect_us = strtoll(line + 13, NULL, 10);
         else if (strncmp(line, "carga_us=", 9) == 0) s->load_us = strtoll(line + 9, NULL, 10);
+        else if (strncmp(line, "modulos_kernel=", 15) == 0 && s->nkernels < MAX_KERNELS) {
+            /* modulos_kernel=7.3.0-rc7-pc-g32c52ec87d62 0123456789abcdef */
+            char *space = strchr(line + 15, ' ');
+            if (!space) continue;
+            *space = 0;
+            if (ultra_copy(s->kernels[s->nkernels], sizeof(s->kernels[0]), line + 15)) {
+                s->module_hash[s->nkernels] = strtoull(space + 1, NULL, 16);
+                s->nkernels++;
+            }
+        }
     }
     free(buf);
     if (!ok) say("AMARILLO", "PC.configuracion tiene lineas invalidas; se detecta de nuevo");
@@ -448,14 +527,19 @@ static bool write_all(int fd, const char *buf, size_t len) {
 }
 
 /* Written beside the old file and renamed over it: a power cut leaves the old or the new, never half. */
-static bool write_config(const char *kernel, uint64_t fingerprint, int64_t detect_us, int64_t load_us) {
+static bool write_config(const char *kernel, uint64_t fingerprint, int64_t detect_us, int64_t load_us,
+                         const struct saved *kept, uint64_t this_hash) {
     outlen = 0;
     out_full = false;
     put("# ULTRA LinuX - PC.configuración\n"
         "# Escrito por el init en el primer arranque en este PC. Borrarlo fuerza otra deteccion.\n"
         "# Solo elige modulos: el codigo sale de ULTRA-SISTEMA-A, que es de solo lectura.\n"
-        "kernel=%s\nhuella_pci=%016" PRIx64 "\ndeteccion_us=%" PRId64 "\ncarga_us=%" PRId64 "\n\n[componentes]\n",
+        "kernel=%s\nhuella_pci=%016" PRIx64 "\ndeteccion_us=%" PRId64 "\ncarga_us=%" PRId64 "\n",
         kernel, fingerprint, detect_us, load_us);
+    /* One fingerprint per kernel of this PC: the others are kept, this one is updated. */
+    for (size_t i = 0; kept && i < kept->nkernels; i++)
+        if (strcmp(kept->kernels[i], kernel) != 0) put("modulos_kernel=%s %016" PRIx64 "\n", kept->kernels[i], kept->module_hash[i]);
+    put("modulos_kernel=%s %016" PRIx64 "\n\n[componentes]\n", kernel, this_hash);
     for (size_t i = 0; i < ndevices; i++) {
         const struct device *d = &devices[i];
         put("%s %s | %s | driver=%s | modulos=%s | %s\n", d->bus, d->id, d->what[0] ? d->what : "-",
@@ -622,12 +706,24 @@ void prepare_hardware(bool data) {
      * missing or fails in this kernel, the full detection runs right after.
      */
     struct saved s;
+    bool have_saved = false, same_pc = false;
+    uint64_t this_hash = modules_hash();
+    char kept_wanted[MAX_MODULES][NAME_LEN];
+    size_t nkept = 0;
     int64_t t0 = now_us();
     const char *why = "no hay /datos: la deteccion se repetira en cada arranque";
     if (data && read_config(&s)) {
+        have_saved = true;
         ndevices = 0;
         scan_bus("pci", false);
-        if (s.fingerprint != pci_fingerprint()) why = "la huella PCI cambio: otro PC u otra tarjeta";
+        same_pc = s.fingerprint == pci_fingerprint();
+        int k = kernel_index(&s, u.release);
+        /* The list as it was, for the other kernels of this same PC. */
+        for (size_t i = 0; same_pc && i < nwanted && nkept < MAX_MODULES; i++)
+            if (ultra_copy(kept_wanted[nkept], NAME_LEN, wanted[i])) nkept++;
+        if (!same_pc) why = "la huella PCI cambio: otro PC u otra tarjeta";
+        else if (k < 0) why = "primer arranque de este kernel en este PC";
+        else if (s.module_hash[k] != this_hash) why = "este kernel trae modulos nuevos";
         else {
             int64_t t1 = now_us();
             load_wanted();
@@ -654,15 +750,19 @@ void prepare_hardware(bool data) {
     scan_bus("pci", true);
     scan_bus("usb", true);
     match_aliases();
+    /* Modules the other kernels of this PC found stay in the shared list. */
+    for (size_t i = 0; i < nkept; i++) want(kept_wanted[i]);
     int64_t d1 = now_us();
     load_wanted();
     int64_t d2 = now_us();
     read_drivers();
     say(nfailed ? "AMARILLO" : "VERDE",
-        "%zu componentes, %zu modulos necesarios (%zu cargados, %zu fallos); deteccion %" PRId64 " us + carga %" PRId64 " us",
-        ndevices, nwanted, nloaded, nfailed, d1 - d0, d2 - d1);
+        "%zu componentes, %zu modulos necesarios (%zu cargados, %zu de otros kernels, %zu fallos); deteccion %" PRId64
+        " us + carga %" PRId64 " us",
+        ndevices, nwanted, nloaded, nskipped, nfailed, d1 - d0, d2 - d1);
     if (!data) return;
-    if (write_config(u.release, pci_fingerprint(), d1 - d0, d2 - d1)) say("VERDE", "guardado en " CONFIG_PATH);
+    if (write_config(u.release, pci_fingerprint(), d1 - d0, d2 - d1, have_saved && same_pc ? &s : NULL, this_hash))
+        say("VERDE", "guardado en " CONFIG_PATH);
     snprintf(line, sizeof(line), "arranque=deteccion kernel=%s componentes=%zu modulos=%zu deteccion_us=%" PRId64
              " carga_us=%" PRId64 " total_us=%" PRId64 " uptime_ms=%" PRId64 "\n",
              u.release, ndevices, nwanted, d1 - d0, d2 - d1, d2 - d0, uptime_ms());

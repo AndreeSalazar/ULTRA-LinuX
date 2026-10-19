@@ -1,0 +1,1 @@
+DATOS-OK: imagen persistente conservada; generico instalado coincide con artefactos probados

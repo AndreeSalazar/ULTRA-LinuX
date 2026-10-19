@@ -5,6 +5,18 @@ incluido el significado de root/ring 0/ring 3, queda anotada en
 [Autoridad personal](AUTORIDAD-PERSONAL.md). Es diseno pendiente, no una
 proteccion ya instalada.
 
+Actualizacion: las dos incidencias del cargador se corrigieron despues de
+esta revision. La [regresion](../evidencias/revision-cargador/c7c17edf010d4aca9274509e26fa96e0/informe.txt)
+exige cero hallazgos y comprueba tambien mensajes incompletos y metadata
+ausente. El aviso SRSO se reformulo para limitarse a lo observado. La sesion
+grafica sin root y las comprobaciones de hardware siguen pendientes.
+
+Cierre posterior: ambos perfiles reconstruidos, pruebas de arranque y
+recuperacion aprobadas, instalacion en A: verificada por hash y datos
+persistentes conservados. Ver [evidencias W3a](../evidencias/w3a/README.md).
+El apartado Estado observado que sigue describe el momento de la revision
+inicial, antes de estas correcciones y de la instalacion.
+
 2026-10-19. Base confirmada: `708ab05` (W2), mas cambios W3a sin commit
 en build-baseline.sh, hardware.c y probar_arranque.py. Revision de codigo,
 configuracion y estado del taller; no prueba de penetracion ni certificacion.

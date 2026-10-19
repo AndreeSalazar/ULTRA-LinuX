@@ -1,0 +1,12 @@
+gcc (GCC) 16.2.1 20260810
+c7df995edb76fbd87903a1ccaf5b29b001beb1a7d6f02954af667aaef4fafaf8  /home/builder/linux-reconstruido/revision-cargador-c7c17edf010d4aca9274509e26fa96e0/hardware.c
+a2bcda27d591a7a690215d00beb6ca8c4ae273b8e651451bc1eb3f3d26428f18  /home/builder/linux-reconstruido/revision-cargador-c7c17edf010d4aca9274509e26fa96e0/init.h
+54ae57426e8e185fa1e85df25ce743c21bd02bf7cb8e963344ff8576da046efb  /home/builder/linux-reconstruido/revision-cargador-c7c17edf010d4aca9274509e26fa96e0/guardian/produccion/ultra_guard.c
+ROJO [HARDWARE]: ultra_audit_absent_dependency: dependencia requerida ausente en modules.dep
+ROJO [HARDWARE]: no se pudo leer /minas/no-existe/modules.dep
+CONTROL: modulo opcional ajeno se omite como contempla W3a
+CONTROL: dependencia requerida ausente rechazada y contada
+CONTROL: dos omisiones de hijos llegan al padre sin truncamiento
+CONTROL: mensajes vacios/parciales rechazados; contadores mayores de 255 conservados
+CONTROL: metadata de dependencias ausente produce fallo contado
+REVISION-CARGADOR: hallazgos=0; syscalls interceptadas=0; sin cargar modulos

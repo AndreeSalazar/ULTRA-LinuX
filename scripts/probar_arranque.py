@@ -91,6 +91,18 @@ BOOT1 = [
     ("ultra-entrar /usr/bin/bash -c 'echo capa-$((2+2)) > /etc/prueba-capa && cat /etc/prueba-capa'", 'capa-4'),
     ('grep -c prueba-capa /sistema/etc/prueba-capa 2>&1; echo IMAGEN-$((1+1))', 'No such file'),
 ]
+if PERFIL == 'pc':
+    # W3a, the RTX 3060: module, firmware and userspace in the tuned image. QEMU has no NVIDIA
+    # GPU, so nvidia-smi must start and report that it finds no driver: binary and libraries work.
+    BOOT1 += [
+        ('ls /sistema/lib/modules/$(uname -r)/kernel/drivers/video/', 'nvidia-drm.ko'),
+        ('ls /sistema/usr/lib/firmware/nvidia/*/', 'gsp_ga10x.bin'),
+        ('cat /proc/cmdline', 'nvidia-drm.modeset=1'),
+        ('ultra-entrar /usr/bin/nvidia-smi', 'NVIDIA-SMI has failed'),
+    ]
+elif PERFIL == 'generico':
+    # The generic image stays without NVIDIA: it is the safety net if the driver ever fails.
+    BOOT1 += [('ls /sistema/usr/bin/nvidia-smi 2>&1', 'No such file')]
 BOOT2 = [
     ('cat /datos/prueba-persistencia', TOKEN),
     ('lsmod', 'snd_hda_intel'),

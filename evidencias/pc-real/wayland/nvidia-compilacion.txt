@@ -1,0 +1,7 @@
+11677
+23
+nvidia-modeset
+0
+nvidia-utils usr/lib/firmware/nvidia/
+nvidia-utils usr/lib/firmware/nvidia/615.78.08/
+nvidia-utils usr/lib/firmware/nvidia/615.78.08/gsp_ga10x.bin
