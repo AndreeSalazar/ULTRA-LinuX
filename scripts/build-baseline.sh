@@ -186,6 +186,11 @@ if [[ -n $cmdline ]]; then
     sudo rm -f "$sistema/usr/lib/modules/$release/build" "$sistema/usr/lib/modules/$release/source"
     printf 'ULTRA-SISTEMA-A\nkernel=%s\nbase=arch\npaquetes=%s\n' "$release" "$(wc -l < "$art/sistema-paquetes.txt")" |
         sudo tee "$sistema/ULTRA-SISTEMA" > /dev/null
+    # Inside Arch, show where you are: root's login shell reads this after /etc/profile.
+    printf '%s\n' '# ULTRA LinuX: Arch base system mounted at /arch by the init (Wayland stage W1).' \
+        "PS1='\\[\\033[1;35m\\]arch\\[\\033[0m\\]@\\[\\033[1;36m\\]ultra\\[\\033[0m\\]:\\w# '" \
+        'echo "Dentro del sistema Arch de ULTRA LinuX. exit: volver a la shell de ULTRA."' |
+        sudo tee "$sistema/root/.bash_profile" > /dev/null
     # Guardian: the dynamic programs keep the CET marks the shadow stack needs.
     for f in usr/lib/libc.so.6 usr/bin/bash usr/bin/ls; do
         readelf -n "$sistema/$f" | grep -q 'x86 feature: IBT, SHSTK' || { echo "ROJO: $f sin marca CET"; exit 1; }

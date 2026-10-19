@@ -81,6 +81,9 @@ BOOT1 = [
     # Wayland stage W1: Arch's base system at /arch, dynamic glibc programs under ULTRA.
     ("ultra-entrar /usr/bin/bash -c 'echo ARCH-$BASH_VERSION'", 'ARCH-5.'),
     ('ultra-entrar /usr/bin/ls --version', 'GNU coreutils'),
+    # The machine has a name, and Arch's login shell says where you are.
+    ('echo HOST-$(hostname)', 'HOST-ultra'),
+    ("ultra-entrar /usr/bin/bash -lc 'echo LISTO'", 'Dentro del sistema Arch de ULTRA LinuX'),
     # The shadow stack also guards Arch's dynamic programs: grep reading its own status.
     ('ultra-entrar /usr/bin/grep x86_Thread /proc/self/status', 'shstk'),
     ('ultra-entrar /usr/bin/ls /datos', 'prueba-persistencia'),

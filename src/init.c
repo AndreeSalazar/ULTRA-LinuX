@@ -238,6 +238,8 @@ int main(void) {
     mount_fs("sysfs", "/sys", MS_NOSUID | MS_NODEV | MS_NOEXEC);
     mount_fs("tmpfs", "/tmp", MS_NOSUID | MS_NODEV);
     mount_fs("tmpfs", "/run", MS_NOSUID | MS_NODEV);
+    /* A name for the machine: without it, shells and Arch's prompt show "(none)". */
+    if (sethostname("ultra", 5) < 0) report("AMARILLO", "NOMBRE", strerror(errno));
 
     struct utsname u;
     char detail[320];

@@ -6,3 +6,6 @@ case $(tty) in
 esac
 echo "ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1)."
 echo "Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff"
+if [ -x /arch/usr/bin/bash ]; then
+    echo "Recomendacion: ultra-entrar  (entra en el sistema Arch: bash, coreutils, grep, sed, less; exit para volver)"
+fi
