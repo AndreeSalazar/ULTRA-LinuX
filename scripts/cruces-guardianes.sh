@@ -4,8 +4,8 @@
 set -euo pipefail
 ulimit -c 0
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
-source "$lab/guardianes.sh"
-g="$lab/guardian"
+source "$lab/guardianes-lab.sh"
+g="$ULTRA_GUARD_ROOT/laboratorio"
 out="${ULTRA_CRUCES_OUT:-$HOME/linux-reconstruido/build/cruces}"
 mkdir -p "$out"
 exec > >(tee "$out/informe.txt") 2>&1
@@ -21,7 +21,7 @@ for profile in prod-O0 prod-O2 prod-O3 diag-O1 diag-O2; do
     printf 'PERFIL %s:' "$profile"; printf ' %q' "${flags[@]}"; printf '\n'
     # FORTIFY needs optimization. O0 must be rejected, never silently weakened.
     if [[ $profile = prod-O0 ]]; then
-        if gcc "${ULTRA_WARN[@]}" "${flags[@]}" "$g/controles.c" "$g/ultra_guard.c" -o "$out/$profile" > "$out/$profile.build.txt" 2>&1; then
+        if gcc "${ULTRA_WARN[@]}" "${flags[@]}" "$g/controles.c" "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/$profile" > "$out/$profile.build.txt" 2>&1; then
             echo 'ROJO prod-O0: aceptado sin garantizar FORTIFY'
             failed=$((failed + 1))
         elif grep -q "_FORTIFY_SOURCE.*optimizations are turned off" "$out/$profile.build.txt"; then
@@ -32,7 +32,7 @@ for profile in prod-O0 prod-O2 prod-O3 diag-O1 diag-O2; do
         fi
         continue
     fi
-    if gcc "${ULTRA_WARN[@]}" "${flags[@]}" "$g/controles.c" "$g/ultra_guard.c" -o "$out/$profile" > "$out/$profile.build.txt" 2>&1 &&
+    if gcc "${ULTRA_WARN[@]}" "${flags[@]}" "$g/controles.c" "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/$profile" > "$out/$profile.build.txt" 2>&1 &&
        bash "$lab/aislar-mina.sh" "$out/$profile" > "$out/$profile.run.txt" 2>&1 &&
        grep -q '^CONTROL-OK:' "$out/$profile.run.txt"; then
         echo "VERDE $profile: operaciones validas conservadas"

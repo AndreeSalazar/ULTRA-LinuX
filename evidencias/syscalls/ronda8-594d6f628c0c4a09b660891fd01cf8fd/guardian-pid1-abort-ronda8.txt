@@ -1,0 +1,1 @@
+ROJO [TEST-PID1] /home/builder/linux-reconstruido/auditoria-syscalls-594d6f628c0c4a09b660891fd01cf8fd/caja/probar-guardian-pid1.c:8: rechazo esperado sin bucle

@@ -1,0 +1,4 @@
+FORMAL-OK: Z3 4.16.0; 156 instrucciones; equivalencia UNSAT para seccomp_data de 512 bits
+CONTROL-OK: filtro permitir-todo rechazado por contraejemplo
+BPF-SHA256: 551b0976babf076c196358e03be94901fee59fb2b369d0914be8c5a39ee7e839
+ALCANCE: semantica cBPF modelada y contrato declarado; no prueba correccion del kernel, C, hardware ni datos ya concedidos

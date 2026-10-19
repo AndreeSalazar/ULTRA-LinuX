@@ -102,7 +102,7 @@ Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del len
 - Caso `resto-int-min`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
 - Caso `ultra-division-min`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
 - Caso `ultra-resto-min`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [division-constante.c](../src/guardian/minas-compilacion/division-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [division-constante.c](../src/guardian/laboratorio/minas-compilacion/division-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-003
 
@@ -131,7 +131,7 @@ Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del len
 - Caso `desplazamiento`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
 - Caso `desplazamiento-negativo`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
 - Caso `ultra-shl-ancho`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [desplazamiento-constante.c](../src/guardian/minas-compilacion/desplazamiento-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [desplazamiento-constante.c](../src/guardian/laboratorio/minas-compilacion/desplazamiento-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-004
 
@@ -160,7 +160,7 @@ Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del len
 - Caso `indice-fuera`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
 - Caso `subobjeto-fuera`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
 - Caso `lectura-fuera`: **AMARILLO** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [indice-constante.c](../src/guardian/minas-compilacion/indice-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [indice-constante.c](../src/guardian/laboratorio/minas-compilacion/indice-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-005
 
@@ -187,7 +187,7 @@ Limite: Poner un alias a NULL no invalida los otros aliases.
 Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del lenguaje](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf), 6.2.4 y 7.22.3.
 
 - Caso `uso-tras-free`: **AMARILLO** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [analizador-uso-tras-free.c](../src/guardian/minas-compilacion/analizador-uso-tras-free.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [analizador-uso-tras-free.c](../src/guardian/laboratorio/minas-compilacion/analizador-uso-tras-free.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-006
 
@@ -215,7 +215,7 @@ Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del len
 
 - Caso `uso-tras-scope`: **AMARILLO** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
 - Caso `uso-tras-retorno`: **AMARILLO** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [retorna-local.c](../src/guardian/minas-compilacion/retorna-local.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [retorna-local.c](../src/guardian/laboratorio/minas-compilacion/retorna-local.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-007
 
@@ -268,7 +268,7 @@ Limite: Los bytes copiados deben representar un valor valido; el ejemplo alterna
 Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del lenguaje](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf), 6.3.2.3 p7.
 
 - Caso `desalineado`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [cast-desalineado.c](../src/guardian/minas-compilacion/cast-desalineado.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [cast-desalineado.c](../src/guardian/laboratorio/minas-compilacion/cast-desalineado.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-009
 
@@ -294,7 +294,7 @@ Limite: volatile no introduce la secuenciacion que falta.
 
 Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del lenguaje](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf), 6.5 p2.
 
-- REVISION: [punto-secuencia.c](../src/guardian/minas-compilacion/punto-secuencia.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [punto-secuencia.c](../src/guardian/laboratorio/minas-compilacion/punto-secuencia.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-010
 
@@ -451,7 +451,7 @@ Limite: Un puntero no nulo aun puede ser colgante o no tener espacio suficiente.
 Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del lenguaje](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf), 6.5.3.2.
 
 - Caso `puntero-nulo`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [analizador-nulo.c](../src/guardian/minas-compilacion/analizador-nulo.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [analizador-nulo.c](../src/guardian/laboratorio/minas-compilacion/analizador-nulo.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-016
 
@@ -530,7 +530,7 @@ Limite: Comprobar solape no comprueba por si solo la vida util de ambos objetos.
 Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del lenguaje](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf), 7.24.2.1 y 7.24.2.2.
 
 - Caso `memcpy-solapado`: **VERDE** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [memcpy-solapado-constante.c](../src/guardian/minas-compilacion/memcpy-solapado-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [memcpy-solapado-constante.c](../src/guardian/laboratorio/minas-compilacion/memcpy-solapado-constante.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-019
 
@@ -584,7 +584,7 @@ Limite: Las reglas de valores indeterminados tienen matices; no reducirlas a cua
 Referencia: [WG14 N1570: borrador C11, anexo J.2 informativo y clausulas del lenguaje](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf), 6.3.2.1 p2 y 6.7.9.
 
 - Caso `sin-inicializar-ejecucion`: **AMARILLO** en [evidencias/campo-minas-ronda6.txt](../evidencias/campo-minas-ronda6.txt).
-- REVISION: [sin-inicializar.c](../src/guardian/minas-compilacion/sin-inicializar.c): **VERDE** en el informe; no equivale a deteccion en produccion.
+- REVISION: [sin-inicializar.c](../src/guardian/laboratorio/minas-compilacion/sin-inicializar.c): **VERDE** en el informe; no equivale a deteccion en produccion.
 
 ## UB-021
 

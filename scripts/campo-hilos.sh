@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: GPL-2.0-only
 set -euo pipefail
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
-source "$lab/guardianes.sh"
+source "$lab/guardianes-lab.sh"
 out="${ULTRA_HILOS_OUT:-$HOME/linux-reconstruido/build/hilos}"
 mkdir -p "$out"
 exec > >(tee "$out/informe.txt") 2>&1
 gcc --version | head -1
-src="$lab/guardian/minas-hilos.c"
+src="$ULTRA_GUARD_ROOT/laboratorio/minas-hilos.c"
 flags=("${ULTRA_WARN[@]}" -O1 -g -fno-omit-frame-pointer -pthread -fsanitize=thread)
 gcc "${flags[@]}" "$src" -o "$out/hilos" > "$out/build.txt" 2>&1
 # Incompatible sanitizers must not be accidentally merged into one profile.

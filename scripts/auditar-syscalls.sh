@@ -4,7 +4,7 @@ set -euo pipefail
 ulimit -c 0
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
 base="$HOME/linux-reconstruido"
-out="$base/build/syscalls"
+out="${ULTRA_SYSCALLS_OUT:-$base/build/syscalls}"
 mkdir -p "$out"
 exec > >(tee "$out/informe.txt") 2>&1
 source "$lab/guardianes.sh"

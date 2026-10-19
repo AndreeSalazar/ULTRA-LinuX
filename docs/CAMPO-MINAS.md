@@ -131,9 +131,9 @@ Se ejecuta en el taller (necesita GCC) y escribe `build/minas/informe.txt`. La c
 
 ## Cómo se mide
 
-**Minas de compilación** (`src/guardian/minas-compilacion/*.c`): código peligroso que **no debe compilar**. Cada archivo lleva su `BANDERA:` y pasa por `ultra_revisar`: avisos como errores en `-O2` y analizador en `-O0`.
+**Minas de compilación** (`src/guardian/laboratorio/minas-compilacion/*.c`): código peligroso que **no debe compilar**. Cada archivo lleva su `BANDERA:` y pasa por `ultra_revisar`: avisos como errores en `-O2` y analizador en `-O0`.
 
-**Minas de ejecución** (`src/guardian/minas.c`): cada una se ejecuta de tres formas.
+**Minas de ejecución** (`src/guardian/laboratorio/minas.c`): cada una se ejecuta de tres formas.
 
 | Construcción | Opciones | Para qué |
 |---|---|---|
@@ -185,6 +185,6 @@ Guardianes nuevos de esta ronda: los venenos `strncpy`, `strncat`, `atoi`, `atol
 ## Añadir una mina
 
 1. Se reproduce el fallo en el archivo más pequeño posible.
-2. **Si debe impedirse al compilar:** se añade `src/guardian/minas-compilacion/NOMBRE.c` con su línea `/* BANDERA: por qué es peligroso */`.
+2. **Si debe impedirse al compilar:** se añade `src/guardian/laboratorio/minas-compilacion/NOMBRE.c` con su línea `/* BANDERA: por qué es peligroso */`.
 3. **Si ocurre al ejecutar:** se añade una función `mine_*` y su entrada en `mines[]`. Va con `'D'` si debe detenerse o `'N'` si debe neutralizarse, y opcionalmente con su gemela de compilación. Se usa `volatile` para que GCC no la pliegue al compilar.
 4. Se ejecuta el campo. Si sale ROJO, se busca el guardián (opción de GCC, veneno, envoltorio en `ultra_guard.h`, opción del kernel) y se repite hasta que deje de serlo. Nunca se oculta.

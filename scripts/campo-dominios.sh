@@ -2,15 +2,15 @@
 # SPDX-License-Identifier: GPL-2.0-only
 set -euo pipefail
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
-source "$lab/guardianes.sh"
+source "$lab/guardianes-lab.sh"
 source "$lab/minas-evaluar.sh"
-out="$HOME/linux-reconstruido/build/dominios"
+out="${ULTRA_DOMINIOS_OUT:-$HOME/linux-reconstruido/build/dominios}"
 mkdir -p "$out"
 exec > >(tee "$out/informe.txt") 2>&1
 gcc --version | head -1
-ultra_revisar "$lab/guardian/probar-ctype.c"
-gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -static-pie "$lab/guardian/probar-ctype.c" "$lab/guardian/ultra_guard.c" -o "$out/ctype-prod"
-gcc "${ULTRA_WARN[@]}" "${ULTRA_DIAG[@]}" "$lab/guardian/probar-ctype.c" "$lab/guardian/ultra_guard.c" -o "$out/ctype-diag"
+ultra_revisar "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -static-pie "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c" "$lab/guardian/ultra_guard.c" -o "$out/ctype-prod"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_DIAG[@]}" "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c" "$lab/guardian/ultra_guard.c" -o "$out/ctype-diag"
 count=0
 for mode in prod diag; do
     bash "$lab/aislar-mina.sh" "$out/ctype-$mode" > "$out/validos-$mode.txt" 2>&1

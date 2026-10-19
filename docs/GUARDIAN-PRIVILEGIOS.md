@@ -17,7 +17,7 @@ evalua una vez. Para un byte almacenado en `char`, el llamador puede convertir
 a `unsigned char`; para el resultado de `fgetc`, primero debe conservar y
 comprobar EOF. La API no adivina cual era la intencion.
 
-[Prueba dedicada](../src/guardian/probar-ctype.c): en cada uno de los perfiles
+[Prueba dedicada](../src/guardian/laboratorio/probar-ctype.c): en cada uno de los perfiles
 produccion y diagnostico se comparan los 256 bytes y EOF con la biblioteca;
 se prueba evaluacion unica y se rechazan nueve entradas invalidas
 (tres por operacion) con codigo 134 y bandera `UB-CTYPE`. Cada invocacion

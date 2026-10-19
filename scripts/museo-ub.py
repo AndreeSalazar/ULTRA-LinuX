@@ -21,7 +21,7 @@ def render(root, report_path):
     data = json.loads(registry.read_text(encoding='utf-8'))
     if data['version'] != 1:
         raise ValueError('version de catalogo no soportada')
-    source = inside(root, 'src/guardian/minas.c').read_text(encoding='utf-8')
+    source = inside(root, 'src/guardian/laboratorio/minas.c').read_text(encoding='utf-8')
     runtime = set(re.findall(r'^\s*\{"([^"\n]+)",\s*\'[DN]\'', source, re.M))
     if not runtime:
         raise ValueError('inventario de minas vacio')
@@ -38,7 +38,7 @@ def render(root, report_path):
     actual_counts = Counter(observations.values())
     if [actual_counts[s] for s in ('VERDE', 'NEUTRA', 'AMARILLO', 'ROJO')] != [int(n) for n in summaries[0][:4]]:
         raise ValueError('resumen de ejecucion inconsistente con sus casos')
-    fixtures = {f.stem for f in (root / 'src/guardian/minas-compilacion').glob('*.c')}
+    fixtures = {f.stem for f in (root / 'src/guardian/laboratorio/minas-compilacion').glob('*.c')}
     compile_part = report.split('== Minas de ejecucion:', 1)[0]
     compile_pairs = re.findall(r'^(VERDE|ROJO)\s+([^:\n]+):', compile_part, re.M)
     compile_states = {name: state for state, name in compile_pairs}
@@ -68,7 +68,7 @@ def render(root, report_path):
         for name in card['compilacion']:
             if not re.fullmatch(r'[a-z0-9-]+', name):
                 raise ValueError('nombre de fixture invalido')
-            inside(root, f'src/guardian/minas-compilacion/{name}.c')
+            inside(root, f'src/guardian/laboratorio/minas-compilacion/{name}.c')
         for evidence in card.get('evidencia_externa', []):
             inside(root, evidence)
         if card.get('fixture_externo'):
@@ -105,7 +105,7 @@ def render(root, report_path):
         for name in c['runtime']:
             lines.append(f'- Caso `{name}`: **{observations[name]}** en [{report_path}](../{report_path}).')
         for name in c['compilacion']:
-            lines.append(f'- REVISION: [{name}.c](../src/guardian/minas-compilacion/{name}.c): **{compile_states[name]}** en el informe; no equivale a deteccion en produccion.')
+            lines.append(f'- REVISION: [{name}.c](../src/guardian/laboratorio/minas-compilacion/{name}.c): **{compile_states[name]}** en el informe; no equivale a deteccion en produccion.')
         for evidence in c.get('evidencia_externa', []):
             lines.append(f'- Evidencia externa (ver su alcance propio): [{evidence}](../{evidence}).')
         if not c['runtime'] and not c['compilacion'] and not c.get('evidencia_externa'):

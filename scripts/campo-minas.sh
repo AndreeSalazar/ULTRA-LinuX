@@ -5,15 +5,15 @@
 set -uo pipefail
 ulimit -c 0
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
-source "$lab/guardianes.sh"
+source "$lab/guardianes-lab.sh"
 source "$lab/minas-evaluar.sh"
-g="$lab/guardian"
+g="$ULTRA_GUARD_ROOT/laboratorio"
 out="${ULTRA_MINAS_OUT:-$HOME/linux-reconstruido/build/minas}"
 mkdir -p "$out"
 report="$out/informe.txt"
 : > "$report"
 log() { printf '%s\n' "$*" | tee -a "$report"; }
-first() { grep -m1 -E "$1" "$2" | sed 's/^[[:space:]]*//' | cut -c1-150 | sed 's/[[:space:]]*$//'; }
+first() { grep -m1 -E "$1" "$2" | sed 's/^[[:space:]]*//' | sed "s|$lab/||g" | cut -c1-150 | sed 's/[[:space:]]*$//'; }
 
 log "$(gcc --version | head -n 1)"
 for tool in bwrap prlimit timeout; do
@@ -25,12 +25,12 @@ ULTRA_SECRET_TEST=no-debe-heredarse bash "$lab/aislar-mina.sh" "$out/control-ais
 grep -q '^AISLAMIENTO-OK:' "$out/aislamiento.txt" || exit 1
 log "$(cat "$out/aislamiento.txt")"
 # The guardian library itself must pass every compile-time guardian.
-{ ultra_revisar "$g/ultra_guard.c" && gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -c "$g/ultra_guard.c" -o "$out/ultra_guard.o"; } ||
+{ ultra_revisar "$ULTRA_GUARD_ROOT/ultra_guard.c" && gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -c "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/ultra_guard.o"; } ||
     { log 'ROJO: ultra_guard.c no pasa sus propios guardianes'; exit 1; }
 # Mines are wrong on purpose, so only their compile-time warnings are muted.
-gcc "${ULTRA_PROD[@]}" -w -static-pie "$g/minas.c" "$g/ultra_guard.c" -o "$out/minas-prod" || exit 1
-gcc "${ULTRA_DIAG[@]}" -w "$g/minas.c" "$g/ultra_guard.c" -o "$out/minas-diag" || exit 1
-gcc "${ULTRA_CRUDO[@]}" -w "$g/minas.c" "$g/ultra_guard.c" -o "$out/minas-crudo" || exit 1
+gcc "${ULTRA_PROD[@]}" -w -static-pie "$g/minas.c" "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/minas-prod" || exit 1
+gcc "${ULTRA_DIAG[@]}" -w "$g/minas.c" "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/minas-diag" || exit 1
+gcc "${ULTRA_CRUDO[@]}" -w "$g/minas.c" "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/minas-crudo" || exit 1
 
 c_ok=0 c_bad=0 stopped=0 neutralized=0 diag_only=0 missed=0 raw_silent=0
 log ''
