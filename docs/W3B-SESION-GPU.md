@@ -1,5 +1,8 @@
 # W3b: sesion sin root y modo NVIDIA GLES
 
+W3c amplia el menu con [Hyprland y aplicaciones](HYPRLAND-W3C.md) y corrige
+la preparacion de nodos NVIDIA. Este documento conserva el alcance de W3b.
+
 La primera parte de W3b conserva Cage/Foot. Hyprland y los guardianes C++
 del laboratorio todavia no estan integrados en estos programas de Arch.
 

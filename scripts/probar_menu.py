@@ -15,7 +15,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix='ultra-menu-') as tmp:
         root = Path(tmp)
         backend = root / 'session'
-        backend.write_text('#!/bin/bash\nprintf "BACKEND:%s:%s\\n" "$1" "$2"\n'
+        backend.write_text('#!/bin/bash\nprintf "BACKEND:%s:%s\\n" "$1" "$2" >> ' + str(root / 'calls') + '\n'
                            '[[ $1 != nvidia ]] || exit 13\n')
         backend.chmod(0o755)
         (root / 'ultima.log').write_text('GL renderer: TEST-RENDERER\n')
@@ -31,6 +31,7 @@ def main():
         assert direct.returncode == 2 and b'consola' in direct.stdout
 
         def exercise(keys, expected):
+            (root / 'calls').write_text('')
             master, slave = pty.openpty()
             process = subprocess.Popen(['bash', str(menu)], stdin=slave, stdout=slave,
                                        stderr=slave, start_new_session=True)
@@ -54,21 +55,21 @@ def main():
                 os.write(master, b'q')
                 assert process.wait(timeout=5) == 0
                 for marker in expected:
-                    assert marker in data, (marker, data)
+                    assert marker in data + (root / 'calls').read_bytes(), (marker, data)
             finally:
                 if process.poll() is None:
                     process.kill()
                     process.wait()
                 os.close(master)
 
-        exercise([(b'\r', b'codigo 0'), (b'x', b'Al cerrar')], [b'BACKEND:auto:foot'])
+        exercise([(b'\r', b'codigo 0'), (b'x', b'Al cerrar')], [b'BACKEND:auto:--hyprland'])
         exercise([(b'\x1b[B', b'Al cerrar'), (b'\r', b'codigo 13'),
                   (b'x', b'Al cerrar'), (b'\x1b[B', b'Al cerrar'),
                   (b'\r', b'codigo 0'), (b'x', b'Al cerrar'),
                   (b'4', b'Al cerrar'), (b'\r', b'TEST-RENDERER'),
                   (b'x', b'Al cerrar'), (b'5', b'Al cerrar'),
                   (b'\r', b'TEST-NVIDIA-STATUS'), (b'x', b'Al cerrar')],
-                 [b'BACKEND:nvidia:foot', b'BACKEND:software:foot'])
+                 [b'BACKEND:nvidia:--hyprland', b'BACKEND:software:foot'])
         # Up wraps to the exit item; Enter exits without invoking a backend.
         for key in (b'\x1b[A\r', b'\x1b', b'6\r'):
             master, slave = pty.openpty()

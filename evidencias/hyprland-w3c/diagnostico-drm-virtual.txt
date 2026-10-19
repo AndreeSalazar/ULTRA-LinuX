@@ -1,0 +1,12 @@
+C:\Program Files\qemu\qemu-system-x86_64.exe: -serial tcp:127.0.0.1:15555,server=on,wait=on: info: QEMU waiting for connection on: disconnected:tcp:127.0.0.1:15555,server=on
+C:\Program Files\qemu\qemu-system-x86_64.exe: warning: Ignoring request for interrupt vector 0
+VERDE [ultra-entrar /usr/bin/sed -i 's@exec cage -s -- /usr/bin/bash /usr/local/libexec/ultra-hyprland nested@exec /usr/bin/env LIBGL_ALWAYS_SOFTWARE=1 /usr/bin/dbus-run-session -- /usr/bin/Hyprland -c /etc/ultra/hyprland.lua@' /usr/local/libexec/ultra-cliente; echo PARCHE-$((2+2))]
+VERDE [Hyprland: dos ventanas iniciales mapeadas]
+VERDE [Hyprland: Super+N abre Mousepad]
+VERDE [Hyprland: Super+E abre archivos]
+VERDE [Hyprland: Super+R abre Fuzzel]
+VERDE [Hyprland y apps: UID/GID 1000, capacidades cero, NNP=1]
+VERDE [echo HYPR-$(grep -c "hyprland termino (salida 0)" /tmp/hyprland-session.log)]
+VERDE [test ! -S /arch/run/seatd.sock && echo HYPR-SEATD-LIMPIO]
+VERDE [cat /tmp/hyprland-session.log; echo FIN-DIAG]
+[]

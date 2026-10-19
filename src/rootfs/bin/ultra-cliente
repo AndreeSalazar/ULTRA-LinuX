@@ -17,4 +17,10 @@ done < /proc/self/status
     echo 'ROJO [CREDENCIALES]: privilegios inesperados'; exit 1;
 }
 echo 'VERDE [CREDENCIALES]: uid=1000 gid=1000 capacidades=0 NoNewPrivs=1'
+if [[ ${ULTRA_COMPOSITOR:-cage} == hyprland ]]; then
+    if [[ ${ULTRA_RENDER_MODE:-} == software ]]; then
+        exec /usr/bin/bash /usr/local/libexec/ultra-hyprland software
+    fi
+    exec /usr/bin/bash /usr/local/libexec/ultra-hyprland direct
+fi
 exec cage -D -s -- "$@"

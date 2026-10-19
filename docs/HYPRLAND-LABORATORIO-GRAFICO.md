@@ -1,5 +1,9 @@
 # Hyprland: laboratorio grafico y escritorio de uso diario
 
+Actualizacion W3c: [integracion de Hyprland y aplicaciones](HYPRLAND-W3C.md).
+El texto siguiente conserva el diseno de investigacion; la imagen incorpora
+el paquete oficial, sin integrar aun los contratos C++ en el compositor.
+
 El [plan aprobado y su primera ronda aplicada](PLAN-GUARDIANES-GRAFICOS.md)
 distingue contratos CPU/GLES probados, reemplazo transaccional y requisitos
 pendientes para integrar en el escritorio.

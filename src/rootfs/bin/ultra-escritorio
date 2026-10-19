@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # auto: NVIDIA GLES when a real NVIDIA DRM device exists, software otherwise.
 mode=auto
+compositor=cage
+if [ "${1:-}" = --hyprland ]; then compositor=hyprland; shift; fi
 # Keep unattended callers automatic; the console gets the keyboard menu.
-if [ $# -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
+if [ "$compositor" = cage ] && [ $# -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
     set -- --menu
 fi
 case "${1:-}" in
@@ -18,11 +20,13 @@ case "${1:-}" in
     --help)
         echo 'Uso: e | ultra-escritorio --menu'
         echo 'Directo: ultra-escritorio [--auto|--software|--nvidia] [--] [programa argumentos]'
+        echo 'Ventanas: ultra-escritorio --hyprland [--auto|--nvidia|--software]'
         exit 0 ;;
 esac
 [ "${1:-}" != -- ] || shift
 [ -x /arch/usr/local/libexec/ultra-sesion ] || { echo 'ROJO [ESCRITORIO]: falta ultra-sesion en Arch'; exit 1; }
 [ $# -gt 0 ] || set -- foot
+[ "$compositor" != hyprland ] || set -- --hyprland "$@"
 exec chroot /arch /usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
     GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
     /usr/bin/bash /usr/local/libexec/ultra-sesion "$mode" "$@"

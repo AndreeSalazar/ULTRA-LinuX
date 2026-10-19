@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import hashlib, pathlib, re, secrets, shutil, socket, subprocess, sys, tempfile, time
+import hashlib, json, pathlib, re, secrets, shutil, socket, subprocess, sys, tempfile, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
@@ -306,6 +306,117 @@ def check_screen(failures):
     print(('VERDE' if ok else 'ROJO'), f'[pantalla viva: el teclado cambio {changed} pixeles en tty1]')
     if not ok: failures.append('pantalla congelada')
 
+
+def check_hyprland(conn, failures):
+    """Actual compositor, apps and keyboard on virtual DRM with CPU rendering."""
+    transcript = ''
+    conn.sendall(b'ultra-escritorio --hyprland --software > /tmp/hyprland-session.log 2>&1 &\n')
+    transcript += read_until(conn, 'ultra:', 10)
+    ipc = 'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j clients'
+
+    def response(marker, timeout=15):
+        out = read_until(conn, marker, timeout)
+        if 'ultra:' not in out.rsplit(marker, 1)[-1]:
+            out += read_until(conn, 'ultra:', 10)
+        return out
+
+    def clients():
+        nonlocal transcript
+        conn.sendall(ipc.encode() + b'; echo HYPR-IPC-$((4+3))\n')
+        out = response('HYPR-IPC-7')
+        transcript += out
+        try:
+            start = re.search(r'(?m)^\s*\[\s*(?:\{|\])', out)
+            if not start: return []
+            decoded = json.JSONDecoder().raw_decode(out[start.start():].lstrip())[0]
+            return decoded if isinstance(decoded, list) and all(isinstance(a, dict) for a in decoded) else []
+        except (ValueError, TypeError):
+            return []
+
+    def expect(ok, label):
+        print(('VERDE' if ok else 'ROJO'), '[' + label + ']')
+        if not ok: failures.append(label)
+
+    def wait_apps(predicate):
+        for _ in range(25):
+            found = clients()
+            if predicate(found): return found
+            time.sleep(1)
+        return []
+
+    mon = socket.create_connection(('127.0.0.1', PORT + 1), timeout=5)
+    try:
+        initial = wait_apps(lambda apps: len(apps) >= 2)
+        expect(bool(initial), 'Hyprland: dos ventanas iniciales mapeadas')
+        if not initial:
+            transcript += run(conn, [('cat /tmp/hyprland-session.log; echo HYPR-DIAG', 'HYPR-DIAG')], failures)
+            return transcript
+        mon.sendall(b'sendkey meta_l-n\n')
+        edited = wait_apps(lambda apps: any('mousepad' in a.get('class', '').lower() for a in apps))
+        expect(bool(edited), 'Hyprland: Super+N abre Mousepad')
+        mon.sendall(b'sendkey meta_l-e\n')
+        files = wait_apps(lambda apps: any('thunar' in a.get('class', '').lower() for a in apps))
+        expect(bool(files), 'Hyprland: Super+E abre archivos')
+        mon.sendall(b'sendkey meta_l-r\n')
+        launcher = False
+        for _ in range(15):
+            conn.sendall(b'test -n "$(pidof fuzzel)" && echo LANZADOR-$((2+2)); echo HYPR-QUERY-$((2+3))\n')
+            out = response('HYPR-QUERY-5')
+            transcript += out
+            if 'LANZADOR-4' in out:
+                launcher = True
+                break
+            time.sleep(1)
+        expect(launcher, 'Hyprland: Super+R abre Fuzzel')
+        mon.sendall(b'sendkey esc\n')
+        capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-hyprland.png'
+        capture.unlink(missing_ok=True)
+        mon.sendall(f'screendump {capture} -f png\n'.encode())
+        for _ in range(50):
+            if capture.exists() and capture.stat().st_size: break
+            time.sleep(.1)
+        shutil.copyfile(capture, LOG.with_name(LOG.stem + '-hyprland.png'))
+        # GTK can change argv[0]/comm. Get app PIDs from compositor IPC, not pidof names.
+        processes = {'Hyprland': '$(pidof Hyprland)'}
+        for app in files:
+            name = app.get('class', '').lower()
+            for kind in ('foot', 'mousepad', 'thunar'):
+                if kind in name and isinstance(app.get('pid'), int) and app['pid'] > 0:
+                    processes[kind] = str(app['pid'])
+        cmd = '; '.join(f'for p in {pid}; do echo HYPR-CRED-{name}; cat /proc/$p/status; echo HYPR-CRED-FIN; done'
+                        for name, pid in processes.items())
+        conn.sendall(cmd.encode() + b'; echo HYPR-CRED-LISTO-$((4+7))\n')
+        creds = response('HYPR-CRED-LISTO-11')
+        transcript += creds
+        secured = set()
+        for name, status in re.findall(r'^HYPR-CRED-(\w+)\n(.*?)^HYPR-CRED-FIN', creds.replace('\r', ''), re.M | re.S):
+            good = all(re.search(rf'^{field}:\s+1000\s+1000\s+1000\s+1000\s*$', status, re.M) for field in ('Uid', 'Gid'))
+            good &= all(bool(re.search(rf'^{field}:\s+0+\s*$', status, re.M)) for field in ('CapInh', 'CapPrm', 'CapEff', 'CapBnd', 'CapAmb'))
+            good &= bool(re.search(r'^NoNewPrivs:\s+1\s*$', status, re.M))
+            if good: secured.add(name)
+        expect({'Hyprland', 'foot', 'mousepad', 'thunar'} <= secured,
+               'Hyprland y apps: UID/GID 1000, capacidades cero, NNP=1')
+        mon.sendall(b'sendkey meta_l-v\n')
+        floated = wait_apps(lambda apps: any('thunar' in a.get('class', '').lower() and a.get('floating') for a in apps))
+        expect(bool(floated), 'Hyprland: Super+V convierte archivos en ventana flotante')
+        mon.sendall(b'sendkey meta_l-shift-2\n')
+        moved = wait_apps(lambda apps: any('thunar' in a.get('class', '').lower() and a.get('workspace', {}).get('id') == 2 for a in apps))
+        expect(bool(moved), 'Hyprland: mover ventana al escritorio 2')
+        mon.sendall(b'sendkey meta_l-2\n')
+        time.sleep(1)
+        mon.sendall(b'sendkey meta_l-q\n')
+        closed = wait_apps(lambda apps: len(apps) >= 2 and not any('thunar' in a.get('class', '').lower() for a in apps))
+        expect(bool(closed), 'Hyprland: cambiar escritorio y cerrar solo la ventana activa')
+        mon.sendall(b'sendkey meta_l-shift-m\n')
+        time.sleep(4)
+        conn.sendall(b'echo HYPR-SINC-$((3+4))\n')
+        transcript += response('HYPR-SINC-7')
+        transcript += run(conn, [('echo HYPR-$(grep -c "hyprland termino (salida 0)" /tmp/hyprland-session.log)', 'HYPR-1'),
+                                ('test ! -S /arch/run/seatd.sock && echo HYPR-SEATD-LIMPIO', 'HYPR-SEATD-LIMPIO')], failures)
+    finally:
+        mon.close()
+    return transcript
+
 def auto_flow(start, failures):
     """The generic kernel hands over to the PC's own version by itself, and keeps a way back.
 
@@ -407,8 +518,8 @@ def main():
         boot = ['-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic quiet '
                 'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on']
     def start():
-        proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '1024',
-                                 *boot, '-nic', 'none', '-display', 'none', '-no-reboot',
+        proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '2048',
+                                 *boot, '-vga', 'virtio', '-nic', 'none', '-display', 'none', '-no-reboot',
                                  '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on',
                                  '-monitor', f'tcp:127.0.0.1:{PORT + 1},server=on,wait=off'],
                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -447,6 +558,7 @@ def main():
             transcript += check_menu(conn, failures)
             # Wayland stage W2: the first window, seen and closed through the emulated hardware.
             transcript += check_window(conn, failures)
+            transcript += check_hyprland(conn, failures)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
             # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU
             # boots the same disk: whatever /datos shows then came from the disk itself.

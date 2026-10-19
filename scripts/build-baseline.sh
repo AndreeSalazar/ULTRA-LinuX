@@ -202,7 +202,8 @@ if [[ -n $cmdline ]]; then
         -e '/^DownloadUser/d' /etc/pacman.conf > "$art/pacman-sistema.conf"
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
-    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow)
+    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow
+        hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -217,9 +218,12 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
+    sudo install -d -m 0755 "$sistema/etc/ultra"
+    sudo install -m 0644 "$lab/rootfs/desktop/"* "$sistema/etc/ultra/"
+    sudo chroot "$sistema" /usr/bin/dbus-uuidgen --ensure=/etc/machine-id
     # pacman's hook leaves udev's hardware database almost empty outside a booted system.
     if [[ -x $sistema/usr/bin/systemd-hwdb ]]; then sudo systemd-hwdb --root="$sistema" --usr update; fi
     sudo mkdir -p "$sistema/usr/lib/modules"

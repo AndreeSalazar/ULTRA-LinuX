@@ -1,0 +1,23 @@
+ULTRA LinuX - escritorio con ventanas
+====================================
+SUPER es la tecla Windows.
+
+SUPER + Enter       Nueva terminal
+SUPER + R           Buscar aplicaciones (flechas y Enter)
+SUPER + E           Archivos (Thunar)
+SUPER + N           Editor de texto (Mousepad)
+SUPER + H           Esta ayuda
+SUPER + Q           Cerrar la ventana activa
+SUPER + V           Alternar ventana flotante
+SUPER + flechas     Cambiar el foco
+SUPER + 1..9        Cambiar de escritorio
+SUPER + Shift + 1..9  Mover ventana a otro escritorio
+SUPER + arrastrar con boton izquierdo/derecho: mover/redimensionar
+SUPER + Shift + M   Terminar Hyprland y volver al menu/consola
+
+La barra permite abrir Apps, Ayuda y Salir con el raton.
+Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
+
+Esta primera sesion usa un home temporal en RAM. No guardes aqui archivos
+que necesites conservar tras apagar. No se han migrado datos personales.
+La recuperacion software del menu sigue disponible si falla Hyprland.

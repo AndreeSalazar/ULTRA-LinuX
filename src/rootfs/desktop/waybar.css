@@ -1,0 +1,5 @@
+* { font-family: DejaVu Sans; font-size: 14px; }
+window#waybar { background: #162430; color: #f0f5fa; }
+#workspaces button { color: #f0f5fa; padding: 0 10px; }
+#workspaces button.active { background: #246d83; }
+#custom-apps, #custom-help, #custom-logout, #clock { padding: 6px 12px; }

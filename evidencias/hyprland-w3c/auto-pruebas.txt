@@ -1,0 +1,11 @@
+VERDE [arranque 1: el firmware arranco el generico]
+VERDE [arranque 1: version propia preparada]
+VERDE [arranque 2: salto solo a la version propia]
+VERDE [arranque 2: PERFIL DE PC COMPLETO]
+VERDE [pantalla viva: el teclado cambio 606 pixeles en tty1]
+VERDE [arranque 3: el generico por defecto]
+VERDE [arranque 4: salto de nuevo a la version propia]
+VERDE [arranque 4: la version propia confirma el salto]
+VERDE [arranque 5: una tecla deja el generico]
+VERDE [cat /datos/perfil.estado]
+VERDE [poweroff]: init apago la maquina y QEMU termino

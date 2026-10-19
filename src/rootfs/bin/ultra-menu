@@ -6,9 +6,10 @@ if [[ ! -t 0 || ! -t 1 ]]; then
     echo 'El menu necesita una consola. Usa ultra-escritorio --auto para ejecucion directa.'
     exit 2
 fi
-options=('Escritorio automatico' 'Escritorio NVIDIA (GPU)' 'Escritorio software (recuperacion)'
+options=('Hyprland automatico (ventanas)' 'Hyprland NVIDIA (GPU y ventanas)' 'Cage software (recuperacion)'
          'Ver ultimo diagnostico' 'Ver estado NVIDIA' 'Volver a la consola')
 selected=0
+/usr/bin/install -d -m 0700 /run/ultra-escritorio || exit 1
 pause() {
     printf '\nPulsa una tecla para volver al menu...'
     IFS= read -rsn1 _ || return 1
@@ -23,7 +24,7 @@ while :; do
             printf '   %d. %s\n' "$((i + 1))" "${options[i]}"
         fi
     done
-    printf '\nAl cerrar la terminal del escritorio con exit, vuelves a este menu.\n'
+    printf '\nAl cerrar Hyprland con Super+Shift+M vuelves al menu. Cage: exit.\n'
     key=''
     IFS= read -rsn1 key || exit 0
     case "$key" in
@@ -45,18 +46,24 @@ while :; do
     case "$selected" in
         0|1|2)
             modes=(auto nvidia software)
-            /usr/bin/bash /usr/local/libexec/ultra-sesion "${modes[selected]}" foot
+            printf 'Abriendo escritorio...\n'
+            if (( selected < 2 )); then
+                /usr/bin/bash /usr/local/libexec/ultra-sesion "${modes[selected]}" --hyprland > /run/ultra-escritorio/lanzador.log 2>&1
+            else
+                /usr/bin/bash /usr/local/libexec/ultra-sesion software foot > /run/ultra-escritorio/lanzador.log 2>&1
+            fi
             result=$?
             printf '\nSesion terminada (codigo %d).\n' "$result"
+            (( result == 0 )) || /usr/bin/tail -n 8 /run/ultra-escritorio/lanzador.log
             ;;
         3)
             printf 'ULTIMO INTENTO REGISTRADO (temporal, puede ser de una sesion anterior)\n'
             found=0
-            for log in /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log; do
+            for log in /run/ultra-escritorio/lanzador.log /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log; do
                 if [[ -f $log ]]; then
                     found=1
-                    printf '\n--- %s (ultimas 100 lineas) ---\n' "$log"
-                    /usr/bin/tail -n 100 -- "$log"
+                    printf '\n--- %s (resumen) ---\n' "$log"
+                    /usr/bin/grep -Ei 'CREDENCIALES|GL.vendor|GL.renderer|GL_VENDOR|GL_RENDERER|EGL.vendor|EGL.driver|ROJO|WARN|ERR|CRIT|termino|GPU' "$log" | /usr/bin/tail -n 12
                 fi
             done
             (( found )) || printf 'Todavia no hay registros. Inicia un escritorio primero.\n'

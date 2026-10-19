@@ -14,6 +14,15 @@ Cada etapa requiere evidencia antes de anunciar integracion en produccion.
 | 6. Hyprland propio | Revision fija, build reproducible, cambios pequenos y regresiones | Pendiente de toolchain/dependencias completas e integracion |
 | 7. Rendimiento | Comparacion reproducible y mejora sin regresiones | Sin porcentaje de aceleracion medido |
 
+Actualizacion W3c: [Hyprland y aplicaciones](HYPRLAND-W3C.md) incorpora el
+paquete oficial fijado y una configuracion propia. Las fotos de Cage/Foot
+aportadas por el propietario muestran proveedor/driver EGL NVIDIA y salida
+limpia; la primera preparacion de nodos fallo y se corrige en W3c. La etapa
+6 avanza con una referencia upstream instalada, no con un fork del renderer
+ni con los contratos C++ integrados. La validacion fisica de Hyprland sigue
+pendiente y las etapas de aislamiento por aplicacion y rendimiento conservan
+sus requisitos.
+
 Etapas 3 a 5 avanzan en paralelo logico al arranque fisico: no requieren
 exponer la RTX. Esto no implica que todos sus casos esten terminados.
 

@@ -1,0 +1,11 @@
+{
+  "layer": "top",
+  "position": "top",
+  "modules-left": ["custom/apps", "hyprland/workspaces"],
+  "modules-center": ["clock"],
+  "modules-right": ["custom/help", "custom/logout"],
+  "custom/apps": {"format": " ULTRA | Apps ", "on-click": "fuzzel"},
+  "clock": {"format": "{:%H:%M}", "timezone": "America/Lima"},
+  "custom/help": {"format": " Ayuda ", "on-click": "foot /usr/bin/less /etc/ultra/AYUDA.txt"},
+  "custom/logout": {"format": " Salir ", "on-click": "hyprctl dispatch 'hl.dsp.exit()'"}
+}
