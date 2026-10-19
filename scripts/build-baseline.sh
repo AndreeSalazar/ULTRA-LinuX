@@ -21,10 +21,11 @@ case $perfil in
         modules_list=(R8169 SND_HDA_INTEL SENSORS_K10TEMP)
         # No boot loader: the firmware runs the kernel directly, so its arguments live inside it.
         # The last console becomes /dev/console; init starts a shell on every active console.
-        # ahci.ignore_sss=1: the board sets staggered spin-up, so AHCI scanned the SATA ports one
+        # libahci.ignore_sss=1 (the parameter lives in libahci.c, so "ahci." is silently ignored):
+        # the board sets staggered spin-up, so AHCI scanned the SATA ports one
         # by one and init waited ~1.6 s for it (evidencias/pc-real/dmesg-*). That protects spinning
         # disks from a power surge; this PC has only SSDs, so the ports are scanned in parallel.
-        cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet ahci.ignore_sss=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
+        cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
         required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE VIRTIO_BLK) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT

@@ -56,7 +56,9 @@ if DISCO:
         ('cat /sys/firmware/efi/fw_platform_size', '64'),
         ('cat /proc/cmdline', 'x86_shstk=on'),
         # SATA ports scanned in parallel; and nothing from the firmware after the built-in line.
-        ('echo SSS-$(grep -c "ahci.ignore_sss=1" /proc/cmdline)', 'SSS-1'),
+        # The value the kernel applied, not the text on the line: "ahci.ignore_sss" was
+        # silently ignored on the real PC because the parameter belongs to libahci.
+        ('echo SSS-$(cat /sys/module/libahci/parameters/ignore_sss)', 'SSS-1'),
         ('echo FIN-$(sed "s/.*x86_shstk=on//" /proc/cmdline | wc -c)', 'FIN-1'),
         ('cat /sys/class/tty/console/active', 'ttyS0'),
     ]

@@ -140,7 +140,9 @@ El init no empezaba hasta el segundo 2,27 (`Run /init`), porque el kernel espera
 | 1,70 s | `ata5`, SSD de 480 GB (`A:`) | ~0,46 s |
 | 2,20 s | `ata6`, SSD de 120 GB | ~0,5 s |
 
-Unos 1,6 s de 2,0 s. El arranque escalonado protege a los discos mecánicos de un pico de corriente; este PC solo tiene SSD. Arreglo: `ahci.ignore_sss=1` en la línea integrada del kernel, para revisar los puertos en paralelo.
+Unos 1,6 s de 2,0 s. El arranque escalonado protege a los discos mecánicos de un pico de corriente; este PC solo tiene SSD. Arreglo: `libahci.ignore_sss=1` en la línea integrada del kernel, para revisar los puertos en paralelo.
+
+El primer intento usó `ahci.ignore_sss=1` y en el PC **no hizo nada**. El parámetro está en `libahci.c`, así que su nombre lleva el prefijo `libahci.`. El kernel no avisa de un parámetro con punto que no reconoce, y la prueba solo comprobaba el texto de `/proc/cmdline`. Ahora la prueba lee el valor que el kernel aplicó (`/sys/module/libahci/parameters/ignore_sss`). Con el nombre equivocado ese valor da 0 y la prueba falla.
 
 El mismo `dmesg` mostró un bug: la entrada F11 (copia de Windows Boot Manager) pasaba sus datos opcionales al kernel, que los añadía a su línea como `䥗䑎坏S` ("WINDOWS" leído como UTF-16). Arreglo: `CONFIG_CMDLINE_OVERRIDE`, para que solo valga la línea integrada. La prueba comprueba que no llega nada detrás.
 
