@@ -74,6 +74,14 @@ ultra:~#
 
 La letra (`sda`, `sdb`…) depende del orden de los discos; da igual, porque se busca por etiqueta.
 
+Antes de la shell aparece la **tarjeta de arranque** (`src/tarjeta.c`, captura en `evidencias/pantalla-tarjeta-tty1.png`). Todo se lee en ese momento, nada se supone:
+- **Equipo:** el modelo de CPU, su temperatura (del sensor `k10temp` que cargó ese mismo arranque) y la RAM.
+- **Sistema:** el kernel y cuántos módulos necesitó este PC.
+- **Tubería:** el tiempo hasta el fin de la etapa de hardware como una barra (cuanto más corta, más ancha la tubería), con `▼`/`▲` frente al arranque anterior del mismo kernel.
+- **Guardianes:** CET, Landlock y seccomp, preguntados al kernel; FORTIFY, de la compilación. Verde si está activo, rojo si no.
+
+En el puerto serie va lo mismo como una sola línea `[TARJETA]`, y la prueba exige ver los cuatro guardianes activos. Los módulos de la lista se cargan en paralelo, uno por proceso.
+
 ## 4. Qué comprobar
 
 ```sh

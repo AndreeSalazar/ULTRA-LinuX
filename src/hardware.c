@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/utsname.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 #include "init.h"
@@ -324,7 +325,8 @@ static bool load_module(const char *name, unsigned depth) {
         nfailed++;
         return false;
     }
-    nloaded++;
+    /* EEXIST: another process of this boot loaded it first; counted there, not twice. */
+    if (r == 0) nloaded++;
     return true;
 }
 
@@ -353,7 +355,35 @@ static void load_wanted(void) {
         if (module_name(d->path, d->name, sizeof(d->name))) ndeps++;
     }
     ntried = nloaded = nfailed = 0;
-    for (size_t i = 0; i < nwanted; i++) load_module(wanted[i], 0);
+    /*
+     * Each module of the list loads in its own process, with its dependencies, all at
+     * once: network, sound and sensor do not wait for each other. A shared dependency
+     * is loaded once; the kernel makes the other loader wait and answers EEXIST.
+     * The exit code carries the result: bits 0-5 loaded, bit 6 a failure.
+     */
+    pid_t pids[MAX_MODULES];
+    size_t npids = 0;
+    for (size_t i = 0; i < nwanted; i++) {
+        pid_t pid = nwanted > 1 ? fork() : -1;
+        if (pid == 0) {
+            load_module(wanted[i], 0);
+            _exit((int)(nloaded > 63 ? 63 : nloaded) | (nfailed ? 64 : 0));
+        }
+        if (pid > 0) pids[npids++] = pid;
+        else load_module(wanted[i], 0);
+    }
+    for (size_t k = 0; k < npids; k++) {
+        int status;
+        pid_t got;
+        while ((got = waitpid(pids[k], &status, 0)) < 0 && errno == EINTR) {}
+        if (got == pids[k] && WIFEXITED(status)) {
+            nloaded += (size_t)(WEXITSTATUS(status) & 63);
+            if (WEXITSTATUS(status) & 64) nfailed++;
+        } else {
+            say("ROJO", "el proceso que cargaba %s murio sin terminar", wanted[k]);
+            nfailed++;
+        }
+    }
     free(deps);
     deps = NULL;
     ndeps = 0;
@@ -467,6 +497,16 @@ static int64_t uptime_ms(void) {
 }
 
 /* One line per boot, so the gain can be compared across many boots. */
+/* This boot and the previous one of the same kernel, for the boot card. */
+static int64_t measured_now = -1, measured_before = -1;
+
+void boot_measure(int64_t *now_ms, int64_t *before_ms, size_t *modules, size_t *loaded) {
+    *now_ms = measured_now;
+    *before_ms = measured_before;
+    *modules = nwanted;
+    *loaded = nloaded;
+}
+
 /* The value of key=... inside one log line, or -1. */
 static int64_t field(const char *line, const char *key) {
     const char *p = strstr(line, key);
@@ -503,6 +543,8 @@ static void compare_with_previous(const char *line) {
         snprintf(detail, sizeof(detail), "hasta el hardware: %" PRId64 " ms; el anterior con este kernel: %" PRId64
                  " ms (%+" PRId64 " ms); arranque %zu con este kernel", now, before, now - before, boots + 1);
     report(before < 0 || now <= before ? "VERDE" : "AMARILLO", "MEDIDA", detail);
+    measured_now = now;
+    measured_before = before;
 }
 
 static void log_boot(const char *line) {

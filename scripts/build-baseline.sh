@@ -61,7 +61,7 @@ echo "perfil: $perfil"
 # Guardians: review gate first (analyzer at -O0, warnings at -O2), then the
 # production build. static-pie keeps ASLR, BIND_NOW and CET in static binaries.
 source "$lab/guardianes.sh"
-init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c")
+init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c" "$lab/tarjeta.c")
 for file in "${init_src[@]}" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; do
     ultra_revisar "$file" || { echo "ROJO: $file no pasa la revision de guardianes"; exit 1; }
 done

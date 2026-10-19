@@ -91,10 +91,27 @@ void report(const char *level, const char *code, const char *detail) {
 static void banner(void) {
     write_all_fd(STDOUT_FILENO, "ULTRA LinuX - Influencia BMO-X\n"
                                 "Eddi Salazar: creador de un sistema propio, sin ser un OS\n\n");
-    if (screen_fd >= 0)
-        write_all_fd(screen_fd, "\033[1;36mULTRA LinuX\033[0m - Influencia \033[1;35mBMO-X\033[0m\n"
-                                "\033[1;37mEddi Salazar\033[0m: creador de un sistema propio, sin ser un OS\n\n");
+    if (screen_fd < 0) return;
+    /* The name in a gradient, letter by letter: cyan, blue, magenta and back. */
+    static const char name[] = "ULTRA LinuX";
+    /* Bright shades only: the dark ones vanish on a black screen. */
+    static const char *const shades[] = {"\033[1;36m", "\033[1;36m", "\033[0;36m", "\033[1;34m", "\033[1;34m",
+                                         "\033[1;35m", "\033[1;35m", "\033[1;34m", "\033[0;36m", "\033[1;36m", "\033[1;37m"};
+    char line[256] = "";
+    for (size_t i = 0; i + 1 < sizeof(name); i++) {
+        char letter[2] = {name[i], 0};
+        if (!ULTRA_APPEND(line, shades[i % ULTRA_LEN(shades)]) || !ULTRA_APPEND(line, letter)) return;
+    }
+    if (!ULTRA_APPEND(line, "\033[0m - Influencia \033[1;35mBMO-X\033[0m\n")) return;
+    write_all_fd(screen_fd, line);
+    write_all_fd(screen_fd, "\033[1;37mEddi Salazar\033[0m: creador de un sistema propio, sin ser un OS\n\n");
 }
+
+void screen_write(const char *s) {
+    if (screen_fd >= 0) write_all_fd(screen_fd, s);
+}
+
+bool screen_available(void) { return screen_fd >= 0; }
 
 static void mount_fs(const char *type, const char *target, unsigned long flags) {
     char detail[160];
@@ -219,6 +236,7 @@ int main(void) {
     banner();
     report("VERDE", "KERNEL", detail);
     prepare_hardware(mount_partitions());
+    show_card();
 
     /* Signals are taken synchronously: no handler code runs at arbitrary points. */
     sigset_t watched;

@@ -221,6 +221,9 @@ def main():
         if DISCO:
             expect_boot(first, 'VERDE [PARTICION]: ULTRA-DATOS', 'arranque 1: ULTRA-DATOS montada por nombre', failures)
             expect_boot(first, 'primer arranque en este PC', 'arranque 1: deteccion completa', failures)
+            # The boot card, plain on the serial port: guardians asked to the kernel, not assumed.
+            expect_boot(first, '[TARJETA]: ', 'arranque 1: tarjeta de arranque', failures)
+            expect_boot(first, ' CET Landlock seccomp FORTIFY', 'arranque 1: los cuatro guardianes activos', failures)
             transcript += run(conn, BOOT1, failures)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
             # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU
