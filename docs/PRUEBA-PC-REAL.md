@@ -170,6 +170,35 @@ Fotos: `foto-tarjeta-pc-920ms.webp` y `foto-tarjeta-generico-deteccion.webp`.
 
 **Nuevo hallazgo (pendiente):** como `datos.ext4` empezaba de cero, el primer arranque del genérico hizo la detección completa, y esta vez tardó **1,31 s** en lugar de 184 ms. Además vio 44 componentes en vez de 50: faltan el teclado y la tarjeta de sonido USB. Ahora el init empieza 1,1 s antes, cuando el USB todavía está enumerando (el teclado aparece a los 1,90 s). La hipótesis es que leer sus datos en `/sys` espera a que el USB termine. Solo afecta a la detección completa, que es rara: el arranque guiado ni siquiera recorre el USB.
 
+## 5c. El genérico prepara tu versión propia, con vuelta atrás (`src/perfil.c`, `src/efi.c`)
+
+Al arrancar **ULTRA LinuX** (el genérico), el init comprueba si este PC puede usar la versión afinada:
+- La CPU encaja: AMD familia 19h (Zen 3 y Zen 4) con AVX2.
+- `A:\EFI\ULTRA\ULTRA-PC.EFI` y su `sistema-…-pc-….erofs` están instalados.
+- No existe `A:\ULTRA\NO-AUTOCONFIGURAR`. Si creas ese archivo desde Windows, el genérico no toca nada de esto.
+
+Si todo encaja:
+1. **Busca** una entrada F11 que ya arranque `\EFI\ULTRA\ULTRA-PC.EFI` en `BMO`, como la que creó `instalar-en-A.ps1`, y la **reutiliza**. Si no hay ninguna, **crea** "ULTRA LinuX (este PC)", al final del orden: Windows sigue siendo el arranque por defecto.
+2. Pide esa entrada **una sola vez** con `BootNext` y dice `reinicia (reboot) para probarla una vez`. Estado: `probando`.
+3. En el siguiente arranque, el firmware lanza el kernel afinado. Si llega al init, se marca **bueno**: `tu version propia arranco bien`.
+4. Si en cambio vuelve el genérico, con `BootNext` ya gastado y sin esa marca, la prueba **falló**. Lo apunta (`fallido`) y borra la entrada F11 **solo si la creó ULTRA**.
+5. Si la versión propia funcionó y después se desinstala, también se borra su entrada (si es de ULTRA), para que F11 no apunte a un archivo que no existe.
+
+Todo queda en `/datos/perfil.estado`. Borrarlo permite reintentar.
+
+**Guardianes:**
+- Solo se crean entradas para rutas bajo `\EFI\ULTRA\`, en la partición que ULTRA montó.
+- `BootOrder` solo gana o pierde el número de ULTRA: nunca se reordena ni se quita otra entrada.
+- Las entradas que no creó ULTRA (las de Windows, o la de `bcdedit`) nunca se borran.
+- La partición se localiza leyendo la GPT del disco. Para los valores del disco, el código usa lecturas byte a byte y aritmética comprobada.
+
+**Probado en QEMU con su firmware UEFI de extremo a extremo** (`scripts/probar_arranque.py pc --auto`, disco `disco-bmo-doble.img` con los dos kernels):
+- arranque 1: genérico, `Boot00FF` creada y `BootNext`;
+- arranque 2: el firmware lanza el kernel `-pc-`, que se marca bueno;
+- arranque 3: el genérico vuelve por defecto y la reconoce lista.
+
+`--auto-falla` borra `ULTRA-PC.EFI` antes del reinicio: el firmware falla `BootNext`, vuelve al genérico, y este marca `fallido` y borra su entrada. Esa prueba encontró un error: el genérico comprobaba "¿está instalada?" antes de juzgar la prueba pendiente, y se quedaba en `probando` para siempre. Ahora el estado se resuelve primero.
+
 ## 6. Ver los resultados en Windows
 
 Apaga con `poweroff` y arranca Windows. En `A:\ULTRA\informe\` están `PC-configuracion.txt`, `arranques.txt` y un `dmesg-<versión>.txt` por kernel, actualizados en cada arranque de ULTRA. No hace falta escribir nada a mano.

@@ -235,8 +235,10 @@ int main(void) {
     emit("\nULTRA LinuX: INIT C READY\n");
     banner();
     report("VERDE", "KERNEL", detail);
-    prepare_hardware(mount_partitions());
+    bool data = mount_partitions();
+    prepare_hardware(data);
     show_card();
+    choose_profile(data);
 
     /* Signals are taken synchronously: no handler code runs at arbitrary points. */
     sigset_t watched;

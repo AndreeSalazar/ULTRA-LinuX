@@ -17,7 +17,9 @@ case $perfil in
                SYSFB_SIMPLEFB CPU_SUP_AMD MICROCODE_AMD X86_AMD_PSTATE AMD_IOMMU EROFS_FS EFI_PARTITION
                BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1
                # simpledrm alone draws nothing: text on the firmware screen needs fbdev emulation and fbcon.
-               DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE)
+               DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE
+               # efivarfs built in: the init itself prepares the F11 entry of the tuned kernel.
+               EFIVAR_FS)
         modules_list=(R8169 SND_HDA_INTEL SENSORS_K10TEMP)
         # No boot loader: the firmware runs the kernel directly, so its arguments live inside it.
         # The last console becomes /dev/console; init starts a shell on every active console.
@@ -26,7 +28,7 @@ case $perfil in
         # by one and init waited ~1.6 s for it (evidencias/pc-real/dmesg-*). That protects spinning
         # disks from a power surge; this PC has only SSDs, so the ports are scanned in parallel.
         cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
-        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE VIRTIO_BLK) ;;
+        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS VIRTIO_BLK) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
                UBSAN_BOOL PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR DEBUG_ATOMIC_SLEEP)
@@ -61,7 +63,7 @@ echo "perfil: $perfil"
 # Guardians: review gate first (analyzer at -O0, warnings at -O2), then the
 # production build. static-pie keeps ASLR, BIND_NOW and CET in static binaries.
 source "$lab/guardianes.sh"
-init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c" "$lab/tarjeta.c")
+init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c" "$lab/tarjeta.c" "$lab/efi.c" "$lab/perfil.c")
 for file in "${init_src[@]}" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; do
     ultra_revisar "$file" || { echo "ROJO: $file no pasa la revision de guardianes"; exit 1; }
 done
@@ -217,6 +219,24 @@ if [[ -n $cmdline ]]; then
     mlabel -i "$bmo@@$a" -s :: | grep -q 'BMO' || { echo 'ROJO: la particion de prueba no se llama BMO'; exit 1; }
     echo "VERDE: disco de prueba $(basename "$bmo"): EFI de Windows simulada, FAT32 BMO con ULTRA en archivos y particion vacia"
     sums+=("$img" "$bmo" "$art/sistema-a.erofs" "$art/datos.ext4")
+    # The PC's own version, end to end: both kernels on one disk. The firmware starts the
+    # generic one by default (EFI\BOOT on the simulated Windows partition); the tuned one
+    # waits as BMO\EFI\ULTRA\ULTRA-PC.EFI, for the entry the generic init creates itself.
+    gen="$base/artifacts/generico"
+    if [[ $perfil = pc && -f $gen/bzImage-tiny64 && -f $gen/sistema-a.erofs && -f $gen/kernelrelease.txt ]]; then
+        doble="$art/disco-bmo-doble.img" grel=$(cat "$gen/kernelrelease.txt")
+        cp "$bmo" "$doble"
+        mcopy -o -i "$doble@@$win" "$gen/bzImage-tiny64" ::/EFI/BOOT/BOOTX64.EFI
+        mcopy -o -i "$doble@@$a" "$gen/bzImage-tiny64" ::/EFI/ULTRA/ULTRA.EFI
+        mcopy -i "$doble@@$a" "$art/bzImage-tiny64" ::/EFI/ULTRA/ULTRA-PC.EFI
+        mcopy -i "$doble@@$a" "$gen/sistema-a.erofs" "::/ULTRA/sistema-$grel.erofs"
+        [[ $(mtype -i "$doble@@$a" ::/EFI/ULTRA/ULTRA-PC.EFI | sha256sum | cut -d' ' -f1) = $(sha256sum < "$art/bzImage-tiny64" | cut -d' ' -f1) ]] ||
+            { echo 'ROJO: ULTRA-PC.EFI del disco doble no es el kernel pc recien compilado'; exit 1; }
+        echo "VERDE: disco doble $(basename "$doble"): generico ($grel) por defecto y pc en BMO\\EFI\\ULTRA\\ULTRA-PC.EFI"
+        sums+=("$doble")
+    elif [[ $perfil = pc ]]; then
+        echo 'ROJO: falta el perfil generico compilado; compilarlo antes que pc para el disco doble'; exit 1
+    fi
 fi
 sha256sum "${sums[@]}" > "$art/SHA256SUMS"
 printf 'VERDE: kernel %s e init C compilados. Arranque QEMU todavia pendiente.\n' "$perfil"

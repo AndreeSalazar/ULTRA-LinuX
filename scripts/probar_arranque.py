@@ -7,15 +7,20 @@ PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
 # --disco boots ultra-esp.img through UEFI firmware, with no -kernel and no boot loader.
 # --bmo boots disco-bmo.img: ULTRA as files on a FAT32 partition labelled BMO, beside a
 # simulated Windows EFI partition, the way it lives on A:\ of the PC.
-BMO = '--bmo' in sys.argv[2:]
+# --auto (perfil pc) boots disco-bmo-doble.img three times: the generic kernel prepares the
+# F11 entry of the tuned one and asks for it once; the firmware starts it; it marks itself good.
+# --auto-falla: the same, but the tuned kernel is deleted first, so the safety net must act.
+FALLA = '--auto-falla' in sys.argv[2:]
+AUTO = FALLA or '--auto' in sys.argv[2:]
+BMO = AUTO or '--bmo' in sys.argv[2:]
 DISCO = BMO or '--disco' in sys.argv[2:]
 QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
 BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico', 'pc': 'pc'}[PERFIL]
 KERNEL = BUILD / 'bzImage-tiny64'
-IMG = BUILD / ('disco-bmo.img' if BMO else 'ultra-esp.img')
+IMG = BUILD / ('disco-bmo-doble.img' if AUTO else 'disco-bmo.img' if BMO else 'ultra-esp.img')
 # The disk test writes to /datos, so it boots a fresh copy and never the verified image.
 IMG_PRUEBA = BUILD / (IMG.stem + '-prueba.img')
-LOG = BUILD / ('prueba-bmo.log' if BMO else 'prueba-disco.log' if DISCO else 'prueba-shell.log')
+LOG = BUILD / ('prueba-auto-falla.log' if FALLA else 'prueba-auto.log' if AUTO else 'prueba-bmo.log' if BMO else 'prueba-disco.log' if DISCO else 'prueba-shell.log')
 QEMU = pathlib.Path(r'C:\Program Files\qemu\qemu-system-x86_64.exe')
 PORT = 15555
 # Each command and a fragment its output must contain.
@@ -217,8 +222,47 @@ def main():
         # Firmware start-up adds seconds before the kernel runs.
         first = read_until(conn, 'ultra:', 120 if DISCO else 30)
         transcript += first
-        transcript += run(conn, CHECKS, failures)
-        if DISCO:
+        if AUTO:
+            # The generic kernel prepares the PC's own version and asks the firmware for it once.
+            expect_boot(first, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 1: el firmware arranco el generico', failures)
+            expect_boot(first, 'tu version propia (AMD', 'arranque 1: version propia preparada (BootNext)', failures)
+            if FALLA:
+                # A tuned kernel that never starts: the firmware fails BootNext and falls back.
+                transcript += run(conn, [('rm /bmo/EFI/ULTRA/ULTRA-PC.EFI; sync; echo BORRADO-$((1+1))', 'BORRADO-2')], failures)
+            conn.sendall(b'reboot\n')
+            transcript += read_until(conn, 'Restarting system', 20)
+            qemu.wait(timeout=20)
+            conn.close()
+            # The same firmware variables: BootNext must send this boot to ULTRA-PC.EFI.
+            qemu, conn = start()
+            second = read_until(conn, 'ultra:', 120)
+            transcript += '\n===== ARRANQUE 2 =====\n' + second
+            if FALLA:
+                expect_boot(second, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 2: el firmware volvio al generico', failures)
+                expect_boot(second, 'no llego a arrancar; se queda el generico y su entrada F11 se borro',
+                            'arranque 2: fallo detectado y entrada de ULTRA borrada', failures)
+                transcript += run(conn, [('cat /datos/perfil.estado', 'estado=fallido')], failures)
+                conn.sendall(b'poweroff\n')
+                transcript += read_until(conn, 'APAGADO', 10)
+                qemu.wait(timeout=15)
+                print('VERDE [poweroff]: init apago la maquina y QEMU termino')
+                # SystemExit is not an Exception: the finally below still writes the log.
+                sys.exit(1 if failures else 0)
+            expect_boot(second, '[KERNEL]: Linux 7.3.0-rc7-pc-g', 'arranque 2: el firmware arranco la version propia', failures)
+            expect_boot(second, 'tu version propia arranco bien', 'arranque 2: marcada como buena', failures)
+            conn.sendall(b'poweroff\n')
+            transcript += read_until(conn, 'APAGADO', 10)
+            qemu.wait(timeout=15)
+            conn.close()
+            # BootNext is spent: the default boot is the generic kernel again, which knows.
+            qemu, conn = start()
+            third = read_until(conn, 'ultra:', 120)
+            transcript += '\n===== ARRANQUE 3 =====\n' + third
+            expect_boot(third, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 3: vuelve el generico por defecto', failures)
+            expect_boot(third, 'tu version propia esta lista', 'arranque 3: la version propia queda lista en F11', failures)
+        else:
+            transcript += run(conn, CHECKS, failures)
+        if DISCO and not AUTO:
             expect_boot(first, 'VERDE [PARTICION]: ULTRA-DATOS', 'arranque 1: ULTRA-DATOS montada por nombre', failures)
             expect_boot(first, 'primer arranque en este PC', 'arranque 1: deteccion completa', failures)
             # The boot card, plain on the serial port: guardians asked to the kernel, not assumed.

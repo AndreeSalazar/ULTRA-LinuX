@@ -29,4 +29,18 @@ bool screen_available(void);
 /* tarjeta.c: the boot card, after the hardware stage and before the shells. */
 void show_card(void);
 
+/* particiones.c: the BMO partition's device (/dev/sda2) when ULTRA runs from it, else NULL. */
+const char *bmo_device(void);
+
+/* efi.c: firmware boot entries through efivarfs. Numbers are Boot####, -1 on failure. */
+bool efi_ready(void);
+int efi_find_entry(const char *devpath, const char *file);
+int efi_create_entry(const char *devpath, const char *file, const char *title);
+bool efi_delete_entry(int num);
+bool efi_set_boot_next(int num);
+bool efi_boot_next_pending(void);
+
+/* perfil.c: the generic kernel prepares the PC's own version, with a way back. */
+void choose_profile(bool data);
+
 #endif

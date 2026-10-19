@@ -280,6 +280,8 @@ bool mount_partitions(void) {
     return data_mounted;
 }
 
+const char *bmo_device(void) { return windows_dir() ? fat_dev : NULL; }
+
 const char *windows_dir(void) {
     for (size_t i = 0; i < nmounted; i++)
         if (strcmp(mounted[i], FAT_TARGET) == 0) return FAT_DIR;
