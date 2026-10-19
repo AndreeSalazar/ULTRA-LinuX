@@ -234,6 +234,8 @@ def main():
             second = read_until(conn, 'ultra:', 120)
             transcript += '\n===== ARRANQUE 2 =====\n' + second
             expect_boot(second, 'arranque guiado por PC.configuracion', 'arranque 2: guiado por PC.configuracion', failures)
+            # The curious fact on screen: this boot against the previous one of the same kernel.
+            expect_boot(second, 'ms; el anterior con este kernel:', 'arranque 2: comparado con el anterior', failures)
             transcript += run(conn, BOOT2, failures)
             # The serial port is not the screen: a PC shows only what reaches tty1.
             check_screen(failures)

@@ -1,4 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0-only
-export PS1='ultra:\w# '
+# Colour only on the screen's terminals; the serial console stays plain for the tests.
+case $(tty) in
+    /dev/tty[0-9]*) export PS1='\[\033[1;36m\]ultra:\w#\[\033[0m\] ' ;;
+    *) export PS1='ultra:\w# ' ;;
+esac
 echo "ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1)."
 echo "Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff"

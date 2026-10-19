@@ -76,7 +76,24 @@ void report(const char *level, const char *code, const char *detail) {
     if (n < 0) return;
     /* Truncation is visible, not silent. */
     if ((size_t)n >= sizeof(line)) memcpy(line + sizeof(line) - 5, "...\n", 5);
-    emit(line);
+    write_all_fd(STDOUT_FILENO, line);
+    if (screen_fd < 0) return;
+    /* Colour only on the screen: the serial port stays plain text for the tests. */
+    const char *color = strcmp(level, "VERDE") == 0 ? "\033[1;32m" : strcmp(level, "AMARILLO") == 0 ? "\033[1;33m" : "\033[1;31m";
+    char shown[416];
+    n = snprintf(shown, sizeof(shown), "%s%s\033[0m [\033[1m%s\033[0m]: %s\n", color, level, code, detail);
+    if (n < 0) return;
+    if ((size_t)n >= sizeof(shown)) memcpy(shown + sizeof(shown) - 5, "...\n", 5);
+    write_all_fd(screen_fd, shown);
+}
+
+/* Who is behind ULTRA, on every boot. Plain on the serial port, in colour on the screen. */
+static void banner(void) {
+    write_all_fd(STDOUT_FILENO, "ULTRA LinuX - Influencia BMO-X\n"
+                                "Eddi Salazar: creador de un sistema propio, sin ser un OS\n\n");
+    if (screen_fd >= 0)
+        write_all_fd(screen_fd, "\033[1;36mULTRA LinuX\033[0m - Influencia \033[1;35mBMO-X\033[0m\n"
+                                "\033[1;37mEddi Salazar\033[0m: creador de un sistema propio, sin ser un OS\n\n");
 }
 
 static void mount_fs(const char *type, const char *target, unsigned long flags) {
@@ -199,6 +216,7 @@ int main(void) {
     if (uname(&u) == 0) snprintf(detail, sizeof(detail), "%s %s %s", u.sysname, u.release, u.machine);
     else snprintf(detail, sizeof(detail), "uname: %s", strerror(errno));
     emit("\nULTRA LinuX: INIT C READY\n");
+    banner();
     report("VERDE", "KERNEL", detail);
     prepare_hardware(mount_partitions());
 

@@ -467,7 +467,46 @@ static int64_t uptime_ms(void) {
 }
 
 /* One line per boot, so the gain can be compared across many boots. */
+/* The value of key=... inside one log line, or -1. */
+static int64_t field(const char *line, const char *key) {
+    const char *p = strstr(line, key);
+    return p ? strtoll(p + strlen(key), NULL, 10) : -1;
+}
+
+/*
+ * A curious fact on every boot: this boot against the previous one of the same
+ * kernel, so each change shows its effect on screen, without opening a file.
+ */
+static void compare_with_previous(const char *line) {
+    const char *k = strstr(line, "kernel=");
+    int64_t now = field(line, "uptime_ms=");
+    if (!k || now < 0) return;
+    char kernel[112];
+    size_t n = strcspn(k, " \n");
+    if (n >= sizeof(kernel)) return;
+    memcpy(kernel, k, n);
+    kernel[n] = ' ';
+    kernel[n + 1 < sizeof(kernel) ? n + 1 : n] = 0;
+    char *log = slurp(BOOT_LOG);
+    int64_t before = -1;
+    size_t boots = 0;
+    char *save = NULL;
+    for (char *l = log ? strtok_r(log, "\n", &save) : NULL; l; l = strtok_r(NULL, "\n", &save))
+        if (strstr(l, kernel) && field(l, "uptime_ms=") >= 0) {
+            before = field(l, "uptime_ms=");
+            boots++;
+        }
+    free(log);
+    char detail[256];
+    if (before < 0) snprintf(detail, sizeof(detail), "hasta el hardware: %" PRId64 " ms; primer arranque medido con este kernel", now);
+    else
+        snprintf(detail, sizeof(detail), "hasta el hardware: %" PRId64 " ms; el anterior con este kernel: %" PRId64
+                 " ms (%+" PRId64 " ms); arranque %zu con este kernel", now, before, now - before, boots + 1);
+    report(before < 0 || now <= before ? "VERDE" : "AMARILLO", "MEDIDA", detail);
+}
+
 static void log_boot(const char *line) {
+    compare_with_previous(line);
     int fd = open(BOOT_LOG, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
     if (fd < 0) return;
     if (!write_all(fd, line, strlen(line)) || fsync(fd) < 0) say("AMARILLO", "no se pudo anotar en %s", BOOT_LOG);
