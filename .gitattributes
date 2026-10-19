@@ -3,3 +3,5 @@
 *.py text eol=lf
 evidencias/*.log -text -diff
 src/rootfs/** text eol=lf
+# Binaries inside rootfs: the rule above would rewrite their bytes as line endings.
+src/rootfs/**/*.bin binary
