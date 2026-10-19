@@ -79,23 +79,27 @@ std::string identity() {
     key += fragment;
     return key;
 }
-void compile(GLuint program) {
+bool try_compile(GLuint program, const char* fragment_source) {
     Shader vs{GL_VERTEX_SHADER}, fs{GL_FRAGMENT_SHADER};
-    for (const auto& item : {std::pair{vs.id, vertex}, std::pair{fs.id, fragment}}) {
+    for (const auto& item : {std::pair{vs.id, vertex}, std::pair{fs.id, fragment_source}}) {
         glShaderSource(item.first, 1, &item.second, nullptr);
         glCompileShader(item.first);
         GLint ok = 0;
         glGetShaderiv(item.first, GL_COMPILE_STATUS, &ok);
-        require(ok == GL_TRUE, "shader de confianza no compila");
+        if (ok != GL_TRUE) return false;
         glAttachShader(program, item.first);
     }
     glProgramParameteri(program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
     glLinkProgram(program);
     GLint linked = 0;
     glGetProgramiv(program, GL_LINK_STATUS, &linked);
-    require(linked == GL_TRUE && glGetError() == GL_NO_ERROR, "link del programa");
+    const auto error = glGetError();
     glDetachShader(program, vs.id);
     glDetachShader(program, fs.id);
+    return linked == GL_TRUE && error == GL_NO_ERROR;
+}
+void compile(GLuint program) {
+    require(try_compile(program, fragment), "compilacion/link del programa de confianza");
 }
 Bytes save(GLuint program, const std::string& key) {
     GLint size = 0;
@@ -128,7 +132,7 @@ bool import(GLuint program, const Bytes& data, const std::string& key) {
     glGetProgramiv(program, GL_LINK_STATUS, &linked);
     return error == GL_NO_ERROR && linked == GL_TRUE && glGetError() == GL_NO_ERROR;
 }
-void draw(GLuint program) {
+void draw(GLuint program, const std::array<GLubyte, 4>& expected = {0, 255, 0, 255}) {
     glViewport(0, 0, 8, 8);
     glClearColor(1.0F, 0.0F, 0.0F, 1.0F);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -137,7 +141,7 @@ void draw(GLuint program) {
     std::array<GLubyte, 4> pixel{};
     glReadPixels(4, 4, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
     require(glGetError() == GL_NO_ERROR, "draw/read GL");
-    require(pixel == std::array<GLubyte, 4>{0, 255, 0, 255}, "shader no produjo verde");
+    require(pixel == expected, "shader no produjo el pixel esperado");
     glUseProgram(0);
 }
 struct Counters { unsigned compiled = 0, imported = 0; };
@@ -225,6 +229,26 @@ int main() {
             draw(repaired.id);
             require(ultra::gpus::parse(broken, requested).has_value(), "cache regenerada invalida");
             std::cout << "VERDE [S-04." << test << "]: estatico rechaza y dinamico reconstruye caso invalido\n";
+        }
+        {
+            Program active;
+            compile(active.id); draw(active.id);
+            {
+                Program candidate;
+                require(!try_compile(candidate.id, "#version 300 es\nshader roto\n"), "reemplazo invalido compilo");
+                draw(active.id);
+            }
+            std::cout << "VERDE [S-05]: reemplazo fallido conserva programa y pixel anteriores\n";
+            {
+                Program candidate;
+                require(try_compile(candidate.id, "#version 300 es\nprecision highp float;\nout vec4 color;\n"
+                    "void main(){color=vec4(0.0,0.0,1.0,1.0);}\n"), "reemplazo valido no compila");
+                draw(candidate.id, {0, 0, 255, 255});
+                draw(active.id); // Previous frame completed via glReadPixels before committing.
+                std::swap(active.id, candidate.id);
+            }
+            draw(active.id, {0, 0, 255, 255});
+            std::cout << "VERDE [S-06]: candidato validado se activa entre dibujos y programa anterior se libera\n";
         }
         std::cout << "ALCANCE: GLES experimental; no hot-reload asincrono ni aceleracion medida\n";
         return 0;

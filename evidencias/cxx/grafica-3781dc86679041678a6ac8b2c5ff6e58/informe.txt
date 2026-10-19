@@ -1,0 +1,452 @@
+e657887394de47324acaef5e885363d4fba39e5f92bffbbcd59d09a25fbed5b3  C++/CMakeLists.txt
+e81faef85ff725f2186680b4ba1902b99db7f52993a6c1754dd5fab434444fc1  C++/GPUS.md
+5353d69ae20a60d6ed552443fa6fb02b560b840c46c54e7b0d1760970a7c4622  C++/README.md
+74563126dce13e7ce544fef87de357563fc79ca09c6227cc04febcac8a18c021  C++/laboratorio/CMakeLists.txt
+c7c1286f983c6c5221f2f23e62148d94ef662a3013ad0c054c28ea2df37c66f9  C++/laboratorio/categorias.md
+a56210c69eaf60327a26f2a7c9a033860f6f7ec4b8f8a9417a18b9821a541dd5  C++/laboratorio/grafica/sonda-egl.cpp
+1744439159b5faf8eff097b686bd888f8517c2b3531176e3b10eaae79d74953e  C++/laboratorio/grafica/sonda-gpus.cpp
+fec529db15f392929871b671edcfb59dd51da0095d6c0a703cac8e00b5ae0128  C++/laboratorio/herramientas/probar-contratos.cpp
+d9fe46bc73aea5a0e732181a78685fef6a578c05b85b717823cba7c604fde071  C++/laboratorio/herramientas/sonda-cxx.cpp
+8928423d1402b3f8e5765956759222a4f407915481bf44de50b6bc0b40c78c3e  C++/produccion/CMakeLists.txt
+32da05cc28ec76c78f3eb8a4818fab6fbb5d007aa7e15b1ceb34dc7d25807eb2  C++/produccion/gpus.hpp
+e5e7dbb9e71690411cb5c85410284cad3cb88135742fbeee8da18e7bb2a32ec2  C++/produccion/guard_gles.hpp
+11b5bbac29e96ab84bd6b70b9ce80f7cbd5643758afe78dffeaaa9c7592a7e0e  C++/produccion/limites.hpp
+69982161ba618eaa797bfd1a47d78b937089974adc1c5e5a7c80dedafd448d50  aislar-grafica-software.sh
+g++ (GCC) 16.2.1 20260810
+Copyright (C) 2026 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+acl 2.4.0-1
+archlinux-keyring 20260909-1
+attr 2.6.0-1
+audit 4.2.1-1
+autoconf 2.73-1
+automake 1.19-1
+base 3-3
+base-devel 1-2
+bash 5.3.20-1
+bc 1.08.2-1
+binutils 2.47-4
+bison 3.8.2-8
+boost-libs 1.92.0-1
+brotli 1.2.0-1
+btrfs-progs 7.1-1
+bubblewrap 0.13.1-1
+busybox 1.36.1-4
+bzip2 1.0.8-6
+ca-certificates 20240618-1
+ca-certificates-mozilla 3.131-1
+ca-certificates-utils 20240618-1
+ccache 4.14.1-1
+cloud-guest-utils 0.33-3
+cloud-init 26.2-1
+cmake 4.4.4-1
+coreutils 9.12-2
+cpio 2.15-3
+cppdap 1.58.0-3
+cryptsetup 2.8.8-1
+curl 8.23.0-1
+db5.3 5.3.28-7
+dbus 1.16.2-1
+dbus-broker 37-3
+dbus-broker-units 37-3
+dbus-units 37-3
+debugedit 5.3-2
+default-cursors 3-1
+device-mapper 2.03.43-2
+dhclient 4.4.3.P1-4
+diffutils 3.12-2
+dosfstools 4.2-5
+e2fsprogs 1.47.4-1
+efibootmgr 18-4
+efivar 39-2
+elfutils 0.196-1
+erofs-utils 1.9.4-1
+expat 2.9.0-1
+fakeroot 1:1.37.2-3
+file 5.48-1
+filesystem 2025.10.12-1
+findutils 4.11.0-1
+flex 2.6.4-6
+fmt 12.2.0-1
+gawk 5.4.1-1
+gc 8.2.12-1
+gcc 16.2.1+r23+gd564253eb6c8-1
+gcc-libs 16.2.1+r23+gd564253eb6c8-1
+gdb 18.1-1
+gdb-common 18.1-1
+gdbm 1.26-2
+gettext 1.0-2
+git 2.56.0-1
+glib2 2.90.1-1
+glibc 2.44+r50+g1848099f063e-1
+gmp 6.3.0-3
+gnulib-l10n 20241231-1
+gnupg 2.4.9-3
+gnutls 3.8.13-3
+gpgme 2.2.0-1
+gptfdisk 1.0.10-2
+grep 3.12-2
+groff 1.24.2-1
+grub 2:2.16-1
+guile 3.0.11-1
+gzip 1.15-1
+hicolor-icon-theme 0.18-1
+hiredis 1.4.1-1
+hwdata 0.412-1
+hwloc 2.15.0-1
+iana-etc 20260617-1
+icu 78.3-1
+iproute2 7.2.0-1
+iptables 1:1.8.13-1
+iputils 20250605-1
+jansson 2.15.1-1
+json-c 0.19-1
+jsoncpp 1.9.8-1
+kbd 2.10.0-1
+keyutils 1.6.3-4
+kmod 34.2-1
+krb5 1.22.2-1
+leancrypto 1.9.1-1
+less 1:710-1
+libarchive 3.8.10-1
+libasan 16.2.1+r23+gd564253eb6c8-1
+libassuan 3.0.0-1
+libatomic 16.2.1+r23+gd564253eb6c8-1
+libblake3 1.8.7-1
+libbpf 1.7.0-1
+libbsd 0.12.2-2
+libcap 2.78-1
+libcap-ng 0.9.6-1
+libdeflate 1.26-1
+libdrm 2.4.134-1
+libedit 20260512_3.1-1
+libelf 0.196-1
+libevent 2.1.13-2
+libffi 3.8.0-1
+libgcc 16.2.1+r23+gd564253eb6c8-1
+libgcrypt 1.12.4-1
+libgfortran 16.2.1+r23+gd564253eb6c8-1
+libglvnd 1.7.0-3
+libgomp 16.2.1+r23+gd564253eb6c8-1
+libgpg-error 1.61-1
+libhwasan 16.2.1+r23+gd564253eb6c8-1
+libidn2 2.3.8-1
+libisl 0.28-1
+libksba 1.8.1-1
+libldap 2.7.1-1
+liblsan 16.2.1+r23+gd564253eb6c8-1
+libmakepkg-dropins 20-2
+libmd 1.3.0-1
+libmnl 1.0.5-2
+libmpc 1.4.1-1
+libnetfilter_conntrack 1.1.1-1
+libnfnetlink 1.0.2-2
+libnftnl 1.3.2-1
+libnghttp2 1.70.0-1
+libnghttp3 1.18.0-1
+libngtcp2 1.25.0-1
+libnl 3.12.0-1
+libnsl 2.0.1-2
+libobjc 16.2.1+r23+gd564253eb6c8-1
+libp11-kit 0.26.5-1
+libpcap 1.11.0-1
+libpciaccess 0.19-1
+libpipeline 1.5.8-1
+libpsl 0.21.5-2
+libquadmath 16.2.1+r23+gd564253eb6c8-1
+libsasl 2.1.28-5
+libseccomp 2.6.0-1
+libsecret 0.21.8.2-1
+libssh2 1.11.1-7
+libstdc++ 16.2.1+r23+gd564253eb6c8-1
+libsysprof-capture 51.0-1
+libtasn1 4.21.0-1
+libtirpc 1.3.8-1
+libtool 2.6.2-5
+libtsan 16.2.1+r23+gd564253eb6c8-1
+libubsan 16.2.1+r23+gd564253eb6c8-1
+libunistring 1.4.2-1
+libunwind 1.8.3-1
+liburing 2.15-1
+libusb 1.0.30-1
+libuv 1.52.1-2
+libverto 0.3.2-6
+libx11 1.8.14-1
+libxau 1.0.12-1
+libxcb 1.17.0-1
+libxcrypt 4.5.2-1
+libxdmcp 1.1.5-2
+libxext 1.3.7-1
+libxml2 2.15.4-1
+libxshmfence 1.3.3-1
+libxxf86vm 1.1.7-1
+libyaml 0.2.5-3
+licenses 20240728-1
+linux 7.2.11.arch1-1
+linux-api-headers 7.2-1
+llvm-libs 23.1.3-3
+lm_sensors 1:3.6.2-1
+lmdb 0.9.35-1
+lz4 1:1.10.0-2
+lzo 2.10-5
+m4 1.4.21-2
+make 4.4.1-3
+man-db 2.13.1-2
+man-pages 6.19-1
+mesa 1:26.2.5-1
+mkinitcpio 42.2-1
+mkinitcpio-busybox 1.36.1-1
+mpdecimal 4.0.1-3
+mpfr 4.2.2-1
+mtools 1:4.0.49-1
+ncurses 6.6-2
+nettle 4.0-1
+nftables 1:1.1.7-3
+ninja 1.13.2-3
+npth 1.8-1
+numactl 2.0.19-1
+onetbb 2023.1.0-1
+openbsd-netcat 1.238_1-1
+openssh 10.6p1-2
+openssl 3.6.5-1
+p11-kit 0.26.5-1
+pacman 7.1.0.r9.g54d9411-3
+pacman-mirrorlist 20260610-1
+pahole 1:1.32-1
+pam 1.7.3-1
+pambase 20260616-1
+patch 2.8-1
+pciutils 3.15.0-1
+pcre2 10.49-1
+perl 5.42.3-1
+perl-error 0.17030-3
+perl-mailtools 2.22-3
+perl-timedate 2.35-1
+pinentry 1.3.3-1
+pkgconf 3.0.7-1
+popt 1.19-2
+procps-ng 4.0.7-1
+psmisc 23.7-2
+python 3.14.8-1
+python-attrs 26.1.0-1
+python-certifi 2026.07.22-1
+python-charset-normalizer 3.5.1-1
+python-configobj 5.0.9-6
+python-idna 3.20-1
+python-jinja 1:3.1.6-3
+python-jsonpatch 1.35-1
+python-jsonpointer 3.2.1-1
+python-jsonschema 4.26.0-1
+python-jsonschema-specifications 2025.9.1-2
+python-markupsafe 3.0.4-1
+python-netifaces 0.11.0-9
+python-oauthlib 3.3.1-2
+python-pyserial 3.5-9
+python-referencing 0.37.0-3
+python-requests 2.34.2-1
+python-rpds-py 2026.9.1-1
+python-typing_extensions 4.16.0-1
+python-urllib3 2.8.0-1
+python-yaml 6.0.3-2
+python-z3-solver 4.16.0-1
+qemu-guest-agent 11.1.2-1
+readline 8.3.6-1
+rhash 1.4.6-1
+rsync 3.5.1-3
+run-parts 5.24-1
+sed 4.10-2
+shadow 4.20.0.arch1-1
+source-highlight 3.1.9-19
+spirv-tools 1:1.4.363.0-1
+sqlite 3.54.0-1
+strace 7.2-1
+sudo 1.9.17.p2-6
+systemd 262.1-1
+systemd-libs 262.1-1
+systemd-sysvcompat 262.1-1
+tar 1.35-5
+texinfo 7.3-1
+tpm2-tss 4.2.0-2
+tzdata 2026e-1
+util-linux 2.42.4-1
+util-linux-libs 2.42.4-1
+wayland 1.26.0-1
+which 2.25-1
+xcb-proto 1.17.0-4
+xorgproto 2026.1-1
+xxhash 0.8.4-1
+xz 5.8.4-1
+z3 4.16.0-1
+zlib 1:1.3.2-4
+zlib-ng 2.3.3-1
+zstd 1.5.7-3
+1.5
+3.2
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found PkgConfig: /usr/bin/pkg-config (found version "3.0.7")
+-- Checking for module 'egl'
+--   Found egl, version 1.5
+-- Checking for module 'glesv2'
+--   Found glesv2, version 3.2
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/prod
+[ 12%] Building CXX object laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o
+[ 25%] Linking CXX executable sonda-cxx
+[ 25%] Built target sonda-cxx
+[ 37%] Building CXX object laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o
+[ 50%] Linking CXX executable probar-contratos
+[ 50%] Built target probar-contratos
+[ 62%] Building CXX object laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o
+[ 75%] Linking CXX executable sonda-egl
+[ 75%] Built target sonda-egl
+[ 87%] Building CXX object laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o
+[100%] Linking CXX executable sonda-gpus
+[100%] Built target sonda-gpus
+[
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "output": "laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-egl.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-egl.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o"
+}
+]VERDE [CPU-01]: 3479 contratos contra oraculo de 128 bits y dos limites
+VERDE [CPU-02]: prefijos, mutaciones, limites maximos y rechazos del serializador
+VERDE [CPU-03]: 4096 entradas pseudoaleatorias acotadas rechazadas
+EGL: 1.5 vendor=Mesa Project
+GL_VENDOR: Mesa
+GL_RENDERER: llvmpipe (LLVM 23.1.3, 256 bits)
+GL_VERSION: OpenGL ES 3.2 Mesa 26.2.5-arch1.1
+GLSL: OpenGL ES GLSL ES 3.20
+VERDE [G-01]: contexto GLES3 y pixel RGBA8 correctos
+VERDE [G-02]: enum rechazado y contexto recuperado
+SHADER-ERROR-ESPERADO: 0:2(1): error: syntax error, unexpected NEW_IDENTIFIER
+VERDE [G-03]: GLSL invalido rechazado con diagnostico
+VERDE [G-04]: GLSL valido compila despues del rechazo; contexto sigue utilizable
+VERDE [G-06]: dimensiones, capacidad, presupuesto y limite del dispositivo rechazados
+VERDE [G-07]: textura correcta con PBO/stride adversos y estado restaurado
+VERDE [G-08]: propiedad de contexto, rechazo sin contexto y cierre idempotente
+VERDE [G-09]: RAII libera y error GL previo se rechaza sin romper contexto
+VERDE [G-05]: recursos EGL liberados
+VERDE [S-01]: dinamico compila, dibuja y guarda .gpus (6738 bytes)
+VERDE [S-02]: estatico importa en contexto nuevo y produce el mismo pixel sin recompilar GLSL
+VERDE [S-03]: dinamico reutiliza cache compatible
+VERDE [S-04.0]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.1]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.2]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.3]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.4]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.5]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.6]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.7]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.8]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.9]: estatico rechaza y dinamico reconstruye caso invalido
+ALCANCE: GLES experimental; no hot-reload asincrono ni aceleracion medida
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found PkgConfig: /usr/bin/pkg-config (found version "3.0.7")
+-- Checking for module 'egl'
+--   Found egl, version 1.5
+-- Checking for module 'glesv2'
+--   Found glesv2, version 3.2
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/diag
+[ 12%] Building CXX object laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o
+[ 25%] Linking CXX executable sonda-cxx
+[ 25%] Built target sonda-cxx
+[ 37%] Building CXX object laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o
+[ 50%] Linking CXX executable probar-contratos
+[ 50%] Built target probar-contratos
+[ 62%] Building CXX object laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o
+[ 75%] Linking CXX executable sonda-egl
+[ 75%] Built target sonda-egl
+[ 87%] Building CXX object laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o
+[100%] Linking CXX executable sonda-gpus
+[100%] Built target sonda-gpus
+[
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/diag/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/diag/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "output": "laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/diag/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-egl.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-egl.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/diag/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-3781dc86679041678a6ac8b2c5ff6e58/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o"
+}
+]VERDE [CPU-01]: 3479 contratos contra oraculo de 128 bits y dos limites
+VERDE [CPU-02]: prefijos, mutaciones, limites maximos y rechazos del serializador
+VERDE [CPU-03]: 4096 entradas pseudoaleatorias acotadas rechazadas
+EGL: 1.5 vendor=Mesa Project
+GL_VENDOR: Mesa
+GL_RENDERER: llvmpipe (LLVM 23.1.3, 256 bits)
+GL_VERSION: OpenGL ES 3.2 Mesa 26.2.5-arch1.1
+GLSL: OpenGL ES GLSL ES 3.20
+VERDE [G-01]: contexto GLES3 y pixel RGBA8 correctos
+VERDE [G-02]: enum rechazado y contexto recuperado
+SHADER-ERROR-ESPERADO: 0:2(1): error: syntax error, unexpected NEW_IDENTIFIER
+VERDE [G-03]: GLSL invalido rechazado con diagnostico
+VERDE [G-04]: GLSL valido compila despues del rechazo; contexto sigue utilizable
+VERDE [G-06]: dimensiones, capacidad, presupuesto y limite del dispositivo rechazados
+VERDE [G-07]: textura correcta con PBO/stride adversos y estado restaurado
+VERDE [G-08]: propiedad de contexto, rechazo sin contexto y cierre idempotente
+VERDE [G-09]: RAII libera y error GL previo se rechaza sin romper contexto
+VERDE [G-05]: recursos EGL liberados
+VERDE [S-01]: dinamico compila, dibuja y guarda .gpus (6738 bytes)
+VERDE [S-02]: estatico importa en contexto nuevo y produce el mismo pixel sin recompilar GLSL
+VERDE [S-03]: dinamico reutiliza cache compatible
+VERDE [S-04.0]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.1]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.2]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.3]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.4]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.5]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.6]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.7]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.8]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.9]: estatico rechaza y dinamico reconstruye caso invalido
+ALCANCE: GLES experimental; no hot-reload asincrono ni aceleracion medida

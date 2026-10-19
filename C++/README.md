@@ -1,5 +1,9 @@
 # Area C++
 
+El [plan de aplicacion y estado actual](../docs/PLAN-GUARDIANES-GRAFICOS.md)
+registra la ronda de guardianes CPU/GLES, limites de laboratorio y reemplazo
+de programas con conservacion del anterior.
+
 Separada del guardian C17 existente. No mueve codigo de arranque ni cambia
 la imagen instalada. produccion/ contiene el perfil de compilacion para
 fuentes propias; laboratorio/ contiene sondas y el catalogo de casos.
@@ -38,8 +42,9 @@ cmake -S 'C++' -B build/cxx-diagnostico -DCMAKE_CXX_COMPILER=g++ -DULTRA_CXX_DIA
 cmake --build build/cxx-diagnostico
 ```
 
-Ejecutar cada sonda mediante scripts/aislar-mina.sh. Los binarios propios
-son pruebas CPU sin dispositivo GPU. Sanitizadores solo en diagnostico;
+Para sondas CPU se conserva scripts/aislar-mina.sh; el runner grafico actual
+ejecuta contratos y sondas GL mediante scripts/ejecutar-grafica-limitada.sh.
+No se expone dispositivo GPU. Sanitizadores solo en diagnostico;
 rendimiento se compara entre builds de produccion equivalentes.
 
 La [sonda inicial](../evidencias/cxx/sonda-inicial.txt) compilo y termino
@@ -67,17 +72,21 @@ Resultado: EGL 1.5, GLES 3.2, GLSL ES 3.20 y llvmpipe/LLVM 23.1.3.
 Produccion y ASan/UBSan terminaron con codigo 0: cinco controles por perfil.
 Se comprobaron pixel RGBA8, error de enum y recuperacion, shader invalido,
 shader valido posterior y liberacion de recursos EGL. El shader valido se
-compila; aun no se enlaza un programa ni se dibuja una geometria con el.
+compila. Aquella primera sonda no enlazaba programas; el banco .gpus posterior
+si enlaza y dibuja geometria, segun su evidencia independiente.
 
 Desde Windows, probar-grafica-cxx.ps1 crea un snapshot nuevo, compila ambos
-perfiles y ejecuta scripts/aislar-grafica-software.sh en la VM. En Linux,
+perfiles y ejecuta scripts/ejecutar-grafica-limitada.sh en la VM. En Linux,
 agregar -DULTRA_CXX_EGL=ON a las configuraciones anteriores y ejecutar
-ese aislamiento sobre laboratorio/sonda-egl del directorio de build.
+ese runner sobre laboratorio/sonda-egl del directorio de build. Requiere
+el usuario del taller y sudo no interactivo para el servicio transitorio;
+la carga ejecuta con su UID sin root. El script de aislamiento verifica
+las propiedades reales del cgroup antes de lanzar el binario.
 El sandbox no expone /dev/dri, red, home ni sockets del escritorio; fuerza
 llvmpipe, limita hilos a dos y aplica timeout/limites de recursos. /usr se
 expone en solo lectura y el kernel de la VM sigue siendo compartido.
-No se impone un limite duro de memoria total: antes de ampliar las cargas,
-agregar un cgroup de memoria para el proceso de laboratorio.
+El cgroup limita memoria a 512 MiB, swap a cero y tareas a 64. La evidencia
+actual y los detalles de contratos/recuperacion estan en el plan de aplicacion.
 
 Estas banderas instrumentan nuestro ejecutable C++, no las bibliotecas Mesa
 precompiladas. No se reconstruyo Mesa ni Hyprland, no se probo la RTX y no

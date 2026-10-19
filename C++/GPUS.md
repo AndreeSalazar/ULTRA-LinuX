@@ -1,5 +1,10 @@
 # .gpus: dos modos, prototipo GLES
 
+Actualizacion: ademas de la carga inicial, el banco demuestra reemplazo
+sincrono con candidato separado: si falla la compilacion, conserva el programa
+anterior; si valida, cambia entre dibujos. Aun no hay worker asincrono ni
+integracion Hyprland. Ver [ronda aplicada](../docs/PLAN-GUARDIANES-GRAFICOS.md).
+
 Idea del propietario: guardar trabajo GPU preparado y ofrecer un modo estatico
 y otro dinamico que se adapte. Implementacion inicial de laboratorio,
 2026-10-19. No es un formato que el driver reconozca directamente: el cargador
@@ -12,7 +17,7 @@ lee nuestro contenedor y usa glProgramBinary para entregar el binario al driver.
 | Contenedor compatible y programa aceptado | Importa, sin compilar GLSL en nuestro codigo | Reutiliza el mismo binario |
 | Ausente, truncado, corrupto o identidad distinta | Devuelve fallo sin compilar | Compila fuentes de confianza y regenera contenedor en memoria |
 | Formato no admitido o programa rechazado por driver | Devuelve fallo | Intenta reconstruir desde fuentes de confianza |
-| La compilacion falla | No se intenta | Falla; este prototipo no tiene programa anterior de reserva |
+| La compilacion falla en la carga inicial | No se intenta | Falla; no existe aun programa activo que conservar |
 
 El dinamico funciona durante la carga, sin actualizacion asincrona. No corrige
 automaticamente un shader mal escrito ni interpreta intenciones. Las fuentes
@@ -34,7 +39,7 @@ struct C++ con padding. Campos uint32:
 | 16 | Longitud del binario |
 | 20 | FNV-1a32 del contenedor excluyendo estos cuatro bytes |
 
-Despues van identidad y binario. Limites: identidad de hasta 64 KiB, binario
+Despues van identidad y binario. Limites: identidad no vacia de hasta 64 KiB, binario
 no vacio de hasta 1 MiB; longitud exacta sin cola extra. La identidad incluye
 API, opciones del programa, GL_VENDOR, GL_RENDERER, GL_VERSION, version GLSL
 y fuentes completas. Se compara exactamente. Son indicadores de compatibilidad,

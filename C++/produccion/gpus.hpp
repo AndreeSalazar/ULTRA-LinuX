@@ -39,7 +39,7 @@ parse(std::span<const std::uint8_t> data, std::string_view expected_key) {
     if (read32(data, 4) != 1) return std::unexpected(Error::version);
     const auto key_size = read32(data, 12);
     const auto binary_size = read32(data, 16);
-    if (key_size > max_key || binary_size == 0 || binary_size > max_binary)
+    if (key_size == 0 || key_size > max_key || binary_size == 0 || binary_size > max_binary)
         return std::unexpected(Error::limits);
     const std::size_t total = header_size + std::size_t{key_size} + std::size_t{binary_size};
     if (data.size() != total) return std::unexpected(Error::length);
@@ -50,7 +50,7 @@ parse(std::span<const std::uint8_t> data, std::string_view expected_key) {
 }
 [[nodiscard]] inline std::expected<std::vector<std::uint8_t>, Error>
 encode(std::uint32_t format, std::string_view key, std::span<const std::uint8_t> binary) {
-    if (key.size() > max_key || binary.empty() || binary.size() > max_binary)
+    if (key.empty() || key.size() > max_key || binary.empty() || binary.size() > max_binary)
         return std::unexpected(Error::limits);
     std::vector<std::uint8_t> data(header_size + key.size() + binary.size());
     write32(data, 0, 0x53555047U);

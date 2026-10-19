@@ -1,7 +1,8 @@
 # Catalogo inicial C++ y graficos
 
-Primera sonda CPU y cinco controles EGL/GLES comprobados en ambos perfiles;
-ver [estado y limites](../README.md). El resto sigue pendiente.
+Sonda CPU, contratos aritmeticos/parser, nueve controles EGL/GLES y quince
+controles de cache/reemplazo comprobados en ambos perfiles; ver
+[ronda y limites](../../docs/PLAN-GUARDIANES-GRAFICOS.md). El resto sigue pendiente.
 Cada caso futuro necesita control valido, resultado esperado, timeout,
 limites de recursos, versiones y log. Un error GL no se etiqueta como UB C++.
 

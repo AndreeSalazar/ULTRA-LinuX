@@ -1,5 +1,7 @@
 add_executable(sonda-cxx herramientas/sonda-cxx.cpp)
 target_link_libraries(sonda-cxx PRIVATE ultra_cxx_perfil)
+add_executable(probar-contratos herramientas/probar-contratos.cpp)
+target_link_libraries(probar-contratos PRIVATE ultra_cxx_perfil)
 if(ULTRA_CXX_EGL)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(EGL REQUIRED IMPORTED_TARGET egl)

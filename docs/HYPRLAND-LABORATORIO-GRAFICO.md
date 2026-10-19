@@ -1,5 +1,9 @@
 # Hyprland: laboratorio grafico y escritorio de uso diario
 
+El [plan aprobado y su primera ronda aplicada](PLAN-GUARDIANES-GRAFICOS.md)
+distingue contratos CPU/GLES probados, reemplazo transaccional y requisitos
+pendientes para integrar en el escritorio.
+
 2026-10-19. Peticion del propietario: investigar fallos por categorias,
 aislar aplicaciones y mejorar fluidez sin perjudicar el escritorio ni juegos.
 Este documento organiza trabajo pendiente: no instala Hyprland ni acredita
