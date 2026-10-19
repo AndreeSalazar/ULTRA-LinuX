@@ -28,6 +28,17 @@ El kernel sigue arrancando con la raíz en memoria (el initramfs integrado). El 
 
 La letra `A` deja sitio para un `ULTRA-SISTEMA-B` y actualizaciones A/B al estilo SteamOS (fase 5).
 
+### Segunda forma: archivos en el FAT32 `BMO`
+
+Para un PC sin disco libre, como el de este proyecto, los mismos dos sistemas de archivos viajan como **archivos** en una partición FAT32 con la etiqueta `BMO` (`A:\` en Windows): `ULTRA\sistema-a.erofs` y `ULTRA\datos.ext4`, más el kernel en `EFI\ULTRA\ULTRA.EFI`, que arranca una entrada propia del firmware. El init:
+
+- identifica la partición leyendo en crudo la etiqueta del **directorio raíz** del FAT32, sin montar nada más. Windows deja `NO NAME` en el sector de arranque, y el disco de prueba lo imita;
+- monta `BMO` en `/bmo` (`noexec`) y los dos archivos como dispositivos *loop* (`LOOP_CONFIGURE` con `AUTOCLEAR`), que van a `/sistema` y `/datos` como antes;
+- deja copias de `PC.configuración` y `arranques.log` en `BMO\ULTRA\` para leerlas desde Windows;
+- al apagar desmonta `/datos`, `/sistema` y `/bmo`, en ese orden.
+
+Si existen las particiones con nombre, tienen prioridad. `disco-bmo.img` reproduce el disco del PC (partición EFI "de Windows", FAT32 `BMO` y una partición sin formato), y `probar_arranque.py generico --bmo` lo arranca dos veces: todo VERDE, y la partición EFI simulada no se monta nunca (`evidencias/arranque-bmo-archivos.log`). La instalación en el PC la hace `instalar-en-A.ps1`, y la guía está en [PRUEBA-PC-REAL.md](PRUEBA-PC-REAL.md).
+
 ## Detección de hardware con memoria
 
 En el **primer arranque** en un PC, el init lee el `modalias` de cada dispositivo de `/sys/bus/pci/devices` y `/sys/bus/usb/devices`, lo compara (`fnmatch`) con `modules.alias` de `/sistema`, carga los módulos que coinciden con sus dependencias de `modules.dep` (con `finit_module`, sin `modprobe`) y escribe `/datos/PC.configuración`:

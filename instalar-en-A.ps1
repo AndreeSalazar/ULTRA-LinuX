@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Installs ULTRA LinuX as files on the FAT32 partition labelled BMO (A:\), without
+# touching any partition table, the Windows EFI partition or other drives.
+#   Copiar         kernel and system image; datos.ext4 only if it does not exist yet
+#   CrearEntrada   adds "ULTRA LinuX" to the board's F11 menu (a firmware boot entry)
+#   QuitarEntrada  removes that entry again
+#   Estado         shows what is installed and whether the entry exists
+param([ValidateSet('Copiar','CrearEntrada','QuitarEntrada','Estado')][string]$Accion='Estado',
+      [string]$Unidad='A', [switch]$NuevosDatos)
+$ErrorActionPreference='Stop'
+$project=$PSScriptRoot
+$build=Join-Path $project 'build/generico'
+$record=Join-Path $build 'entrada-f11.txt'
+$root="${Unidad}:\"
+$files=[ordered]@{'bzImage-tiny64'='EFI\ULTRA\ULTRA.EFI';'sistema-a.erofs'='ULTRA\sistema-a.erofs';'datos.ext4'='ULTRA\datos.ext4'}
+
+function Test-Destino {
+    # Guardians: only a FAT32 data partition labelled BMO, never a system or boot partition.
+    $vol=Get-Volume -DriveLetter $Unidad -ErrorAction SilentlyContinue
+    if(-not $vol){throw "ROJO [DESTINO]: no existe la unidad ${Unidad}:"}
+    if($vol.FileSystem -ne 'FAT32' -or $vol.FileSystemLabel -ne 'BMO'){throw "ROJO [DESTINO]: ${Unidad}: es $($vol.FileSystem) '$($vol.FileSystemLabel)'; se esperaba FAT32 'BMO'"}
+    $part=Get-Partition -DriveLetter $Unidad
+    if($part.IsSystem -or $part.IsBoot -or $part.Type -ne 'Basic'){throw "ROJO [DESTINO]: ${Unidad}: es particion de sistema o de arranque; no se toca"}
+    return $part
+}
+function Get-Esperado([string]$name){
+    $line=Get-Content (Join-Path $build 'SHA256SUMS') | Where-Object { $_ -match "/$([regex]::Escape($name))$" }
+    if(-not $line){throw "ROJO [HASH]: $name no esta en SHA256SUMS; volver a descargar"}
+    return ($line -split '\s+')[0]
+}
+function Get-Entrada {
+    if(-not(Test-Path -LiteralPath $record)){return $null}
+    $id=(Get-Content -LiteralPath $record -First 1).Trim()
+    if($id -notmatch '^\{[0-9a-fA-F-]{36}\}$'){throw "ROJO: $record no contiene un identificador valido"}
+    return $id
+}
+
+if($Accion -eq 'Copiar'){
+    $part=Test-Destino
+    foreach($name in $files.Keys){
+        $src=Join-Path $build $name
+        if((Get-FileHash $src).Hash -ine (Get-Esperado $name)){throw "ROJO [HASH]: $name no coincide con SHA256SUMS"}
+    }
+    $need=($files.Keys | ForEach-Object { (Get-Item (Join-Path $build $_)).Length } | Measure-Object -Sum).Sum
+    if((Get-Volume -DriveLetter $Unidad).SizeRemaining -lt $need){throw "ROJO [ESPACIO]: ${Unidad}: no tiene $([math]::Round($need/1MB)) MiB libres"}
+    foreach($name in $files.Keys){
+        $dst=Join-Path $root $files[$name]
+        # /datos lives in datos.ext4: replacing it would erase PC.configuraciÃ³n and everything saved.
+        if($name -eq 'datos.ext4' -and (Test-Path -LiteralPath $dst) -and -not $NuevosDatos){
+            Write-Host "AMARILLO [DATOS]: se conserva $dst (usar -NuevosDatos para empezar de cero)" -ForegroundColor Yellow
+            continue
+        }
+        New-Item -ItemType Directory -Force (Split-Path $dst) | Out-Null
+        Copy-Item -LiteralPath (Join-Path $build $name) -Destination $dst -Force
+        if((Get-FileHash $dst).Hash -ine (Get-Esperado $name)){throw "ROJO [COPIA]: $dst no quedo igual que el original"}
+        Write-Host "VERDE [COPIA]: $dst"
+    }
+    Write-Host "VERDE: ULTRA LinuX instalado en ${Unidad}:\ (disco $($part.DiskNumber), particion $($part.PartitionNumber)). Siguiente: -Accion CrearEntrada"
+}elseif($Accion -eq 'CrearEntrada'){
+    Test-Destino | Out-Null
+    if(-not(Test-Path -LiteralPath (Join-Path $root 'EFI\ULTRA\ULTRA.EFI'))){throw 'AMARILLO: primero -Accion Copiar'}
+    if(Get-Entrada){throw "AMARILLO: la entrada ya existe ($(Get-Entrada)); usar -Accion QuitarEntrada antes de crear otra"}
+    # A copy of {bootmgr} is a firmware application entry; Windows writes it to the board's NVRAM.
+    $out=(& bcdedit.exe /copy '{bootmgr}' /d 'ULTRA LinuX') -join ' '
+    if($LASTEXITCODE -ne 0 -or $out -notmatch '(\{[0-9a-fA-F-]{36}\})'){throw "ROJO [BCD]: bcdedit /copy fallo: $out"}
+    $id=$Matches[1]
+    Set-Content -LiteralPath $record -Value $id -Encoding ascii
+    foreach($set in @(@('device',"partition=${Unidad}:"),@('path','\EFI\ULTRA\ULTRA.EFI'))){
+        & bcdedit.exe /set $id $set[0] $set[1] | Out-Null
+        if($LASTEXITCODE -ne 0){& bcdedit.exe /delete $id | Out-Null; Remove-Item -LiteralPath $record; throw "ROJO [BCD]: no se pudo fijar $($set[0]); entrada borrada"}
+    }
+    # Last in the list: Windows stays the default boot; ULTRA is chosen from F11.
+    & bcdedit.exe /set '{fwbootmgr}' displayorder $id /addlast | Out-Null
+    if($LASTEXITCODE -ne 0){& bcdedit.exe /delete $id | Out-Null; Remove-Item -LiteralPath $record; throw 'ROJO [BCD]: no se pudo anadir al menu del firmware; entrada borrada'}
+    Write-Host "VERDE: entrada 'ULTRA LinuX' $id creada, al final del orden de arranque. Windows sigue siendo el predeterminado."
+}elseif($Accion -eq 'QuitarEntrada'){
+    $id=Get-Entrada
+    if(-not $id){Write-Host 'AMARILLO: no hay entrada registrada por este script.' -ForegroundColor Yellow; exit 0}
+    & bcdedit.exe /delete $id | Out-Null
+    if($LASTEXITCODE -ne 0){throw "ROJO [BCD]: no se pudo borrar $id"}
+    Remove-Item -LiteralPath $record
+    Write-Host "VERDE: entrada $id borrada."
+}else{
+    Test-Destino | Out-Null
+    foreach($name in $files.Keys){
+        $dst=Join-Path $root $files[$name]
+        if(Test-Path -LiteralPath $dst){"{0,-28} {1,8} KiB" -f $files[$name],[math]::Round((Get-Item $dst).Length/1KB)}else{"{0,-28} falta" -f $files[$name]}
+    }
+    foreach($extra in 'ULTRA\PC-configuracion.txt','ULTRA\arranques.txt'){ if(Test-Path -LiteralPath (Join-Path $root $extra)){"{0,-28} escrito por ULTRA" -f $extra} }
+    $id=Get-Entrada
+    if($id){& bcdedit.exe /enum $id}else{'Entrada F11: no creada'}
+}

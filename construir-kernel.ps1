@@ -63,7 +63,7 @@ if($Accion -eq 'Compilar'){
     $out=Join-Path $project ('build/'+$local[$Perfil])
     New-Item -ItemType Directory -Force $out | Out-Null
     $files=@('bzImage-tiny64','tiny64.config','kernelrelease.txt','guardianes.txt','SHA256SUMS')
-    if($Perfil -eq 'generico'){$files+='modulos.tar.gz';$files+='ultra-esp.img'}
+    if($Perfil -eq 'generico'){$files+=@('modulos.tar.gz','ultra-esp.img','disco-bmo.img','sistema-a.erofs','datos.ext4')}
     foreach($file in $files){
         & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known ('builder@127.0.0.1:/home/builder/linux-reconstruido/artifacts/'+$Perfil+'/'+$file) $out
         if($LASTEXITCODE -ne 0){throw "ROJO: falta descargar $file"}

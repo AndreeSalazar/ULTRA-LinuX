@@ -465,6 +465,27 @@ static void log_boot(const char *line) {
     close(fd);
 }
 
+/*
+ * Windows cannot read ext4: when ULTRA runs from BMO (A:\), a copy of the
+ * results goes beside its files, with plain ASCII names.
+ */
+static void copy_for_windows(void) {
+    const char *dir = windows_dir();
+    if (!dir) return;
+    const char *const pairs[][2] = {{CONFIG_PATH, "PC-configuracion.txt"}, {BOOT_LOG, "arranques.txt"}};
+    for (size_t i = 0; i < ULTRA_LEN(pairs); i++) {
+        char dst[256];
+        char *buf = slurp(pairs[i][0]);
+        int len = snprintf(dst, sizeof(dst), "%s/%s", dir, pairs[i][1]);
+        int fd = buf && len > 0 && (size_t)len < sizeof(dst) ? open(dst, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644) : -1;
+        if (fd >= 0) {
+            if (!write_all(fd, buf, strlen(buf)) || fsync(fd) < 0) say("AMARILLO", "no se pudo copiar a %s", dst);
+            close(fd);
+        } else if (buf) say("AMARILLO", "no se pudo crear %s/%s", dir, pairs[i][1]);
+        free(buf);
+    }
+}
+
 void prepare_hardware(bool data) {
     struct utsname u;
     char line[384];
@@ -497,6 +518,7 @@ void prepare_hardware(bool data) {
             snprintf(line, sizeof(line), "arranque=guiado modulos=%zu lectura_us=%" PRId64 " carga_us=%" PRId64
                      " total_us=%" PRId64 " ganado_us=%" PRId64 "\n", nwanted, t1 - t0, t2 - t1, now, first - now);
             log_boot(line);
+            copy_for_windows();
             return;
         }
     } else if (data) why = "no hay PC.configuracion valida";
@@ -519,4 +541,5 @@ void prepare_hardware(bool data) {
     snprintf(line, sizeof(line), "arranque=deteccion componentes=%zu modulos=%zu deteccion_us=%" PRId64
              " carga_us=%" PRId64 " total_us=%" PRId64 "\n", ndevices, nwanted, d1 - d0, d2 - d1, d2 - d0);
     log_boot(line);
+    copy_for_windows();
 }

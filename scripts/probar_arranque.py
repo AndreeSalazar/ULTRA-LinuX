@@ -5,14 +5,17 @@ import hashlib, pathlib, secrets, shutil, socket, subprocess, sys, time
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
 # --disco boots ultra-esp.img through UEFI firmware, with no -kernel and no boot loader.
-DISCO = '--disco' in sys.argv[2:]
+# --bmo boots disco-bmo.img: ULTRA as files on a FAT32 partition labelled BMO, beside a
+# simulated Windows EFI partition, the way it lives on A:\ of the PC.
+BMO = '--bmo' in sys.argv[2:]
+DISCO = BMO or '--disco' in sys.argv[2:]
 QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
 BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico'}[PERFIL]
 KERNEL = BUILD / 'bzImage-tiny64'
-IMG = BUILD / 'ultra-esp.img'
+IMG = BUILD / ('disco-bmo.img' if BMO else 'ultra-esp.img')
 # The disk test writes to /datos, so it boots a fresh copy and never the verified image.
-IMG_PRUEBA = BUILD / 'ultra-esp-prueba.img'
-LOG = BUILD / ('prueba-disco.log' if DISCO else 'prueba-shell.log')
+IMG_PRUEBA = BUILD / (IMG.stem + '-prueba.img')
+LOG = BUILD / ('prueba-bmo.log' if BMO else 'prueba-disco.log' if DISCO else 'prueba-shell.log')
 QEMU = pathlib.Path(r'C:\Program Files\qemu\qemu-system-x86_64.exe')
 PORT = 15555
 # Each command and a fragment its output must contain.
@@ -69,6 +72,15 @@ BOOT2 = [
     ('cat /datos/arranques.log', 'arranque=deteccion'),
     ('cat /datos/arranques.log', 'arranque=guiado'),
 ]
+if BMO:
+    BOOT1 += [
+        ('grep " /bmo " /proc/mounts', 'vfat rw'),
+        # Only BMO is FAT and mounted: the simulated Windows EFI partition stays untouched.
+        ('echo VFAT-$(grep -c vfat /proc/mounts)', 'VFAT-1'),
+        ('ls /bmo/ULTRA', 'PC-configuracion.txt'),
+    ]
+    # The copy Windows reads on A:\ULTRA is updated on every boot.
+    BOOT2 += [('cat /bmo/ULTRA/arranques.txt', 'arranque=guiado')]
 if PERFIL == 'vigia':
     CHECKS += [
         ('dmesg | grep -m1 "AddressSanitizer init"', 'initialized'),
@@ -172,6 +184,8 @@ def main():
             transcript += read_until(conn, 'Restarting system', 20)
             qemu.wait(timeout=20)
             expect_boot(transcript, 'VERDE [DESMONTAJE]: /datos desmontado limpio', 'reinicio: /datos desmontado limpio', failures)
+            if BMO:
+                expect_boot(transcript, 'VERDE [DESMONTAJE]: /bmo desmontado limpio', 'reinicio: /bmo desmontado limpio', failures)
             conn.close()
             qemu, conn = start()
             second = read_until(conn, 'ultra:', 120)

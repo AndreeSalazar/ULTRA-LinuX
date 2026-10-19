@@ -12,6 +12,8 @@ void report(const char *level, const char *code, const char *detail);
 bool mount_partitions(void);
 /* Leaves /datos clean before power-off: unmounted, or at least read-only. */
 void unmount_data(void);
+/* BMO\ULTRA when ULTRA runs from files on the FAT32 partition: Windows reads it directly. NULL otherwise. */
+const char *windows_dir(void);
 
 /* hardware.c: loads the PC's modules, guided by /datos/PC.configuración when it exists. */
 void prepare_hardware(bool data);

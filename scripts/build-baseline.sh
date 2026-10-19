@@ -13,12 +13,13 @@ case $perfil in
         # the AMD pieces of the target board. Module-capable for nvidia-open later.
         extra=(KFENCE MODULES MODULE_UNLOAD BLK_DEV_NVME ATA SATA_AHCI VIRTIO_PCI VIRTIO_BLK VIRTIO_NET
                USB_XHCI_HCD USB_STORAGE USB_HID HID_GENERIC EXT4_FS VFAT_FS EFI EFI_STUB DRM DRM_SIMPLEDRM
-               SYSFB_SIMPLEFB CPU_SUP_AMD MICROCODE_AMD X86_AMD_PSTATE AMD_IOMMU EROFS_FS EFI_PARTITION)
+               SYSFB_SIMPLEFB CPU_SUP_AMD MICROCODE_AMD X86_AMD_PSTATE AMD_IOMMU EROFS_FS EFI_PARTITION
+               BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1)
         modules_list=(R8169 SND_HDA_INTEL SENSORS_K10TEMP)
         # No boot loader: the firmware runs the kernel directly, so its arguments live inside it.
         # The last console becomes /dev/console; init starts a shell on every active console.
         cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
-        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM VIRTIO_BLK) ;;
+        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM VIRTIO_BLK) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
                UBSAN_BOOL PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR DEBUG_ATOMIC_SLEEP)
@@ -163,7 +164,36 @@ if [[ -n $cmdline ]]; then
         { echo 'ROJO: BOOTX64.EFI no es el kernel recien compilado'; exit 1; }
     [[ -f "$sistema/lib/modules/$release/modules.alias" ]] || { echo "ROJO: ULTRA-SISTEMA-A sin modules.alias para $release"; exit 1; }
     echo "VERDE: disco EFI sin GRUB: $(basename "$img"): ESP FAT32 $((sectors / 2048)) MiB, ULTRA-SISTEMA-A EROFS $(( $(stat -c %s "$art/sistema-a.erofs") / 1024 )) KiB, ULTRA-DATOS ext4 $(( $(part ULTRA-DATOS 2) / 2048 )) MiB"
-    sums+=("$img")
+    # Second layout: ULTRA as files on a FAT32 partition labelled BMO (A:\ on the PC),
+    # on a disk shared with the Windows EFI partition. This test disk copies that shape:
+    #   1 EFI System  FAT32 "Windows": EFI/Microsoft/Boot, which the init must never mount
+    #   2 Basic data  FAT32, label BMO only in the root directory, as Windows writes it
+    #   3 Basic data  without a file system, like F:
+    # QEMU starts the kernel from partition 1; the real PC from a firmware entry on BMO.
+    bmo="$art/disco-bmo.img" basic_type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
+    rm -f "$bmo"
+    truncate -s 226M "$bmo"
+    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="EFI system partition"\nsize=144MiB, type=%s, name="Basic data partition"\nsize=16MiB, type=%s, name="Basic data partition"\n' \
+        "$esp_type" "$basic_type" "$basic_type" | sfdisk -q "$bmo"
+    bpart() { sfdisk --dump "$bmo" | sed -n "s/^[^ ]*$1 : start= *\([0-9]*\), size= *\([0-9]*\).*/\\$2/p"; }
+    win=$(( $(bpart 1 1) * 512 )) a=$(( $(bpart 2 1) * 512 ))
+    mkfs.fat -F 32 -s 1 --offset=$(bpart 1 1) "$bmo" $(( $(bpart 1 2) / 2 )) > /dev/null 2>&1
+    mmd -i "$bmo@@$win" ::/EFI ::/EFI/BOOT ::/EFI/Microsoft ::/EFI/Microsoft/Boot
+    mcopy -i "$bmo@@$win" "$art/bzImage-tiny64" ::/EFI/BOOT/BOOTX64.EFI
+    echo 'no es Windows: marca de prueba' > "$art/bootmgfw-falso.efi"
+    mcopy -i "$bmo@@$win" "$art/bootmgfw-falso.efi" ::/EFI/Microsoft/Boot/bootmgfw.efi
+    mkfs.fat -F 32 -s 1 -n BMO --offset=$(bpart 2 1) "$bmo" $(( $(bpart 2 2) / 2 )) > /dev/null 2>&1
+    # Windows keeps the label in the root directory and leaves NO NAME in the boot sector.
+    printf 'NO NAME    ' | dd of="$bmo" bs=1 seek=$(( a + 71 )) conv=notrunc status=none
+    mmd -i "$bmo@@$a" ::/EFI ::/EFI/ULTRA ::/ULTRA
+    mcopy -i "$bmo@@$a" "$art/bzImage-tiny64" ::/EFI/ULTRA/ULTRA.EFI
+    mcopy -i "$bmo@@$a" "$art/sistema-a.erofs" ::/ULTRA/sistema-a.erofs
+    mcopy -i "$bmo@@$a" "$art/datos.ext4" ::/ULTRA/datos.ext4
+    [[ $(mtype -i "$bmo@@$a" ::/ULTRA/sistema-a.erofs | sha256sum | cut -d' ' -f1) = $(sha256sum < "$art/sistema-a.erofs" | cut -d' ' -f1) ]] ||
+        { echo 'ROJO: sistema-a.erofs dentro de BMO no coincide'; exit 1; }
+    mlabel -i "$bmo@@$a" -s :: | grep -q 'BMO' || { echo 'ROJO: la particion de prueba no se llama BMO'; exit 1; }
+    echo "VERDE: disco de prueba $(basename "$bmo"): EFI de Windows simulada, FAT32 BMO con ULTRA en archivos y particion vacia"
+    sums+=("$img" "$bmo" "$art/sistema-a.erofs" "$art/datos.ext4")
 fi
 sha256sum "${sums[@]}" > "$art/SHA256SUMS"
 printf 'VERDE: kernel %s e init C compilados. Arranque QEMU todavia pendiente.\n' "$perfil"
