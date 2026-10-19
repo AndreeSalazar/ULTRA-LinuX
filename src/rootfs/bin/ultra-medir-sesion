@@ -1,0 +1,81 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Bounded observer; its output stays in the privileged session directory.
+set -uo pipefail
+[[ $(id -u) == 0 ]] || exit 1
+mode=${1:-software}
+case "$mode" in nvidia|software) ;; *) exit 2;; esac
+once=${2:-}
+[[ -z $once || $once == --once ]] || exit 2
+stop=/run/ultra-escritorio/medicion.stop
+printf 'ULTRA MEDICION v1\n'
+printf 'kernel=%s modo=%s intervalo_minimo_s=5 limite_muestras=120\n' "$(uname -r)" "$mode"
+printf 'RAM: kB; usada_estimada=MemTotal-MemAvailable. UID 1000: maximo 128 procesos, no solo compositor.\n'
+printf 'RSS comparte paginas; no sumar RSS como RAM exclusiva. PSS reparte paginas compartidas. NA no significa cero.\n'
+printf 'GPU CSV: uuid,pci.bus_id,memory.total_MiB,memory.used_MiB,utilization.gpu_pct,temperature.gpu_C,power.draw_W\n'
+user_query() {
+    setpriv --reuid=ultra --regid=ultra --init-groups --no-new-privs \
+        --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+        /usr/bin/env -i HOME=/home/ultra XDG_RUNTIME_DIR=/run/user/1000 PATH=/usr/bin LANG=C \
+        timeout -k 1 2 "$@"
+}
+completed=0
+for ((sample=0;sample<120;sample++)); do
+    [[ ! -e $stop ]] || break
+    ((completed+=1))
+    date -u '+muestra_utc=%Y-%m-%dT%H:%M:%SZ'
+    total=NA; available=NA; used=NA; swap_total=NA; swap_free=NA
+    while read -r key value rest; do
+        [[ $value =~ ^[0-9]+$ ]] || continue
+        case "$key" in
+            MemTotal:) total=$value;; MemAvailable:) available=$value;;
+            SwapTotal:) swap_total=$value;; SwapFree:) swap_free=$value;;
+        esac
+    done < /proc/meminfo
+    if [[ $total != NA && $available != NA ]] && ((total >= available)); then used=$((total-available)); fi
+    printf 'RAM total_kB=%s disponible_kB=%s usada_estimada_kB=%s swap_total_kB=%s swap_libre_kB=%s\n' "$total" "$available" "$used" "$swap_total" "$swap_free"
+    # Raw aggregate CPU counters allow deltas; no guessed percentage at sample 0.
+    read -r cpu_line < /proc/stat
+    printf 'CPU_contadores %s\n' "$cpu_line"
+    count=0; rss_sum=0; pss_sum=0; measured=0; truncated=0
+    for proc in /proc/[0-9]*; do
+        uid=NA; name=NA
+        [[ -r $proc/status ]] || continue
+        while read -r key value rest; do
+            case "$key" in Uid:) uid=$value;; Name:) name=$value;; esac
+        done < "$proc/status" 2>/dev/null
+        [[ $uid == 1000 ]] || continue
+        if ((count >= 128)); then truncated=1; break; fi
+        ((count+=1)); rss=NA; pss=NA
+        if [[ -r $proc/smaps_rollup ]]; then
+            while read -r key value rest; do
+                [[ $value =~ ^[0-9]+$ ]] || continue
+                case "$key" in Rss:) rss=$value;; Pss:) pss=$value;; esac
+            done < "$proc/smaps_rollup" 2>/dev/null
+        fi
+        if [[ $rss != NA && $pss != NA ]]; then
+            ((measured+=1, rss_sum+=rss, pss_sum+=pss))
+        fi
+        printf 'PROCESO pid=%s nombre=%s rss_kB=%s pss_kB=%s\n' "${proc##*/}" "$name" "$rss" "$pss"
+    done
+    printf 'UID1000 procesos=%s medidos=%s truncado=%s rss_suma_parcial_kB=%s pss_suma_parcial_kB=%s\n' "$count" "$measured" "$truncated" "$rss_sum" "$pss_sum"
+    # Never let nvidia-smi create missing nodes and hide a preparation failure.
+    if [[ $mode == nvidia && -c /dev/nvidia0 && -c /dev/nvidiactl && -c /dev/nvidia-modeset ]]; then
+        if gpu=$(user_query /usr/bin/nvidia-smi --query-gpu=uuid,pci.bus_id,memory.total,memory.used,utilization.gpu,temperature.gpu,power.draw --format=csv,noheader,nounits 2>/dev/null); then
+            printf 'GPU %s\n' "$gpu"
+        else printf 'GPU NA consulta_fallida_o_timeout\n'; fi
+    else printf 'GPU NA modo_software_o_nodos_ausentes\n'; fi
+    # One bounded snapshot while Hyprland is alive: renderer and monitor setup.
+    if ((sample == 3)); then
+        printf '[HYPRLAND sistema y monitores; consulta UID1000]\n'
+        user_query /usr/bin/hyprctl -i 0 systeminfo 2>&1 | head -c 16384
+        user_query /usr/bin/hyprctl -i 0 monitors 2>&1 | head -c 8192
+        printf '\n[/HYPRLAND]\n'
+    fi
+    [[ $once != --once ]] || break
+    for ((pause=0;pause<5;pause++)); do
+        [[ ! -e $stop ]] || break
+        sleep 1
+    done
+done
+printf 'fin_medicion muestras=%s\n' "$completed"

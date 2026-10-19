@@ -1,0 +1,14 @@
+[
+  {
+    "archivo": "gpu-7.3.0-rc7-pc-g32c52ec87d62.txt",
+    "kernel": "7.3.0-rc7-pc-g32c52ec87d62",
+    "modo": "nvidia",
+    "compositor": "hyprland",
+    "fecha_utc": "2026-10-19T16:52:57Z",
+    "ram_sistema_estimada_MiB": null,
+    "pss_UID1000_MiB": null,
+    "cpu_sistema_ocupada_pct": null,
+    "gpu": null,
+    "alcance": "Maximos muestreados; no picos absolutos ni memoria exclusiva de Hyprland. VRAM total del dispositivo."
+  }
+]

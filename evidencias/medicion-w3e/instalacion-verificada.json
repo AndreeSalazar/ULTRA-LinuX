@@ -1,0 +1,26 @@
+{
+  "Archivos": [
+    {
+      "Archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "SHA256": "B9F2E420F712C801B06AECF6E442D5FFF9E177A11ED05A818E8BB9B8FA3C03B5",
+      "Perfil": "generico"
+    },
+    {
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "SHA256": "E2893437B2A2EC02B64BEA382A7BB353ABDAEEEB66CCCBC884C240FE1E421821",
+      "Perfil": "generico"
+    },
+    {
+      "Archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "SHA256": "A8FD2840F3AC7A5F8EA9D3E6D0A46DD95398664AEC14768E24AB6EC04A223813",
+      "Perfil": "pc"
+    },
+    {
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "SHA256": "63B8E78C8FAEB15C537B26F2EB721646ABF1DABA30C02CC9FF808BA0A207B924",
+      "Perfil": "pc"
+    }
+  ],
+  "DatosSHA256": "9F92598782619A52B7873D39A91B5F10F216987BCD79F712BFC43A4ABCD33275",
+  "DatosSinCambio": true
+}

@@ -13,6 +13,17 @@ exportar_informe() {
     case "$release" in *[!0-9A-Za-z.+_-]*|'') return 1;; esac
     target=/bmo/ULTRA/informe/gpu-$release.txt
     if cp "$source" "$target.tmp" && mv "$target.tmp" "$target"; then
+        # Retain the latest run of each mode/compositor as well as the legacy name.
+        report_mode=; report_compositor=
+        while IFS='=' read -r key value; do
+            case "$key" in modo) report_mode=$value;; compositor) report_compositor=$value;; esac
+            [ -z "$key" ] && break
+        done < "$source"
+        case "$report_mode:$report_compositor" in
+            nvidia:hyprland|software:hyprland|nvidia:cage|software:cage)
+                variant="/bmo/ULTRA/informe/gpu-$release-$report_mode-$report_compositor.txt"
+                cp "$source" "$variant.tmp" && mv "$variant.tmp" "$variant" ;;
+        esac
         if [ -r /arch/run/ultra-escritorio/informe-gpu-fallo.txt ]; then
             cp /arch/run/ultra-escritorio/informe-gpu-fallo.txt "/bmo/ULTRA/informe/gpu-fallo-$release.txt.tmp" &&
                 mv "/bmo/ULTRA/informe/gpu-fallo-$release.txt.tmp" "/bmo/ULTRA/informe/gpu-fallo-$release.txt"

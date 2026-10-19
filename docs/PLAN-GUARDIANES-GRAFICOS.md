@@ -4,6 +4,12 @@
 laboratorio C++. El objetivo es un escritorio usable, recuperable y medido.
 Cada etapa requiere evidencia antes de anunciar integracion en produccion.
 
+Actualizacion W3e: la foto fisica y el informe confirman Hyprland con ventanas,
+modo NVIDIA y salida 0. Se agrega medicion durante la sesion; aun faltan los
+consumos fisicos por perfil y una comparacion de rendimiento. Ver
+[medicion y fronteras](MEDICION-W3E.md). Los estados historicos siguientes
+se conservan como registro de las etapas anteriores.
+
 | Etapa | Resultado exigido | Estado actual |
 |---|---|---|
 | 1. Base RTX | Arranque fisico, nvidia-smi, DRM, monitor y retorno a consola | Kernel/driver/RTX y nodos DRM confirmados en PC; render y sesion pendientes |

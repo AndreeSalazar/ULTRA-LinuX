@@ -12,7 +12,12 @@ install -d -m 0700 -o 0 -g 0 /run/ultra-escritorio || exit 1
 exec 9>/run/ultra-escritorio/lock
 flock -n 9 || { echo 'ROJO [SESION]: ya hay una sesion de ULTRA'; exit 1; }
 seat_pid=''
+meter_pid=''
 cleanup() {
+    if [[ -n $meter_pid ]]; then
+        touch /run/ultra-escritorio/medicion.stop
+        wait "$meter_pid" 2>/dev/null || true
+    fi
     if [[ -n $seat_pid ]]; then kill "$seat_pid" 2>/dev/null || true; wait "$seat_pid" 2>/dev/null || true; fi
 }
 finish() {
@@ -24,7 +29,7 @@ trap finish EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 # Do not attribute a previous client log to a fresh failed preparation.
-rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log
+rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log /run/ultra-escritorio/medicion.log /run/ultra-escritorio/medicion.stop
 [[ ! -e /run/seatd.sock && ! -L /run/seatd.sock ]] || { echo 'ROJO [SESION]: socket seatd ya ocupado'; exit 1; }
 export SYSTEMD_IGNORE_CHROOT=1
 if ! udevadm control --ping 2>/dev/null; then
@@ -78,6 +83,9 @@ client_env=(HOME=/home/ultra USER=ultra LOGNAME=ultra XDG_RUNTIME_DIR=/run/user/
 if [[ $mode == nvidia ]]; then
     client_env+=(__EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json)
 fi
+# Observer is bounded to ten minutes plus query time, and joined before export.
+/usr/bin/bash /usr/local/libexec/ultra-medir-sesion "$mode" > /run/ultra-escritorio/medicion.log 2>&1 9>&- &
+meter_pid=$!
 setpriv --reuid=ultra --regid=ultra --init-groups --no-new-privs \
     --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
     /usr/bin/env -i "${client_env[@]}" /usr/bin/bash /usr/local/libexec/ultra-cliente "$@" \

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import hashlib, json, pathlib, re, secrets, shutil, socket, subprocess, sys, tempfile, time
+import base64, hashlib, json, pathlib, re, secrets, shutil, socket, subprocess, sys, tempfile, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
@@ -575,7 +575,19 @@ def main():
             transcript += check_hyprland(conn, failures)
             if BMO:
                 transcript += run(conn, [('test -s /bmo/ULTRA/informe/gpu-$(uname -r).txt && echo GPU-INFORME-$((2+2))', 'GPU-INFORME-4'),
-                                        ('grep -q "^AUSENTE /dev/nvidiactl$" /bmo/ULTRA/informe/gpu-fallo-$(uname -r).txt && echo GPU-FALLO-$((2+3))', 'GPU-FALLO-5')], failures)
+                                        ('grep -q "^AUSENTE /dev/nvidiactl$" /bmo/ULTRA/informe/gpu-fallo-$(uname -r).txt && echo GPU-FALLO-$((2+3))', 'GPU-FALLO-5'),
+                                        ('grep -Eq "^RAM total_kB=[0-9]+ disponible_kB=[0-9]+ usada_estimada_kB=[0-9]+" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RAM-MEDIDA-$((3+3))', 'RAM-MEDIDA-6'),
+                                        ('grep -q "^PROCESO .*nombre=Hyprland .*pss_kB=[0-9]" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo PSS-CLIENTE-$((3+4))', 'PSS-CLIENTE-7'),
+                                        ('grep -q "^GPU NA modo_software_o_nodos_ausentes" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && test ! -S /arch/run/seatd.sock && echo OBSERVADOR-FINAL-$((4+4))', 'OBSERVADOR-FINAL-8')], failures)
+                # Extract the actual measurements, without exposing BMO to apps.
+                conn.sendall(b'busybox base64 /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt\n')
+                encoded = read_until(conn, 'ultra:', 30)
+                transcript += encoded
+                lines = re.findall(r'^[A-Za-z0-9+/]{4,}={0,2}$', encoded.replace('\r', ''), re.M)
+                report = base64.b64decode(''.join(lines), validate=True)
+                if not report.startswith(b'ULTRA GPU - ultimo intento\n'):
+                    raise ValueError('informe de medicion no extraido correctamente')
+                (BUILD / 'gpu-qemu-software-hyprland.txt').write_bytes(report)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
             # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU
             # boots the same disk: whatever /datos shows then came from the disk itself.

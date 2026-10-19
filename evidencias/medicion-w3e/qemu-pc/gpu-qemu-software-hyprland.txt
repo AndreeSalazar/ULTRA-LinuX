@@ -1,0 +1,283 @@
+ULTRA GPU - ultimo intento
+fecha_utc=2026-10-19T22:12:49Z
+kernel=7.3.0-rc7-pc-g32c52ec87d62
+modo=software
+compositor=hyprland
+salida=0
+
+[NODOS: estado posterior al intento, sin ejecutar nvidia-smi]
+AUSENTE /dev/nvidia0
+AUSENTE /dev/nvidiactl
+AUSENTE /dev/nvidia-modeset
+/dev/dri/card0 tipo=character special file major_minor_hex=e2:0 uid=0 gid=983 permisos=660
+/dev/dri/renderD128 tipo=character special file major_minor_hex=e2:80 uid=0 gid=987 permisos=666
+
+[DRIVER]
+
+[PREPARACION DE NODOS]
+
+[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]
+ULTRA MEDICION v1
+kernel=7.3.0-rc7-pc-g32c52ec87d62 modo=software intervalo_minimo_s=5 limite_muestras=120
+RAM: kB; usada_estimada=MemTotal-MemAvailable. UID 1000: maximo 128 procesos, no solo compositor.
+RSS comparte paginas; no sumar RSS como RAM exclusiva. PSS reparte paginas compartidas. NA no significa cero.
+GPU CSV: uuid,pci.bus_id,memory.total_MiB,memory.used_MiB,utilization.gpu_pct,temperature.gpu_C,power.draw_W
+muestra_utc=2026-10-19T22:12:27Z
+RAM total_kB=2013548 disponible_kB=1926548 usada_estimada_kB=87000 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  93 0 550 624 20 0 0 0 0 0
+PROCESO pid=547 nombre=dbus-run-sessio rss_kB=2460 pss_kB=616
+UID1000 procesos=1 medidos=1 truncado=0 rss_suma_parcial_kB=2460 pss_suma_parcial_kB=616
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T22:12:33Z
+RAM total_kB=2013548 disponible_kB=1920304 usada_estimada_kB=93244 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  108 0 1044 624 21 0 0 0 0 0
+PROCESO pid=547 nombre=dbus-run-sessio rss_kB=2460 pss_kB=638
+PROCESO pid=556 nombre=dbus-daemon rss_kB=3544 pss_kB=1425
+PROCESO pid=557 nombre=start-hyprland rss_kB=4916 pss_kB=2063
+PROCESO pid=563 nombre=Hyprland rss_kB=61320 pss_kB=57839
+UID1000 procesos=4 medidos=4 truncado=0 rss_suma_parcial_kB=72240 pss_suma_parcial_kB=61965
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T22:12:38Z
+RAM total_kB=2013548 disponible_kB=1820464 usada_estimada_kB=193084 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  147 0 1515 626 23 0 0 0 0 0
+PROCESO pid=547 nombre=dbus-run-sessio rss_kB=2460 pss_kB=505
+PROCESO pid=556 nombre=dbus-daemon rss_kB=4244 pss_kB=1519
+PROCESO pid=557 nombre=start-hyprland rss_kB=4916 pss_kB=1496
+PROCESO pid=563 nombre=Hyprland rss_kB=227188 pss_kB=216630
+PROCESO pid=596 nombre=dconf-service rss_kB=6332 pss_kB=2110
+PROCESO pid=602 nombre=swaybg rss_kB=7512 pss_kB=2525
+PROCESO pid=603 nombre=waybar rss_kB=6768 pss_kB=5042
+PROCESO pid=604 nombre=foot rss_kB=10140 pss_kB=3103
+PROCESO pid=605 nombre=foot rss_kB=11552 pss_kB=5422
+PROCESO pid=612 nombre=Xwayland rss_kB=672 pss_kB=263
+UID1000 procesos=10 medidos=10 truncado=0 rss_suma_parcial_kB=281784 pss_suma_parcial_kB=238615
+GPU NA modo_software_o_nodos_ausentes
+muestra_utc=2026-10-19T22:12:43Z
+RAM total_kB=2013548 disponible_kB=1722908 usada_estimada_kB=290640 swap_total_kB=0 swap_libre_kB=0
+CPU_contadores cpu  288 0 1772 764 23 0 0 0 0 0
+PROCESO pid=547 nombre=dbus-run-sessio rss_kB=2460 pss_kB=313
+PROCESO pid=556 nombre=dbus-daemon rss_kB=4424 pss_kB=1012
+PROCESO pid=557 nombre=start-hyprland rss_kB=4916 pss_kB=1056
+PROCESO pid=563 nombre=Hyprland rss_kB=242880 pss_kB=197088
+PROCESO pid=596 nombre=dconf-service rss_kB=6348 pss_kB=1074
+PROCESO pid=602 nombre=swaybg rss_kB=14672 pss_kB=3786
+PROCESO pid=603 nombre=waybar rss_kB=46508 pss_kB=26153
+PROCESO pid=604 nombre=foot rss_kB=12836 pss_kB=4865
+PROCESO pid=605 nombre=foot rss_kB=13660 pss_kB=5263
+PROCESO pid=612 nombre=Xwayland rss_kB=99380 pss_kB=65543
+PROCESO pid=615 nombre=less rss_kB=3072 pss_kB=876
+PROCESO pid=616 nombre=bash rss_kB=4660 pss_kB=1486
+PROCESO pid=634 nombre=glycin-svg rss_kB=30592 pss_kB=15750
+PROCESO pid=647 nombre=mousepad rss_kB=49708 pss_kB=25667
+PROCESO pid=657 nombre=at-spi-bus-laun rss_kB=7612 pss_kB=1493
+PROCESO pid=663 nombre=dbus-daemon rss_kB=4308 pss_kB=870
+PROCESO pid=673 nombre=at-spi2-registr rss_kB=7304 pss_kB=1341
+PROCESO pid=687 nombre=glycin-image-rs rss_kB=7868 pss_kB=3436
+PROCESO pid=695 nombre=thunar rss_kB=43560 pss_kB=18943
+PROCESO pid=701 nombre=xfconfd rss_kB=6596 pss_kB=1139
+PROCESO pid=720 nombre=glycin-svg rss_kB=17868 pss_kB=5864
+PROCESO pid=755 nombre=glycin-image-rs rss_kB=7964 pss_kB=3468
+UID1000 procesos=22 medidos=22 truncado=0 rss_suma_parcial_kB=639196 pss_suma_parcial_kB=386486
+GPU NA modo_software_o_nodos_ausentes
+[HYPRLAND sistema y monitores; consulta UID1000]
+Hyprland 0.56.2 built from branch v0.56.2 at commit efb50993780079460b0cbed1363e2166a2de1d9f clean ([gha] Nix: update inputs).
+Date: Wed Aug 5 14:13:21 2026
+Tag: v0.56.2, commits: 7661
+
+Libraries:
+Hyprgraphics: built against 0.5.1, system has 0.5.1
+Hyprutils: built against 0.14.2, system has 0.14.2
+Hyprcursor: built against 0.1.13, system has 0.1.13
+Hyprlang: built against 0.6.8, system has 0.6.8
+Aquamarine: built against 0.15.1, system has 0.15.1
+
+Version ABI string: efb50993780079460b0cbed1363e2166a2de1d9f_aq_0.15_hu_0.14_hg_0.5_hc_0.1_hlg_0.6
+no flags were set
+
+
+System Information:
+System name: Linux
+Node name: ultra
+Release: 7.3.0-rc7-pc-g32c52ec87d62
+Version: #24 SMP PREEMPT_DYNAMIC Mon Oct 19 22:05:21 UTC 2026
+
+Libraries:
+Hyprgraphics: built against 0.5.1, system has 0.5.1
+Hyprutils: built against 0.14.2, system has 0.14.2
+Hyprcursor: built against 0.1.13, system has 0.1.13
+Hyprlang: built against 0.6.8, system has 0.6.8
+Aquamarine: built against 0.15.1, system has 0.15.1
+
+
+
+GPU information:
+
+
+os-release: error
+
+plugins:
+
+Explicit sync: missing
+GL ver: 3.2
+Backend: drm
+
+Monitor info:
+	Panel Virtual-1: 1280x800, Virtual-1 Red Hat, Inc. QEMU Monitor  -> backend drm
+		explicit ✔️
+		edid:
+			hdr ❌
+			chroma ✔️
+			bt2020 ❌
+		vrr capable ❌
+		non-desktop ❌
+
+
+State:
+
+configProvider: lua
+backend: drm
+
+
+
+Monitor Virtual-1 (ID 0):
+	1280x800@74.99400 at 0x0
+	description: Red Hat Inc. QEMU Monitor
+	make: Red Hat, Inc.
+	model: QEMU Monitor
+	physical size (mm): 320x200
+	serial:
+	active workspace: 1 (1)
+	special workspace: 0 ()
+	reserved: 0 41 0 0
+	scale: 1
+	transform: 0
+	focused: yes
+	dpmsStatus: 1
+	vrr: false
+	solitary: 0
+	solitaryBlockedBy: windowed mode,missing candidate
+	activelyTearing: false
+	tearingBlockedBy: next frame is not torn,user settings,missing candidate
+	directScanoutTo: 0
+	directScanoutBlockedBy: user settings,software renders/cursors,missing candidate
+	disabled: false
+	currentFormat: XRGB8888
+	mirrorOf: none
+	availableModes: 1280x800@74.99Hz 5120x2160@50.00Hz 4096x2160@50.00Hz 3840x2160@60.00Hz 3840x2160@59.94Hz 3840x2160@50.00Hz 1920x1440@60.00Hz 2560x1080@50.00Hz 1856x1392@59.99Hz 1792x1344@60.00Hz 2048x1152@60.00Hz 1920x1200@59.88Hz 1920x1080@60.00Hz 1920x1080@50.00Hz 1600x1200@60.00Hz 1680x1050@59.95Hz 1400x1050@59.98Hz 1280x1024@60.02Hz 1440x900@59.89Hz 1280x960@60.00Hz 1360x768@60.02Hz 1280x768@59.87Hz 1024x768@60.00Hz 800x600@60.32Hz 640x480@60.00Hz 640x480@59.94Hz
+	colorManagementPreset: srgb
+	sdrBrightness: 1
+	sdrSaturation: 1
+	sdrMinLuminance: 0.2
+	sdrMaxLuminance: 80
+	hardwareCursorsInUse: true
+
+
+
+[/HYPRLAND]
+fin_medicion muestras=4
+
+[KERNEL: GPU y audio, ultimas 70 coincidencias]
+[    0.034055] Kernel command line: console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 nvidia-drm.modeset=1 nvidia-drm.fbdev=1 firmware_class.path=/sistema/usr/lib/firmware GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on
+[    0.159781] ACPI: bus type drm_connector registered
+[    0.160063] [drm] pci: virtio-vga detected at 0000:00:02.0
+[    0.161053] [drm] features: -virgl +edid -resource_blob -host_visible
+[    0.161055] [drm] features: -context_init -blob_alignment
+[    0.162600] [drm] number of scanouts: 1
+[    0.162607] [drm] number of cap sets: 0
+[    0.163506] [drm] Initialized virtio_gpu 0.1.0 for 0000:00:02.0 on minor 0
+[    0.165686] fbcon: virtio_gpudrmfb (fb0) is primary device
+[    0.196486] virtio-pci 0000:00:02.0: [drm] fb0: virtio_gpudrmfb frame buffer device
+[    0.798386] snd_hda_intel 0000:00:03.0: no codecs found!
+
+[LANZAMIENTO DEL CLIENTE: puede faltar si la preparacion fallo]
+VERDE [CREDENCIALES]: uid=1000 gid=1000 capacidades=0 NoNewPrivs=1
+AMARILLO [HYPRLAND]: laboratorio GLES por software; requiere DRM/GBM compatible
+[1;33mWARN [0mfrom start-hyprland ]: Arguments after -- are passed to Hyprland
+[1;32mDEBUG [0m]: User-specified config location: '/etc/ultra/hyprland.lua'
+Welcome to Hyprland!
+
+
+                     YY    UJ
+                    YYY    UUJ
+                   XXXY    UUUU
+                  zXXXX    UUUUU
+                zzzzX        UUUUJ
+               cczzz          UUUUJ
+             vccccz            UUUUUJ
+            vvcccc              UUUUUJ
+           vvvvv                  UUUUJ
+          uuuvv                    UUUUJ
+         uuuuu                      UUUUU
+        nnnuu                        UUUUU
+       nnnnn                          YUUUU
+       xxnn                            YUUU
+       xxxn                            YYUU
+      xxxx                              YYUU
+      rxxx                              YYYY
+      rrrx                              YYYY
+       rrrx                            XXXY
+       rrrr                            XXXX
+        rrrr                          zzXX
+         rrrr                        zzzz
+          rrrrr                    ccczz
+           rrrrrx                vccccc
+             rrrrxxxx        uuvvvvvc
+                rrxxxxxxnnnnuuuuuv
+                    xxxxxnnnnu
+
+
+
+DEBUG ]: Old rlimit: soft -> 1024, hard -> 4096
+DEBUG ]: New rlimit: soft -> 4096, hard -> 4096
+DEBUG ]: Creating the EventLoopManager!
+DEBUG ]: Creating the KeybindManager!
+DEBUG ]: Creating the AnimationManager!
+DEBUG ]: Creating the DynamicPermissionManager!
+DEBUG ]: Creating the MonitorState!
+DEBUG ]: Creating the WorkspaceState!
+DEBUG ]: Creating the ConfigManager!
+DEBUG ]: [cfg] Config is either explicit or special.
+DEBUG ]: [cfg] Config is lua, loading lua mgr
+DEBUG ]: Creating the Error Overlay!
+DEBUG ]: Creating the LayoutManager!
+DEBUG ]: Creating the TokenManager!
+DEBUG ]: Creating the EventManager!
+DEBUG ]: Creating the PointerManager!
+DEBUG ]: Creating the AsyncResourceGatherer!
+dbus-daemon[556]: [session uid=1000 pid=556 pidfd=5] Activating service name='ca.desrt.dconf' requested by ':1.0' (uid=1000 pid=563 comm="Hyprland --watchdog-fd 4 --config /etc/ultra/hyprl")
+dbus-daemon[556]: [session uid=1000 pid=556 pidfd=5] Successfully activated service 'ca.desrt.dconf'
+[1;32mDEBUG [0mfrom start-hyprland ]: got an event from hyprland
+Refusing to try glamor on llvmpipe
+XWAYLAND: Disabling GLAMOR support
+EGL setup failed, disabling glamor
+Failed to initialize glamor, falling back to sw
+dbus-daemon[556]: [session uid=1000 pid=556 pidfd=5] Activating service name='org.a11y.Bus' requested by ':1.3' (uid=1000 pid=603 comm="waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/wa")
+MESA-EGL: warning: failed to open /dev/dri/card0: Permission denied
+dbus-daemon[556]: [session uid=1000 pid=556 pidfd=5] Successfully activated service 'org.a11y.Bus'
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Multiple symbols for level 1/group 1 on key <FK23>
+>                   Using F23, ignoring XF86TouchpadOff
+> Warning:          Symbol map for key <FK23> redefined
+>                   Using last definition for conflicting fields
+> Warning:          Symbol map for key <FK24> redefined
+>                   Using last definition for conflicting fields
+Errors from xkbcomp are not fatal to the X server
+The XKEYBOARD keymap compiler (xkbcomp) reports:
+> Warning:          Unsupported maximum keycode 709, clipping.
+>                   X11 cannot support keycodes above 255.
+> Warning:          Virtual modifier Hyper multiply defined
+>                   Using 0, ignoring 0
+> Warning:          Virtual modifier ScrollLock multiply defined
+>                   Using 0, ignoring 0
+Errors from xkbcomp are not fatal to the X server
+dbus-daemon[663]: Activating service name='org.a11y.atspi.Registry' requested by ':1.1' (uid=1000 pid=603 comm="waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/wa")
+dbus-daemon[663]: Successfully activated service 'org.a11y.atspi.Registry'
+SpiRegistry daemon is running with well-known name - org.a11y.atspi.Registry
+dbus-daemon[556]: [session uid=1000 pid=556 pidfd=5] Activating service name='org.xfce.Xfconf' requested by ':1.9' (uid=1000 pid=695 comm="thunar")
+dbus-daemon[556]: [session uid=1000 pid=556 pidfd=5] Successfully activated service 'org.xfce.Xfconf'
+[1;32mDEBUG [0mfrom start-hyprland ]: got an event from hyprland
+(EE) could not connect to wayland server
+[1;32mDEBUG [0mfrom start-hyprland ]: hyprland exit, breaking poll, checking state
+[1;32mDEBUG [0mfrom start-hyprland ]: Hyprland exit cleanly.
+
+(xfconfd:701): xfconfd-WARNING **: 22:12:48.772: Name org.xfce.Xfconf lost on the message dbus, exiting.

@@ -1,0 +1,5 @@
+VERDE: RAM, UID, RSS/PSS parcial, GPU ausente y una muestra
+VERDE: modo NVIDIA sin nodos no consulta ni prepara dispositivos
+VERDE: MemAvailable ausente no se inventa
+VERDE: limite 128 procesos
+VERDE: parada previa sin atribuir una muestra inexistente
