@@ -156,6 +156,20 @@ El mismo `dmesg` mostró un bug: la entrada F11 (copia de Windows Boot Manager) 
 
 Queda otro salto de 0,3 s al iniciar el IOMMU de AMD (`AMD-Vi`). No se toca: protege la memoria frente a los dispositivos.
 
+### Resultado en el metal (19-10-2026, `evidencias/pc-real/sata-paralelo/`)
+
+| | Antes | Con `libahci.ignore_sss=1` |
+|---|---|---|
+| Línea `parallel bus scan disabled` | Presente | **Desaparece** |
+| Puertos SATA listos | 0,92 → 2,20 s, en fila | 0,92 → 1,09 s, a la vez |
+| `Run /init` | 2,27 s | **1,17 s** |
+| Hasta el hardware (`pc`, arranque guiado) | 2009 ms | **920 ms** |
+| Carga de módulos (`pc`, en paralelo) | 17,4 ms | **12,5 ms** |
+
+Fotos: `foto-tarjeta-pc-920ms.webp` y `foto-tarjeta-generico-deteccion.webp`.
+
+**Nuevo hallazgo (pendiente):** como `datos.ext4` empezaba de cero, el primer arranque del genérico hizo la detección completa, y esta vez tardó **1,31 s** en lugar de 184 ms. Además vio 44 componentes en vez de 50: faltan el teclado y la tarjeta de sonido USB. Ahora el init empieza 1,1 s antes, cuando el USB todavía está enumerando (el teclado aparece a los 1,90 s). La hipótesis es que leer sus datos en `/sys` espera a que el USB termine. Solo afecta a la detección completa, que es rara: el arranque guiado ni siquiera recorre el USB.
+
 ## 6. Ver los resultados en Windows
 
 Apaga con `poweroff` y arranca Windows. En `A:\ULTRA\informe\` están `PC-configuracion.txt`, `arranques.txt` y un `dmesg-<versión>.txt` por kernel, actualizados en cada arranque de ULTRA. No hace falta escribir nada a mano.

@@ -1,5 +1,18 @@
 # Linux Reconstruido
 
+## ULTRA LinuX en el metal: de 2009 ms a 920 ms
+
+![Tarjeta de arranque de ULTRA LinuX en el PC real: 920 ms](evidencias/pc-real/foto-tarjeta-pc-920ms.webp)
+
+ULTRA LinuX arrancando en el PC real (Ryzen 5 5600X, MSI A320M-A PRO MAX, RTX 3060), desde archivos en `A:\` con su propia entrada F11 y sin tocar Windows. La tarjeta lo dice todo: **67 °C** del sensor `k10temp` que ULTRA detectó solo, los cuatro guardianes en verde preguntados al kernel, y la **tubería: 920 ms** desde que arranca el kernel hasta que el hardware está listo.
+
+| Arranque | Hasta el hardware | Qué cambió |
+|---|---|---|
+| Antes, con los dos kernels | **2009 ms** | La placa revisaba los puertos SATA uno por uno (arranque escalonado) |
+| Kernel `pc` (Zen 3), guiado | **920 ms** | `libahci.ignore_sss=1`: los cuatro puertos a la vez. Módulos cargados en paralelo (17,4 → 12,5 ms) |
+
+Medido por el propio init en cada arranque, y confirmado en el `dmesg`: `Run /init` pasó de 2,27 s a 1,17 s, y desapareció la línea `parallel bus scan disabled`. Datos completos en [`evidencias/pc-real/`](evidencias/pc-real/). El camino hasta aquí (pantalla negra, el `dmesg` que delató al SATA, el primer intento con el nombre de parámetro equivocado) está en [PRUEBA-PC-REAL.md](docs/PRUEBA-PC-REAL.md), y Linux medido por categorías en [ANTI3M-LINUX.md](docs/ANTI3M-LINUX.md).
+
 El [Museo viviente de C y sus guardianes](docs/MUSEO-UB.md) reune ejemplos estudiados,
 alternativas validas, referencias y evidencia del campo de minas. Distingue UB de
 otros comportamientos de C y deja visibles los casos aun sin prueba.
