@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import pathlib, socket, subprocess, sys, time
+import hashlib, pathlib, socket, subprocess, sys, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-KERNEL = ROOT / 'build/baseline/bzImage-tiny64'
-LOG = ROOT / 'build/baseline/prueba-shell.log'
+PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
+BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia'}[PERFIL]
+KERNEL = BUILD / 'bzImage-tiny64'
+LOG = BUILD / 'prueba-shell.log'
 QEMU = pathlib.Path(r'C:\Program Files\qemu\qemu-system-x86_64.exe')
 PORT = 15555
 # Each command and a fragment its output must contain.
@@ -24,7 +26,17 @@ CHECKS = [
     ('minas secuestrar-arranque', 'FRONTERA-MEMORIA'),
     ('grep x86_Thread /proc/1/status', 'shstk'),
     ('probar-caja', 'RESUMEN CAJA: VERDE=11 ROJO=0'),
+    ('dmesg | grep -m1 "kfence: init"', 'bytes for'),
 ]
+# The vigia kernel must show its detectors alive, then a clean log after the whole run.
+# The expected text differs from the typed command, so the shell's echo never matches it.
+REPORTS = 'BUG:|UBSAN:|KASAN:|KFENCE:|WARNING:|circular locking|recursive locking|INFO: task|soft lockup'
+if PERFIL == 'vigia':
+    CHECKS += [
+        ('dmesg | grep -m1 "AddressSanitizer init"', 'initialized'),
+        ('dmesg | grep -m1 "Lock dependency validator"', 'Ingo Molnar'),
+        (f'dmesg | grep -E "{REPORTS}" || echo VIGIA-$((1))-LIMPIO', 'VIGIA-1-LIMPIO'),
+    ]
 
 def read_until(conn, marker, timeout):
     data, end = b'', time.time() + timeout
@@ -38,8 +50,22 @@ def read_until(conn, marker, timeout):
         data += chunk
     return data.decode(errors='replace')
 
+def check_kernel():
+    """Refuse to boot anything but the downloaded, hash-verified kernel, and say why."""
+    sums = KERNEL.parent / 'SHA256SUMS'
+    if not KERNEL.exists() or not sums.exists():
+        print(f'AMARILLO [SIN-KERNEL]: no hay kernel {PERFIL} descargado en {KERNEL.parent}.')
+        print(f'Primero: .\\construir-kernel.ps1 -Accion Estado -Perfil {PERFIL}  (esperar el VERDE)')
+        print(f'Despues: .\\construir-kernel.ps1 -Accion Descargar -Perfil {PERFIL}')
+        sys.exit(2)
+    expected = sums.read_text(encoding='utf-8').split()[0].lower()
+    if hashlib.sha256(KERNEL.read_bytes()).hexdigest() != expected:
+        print(f'ROJO [HASH]: {KERNEL.name} no coincide con SHA256SUMS; volver a descargar.')
+        sys.exit(1)
+
 def main():
-    qemu = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '512',
+    check_kernel()
+    qemu = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '1024',
                              '-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic quiet '
                              'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on',
                              '-nic', 'none', '-display', 'none', '-no-reboot',
