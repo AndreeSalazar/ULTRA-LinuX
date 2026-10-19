@@ -1,5 +1,10 @@
 # Revision de seguridad de W2 y W3a
 
+La propuesta del propietario para separar autoridad humana y programas,
+incluido el significado de root/ring 0/ring 3, queda anotada en
+[Autoridad personal](AUTORIDAD-PERSONAL.md). Es diseno pendiente, no una
+proteccion ya instalada.
+
 2026-10-19. Base confirmada: `708ab05` (W2), mas cambios W3a sin commit
 en build-baseline.sh, hardware.c y probar_arranque.py. Revision de codigo,
 configuracion y estado del taller; no prueba de penetracion ni certificacion.
