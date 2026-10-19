@@ -4,7 +4,7 @@ mina_detectada() {
     local rc=$1 kind=$2 file=$3 name=$4 pattern
     # Timeouts, missing executables and escaped mines never count as protection.
     case $rc in 0) [[ $kind = N ]] && grep -q '^NEUTRALIZADA:' "$file.out"; return;;
-        99|124|125|126|127|137) return 1;; esac
+        98|99|124|125|126|127|137) return 1;; esac
     [[ $kind = D ]] || return 1
     case $name in
         retorno-secuestrado) pattern='SEGV_CPERR:';;
@@ -18,6 +18,9 @@ mina_detectada() {
         formato-n) pattern='^\*\*\* %n in writable segments detected';;
         doble-free|free-pila|free-medio|heap-subdesborde) pattern='^free\(\):|^double free or corruption|^munmap_chunk\(\):|ERROR: AddressSanitizer:';;
         uso-tras-free|lectura-fuera|uso-tras-retorno) pattern='ERROR: AddressSanitizer:';;
+        cadena-sin-nul) pattern='ERROR: AddressSanitizer: heap-buffer-overflow';;
+        uso-tras-scope) pattern='ERROR: AddressSanitizer: stack-use-after-scope';;
+        comparar-punteros-ajenos|restar-punteros-ajenos) pattern='ERROR: AddressSanitizer: invalid-pointer-pair';;
         *) pattern='^ROJO \[GUARDIAN-UB:|runtime error:';;
     esac
     grep -Eq "$pattern" "$file"

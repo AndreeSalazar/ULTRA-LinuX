@@ -193,6 +193,40 @@ static void mine_checked_size(void) { volatile size_t r = ULTRA_MUL(huge_count, 
 static void mine_sub_overflow(void) { volatile int r = int_min - 1; (void)r; }
 static void mine_negative_shift(void) { volatile int r = 1 << minus_one; (void)r; }
 static void mine_checked_index(void) { int a[4] = {0}; ULTRA_AT(a, far_index) = 1; }
+static void mine_mul_overflow(void) { volatile int r = big * 2; (void)r; }
+static void mine_negate_min(void) { volatile int r = -int_min; (void)r; }
+static void mine_remainder_min(void) { volatile int r = int_min % minus_one; (void)r; }
+static void mine_vla_zero(void) { int n = zero; char a[n]; a[0] = 1; volatile char r = a[0]; (void)r; }
+static void mine_negative_index(void) { int a[4] = {0}; volatile int r = a[minus_one]; (void)r; }
+static void mine_subobject(void) {
+    struct { int a[2]; int b[2]; } s = {{1, 2}, {3, 4}};
+    volatile int idx = 2;
+    volatile int r = s.a[idx]; (void)r;
+}
+static void mine_unterminated(void) {
+    char *volatile p = malloc(8);
+    if (!p) exit(98);
+    memset(p, 'x', 8);
+    volatile size_t r = strlen(p); (void)r;
+    free(p);
+}
+static void mine_after_scope(void) {
+    int *volatile p;
+    { int a = 42; p = &a; }
+    volatile int r = *p; (void)r;
+}
+static void mine_pointer_compare(void) {
+    char *volatile a = malloc(8), *volatile b = malloc(8);
+    if (!a || !b) exit(98);
+    volatile int r = a < b; (void)r;
+    free(a); free(b);
+}
+static void mine_pointer_subtract(void) {
+    char *volatile a = malloc(8), *volatile b = malloc(8);
+    if (!a || !b) exit(98);
+    volatile ptrdiff_t r = a - b; (void)r;
+    free(a); free(b);
+}
 
 struct mine {
     const char *name;
@@ -203,6 +237,16 @@ struct mine {
 };
 
 static const struct mine mines[] = {
+    {"producto-desborde", 'D', "multiplicacion con signo fuera de rango", mine_mul_overflow},
+    {"negar-int-min", 'D', "-INT_MIN no cabe en int", mine_negate_min},
+    {"resto-int-min", 'D', "INT_MIN % -1 tambien es UB", mine_remainder_min},
+    {"vla-cero", 'D', "VLA con longitud cero viola C17", mine_vla_zero},
+    {"indice-negativo", 'D', "indice anterior al inicio del arreglo", mine_negative_index},
+    {"subobjeto-fuera", 'D', "cruzar del arreglo a al vecino b no valida el indice de a", mine_subobject},
+    {"cadena-sin-nul", 'D', "strlen necesita un terminador dentro del objeto", mine_unterminated},
+    {"uso-tras-scope", 'D', "la vida de una local termina al salir de su bloque", mine_after_scope},
+    {"comparar-punteros-ajenos", 'D', "comparacion relacional de dos reservas distintas", mine_pointer_compare},
+    {"restar-punteros-ajenos", 'D', "resta de punteros que no pertenecen al mismo arreglo", mine_pointer_subtract},
     {"entero-desborde", 'D', "int con signo pasa de INT_MAX: en C es UB y el optimizador puede borrar tus comprobaciones", mine_overflow},
     {"division-cero", 'D', "dividir por cero es UB; en x86 suele matar, pero el compilador puede asumir que nunca pasa", mine_divide},
     {"desplazamiento", 'D', "desplazar 40 bits un int de 32 es UB; el resultado depende de la CPU", mine_shift},

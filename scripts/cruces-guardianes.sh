@@ -33,7 +33,7 @@ for profile in prod-O0 prod-O2 prod-O3 diag-O1 diag-O2; do
         continue
     fi
     if gcc "${ULTRA_WARN[@]}" "${flags[@]}" "$g/controles.c" "$g/ultra_guard.c" -o "$out/$profile" > "$out/$profile.build.txt" 2>&1 &&
-       timeout --kill-after=2s 15s "$out/$profile" > "$out/$profile.run.txt" 2>&1 &&
+       bash "$lab/aislar-mina.sh" "$out/$profile" > "$out/$profile.run.txt" 2>&1 &&
        grep -q '^CONTROL-OK:' "$out/$profile.run.txt"; then
         echo "VERDE $profile: operaciones validas conservadas"
     else

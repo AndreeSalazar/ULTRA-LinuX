@@ -16,6 +16,14 @@ log() { printf '%s\n' "$*" | tee -a "$report"; }
 first() { grep -m1 -E "$1" "$2" | sed 's/^[[:space:]]*//' | cut -c1-150; }
 
 log "$(gcc --version | head -n 1)"
+for tool in bwrap prlimit timeout; do
+    command -v "$tool" >/dev/null || { log "ROJO: aislamiento obligatorio ausente: $tool"; exit 1; }
+done
+gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "$g/control-aislamiento.c" -o "$out/control-aislamiento" || exit 1
+ULTRA_SECRET_TEST=no-debe-heredarse bash "$lab/aislar-mina.sh" "$out/control-aislamiento" > "$out/aislamiento.txt" 2>&1 ||
+    { log 'ROJO: control de aislamiento fallo; no se ejecutan minas'; exit 1; }
+grep -q '^AISLAMIENTO-OK:' "$out/aislamiento.txt" || exit 1
+log "$(cat "$out/aislamiento.txt")"
 # The guardian library itself must pass every compile-time guardian.
 { ultra_revisar "$g/ultra_guard.c" && gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -c "$g/ultra_guard.c" -o "$out/ultra_guard.o"; } ||
     { log 'ROJO: ultra_guard.c no pasa sus propios guardianes'; exit 1; }
@@ -58,13 +66,13 @@ describe() {
 
 log ''
 log '== Minas de ejecucion: sin guardianes / produccion (trampas, FORTIFY, CET) / diagnostico (ASan+UBSan) =='
-log "pila sombra en produccion: $("$out/minas-prod" --cet)"
+log "pila sombra en produccion: $(bash "$lab/aislar-mina.sh" "$out/minas-prod" --cet)"
 # A failed list command must not become an empty, successful test suite.
-"$out/minas-prod" --lista > "$out/lista.txt" || exit 1
+bash "$lab/aislar-mina.sh" "$out/minas-prod" --lista > "$out/lista.txt" || exit 1
 [[ -s "$out/lista.txt" ]] || { log 'ROJO: lista de minas vacia'; exit 1; }
 while IFS='|' read -r name kind why twin; do
     for mode in crudo prod diag; do
-        { timeout --kill-after=2s 15s "$out/minas-$mode" "$name" > "$out/$mode-$name.txt.out" 2> "$out/$mode-$name.txt"; } 2> /dev/null
+        { bash "$lab/aislar-mina.sh" "$out/minas-$mode" "$name" > "$out/$mode-$name.txt.out" 2> "$out/$mode-$name.txt"; } 2> /dev/null
         printf -v "rc_$mode" '%d' $?
     done
     if mina_detectada "$rc_prod" "$kind" "$out/prod-$name.txt" "$name"; then

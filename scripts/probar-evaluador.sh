@@ -14,7 +14,7 @@ printf 'MINA bool-invalido: descripcion, sin evidencia\n' > "$tmp/log"
 check 1 1 D bool-invalido
 check 1 139 D bool-invalido
 printf 'ROJO [GUARDIAN-UB: trampa]\n' > "$tmp/log"
-for rc in 0 99 124 125 126 127 137; do check 1 "$rc" D entero-desborde; done
+for rc in 0 98 99 124 125 126 127 137; do check 1 "$rc" D entero-desborde; done
 check 0 132 D entero-desborde
 check 1 139 D retorno-secuestrado
 printf 'SEGV_CPERR: pila sombra\n' > "$tmp/log"
