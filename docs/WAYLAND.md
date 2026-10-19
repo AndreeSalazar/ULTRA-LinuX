@@ -107,6 +107,12 @@ root sigue pendiente; ver [revision de seguridad](REVISION-SEGURIDAD-W3A.md).
 
 ### Cierre comprobado de W3a (2026-10-19)
 
+Actualizacion en PC: las [fotos y registros reales](../evidencias/pc-real/nvidia-2026-10-19/README.md)
+confirman kernel PC, modulos NVIDIA, RTX 3060 reconocida por nvidia-smi
+615.78.08 y nvidia-drm inicializado. No acreditan aun compositor acelerado:
+ultra-escritorio sigue forzando pixman. La salida activa DRM y retorno de la
+sesion requieren prueba; SRSO informa Safe RET sin microcodigo y queda abierto.
+
 Reconstruidos ambos perfiles con las correcciones del cargador. En QEMU:
 
 | Prueba | Controles en VERDE | ROJO |

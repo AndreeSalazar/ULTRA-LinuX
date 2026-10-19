@@ -6,7 +6,7 @@ Cada etapa requiere evidencia antes de anunciar integracion en produccion.
 
 | Etapa | Resultado exigido | Estado actual |
 |---|---|---|
-| 1. Base RTX | Arranque fisico, nvidia-smi, DRM, monitor y retorno a consola | W3a instalado; validacion fisica pendiente |
+| 1. Base RTX | Arranque fisico, nvidia-smi, DRM, monitor y retorno a consola | Kernel/driver/RTX y nodos DRM confirmados en PC; render y sesion pendientes |
 | 2. Sesion sin root | Preparacion privilegiada separada; compositor/cliente con UID, capacidades y fd comprobados | Pendiente en escritorio; banco ejecuta con UID 1000 |
 | 3. Guardianes CPU/C++ | Dimensiones, capacidad, overflow, presupuesto y propiedad antes de operar | Contratos RGBA8/rangos y parser probados; concurrencia y adopcion global pendientes |
 | 4. Guardianes GL/EGL | Estado de API, vida de recursos y cargas acotadas | Texturas RGBA8, PBO/pixel-store, contexto y RAII probados en software |
@@ -16,6 +16,11 @@ Cada etapa requiere evidencia antes de anunciar integracion en produccion.
 
 Etapas 3 a 5 avanzan en paralelo logico al arranque fisico: no requieren
 exponer la RTX. Esto no implica que todos sus casos esten terminados.
+
+[Evidencia real de NVIDIA](../evidencias/pc-real/nvidia-2026-10-19/README.md):
+615.78.08 reconoce RTX 3060 y nvidia-drm se inicializa. El escritorio aun
+fuerza pixman. El registro tambien exige revisar microcodigo/SRSO, audio
+y aviso HDMI; no se certifica mitigacion completa ni aceleracion por la foto.
 
 ## Ronda aplicada
 
