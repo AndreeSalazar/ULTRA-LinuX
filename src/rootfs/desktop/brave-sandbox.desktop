@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Brave - sandbox
+Exec=/usr/local/bin/ultra-brave brave://sandbox
+Icon=brave-browser
+Terminal=false
+Categories=System;

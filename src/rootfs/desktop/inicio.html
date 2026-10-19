@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ULTRA | Brave</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;background:#050a12;color:#c8e9f2}*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top right,#103344,transparent 65%);min-height:100vh;padding:5vw}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #23364d;padding-bottom:20px}
+.brand{font-size:20px;letter-spacing:.23em;color:#00e5ff}.tag{color:#48ffb4;font-size:12px;letter-spacing:.12em}
+main{max-width:1100px;margin:64px auto}h1{font-size:clamp(36px,6vw,72px);line-height:1.05;letter-spacing:-.05em;margin:12px 0 24px}
+p{color:#9ab5c7;line-height:1.7;max-width:680px}.eyebrow{color:#00e5ff;letter-spacing:.15em;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px}.card{background:#09111de8;border:1px solid #23364d;border-radius:8px;padding:26px}
+h2{font-size:19px;margin:0 0 16px}a,button{display:inline-block;color:#050a12;background:#00e5ff;text-decoration:none;border:0;border-radius:4px;padding:12px 18px;font:600 14px system-ui;cursor:pointer;margin:4px 8px 4px 0}
+button{background:#48ffb4}a.secondary{background:none;color:#c8e9f2;border:1px solid #35516a}
+kbd{border:1px solid #35516a;border-bottom-width:3px;border-radius:3px;padding:2px 7px;color:#c8e9f2}
+canvas{width:100%;height:160px;display:block;background:#050a12;border-radius:4px;margin:14px 0}pre{white-space:pre-wrap;word-break:break-word;color:#48ffb4;font-size:12px;line-height:1.7}
+.note{border-left:3px solid #dc546b;padding-left:14px;margin-top:30px;font-size:13px}.muted{font-size:13px;color:#7894aa}
+@media(max-width:700px){.grid{grid-template-columns:1fr}main{margin:36px auto}.tag{max-width:150px;text-align:right}}
+</style>
+<header><div class="brand">ULTRA<span style="color:#48ffb4"> / </span>LINUX</div><div class="tag">ESCRITORIO · NAVEGADOR · PRUEBAS</div></header>
+<main><div class="eyebrow">TU PUNTO DE PARTIDA</div><h1>Abre. Explora.<br><span style="color:#00e5ff">Ponlo a prueba.</span></h1>
+<p>Brave ya tiene su lugar en el escritorio. Esta página funciona sin internet y permite comprobar el dibujo del navegador.</p>
+<a href="https://search.brave.com/">Abrir internet ↗</a><a class="secondary" href="https://brave.com/linux/">Acerca de Brave</a>
+<div class="grid"><section class="card"><h2>Una ventana, muchas posibilidades</h2>
+<p><kbd>Super</kbd> + <kbd>B</kbd> abre Brave.<br><kbd>Super</kbd> + <kbd>G</kbd> abre su diagnóstico gráfico.<br><kbd>Super</kbd> + <kbd>R</kbd> busca tus aplicaciones.</p>
+<p class="muted">Busca «Brave - sandbox» en Apps para revisar el aislamiento. La conexión por cable intenta configurarse automáticamente.</p></section>
+<section class="card"><h2>Prueba de dibujo WebGL</h2><canvas id="lienzo" width="640" height="240"></canvas>
+<button id="probar">Dibujar otra vez</button><pre id="resultado">Preparando prueba…</pre>
+<p class="muted">El renderer puede estar oculto por la privacidad del navegador. La página de diagnóstico gráfico ofrece más información.</p></section></div>
+<p class="note">Sesión de pruebas: el perfil de Brave y las descargas están en memoria temporal. Se borran al apagar. Guarda fuera de esta sesión lo que necesites conservar.</p></main>
+<script>
+'use strict';
+const canvas=document.getElementById('lienzo'), output=document.getElementById('resultado');
+let gl;
+function draw(){
+  try{
+    gl=gl||canvas.getContext('webgl2')||canvas.getContext('webgl');
+    if(!gl){output.textContent='WebGL no disponible. Abre el diagnóstico con Super + G.';return;}
+    gl.enable(gl.SCISSOR_TEST);
+    const colors=[[0.02,0.04,0.07,1],[0,0.90,1,1],[0.28,1,0.70,1],[0.86,0.33,0.42,1]];
+    for(let i=0;i<colors.length;i++){gl.scissor(i*160,0,160,240);gl.clearColor(...colors[i]);gl.clear(gl.COLOR_BUFFER_BIT);}
+    gl.disable(gl.SCISSOR_TEST);
+    const extension=gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer=extension?gl.getParameter(extension.UNMASKED_RENDERER_WEBGL):'Oculto por el navegador';
+    output.textContent='Dibujo enviado · '+gl.getParameter(gl.VERSION)+'\nRenderer: '+renderer+'\nError GL: '+gl.getError();
+  }catch(error){output.textContent='La prueba no pudo completarse: '+error.message;}
+}
+canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();output.textContent='Contexto gráfico perdido. Puedes repetir la prueba al recuperarse.';});
+canvas.addEventListener('webglcontextrestored',()=>{gl=null;draw();});
+document.getElementById('probar').addEventListener('click',draw);draw();
+</script></html>

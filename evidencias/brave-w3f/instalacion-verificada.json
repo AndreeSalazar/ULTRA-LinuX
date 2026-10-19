@@ -1,0 +1,28 @@
+{
+  "DatosSinCambio": true,
+  "PcPruebas": 99,
+  "Archivos": [
+    {
+      "Archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "SHA256": "917C0E82862074D41240771BFF8EE79B47B2B05C5F01431F3B35C247900828B8",
+      "Perfil": "generico"
+    },
+    {
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "SHA256": "5781C432EA170C17602AF2BF6152C92F6BDE1517DE79BF0B13319BD1C171C748",
+      "Perfil": "generico"
+    },
+    {
+      "Archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "SHA256": "799DE4B028508F2AAB2DE755B65A36F4D16517889CA500ED1654FB1F433FED29",
+      "Perfil": "pc"
+    },
+    {
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "SHA256": "CADE6AD60883B9FA76E4F4E07D611E934B3BA8F5F1DB2A30C6DB1966C47FAD75",
+      "Perfil": "pc"
+    }
+  ],
+  "GenericoPruebas": 95,
+  "DatosSHA256": "9F92598782619A52B7873D39A91B5F10F216987BCD79F712BFC43A4ABCD33275"
+}

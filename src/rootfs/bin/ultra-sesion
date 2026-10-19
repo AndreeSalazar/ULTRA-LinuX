@@ -39,6 +39,7 @@ fi
 udevadm trigger --action=add --type=subsystems || exit 1
 udevadm trigger --action=add --type=devices || exit 1
 udevadm settle --timeout=15 || exit 1
+/usr/bin/bash /usr/local/libexec/ultra-preparar-red > /run/ultra-escritorio/red.log 2>&1 || echo 'AMARILLO [RED]: sin conexion; el escritorio puede abrir sin internet'
 nvidia=(); software=(); cards=()
 for entry in /sys/class/drm/card*; do
     name=${entry##*/}

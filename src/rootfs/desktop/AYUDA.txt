@@ -6,6 +6,8 @@ SUPER + Enter       Nueva terminal
 SUPER + R           Buscar aplicaciones (flechas y Enter)
 SUPER + E           Archivos (Thunar)
 SUPER + N           Editor de texto (Mousepad)
+SUPER + B           Brave y pagina local de pruebas
+SUPER + G           Diagnostico GPU de Brave
 SUPER + H           Esta ayuda
 SUPER + Q           Cerrar la ventana activa
 SUPER + V           Alternar ventana flotante
@@ -21,3 +23,5 @@ Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 Esta primera sesion usa un home temporal en RAM. No guardes aqui archivos
 que necesites conservar tras apagar. No se han migrado datos personales.
 La recuperacion software del menu sigue disponible si falla Hyprland.
+Brave usa Wayland y su sandbox. Su perfil y descargas son temporales en RAM.
+La red por cable intenta DHCP; Wi-Fi y audio fisico aun requieren validacion.

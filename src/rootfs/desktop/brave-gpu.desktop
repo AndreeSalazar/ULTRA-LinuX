@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Brave - diagnostico GPU
+Exec=/usr/local/bin/ultra-brave brave://gpu
+Icon=brave-browser
+Terminal=false
+Categories=System;

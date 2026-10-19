@@ -1,0 +1,15 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -euo pipefail
+[[ $(id -u) == 1000 ]] || { echo 'ROJO [BRAVE]: abre el navegador desde el escritorio sin root'; exit 1; }
+[[ -n ${WAYLAND_DISPLAY:-} && -n ${XDG_RUNTIME_DIR:-} ]] || { echo 'ROJO [BRAVE]: falta una sesion Wayland'; exit 1; }
+[[ -x /opt/brave/brave ]] || { echo 'ROJO [BRAVE]: falta el navegador'; exit 1; }
+[[ -r /proc/self/ns/user && -r /proc/sys/user/max_user_namespaces ]] || { echo 'ROJO [BRAVE]: kernel sin user namespaces'; exit 1; }
+# Browser switches come from this wrapper; supplied arguments are only locations.
+for arg in "$@"; do
+    [[ $arg != -* ]] || { echo 'ROJO [BRAVE]: usa direcciones, no banderas del navegador'; exit 2; }
+done
+[[ $# -gt 0 ]] || set -- file:///etc/ultra/inicio.html
+mkdir -p "$HOME/.cache/ultra"
+exec /opt/brave/brave --ozone-platform=wayland --no-first-run --no-default-browser-check "$@" \
+    >> "$HOME/.cache/ultra/brave.log" 2>&1

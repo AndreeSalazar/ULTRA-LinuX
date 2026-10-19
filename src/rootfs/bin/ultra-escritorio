@@ -41,7 +41,7 @@ case "${1:-}" in
     --menu)
         [ $# -eq 1 ] || { echo 'Uso: ultra-escritorio --menu'; exit 2; }
         trap exportar_informe EXIT
-        chroot /arch /usr/bin/env -i PATH=/usr/local/bin:/usr/bin \
+        /bin/ultra-raiz /arch /usr/bin/env -i PATH=/usr/local/bin:/usr/bin \
             GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
             /usr/bin/bash /usr/local/libexec/ultra-menu
         exit $? ;;
@@ -59,7 +59,7 @@ esac
 [ $# -gt 0 ] || set -- foot
 [ "$compositor" != hyprland ] || set -- --hyprland "$@"
 trap exportar_informe EXIT
-chroot /arch /usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
+/bin/ultra-raiz /arch /usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
     GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
     /usr/bin/bash /usr/local/libexec/ultra-sesion "$mode" "$@"
 exit $?

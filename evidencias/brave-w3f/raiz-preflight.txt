@@ -1,0 +1,6 @@
+VERDE [RAIZ]: invocacion sin root rechazada
+unshare: unshare failed: Operation not permitted
+VERDE [RAIZ]: control chroot reproduce bloqueo de userns
+         0       1000          1
+VERDE [RAIZ]: user namespace permite mapa interno 0 -> UID inicial 1000
+VERDE [RAIZ]: namespace del proceso de control conservado

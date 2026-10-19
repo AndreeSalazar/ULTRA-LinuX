@@ -1,0 +1,157 @@
+/home/builder/linux-reconstruido/brave-cache/brave-1.97.59.zip: OK
+	linux-vdso.so.1 (0x00007fbe3cf15000)
+	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007fbe3cef8000)
+	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007fbe3cef3000)
+	libglib-2.0.so.0 => /usr/lib/libglib-2.0.so.0 (0x00007fbe3cd8e000)
+	libgobject-2.0.so.0 => /usr/lib/libgobject-2.0.so.0 (0x00007fbe2919d000)
+	libnspr4.so => /usr/lib/libnspr4.so (0x00007fbe2915a000)
+	libnss3.so => /usr/lib/libnss3.so (0x00007fbe2900d000)
+	libnssutil3.so => /usr/lib/libnssutil3.so (0x00007fbe28fde000)
+	libsmime3.so => /usr/lib/libsmime3.so (0x00007fbe28faf000)
+	libgio-2.0.so.0 => /usr/lib/libgio-2.0.so.0 (0x00007fbe28dcc000)
+	libatk-1.0.so.0 => /usr/lib/libatk-1.0.so.0 (0x00007fbe28da5000)
+	libatk-bridge-2.0.so.0 => /usr/lib/libatk-bridge-2.0.so.0 (0x00007fbe28d69000)
+	libdbus-1.so.3 => /usr/lib/libdbus-1.so.3 (0x00007fbe28d13000)
+	libcups.so.2 => /usr/lib/libcups.so.2 (0x00007fbe28c7d000)
+	libexpat.so.1 => /usr/lib/libexpat.so.1 (0x00007fbe28c4e000)
+	libxcb.so.1 => /usr/lib/libxcb.so.1 (0x00007fbe28c23000)
+	libxkbcommon.so.0 => /usr/lib/libxkbcommon.so.0 (0x00007fbe28bc4000)
+	libasound.so.2 => /usr/lib/libasound.so.2 (0x00007fbe28acb000)
+	libgbm.so.1 => /usr/lib/libgbm.so.1 (0x00007fbe3cd84000)
+	libX11.so.6 => /usr/lib/libX11.so.6 (0x00007fbe28979000)
+	libXext.so.6 => /usr/lib/libXext.so.6 (0x00007fbe28965000)
+	libcairo.so.2 => /usr/lib/libcairo.so.2 (0x00007fbe2881c000)
+	libpango-1.0.so.0 => /usr/lib/libpango-1.0.so.0 (0x00007fbe287ad000)
+	libudev.so.1 => /usr/lib/libudev.so.1 (0x00007fbe2875d000)
+	libm.so.6 => /usr/lib/libm.so.6 (0x00007fbe28626000)
+	libXcomposite.so.1 => /usr/lib/libXcomposite.so.1 (0x00007fbe3cd7b000)
+	libXdamage.so.1 => /usr/lib/libXdamage.so.1 (0x00007fbe3cd76000)
+	libXfixes.so.3 => /usr/lib/libXfixes.so.3 (0x00007fbe2861e000)
+	libXrandr.so.2 => /usr/lib/libXrandr.so.2 (0x00007fbe28611000)
+	libatspi.so.0 => /usr/lib/libatspi.so.0 (0x00007fbe285d4000)
+	libgcc_s.so.1 => /usr/lib/libgcc_s.so.1 (0x00007fbe285a7000)
+	libc.so.6 => /usr/lib/libc.so.6 (0x00007fbe28200000)
+	/lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007fbe3cf17000)
+	libpcre2-8.so.0 => /usr/lib/libpcre2-8.so.0 (0x00007fbe284f4000)
+	libffi.so.8 => /usr/lib/libffi.so.8 (0x00007fbe284e6000)
+	libplds4.so => /usr/lib/libplds4.so (0x00007fbe3cd6f000)
+	libplc4.so => /usr/lib/libplc4.so (0x00007fbe284df000)
+	libgmodule-2.0.so.0 => /usr/lib/libgmodule-2.0.so.0 (0x00007fbe284d6000)
+	libz.so.1 => /usr/lib/libz.so.1 (0x00007fbe284bb000)
+	libmount.so.1 => /usr/lib/libmount.so.1 (0x00007fbe2845e000)
+	libsystemd.so.0 => /usr/lib/libsystemd.so.0 (0x00007fbe280b6000)
+	libavahi-common.so.3 => /usr/lib/libavahi-common.so.3 (0x00007fbe2844f000)
+	libavahi-client.so.3 => /usr/lib/libavahi-client.so.3 (0x00007fbe2843a000)
+	libgnutls.so.30 => /usr/lib/libgnutls.so.30 (0x00007fbe27e00000)
+	libXau.so.6 => /usr/lib/libXau.so.6 (0x00007fbe28435000)
+	libXdmcp.so.6 => /usr/lib/libXdmcp.so.6 (0x00007fbe2842d000)
+	libdrm.so.2 => /usr/lib/libdrm.so.2 (0x00007fbe2809f000)
+	libpng16.so.16 => /usr/lib/libpng16.so.16 (0x00007fbe28062000)
+	libfontconfig.so.1 => /usr/lib/libfontconfig.so.1 (0x00007fbe27d85000)
+	libfreetype.so.6 => /usr/lib/libfreetype.so.6 (0x00007fbe27ca0000)
+	libXrender.so.1 => /usr/lib/libXrender.so.1 (0x00007fbe28056000)
+	libxcb-render.so.0 => /usr/lib/libxcb-render.so.0 (0x00007fbe28047000)
+	libxcb-shm.so.0 => /usr/lib/libxcb-shm.so.0 (0x00007fbe28426000)
+	libpixman-1.so.0 => /usr/lib/libpixman-1.so.0 (0x00007fbe27bf1000)
+	libfribidi.so.0 => /usr/lib/libfribidi.so.0 (0x00007fbe27bcf000)
+	libthai.so.0 => /usr/lib/libthai.so.0 (0x00007fbe2803c000)
+	libharfbuzz.so.0 => /usr/lib/libharfbuzz.so.0 (0x00007fbe27a84000)
+	libXi.so.6 => /usr/lib/libXi.so.6 (0x00007fbe27a6f000)
+	libblkid.so.1 => /usr/lib/libblkid.so.1 (0x00007fbe27a2f000)
+	libleancrypto.so.1.9 => /usr/lib/libleancrypto.so.1.9 (0x00007fbe27600000)
+	libp11-kit.so.0 => /usr/lib/libp11-kit.so.0 (0x00007fbe2745e000)
+	libidn2.so.0 => /usr/lib/libidn2.so.0 (0x00007fbe27a0d000)
+	libunistring.so.5 => /usr/lib/libunistring.so.5 (0x00007fbe27277000)
+	libtasn1.so.6 => /usr/lib/libtasn1.so.6 (0x00007fbe279f7000)
+	libhogweed.so.7 => /usr/lib/libhogweed.so.7 (0x00007fbe279b0000)
+	libnettle.so.9 => /usr/lib/libnettle.so.9 (0x00007fbe27954000)
+	libgmp.so.10 => /usr/lib/libgmp.so.10 (0x00007fbe271d0000)
+	libbz2.so.1.0 => /usr/lib/libbz2.so.1.0 (0x00007fbe27941000)
+	libbrotlidec.so.1 => /usr/lib/libbrotlidec.so.1 (0x00007fbe27932000)
+	libdatrie.so.1 => /usr/lib/libdatrie.so.1 (0x00007fbe2802d000)
+	libgraphite2.so.3 => /usr/lib/libgraphite2.so.3 (0x00007fbe2790f000)
+	libbrotlicommon.so.1 => /usr/lib/libbrotlicommon.so.1 (0x00007fbe278ec000)
+VERDE: Brave 1.97.59 oficial instalado; apertura y sandbox pendientes de prueba
+[48946:48978:1019/223022.135583:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[48946:48978:1019/223022.135635:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48978:1019/223022.302115:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[48946:48978:1019/223022.302160:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[48946:48978:1019/223022.302180:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[48946:48978:1019/223022.302189:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48978:1019/223022.302196:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48978:1019/223022.518694:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48978:1019/223022.607708:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48946:1019/223022.806983:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48978:1019/223022.807254:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48946:1019/223022.807312:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48946:1019/223022.807558:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48978:1019/223022.807740:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48946:1019/223022.813086:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48978:1019/223022.816713:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48978:1019/223022.844128:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[48946:48978:1019/223022.844371:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory
+[48946:48946:1019/223022.844437:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48946:1019/223022.847013:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48978:1019/223022.848231:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48946:1019/223022.860765:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48946:1019/223022.870519:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: unknown error type:
+[48946:48946:1019/223022.878027:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48978:1019/223022.878115:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48946:1019/223022.906654:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[48946:48978:1019/223022.906728:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are "tcp" and on UNIX "unix")
+[48946:48946:1019/223022.921905:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type:
+[49003:49003:1019/223023.232570:ERROR:gpu/command_buffer/service/gles2_cmd_decoder_passthrough.cc:1204] []Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.
+[49003:49003:1019/223023.278459:ERROR:gpu/command_buffer/service/gl_utils.cc:431] [.WebGL-0x29e4001c0800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ULTRA | Brave</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;background:#050a12;color:#c8e9f2}*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top right,#103344,transparent 65%);min-height:100vh;padding:5vw}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #23364d;padding-bottom:20px}
+.brand{font-size:20px;letter-spacing:.23em;color:#00e5ff}.tag{color:#48ffb4;font-size:12px;letter-spacing:.12em}
+main{max-width:1100px;margin:64px auto}h1{font-size:clamp(36px,6vw,72px);line-height:1.05;letter-spacing:-.05em;margin:12px 0 24px}
+p{color:#9ab5c7;line-height:1.7;max-width:680px}.eyebrow{color:#00e5ff;letter-spacing:.15em;font-size:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px}.card{background:#09111de8;border:1px solid #23364d;border-radius:8px;padding:26px}
+h2{font-size:19px;margin:0 0 16px}a,button{display:inline-block;color:#050a12;background:#00e5ff;text-decoration:none;border:0;border-radius:4px;padding:12px 18px;font:600 14px system-ui;cursor:pointer;margin:4px 8px 4px 0}
+button{background:#48ffb4}a.secondary{background:none;color:#c8e9f2;border:1px solid #35516a}
+kbd{border:1px solid #35516a;border-bottom-width:3px;border-radius:3px;padding:2px 7px;color:#c8e9f2}
+canvas{width:100%;height:160px;display:block;background:#050a12;border-radius:4px;margin:14px 0}pre{white-space:pre-wrap;word-break:break-word;color:#48ffb4;font-size:12px;line-height:1.7}
+.note{border-left:3px solid #dc546b;padding-left:14px;margin-top:30px;font-size:13px}.muted{font-size:13px;color:#7894aa}
+@media(max-width:700px){.grid{grid-template-columns:1fr}main{margin:36px auto}.tag{max-width:150px;text-align:right}}
+</style>
+</head><body><header><div class="brand">ULTRA<span style="color:#48ffb4"> / </span>LINUX</div><div class="tag">ESCRITORIO · NAVEGADOR · PRUEBAS</div></header>
+<main><div class="eyebrow">TU PUNTO DE PARTIDA</div><h1>Abre. Explora.<br><span style="color:#00e5ff">Ponlo a prueba.</span></h1>
+<p>Brave ya tiene su lugar en el escritorio. Esta página funciona sin internet y permite comprobar el dibujo del navegador.</p>
+<a href="https://search.brave.com/">Abrir internet ↗</a><a class="secondary" href="https://brave.com/linux/">Acerca de Brave</a>
+<div class="grid"><section class="card"><h2>Una ventana, muchas posibilidades</h2>
+<p><kbd>Super</kbd> + <kbd>B</kbd> abre Brave.<br><kbd>Super</kbd> + <kbd>G</kbd> abre su diagnóstico gráfico.<br><kbd>Super</kbd> + <kbd>R</kbd> busca tus aplicaciones.</p>
+<p class="muted">Busca «Brave - sandbox» en Apps para revisar el aislamiento. La conexión por cable intenta configurarse automáticamente.</p></section>
+<section class="card"><h2>Prueba de dibujo WebGL</h2><canvas id="lienzo" width="640" height="240"></canvas>
+<button id="probar">Dibujar otra vez</button><pre id="resultado">Dibujo enviado · WebGL 2.0 (OpenGL ES 3.0 Chromium)
+Renderer: ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)
+Error GL: 0</pre>
+<p class="muted">El renderer puede estar oculto por la privacidad del navegador. La página de diagnóstico gráfico ofrece más información.</p></section></div>
+<p class="note">Sesión de pruebas: el perfil de Brave y las descargas están en memoria temporal. Se borran al apagar. Guarda fuera de esta sesión lo que necesites conservar.</p></main>
+<script>
+'use strict';
+const canvas=document.getElementById('lienzo'), output=document.getElementById('resultado');
+let gl;
+function draw(){
+  try{
+    gl=gl||canvas.getContext('webgl2')||canvas.getContext('webgl');
+    if(!gl){output.textContent='WebGL no disponible. Abre el diagnóstico con Super + G.';return;}
+    gl.enable(gl.SCISSOR_TEST);
+    const colors=[[0.02,0.04,0.07,1],[0,0.90,1,1],[0.28,1,0.70,1],[0.86,0.33,0.42,1]];
+    for(let i=0;i<colors.length;i++){gl.scissor(i*160,0,160,240);gl.clearColor(...colors[i]);gl.clear(gl.COLOR_BUFFER_BIT);}
+    gl.disable(gl.SCISSOR_TEST);
+    const extension=gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer=extension?gl.getParameter(extension.UNMASKED_RENDERER_WEBGL):'Oculto por el navegador';
+    output.textContent='Dibujo enviado · '+gl.getParameter(gl.VERSION)+'\nRenderer: '+renderer+'\nError GL: '+gl.getError();
+  }catch(error){output.textContent='La prueba no pudo completarse: '+error.message;}
+}
+canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();output.textContent='Contexto gráfico perdido. Puedes repetir la prueba al recuperarse.';});
+canvas.addEventListener('webglcontextrestored',()=>{gl=null;draw();});
+document.getElementById('probar').addEventListener('click',draw);draw();
+</script>
+</body></html>

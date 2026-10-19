@@ -13,6 +13,7 @@ PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
 FALLA = '--auto-falla' in sys.argv[2:]
 AUTO = FALLA or '--auto' in sys.argv[2:]
 BMO = AUTO or '--bmo' in sys.argv[2:]
+BRAVE = '--brave' in sys.argv[2:]
 DISCO = BMO or '--disco' in sys.argv[2:]
 QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
 BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico', 'pc': 'pc'}[PERFIL]
@@ -107,6 +108,9 @@ if PERFIL in ('pc', 'generico'):
     # QEMU has no NVIDIA: explicit acceleration must reject, never pretend software is GPU.
     BOOT1 += [('ultra-escritorio --nvidia 2>&1', 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA'),
               ('ultra-escritorio --nvidia >/tmp/gpu-rechazo.log 2>&1; echo GPU-ESTADO-$?', 'GPU-ESTADO-1')]
+    if BRAVE:
+        BOOT1 += [('ultra-entrar /opt/brave/brave --version', '1.97.59'),
+                  ('test -e /proc/sys/user/max_user_namespaces && echo USERNS-DISPONIBLE-$((4+4))', 'USERNS-DISPONIBLE-8')]
 BOOT2 = [
     ('cat /datos/prueba-persistencia', TOKEN),
     ('lsmod', 'snd_hda_intel'),
@@ -358,6 +362,88 @@ def check_hyprland(conn, failures):
         mon.sendall(b'sendkey meta_l-e\n')
         files = wait_apps(lambda apps: any('thunar' in a.get('class', '').lower() for a in apps))
         expect(bool(files), 'Hyprland: Super+E abre archivos')
+        if BRAVE:
+            mon.sendall(b'sendkey meta_l-b\n')
+            browsers = wait_apps(lambda apps: any('brave' in a.get('class', '').lower() and 'ULTRA' in a.get('title', '') for a in apps))
+            expect(bool(browsers), 'Brave: Super+B abre la pagina local en Wayland')
+            if browsers:
+                browser = next(a for a in browsers if 'brave' in a.get('class', '').lower())
+                pid = browser['pid']
+                cmd = (f'echo BRAVE-BROKER; cat /proc/{pid}/status; '
+                       f'echo ns_user=$(readlink /proc/{pid}/ns/user); '
+                       f'echo ns_pid=$(readlink /proc/{pid}/ns/pid); echo BRAVE-BROKER-FIN; '
+                       'for p in /proc/[0-9]*; do '
+                       'args=$(tr "\\0" " " < "$p/cmdline" 2>/dev/null); '
+                       'case "$args" in /opt/brave/brave*--type=renderer*) '
+                       'echo BRAVE-RENDERER; cat "$p/status"; '
+                       'echo ns_user=$(readlink "$p/ns/user"); '
+                       'echo ns_pid=$(readlink "$p/ns/pid"); '
+                       'cat "$p/uid_map"; echo BRAVE-RENDERER-FIN;; esac; done')
+                conn.sendall(cmd.encode() + b'; echo BRAVE-CRED-LISTO-$((9+4))\n')
+                credentials = response('BRAVE-CRED-LISTO-13')
+                transcript += credentials
+                clean = credentials.replace('\r', '')
+                broker_match = re.search(r'^BRAVE-BROKER\n(.*?)^BRAVE-BROKER-FIN', clean, re.M | re.S)
+                def identity(status, caps):
+                    return (bool(re.search(r'^Uid:\s+1000\s+1000\s+1000\s+1000\s*$', status, re.M))
+                            and bool(re.search(r'^NoNewPrivs:\s+1\s*$', status, re.M))
+                            and all(re.search(rf'^{field}:\s+0+\s*$', status, re.M) for field in caps))
+                broker_status = broker_match.group(1) if broker_match else ''
+                expect(identity(broker_status, ('CapInh', 'CapPrm', 'CapEff', 'CapBnd', 'CapAmb')),
+                       'Brave: navegador UID1000, capacidades cero y NNP')
+                def namespace(status, name):
+                    match = re.search(rf'^ns_{name}=(.+)$', status, re.M)
+                    return match.group(1) if match else None
+                renderers = re.findall(r'^BRAVE-RENDERER\n(.*?)^BRAVE-RENDERER-FIN', clean, re.M | re.S)
+                isolated = [status for status in renderers
+                            if identity(status, ('CapPrm', 'CapEff', 'CapAmb'))
+                            and re.search(r'^Seccomp:\s+2\s*$', status, re.M)
+                            and all(namespace(status, name) is not None
+                                    and namespace(status, name) != namespace(broker_status, name)
+                                    for name in ('user', 'pid'))]
+                expect(bool(isolated), 'Brave: renderer UID1000 inicial, user/PID namespaces propios y seccomp activo')
+                capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-brave.png'
+                mon.sendall(b'sendkey f11\n')
+                time.sleep(1)
+                capture.unlink(missing_ok=True)
+                mon.sendall(f'screendump {capture} -f png\n'.encode())
+                complete = False
+                for _ in range(50):
+                    try:
+                        from PIL import Image
+                        with Image.open(capture) as screenshot:
+                            screenshot.verify()
+                        complete = True
+                        break
+                    except (OSError, SyntaxError):
+                        pass
+                    time.sleep(.1)
+                if not complete: raise ValueError('captura de Brave incompleta')
+                shutil.copyfile(capture, LOG.with_name(LOG.stem + '-brave.png'))
+                mon.sendall(b'sendkey f11 30\n')
+                time.sleep(1)
+                mon.sendall(b'sendkey ctrl-l\n')
+                time.sleep(.6)
+                url_keys = ['h', 't', 't', 'p', 's', 'shift-semicolon', 'slash', 'slash',
+                            'e', 'x', 'a', 'm', 'p', 'l', 'e', 'dot', 'c', 'o', 'm', 'ret']
+                for key in url_keys:
+                    mon.sendall(f'sendkey {key} 30\n'.encode())
+                    time.sleep(.12)
+                loaded = wait_apps(lambda apps: any('brave' in a.get('class', '').lower() and 'Example Domain' in a.get('title', '') for a in apps))
+                expect(bool(loaded), 'Brave: pagina HTTPS real cargada desde la barra de direcciones')
+                if not loaded:
+                    conn.sendall(b'ultra-entrar /usr/bin/tail -n 90 /home/ultra/.cache/ultra/brave.log; ultra-entrar /usr/bin/cat /run/ultra-escritorio/red.log; echo BRAVE-HTTPS-DIAG-$((5+6))\n')
+                    transcript += response('BRAVE-HTTPS-DIAG-11')
+                mon.sendall(b'sendkey meta_l-q\n')
+                closed_browser = wait_apps(lambda apps: len(apps) >= 2 and not any('brave' in a.get('class', '').lower() for a in apps))
+                expect(bool(closed_browser), 'Brave: cerrar navegador conserva el escritorio')
+            else:
+                conn.sendall(b'ultra-entrar /usr/bin/tail -n 60 /home/ultra/.cache/ultra/brave.log; echo BRAVE-ERROR-$((3+4))\n')
+                transcript += response('BRAVE-ERROR-7')
+            conn.sendall(b'ultra-entrar /usr/bin/curl --fail --silent --show-error --max-time 12 -I https://example.com && echo HTTPS-VERIFICADO-$((3+5)); echo HTTPS-FIN-$((4+5))\n')
+            network = response('HTTPS-FIN-9', timeout=20)
+            transcript += network
+            expect('HTTPS-VERIFICADO-8' in network, 'Red: DHCP, DNS y HTTPS con certificados validos')
         mon.sendall(b'sendkey meta_l-r\n')
         launcher = False
         for _ in range(15):
@@ -533,7 +619,7 @@ def main():
                 'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on']
     def start():
         proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '2048',
-                                 *boot, '-vga', 'virtio', '-nic', 'none', '-display', 'none', '-no-reboot',
+                                 *boot, '-vga', 'virtio', '-nic', 'user,model=virtio-net-pci' if BRAVE else 'none', '-display', 'none', '-no-reboot',
                                  '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on',
                                  '-monitor', f'tcp:127.0.0.1:{PORT + 1},server=on,wait=off'],
                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

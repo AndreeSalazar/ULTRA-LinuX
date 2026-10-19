@@ -15,6 +15,17 @@
 
 # Linux Reconstruido
 
+## Escritorio y Brave
+
+`e` abre el menu con teclado. Dentro de Hyprland, **Super+B** abre Brave
+con la pagina local de pruebas y **Super+G** su diagnostico GPU. Apps incluye
+el navegador y la pagina de estado de su sandbox. El perfil y las descargas
+son temporales en RAM. La conexion por cable intenta obtener IPv4 y DNS por DHCP.
+
+Instalacion, pruebas y funciones pendientes en [BRAVE-W3F.md](docs/BRAVE-W3F.md).
+La [medicion por perfil](docs/MEDICION-W3E.md) registra RAM/CPU y, en NVIDIA,
+VRAM/ocupacion/temperatura/potencia durante la sesion.
+
 ## ULTRA LinuX en el metal: de 2009 ms a 920 ms
 
 ![Tarjeta de arranque de ULTRA LinuX en el PC real: 920 ms](evidencias/pc-real/foto-tarjeta-pc-920ms.webp)

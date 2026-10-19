@@ -1,0 +1,34 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Wired IPv4 DHCP only. No Wi-Fi credentials or hardcoded public DNS.
+set -uo pipefail
+[[ $(id -u) == 0 ]] || exit 1
+printf 'ULTRA RED\n'
+if ip -4 route show default | grep -q '^default '; then
+    echo 'VERDE [RED]: ya hay ruta IPv4'
+    ip -4 -brief address
+    exit 0
+fi
+count=0
+for entry in /sys/class/net/*; do
+    iface=${entry##*/}
+    [[ $iface != lo && $iface =~ ^[a-zA-Z0-9_.:-]+$ && ! -d $entry/wireless ]] || continue
+    [[ $(cat "$entry/type" 2>/dev/null) == 1 ]] || continue
+    ((count+=1)); ((count <= 4)) || break
+    ip link set dev "$iface" up || continue
+    for ((i=0;i<5;i++)); do
+        [[ $(cat "$entry/carrier" 2>/dev/null) == 1 ]] && break
+        sleep .2
+    done
+    [[ $(cat "$entry/carrier" 2>/dev/null) == 1 ]] || continue
+    if timeout -k 1 18 dhcpcd -4 --waitip=4 --timeout 12 "$iface"; then
+        ip -4 -brief address show dev "$iface"
+        ip -4 route
+        if ip -4 route show default | grep -q '^default '; then
+            echo 'VERDE [RED]: DHCP IPv4 preparado; HTTPS se comprueba en el navegador'
+            exit 0
+        fi
+    fi
+done
+echo 'AMARILLO [RED]: sin ruta IPv4; escritorio y pagina local disponibles'
+exit 1

@@ -1,0 +1,26 @@
+[
+  {
+    "archivo": "gpu-qemu-software-hyprland.txt",
+    "kernel": "7.3.0-rc7-g32c52ec87d62",
+    "modo": "software",
+    "compositor": "hyprland",
+    "fecha_utc": "2026-10-19T22:46:08Z",
+    "ram_sistema_estimada_MiB": {
+      "min": 89.48046875,
+      "max_muestreado": 532.1015625,
+      "muestras": 7
+    },
+    "pss_UID1000_MiB": {
+      "min": 0.517578125,
+      "max_muestreado": 705.0068359375,
+      "muestras": 7
+    },
+    "cpu_sistema_ocupada_pct": {
+      "min": 87.5,
+      "max_muestreado": 99.6078431372549,
+      "muestras": 6
+    },
+    "gpu": null,
+    "alcance": "Maximos muestreados; no picos absolutos ni memoria exclusiva de Hyprland. VRAM total del dispositivo."
+  }
+]

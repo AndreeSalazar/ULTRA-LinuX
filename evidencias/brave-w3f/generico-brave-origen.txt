@@ -1,0 +1,4 @@
+version=1.97.59
+url=https://github.com/brave/brave-browser/releases/download/v1.97.59/brave-browser-1.97.59-linux-amd64.zip
+sha256=32979198ff09c4c656b0b060d929a44cdd6af167b2a141a77c2b7f36fd59e661
+sandbox=userns+seccomp; setuid desactivado
