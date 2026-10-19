@@ -32,6 +32,10 @@ bool screen_available(void);
 /* tarjeta.c: the boot card, after the hardware stage and before the shells. */
 void show_card(void);
 
+/* sistema.c: Arch's base system as a root at /arch (EROFS + a layer in memory); released before unmounting. */
+void prepare_system(bool data);
+void release_system(void);
+
 /* logo.c: the ULTRA logo in the top-right corner of the screen, through /dev/fb0. */
 void show_logo(void);
 

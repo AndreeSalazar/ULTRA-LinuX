@@ -6,6 +6,11 @@ analizador en O0 y avisos en O2, endurecimiento y trampas de UB en produccion.
 Al cargar el perfil se descarta el estado ASan/TSan/UBSan y los arrays de
 diagnostico/crudo de una sesion anterior.
 
+[ultra_buffer.h](ultra_buffer.h) ofrece limites comprobados de buffers por filas
+y pixeles de cuatro bytes, con estado de error obligatorio. La
+[investigacion grafica](../../../docs/WAYLAND-INVESTIGACION-C.md) explica
+el contrato, las pruebas y lo que falta para integrarlo con Wayland.
+
 La entrada estable [scripts/guardianes.sh](../../../scripts/guardianes.sh)
 la siguen usando init y caja. Los perfiles no se inyectan en Kbuild, GCC
 instalado, PATH ni configuracion global de la maquina.

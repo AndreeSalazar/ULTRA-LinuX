@@ -40,7 +40,7 @@ Cada pieza que entra (Wayland, Mesa, Steam, Flatpak…) pasa por lo mismo antes 
 
 ### Wayland: la meta divertida
 
-La llegada de Wayland es el primer gran objetivo de este enfoque. Cuando llegue, se estudiará pieza a pieza: el protocolo (sockets Unix y memoria compartida), el compositor (wlroots, KWin o gamescope), DRM/KMS y GBM para la pantalla, libinput para la entrada, Mesa y Vulkan, y XWayland para las apps antiguas. Puntos donde los guardianes pueden aportar: aislar cada cliente en su caja, medir las syscalls reales del compositor, someter el protocolo a pruebas con mensajes malformados y vigilar la memoria del compositor con el perfil vigía.
+Etapas y resultados en [WAYLAND.md](WAYLAND.md). La llegada de Wayland es el primer gran objetivo de este enfoque. Cuando llegue, se estudiará pieza a pieza: el protocolo (sockets Unix y memoria compartida), el compositor (wlroots, KWin o gamescope), DRM/KMS y GBM para la pantalla, libinput para la entrada, Mesa y Vulkan, y XWayland para las apps antiguas. Puntos donde los guardianes pueden aportar: aislar cada cliente en su caja, medir las syscalls reales del compositor, someter el protocolo a pruebas con mensajes malformados y vigilar la memoria del compositor con el perfil vigía.
 
 ### Orden
 

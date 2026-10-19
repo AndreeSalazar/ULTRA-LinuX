@@ -9,8 +9,8 @@ mkdir -p "$out"
 exec > >(tee "$out/informe.txt") 2>&1
 gcc --version | head -1
 ultra_revisar "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c"
-gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -static-pie "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c" "$lab/guardian/ultra_guard.c" -o "$out/ctype-prod"
-gcc "${ULTRA_WARN[@]}" "${ULTRA_DIAG[@]}" "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c" "$lab/guardian/ultra_guard.c" -o "$out/ctype-diag"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -static-pie "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c" "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/ctype-prod"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_DIAG[@]}" "$ULTRA_GUARD_ROOT/laboratorio/probar-ctype.c" "$ULTRA_GUARD_ROOT/ultra_guard.c" -o "$out/ctype-diag"
 count=0
 for mode in prod diag; do
     bash "$lab/aislar-mina.sh" "$out/ctype-$mode" > "$out/validos-$mode.txt" 2>&1

@@ -5,6 +5,9 @@ validas, pruebas de hilos, dominios ctype y aislamiento. El header local
 incluye la API real de produccion. Los casos con UB son deliberados y solo
 se ejecutan mediante el aislamiento de laboratorio.
 
+El banco de buffers prueba limites y tamanos sin abrir dispositivos ni iniciar
+Wayland. Ver [investigacion por categorias](../../../docs/WAYLAND-INVESTIGACION-C.md).
+
 `perfil-gcc.sh` contiene diagnostico ASan+UBSan y comparacion cruda. La entrada
 `scripts/guardianes-lab.sh` carga primero produccion y despues este perfil.
 TSan se prueba por separado. El comparador crudo nunca es un candidato de

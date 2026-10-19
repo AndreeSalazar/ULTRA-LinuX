@@ -78,6 +78,15 @@ BOOT1 = [
     ('cat /datos/PC.config*', 'snd_hda_intel'),
     ('lsmod', 'snd_hda_intel'),
     (f'echo {TOKEN} > /datos/prueba-persistencia; sync; echo ESCRITO-$((1+1))', 'ESCRITO-2'),
+    # Wayland stage W1: Arch's base system at /arch, dynamic glibc programs under ULTRA.
+    ("ultra-entrar /usr/bin/bash -c 'echo ARCH-$BASH_VERSION'", 'ARCH-5.'),
+    ('ultra-entrar /usr/bin/ls --version', 'GNU coreutils'),
+    # The shadow stack also guards Arch's dynamic programs: grep reading its own status.
+    ('ultra-entrar /usr/bin/grep x86_Thread /proc/self/status', 'shstk'),
+    ('ultra-entrar /usr/bin/ls /datos', 'prueba-persistencia'),
+    # The image itself never changes: writes land in the layer in memory.
+    ("ultra-entrar /usr/bin/bash -c 'echo capa-$((2+2)) > /etc/prueba-capa && cat /etc/prueba-capa'", 'capa-4'),
+    ('grep -c prueba-capa /sistema/etc/prueba-capa 2>&1; echo IMAGEN-$((1+1))', 'No such file'),
 ]
 BOOT2 = [
     ('cat /datos/prueba-persistencia', TOKEN),
@@ -323,6 +332,8 @@ def main():
             expect_boot(first, ' CET Landlock seccomp FORTIFY', 'arranque 1: los cuatro guardianes activos', failures)
             # The ULTRA logo drawn on the framebuffer, top-right corner.
             expect_boot(first, 'VERDE [LOGO]: 248x300 en la pantalla', 'arranque 1: logo en la pantalla', failures)
+            # Wayland stage W1: the init mounts Arch's base system as a root at /arch.
+            expect_boot(first, 'VERDE [SISTEMA]: base Arch en /arch', 'arranque 1: sistema base de Arch montado', failures)
             transcript += run(conn, BOOT1, failures)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
             # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU

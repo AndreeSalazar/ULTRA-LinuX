@@ -1,0 +1,10 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Enter Arch's base system that the init mounted at /arch (Wayland stage W1).
+#   ultra-entrar             Arch's bash, as a login shell
+#   ultra-entrar prog args   one program from Arch, then back to ULTRA's shell
+# The environment starts clean; GLIBC_TUNABLES goes in so glibc keeps the shadow stack (CET).
+[ -x /arch/usr/bin/bash ] || { echo "ROJO [SISTEMA]: no hay sistema Arch en /arch"; exit 1; }
+[ $# -gt 0 ] || set -- /usr/bin/bash -l
+exec chroot /arch /usr/bin/env -i HOME=/root TERM="${TERM:-linux}" \
+    PATH=/usr/local/sbin:/usr/local/bin:/usr/bin GLIBC_TUNABLES="$GLIBC_TUNABLES" "$@"

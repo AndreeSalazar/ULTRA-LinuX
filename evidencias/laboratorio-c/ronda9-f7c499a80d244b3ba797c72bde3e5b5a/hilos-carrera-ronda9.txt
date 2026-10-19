@@ -1,0 +1,22 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=2)
+  Read of size 4 at 0x55a71876e0e4 by thread T1:
+    #0 worker /home/builder/linux-reconstruido/auditoria-guardianes-f7c499a80d244b3ba797c72bde3e5b5a/guardian/laboratorio/minas-hilos.c:20 (hilos+0x12e7) (BuildId: dbc1ffac8b0cee5fb3680899ca709a8b765e21ed)
+    #1 <null> <null> (libtsan.so.2+0x557e9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+
+  Previous write of size 4 at 0x55a71876e0e4 by thread T2:
+    #0 worker /home/builder/linux-reconstruido/auditoria-guardianes-f7c499a80d244b3ba797c72bde3e5b5a/guardian/laboratorio/minas-hilos.c:20 (hilos+0x12fa) (BuildId: dbc1ffac8b0cee5fb3680899ca709a8b765e21ed)
+    #1 <null> <null> (libtsan.so.2+0x557e9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+
+  Location is global 'raced_count' of size 4 at 0x55a71876e0e4 (hilos+0x40e4)
+
+  Thread T1 (tid=4, running) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x616c9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+    #1 main /home/builder/linux-reconstruido/auditoria-guardianes-f7c499a80d244b3ba797c72bde3e5b5a/guardian/laboratorio/minas-hilos.c:30 (hilos+0x1400) (BuildId: dbc1ffac8b0cee5fb3680899ca709a8b765e21ed)
+
+  Thread T2 (tid=5, finished) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x616c9) (BuildId: fad1b3f53c846e11570baa72e153cca909e3f7d2)
+    #1 main /home/builder/linux-reconstruido/auditoria-guardianes-f7c499a80d244b3ba797c72bde3e5b5a/guardian/laboratorio/minas-hilos.c:30 (hilos+0x1400) (BuildId: dbc1ffac8b0cee5fb3680899ca709a8b765e21ed)
+
+SUMMARY: ThreadSanitizer: data race /home/builder/linux-reconstruido/auditoria-guardianes-f7c499a80d244b3ba797c72bde3e5b5a/guardian/laboratorio/minas-hilos.c:20 in worker
+==================

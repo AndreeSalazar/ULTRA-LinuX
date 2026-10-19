@@ -206,6 +206,7 @@ static void shut_down(int sig) {
     sleep(1);
     kill(-1, SIGKILL);
     sync();
+    release_system();
     unmount_data();
     reboot(how);
     report("ROJO", "APAGADO", strerror(errno));
@@ -215,6 +216,7 @@ static void shut_down(int sig) {
 void restart_now(void) {
     report("AMARILLO", "APAGADO", "reinicio hacia tu version propia");
     sync();
+    release_system();
     unmount_data();
     reboot((int)RB_AUTOBOOT);
     report("ROJO", "APAGADO", strerror(errno));
@@ -248,6 +250,8 @@ int main(void) {
     prepare_hardware(data);
     /* The profile first, so its state shows on the card. */
     choose_profile(data);
+    /* After the profile: a jump to the tuned kernel reboots before anything else is mounted. */
+    prepare_system(data);
     show_card();
     show_logo();
 

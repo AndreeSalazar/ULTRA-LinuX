@@ -21,7 +21,9 @@ case $perfil in
                # efivarfs built in: the init itself prepares the F11 entry of the tuned kernel.
                EFIVAR_FS
                # /dev/fb0, so the init can draw the ULTRA logo on the firmware screen.
-               FB_DEVICE)
+               FB_DEVICE
+               # Arch's system as a root: EROFS below, a writable layer in memory on top.
+               OVERLAY_FS)
         modules_list=(R8169 SND_HDA_INTEL SENSORS_K10TEMP)
         # No boot loader: the firmware runs the kernel directly, so its arguments live inside it.
         # The last console becomes /dev/console; init starts a shell on every active console.
@@ -30,7 +32,7 @@ case $perfil in
         # by one and init waited ~1.6 s for it (evidencias/pc-real/dmesg-*). That protects spinning
         # disks from a power surge; this PC has only SSDs, so the ports are scanned in parallel.
         cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
-        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS FB_DEVICE VIRTIO_BLK) ;;
+        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS FB_DEVICE OVERLAY_FS EROFS_FS_ZIP VIRTIO_BLK) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
                UBSAN_BOOL PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR DEBUG_ATOMIC_SLEEP)
@@ -65,7 +67,7 @@ echo "perfil: $perfil"
 # Guardians: review gate first (analyzer at -O0, warnings at -O2), then the
 # production build. static-pie keeps ASLR, BIND_NOW and CET in static binaries.
 source "$lab/guardianes.sh"
-init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c" "$lab/tarjeta.c" "$lab/efi.c" "$lab/perfil.c" "$lab/logo.c")
+init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c" "$lab/tarjeta.c" "$lab/efi.c" "$lab/perfil.c" "$lab/logo.c" "$lab/sistema.c")
 for file in "${init_src[@]}" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; do
     ultra_revisar "$file" || { echo "ROJO: $file no pasa la revision de guardianes"; exit 1; }
 done
@@ -95,6 +97,7 @@ busybox=/usr/bin/busybox
     echo "file /bin/caja $user/caja 0755 0 0"
     echo "file /bin/minas $user/minas 0755 0 0"
     echo "file /bin/probar-caja $lab/rootfs/bin/probar-caja 0755 0 0"
+    echo "file /bin/ultra-entrar $lab/rootfs/bin/ultra-entrar 0755 0 0"
     for applet in $("$busybox" --list); do
         case $applet in busybox|init|linuxrc) continue;; esac
         echo "slink /bin/$applet busybox 0777 0 0"
@@ -148,9 +151,9 @@ if [[ -n $cmdline ]]; then
     img="$art/ultra-esp.img" esp_type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B linux_type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
     export MTOOLS_SKIP_CHECK=1
     rm -f "$img"
-    # 1 MiB for the GPT, three 64 MiB partitions, and room for the backup GPT at the end.
-    truncate -s 194M "$img"
-    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="ULTRA-ESP"\nsize=64MiB, type=%s, name="ULTRA-SISTEMA-A"\nsize=64MiB, type=%s, name="ULTRA-DATOS"\n' \
+    # 1 MiB for the GPT, ESP and data of 64 MiB, 160 MiB for the system, room for the backup GPT.
+    truncate -s 290M "$img"
+    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="ULTRA-ESP"\nsize=160MiB, type=%s, name="ULTRA-SISTEMA-A"\nsize=64MiB, type=%s, name="ULTRA-DATOS"\n' \
         "$esp_type" "$linux_type" "$linux_type" | sfdisk -q "$img"
     # part NAME 1 -> first sector, part NAME 2 -> size in sectors.
     part() { sfdisk --dump "$img" | sed -n "s/.*start= *\([0-9]*\), size= *\([0-9]*\).*name=\"$1\".*/\\$2/p"; }
@@ -161,14 +164,35 @@ if [[ -n $cmdline ]]; then
     mkfs.fat -F 32 -s 1 -n ULTRA-ESP --offset=$(part ULTRA-ESP 1) "$img" $((sectors / 2)) > /dev/null
     mmd -i "$img@@$offset" ::/EFI ::/EFI/BOOT
     mcopy -i "$img@@$offset" "$art/bzImage-tiny64" ::/EFI/BOOT/BOOTX64.EFI
-    # System A: the modules installed above, without the link back to the build tree.
+    # System A (Wayland stage W1): Arch's base system, installed with its own pacman into a
+    # separate root, plus the modules of this kernel. Compatible with Arch, not a copy: the
+    # packages come unchanged from Arch's repositories and their list is kept as evidence.
+    # Docs, man pages, translations and development headers stay out: a boot needs none.
     sistema="$art/sistema-a" datos="$art/datos-semilla"
-    rm -rf "$sistema" "$datos" "$art/sistema-a.erofs" "$art/datos.ext4"
-    mkdir -p "$sistema/lib" "$datos"
-    cp -a "$art/modulos/lib/modules" "$sistema/lib/"
-    rm -f "$sistema/lib/modules/$release/build" "$sistema/lib/modules/$release/source"
-    printf 'ULTRA-SISTEMA-A\nkernel=%s\n' "$release" > "$sistema/ULTRA-SISTEMA"
-    mkfs.erofs --quiet --all-root -T 0 "$art/sistema-a.erofs" "$sistema"
+    sudo rm -rf "$sistema"
+    rm -rf "$datos" "$art/sistema-a.erofs" "$art/datos.ext4"
+    mkdir -p "$datos"
+    sudo mkdir -p "$sistema/var/lib/pacman"
+    # DownloadUser out: pacman's own user cannot enter /home/builder, where the root is built.
+    sed -e '/^\[options\]/a NoExtract = usr/share/man/* usr/share/doc/* usr/share/info/* usr/share/locale/* usr/share/i18n/*\nNoExtract = usr/share/gtk-doc/* usr/share/help/* usr/include/*' \
+        -e '/^DownloadUser/d' /etc/pacman.conf > "$art/pacman-sistema.conf"
+    arch_pkgs=(filesystem glibc bash coreutils grep sed less)
+    sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \
+        -Sy --noconfirm "${arch_pkgs[@]}" > "$art/pacman-sistema.log" 2>&1 ||
+        { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo instalar el sistema base de Arch'; exit 1; }
+    sudo pacman --root "$sistema" --dbpath "$sistema/var/lib/pacman" -Q > "$art/sistema-paquetes.txt"
+    sudo mkdir -p "$sistema/usr/lib/modules"
+    sudo cp -a "$art/modulos/lib/modules/$release" "$sistema/usr/lib/modules/"
+    sudo rm -f "$sistema/usr/lib/modules/$release/build" "$sistema/usr/lib/modules/$release/source"
+    printf 'ULTRA-SISTEMA-A\nkernel=%s\nbase=arch\npaquetes=%s\n' "$release" "$(wc -l < "$art/sistema-paquetes.txt")" |
+        sudo tee "$sistema/ULTRA-SISTEMA" > /dev/null
+    # Guardian: the dynamic programs keep the CET marks the shadow stack needs.
+    for f in usr/lib/libc.so.6 usr/bin/bash usr/bin/ls; do
+        readelf -n "$sistema/$f" | grep -q 'x86 feature: IBT, SHSTK' || { echo "ROJO: $f sin marca CET"; exit 1; }
+    done
+    sudo mkfs.erofs --quiet -zlz4hc -T 0 "$art/sistema-a.erofs" "$sistema"
+    sudo chown "$(id -u):$(id -g)" "$art/sistema-a.erofs"
+    echo "VERDE: sistema A con base Arch: ${#arch_pkgs[@]} pedidos, $(wc -l < "$art/sistema-paquetes.txt") instalados, EROFS lz4hc $(( $(stat -c %s "$art/sistema-a.erofs") / 1048576 )) MiB"
     printf '%s\n' 'ULTRA-DATOS: lo que sobrevive a un reinicio.' \
         'PC.configuración: componentes y modulos de este PC, escrito por el init en el primer arranque.' \
         'arranques.log: una linea por arranque con los tiempos medidos.' > "$datos/LEEME.txt"
@@ -197,8 +221,8 @@ if [[ -n $cmdline ]]; then
     # QEMU starts the kernel from partition 1; the real PC from a firmware entry on BMO.
     bmo="$art/disco-bmo.img" basic_type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
     rm -f "$bmo"
-    truncate -s 226M "$bmo"
-    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="EFI system partition"\nsize=144MiB, type=%s, name="Basic data partition"\nsize=16MiB, type=%s, name="Basic data partition"\n' \
+    truncate -s 402M "$bmo"
+    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="EFI system partition"\nsize=320MiB, type=%s, name="Basic data partition"\nsize=16MiB, type=%s, name="Basic data partition"\n' \
         "$esp_type" "$basic_type" "$basic_type" | sfdisk -q "$bmo"
     bpart() { sfdisk --dump "$bmo" | sed -n "s/^[^ ]*$1 : start= *\([0-9]*\), size= *\([0-9]*\).*/\\$2/p"; }
     win=$(( $(bpart 1 1) * 512 )) a=$(( $(bpart 2 1) * 512 ))

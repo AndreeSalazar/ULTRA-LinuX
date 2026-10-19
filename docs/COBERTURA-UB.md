@@ -3,6 +3,10 @@
 La [organizacion de ronda 8](ORGANIZACION-GUARDIANES.md) separa produccion
 y laboratorio, conserva las pruebas y asigna salidas independientes por ejecucion.
 
+La [investigacion C para Wayland](WAYLAND-INVESTIGACION-C.md) separa doce
+categorias y aporta una primera API de limites de buffers con pruebas de
+produccion/diagnostico; no acredita integracion con el compositor.
+
 La [investigacion historica, desde los origenes hasta 2026](HISTORIA-C-Y-SEGURIDAD.md)
 recorre todas las revisiones publicadas y el trabajo en curso. Su
 [inventario de pendientes](PENDIENTES-GUARDIANES.md) propone 30 lineas de C
