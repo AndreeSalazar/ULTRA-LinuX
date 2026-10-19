@@ -18,15 +18,17 @@ python "$lab/catalogo-syscalls.py" --kernel "$base/kernel" \
     --politica "$lab/caja/syscalls-politica.h" \
     --system-map "$base/build/x86_64-generico/System.map" --trace "$out/busybox.strace" \
     --out "$out" --header "$lab/caja/syscalls-x86_64.h"
-for src in caja probar-seccomp probar-stdio probar-guardian-pid1; do
+for src in caja probar-seccomp probar-stdio probar-guardian-pid1 probar-identidad; do
     ultra_revisar "$lab/caja/$src.c"
     gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -static-pie \
         "$lab/caja/$src.c" "$lab/guardian/ultra_guard.c" -o "$out/$src"
 done
 "$out/caja" --dump-filter > "$out/filtro.bpf"
 python "$lab/verificar-seccomp.py" --bpf "$out/filtro.bpf" --catalogo "$out/catalogo.csv" | tee "$out/formal.txt"
-sha256sum "$out/caja" "$out/filtro.bpf" "$lab/caja/seccomp-politica.h" "$lab/caja/syscalls-politica.h" > "$out/SHA256SUMS"
+sha256sum "$out/caja" "$out/filtro.bpf" "$lab/caja/seccomp-politica.h" "$lab/caja/syscalls-politica.h" \
+    "$lab/caja/identidad-politica.h" "$lab/caja/caja.c" "$lab/caja/probar-identidad.c" > "$out/SHA256SUMS"
 timeout --kill-after=2s 30s "$out/probar-seccomp"
+timeout --kill-after=2s 10s sudo "$out/probar-identidad"
 for mode in abort trap; do
     rc=0
     timeout --kill-after=1s 3s sudo unshare --pid --fork --kill-child=KILL "$out/probar-guardian-pid1" "$mode" > "$out/pid1-$mode.txt" 2>&1 || rc=$?

@@ -12,6 +12,7 @@
 #define ULTRA_GUARD_H
 
 #include <stdbool.h>
+#include <ctype.h>
 #include <limits.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -96,6 +97,28 @@ static inline int ultra_shl_int(int a, int count, const char *file, int line) {
 #define ULTRA_DIV_INT(a, b) ultra_div_int((a), (b), __FILE__, __LINE__)
 #define ULTRA_REM_INT(a, b) ultra_rem_int((a), (b), __FILE__, __LINE__)
 #define ULTRA_SHL_INT(a, n) ultra_shl_int((a), (n), __FILE__, __LINE__)
+
+/* ctype accepts EOF or an unsigned-char value, never an arbitrary int.
+ * Preserve EOF from fgetc. Cast a stored char to unsigned char at the caller
+ * if its intended meaning is a byte; do not silently repair a bad integer.
+ */
+static inline int ultra_ctype_domain(int c, const char *file, int line) {
+    if (c != EOF && (c < 0 || c > UCHAR_MAX))
+        ultra_fail("UB-CTYPE", file, line, "ctype exige EOF o un valor unsigned char");
+    return c;
+}
+static inline int ultra_tolower(int c, const char *file, int line) {
+    return tolower(ultra_ctype_domain(c, file, line));
+}
+static inline int ultra_toupper(int c, const char *file, int line) {
+    return toupper(ultra_ctype_domain(c, file, line));
+}
+static inline int ultra_isalpha(int c, const char *file, int line) {
+    return isalpha(ultra_ctype_domain(c, file, line));
+}
+#define ULTRA_TOLOWER(c) ultra_tolower((c), __FILE__, __LINE__)
+#define ULTRA_TOUPPER(c) ultra_toupper((c), __FILE__, __LINE__)
+#define ULTRA_ISALPHA(c) ultra_isalpha((c), __FILE__, __LINE__)
 
 /*
  * Bounded copy and append: the destination size travels with the call.

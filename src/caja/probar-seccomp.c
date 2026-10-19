@@ -74,6 +74,12 @@ static void kernel_test(const struct sock_filter *prog, size_t len, int which) {
         case 11: _exit(syscall(SYS_prctl, PR_GET_NO_NEW_PRIVS, 0, 0, 0, 0) == 1 ? 0 : 18);
         case 12: { int fds[2]; r = syscall(SYS_socketpair, AF_UNIX, SOCK_STREAM, 0, fds); break; }
         case 13: r = syscall(SYS_connect, -1, NULL, 0); break;
+        case 14: r = syscall(SYS_setuid, 0); break;
+        case 15: r = syscall(SYS_setgid, 0); break;
+        case 16: r = syscall(SYS_capset, NULL, NULL); break;
+        case 17: r = syscall(SYS_unshare, 0); break;
+        case 18: r = syscall(SYS_setns, -1, 0); break;
+        case 19: r = syscall(SYS_mount, NULL, NULL, NULL, 0, NULL); break;
         default: _exit(19);
         }
         _exit(r == -1 && errno == ENOSYS ? 0 : 20);
@@ -145,8 +151,8 @@ int main(int argc, char **argv) {
     bad[0] = SYS_ptrace;
     ULTRA_CHECK(caja_filter_build(prog, ULTRA_LEN(prog), bad, 1) == 0, "TEST-BPF", "ptrace aceptado");
     len = caja_filter_build(prog, ULTRA_LEN(prog), allowed, ULTRA_LEN(allowed));
-    for (int i = 0; i < 14; i++) kernel_test(prog, len, i);
-    printf("SECCOMP-OK: nativas=%zu permitidas=%zu denegadas=%zu; ioctl=65536 decisiones; comandos desconocidos rechazados; kernel=14/14\n",
+    for (int i = 0; i < 20; i++) kernel_test(prog, len, i);
+    printf("SECCOMP-OK: nativas=%zu permitidas=%zu denegadas=%zu; ioctl=65536 decisiones; comandos desconocidos rechazados; kernel=20/20 (incluye UID/GID 0, capset, unshare, setns, mount)\n",
            ULTRA_LEN(caja_syscall_names), yes, no);
     return 0;
 }

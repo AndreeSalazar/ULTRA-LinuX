@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
+param([ValidateRange(1,999)][int]$Ronda=7)
 $ErrorActionPreference='Stop'
 Push-Location -LiteralPath $PSScriptRoot
 try {
@@ -31,6 +32,7 @@ try {
                'evidencias/guardian-pid1-abort-ronda6.txt','evidencias/guardian-pid1-trap-ronda6.txt',
                'evidencias/seccomp-formal-ronda6.txt','evidencias/seccomp-filtro-ronda6.bpf','evidencias/seccomp-SHA256SUMS-ronda6.txt',
                'src/caja/syscalls-x86_64.h')
+    $targets = $targets | ForEach-Object { $_ -replace 'ronda6', "ronda$Ronda" }
     for($i=0;$i -lt $files.Count;$i++){
         & scp.exe @opts -P 12222 "${guest}:$($files[$i])" $targets[$i]
         if($LASTEXITCODE -ne 0){throw 'No se pudo recuperar una evidencia.'}

@@ -37,6 +37,7 @@
 #include "seccomp-politica.h"
 #include "syscalls-x86_64.h"
 #include "stdio-politica.h"
+#include "identidad-politica.h"
 
 enum { NOBODY = 65534 };
 
@@ -153,18 +154,8 @@ static _Noreturn void enter_box(const struct caja *c, int ready_fd, char **argv,
     limit(RLIMIT_CORE, 0);
     limit(RLIMIT_CPU, 30);
     limit(RLIMIT_FSIZE, 16u << 20);
-    for (int cap = 0; cap < 64; cap++) {
-        long present = prctl(PR_CAPBSET_READ, cap, 0, 0, 0);
-        if (present < 0 && errno == EINVAL) break;
-        ULTRA_CHECK(present >= 0 && prctl(PR_CAPBSET_DROP, cap, 0, 0, 0) == 0 &&
-                    prctl(PR_CAPBSET_READ, cap, 0, 0, 0) == 0,
-                    "CAJA-IDENTIDAD", "no se pudo retirar una capacidad del conjunto limite");
-    }
-    ULTRA_CHECK(setgroups(0, NULL) == 0, "CAJA-IDENTIDAD", "setgroups rechazado");
-    ULTRA_CHECK(setresgid(NOBODY, NOBODY, NOBODY) == 0, "CAJA-IDENTIDAD", "setresgid rechazado");
-    ULTRA_CHECK(setresuid(NOBODY, NOBODY, NOBODY) == 0, "CAJA-IDENTIDAD", "setresuid rechazado");
-    ULTRA_CHECK(prctl(PR_CAPBSET_READ, 0, 0, 0, 0) == 0, "CAJA-IDENTIDAD", "quedan capacidades en el conjunto limite");
-    ULTRA_CHECK(prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) == 0, "CAJA-IDENTIDAD", "no_new_privs rechazado");
+    ULTRA_CHECK(caja_drop_identity(NOBODY, NOBODY), "CAJA-IDENTIDAD",
+                "se exigen UID/GID real, efectivo, guardado y FS 65534, cero grupos/capacidades y no_new_privs");
     apply_landlock(c, abi);
     apply_seccomp(c);
     char path[256];

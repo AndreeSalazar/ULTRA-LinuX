@@ -1,0 +1,2 @@
+ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+  programa=control-pid1 senal=4 code=2 pc=inicio+0x72c0

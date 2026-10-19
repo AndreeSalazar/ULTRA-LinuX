@@ -28,7 +28,7 @@ class MuseumChecks(unittest.TestCase):
         (self.root / 'evidencias').mkdir()
         self.registry = self.root / 'docs/museo-ub.json'
         shutil.copyfile(ROOT / 'docs/museo-ub.json', self.registry)
-        for filename in ('campo-minas-ronda6.txt', 'hilos-ronda6.txt'):
+        for filename in ('campo-minas-ronda6.txt', 'hilos-ronda6.txt', 'dominios-ronda7.txt'):
             shutil.copyfile(ROOT / 'evidencias' / filename, self.root / 'evidencias' / filename)
         self.data = json.loads(self.registry.read_text(encoding='utf-8'))
 

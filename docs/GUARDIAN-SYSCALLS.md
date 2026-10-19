@@ -1,6 +1,7 @@
 # Guardian de llamadas al sistema: politica estricta
 
-**Estado actual: ronda 6.** Se restringieron comandos ioctl/fcntl/prctl/arch_prctl,
+**Estado actual: [ronda 7](GUARDIAN-PRIVILEGIOS.md).** La descripcion siguiente
+documenta la ronda 6. Se restringieron comandos ioctl/fcntl/prctl/arch_prctl,
 se rechazan sockets heredados por stdio, se separa lectura de ejecucion en
 Landlock (ABI minima 6) y se corrigio la terminacion del guardia como PID 1.
 Hay equivalencia simbolica verificada del filtro exportado por caja contra su
@@ -109,3 +110,9 @@ No se acredita un nuevo arranque de ULTRA con estos guardianes. El build exige
 ahora SYSVIPC e IPC_NS, sin la antigua degradacion silenciosa de namespaces.
 
 Referencia primaria: [Seccomp BPF del kernel Linux](https://www.kernel.org/doc/html/latest/userspace-api/seccomp_filter.html).
+
+## Actualizacion de credenciales y pruebas
+
+La [ronda 7](GUARDIAN-PRIVILEGIOS.md) comprueba todos los conjuntos de
+capacidades e identidades antes de exec y amplia a 20 los controles reales
+del filtro. El contenido de ronda 6 de este documento es evidencia historica.

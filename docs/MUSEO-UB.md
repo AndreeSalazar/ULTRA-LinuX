@@ -31,7 +31,7 @@ No es un catalogo completo de la norma ni un modelo que aprenda permisos automat
 | [UB-008 — La direccion no esta alineada](#ub-008) | Tipos y evaluacion | UB | VINCULADA |
 | [UB-009 — Dos modificaciones sin secuenciar](#ub-009) | Tipos y evaluacion | UB | VINCULADA |
 | [UB-010 — La promesa restrict incumplida](#ub-010) | Contratos | UB | ESTUDIADA / SIN MINA |
-| [UB-011 — El char negativo de ctype](#ub-011) | Biblioteca | UB | ESTUDIADA / SIN MINA |
+| [UB-011 — El char negativo de ctype](#ub-011) | Biblioteca | UB | VINCULADA |
 | [UB-012 — va_arg pide el tipo equivocado](#ub-012) | Biblioteca | UB | ESTUDIADA / SIN MINA |
 | [UB-013 — El formato no coincide con el argumento](#ub-013) | Biblioteca | UB | ESTUDIADA / SIN MINA |
 | [UB-014 — longjmp vuelve a un valor indeterminado](#ub-014) | Vida util | UB | ESTUDIADA / SIN MINA |
@@ -340,13 +340,13 @@ Alternativa o pauta valida:
 char c = 'A'; int x = isalpha((unsigned char)c);
 ```
 
-Regla del guardian: Distinguir el int devuelto por fgetc de un char almacenado.
+Regla del guardian: ULTRA_TOLOWER, ULTRA_TOUPPER y ULTRA_ISALPHA comprueban el dominio antes de llamar a ctype; distinguir fgetc de un char almacenado.
 
-Limite: No convertir EOF a unsigned char antes de comprobarlo. Pendiente de guardia dedicado.
+Limite: No convertir EOF a unsigned char antes de comprobarlo. Solo estas tres APIs explicitas; las llamadas directas no quedan interceptadas. Los controles de caracteres usan el locale C inicial.
 
 Referencia: [SEI CERT C STR37-C: dominio de funciones de caracteres](https://cmu-sei.github.io/secure-coding-standards/sei-cert-c-coding-standard/rules/characters-and-strings-str/str37-c/), STR37-C; contraste N1570 7.4 p1.
 
-**ESTUDIADA / SIN MINA:** no hay deteccion experimental acreditada para esta pieza.
+- Evidencia externa (ver su alcance propio): [evidencias/dominios-ronda7.txt](../evidencias/dominios-ronda7.txt).
 
 ## UB-012
 
