@@ -69,6 +69,10 @@ Resultados: `generico --bmo` 61/61, `pc --bmo` 62/62, `--disco` 55/55, `--auto` 
 
 ## W3a: NVIDIA por perfil y revision del cargador
 
+La investigacion propuesta para Hyprland, GL/EGL, aislamiento y rendimiento
+queda en [Laboratorio grafico](HYPRLAND-LABORATORIO-GRAFICO.md). Son trabajos
+pendientes; no cambia el compositor cage actualmente probado.
+
 El perfil pc incorpora nvidia-open compilado contra su kernel, la version
 correspondiente de nvidia-utils y firmware GSP. Comprueba vermagic y genera
 modules.dep/alias. El generico conserva el sistema sin NVIDIA como recuperacion.
