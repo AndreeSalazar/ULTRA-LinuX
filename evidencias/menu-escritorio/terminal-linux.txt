@@ -1,0 +1,1 @@
+VERDE: PTY real; flechas, Enter, numeros, Esc, Q, modos, fallo y diagnosticos.

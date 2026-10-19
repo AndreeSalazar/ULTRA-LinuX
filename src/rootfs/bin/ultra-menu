@@ -1,0 +1,74 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Console front end only: ultra-sesion retains device and privilege decisions.
+set -uo pipefail
+if [[ ! -t 0 || ! -t 1 ]]; then
+    echo 'El menu necesita una consola. Usa ultra-escritorio --auto para ejecucion directa.'
+    exit 2
+fi
+options=('Escritorio automatico' 'Escritorio NVIDIA (GPU)' 'Escritorio software (recuperacion)'
+         'Ver ultimo diagnostico' 'Ver estado NVIDIA' 'Volver a la consola')
+selected=0
+pause() {
+    printf '\nPulsa una tecla para volver al menu...'
+    IFS= read -rsn1 _ || return 1
+}
+while :; do
+    printf '\033[H\033[2JULTRA LinuX - Escritorio\n\n'
+    printf 'Flechas arriba/abajo y Enter. 1-6 para seleccionar. Esc o Q para salir.\n\n'
+    for i in "${!options[@]}"; do
+        if (( i == selected )); then
+            printf '\033[7m > %d. %s \033[0m\n' "$((i + 1))" "${options[i]}"
+        else
+            printf '   %d. %s\n' "$((i + 1))" "${options[i]}"
+        fi
+    done
+    printf '\nAl cerrar la terminal del escritorio con exit, vuelves a este menu.\n'
+    key=''
+    IFS= read -rsn1 key || exit 0
+    case "$key" in
+        $'\e')
+            suffix=''
+            IFS= read -rsn2 -t 0.2 suffix || :
+            case "$suffix" in
+                '[A'|'OA') selected=$(((selected + 5) % 6)) ;;
+                '[B'|'OB') selected=$(((selected + 1) % 6)) ;;
+                '') exit 0 ;;
+            esac
+            continue ;;
+        [1-6]) selected=$((key - 1)); continue ;;
+        q|Q) exit 0 ;;
+        '') ;; # Enter: bash read -n consumes its newline delimiter.
+        *) continue ;;
+    esac
+    printf '\033[H\033[2J'
+    case "$selected" in
+        0|1|2)
+            modes=(auto nvidia software)
+            /usr/bin/bash /usr/local/libexec/ultra-sesion "${modes[selected]}" foot
+            result=$?
+            printf '\nSesion terminada (codigo %d).\n' "$result"
+            ;;
+        3)
+            printf 'ULTIMO INTENTO REGISTRADO (temporal, puede ser de una sesion anterior)\n'
+            found=0
+            for log in /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log; do
+                if [[ -f $log ]]; then
+                    found=1
+                    printf '\n--- %s (ultimas 100 lineas) ---\n' "$log"
+                    /usr/bin/tail -n 100 -- "$log"
+                fi
+            done
+            (( found )) || printf 'Todavia no hay registros. Inicia un escritorio primero.\n'
+            ;;
+        4)
+            if [[ -x /usr/bin/nvidia-smi ]]; then
+                /usr/bin/nvidia-smi
+            else
+                printf 'Este perfil no incluye nvidia-smi. Usa el perfil PC para NVIDIA.\n'
+            fi
+            ;;
+        5) exit 0 ;;
+    esac
+    pause || exit 0
+done

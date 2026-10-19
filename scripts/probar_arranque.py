@@ -181,6 +181,34 @@ def expect_boot(boot, expected, label, failures):
     print(('VERDE' if expected in boot else 'ROJO'), f'[{label}]')
     if expected not in boot: failures.append(label)
 
+def check_menu(conn, failures):
+    """Use the installed short command on the guest's interactive serial console."""
+    conn.sendall(b'e\n')
+    text = read_until(conn, 'Al cerrar', 10)
+    expect_boot(text, 'Flechas arriba/abajo y Enter', 'menu instalado: comando e', failures)
+    conn.sendall(b'\x1b[B')
+    text += read_until(conn, 'Al cerrar', 10)
+    conn.sendall(b'\r')
+    result = read_until(conn, 'Pulsa una tecla', 30)
+    text += result
+    expect_boot(result, 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA',
+                'menu: flecha y Enter seleccionan NVIDIA, rechazo sin GPU', failures)
+    conn.sendall(b'x')
+    text += read_until(conn, 'Al cerrar', 10)
+    conn.sendall(b'4')
+    text += read_until(conn, 'Al cerrar', 10)
+    conn.sendall(b'\r')
+    result = read_until(conn, 'Pulsa una tecla', 10)
+    text += result
+    expect_boot(result, 'ULTIMO INTENTO REGISTRADO', 'menu: diagnostico con numero y Enter', failures)
+    conn.sendall(b'x')
+    text += read_until(conn, 'Al cerrar', 10)
+    conn.sendall(b'q')
+    text += read_until(conn, 'ultra:', 10)
+    print('VERDE [menu: Q devuelve la consola]')
+    return text
+
+
 def check_window(conn, failures):
     """W2: the first Wayland window, seen on the emulated screen and closed with its keyboard.
 
@@ -189,7 +217,7 @@ def check_window(conn, failures):
     through udev, libinput and Wayland, and cage must end cleanly.
     """
     t = ''
-    conn.sendall(b'ultra-escritorio > /tmp/escritorio.log 2>&1 &\n')
+    conn.sendall(b'ultra-escritorio --auto > /tmp/escritorio.log 2>&1 &\n')
     t += read_until(conn, 'ultra:', 10)
     tmp = pathlib.Path(tempfile.gettempdir())
     share, png = 0.0, tmp / 'ultra-ventana.png'
@@ -416,6 +444,7 @@ def main():
             # Wayland stage W1: the init mounts Arch's base system as a root at /arch.
             expect_boot(first, 'VERDE [SISTEMA]: base Arch en /arch', 'arranque 1: sistema base de Arch montado', failures)
             transcript += run(conn, BOOT1, failures)
+            transcript += check_menu(conn, failures)
             # Wayland stage W2: the first window, seen and closed through the emulated hardware.
             transcript += check_window(conn, failures)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset

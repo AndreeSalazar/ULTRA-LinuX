@@ -102,6 +102,7 @@ busybox=/usr/bin/busybox
     echo "file /bin/probar-caja $lab/rootfs/bin/probar-caja 0755 0 0"
     echo "file /bin/ultra-entrar $lab/rootfs/bin/ultra-entrar 0755 0 0"
     echo "file /bin/ultra-escritorio $lab/rootfs/bin/ultra-escritorio 0755 0 0"
+    echo "file /bin/e $lab/rootfs/bin/e 0755 0 0"
     for applet in $("$busybox" --list); do
         case $applet in busybox|init|linuxrc) continue;; esac
         echo "slink /bin/$applet busybox 0777 0 0"
@@ -216,7 +217,7 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente; do
+    for helper in ultra-sesion ultra-cliente ultra-menu; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     # pacman's hook leaves udev's hardware database almost empty outside a booted system.

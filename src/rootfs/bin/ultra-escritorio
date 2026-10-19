@@ -2,12 +2,22 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # auto: NVIDIA GLES when a real NVIDIA DRM device exists, software otherwise.
 mode=auto
+# Keep unattended callers automatic; the console gets the keyboard menu.
+if [ $# -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
+    set -- --menu
+fi
 case "${1:-}" in
+    --menu)
+        [ $# -eq 1 ] || { echo 'Uso: ultra-escritorio --menu'; exit 2; }
+        exec chroot /arch /usr/bin/env -i PATH=/usr/local/bin:/usr/bin \
+            GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
+            /usr/bin/bash /usr/local/libexec/ultra-menu ;;
     --auto) shift ;;
     --software) mode=software; shift ;;
     --nvidia) mode=nvidia; shift ;;
     --help)
-        echo 'Uso: ultra-escritorio [--auto|--software|--nvidia] [--] [programa argumentos]'
+        echo 'Uso: e | ultra-escritorio --menu'
+        echo 'Directo: ultra-escritorio [--auto|--software|--nvidia] [--] [programa argumentos]'
         exit 0 ;;
 esac
 [ "${1:-}" != -- ] || shift

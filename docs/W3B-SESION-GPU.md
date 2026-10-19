@@ -8,15 +8,33 @@ y datos conservados. [Evidencia final](../evidencias/w3b/README.md): generico
 BMO 66/66, disco 60/60, PC BMO 70/70; seleccion automatica y recuperacion
 aprobadas. La prueba GLES NVIDIA en el PC sigue pendiente.
 
+Actualizacion del menu: ambos perfiles se reconstruyeron e instalaron de
+nuevo; generico BMO 70/70 y PC BMO 74/74. Ver
+[evidencia del menu](../evidencias/menu-escritorio/README.md).
+
 ## Comportamiento
 
-ultra-escritorio elige automaticamente NVIDIA si existe un unico dispositivo
+En la consola escribe solamente `e`. Abre el menu con flechas arriba/abajo y
+Enter. Las teclas 1-6 seleccionan una opcion; Enter la ejecuta. Esc o Q vuelve
+a la consola. Opciones: automatico, NVIDIA, recuperacion software, ultimo
+diagnostico, estado NVIDIA y salir. Tras cerrar Foot con `exit`, una tecla
+devuelve al menu. Los fallos tambien regresan al menu para elegir recuperacion.
+El diagnostico muestra las ultimas 100 lineas de cada registro temporal;
+puede pertenecer a una sesion anterior si el nuevo intento no llego al cliente.
+
+`ultra-escritorio` sin argumentos abre ese mismo menu si entrada y salida
+son terminales. Para scripts y pruebas usar `--auto` de forma explicita;
+sin terminal conserva la seleccion automatica. `--menu` requiere consola.
+La interfaz llama al mismo preparador; no modifica permisos ni el renderer.
+
+El modo automatico elige NVIDIA si existe un unico dispositivo
 DRM con driver nvidia. No supone que su nombre sea card0: recorre sysfs y
 selecciona el nodo por su driver. Con mas de una GPU NVIDIA requiere ampliar
 la seleccion explicita; no escoge una arbitrariamente.
 
 ```sh
-ultra-escritorio
+e
+ultra-escritorio --auto
 ultra-escritorio --nvidia
 ultra-escritorio --software
 ultra-escritorio --software -- foot
@@ -61,10 +79,11 @@ se conservan en evidencias/w3b; la correccion se reconstruye antes de instalar.
 Arrancar ULTRA LinuX PC desde F11 y ejecutar:
 
 ```sh
-ultra-escritorio --nvidia
+e
 ```
 
-Dentro de Foot, comprobar identidad y driver:
+Elegir "Escritorio NVIDIA (GPU)" con flecha abajo y Enter. Dentro de Foot,
+comprobar identidad y driver:
 
 ```sh
 id
@@ -72,7 +91,9 @@ grep -E 'Uid:|Gid:|CapEff:|CapBnd:|NoNewPrivs:' /proc/self/status
 nvidia-smi
 ```
 
-Cerrar con exit. Desde la consola de ULTRA:
+Cerrar con exit, pulsar una tecla y elegir "Ver ultimo diagnostico" en el
+menu. "Ver estado NVIDIA" evita escribir nvidia-smi. La consulta directa
+desde la consola sigue disponible:
 
 ```sh
 ultra-entrar /usr/bin/grep -E 'EGL vendor|GL vendor|GL renderer|CREDENCIALES' /run/ultra-escritorio/ultima.log
