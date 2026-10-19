@@ -118,8 +118,11 @@ El laboratorio de velocidad está diseñado pero sin implementar: ver [LABORATOR
 
 1. **Fase 1: shell propia.** Hecha.
    **Fase 1.5: blindaje de C.** Hecha: tres guardianes, campo de minas y caja.
-2. **Fase 2: kernel genérico x86-64 + perfil de tu PC.** Primer paso hecho (perfil `generico`); faltan el arranque desde disco y el perfil de tu PC. Arranque en cualquier PC moderno y perfil afinado para el Ryzen y la A320M: NVMe/SATA, USB, red, sonido, EFI y framebuffer. La RTX 3060 (Ampere) usará el módulo `nvidia-open`, que exige módulos de kernel activados.
-3. **Fase 3: sistema base.** Disco con glibc y pacman sobre tu kernel; supervisión al estilo Void hecha con el init C blindado y servicios en cajas.
-4. **Fase 4: gráficos y juegos.** Mesa, Vulkan con el driver NVIDIA, Wayland, KDE Plasma, gamescope y Steam.
+2. **Fase 2: kernel genérico x86-64 + perfil de tu PC.** Casi hecha: perfiles `generico` y `pc` (Zen 3), arranque desde disco sin GRUB, detección con memoria, y primer arranque en el metal desde `A:\` con F11. Falta medir `pc` en el PC real y cargar `nvidia-open` para la RTX 3060.
+   **Siguiente: arranque con vuelta atrás.** El perfil `pc` se prueba solo y, si falla tres veces, vuelve al genérico.
+3. **Fase 3: sistema base.** Disco con glibc y pacman **compatible con Arch** sobre tu kernel; supervisión al estilo Void hecha con el init C blindado y servicios en cajas. Después, Flatpak y distrobox para abrir los demás ecosistemas.
+4. **Fase 4: gráficos y juegos.** Mesa, Vulkan con el driver NVIDIA, **Wayland**, KDE Plasma, gamescope y Steam (compatibles con SteamOS, sin copiarlo).
 5. **Fase 5: identidad ULTRA.** Raíz inmutable A/B al estilo SteamOS y ajustes del kernel medidos frente a la referencia.
-6. **Fase 6: el PC real.** Arranque dual sin tocar Windows, con recuperación.
+6. **Fase 6: el PC real.** Arranque dual sin tocar Windows, con recuperación. Ya empezado: ULTRA arranca desde `A:` con su propia entrada F11 y Windows sigue siendo el predeterminado.
+
+**Enfoque:** compatible con los ecosistemas (Arch, SteamOS, Flatpak, contenedores, Wine), nunca una copia ni sus marcas. Cada pieza nueva se abre, se mide, se vigila con guardianes y se documenta. Detalle en [PLAN.md](PLAN.md#enfoque-compatible-no-copia-18-10-2026).

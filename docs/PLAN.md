@@ -16,3 +16,35 @@ Kernel oficial sin cambios compilado con GCC, commit/configuración/herramientas
 ## Registro por experimento
 
 Pregunta; commit base; cambio; configuración; herramienta; prueba; resultado; comparación; clasificación ROJO/AMARILLO/VERDE; motivo; limitaciones; acción siguiente. Ningún resultado verde debe extrapolarse a todo el sistema.
+## Enfoque: compatible, no copia (18-10-2026)
+
+ULTRA LinuX no fusiona distribuciones ni usa sus nombres o marcas. Tiene **su propia base** (kernel, init C con guardianes, sistema inmutable en EROFS) y **habla el idioma** de cada ecosistema, para que sus aplicaciones funcionen:
+
+| Ecosistema | Cómo llega | Qué tiene que ofrecer ULTRA |
+|---|---|---|
+| Arch (pacman, AUR) | Paquetes compatibles con Arch | glibc y rutas `/usr` con la misma ABI (fase 3) |
+| SteamOS (Steam, Proton, gamescope) | Programas de Arch sobre una raíz inmutable | NVIDIA, Vulkan, Wayland (fase 4) |
+| Flatpak | Apps de cualquier distribución, empaquetadas aparte | Espacios de nombres de usuario, `bubblewrap` |
+| Ubuntu, Fedora, Debian… | `distrobox` o `podman` | Contenedores y cgroups v2 |
+| Windows | Wine y Proton | Lo mismo que Steam |
+
+La raíz sigue inmutable y las apps viven aparte (`/datos`, Flatpak, contenedores): una app rota no toca el sistema. Las apps ajenas usan su propia caja (`bubblewrap`, `pressure-vessel`); la `caja` de ULTRA protege la base y gana perfiles medidos por ecosistema, uno a uno.
+
+### Método: abrir, entender, vigilar, facilitar
+
+Cada pieza que entra (Wayland, Mesa, Steam, Flatpak…) pasa por lo mismo antes de darla por buena:
+1. **Abrir**: leer su código y documentación, y saber de qué está hecha y por qué.
+2. **Medir**: syscalls con `strace`, memoria, tiempos y archivos que toca. Con números, no suposiciones.
+3. **Vigilar**: aplicarle los guardianes de ULTRA (lista blanca medida, Landlock, compilación con guardianes cuando sea posible, campo de minas propio) y anotar qué despierta.
+4. **Exponer y facilitar**: dejar escrito en `docs/` cómo funciona y qué se cambió, para que lo siguiente cueste menos.
+
+### Wayland: la meta divertida
+
+La llegada de Wayland es el primer gran objetivo de este enfoque. Cuando llegue, se estudiará pieza a pieza: el protocolo (sockets Unix y memoria compartida), el compositor (wlroots, KWin o gamescope), DRM/KMS y GBM para la pantalla, libinput para la entrada, Mesa y Vulkan, y XWayland para las apps antiguas. Puntos donde los guardianes pueden aportar: aislar cada cliente en su caja, medir las syscalls reales del compositor, someter el protocolo a pruebas con mensajes malformados y vigilar la memoria del compositor con el perfil vigía.
+
+### Orden
+
+1. **Arranque con vuelta atrás**: el perfil afinado (`pc`) se prueba solo y, si falla tres veces, vuelve al genérico. Es la red de seguridad de todo lo demás.
+2. **Fase 3**: base con glibc y pacman compatible con Arch.
+3. **Flatpak y distrobox**: abren casi todos los ecosistemas a la vez.
+4. **Fase 4**: NVIDIA, Vulkan, **Wayland**, gamescope y Steam.
