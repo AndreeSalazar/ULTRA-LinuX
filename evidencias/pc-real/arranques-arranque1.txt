@@ -1,0 +1,1 @@
+arranque=deteccion componentes=50 modulos=3 deteccion_us=184075 carga_us=21614 total_us=205689

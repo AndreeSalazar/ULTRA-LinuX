@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import hashlib, pathlib, secrets, shutil, socket, subprocess, sys, time
+import hashlib, pathlib, secrets, shutil, socket, subprocess, sys, tempfile, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
@@ -139,6 +139,40 @@ def expect_boot(boot, expected, label, failures):
     print(('VERDE' if expected in boot else 'ROJO'), f'[{label}]')
     if expected not in boot: failures.append(label)
 
+def check_screen(failures):
+    """The screen must be alive: typing on the keyboard into the tty1 shell changes it.
+
+    Counting lit pixels is not enough: with no console driver the firmware's last
+    image stays frozen on the monitor, text and logo included.
+    """
+    # HMP splits arguments on spaces and this project's path has one: capture in TEMP.
+    tmp = pathlib.Path(tempfile.gettempdir())
+    def dump(mon, name, fmt):
+        (tmp / name).unlink(missing_ok=True)
+        mon.sendall(f'screendump {tmp / name} -f {fmt}\n'.encode())
+        for _ in range(50):
+            time.sleep(0.1)
+            if (tmp / name).exists() and (tmp / name).stat().st_size > 0: break
+        time.sleep(0.3)
+        return (tmp / name).read_bytes()
+    try:
+        mon = socket.create_connection(('127.0.0.1', PORT + 1), timeout=5)
+        before = dump(mon, 'ultra-antes.ppm', 'ppm').split(maxsplit=4)[4]
+        # PS/2 keyboard -> tty1 shell: "echo 4242" and Enter.
+        for key in ['e', 'c', 'h', 'o', 'spc', '4', '2', '4', '2', 'ret']:
+            mon.sendall(f'sendkey {key}\n'.encode()); time.sleep(0.05)
+        time.sleep(1.5)
+        after = dump(mon, 'ultra-despues.ppm', 'ppm').split(maxsplit=4)[4]
+        dump(mon, 'ultra-pantalla.png', 'png')
+        mon.close()
+        shutil.copyfile(tmp / 'ultra-pantalla.png', LOG.with_name(LOG.stem + '-pantalla.png'))
+    except (OSError, IndexError) as exc:
+        print('ROJO [pantalla]:', exc); failures.append('pantalla'); return
+    changed = sum(1 for i in range(0, min(len(before), len(after)), 3) if before[i:i + 3] != after[i:i + 3])
+    ok = len(before) == len(after) and changed > 100
+    print(('VERDE' if ok else 'ROJO'), f'[pantalla viva: el teclado cambio {changed} pixeles en tty1]')
+    if not ok: failures.append('pantalla congelada')
+
 def main():
     check_kernel()
     if DISCO:
@@ -155,7 +189,8 @@ def main():
     def start():
         proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '1024',
                                  *boot, '-nic', 'none', '-display', 'none', '-no-reboot',
-                                 '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on'],
+                                 '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on',
+                                 '-monitor', f'tcp:127.0.0.1:{PORT + 1},server=on,wait=off'],
                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         for _ in range(50):
             try:
@@ -192,6 +227,8 @@ def main():
             transcript += '\n===== ARRANQUE 2 =====\n' + second
             expect_boot(second, 'arranque guiado por PC.configuracion', 'arranque 2: guiado por PC.configuracion', failures)
             transcript += run(conn, BOOT2, failures)
+            # The serial port is not the screen: a PC shows only what reaches tty1.
+            check_screen(failures)
         conn.sendall(b'poweroff\n')
         transcript += read_until(conn, 'APAGADO', 10)
         qemu.wait(timeout=15)

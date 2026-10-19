@@ -34,10 +34,16 @@ struct console {
 static struct console consoles[MAX_CONSOLES];
 static size_t nconsoles;
 
-static void emit(const char *s) {
+/*
+ * /dev/console is the last console on the command line: the serial port the
+ * tests read. The screen of a real PC is tty1, so every report goes there too.
+ */
+static int screen_fd = -1;
+
+static void write_all_fd(int fd, const char *s) {
     size_t left = strlen(s);
     while (left > 0) {
-        ssize_t n = write(STDOUT_FILENO, s, left);
+        ssize_t n = write(fd, s, left);
         if (n < 0) {
             if (errno == EINTR) continue;
             return;
@@ -45,6 +51,23 @@ static void emit(const char *s) {
         s += n;
         left -= (size_t)n;
     }
+}
+
+static void emit(const char *s) {
+    write_all_fd(STDOUT_FILENO, s);
+    if (screen_fd >= 0) write_all_fd(screen_fd, s);
+}
+
+static void open_screen(void) {
+    struct stat out, tty;
+    int fd = open("/dev/tty1", O_WRONLY | O_NOCTTY | O_CLOEXEC);
+    if (fd < 0) return;
+    /* Already the console: one copy is enough. */
+    if (fstat(STDOUT_FILENO, &out) == 0 && fstat(fd, &tty) == 0 && out.st_rdev == tty.st_rdev) {
+        close(fd);
+        return;
+    }
+    screen_fd = fd;
 }
 
 void report(const char *level, const char *code, const char *detail) {
@@ -163,6 +186,7 @@ int main(void) {
     }
     mount_fs("devtmpfs", "/dev", MS_NOSUID);
     attach_console();
+    open_screen();
     /* If PID 1 itself trips a guardian, the flag prints before the kernel panics. */
     ultra_guard_install("init");
     mount_fs("proc", "/proc", MS_NOSUID | MS_NODEV | MS_NOEXEC);

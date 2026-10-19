@@ -1,0 +1,64 @@
+# ULTRA LinuX - PC.configuración
+# Escrito por el init en el primer arranque en este PC. Borrarlo fuerza otra deteccion.
+# Solo elige modulos: el codigo sale de ULTRA-SISTEMA-A, que es de solo lectura.
+kernel=7.3.0-rc7-g32c52ec87d62
+huella_pci=9a2f2f5cb411bf9f
+deteccion_us=184075
+carga_us=21614
+
+[componentes]
+pci 0000:00:00.0 | AMD 1022:1480 puente de host | driver=- | modulos=- | pci:v00001022d00001480sv00001462sd00007C52bc06sc00i00
+pci 0000:00:00.2 | AMD 1022:1481 otro | driver=- | modulos=- | pci:v00001022d00001481sv00001022sd00001481bc08sc06i00
+pci 0000:00:01.0 | AMD 1022:1482 puente de host | driver=- | modulos=- | pci:v00001022d00001482sv00000000sd00000000bc06sc00i00
+pci 0000:00:01.1 | AMD 1022:1483 puente PCI | driver=pcieport | modulos=- | pci:v00001022d00001483sv00001022sd00001234bc06sc04i00
+pci 0000:00:01.3 | AMD 1022:1483 puente PCI | driver=pcieport | modulos=- | pci:v00001022d00001483sv00001022sd00001234bc06sc04i00
+pci 0000:00:02.0 | AMD 1022:1482 puente de host | driver=- | modulos=- | pci:v00001022d00001482sv00000000sd00000000bc06sc00i00
+pci 0000:00:03.0 | AMD 1022:1482 puente de host | driver=- | modulos=- | pci:v00001022d00001482sv00000000sd00000000bc06sc00i00
+pci 0000:00:03.1 | AMD 1022:1483 puente PCI | driver=pcieport | modulos=- | pci:v00001022d00001483sv00001022sd00001234bc06sc04i00
+pci 0000:00:04.0 | AMD 1022:1482 puente de host | driver=- | modulos=- | pci:v00001022d00001482sv00000000sd00000000bc06sc00i00
+pci 0000:00:05.0 | AMD 1022:1482 puente de host | driver=- | modulos=- | pci:v00001022d00001482sv00000000sd00000000bc06sc00i00
+pci 0000:00:07.0 | AMD 1022:1482 puente de host | driver=- | modulos=- | pci:v00001022d00001482sv00000000sd00000000bc06sc00i00
+pci 0000:00:07.1 | AMD 1022:1484 puente PCI | driver=pcieport | modulos=- | pci:v00001022d00001484sv00001022sd00001484bc06sc04i00
+pci 0000:00:08.0 | AMD 1022:1482 puente de host | driver=- | modulos=- | pci:v00001022d00001482sv00000000sd00000000bc06sc00i00
+pci 0000:00:08.1 | AMD 1022:1484 puente PCI | driver=pcieport | modulos=- | pci:v00001022d00001484sv00001022sd00001484bc06sc04i00
+pci 0000:00:14.0 | AMD 1022:790b SMBus | driver=- | modulos=- | pci:v00001022d0000790Bsv00001462sd00007C52bc0Csc05i00
+pci 0000:00:14.3 | AMD 1022:790e puente ISA | driver=- | modulos=- | pci:v00001022d0000790Esv00001462sd00007C52bc06sc01i00
+pci 0000:00:18.0 | AMD 1022:1440 puente de host | driver=- | modulos=- | pci:v00001022d00001440sv00000000sd00000000bc06sc00i00
+pci 0000:00:18.1 | AMD 1022:1441 puente de host | driver=- | modulos=- | pci:v00001022d00001441sv00000000sd00000000bc06sc00i00
+pci 0000:00:18.2 | AMD 1022:1442 puente de host | driver=- | modulos=- | pci:v00001022d00001442sv00000000sd00000000bc06sc00i00
+pci 0000:00:18.3 | AMD 1022:1443 puente de host | driver=k10temp | modulos=k10temp | pci:v00001022d00001443sv00000000sd00000000bc06sc00i00
+pci 0000:00:18.4 | AMD 1022:1444 puente de host | driver=- | modulos=- | pci:v00001022d00001444sv00000000sd00000000bc06sc00i00
+pci 0000:00:18.5 | AMD 1022:1445 puente de host | driver=- | modulos=- | pci:v00001022d00001445sv00000000sd00000000bc06sc00i00
+pci 0000:00:18.6 | AMD 1022:1446 puente de host | driver=- | modulos=- | pci:v00001022d00001446sv00000000sd00000000bc06sc00i00
+pci 0000:00:18.7 | AMD 1022:1447 puente de host | driver=- | modulos=- | pci:v00001022d00001447sv00000000sd00000000bc06sc00i00
+pci 0000:01:00.0 | 2646:5017 NVMe | driver=nvme | modulos=- | pci:v00002646d00005017sv00002646sd00005017bc01sc08i02
+pci 0000:03:00.0 | AMD 1022:43bc USB | driver=xhci_hcd | modulos=- | pci:v00001022d000043BCsv00001B21sd00001142bc0Csc03i30
+pci 0000:03:00.1 | AMD 1022:43b8 SATA AHCI | driver=ahci | modulos=- | pci:v00001022d000043B8sv00001B21sd00001062bc01sc06i01
+pci 0000:03:00.2 | AMD 1022:43b3 puente PCI | driver=pcieport | modulos=- | pci:v00001022d000043B3sv00001B21sd00000201bc06sc04i00
+pci 0000:20:04.0 | AMD 1022:43b4 puente PCI | driver=pcieport | modulos=- | pci:v00001022d000043B4sv00001B21sd00003306bc06sc04i00
+pci 0000:20:05.0 | AMD 1022:43b4 puente PCI | driver=pcieport | modulos=- | pci:v00001022d000043B4sv00001B21sd00003306bc06sc04i00
+pci 0000:20:06.0 | AMD 1022:43b4 puente PCI | driver=pcieport | modulos=- | pci:v00001022d000043B4sv00001B21sd00003306bc06sc04i00
+pci 0000:20:07.0 | AMD 1022:43b4 puente PCI | driver=pcieport | modulos=- | pci:v00001022d000043B4sv00001B21sd00003306bc06sc04i00
+pci 0000:25:00.0 | Realtek 10ec:8168 red Ethernet | driver=r8169 | modulos=r8169 | pci:v000010ECd00008168sv00001462sd00007C52bc02sc00i00
+pci 0000:29:00.0 | NVIDIA 10de:2504 pantalla | driver=- | modulos=- | pci:v000010DEd00002504sv00001462sd0000397Dbc03sc00i00
+pci 0000:29:00.1 | NVIDIA 10de:228e sonido HD | driver=snd_hda_intel | modulos=snd_hda_intel | pci:v000010DEd0000228Esv00001462sd0000397Dbc04sc03i00
+pci 0000:2a:00.0 | AMD 1022:148a instrumentacion | driver=- | modulos=- | pci:v00001022d0000148Asv00001022sd0000148Abc13sc00i00
+pci 0000:2b:00.0 | AMD 1022:1485 instrumentacion | driver=- | modulos=- | pci:v00001022d00001485sv00001022sd00001485bc13sc00i00
+pci 0000:2b:00.1 | AMD 1022:1486 cifrado | driver=- | modulos=- | pci:v00001022d00001486sv00001022sd00001486bc10sc80i00
+pci 0000:2b:00.3 | AMD 1022:149c USB | driver=xhci_hcd | modulos=- | pci:v00001022d0000149Csv00001462sd00007C52bc0Csc03i30
+pci 0000:2b:00.4 | AMD 1022:1487 sonido HD | driver=snd_hda_intel | modulos=snd_hda_intel | pci:v00001022d00001487sv00001462sd00009C52bc04sc03i00
+usb 1-0:1.0 | xHCI Host Controller | driver=hub | modulos=- | usb:v1D6Bp0002d0703dc09dsc00dp01ic09isc00ip00in00
+usb 2-0:1.0 | xHCI Host Controller | driver=hub | modulos=- | usb:v1D6Bp0003d0703dc09dsc00dp03ic09isc00ip00in00
+usb 3-0:1.0 | xHCI Host Controller | driver=hub | modulos=- | usb:v1D6Bp0002d0703dc09dsc00dp01ic09isc00ip00in00
+usb 3-1:1.0 | USB Audio Device | driver=- | modulos=- | usb:v1B3Fp2008d0100dc00dsc00dp00ic01isc01ip00in00
+usb 3-1:1.1 | USB Audio Device | driver=- | modulos=- | usb:v1B3Fp2008d0100dc00dsc00dp00ic01isc02ip00in01
+usb 3-1:1.2 | USB Audio Device | driver=- | modulos=- | usb:v1B3Fp2008d0100dc00dsc00dp00ic01isc02ip00in02
+usb 3-1:1.3 | USB Audio Device | driver=usbhid | modulos=- | usb:v1B3Fp2008d0100dc00dsc00dp00ic03isc00ip00in03
+usb 3-2:1.0 | USB Keyboard | driver=usbhid | modulos=- | usb:v1A2Cp635Ad0110dc00dsc00dp00ic03isc01ip01in00
+usb 3-2:1.1 | USB Keyboard | driver=usbhid | modulos=- | usb:v1A2Cp635Ad0110dc00dsc00dp00ic03isc01ip02in01
+usb 4-0:1.0 | xHCI Host Controller | driver=hub | modulos=- | usb:v1D6Bp0003d0703dc09dsc00dp03ic09isc00ip00in00
+
+[modulos]
+r8169
+k10temp
+snd_hda_intel

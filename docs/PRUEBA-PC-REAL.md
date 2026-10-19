@@ -2,7 +2,14 @@
 
 PC: MSI A320M-A PRO MAX, Ryzen 5 5600X y RTX 3060. **Windows no se toca**: no se escribe ninguna tabla de particiones ni la partición EFI de Windows.
 
-Estado: los dos caminos están probados en QEMU con firmware UEFI (`evidencias/arranque-bmo-archivos.log` y `evidencias/arranque-disco-persistente.log`). **Todavía no ha arrancado en el metal.**
+Estado: los dos caminos están probados en QEMU con firmware UEFI (`evidencias/arranque-bmo-archivos.log` y `evidencias/arranque-disco-persistente.log`).
+
+**Primer arranque en el metal (18-10-2026), desde `A:\` con F11:** el sistema funcionó. Detectó 50 componentes, cargó `r8169` (red Realtek 10ec:8168), `k10temp` (sensor del Ryzen) y `snd_hda_intel` (sonido de la placa 1022:1487 y HDMI de la RTX 3060 10de:228e), y guardó todo en `A:\ULTRA\`. La detección tardó **184 ms** y la carga 21,6 ms (`evidencias/pc-real/`). En QEMU la detección era de 0,7 ms: en el hardware real sí hay tiempo que ganar con el arranque guiado.
+
+**Pero la pantalla se quedó negra.** El kernel tenía `simpledrm` sin consola de framebuffer (`DRM_FBDEV_EMULATION` y `FRAMEBUFFER_CONSOLE` apagadas), así que nadie dibujaba texto; y los mensajes del init solo iban al puerto serie. Las pruebas no lo veían porque leían solo el puerto serie. Corregido:
+- las dos opciones son ahora obligatorias en el perfil `generico`;
+- el init copia sus mensajes a `tty1`, la pantalla;
+- la prueba captura el monitor emulado, escribe `echo 4242` con el teclado emulado y exige que la pantalla cambie. Con el kernel anterior da ROJO (0 píxeles cambiados), igual que en el PC; con el corregido, VERDE (`evidencias/pantalla-bmo-tty1.png`).
 
 ## Dónde vive: archivos dentro de `A:\` (BMO)
 
@@ -123,7 +130,7 @@ Para volver a Windows basta con no elegir ULTRA en F11: Windows sigue siendo el 
 
 - **Peligro dentro de la shell**: eres root y el kernel ve el disco de Windows (`/dev/nvme0n1`), la partición EFI de Windows y `F:`. El init no monta nada de eso, pero un `dd` o `mkfs` escrito a mano sí podría dañarlo. No ejecutes nada sobre `/dev/nvme*` ni `/dev/sd*`.
 - **`/datos` sobre FAT32**: el ext4 tiene diario, pero el FAT32 que lo contiene no. Un corte de luz con ULTRA encendido puede dejar `A:` para revisar.
-- **El arranque guiado no gana tiempo en QEMU**: con `A:` la lectura pasa por FAT32 y loop, y salió 1,9 ms más lento que la detección completa. En el PC real se mide en cada arranque (`arranques.txt`).
+- **El arranque guiado no gana tiempo en QEMU**: con `A:` la lectura pasa por FAT32 y loop, y salió 1,9 ms más lento que la detección completa. En el PC real la detección costó 184 ms, así que ahí sí se espera ganancia; se mide en cada arranque (`arranques.txt`).
 - **Sin sonido todavía**: se carga el controlador `snd_hda_intel`, pero el códec Realtek de la placa no está compilado y el bus `hdaudio` aún no se recorre.
 - **Sin driver NVIDIA**: solo la pantalla básica del firmware; `nvidia-open` llega en una fase posterior.
 - **Red sin configurar**: `r8169` crea `eth0`, pero no hay DHCP.

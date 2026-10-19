@@ -55,7 +55,8 @@ if($Accion -eq 'Copiar'){
         if((Get-FileHash $dst).Hash -ine (Get-Esperado $name)){throw "ROJO [COPIA]: $dst no quedo igual que el original"}
         Write-Host "VERDE [COPIA]: $dst"
     }
-    Write-Host "VERDE: ULTRA LinuX instalado en ${Unidad}:\ (disco $($part.DiskNumber), particion $($part.PartitionNumber)). Siguiente: -Accion CrearEntrada"
+    $next=if(Get-Entrada){'elegir ULTRA LinuX en F11'}else{'-Accion CrearEntrada'}
+    Write-Host "VERDE: ULTRA LinuX instalado en ${Unidad}:\ (disco $($part.DiskNumber), particion $($part.PartitionNumber)). Siguiente: $next"
 }elseif($Accion -eq 'CrearEntrada'){
     Test-Destino | Out-Null
     if(-not(Test-Path -LiteralPath (Join-Path $root 'EFI\ULTRA\ULTRA.EFI'))){throw 'AMARILLO: primero -Accion Copiar'}
