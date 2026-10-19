@@ -38,6 +38,8 @@ Si el kernel no ofrece Landlock o seccomp, `caja` se niega a ejecutar: nunca hay
 
 ### Resultados
 
+El campo de minas crece por rondas; el detalle actualizado, los hallazgos y cómo añadir minas están en [CAMPO-MINAS.md](CAMPO-MINAS.md). Ronda 2: 36/36 de compilación y 34 VERDE + 1 NEUTRA + 4 AMARILLO + 0 ROJO de ejecución. Lo que sigue es la ronda 1.
+
 - **Campo de minas** (`scripts/campo-minas.sh`, en el taller): **31 VERDE, 1 AMARILLO, 0 ROJO** (`evidencias/fase1.5-campo-minas.txt`). Son 15 minas de compilación que no compilan y 17 minas de ejecución detenidas en producción.
 - **El AMARILLO honesto**: un uso tras `free` en producción no se detecta al ejecutar. Lo atrapan el analizador al compilar (cuando el camino es visible) y ASan en diagnóstico.
 - **Arranque blindado** (`evidencias/fase1.5-arranque-blindado.log`): en el kernel ULTRA, CET activo desde PID 1 (`x86_Thread_features: shstk`) hasta los programas, retorno secuestrado bloqueado, trampa de UB y FORTIFY. `probar-caja` da 11/11: fugas de escritura y lectura rechazadas por Landlock; `socket`, `mount` y `kill` nombrados y la caja destruida.

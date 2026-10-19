@@ -19,6 +19,9 @@ CHECKS = [
     ('minas retorno-secuestrado', 'SEGV_CPERR'),
     ('minas entero-desborde', 'GUARDIAN-UB'),
     ('minas copia-pila', 'buffer overflow detected'),
+    ('minas memcpy-solapado', 'FRONTERA-SOLAPE'),
+    ('minas alias-estricto', 'NEUTRALIZADA'),
+    ('minas secuestrar-arranque', 'FRONTERA-MEMORIA'),
     ('grep x86_Thread /proc/1/status', 'shstk'),
     ('probar-caja', 'RESUMEN CAJA: VERDE=11 ROJO=0'),
 ]

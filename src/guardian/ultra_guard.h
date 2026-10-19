@@ -12,12 +12,17 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* Mina: these copy or format without knowing the destination size. */
-#pragma GCC poison strcpy strcat sprintf vsprintf gets strtok
+/*
+ * Mines: strcpy/strcat/sprintf/gets write without knowing the destination size;
+ * strncpy/strncat may leave the string without its terminator; strtok keeps
+ * hidden global state; atoi/atol/atoll are UB when the number does not fit.
+ */
+#pragma GCC poison strcpy strcat sprintf vsprintf gets strtok strncpy strncat atoi atol atoll
 
 /* Stops the program with a flag. Never returns. */
 _Noreturn void ultra_fail(const char *code, const char *file, int line, const char *why);
@@ -66,6 +71,25 @@ const char *ultra_explain_signal(int sig);
  */
 bool ultra_copy(char *dst, size_t cap, const char *src);
 bool ultra_append(char *dst, size_t cap, const char *src);
+#ifndef ULTRA_CRUDO
+/*
+ * memcpy with overlapping regions is UB, and neither glibc nor FORTIFY checks
+ * it. Every memcpy after this header checks the overlap, then keeps FORTIFY's
+ * destination-size check. The destination is evaluated once.
+ */
+_Noreturn void ultra_fail_overlap(const char *file, int line);
+static inline void *ultra_memcpy(void *d, const void *s, size_t n, size_t dsize, const char *file, int line) {
+    /* Size first: an overflowing copy also overlaps its neighbour, and the flag must name the real cause. */
+    if (n > dsize) return __builtin___memcpy_chk(d, s, n, dsize);
+    uintptr_t a = (uintptr_t)d, b = (uintptr_t)s;
+    if (n && (a < b ? b - a < n : a - b < n)) ultra_fail_overlap(file, line);
+    return __builtin___memcpy_chk(d, s, n, dsize);
+}
+#define memcpy(d, s, n) \
+    ({ void *ultra_d_ = (d); \
+       ultra_memcpy(ultra_d_, (s), (n), __builtin_dynamic_object_size(ultra_d_, 0), __FILE__, __LINE__); })
+#endif
+
 #define ULTRA_COPY(dst, src) ultra_copy((dst), ULTRA_LEN(dst), (src))
 #define ULTRA_APPEND(dst, src) ultra_append((dst), ULTRA_LEN(dst), (src))
 

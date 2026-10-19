@@ -55,7 +55,7 @@ static void put_dec(long v) {
 const char *ultra_explain_signal(int sig) {
     switch (sig) {
     case SIGILL:  return "GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto";
-    case SIGSEGV: return "FRONTERA-MEMORIA: acceso a memoria no valida o retorno rechazado por la pila sombra";
+    case SIGSEGV: return "FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)";
     case SIGBUS:  return "FRONTERA-MEMORIA: acceso a memoria mal mapeada o desalineada";
     case SIGFPE:  return "UB-ARITMETICA: division por cero o desborde aritmetico";
     case SIGABRT: return "ABORTO-GUARDIAN: FORTIFY, protector de pila o glibc detecto corrupcion (ver la linea anterior)";
@@ -74,6 +74,8 @@ static void flag_handler(int sig, siginfo_t *info, void *context) {
     put_dec(sig);
     put(" code=");
     put_dec(info->si_code);
+    if (sig == SIGSEGV && info->si_code == SEGV_MAPERR) put(" (SEGV_MAPERR: direccion sin mapear: pagina de guarda, NULL o puntero salvaje)");
+    if (sig == SIGSEGV && info->si_code == SEGV_ACCERR) put(" (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable)");
     if (sig == SIGSEGV && info->si_code == 10) put(" (SEGV_CPERR: la pila sombra CET bloqueo un retorno falso)");
     if (sig == SIGSEGV || sig == SIGBUS) {
         put(" direccion=");
@@ -119,6 +121,10 @@ _Noreturn void ultra_fail(const char *code, const char *file, int line, const ch
     put(why);
     put("\n");
     abort();
+}
+
+_Noreturn void ultra_fail_overlap(const char *file, int line) {
+    ultra_fail("FRONTERA-SOLAPE", file, line, "memcpy con regiones solapadas es UB; usar memmove");
 }
 
 bool ultra_copy(char *dst, size_t cap, const char *src) {
