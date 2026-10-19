@@ -127,7 +127,24 @@ Arranca cada uno 4 o 5 veces, alternando, y apaga siempre con `poweroff`. Cada l
 
 - El arranque guiado gana **unos 187 ms** frente a la detección completa: en el hardware real, `PC.configuración` sí vale la pena.
 - `pc` carga los módulos un 10 % más rápido (trabajo de CPU dentro del kernel), pero el arranque total empata.
-- **El cuello de botella son los 2 segundos del kernel**, no la CPU. Los `dmesg-*.txt` de `informe\` dirán dónde se van.
+- **El cuello de botella son los 2 segundos del kernel**, no la CPU.
+
+### Dónde se iban los 2 segundos (`evidencias/pc-real/dmesg-*.txt`)
+
+El init no empezaba hasta el segundo 2,27 (`Run /init`), porque el kernel espera a que terminen todos los discos SATA, y la placa activa el arranque escalonado (`ahci: SSS flag set, parallel bus scan disabled`). Así revisaba los puertos **uno por uno**:
+
+| Tiempo | Puerto | Coste |
+|---|---|---|
+| 0,92 s | `ata1`, vacío | ~0,3 s |
+| 1,24 s | `ata2`, vacío | ~0,3 s |
+| 1,70 s | `ata5`, SSD de 480 GB (`A:`) | ~0,46 s |
+| 2,20 s | `ata6`, SSD de 120 GB | ~0,5 s |
+
+Unos 1,6 s de 2,0 s. El arranque escalonado protege a los discos mecánicos de un pico de corriente; este PC solo tiene SSD. Arreglo: `ahci.ignore_sss=1` en la línea integrada del kernel, para revisar los puertos en paralelo.
+
+El mismo `dmesg` mostró un bug: la entrada F11 (copia de Windows Boot Manager) pasaba sus datos opcionales al kernel, que los añadía a su línea como `䥗䑎坏S` ("WINDOWS" leído como UTF-16). Arreglo: `CONFIG_CMDLINE_OVERRIDE`, para que solo valga la línea integrada. La prueba comprueba que no llega nada detrás.
+
+Queda otro salto de 0,3 s al iniciar el IOMMU de AMD (`AMD-Vi`). No se toca: protege la memoria frente a los dispositivos.
 
 ## 6. Ver los resultados en Windows
 

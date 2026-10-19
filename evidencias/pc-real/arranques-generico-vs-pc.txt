@@ -8,3 +8,10 @@ arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=985 carga_us
 arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=1005 carga_us=19556 total_us=20561 ganado_us=185128 uptime_ms=2009
 arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=908 carga_us=19340 total_us=20248 ganado_us=185441 uptime_ms=2020
 arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=987 carga_us=19075 total_us=20062 ganado_us=185627 uptime_ms=2000
+arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=903 carga_us=18593 total_us=19496 ganado_us=186193 uptime_ms=2000
+arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=988 carga_us=19302 total_us=20290 ganado_us=185399 uptime_ms=1990
+arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=999 carga_us=18380 total_us=19379 ganado_us=186310 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=946 carga_us=16954 total_us=17900 ganado_us=187789 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=1112 carga_us=17549 total_us=18661 ganado_us=187028 uptime_ms=2000
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=902 carga_us=17551 total_us=18453 ganado_us=187236 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=1005 carga_us=16815 total_us=17820 ganado_us=187869 uptime_ms=2009

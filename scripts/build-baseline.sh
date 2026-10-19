@@ -21,7 +21,10 @@ case $perfil in
         modules_list=(R8169 SND_HDA_INTEL SENSORS_K10TEMP)
         # No boot loader: the firmware runs the kernel directly, so its arguments live inside it.
         # The last console becomes /dev/console; init starts a shell on every active console.
-        cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
+        # ahci.ignore_sss=1: the board sets staggered spin-up, so AHCI scanned the SATA ports one
+        # by one and init waited ~1.6 s for it (evidencias/pc-real/dmesg-*). That protects spinning
+        # disks from a power surge; this PC has only SSDs, so the ports are scanned in parallel.
+        cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet ahci.ignore_sss=1 GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
         required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE VIRTIO_BLK) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
@@ -101,7 +104,9 @@ for option in 64BIT PRINTK TTY VT VT_CONSOLE VGA_CONSOLE FONT_8x16 INPUT INPUT_K
 done
 "$src/scripts/config" --file "$out/.config" --set-str INITRAMFS_SOURCE "$out/initramfs.list" --set-str LSM landlock --enable INITRAMFS_COMPRESSION_NONE --disable SLUB_TINY --disable DEBUG_INFO --disable DEBUG_INFO_BTF --disable WERROR
 [[ $modules = yes ]] || "$src/scripts/config" --file "$out/.config" --disable MODULES
-[[ -z $cmdline ]] || "$src/scripts/config" --file "$out/.config" --enable CMDLINE_BOOL --set-str CMDLINE "$cmdline"
+# CMDLINE_OVERRIDE: only the built-in line. Without it, the EFI stub appends the firmware's load
+# options: an F11 entry copied from Windows Boot Manager passed "WINDOWS" to the kernel.
+[[ -z $cmdline ]] || "$src/scripts/config" --file "$out/.config" --enable CMDLINE_BOOL --set-str CMDLINE "$cmdline" --enable CMDLINE_OVERRIDE
 # Each profile has its own module tree; a different uname -r keeps them from mixing.
 "$src/scripts/config" --file "$out/.config" --set-str LOCALVERSION "$localversion"
 for option in "${modules_list[@]}"; do "$src/scripts/config" --file "$out/.config" --module "$option"; done
@@ -127,6 +132,7 @@ make -s -C "$src" O="$out" ARCH=x86_64 kernelrelease > "$art/kernelrelease.txt"
 sums=("$art/bzImage-tiny64" "$user/init" "$user/caja")
 if [[ -n $cmdline ]]; then
     grep -qx 'CONFIG_CMDLINE_BOOL=y' "$out/.config" || { echo 'ROJO: falta la linea de comandos integrada'; exit 1; }
+    grep -qx 'CONFIG_CMDLINE_OVERRIDE=y' "$out/.config" || { echo 'ROJO: el firmware podria anadir argumentos al kernel'; exit 1; }
     # Boot disk without GRUB, built with sfdisk, mkfs.fat, mtools, mkfs.erofs and mkfs.ext4:
     # nothing is mounted. GPT, with the init finding the Linux partitions by name:
     #   1 ULTRA-ESP        FAT32, the kernel as the firmware's default loader
