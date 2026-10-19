@@ -166,6 +166,51 @@ def expect_boot(boot, expected, label, failures):
     print(('VERDE' if expected in boot else 'ROJO'), f'[{label}]')
     if expected not in boot: failures.append(label)
 
+def check_window(conn, failures):
+    """W2: the first Wayland window, seen on the emulated screen and closed with its keyboard.
+
+    ultra-escritorio starts udevd, seatd and cage with foot. foot paints the whole screen
+    with its background (#242424); then "exit" typed on the PS/2 keyboard must reach foot
+    through udev, libinput and Wayland, and cage must end cleanly.
+    """
+    t = ''
+    conn.sendall(b'ultra-escritorio > /tmp/escritorio.log 2>&1 &\n')
+    t += read_until(conn, 'ultra:', 10)
+    tmp = pathlib.Path(tempfile.gettempdir())
+    share, png = 0.0, tmp / 'ultra-ventana.png'
+    try:
+        mon = socket.create_connection(('127.0.0.1', PORT + 1), timeout=5)
+        for _ in range(30):
+            time.sleep(2)
+            for name in ('ultra-ventana.ppm', 'ultra-ventana.png'):
+                (tmp / name).unlink(missing_ok=True)
+                mon.sendall(f'screendump {tmp / name} -f {name.rsplit(".", 1)[1]}\n'.encode())
+            for _ in range(50):
+                time.sleep(0.1)
+                if png.exists() and png.stat().st_size > 0: break
+            time.sleep(0.3)
+            pixels = (tmp / 'ultra-ventana.ppm').read_bytes().split(maxsplit=4)[4]
+            foot = sum(1 for i in range(0, len(pixels) - 2, 3)
+                       if all(abs(pixels[i + k] - 0x24) <= 6 for k in range(3)))
+            share = foot / max(1, len(pixels) // 3)
+            if share > 0.6: break
+        shutil.copyfile(png, LOG.with_name(LOG.stem + '-ventana.png'))
+        ok = share > 0.6
+        print(('VERDE' if ok else 'ROJO'), f'[ventana Wayland: foot cubre el {share:.0%} de la pantalla]')
+        if not ok: failures.append('ventana Wayland')
+        # Close it from the emulated keyboard: udev -> libinput -> cage -> foot.
+        for key in ['e', 'x', 'i', 't', 'ret']:
+            mon.sendall(f'sendkey {key}\n'.encode()); time.sleep(0.05)
+        mon.close()
+    except (OSError, IndexError) as exc:
+        print('ROJO [ventana Wayland]:', exc); failures.append('ventana Wayland')
+    time.sleep(4)
+    # The shell printed "[1]+ Done" and an extra prompt meanwhile: sync on a unique marker first.
+    conn.sendall(b'echo SINC-$((3+3))\n')
+    t += read_until(conn, 'SINC-6', 10) + read_until(conn, 'ultra:', 10)
+    t += run(conn, [('echo CAGE-$(grep -c "cage termino (salida 0)" /tmp/escritorio.log)', 'CAGE-1')], failures)
+    return t
+
 def check_screen(failures):
     """The screen must be alive: typing on the keyboard into the tty1 shell changes it.
 
@@ -338,6 +383,8 @@ def main():
             # Wayland stage W1: the init mounts Arch's base system as a root at /arch.
             expect_boot(first, 'VERDE [SISTEMA]: base Arch en /arch', 'arranque 1: sistema base de Arch montado', failures)
             transcript += run(conn, BOOT1, failures)
+            # Wayland stage W2: the first window, seen and closed through the emulated hardware.
+            transcript += check_window(conn, failures)
             # The guest reboots through init (unmount, RB_AUTOBOOT). Under WHPX a guest reset
             # leaves the vCPU stuck in the firmware, so -no-reboot ends QEMU and a second QEMU
             # boots the same disk: whatever /datos shows then came from the disk itself.

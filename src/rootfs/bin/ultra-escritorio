@@ -1,0 +1,30 @@
+#!/bin/sh
+# SPDX-License-Identifier: GPL-2.0-only
+# Wayland stage W2: the first window, inside Arch's system at /arch.
+#   ultra-escritorio            foot (a terminal) on the whole screen
+#   ultra-escritorio prog args  another Wayland program instead
+# Arch's udevd finds screen, keyboard and mouse for libinput; seatd hands them to
+# cage; cage draws with the CPU (pixman) on the firmware's screen (simpledrm).
+# Closing the program closes cage and gives the text console back. SYSTEMD_IGNORE_CHROOT:
+# udevadm refuses to trigger inside a chroot, and without it libinput sees no keyboard.
+[ -x /arch/usr/bin/cage ] || { echo "ROJO [ESCRITORIO]: el sistema Arch no trae cage (falta la etapa W2)"; exit 1; }
+[ -e /dev/dri/card0 ] || { echo "ROJO [ESCRITORIO]: no hay pantalla DRM (/dev/dri/card0)"; exit 1; }
+[ $# -gt 0 ] || set -- foot
+exec chroot /arch /usr/bin/env -i HOME=/root TERM=linux PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
+    GLIBC_TUNABLES="$GLIBC_TUNABLES" XDG_RUNTIME_DIR=/run/user/0 WLR_RENDERER=pixman LANG=C.UTF-8 \
+    SYSTEMD_IGNORE_CHROOT=1 \
+    /usr/bin/bash -c '
+        mkdir -p -m 0700 /run/user/0
+        # Devices: udevd from Arch, run on its own, without systemd as PID 1.
+        if ! udevadm control --ping 2>/dev/null; then
+            /usr/lib/systemd/systemd-udevd --daemon || { echo "ROJO [ESCRITORIO]: udevd no arranco"; exit 1; }
+        fi
+        udevadm trigger --action=add --type=subsystems
+        udevadm trigger --action=add --type=devices
+        udevadm settle --timeout=15
+        echo "VERDE [ESCRITORIO]: udevd listo; abriendo cage con: $*"
+        seatd-launch -- cage -s -- "$@"
+        rc=$?
+        echo "VERDE [ESCRITORIO]: cage termino (salida $rc); vuelve la consola de ULTRA"
+        exit $rc
+    ' ultra-escritorio "$@"

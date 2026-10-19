@@ -98,6 +98,7 @@ busybox=/usr/bin/busybox
     echo "file /bin/minas $user/minas 0755 0 0"
     echo "file /bin/probar-caja $lab/rootfs/bin/probar-caja 0755 0 0"
     echo "file /bin/ultra-entrar $lab/rootfs/bin/ultra-entrar 0755 0 0"
+    echo "file /bin/ultra-escritorio $lab/rootfs/bin/ultra-escritorio 0755 0 0"
     for applet in $("$busybox" --list); do
         case $applet in busybox|init|linuxrc) continue;; esac
         echo "slink /bin/$applet busybox 0777 0 0"
@@ -151,9 +152,9 @@ if [[ -n $cmdline ]]; then
     img="$art/ultra-esp.img" esp_type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B linux_type=0FC63DAF-8483-4772-8E79-3D69D8477DE4
     export MTOOLS_SKIP_CHECK=1
     rm -f "$img"
-    # 1 MiB for the GPT, ESP and data of 64 MiB, 160 MiB for the system, room for the backup GPT.
-    truncate -s 290M "$img"
-    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="ULTRA-ESP"\nsize=160MiB, type=%s, name="ULTRA-SISTEMA-A"\nsize=64MiB, type=%s, name="ULTRA-DATOS"\n' \
+    # 1 MiB for the GPT, ESP and data of 64 MiB, 400 MiB for the system, room for the backup GPT.
+    truncate -s 530M "$img"
+    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="ULTRA-ESP"\nsize=400MiB, type=%s, name="ULTRA-SISTEMA-A"\nsize=64MiB, type=%s, name="ULTRA-DATOS"\n' \
         "$esp_type" "$linux_type" "$linux_type" | sfdisk -q "$img"
     # part NAME 1 -> first sector, part NAME 2 -> size in sectors.
     part() { sfdisk --dump "$img" | sed -n "s/.*start= *\([0-9]*\), size= *\([0-9]*\).*name=\"$1\".*/\\$2/p"; }
@@ -176,11 +177,15 @@ if [[ -n $cmdline ]]; then
     # DownloadUser out: pacman's own user cannot enter /home/builder, where the root is built.
     sed -e '/^\[options\]/a NoExtract = usr/share/man/* usr/share/doc/* usr/share/info/* usr/share/locale/* usr/share/i18n/*\nNoExtract = usr/share/gtk-doc/* usr/share/help/* usr/include/*' \
         -e '/^DownloadUser/d' /etc/pacman.conf > "$art/pacman-sistema.conf"
-    arch_pkgs=(filesystem glibc bash coreutils grep sed less)
+    # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
+    # (session), systemd only for its udevd (devices for libinput), and a font.
+    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu)
     sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \
         -Sy --noconfirm "${arch_pkgs[@]}" > "$art/pacman-sistema.log" 2>&1 ||
         { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo instalar el sistema base de Arch'; exit 1; }
     sudo pacman --root "$sistema" --dbpath "$sistema/var/lib/pacman" -Q > "$art/sistema-paquetes.txt"
+    # pacman's hook leaves udev's hardware database almost empty outside a booted system.
+    if [[ -x $sistema/usr/bin/systemd-hwdb ]]; then sudo systemd-hwdb --root="$sistema" --usr update; fi
     sudo mkdir -p "$sistema/usr/lib/modules"
     sudo cp -a "$art/modulos/lib/modules/$release" "$sistema/usr/lib/modules/"
     sudo rm -f "$sistema/usr/lib/modules/$release/build" "$sistema/usr/lib/modules/$release/source"
@@ -226,8 +231,8 @@ if [[ -n $cmdline ]]; then
     # QEMU starts the kernel from partition 1; the real PC from a firmware entry on BMO.
     bmo="$art/disco-bmo.img" basic_type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
     rm -f "$bmo"
-    truncate -s 402M "$bmo"
-    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="EFI system partition"\nsize=320MiB, type=%s, name="Basic data partition"\nsize=16MiB, type=%s, name="Basic data partition"\n' \
+    truncate -s 882M "$bmo"
+    printf 'label: gpt\nstart=2048, size=64MiB, type=%s, name="EFI system partition"\nsize=800MiB, type=%s, name="Basic data partition"\nsize=16MiB, type=%s, name="Basic data partition"\n' \
         "$esp_type" "$basic_type" "$basic_type" | sfdisk -q "$bmo"
     bpart() { sfdisk --dump "$bmo" | sed -n "s/^[^ ]*$1 : start= *\([0-9]*\), size= *\([0-9]*\).*/\\$2/p"; }
     win=$(( $(bpart 1 1) * 512 )) a=$(( $(bpart 2 1) * 512 ))

@@ -113,7 +113,7 @@ void screen_write(const char *s) {
 
 bool screen_available(void) { return screen_fd >= 0; }
 
-static void mount_fs(const char *type, const char *target, unsigned long flags) {
+static void mount_fs_data(const char *type, const char *target, unsigned long flags, const char *data) {
     char detail[160];
     if (mkdir(target, 0755) < 0 && errno != EEXIST) {
         snprintf(detail, sizeof(detail), "mkdir %s: %s", target, strerror(errno));
@@ -121,13 +121,17 @@ static void mount_fs(const char *type, const char *target, unsigned long flags) 
         return;
     }
     /* devtmpfs may already be mounted by CONFIG_DEVTMPFS_MOUNT. */
-    if (mount(type, target, type, flags, NULL) < 0 && errno != EBUSY) {
+    if (mount(type, target, type, flags, data) < 0 && errno != EBUSY) {
         snprintf(detail, sizeof(detail), "%s en %s: %s", type, target, strerror(errno));
         report("ROJO", "MONTAJE", detail);
         return;
     }
     snprintf(detail, sizeof(detail), "%s en %s", type, target);
     report("VERDE", "MONTAJE", detail);
+}
+
+static void mount_fs(const char *type, const char *target, unsigned long flags) {
+    mount_fs_data(type, target, flags, NULL);
 }
 
 /* A console descriptor that landed on 0..2 stays open for the life of the process. */
@@ -238,6 +242,9 @@ int main(void) {
     mount_fs("sysfs", "/sys", MS_NOSUID | MS_NODEV | MS_NOEXEC);
     mount_fs("tmpfs", "/tmp", MS_NOSUID | MS_NODEV);
     mount_fs("tmpfs", "/run", MS_NOSUID | MS_NODEV);
+    /* Pseudo-terminals and shared memory: a terminal like foot and every Wayland client need them. */
+    mount_fs_data("devpts", "/dev/pts", MS_NOSUID | MS_NOEXEC, "gid=5,mode=620,ptmxmode=666");
+    mount_fs_data("tmpfs", "/dev/shm", MS_NOSUID | MS_NODEV, "mode=1777");
     /* A name for the machine: without it, shells and Arch's prompt show "(none)". */
     if (sethostname("ultra", 5) < 0) report("AMARILLO", "NOMBRE", strerror(errno));
 

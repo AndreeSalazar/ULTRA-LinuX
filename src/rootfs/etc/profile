@@ -8,4 +8,5 @@ echo "ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1)."
 echo "Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff"
 if [ -x /arch/usr/bin/bash ]; then
     echo "Recomendacion: ultra-entrar  (entra en el sistema Arch: bash, coreutils, grep, sed, less; exit para volver)"
+    [ -x /arch/usr/bin/cage ] && echo "Wayland: ultra-escritorio  (una terminal foot en pantalla completa; exit en la terminal para volver)"
 fi

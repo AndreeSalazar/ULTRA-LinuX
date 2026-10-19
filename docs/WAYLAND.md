@@ -8,7 +8,8 @@ Wayland en sí es un protocolo pequeño. Lo grande es lo que tiene debajo: un es
 |---|---|---|
 | **W1** | Sistema base de Arch en EROFS, montado por el init como raíz en `/arch` | **Hecha** |
 | W1b | La raíz por defecto pasa a ser Arch | Pendiente: antes, `caja` necesita reglas medidas para programas dinámicos |
-| W2 | `udevd` (de Arch, sin systemd) + `seatd`, y `cage` + `foot` sobre `simpledrm` | Pendiente: la primera ventana |
+| **W2** | `udevd` (de Arch, sin systemd) + `seatd`, y `cage` + `foot` sobre `simpledrm` | **Hecha: la primera ventana** (en QEMU) |
+| W2b | Escritorio: labwc (ventanas flotantes) + panel + lanzador | Pendiente |
 | W3 | RTX 3060: `nvidia-open`, Vulkan, gamescope | Pendiente |
 
 ## W1: el sistema base de Arch dentro de ULTRA
@@ -36,3 +37,31 @@ Al apagar suelta `/arch` antes de desmontar los discos, para que `A:` quede limp
 - una escritura en `/etc` de Arch va a la capa en memoria, y la imagen `/sistema` no cambia.
 
 **Tamaño:** cada imagen de sistema pasa de 2 MiB a 70 MiB. La partición `ULTRA-SISTEMA-A` del USB pasa a 160 MiB, y `BMO` en el disco de prueba a 320 MiB. En `A:` sobran 31 GB.
+
+## W2: la primera ventana
+
+![foot en pantalla completa dentro de cage, en QEMU](../evidencias/w2-primera-ventana-qemu.png)
+
+**Paquetes:** a la base de W1 se suman `cage foot seatd systemd ttf-dejavu`. De `systemd` solo se usa su `udevd`, sin systemd como PID 1. Con dependencias son **142 paquetes**, 563 MiB instalados y **282 MiB en EROFS** (Mesa con LLVM es lo más pesado). La partición de sistema del USB pasa a 400 MiB, y `BMO` en el disco de prueba a 800 MiB.
+
+**Uso:** `ultra-escritorio` (o `ultra-escritorio programa args`). Dentro de `/arch`:
+1. arranca `udevd`, que encuentra pantalla, teclado y ratón para libinput;
+2. `seatd-launch` le entrega la sesión a `cage`;
+3. `cage` muestra `foot` en toda la pantalla, dibujado por la CPU (`WLR_RENDERER=pixman`) sobre `simpledrm`.
+
+Escribir `exit` en la terminal cierra `cage` y devuelve la consola de texto de ULTRA.
+
+**Lo que hubo que resolver**, con el registro de cada intento:
+- `udevadm trigger` decía `Running in chroot, ignoring request` y libinput no veía el teclado. Arreglo: `SYSTEMD_IGNORE_CHROOT=1`.
+- `Failed to allocate shm file for keymap` y `foot: failed to open PTY`: el init de ULTRA nunca había montado `/dev/shm` ni `/dev/pts`, porque BusyBox no los necesitaba. Ahora los monta, como cualquier Linux.
+- La base de datos de hardware de udev salía casi vacía (105 bytes) al instalarla fuera de un sistema arrancado. La construcción la regenera con `systemd-hwdb --root`: 14 MiB.
+- `Cannot find Xwayland`: inofensivo; es para aplicaciones X11 antiguas y `cage` sigue sin él.
+
+**Probado en QEMU** (`evidencias/w2-primera-ventana-qemu.log` y la captura):
+- la prueba lanza `ultra-escritorio` desde el puerto serie y captura la pantalla emulada: **`foot` cubre el 97 %** (su fondo `#242424`);
+- escribe `exit` con el teclado emulado, que recorre udev, libinput, cage y foot;
+- exige `cage termino (salida 0)`.
+
+Resultados: `generico --bmo` 61/61, `pc --bmo` 62/62, `--disco` 55/55, `--auto` y `--auto-falla` en VERDE.
+
+**Siguiente (W2b):** un escritorio de verdad, con labwc (ventanas flotantes, usa `seatd`), un panel y un lanzador. Plasma necesita `logind` y D-Bus, y llega después.
