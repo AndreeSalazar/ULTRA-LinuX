@@ -179,25 +179,37 @@ Al arrancar **ULTRA LinuX** (el genérico), el init comprueba si este PC puede u
 
 Si todo encaja:
 1. **Busca** una entrada F11 que ya arranque `\EFI\ULTRA\ULTRA-PC.EFI` en `BMO`, como la que creó `instalar-en-A.ps1`, y la **reutiliza**. Si no hay ninguna, **crea** "ULTRA LinuX (este PC)", al final del orden: Windows sigue siendo el arranque por defecto.
-2. Pide esa entrada **una sola vez** con `BootNext` y dice `reinicia (reboot) para probarla una vez`. Estado: `probando`.
-3. En el siguiente arranque, el firmware lanza el kernel afinado. Si llega al init, se marca **bueno**: `tu version propia arranco bien`.
-4. Si en cambio vuelve el genérico, con `BootNext` ya gastado y sin esa marca, la prueba **falló**. Lo apunta (`fallido`) y borra la entrada F11 **solo si la creó ULTRA**.
-5. Si la versión propia funcionó y después se desinstala, también se borra su entrada (si es de ULTRA), para que F11 no apunte a un archivo que no existe.
+2. Pide esa entrada **una sola vez** con `BootNext` y muestra una cuenta atrás de 5 s: `Arrancando tu version propia (Zen 3) en 5...`. Al terminar, **reinicia solo**. Estado: `probando`.
+3. En el siguiente arranque, el firmware lanza el kernel afinado. Si llega al init, se marca **bueno** y sale el recuadro **PERFIL DE PC COMPLETO**.
+4. **Desde entonces, cada vez que eliges el genérico, salta solo a tu versión** tras 3 s. Cada salto lo tiene que confirmar el kernel afinado (`salto confirmado`); el estado pasa por `saltando` hasta entonces.
+5. **Cualquier tecla durante la cuenta atrás** te deja en el genérico (`te quedas en el generico`): borra el `BootNext` para que no salte por sorpresa más tarde.
+6. Si vuelve el genérico con `BootNext` ya gastado y sin confirmación, la versión propia **falló**. Lo apunta (`fallido`), **deja de saltar** y borra la entrada F11 **solo si la creó ULTRA**. Sin esto, un kernel roto haría un bucle.
+7. Si la versión propia funcionó y después se desinstala, también se borra su entrada (si es de ULTRA), para que F11 no apunte a un archivo que no existe.
 
-Todo queda en `/datos/perfil.estado`. Borrarlo permite reintentar.
+Todo queda en `/datos/perfil.estado`. Borrarlo permite reintentar desde cero.
 
 **Guardianes:**
 - Solo se crean entradas para rutas bajo `\EFI\ULTRA\`, en la partición que ULTRA montó.
 - `BootOrder` solo gana o pierde el número de ULTRA: nunca se reordena ni se quita otra entrada.
-- Las entradas que no creó ULTRA (las de Windows, o la de `bcdedit`) nunca se borran.
+- Las entradas que no creó ULTRA (las de Windows, o la de `bcdedit`) nunca se borran. Que una entrada es de ULTRA se recuerda aunque una tecla cancele la prueba.
+- `entrada=-` significa "ninguna": `0000` sería una entrada real, quizá de otro sistema.
 - La partición se localiza leyendo la GPT del disco. Para los valores del disco, el código usa lecturas byte a byte y aritmética comprobada.
 
-**Probado en QEMU con su firmware UEFI de extremo a extremo** (`scripts/probar_arranque.py pc --auto`, disco `disco-bmo-doble.img` con los dos kernels):
-- arranque 1: genérico, `Boot00FF` creada y `BootNext`;
-- arranque 2: el firmware lanza el kernel `-pc-`, que se marca bueno;
-- arranque 3: el genérico vuelve por defecto y la reconoce lista.
+**Probado en QEMU con su firmware UEFI de extremo a extremo** (`scripts/probar_arranque.py pc --auto`, disco `disco-bmo-doble.img` con los dos kernels, `evidencias/perfil-auto-qemu.log`):
+1. genérico: crea `Boot00FF`, cuenta atrás y salta solo;
+2. versión propia: PERFIL DE PC COMPLETO;
+3. genérico: salta solo otra vez;
+4. versión propia: `salto confirmado`;
+5. genérico con una tecla (enviada por el puerto serie): se queda, y el estado sigue `bueno`.
 
-`--auto-falla` borra `ULTRA-PC.EFI` antes del reinicio: el firmware falla `BootNext`, vuelve al genérico, y este marca `fallido` y borra su entrada. Esa prueba encontró un error: el genérico comprobaba "¿está instalada?" antes de juzgar la prueba pendiente, y se quedaba en `probando` para siempre. Ahora el estado se resuelve primero.
+`--auto-falla` (`evidencias/perfil-auto-falla-qemu.log`):
+1. genérico con una tecla: se queda, y se estropea `ULTRA-PC.EFI` a propósito;
+2. genérico: salta;
+3. el firmware no puede lanzar el kernel roto y vuelve al genérico, que marca `fallido` y borra su entrada.
+
+Las pruebas encontraron dos errores:
+- El genérico comprobaba "¿está instalada?" antes de juzgar la prueba pendiente, y se quedaba en `probando` para siempre.
+- Al reorganizar, el primer arranque dejó de montar `efivarfs` y no podía crear la entrada.
 
 ## 6. Ver los resultados en Windows
 

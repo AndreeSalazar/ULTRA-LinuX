@@ -1,3 +1,18 @@
+<p align="center">
+  <img src="src/logo/ultra-tux.webp" alt="ULTRA LinuX: Tux demonio, rojo y metalico" width="360">
+</p>
+
+<h1 align="center">ULTRA LinuX</h1>
+
+<p align="center">
+  <b>Influencia BMO-X</b> · Eddi Salazar: creador de un sistema propio, sin ser un OS<br>
+  Kernel oficial de Linux · init en C con guardianes · arranque en 0,9 s en el metal
+</p>
+
+<p align="center">
+  <img src="evidencias/pc-real/logo/foto-monitor-logo.webp" alt="ULTRA LinuX arrancando en el PC real, con el logo en la esquina" width="720">
+</p>
+
 # Linux Reconstruido
 
 ## ULTRA LinuX en el metal: de 2009 ms a 920 ms

@@ -22,6 +22,9 @@ void prepare_hardware(bool data);
 /* What this boot measured: ms up to the hardware stage and the previous boot of the same kernel (-1 if none). */
 void boot_measure(int64_t *now_ms, int64_t *before_ms, size_t *modules, size_t *loaded);
 
+/* init.c: reboot cleanly (data unmounted) before the shells start. Returns only on failure. */
+void restart_now(void);
+
 /* init.c: text for the screen only (tty1), never the serial port of the tests. */
 void screen_write(const char *s);
 bool screen_available(void);
@@ -42,6 +45,7 @@ int efi_create_entry(const char *devpath, const char *file, const char *title);
 bool efi_delete_entry(int num);
 bool efi_set_boot_next(int num);
 bool efi_boot_next_pending(void);
+bool efi_clear_boot_next(void);
 
 /* perfil.c: the generic kernel prepares the PC's own version, with a way back. */
 void choose_profile(bool data);

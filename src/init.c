@@ -211,6 +211,15 @@ static void shut_down(int sig) {
     report("ROJO", "APAGADO", strerror(errno));
 }
 
+/* A clean restart before any shell exists: data unmounted, then the firmware runs again. */
+void restart_now(void) {
+    report("AMARILLO", "APAGADO", "reinicio hacia tu version propia");
+    sync();
+    unmount_data();
+    reboot((int)RB_AUTOBOOT);
+    report("ROJO", "APAGADO", strerror(errno));
+}
+
 static void wake(int sig) { (void)sig; }
 
 int main(void) {

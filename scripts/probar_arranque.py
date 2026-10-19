@@ -188,6 +188,93 @@ def check_screen(failures):
     print(('VERDE' if ok else 'ROJO'), f'[pantalla viva: el teclado cambio {changed} pixeles en tty1]')
     if not ok: failures.append('pantalla congelada')
 
+def auto_flow(start, failures):
+    """The generic kernel hands over to the PC's own version by itself, and keeps a way back.
+
+    --auto: generic jumps alone -> tuned kernel, PERFIL DE PC COMPLETO -> generic jumps
+    again -> tuned confirms -> generic with a key pressed stays.
+    --auto-falla: generic with a key stays; the tuned kernel is broken on purpose; generic
+    jumps; the firmware cannot start it and falls back; generic marks fallido, deletes its entry.
+    """
+    t, procs = '', []
+    WAIT = 'cualquier tecla para quedarse'
+    def boot(label, marker):
+        nonlocal t
+        proc, conn = start()
+        procs.append(proc)
+        out = read_until(conn, marker, 120)
+        t += f'\n===== {label} =====\n' + out
+        return proc, conn, out
+    def jumped(proc, conn):
+        # The init reboots on its own after the countdown; -no-reboot then ends QEMU.
+        nonlocal t
+        t += read_until(conn, 'Restarting system', 30)
+        proc.wait(timeout=20)
+        conn.close()
+    def stay(conn):
+        # One key on the serial console, during the countdown.
+        nonlocal t
+        conn.sendall(b'q')
+        out = read_until(conn, 'ultra:', 60)
+        t += out
+        return out
+    def off(proc, conn):
+        nonlocal t
+        conn.sendall(b'poweroff\n')
+        t += read_until(conn, 'APAGADO', 10)
+        proc.wait(timeout=15)
+        conn.close()
+    try:
+        if not FALLA:
+            p, c, o = boot('ARRANQUE 1: generico', WAIT)
+            expect_boot(o, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 1: el firmware arranco el generico', failures)
+            expect_boot(o, 'tu version propia (AMD', 'arranque 1: version propia preparada', failures)
+            jumped(p, c)
+            p, c, o = boot('ARRANQUE 2: version propia', 'ultra:')
+            expect_boot(o, '[KERNEL]: Linux 7.3.0-rc7-pc-g', 'arranque 2: salto solo a la version propia', failures)
+            expect_boot(o, 'PERFIL DE PC COMPLETO: tu version propia arranco bien', 'arranque 2: PERFIL DE PC COMPLETO', failures)
+            check_screen(failures)
+            off(p, c)
+            p, c, o = boot('ARRANQUE 3: generico, salta solo', WAIT)
+            expect_boot(o, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 3: el generico por defecto', failures)
+            jumped(p, c)
+            p, c, o = boot('ARRANQUE 4: version propia otra vez', 'ultra:')
+            expect_boot(o, '[KERNEL]: Linux 7.3.0-rc7-pc-g', 'arranque 4: salto de nuevo a la version propia', failures)
+            expect_boot(o, 'salto confirmado', 'arranque 4: la version propia confirma el salto', failures)
+            off(p, c)
+            p, c, o = boot('ARRANQUE 5: generico, con tecla', WAIT)
+            o = stay(c)
+            expect_boot(o, 'te quedas en el generico', 'arranque 5: una tecla deja el generico', failures)
+            t += run(c, [('cat /datos/perfil.estado', 'estado=bueno')], failures)
+            off(p, c)
+        else:
+            p, c, o = boot('ARRANQUE 1: generico, con tecla', WAIT)
+            o = stay(c)
+            expect_boot(o, 'te quedas en el generico', 'arranque 1: una tecla deja el generico', failures)
+            # A tuned kernel the firmware cannot start.
+            t += run(c, [('echo roto > /bmo/EFI/ULTRA/ULTRA-PC.EFI; sync; echo ROTO-$((1+1))', 'ROTO-2')], failures)
+            c.sendall(b'reboot\n')
+            t += read_until(c, 'Restarting system', 20)
+            p.wait(timeout=20)
+            c.close()
+            p, c, o = boot('ARRANQUE 2: generico salta a un kernel roto', WAIT)
+            jumped(p, c)
+            p, c, o = boot('ARRANQUE 3: el firmware vuelve al generico', 'ultra:')
+            expect_boot(o, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 3: el firmware volvio al generico', failures)
+            expect_boot(o, 'no llego a arrancar; se queda el generico y su entrada F11 se borro',
+                        'arranque 3: fallo detectado y entrada de ULTRA borrada', failures)
+            t += run(c, [('cat /datos/perfil.estado', 'estado=fallido')], failures)
+            off(p, c)
+        print('VERDE [poweroff]: init apago la maquina y QEMU termino')
+    except Exception as exc:
+        t += getattr(exc, 'partial', '')
+        failures.append(str(exc))
+        print('ROJO', exc)
+    finally:
+        for proc in procs:
+            if proc.poll() is None: proc.kill()
+    return t
+
 def main():
     check_kernel()
     if DISCO:
@@ -215,6 +302,11 @@ def main():
             proc.kill(); raise ConnectionError('QEMU no abrio la consola serie')
         conn.settimeout(0.5)
         return proc, conn
+    if AUTO:
+        failures = []
+        transcript = auto_flow(start, failures)
+        LOG.write_text(transcript, encoding='utf-8')
+        sys.exit(1 if failures else 0)
     transcript, failures = '', []
     qemu = None
     try:
@@ -222,49 +314,8 @@ def main():
         # Firmware start-up adds seconds before the kernel runs.
         first = read_until(conn, 'ultra:', 120 if DISCO else 30)
         transcript += first
-        if AUTO:
-            # The generic kernel prepares the PC's own version and asks the firmware for it once.
-            expect_boot(first, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 1: el firmware arranco el generico', failures)
-            expect_boot(first, 'tu version propia (AMD', 'arranque 1: version propia preparada (BootNext)', failures)
-            if FALLA:
-                # A tuned kernel that never starts: the firmware fails BootNext and falls back.
-                transcript += run(conn, [('rm /bmo/EFI/ULTRA/ULTRA-PC.EFI; sync; echo BORRADO-$((1+1))', 'BORRADO-2')], failures)
-            conn.sendall(b'reboot\n')
-            transcript += read_until(conn, 'Restarting system', 20)
-            qemu.wait(timeout=20)
-            conn.close()
-            # The same firmware variables: BootNext must send this boot to ULTRA-PC.EFI.
-            qemu, conn = start()
-            second = read_until(conn, 'ultra:', 120)
-            transcript += '\n===== ARRANQUE 2 =====\n' + second
-            if FALLA:
-                expect_boot(second, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 2: el firmware volvio al generico', failures)
-                expect_boot(second, 'no llego a arrancar; se queda el generico y su entrada F11 se borro',
-                            'arranque 2: fallo detectado y entrada de ULTRA borrada', failures)
-                transcript += run(conn, [('cat /datos/perfil.estado', 'estado=fallido')], failures)
-                conn.sendall(b'poweroff\n')
-                transcript += read_until(conn, 'APAGADO', 10)
-                qemu.wait(timeout=15)
-                print('VERDE [poweroff]: init apago la maquina y QEMU termino')
-                # SystemExit is not an Exception: the finally below still writes the log.
-                sys.exit(1 if failures else 0)
-            expect_boot(second, '[KERNEL]: Linux 7.3.0-rc7-pc-g', 'arranque 2: el firmware arranco la version propia', failures)
-            expect_boot(second, 'PERFIL DE PC COMPLETO: tu version propia arranco bien', 'arranque 2: PERFIL DE PC COMPLETO', failures)
-            # The box on the screen, captured as evidence.
-            check_screen(failures)
-            conn.sendall(b'poweroff\n')
-            transcript += read_until(conn, 'APAGADO', 10)
-            qemu.wait(timeout=15)
-            conn.close()
-            # BootNext is spent: the default boot is the generic kernel again, which knows.
-            qemu, conn = start()
-            third = read_until(conn, 'ultra:', 120)
-            transcript += '\n===== ARRANQUE 3 =====\n' + third
-            expect_boot(third, '[KERNEL]: Linux 7.3.0-rc7-g', 'arranque 3: vuelve el generico por defecto', failures)
-            expect_boot(third, 'tu version propia esta lista', 'arranque 3: la version propia queda lista en F11', failures)
-        else:
-            transcript += run(conn, CHECKS, failures)
-        if DISCO and not AUTO:
+        transcript += run(conn, CHECKS, failures)
+        if DISCO:
             expect_boot(first, 'VERDE [PARTICION]: ULTRA-DATOS', 'arranque 1: ULTRA-DATOS montada por nombre', failures)
             expect_boot(first, 'primer arranque en este PC', 'arranque 1: deteccion completa', failures)
             # The boot card, plain on the serial port: guardians asked to the kernel, not assumed.

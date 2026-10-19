@@ -4,11 +4,16 @@
  *
  *   generic, first time: the CPU fits the tuned profile (AMD family 19h with
  *     AVX2: Zen 3 and Zen 4), ULTRA-PC.EFI and its system image are on BMO
- *     -> reuse or create the F11 entry "ULTRA LinuX (este PC)" and ask for it
- *     once with BootNext. State: probando.
- *   tuned kernel, while probando: it reached this point -> bueno.
- *   generic again, while probando and BootNext already used: the tuned kernel
- *     never said bueno -> fallido, and the entry goes if ULTRA created it.
+ *     -> reuse or create the F11 entry "ULTRA LinuX (este PC)", ask for it once
+ *     with BootNext and reboot into it after a 5 s countdown. State: probando.
+ *   tuned kernel, while probando: it reached this point -> bueno, and the
+ *     PERFIL DE PC COMPLETO box.
+ *   generic, while bueno: it hands over by itself after 3 s (state saltando);
+ *     the tuned kernel confirms it again -> bueno. Any key in the countdown
+ *     keeps the generic kernel and clears BootNext.
+ *   generic, while probando or saltando and BootNext already used: the tuned
+ *     kernel never confirmed -> fallido, no more jumps, and the entry goes if
+ *     ULTRA created it. Without this, a broken kernel would loop.
  *
  * The state lives in /datos/perfil.estado. A file BMO\ULTRA\NO-AUTOCONFIGURAR
  * (A:\ULTRA\NO-AUTOCONFIGURAR from Windows) switches all of this off.
@@ -17,8 +22,10 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <stdarg.h>
 #include <sys/utsname.h>
+#include <termios.h>
 #include <unistd.h>
 #include "init.h"
 /* Last: it poisons unsafe functions after the system headers are parsed. */
@@ -92,16 +99,17 @@ static void state_read(struct state *s) {
     char *save = NULL;
     for (char *line = strtok_r(buf, "\n", &save); line; line = strtok_r(NULL, "\n", &save)) {
         if (strncmp(line, "estado=", 7) == 0) ULTRA_COPY(s->estado, line + 7);
-        else if (strncmp(line, "entrada=", 8) == 0) s->entrada = (int)strtol(line + 8, NULL, 16);
+        /* "entrada=-" means none: 0000 would be a real entry, maybe someone else's. */
+        else if (strncmp(line, "entrada=", 8) == 0 && line[8] != '-') s->entrada = (int)strtol(line + 8, NULL, 16);
         else if (strcmp(line, "creada=si") == 0) s->creada = true;
     }
     if (s->entrada < 0 || s->entrada > 0xFFFF) s->entrada = -1;
 }
 
 static void state_write(const struct state *s) {
-    char buf[128];
-    int n = snprintf(buf, sizeof(buf), "estado=%s\nentrada=%04X\ncreada=%s\n", s->estado,
-                     (unsigned)(s->entrada < 0 ? 0 : s->entrada), s->creada ? "si" : "no");
+    char buf[128], entry[12] = "-";
+    if (s->entrada >= 0) snprintf(entry, sizeof(entry), "%04X", (unsigned)s->entrada);
+    int n = snprintf(buf, sizeof(buf), "estado=%s\nentrada=%s\ncreada=%s\n", s->estado, entry, s->creada ? "si" : "no");
     int fd = n > 0 ? open(STATE ".nuevo", O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644) : -1;
     if (fd < 0) return;
     bool ok = write(fd, buf, (size_t)n) == n && fsync(fd) == 0;
@@ -135,6 +143,75 @@ static bool tuned_installed(const char *dir) {
     return found;
 }
 
+/*
+ * The jump: a short countdown on the screen. Any key, on the PC's keyboard (tty1)
+ * or on the serial console, keeps the generic kernel. True means: jump.
+ */
+static bool countdown(int seconds, const char *what) {
+    struct pollfd fds[2];
+    struct termios saved[2];
+    bool restore[2] = {false, false};
+    int n = 0;
+    int tty = open("/dev/tty1", O_RDONLY | O_NOCTTY | O_NONBLOCK | O_CLOEXEC);
+    int fdlist[2] = {tty, STDIN_FILENO};
+    for (int i = 0; i < 2; i++) {
+        if (fdlist[i] < 0 || tcgetattr(fdlist[i], &saved[n]) < 0) continue;
+        struct termios raw = saved[n];
+        /* One key is enough, without Enter and without echo. */
+        raw.c_lflag &= ~(tcflag_t)(ICANON | ECHO);
+        raw.c_cc[VMIN] = 0;
+        raw.c_cc[VTIME] = 0;
+        if (tcsetattr(fdlist[i], TCSANOW, &raw) == 0) {
+            tcflush(fdlist[i], TCIFLUSH);
+            restore[n] = true;
+            fds[n] = (struct pollfd){.fd = fdlist[i], .events = POLLIN};
+            n++;
+        }
+    }
+    say("AMARILLO", "saltando a %s en %d s; cualquier tecla para quedarse en el generico", what, seconds);
+    bool jump = true;
+    for (int left = seconds; left > 0 && jump; left--) {
+        char line[192];
+        snprintf(line, sizeof(line), "\r" WARN "  >> " END "Arrancando %s en " OK "%d" END "...  " DIM
+                 "(cualquier tecla: quedarse en el generico)" END "   ", what, left);
+        screen_write(line);
+        int r = n > 0 ? poll(fds, (nfds_t)n, 1000) : (sleep(1), 0);
+        if (r > 0) jump = false;
+    }
+    screen_write("\n");
+    for (int i = 0; i < n; i++) {
+        char drain[16];
+        while (read(fds[i].fd, drain, sizeof(drain)) > 0) {}
+        if (restore[i]) tcsetattr(fds[i].fd, TCSANOW, &saved[i]);
+    }
+    if (tty >= 0) close(tty);
+    return jump;
+}
+
+/*
+ * Ask the firmware for the tuned kernel once and reboot into it, unless a key says
+ * stay. `after_jump` is the state the tuned kernel must confirm; on a key, `if_stay`.
+ */
+static void jump_or_stay(struct state *s, const char *after_jump, const char *if_stay, int seconds) {
+    if (!efi_set_boot_next(s->entrada)) {
+        say("AMARILLO", "no se pudo pedir el arranque de tu version propia (BootNext)");
+        set_status(WARN "no se pudo pedir el salto" END " (Boot%04X)", (unsigned)s->entrada);
+        return;
+    }
+    ULTRA_COPY(s->estado, after_jump);
+    state_write(s);
+    if (countdown(seconds, "tu version propia (Zen 3)")) {
+        restart_now();
+        say("ROJO", "no se pudo reiniciar; te quedas en el generico");
+    }
+    /* Stayed: the firmware must not take the jump on some later reboot by surprise. */
+    efi_clear_boot_next();
+    ULTRA_COPY(s->estado, if_stay);
+    state_write(s);
+    say("VERDE", "te quedas en el generico; tu version propia sigue en F11 (Boot%04X)", (unsigned)s->entrada);
+    set_status("generico (elegido) · la tuya en F11 (Boot%04X)", (unsigned)s->entrada);
+}
+
 void choose_profile(bool data) {
     const char *dir = windows_dir();
     const char *dev = bmo_device();
@@ -152,6 +229,10 @@ void choose_profile(bool data) {
     struct state s;
     state_read(&s);
 
+    /*
+     * The tuned kernel confirms that it booted. probando: the first time, with the
+     * celebration. saltando: every later jump from the generic kernel, quietly.
+     */
     if (tuned) {
         if (strcmp(s.estado, "probando") == 0) {
             ULTRA_COPY(s.estado, "bueno");
@@ -159,19 +240,45 @@ void choose_profile(bool data) {
             say("VERDE", "PERFIL DE PC COMPLETO: tu version propia arranco bien: queda lista en F11 (Boot%04X)",
                 (unsigned)s.entrada);
             celebrate(s.entrada);
+        } else if (strcmp(s.estado, "saltando") == 0) {
+            ULTRA_COPY(s.estado, "bueno");
+            state_write(&s);
+            say("VERDE", "salto confirmado: tu version propia en marcha (Boot%04X)", (unsigned)s.entrada);
         }
         if (strcmp(s.estado, "bueno") == 0) set_status(OK "■ COMPLETO" END " · version Zen 3 (Boot%04X)", (unsigned)s.entrada);
         return;
     }
 
     /*
-     * The state is settled first, whatever else changed: a test in flight must be judged
+     * The state is settled first, whatever else changed: a jump in flight must be judged
      * even if the tuned kernel is gone, because a missing kernel is exactly how it fails.
      */
     bool installed = tuned_installed(dir);
-    if (s.estado[0] && !efi_ready()) {
+    bool in_flight = strcmp(s.estado, "probando") == 0 || strcmp(s.estado, "saltando") == 0;
+    if ((s.estado[0] || s.entrada >= 0) && !efi_ready()) {
         say("AMARILLO", "sin acceso a las variables EFI: no se puede revisar tu version propia");
         set_status(WARN "sin acceso a las variables EFI" END);
+        return;
+    }
+    if (in_flight && !efi_boot_next_pending()) {
+        /* BootNext was used, yet the tuned kernel never reached its init to confirm. */
+        ULTRA_COPY(s.estado, "fallido");
+        bool removed = s.creada && s.entrada >= 0 && efi_delete_entry(s.entrada);
+        state_write(&s);
+        say("ROJO", "tu version propia no llego a arrancar; se queda el generico%s",
+            s.creada ? (removed ? " y su entrada F11 se borro" : "; su entrada F11 no se pudo borrar") : "");
+        set_status(BAD "version propia fallo" END " · se queda el generico");
+        return;
+    }
+    if (in_flight) {
+        /* The firmware did not take the jump (F11 chose this kernel): clear it and start over. */
+        efi_clear_boot_next();
+        ULTRA_COPY(s.estado, strcmp(s.estado, "saltando") == 0 ? "bueno" : "");
+        state_write(&s);
+    }
+    if (strcmp(s.estado, "fallido") == 0) {
+        say("AMARILLO", "tu version propia fallo antes; borra /datos/perfil.estado para reintentar");
+        set_status(BAD "version propia fallo" END " · se queda el generico");
         return;
     }
     if (strcmp(s.estado, "bueno") == 0 && !installed) {
@@ -185,28 +292,9 @@ void choose_profile(bool data) {
         return;
     }
     if (strcmp(s.estado, "bueno") == 0) {
-        say("VERDE", "tu version propia esta lista: eligela en F11 (Boot%04X)", (unsigned)s.entrada);
+        /* Your version works: the generic kernel hands over by itself, unless a key says stay. */
         set_status("generico · " OK "COMPLETO" END ": la tuya en F11 (Boot%04X)", (unsigned)s.entrada);
-        return;
-    }
-    if (strcmp(s.estado, "fallido") == 0) {
-        say("AMARILLO", "tu version propia fallo antes; borra /datos/perfil.estado para reintentar");
-        set_status(BAD "version propia fallo" END " · se queda el generico");
-        return;
-    }
-    if (strcmp(s.estado, "probando") == 0) {
-        if (efi_boot_next_pending()) {
-            say("AMARILLO", "prueba pendiente: el proximo reinicio arranca tu version propia (Boot%04X)", (unsigned)s.entrada);
-            set_status(WARN "prueba pendiente" END ": reinicia (Boot%04X)", (unsigned)s.entrada);
-            return;
-        }
-        /* BootNext was used, yet the tuned kernel never reached its init. */
-        ULTRA_COPY(s.estado, "fallido");
-        bool removed = s.creada && s.entrada >= 0 && efi_delete_entry(s.entrada);
-        state_write(&s);
-        say("ROJO", "tu version propia no llego a arrancar; se queda el generico%s",
-            s.creada ? (removed ? " y su entrada F11 se borro" : "; su entrada F11 no se pudo borrar") : "");
-        set_status(BAD "version propia fallo" END " · se queda el generico");
+        jump_or_stay(&s, "saltando", "bueno", 3);
         return;
     }
 
@@ -227,9 +315,11 @@ void choose_profile(bool data) {
         set_status(WARN "sin acceso a las variables EFI" END);
         return;
     }
-    /* Reuse an entry that already starts the tuned kernel, or create one. */
+    /* Reuse an entry that already starts the tuned kernel, or create one. Keep knowing who made it. */
+    int prev = s.entrada;
+    bool prev_created = s.creada;
     int entry = efi_find_entry(dev, TUNED_EFI);
-    s.creada = false;
+    s.creada = entry >= 0 && entry == prev && prev_created;
     if (entry < 0) {
         entry = efi_create_entry(dev, TUNED_EFI, TUNED_TITLE);
         s.creada = entry >= 0;
@@ -240,14 +330,7 @@ void choose_profile(bool data) {
         return;
     }
     s.entrada = entry;
-    if (!efi_set_boot_next(entry)) {
-        say("AMARILLO", "entrada Boot%04X lista, pero no se pudo pedir la prueba (BootNext)", (unsigned)entry);
-        set_status(WARN "no se pudo pedir la prueba" END " (Boot%04X)", (unsigned)entry);
-        return;
-    }
-    ULTRA_COPY(s.estado, "probando");
-    state_write(&s);
-    say("VERDE", "%s tu version propia (%s): Boot%04X; reinicia (reboot) para probarla una vez",
-        s.creada ? "preparada" : "encontrada", why, (unsigned)entry);
-    set_status(WARN "lista para probar" END ": reboot (Boot%04X)", (unsigned)entry);
+    say("VERDE", "%s tu version propia (%s): Boot%04X", s.creada ? "preparada" : "encontrada", why, (unsigned)entry);
+    set_status(WARN "lista para probar" END " (Boot%04X)", (unsigned)entry);
+    jump_or_stay(&s, "probando", "", 5);
 }

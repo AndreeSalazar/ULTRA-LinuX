@@ -351,6 +351,8 @@ bool efi_set_boot_next(int num) {
     return num >= 0 && num <= 0xFFFF && var_write("BootNext", (const uint8_t *)&v, 2);
 }
 
+bool efi_clear_boot_next(void) { return var_delete("BootNext"); }
+
 bool efi_boot_next_pending(void) {
     uint8_t v[8];
     return var_read("BootNext", v, sizeof(v)) == 2;
