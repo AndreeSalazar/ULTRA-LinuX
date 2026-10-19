@@ -27,10 +27,12 @@ try {
         'cmake --build prod',
         'cat prod/compile_commands.json',
         'bash aislar-grafica-software.sh prod/laboratorio/sonda-egl',
+        'bash aislar-grafica-software.sh prod/laboratorio/sonda-gpus',
         "cmake -S 'C++' -B diag -DCMAKE_CXX_COMPILER=g++ -DULTRA_CXX_EGL=ON -DULTRA_CXX_DIAGNOSTICO=ON",
         'cmake --build diag',
         'cat diag/compile_commands.json',
-        'bash aislar-grafica-software.sh diag/laboratorio/sonda-egl'
+        'bash aislar-grafica-software.sh diag/laboratorio/sonda-egl',
+        'bash aislar-grafica-software.sh diag/laboratorio/sonda-gpus'
     )
     & ssh.exe @opts -p 12222 $guest ($commands -join '; ') 2>&1 |
         Tee-Object -FilePath "$evidence/informe.txt"

@@ -50,6 +50,10 @@ de UB ni una demostracion de ausencia de fallos.
 
 ## GL/EGL: primer banco instalado y comprobado
 
+El siguiente prototipo ya ofrece cache .gpus con modos estatico y dinamico:
+ver [formato, controles y limites](GPUS.md). Solo banco GLES, sin integracion
+en Hyprland ni actualizacion asincrona.
+
 OpenGL/OpenGL ES son APIs: se compila una implementacion y el programa que
 la utiliza. Mesa y el proveedor NVIDIA son implementaciones distintas.
 nvidia-open es el modulo del kernel; no significa que podamos reconstruir
