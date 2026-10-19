@@ -249,7 +249,9 @@ def main():
                 # SystemExit is not an Exception: the finally below still writes the log.
                 sys.exit(1 if failures else 0)
             expect_boot(second, '[KERNEL]: Linux 7.3.0-rc7-pc-g', 'arranque 2: el firmware arranco la version propia', failures)
-            expect_boot(second, 'tu version propia arranco bien', 'arranque 2: marcada como buena', failures)
+            expect_boot(second, 'PERFIL DE PC COMPLETO: tu version propia arranco bien', 'arranque 2: PERFIL DE PC COMPLETO', failures)
+            # The box on the screen, captured as evidence.
+            check_screen(failures)
             conn.sendall(b'poweroff\n')
             transcript += read_until(conn, 'APAGADO', 10)
             qemu.wait(timeout=15)

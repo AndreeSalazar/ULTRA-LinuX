@@ -44,6 +44,35 @@ static void say(const char *level, const char *fmt, ...) {
     report(level, "PERFIL", detail);
 }
 
+/* One short line for the boot card's Perfil row, in colour; set on every path. */
+static char status[160];
+static void set_status(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void set_status(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(status, sizeof(status), fmt, ap);
+    va_end(ap);
+}
+const char *profile_status(void) { return status; }
+
+#define OK "\033[1;32m"
+#define WARN "\033[1;33m"
+#define BAD "\033[1;31m"
+#define DIM "\033[0;90m"
+#define END "\033[0m"
+
+/* The moment the PC gets its own version: a box nobody can miss. */
+static void celebrate(int entry) {
+    char line[256];
+    screen_write("\n" OK "  ╔════════════════════════════════════════════╗\n");
+    /* Every row is 44 columns between the borders; the console font has no check mark. */
+    screen_write("  ║           PERFIL DE PC COMPLETO            ║\n" END);
+    screen_write(OK "  ║" END "  ULTRA LinuX ya conoce este PC y arranco su" OK "║\n" END);
+    snprintf(line, sizeof(line), OK "  ║" END "  version Zen 3, lista en F11 (Boot%04X)    " OK "║\n" END, (unsigned)entry);
+    screen_write(line);
+    screen_write(OK "  ╚════════════════════════════════════════════╝\n\n" END);
+}
+
 static bool read_small(const char *path, char *buf, size_t cap) {
     int fd = open(path, O_RDONLY | O_CLOEXEC);
     if (fd < 0) return false;
@@ -111,22 +140,27 @@ void choose_profile(bool data) {
     const char *dev = bmo_device();
     struct utsname u;
     if (!data || !dir || !dev || uname(&u) < 0) return;
+    bool tuned = strstr(u.release, "-pc-") != NULL;
+    set_status("%s", tuned ? "version propia de este PC" : "generico");
     char off[320];
     int n = snprintf(off, sizeof(off), "%s/NO-AUTOCONFIGURAR", dir);
     if (n > 0 && (size_t)n < sizeof(off) && access(off, F_OK) == 0) {
         say("AMARILLO", "autoconfiguracion desactivada por A:\\ULTRA\\NO-AUTOCONFIGURAR");
+        set_status(DIM "autoconfiguracion desactivada" END);
         return;
     }
     struct state s;
     state_read(&s);
-    bool tuned = strstr(u.release, "-pc-") != NULL;
 
     if (tuned) {
         if (strcmp(s.estado, "probando") == 0) {
             ULTRA_COPY(s.estado, "bueno");
             state_write(&s);
-            say("VERDE", "tu version propia arranco bien: queda lista en F11 (Boot%04X)", (unsigned)s.entrada);
+            say("VERDE", "PERFIL DE PC COMPLETO: tu version propia arranco bien: queda lista en F11 (Boot%04X)",
+                (unsigned)s.entrada);
+            celebrate(s.entrada);
         }
+        if (strcmp(s.estado, "bueno") == 0) set_status(OK "■ COMPLETO" END " · version Zen 3 (Boot%04X)", (unsigned)s.entrada);
         return;
     }
 
@@ -137,6 +171,7 @@ void choose_profile(bool data) {
     bool installed = tuned_installed(dir);
     if (s.estado[0] && !efi_ready()) {
         say("AMARILLO", "sin acceso a las variables EFI: no se puede revisar tu version propia");
+        set_status(WARN "sin acceso a las variables EFI" END);
         return;
     }
     if (strcmp(s.estado, "bueno") == 0 && !installed) {
@@ -146,19 +181,23 @@ void choose_profile(bool data) {
         state_write(&s);
         say("AMARILLO", "tu version propia ya no esta instalada en A:\\%s",
             s.creada ? (removed ? "; su entrada F11 se borro" : "; su entrada F11 no se pudo borrar") : "");
+        set_status(WARN "version propia desinstalada" END);
         return;
     }
     if (strcmp(s.estado, "bueno") == 0) {
         say("VERDE", "tu version propia esta lista: eligela en F11 (Boot%04X)", (unsigned)s.entrada);
+        set_status("generico · " OK "COMPLETO" END ": la tuya en F11 (Boot%04X)", (unsigned)s.entrada);
         return;
     }
     if (strcmp(s.estado, "fallido") == 0) {
         say("AMARILLO", "tu version propia fallo antes; borra /datos/perfil.estado para reintentar");
+        set_status(BAD "version propia fallo" END " · se queda el generico");
         return;
     }
     if (strcmp(s.estado, "probando") == 0) {
         if (efi_boot_next_pending()) {
             say("AMARILLO", "prueba pendiente: el proximo reinicio arranca tu version propia (Boot%04X)", (unsigned)s.entrada);
+            set_status(WARN "prueba pendiente" END ": reinicia (Boot%04X)", (unsigned)s.entrada);
             return;
         }
         /* BootNext was used, yet the tuned kernel never reached its init. */
@@ -167,6 +206,7 @@ void choose_profile(bool data) {
         state_write(&s);
         say("ROJO", "tu version propia no llego a arrancar; se queda el generico%s",
             s.creada ? (removed ? " y su entrada F11 se borro" : "; su entrada F11 no se pudo borrar") : "");
+        set_status(BAD "version propia fallo" END " · se queda el generico");
         return;
     }
 
@@ -174,14 +214,17 @@ void choose_profile(bool data) {
     char why[96];
     if (!cpu_fits(why, sizeof(why))) {
         say("AMARILLO", "este PC (%s) no encaja con la version Zen 3: el generico es su version", why);
+        set_status("generico (CPU sin version Zen 3)");
         return;
     }
     if (!installed) {
         say("AMARILLO", "no hay version propia instalada en A:\\ (ULTRA-PC.EFI y su sistema)");
+        set_status("generico (sin version propia instalada)");
         return;
     }
     if (!efi_ready()) {
         say("AMARILLO", "sin acceso a las variables EFI: no se puede preparar la entrada F11");
+        set_status(WARN "sin acceso a las variables EFI" END);
         return;
     }
     /* Reuse an entry that already starts the tuned kernel, or create one. */
@@ -193,15 +236,18 @@ void choose_profile(bool data) {
     }
     if (entry < 0) {
         say("AMARILLO", "no se pudo preparar la entrada F11 de tu version propia");
+        set_status(WARN "no se pudo preparar la entrada F11" END);
         return;
     }
     s.entrada = entry;
     if (!efi_set_boot_next(entry)) {
         say("AMARILLO", "entrada Boot%04X lista, pero no se pudo pedir la prueba (BootNext)", (unsigned)entry);
+        set_status(WARN "no se pudo pedir la prueba" END " (Boot%04X)", (unsigned)entry);
         return;
     }
     ULTRA_COPY(s.estado, "probando");
     state_write(&s);
     say("VERDE", "%s tu version propia (%s): Boot%04X; reinicia (reboot) para probarla una vez",
         s.creada ? "preparada" : "encontrada", why, (unsigned)entry);
+    set_status(WARN "lista para probar" END ": reboot (Boot%04X)", (unsigned)entry);
 }

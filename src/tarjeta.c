@@ -209,6 +209,8 @@ void show_card(void) {
         ULTRA_APPEND(text, one);
     }
     row("Guardianes", text);
+    /* Which version this is, and where the PC's own version stands (perfil.c). */
+    if (profile_status()[0]) row("Perfil", profile_status());
     rule("└", "", "┘");
     screen_write("\n");
 }

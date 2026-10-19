@@ -237,8 +237,9 @@ int main(void) {
     report("VERDE", "KERNEL", detail);
     bool data = mount_partitions();
     prepare_hardware(data);
-    show_card();
+    /* The profile first, so its state shows on the card. */
     choose_profile(data);
+    show_card();
 
     /* Signals are taken synchronously: no handler code runs at arbitrary points. */
     sigset_t watched;

@@ -15,25 +15,24 @@ VERDE [PARTICION]: BMO (/dev/vda2, vfat) en /bmo
 VERDE [PARTICION]: ULTRA-SISTEMA-A <- /bmo/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs (/dev/loop0, erofs, solo lectura) en /sistema
 VERDE [PARTICION]: ULTRA-DATOS <- /bmo/ULTRA/datos.ext4 (/dev/loop1, ext4) en /datos
 VERDE [HARDWARE]: primer arranque en este PC (no hay PC.configuracion valida): deteccion completa
-VERDE [HARDWARE]: 7 componentes, 1 modulos necesarios (6 cargados, 0 fallos); deteccion 720 us + carga 10229 us
-[    0.471893] snd_hda_intel 0000:00:03.0: no codecs found!
+VERDE [HARDWARE]: 7 componentes, 1 modulos necesarios (6 cargados, 0 fallos); deteccion 698 us + carga 10397 us
+[    0.474635] snd_hda_intel 0000:00:03.0: no codecs found!
 VERDE [HARDWARE]: guardado en /datos/PC.configuración
 VERDE [MEDIDA]: hasta el hardware: 470 ms; primer arranque medido con este kernel
-VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 959 MiB | 7.3.0-rc7-g32c52ec87d62 | 470 ms (antes -1) | CET Landlock seccomp FORTIFY
 VERDE [PERFIL]: preparada tu version propia (AMD, familia 25, AVX2): Boot00FF; reinicia (reboot) para probarla una vez
+VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 959 MiB | 7.3.0-rc7-g32c52ec87d62 | 470 ms (antes -1) | CET Landlock seccomp FORTIFY
 VERDE [CONSOLA]: shell en /dev/tty1
 VERDE [CONSOLA]: shell en /dev/ttyS0
 ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).
 Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff
 ultra:~# reboot
 AMARILLO [APAGADO]: reinicio
-Terminated
 ultra:~# VERDE [DESMONTAJE]: /datos desmontado limpio
 VERDE [DESMONTAJE]: /bmo desmontado limpio
-[    1.559317] reboot: Restarting system
+[    1.548285] reboot: Restarting system
 ===== ARRANQUE 2 =====
-[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot00FF "ULTRA LinuX (este PC)" from HD(2,GPT,02519ECC-C146-4271-B27E-BA7E71D2CCD2,0x20800,0x48000)/\EFI\ULTRA\ULTRA-PC.EFI
-BdsDxe: starting Boot00FF "ULTRA LinuX (este PC)" from HD(2,GPT,02519ECC-C146-4271-B27E-BA7E71D2CCD2,0x20800,0x48000)/\EFI\ULTRA\ULTRA-PC.EFI
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot00FF "ULTRA LinuX (este PC)" from HD(2,GPT,6A8222F8-59B7-48B2-B31B-DAD039366812,0x20800,0x48000)/\EFI\ULTRA\ULTRA-PC.EFI
+BdsDxe: starting Boot00FF "ULTRA LinuX (este PC)" from HD(2,GPT,6A8222F8-59B7-48B2-B31B-DAD039366812,0x20800,0x48000)/\EFI\ULTRA\ULTRA-PC.EFI
 VERDE [MONTAJE]: devtmpfs en /dev
 VERDE [MONTAJE]: proc en /proc
 VERDE [MONTAJE]: sysfs en /sys
@@ -48,18 +47,17 @@ VERDE [KERNEL]: Linux 7.3.0-rc7-pc-g32c52ec87d62 x86_64
 VERDE [PARTICION]: BMO (/dev/vda2, vfat) en /bmo
 VERDE [PARTICION]: ULTRA-SISTEMA-A <- /bmo/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs (/dev/loop0, erofs, solo lectura) en /sistema
 VERDE [PARTICION]: ULTRA-DATOS <- /bmo/ULTRA/datos.ext4 (/dev/loop1, ext4) en /datos
-VERDE [HARDWARE]: arranque guiado por PC.configuracion: 1 modulos (6 cargados); lectura 2349 us + carga 9774 us = 12123 us; primer arranque 10949 us; ganado -1174 us
+VERDE [HARDWARE]: arranque guiado por PC.configuracion: 1 modulos (6 cargados); lectura 2363 us + carga 9827 us = 12190 us; primer arranque 11095 us; ganado -1095 us
 VERDE [MEDIDA]: hasta el hardware: 400 ms; primer arranque medido con este kernel
-[    0.412708] snd_hda_intel 0000:00:03.0: no codecs found!
+[    0.413757] snd_hda_intel 0000:00:03.0: no codecs found!
+VERDE [PERFIL]: PERFIL DE PC COMPLETO: tu version propia arranco bien: queda lista en F11 (Boot00FF)
 VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 960 MiB | 7.3.0-rc7-pc-g32c52ec87d62 | 400 ms (antes -1) | CET Landlock seccomp FORTIFY
-VERDE [PERFIL]: tu version propia arranco bien: queda lista en F11 (Boot00FF)
 VERDE [CONSOLA]: shell en /dev/tty1
 VERDE [CONSOLA]: shell en /dev/ttyS0
 ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).
 Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff
 ultra:~# poweroff
-AMARILLO [APAGADO]: apagado
-ultra:~# 
+AMARILLO [APAGADO
 ===== ARRANQUE 3 =====
 [2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x4,0x0)
 BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x4,0x0)
@@ -77,11 +75,11 @@ VERDE [KERNEL]: Linux 7.3.0-rc7-g32c52ec87d62 x86_64
 VERDE [PARTICION]: BMO (/dev/vda2, vfat) en /bmo
 VERDE [PARTICION]: ULTRA-SISTEMA-A <- /bmo/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs (/dev/loop0, erofs, solo lectura) en /sistema
 VERDE [PARTICION]: ULTRA-DATOS <- /bmo/ULTRA/datos.ext4 (/dev/loop1, ext4) en /datos
-VERDE [HARDWARE]: arranque guiado por PC.configuracion: 1 modulos (6 cargados); lectura 2778 us + carga 10814 us = 13592 us; primer arranque 10949 us; ganado -2643 us
-VERDE [MEDIDA]: hasta el hardware: 410 ms; el anterior con este kernel: 470 ms (-60 ms); arranque 2 con este kernel[    0.422500] snd_hda_intel 0000:00:03.0: no codecs found!
-
-VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 959 MiB | 7.3.0-rc7-g32c52ec87d62 | 410 ms (antes 470) | CET Landlock seccomp FORTIFY
+VERDE [HARDWARE]: arranque guiado por PC.configuracion: 1 modulos (6 cargados); lectura 2659 us + carga 10275 us = 12934 us; primer arranque 11095 us; ganado -1839 us
+VERDE [MEDIDA]: hasta el hardware: 400 ms; el anterior con este kernel: 470 ms (-70 ms); arranque 2 con este kernel
+[    0.413833] snd_hda_intel 0000:00:03.0: no codecs found!
 VERDE [PERFIL]: tu version propia esta lista: eligela en F11 (Boot00FF)
+VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 959 MiB | 7.3.0-rc7-g32c52ec87d62 | 400 ms (antes 470) | CET Landlock seccomp FORTIFY
 VERDE [CONSOLA]: shell en /dev/tty1
 VERDE [CONSOLA]: shell en /dev/ttyS0
 ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).

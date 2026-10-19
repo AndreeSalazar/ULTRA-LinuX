@@ -42,5 +42,7 @@ bool efi_boot_next_pending(void);
 
 /* perfil.c: the generic kernel prepares the PC's own version, with a way back. */
 void choose_profile(bool data);
+/* One short coloured line for the boot card: where the PC's own version stands. */
+const char *profile_status(void);
 
 #endif
