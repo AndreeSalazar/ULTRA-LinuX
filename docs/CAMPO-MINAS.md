@@ -1,5 +1,47 @@
 # Campo de minas de C
 
+## Ronda 3: evidencia y cruces
+
+Ejecutada en el taller QEMU con GCC 16.2.1. Informes:
+`evidencias/campo-minas-ronda3.txt` y `evidencias/cruces-guardianes-ronda3.txt`.
+
+- Compilación: 36 rechazos esperados, 0 ROJO.
+- Ejecución: 44 casos; 39 VERDE, 1 NEUTRA, 4 AMARILLO, 0 ROJO.
+- Casos nuevos: resta con signo fuera de rango, desplazamiento negativo,
+  ULTRA_SUB, ULTRA_MUL con signo y producto de tamaños sin signo.
+- El evaluador exige un diagnóstico compatible con la mina. Un código de error
+  genérico, señal sin bandera, ejecutable ausente o timeout ya no cuenta como VERDE.
+  La neutralización necesita su marcador explícito y salida cero. La lista de casos
+  debe generarse correctamente y contener entradas.
+- Cada ejecución tiene un límite de 15 segundos; no se generan volcados de memoria.
+- Cuatro combinaciones aceptan controles válidos: producción O2/O3 y diagnóstico
+  O1/O2. Se comprueban extremos de aritmética, índice evaluado una vez, copia exacta,
+  regiones adyacentes, memmove solapado y truncamiento informado.
+- La quinta combinación, producción O0, **debe rechazarse**: FORTIFY requiere
+  optimización. El resultado correcto es ese rechazo por el motivo esperado.
+  No es una combinación autorizada para distribuir.
+
+Desde Windows, con el taller iniciado:
+
+```powershell
+.\probar-guardianes.ps1
+```
+
+El lanzador copia las pruebas a `auditoria-guardianes` dentro de la VM, ejecuta
+las regresiones del evaluador, los cruces y el campo, y recupera ambos informes
+solo si todo termina correctamente. No recompila ni instala el kernel.
+
+Los cuatro AMARILLO siguen abiertos: uso tras free, lectura fuera por puntero,
+uso tras retorno y lectura sin inicializar. La ronda no prueba ausencia de toda UB,
+seguridad de programas ajenos ni todos los cruces del kernel. Las banderas de señal
+y los diagnósticos genéricos tampoco demuestran por sí solos la causa exacta.
+El laboratorio de velocidad continúa pendiente.
+
+Referencia de opciones y restricciones:
+[documentación oficial de GCC](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html).
+
+## Método y resultados históricos
+
 Cada mina es una forma clásica de romper un programa en C. Una mina "con bandera" es una que, al pisarla, despierta un guardián que dice **qué** pasó y **por qué** antes de detenerse. El campo crece con ULTRA LinuX: cada clase de fallo nueva que aparezca entra primero como mina, y solo después se le busca guardián.
 
 ```bash

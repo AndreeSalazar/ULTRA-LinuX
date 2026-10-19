@@ -1,0 +1,12 @@
+gcc (GCC) 16.2.1 20260810
+PERFIL prod-O0: -O2 -fhardened -fstrict-flex-arrays=3 -fsanitize=undefined\,float-cast-overflow\,bounds-strict -fsanitize-trap=all -fno-strict-aliasing -O0 -static-pie
+VERDE prod-O0: incompatibilidad FORTIFY/O0 rechazada como se esperaba
+PERFIL prod-O2: -O2 -fhardened -fstrict-flex-arrays=3 -fsanitize=undefined\,float-cast-overflow\,bounds-strict -fsanitize-trap=all -fno-strict-aliasing -O2 -static-pie
+VERDE prod-O2: operaciones validas conservadas
+PERFIL prod-O3: -O2 -fhardened -fstrict-flex-arrays=3 -fsanitize=undefined\,float-cast-overflow\,bounds-strict -fsanitize-trap=all -fno-strict-aliasing -O3 -static-pie
+VERDE prod-O3: operaciones validas conservadas
+PERFIL diag-O1: -O1 -g -fno-omit-frame-pointer -fsanitize=address\,undefined\,float-cast-overflow\,bounds-strict -fno-sanitize-recover=all -fcf-protection=full -O1
+VERDE diag-O1: operaciones validas conservadas
+PERFIL diag-O2: -O1 -g -fno-omit-frame-pointer -fsanitize=address\,undefined\,float-cast-overflow\,bounds-strict -fno-sanitize-recover=all -fcf-protection=full -O2
+VERDE diag-O2: operaciones validas conservadas
+RESUMEN cruces: ROJO=0 (5 perfiles)

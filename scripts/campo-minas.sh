@@ -3,10 +3,12 @@
 # Walks the minefield: every mine must wake a guardian, at compile time or at run time.
 # Each runtime mine runs three ways: raw (no guardian), production and diagnosis.
 set -uo pipefail
+ulimit -c 0
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
 source "$lab/guardianes.sh"
+source "$lab/minas-evaluar.sh"
 g="$lab/guardian"
-out="$HOME/linux-reconstruido/build/minas"
+out="${ULTRA_MINAS_OUT:-$HOME/linux-reconstruido/build/minas}"
 mkdir -p "$out"
 report="$out/informe.txt"
 : > "$report"
@@ -48,25 +50,27 @@ describe() {
     if [[ $rc -eq 99 ]]; then echo 'explota en silencio: el programa siguio como si nada'; return; fi
     if [[ $rc -eq 0 ]]; then echo 'termino normal sin detectar nada'; return; fi
     local flag
-    flag=$(first 'ROJO|^\*\*\*|runtime error|ERROR: AddressSanitizer|ERROR: LeakSanitizer|free\(\)|double|corrupted|munmap|invalid' "$file" | sed 's|^.*guardian/||')
+    flag=$(first '^ROJO|^\*\*\*|runtime error:|ERROR: AddressSanitizer|ERROR: LeakSanitizer|^free\(\)|^double free|^munmap_chunk' "$file" | sed 's|^.*guardian/||')
     if [[ -n $flag ]]; then echo "$flag"
     elif [[ $rc -gt 128 ]]; then echo "muere sin explicacion (senal $((rc-128)))"
     else echo "sale con codigo $rc sin explicacion"; fi
 }
-caught() { [[ $1 -ne 99 && ( $2 = N && $1 -eq 0 || $2 = D && $1 -ne 0 ) ]]; }
 
 log ''
 log '== Minas de ejecucion: sin guardianes / produccion (trampas, FORTIFY, CET) / diagnostico (ASan+UBSan) =='
 log "pila sombra en produccion: $("$out/minas-prod" --cet)"
+# A failed list command must not become an empty, successful test suite.
+"$out/minas-prod" --lista > "$out/lista.txt" || exit 1
+[[ -s "$out/lista.txt" ]] || { log 'ROJO: lista de minas vacia'; exit 1; }
 while IFS='|' read -r name kind why twin; do
     for mode in crudo prod diag; do
-        { "$out/minas-$mode" "$name" > "$out/$mode-$name.txt.out" 2> "$out/$mode-$name.txt"; } 2> /dev/null
+        { timeout --kill-after=2s 15s "$out/minas-$mode" "$name" > "$out/$mode-$name.txt.out" 2> "$out/$mode-$name.txt"; } 2> /dev/null
         printf -v "rc_$mode" '%d' $?
     done
-    if caught "$rc_prod" "$kind"; then
+    if mina_detectada "$rc_prod" "$kind" "$out/prod-$name.txt" "$name"; then
         if [[ $kind = N ]]; then state=NEUTRA; neutralized=$((neutralized+1)); else state=VERDE; stopped=$((stopped+1)); fi
-    elif caught "$rc_diag" "$kind"; then state=AMARILLO; diag_only=$((diag_only+1))
-    elif [[ -n $twin ]] && ! ultra_revisar "$g/minas-compilacion/$twin.c" 2> /dev/null; then
+    elif mina_detectada "$rc_diag" "$kind" "$out/diag-$name.txt" "$name"; then state=AMARILLO; diag_only=$((diag_only+1))
+    elif [[ -n $twin && -f "$g/minas-compilacion/$twin.c" ]] && ! ultra_revisar "$g/minas-compilacion/$twin.c" 2> /dev/null; then
         state=AMARILLO; diag_only=$((diag_only+1)) # only the review gate stops it, never the running program
     else state=ROJO; missed=$((missed+1)); fi
     # Raw counts as silent when the mine ran on (99/0) or died with no explanation.
@@ -78,7 +82,7 @@ while IFS='|' read -r name kind why twin; do
     cause=$(first 'SEGV_(CPERR|MAPERR|ACCERR)' "$out/prod-$name.txt" | grep -o '(SEGV_.*)'); [[ -n $cause ]] && log "                         $cause"
     log "         diagnostico:    $(describe "$rc_diag" "$out/diag-$name.txt" "$kind")"
     [[ -n $twin ]] && log "         gemela de compilacion: $twin (la revision la para antes de ejecutar)"
-done < <("$out/minas-prod" --lista)
+done < "$out/lista.txt"
 
 total_run=$((stopped + neutralized + diag_only + missed))
 log ''

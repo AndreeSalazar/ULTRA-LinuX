@@ -187,6 +187,11 @@ static void mine_uninit_runtime(void) {
 }
 
 static void mine_checked_add(void) { volatile int r = ULTRA_ADD(big, 1); (void)r; }
+static void mine_checked_sub(void) { volatile int r = ULTRA_SUB(int_min, 1); (void)r; }
+static void mine_checked_mul(void) { volatile int r = ULTRA_MUL(big, 2); (void)r; }
+static void mine_checked_size(void) { volatile size_t r = ULTRA_MUL(huge_count, (size_t)16); (void)r; }
+static void mine_sub_overflow(void) { volatile int r = int_min - 1; (void)r; }
+static void mine_negative_shift(void) { volatile int r = 1 << minus_one; (void)r; }
 static void mine_checked_index(void) { int a[4] = {0}; ULTRA_AT(a, far_index) = 1; }
 
 struct mine {
@@ -214,6 +219,11 @@ static const struct mine mines[] = {
     {"float-a-int", 'D', "convertir 1e20 a int no cabe: UB", mine_float_cast},
     {"retorno-secuestrado", 'D', "sobrescribir la direccion de retorno: base del ROP; solo CET lo bloquea en el retorno", mine_return_hijack},
     {"ultra-suma", 'D', "ULTRA_ADD: el guardian explicito comprueba la suma antes de usarla", mine_checked_add},
+    {"ultra-resta", 'D', "ULTRA_SUB debe rechazar INT_MIN menos uno", mine_checked_sub},
+    {"ultra-producto", 'D', "ULTRA_MUL debe rechazar producto con signo fuera de rango", mine_checked_mul},
+    {"tamano-producto", 'D', "size_t puede envolver legalmente: comprobar antes de reservar memoria", mine_checked_size},
+    {"resta-desborde", 'D', "restar uno a INT_MIN es UB", mine_sub_overflow},
+    {"desplazamiento-negativo", 'D', "un contador de desplazamiento negativo es UB", mine_negative_shift},
     {"ultra-indice", 'D', "ULTRA_AT: el guardian explicito comprueba el indice antes de acceder", mine_checked_index},
     {"vla-negativa", 'D', "un arreglo de tamano -1 en la pila: UB, la pila se rompe", mine_vla_negative},
     {"inalcanzable", 'D', "llegar a __builtin_unreachable: el compilador borro el codigo que seguia", mine_unreachable},
