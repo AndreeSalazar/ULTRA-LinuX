@@ -16,11 +16,15 @@ Estado: los dos caminos están probados en QEMU con firmware UEFI (`evidencias/a
 No hay USB libre, así que ULTRA vive como **archivos** en la partición FAT32 `A:\` (etiqueta `BMO`) del SSD Kingston SATA de 480 GB:
 
 ```
-A:\EFI\ULTRA\ULTRA.EFI          el kernel; lo arranca la entrada "ULTRA LinuX" del menú F11
-A:\ULTRA\sistema-a.erofs        el sistema, de solo lectura (módulos del kernel)
-A:\ULTRA\datos.ext4             /datos: PC.configuración y arranques.log
-A:\ULTRA\PC-configuracion.txt   copias que deja ULTRA en cada arranque,
-A:\ULTRA\arranques.txt          para leerlas directamente desde Windows
+A:\EFI\ULTRA\ULTRA.EFI                 kernel generico  -> F11 "ULTRA LinuX"
+A:\EFI\ULTRA\ULTRA-PC.EFI              kernel Zen 3     -> F11 "ULTRA LinuX PC (Zen 3)"
+A:\ULTRA\sistema-<versión>.erofs       el sistema de cada kernel, de solo lectura ("-pc-" = Zen 3)
+A:\ULTRA\datos.ext4                    /datos, compartido: PC.configuración y arranques.log
+A:\ULTRA\LEEME.txt                     qué es cada cosa, para leerlo desde Windows
+A:\ULTRA\informe\                      lo que deja ULTRA en cada arranque para Windows:
+    PC-configuracion.txt                 componentes y módulos de este PC
+    arranques.txt                        una línea por arranque: kernel y tiempos
+    dmesg-<versión>.txt                  registro del kernel, con marcas de tiempo
 ```
 
 **Por qué no se escribe el disco entero:** ese mismo SSD tiene, antes de `A:`, la partición EFI de 600 MB desde la que **arranca Windows** (Windows Boot Manager); el NVMe de `C:` no tiene una propia. Una imagen escrita en modo DD sobre ese disco la borraría. Con archivos dentro de `A:` no se toca ni esa partición ni `F:`.
@@ -108,19 +112,26 @@ Haz varios reinicios para tener varias medidas. Para forzar otra detección: `rm
 
 Los dos kernels conviven en `A:\`: `ULTRA.EFI` y `ULTRA-PC.EFI`, cada uno con su propio `sistema-<versión>.erofs` y el mismo `datos.ext4`. Se instalan con `.\instalar-en-A.ps1 -Accion Copiar -Perfil pc` (y `-Perfil generico`), y `-Accion CrearEntrada -Perfil pc` añade al menú F11 la entrada **ULTRA LinuX PC (Zen 3)**.
 
-Arranca cada uno 4 o 5 veces, alternando, y apaga siempre con `poweroff`. Cada línea de `A:\ULTRA\arranques.txt` dice qué kernel arrancó (`kernel=…-pc-…` o sin `-pc`) y cuánto tardó:
+Arranca cada uno 4 o 5 veces, alternando, y apaga siempre con `poweroff`. Cada línea de `A:\ULTRA\informe\arranques.txt` dice qué kernel arrancó (`kernel=…-pc-…` o sin `-pc`) y cuánto tardó:
 - `uptime_ms`: desde que arranca el kernel hasta que termina la etapa de hardware;
 - `total_us`: la etapa de hardware del init.
 
-Compara las medianas. En QEMU salieron iguales (410 frente a 405 ms).
+**Resultado en el metal (18-10-2026, `evidencias/pc-real/arranques-generico-vs-pc.txt`):**
+
+| | `generico` (4 arranques) | `pc` Zen 3 (5 arranques) |
+|---|---|---|
+| Carga de los 3 módulos (mediana) | 19,3 ms | **17,4 ms** (−10 %, sin solaparse) |
+| Etapa de hardware guiada | 20,2 ms | **18,4 ms** |
+| Primer arranque (detección completa) | 205,7 ms | — |
+| Del kernel al fin de esa etapa (`uptime`) | 2000–2020 ms | 2000–2020 ms |
+
+- El arranque guiado gana **unos 187 ms** frente a la detección completa: en el hardware real, `PC.configuración` sí vale la pena.
+- `pc` carga los módulos un 10 % más rápido (trabajo de CPU dentro del kernel), pero el arranque total empata.
+- **El cuello de botella son los 2 segundos del kernel**, no la CPU. Los `dmesg-*.txt` de `informe\` dirán dónde se van.
 
 ## 6. Ver los resultados en Windows
 
-Apaga con `poweroff` y arranca Windows. En `A:\ULTRA\` están `PC-configuracion.txt` y `arranques.txt`, actualizados en cada arranque de ULTRA. Para el registro completo del kernel, antes de apagar:
-
-```sh
-dmesg > /bmo/ULTRA/dmesg.txt
-```
+Apaga con `poweroff` y arranca Windows. En `A:\ULTRA\informe\` están `PC-configuracion.txt`, `arranques.txt` y un `dmesg-<versión>.txt` por kernel, actualizados en cada arranque de ULTRA. No hace falta escribir nada a mano.
 
 ## Si algo falla
 
@@ -131,7 +142,7 @@ dmesg > /bmo/ULTRA/dmesg.txt
 | Pantalla negra tras elegirla | El firmware no dio framebuffer | Otra salida de la RTX (DisplayPort/HDMI); comprobar CSM apagado |
 | El PC se reinicia solo en bucle | Pánico del kernel (`panic=-1` reinicia al instante) | Elegir Windows en F11; anotar lo último visible |
 | `ni particiones ... ni FAT32 BMO` | El SSD tardó más de 10 s o `A:` perdió la etiqueta | Comprobar en Windows que `A:` sigue llamándose `BMO` |
-| `sistema-a.erofs: No such file` | Faltan los archivos | `.\instalar-en-A.ps1 -Accion Copiar` |
+| `sistema-…erofs: No such file` | Faltan los archivos de ese kernel | `.\instalar-en-A.ps1 -Accion Copiar -Perfil generico` (o `-Perfil pc`) |
 | Windows pide revisar `A:` | ULTRA se apagó sin desmontar (corte de luz, botón) | Dejar que lo revise; `datos.ext4` puede necesitar empezar de cero con `-NuevosDatos` |
 
 Para volver a Windows basta con no elegir ULTRA en F11: Windows sigue siendo el arranque por defecto.

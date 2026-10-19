@@ -16,6 +16,7 @@
 #include <fnmatch.h>
 #include <inttypes.h>
 #include <stdarg.h>
+#include <sys/klog.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/utsname.h>
@@ -477,21 +478,49 @@ static void log_boot(const char *line) {
  * Windows cannot read ext4: when ULTRA runs from BMO (A:\), a copy of the
  * results goes beside its files, with plain ASCII names.
  */
-static void copy_for_windows(void) {
-    const char *dir = windows_dir();
-    if (!dir) return;
+static void write_report(const char *dir, const char *name, const char *buf, size_t len) {
+    char dst[320];
+    int n = snprintf(dst, sizeof(dst), "%s/%s", dir, name);
+    int fd = n > 0 && (size_t)n < sizeof(dst) ? open(dst, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644) : -1;
+    if (fd < 0) {
+        say("AMARILLO", "no se pudo crear %s/%s", dir, name);
+        return;
+    }
+    if (!write_all(fd, buf, len) || fsync(fd) < 0) say("AMARILLO", "no se pudo escribir %s", dst);
+    close(fd);
+}
+
+/*
+ * The kernel log of this boot, one file per kernel: its timestamps show where
+ * the boot spends its time, without anyone typing dmesg by hand.
+ */
+static void save_kernel_log(const char *dir, const char *release) {
+    int size = klogctl(10 /* SYSLOG_ACTION_SIZE_BUFFER */, NULL, 0);
+    if (size <= 0 || size > (16 << 20)) return;
+    char *buf = malloc((size_t)size);
+    int got = buf ? klogctl(3 /* SYSLOG_ACTION_READ_ALL */, buf, size) : -1;
+    char name[160];
+    int n = snprintf(name, sizeof(name), "dmesg-%s.txt", release);
+    if (got > 0 && n > 0 && (size_t)n < sizeof(name)) write_report(dir, name, buf, (size_t)got);
+    free(buf);
+}
+
+static void copy_for_windows(const char *release) {
+    const char *root = windows_dir();
+    char dir[256];
+    if (!root) return;
+    int n = snprintf(dir, sizeof(dir), "%s/informe", root);
+    if (n < 0 || (size_t)n >= sizeof(dir) || (mkdir(dir, 0755) < 0 && errno != EEXIST)) {
+        say("AMARILLO", "no se pudo crear %s/informe", root);
+        return;
+    }
     const char *const pairs[][2] = {{CONFIG_PATH, "PC-configuracion.txt"}, {BOOT_LOG, "arranques.txt"}};
     for (size_t i = 0; i < ULTRA_LEN(pairs); i++) {
-        char dst[256];
         char *buf = slurp(pairs[i][0]);
-        int len = snprintf(dst, sizeof(dst), "%s/%s", dir, pairs[i][1]);
-        int fd = buf && len > 0 && (size_t)len < sizeof(dst) ? open(dst, O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644) : -1;
-        if (fd >= 0) {
-            if (!write_all(fd, buf, strlen(buf)) || fsync(fd) < 0) say("AMARILLO", "no se pudo copiar a %s", dst);
-            close(fd);
-        } else if (buf) say("AMARILLO", "no se pudo crear %s/%s", dir, pairs[i][1]);
+        if (buf) write_report(dir, pairs[i][1], buf, strlen(buf));
         free(buf);
     }
+    save_kernel_log(dir, release);
 }
 
 void prepare_hardware(bool data) {
@@ -531,7 +560,7 @@ void prepare_hardware(bool data) {
                          " total_us=%" PRId64 " ganado_us=%" PRId64 " uptime_ms=%" PRId64 "\n",
                          u.release, nwanted, t1 - t0, t2 - t1, now, first - now, uptime_ms());
                 log_boot(line);
-                copy_for_windows();
+                copy_for_windows(u.release);
                 return;
             }
             why = "un modulo de la lista falla en este kernel";
@@ -557,5 +586,5 @@ void prepare_hardware(bool data) {
              " carga_us=%" PRId64 " total_us=%" PRId64 " uptime_ms=%" PRId64 "\n",
              u.release, ndevices, nwanted, d1 - d0, d2 - d1, d2 - d0, uptime_ms());
     log_boot(line);
-    copy_for_windows();
+    copy_for_windows(u.release);
 }

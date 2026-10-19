@@ -80,10 +80,12 @@ if BMO:
         ('grep " /bmo " /proc/mounts', 'vfat rw'),
         # Only BMO is FAT and mounted: the simulated Windows EFI partition stays untouched.
         ('echo VFAT-$(grep -c vfat /proc/mounts)', 'VFAT-1'),
-        ('ls /bmo/ULTRA', 'PC-configuracion.txt'),
+        ('ls /bmo/ULTRA/informe', 'PC-configuracion.txt'),
+        # The kernel log of this boot is saved for Windows on its own.
+        ('echo DMESG-$(cat /bmo/ULTRA/informe/dmesg-*.txt | grep -c "Linux version")', 'DMESG-1'),
     ]
     # The copy Windows reads on A:\ULTRA is updated on every boot.
-    BOOT2 += [('cat /bmo/ULTRA/arranques.txt', 'arranque=guiado')]
+    BOOT2 += [('cat /bmo/ULTRA/informe/arranques.txt', 'arranque=guiado')]
 if PERFIL == 'vigia':
     CHECKS += [
         ('dmesg | grep -m1 "AddressSanitizer init"', 'initialized'),

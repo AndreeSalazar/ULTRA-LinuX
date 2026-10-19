@@ -44,6 +44,38 @@ function Get-Entrada {
 
 if($Accion -eq 'Copiar'){
     $part=Test-Destino
+    # Leftovers of earlier layouts, by exact name only: the shared system image from before
+    # each kernel had its own, and the reports that now live in ULTRA\informe.
+    foreach($old in 'ULTRA\sistema-a.erofs','ULTRA\PC-configuracion.txt','ULTRA\arranques.txt'){
+        $path=Join-Path $root $old
+        if(Test-Path -LiteralPath $path){Remove-Item -LiteralPath $path; Write-Host "VERDE [LIMPIEZA]: $path ya no se usa; borrado"}
+    }
+    New-Item -ItemType Directory -Force (Join-Path $root 'ULTRA') | Out-Null
+    $leeme=@'
+ULTRA LinuX en esta particion (BMO, A:\ en Windows)
+====================================================
+
+EFI\ULTRA\ULTRA.EFI       kernel generico      -> F11: "ULTRA LinuX"
+EFI\ULTRA\ULTRA-PC.EFI    kernel Zen 3 (pc)    -> F11: "ULTRA LinuX PC (Zen 3)"
+
+ULTRA\sistema-<version>.erofs   modulos de cada kernel, solo lectura.
+                                 Sin "-pc-": generico. Con "-pc-": Zen 3.
+ULTRA\datos.ext4                /datos, compartido por los dos kernels.
+                                 Windows no lo lee; no borrarlo.
+
+ULTRA\informe\                  lo que ULTRA deja para leer desde Windows,
+                                 actualizado en cada arranque:
+  PC-configuracion.txt   componentes y modulos de este PC
+                         (escrito en el primer arranque; no cambia
+                          salvo que cambie el hardware)
+  arranques.txt          una linea por arranque: kernel y tiempos
+  dmesg-<version>.txt    registro del kernel del ultimo arranque de
+                         cada kernel, con sus marcas de tiempo
+
+Apagar siempre con "poweroff" dentro de ULTRA.
+Instalado y actualizado por instalar-en-A.ps1 (proyecto Linux Reconstruido).
+'@
+    [IO.File]::WriteAllText((Join-Path $root 'ULTRA\LEEME.txt'),($leeme -replace "`r?`n","`r`n"),(New-Object Text.UTF8Encoding $false))
     foreach($name in $files.Keys){
         $src=Join-Path $build $name
         if((Get-FileHash $src).Hash -ine (Get-Esperado $name)){throw "ROJO [HASH]: $name no coincide con SHA256SUMS"}
@@ -94,7 +126,7 @@ if($Accion -eq 'Copiar'){
         $dst=Join-Path $root $files[$name]
         if(Test-Path -LiteralPath $dst){"{0,-28} {1,8} KiB" -f $files[$name],[math]::Round((Get-Item $dst).Length/1KB)}else{"{0,-28} falta" -f $files[$name]}
     }
-    foreach($extra in 'ULTRA\PC-configuracion.txt','ULTRA\arranques.txt'){ if(Test-Path -LiteralPath (Join-Path $root $extra)){"{0,-28} escrito por ULTRA" -f $extra} }
+    foreach($extra in 'ULTRA\informe\PC-configuracion.txt','ULTRA\informe\arranques.txt'){ if(Test-Path -LiteralPath (Join-Path $root $extra)){"{0,-28} escrito por ULTRA" -f $extra} }
     $id=Get-Entrada
     if($id){& bcdedit.exe /enum $id}else{'Entrada F11: no creada'}
 }

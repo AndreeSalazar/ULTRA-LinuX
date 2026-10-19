@@ -1,0 +1,10 @@
+arranque=deteccion componentes=50 modulos=3 deteccion_us=184075 carga_us=21614 total_us=205689
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=975 carga_us=17384 total_us=18359 ganado_us=187330 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=895 carga_us=17110 total_us=18005 ganado_us=187684 uptime_ms=2020
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=972 carga_us=17588 total_us=18560 ganado_us=187129 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=894 carga_us=17606 total_us=18500 ganado_us=187189 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-pc-g32c52ec87d62 modulos=3 lectura_us=1036 carga_us=17245 total_us=18281 ganado_us=187408 uptime_ms=2000
+arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=985 carga_us=19261 total_us=20246 ganado_us=185443 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=1005 carga_us=19556 total_us=20561 ganado_us=185128 uptime_ms=2009
+arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=908 carga_us=19340 total_us=20248 ganado_us=185441 uptime_ms=2020
+arranque=guiado kernel=7.3.0-rc7-g32c52ec87d62 modulos=3 lectura_us=987 carga_us=19075 total_us=20062 ganado_us=185627 uptime_ms=2000
