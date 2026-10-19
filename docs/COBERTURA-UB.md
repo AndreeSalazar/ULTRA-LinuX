@@ -1,5 +1,10 @@
 # Cobertura de C17 y GCC
 
+La [investigacion historica, desde los origenes hasta 2026](HISTORIA-C-Y-SEGURIDAD.md)
+recorre todas las revisiones publicadas y el trabajo en curso. Su
+[inventario de pendientes](PENDIENTES-GUARDIANES.md) propone 30 lineas de C
+y 12 de aislamiento; investigar una fila no acredita implementacion.
+
 El [Museo viviente de C](MUSEO-UB.md) presenta 24 piezas con fragmentos, alternativas,
 referencias y estados tomados del informe. El registro editable es `museo-ub.json`;
 el generador rechaza nombres inventados y evidencia incompleta. Las fichas pendientes
@@ -10,8 +15,10 @@ norma ni certifica ausencia de UB. Un caso VERDE demuestra solo ese caso en el
 compilador, arquitectura, opciones y entradas probados. UBSan no instrumenta todo C.
 El código de usuario se prueba en la VM del taller; esto no es cobertura del kernel.
 
-Estado verificado de la ronda 6: 62 minas de ejecucion (53 VERDE, 1 NEUTRA,
-8 AMARILLO) y 36 rechazos de compilacion. Los casos son ejemplos deliberados
+Estado verificado de la ronda 7: 62 minas de ejecucion (53 VERDE, 1 NEUTRA,
+8 AMARILLO) y 36 rechazos de compilacion, mas una suite separada de dominios
+ctype con 18 rechazos y controles validos. Ver [ronda 7 y privilegios](GUARDIAN-PRIVILEGIOS.md).
+Los casos son ejemplos deliberados
 para desarrollar y comprobar reglas defensivas. El guardian no se entrena ni
 aprende permisos automaticamente: cada regla es codigo revisable con una prueba
 de rechazo y controles validos. El registro de garantias esta en

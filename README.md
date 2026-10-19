@@ -4,6 +4,10 @@ El [Museo viviente de C y sus guardianes](docs/MUSEO-UB.md) reune ejemplos estud
 alternativas validas, referencias y evidencia del campo de minas. Distingue UB de
 otros comportamientos de C y deja visibles los casos aun sin prueba.
 
+La [historia de C, UB y aislamiento hasta 2026](docs/HISTORIA-C-Y-SEGURIDAD.md)
+conecta las fuentes originales con un [inventario de pendientes](docs/PENDIENTES-GUARDIANES.md)
+para ampliar los guardianes sin confundir investigacion con cobertura demostrada.
+
 Taller de **ULTRA LinuX**: kernel oficial + init C con guardianes + BusyBox, compilados con GCC. Plan, guardianes y fases en [docs/ULTRA-LINUX.md](docs/ULTRA-LINUX.md).
 
 Laboratorio personal x86-64 para modificar el Linux oficial con C y GCC. Inspirado en el control de Arch. Perfil físico inicial: Ryzen 5 5600X y MSI A320M-A PRO MAX.
