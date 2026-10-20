@@ -1,0 +1,14 @@
+{
+  "perfil": "generico",
+  "version": "--despues",
+  "escenarios": [
+    "espera de primer plano acotada, sin cable ni IPv4",
+    "DHCP recupera IPv4 al conectar DESPUES de salir del preparador",
+    "DNS recibido mediante DHCP",
+    "HTTPS real con CA valida, como UID1000 sin capacidades",
+    "reconexion tras desconectar y reconectar cable virtual",
+    "reentrada con red activa devuelve configuracion sin espera de lease"
+  ],
+  "fuente_inyectada_preflight_sha256": "783455d5e6378a51c4728e7113f3bb53924e5289827bb342b82663ef6b386fbe",
+  "espera_sin_cable_s": 11.5
+}

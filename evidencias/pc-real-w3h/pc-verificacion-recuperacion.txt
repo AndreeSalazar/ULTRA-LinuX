@@ -1,0 +1,8 @@
+/home/builder/linux-reconstruido/artifacts/pc/bzImage-tiny64: OK
+/home/builder/linux-reconstruido/build/init-c-pc/init: OK
+/home/builder/linux-reconstruido/build/init-c-pc/caja: OK
+/home/builder/linux-reconstruido/artifacts/pc/ultra-esp.img: OK
+/home/builder/linux-reconstruido/artifacts/pc/disco-bmo.img: OK
+/home/builder/linux-reconstruido/artifacts/pc/sistema-a.erofs: OK
+/home/builder/linux-reconstruido/artifacts/pc/datos.ext4: OK
+/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-doble.img: OK

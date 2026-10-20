@@ -5,3 +5,7 @@ evidencias/*.log -text -diff
 src/rootfs/** text eol=lf
 # Binaries inside rootfs: the rule above would rewrite their bytes as line endings.
 src/rootfs/**/*.bin binary
+# Evidence hashes refer to normalized text bytes; keep them stable on Windows.
+evidencias/pc-real-w3h/** text eol=lf
+evidencias/pc-real-w3h/**/*.png binary
+evidencias/pc-real-w3h/*.zip binary

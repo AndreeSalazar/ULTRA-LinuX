@@ -1,0 +1,50 @@
+[
+  {
+    "archivo": "gpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-hyprland.txt",
+    "kernel": "7.3.0-rc7-pc-g32c52ec87d62",
+    "modo": "nvidia",
+    "compositor": "hyprland",
+    "fecha_utc": "2026-10-19T18:42:23Z",
+    "ram_sistema_estimada_MiB": {
+      "min": 476.48046875,
+      "max_muestreado": 1057.078125,
+      "muestras": 24
+    },
+    "pss_UID1000_MiB": {
+      "min": 1.7490234375,
+      "max_muestreado": 816.2587890625,
+      "muestras": 23
+    },
+    "cpu_sistema_ocupada_pct": {
+      "min": 0.4933948750596849,
+      "max_muestreado": 10.702341137123746,
+      "muestras": 23
+    },
+    "gpu": {
+      "GPU-d22be6d0-d396-57d2-54c9-7d9c78acecb3": {
+        "pci": "00000000:29:00.0",
+        "vram_MiB": {
+          "min": 1.0,
+          "max_muestreado": 236.0,
+          "muestras": 24
+        },
+        "uso_pct": {
+          "min": 0.0,
+          "max_muestreado": 13.0,
+          "muestras": 24
+        },
+        "temperatura_C": {
+          "min": 43.0,
+          "max_muestreado": 54.0,
+          "muestras": 24
+        },
+        "potencia_W": {
+          "min": 14.76,
+          "max_muestreado": 43.0,
+          "muestras": 24
+        }
+      }
+    },
+    "alcance": "Maximos muestreados; no picos absolutos ni memoria exclusiva de Hyprland. VRAM total del dispositivo."
+  }
+]

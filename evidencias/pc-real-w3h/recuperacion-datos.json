@@ -1,0 +1,9 @@
+{
+  "FechaUtc": "2026-10-20T03:24:10.6564687Z",
+  "Origen": "A:/$RECYCLE.BIN/$RM4OBJI/datos.ext4",
+  "Respaldo": "C:\\Users\\Salazar\\Documents\\Linux Reconstruido\\build\\recuperacion-datos-w3h/datos-original.ext4",
+  "SHA256Original": "A0D74BC9C69CADBDEB5DCA13287166C843659DDD26C5CADDD62E6FE130700903",
+  "SHA256Restaurado": "A0D74BC9C69CADBDEB5DCA13287166C843659DDD26C5CADDD62E6FE130700903",
+  "InformesRestaurados": 6,
+  "Nota": "La carpeta original estaba en la papelera; se recupera solo datos.ext4 e informes, conservando las imagenes nuevas."
+}

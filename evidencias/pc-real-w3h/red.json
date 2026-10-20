@@ -1,0 +1,445 @@
+{
+  "A:\\ULTRA\\informe\\gpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-hyprland.txt": {
+    "intervalos": [
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.233693916,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 516,
+          "rx_packets": 0,
+          "tx_packets": 6,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0007887354641394356,
+        "tx_paquetes_s": 1.1464178257840634
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.230160083,
+        "delta": {
+          "rx_bytes": 60,
+          "tx_bytes": 70,
+          "rx_packets": 1,
+          "tx_packets": 1,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 9.177539356016687e-05,
+        "rx_paquetes_s": 0.19119873658368097,
+        "tx_Mbit_s": 0.00010707129248686134,
+        "tx_paquetes_s": 0.19119873658368097
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.21196011,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.39079344,
+        "delta": {
+          "rx_bytes": 60,
+          "tx_bytes": 70,
+          "rx_packets": 1,
+          "tx_packets": 1,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 8.904069602043591e-05,
+        "rx_paquetes_s": 0.18550145004257482,
+        "tx_Mbit_s": 0.00010388081202384189,
+        "tx_paquetes_s": 0.18550145004257482
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.386083027,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.388549178,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.393693552,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 70,
+          "rx_packets": 0,
+          "tx_packets": 1,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.00010382495679465329,
+        "tx_paquetes_s": 0.18540170856188087
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.385398397,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.381536913,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.387787208,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.383528555,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.382994954,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.379956092,
+        "delta": {
+          "rx_bytes": 60,
+          "tx_bytes": 70,
+          "rx_packets": 1,
+          "tx_packets": 1,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 8.922005901010242e-05,
+        "rx_paquetes_s": 0.18587512293771338,
+        "tx_Mbit_s": 0.0001040900688451195,
+        "tx_paquetes_s": 0.18587512293771338
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.398150396,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.409062163,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.420035071,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.416681979,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.44508506,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.439371765,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.440061536,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.439913856,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.439045045,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      },
+      {
+        "interfaz": "enp37s0",
+        "indice": 2,
+        "segundos": 5.431422289,
+        "delta": {
+          "rx_bytes": 0,
+          "tx_bytes": 0,
+          "rx_packets": 0,
+          "tx_packets": 0,
+          "rx_errors": 0,
+          "tx_errors": 0,
+          "rx_dropped": 0,
+          "tx_dropped": 0
+        },
+        "rx_Mbit_s": 0.0,
+        "rx_paquetes_s": 0.0,
+        "tx_Mbit_s": 0.0,
+        "tx_paquetes_s": 0.0
+      }
+    ],
+    "discontinuidades_o_muestras_invalidas": 0,
+    "nota": "Contadores de interfaz, no bytes fisicos en cable ni capacidad maxima. GRO/TSO y el driver afectan las cuentas; errores/descartes dependen del punto de medida. Muestras no atomicas. En informes se usa solo el historial de la sesion. Sin dos muestras compatibles no se calcula tasa."
+  }
+}

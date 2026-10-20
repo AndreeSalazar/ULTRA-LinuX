@@ -9,7 +9,8 @@
 # image (named after uname -r) and its own F11 entry; datos.ext4 is shared.
 param([ValidateSet('Copiar','CrearEntrada','QuitarEntrada','Estado')][string]$Accion='Estado',
       [ValidateSet('generico','pc')][string]$Perfil='generico',
-      [string]$Unidad='A', [switch]$NuevosDatos)
+      [ValidatePattern('^[A-Za-z]$')][string]$Unidad='A', [switch]$NuevosDatos,
+      [ValidatePattern('^[0-9a-fA-F]{64}$')][string]$DatosEsperadosSHA256)
 $ErrorActionPreference='Stop'
 $project=$PSScriptRoot
 $build=Join-Path $project "build/$Perfil"
@@ -44,6 +45,31 @@ function Get-Entrada {
 
 if($Accion -eq 'Copiar'){
     $part=Test-Destino
+    # Keep the receipt outside the removable drive, so removing ULTRA cannot
+    # silently turn an update into a first installation with an empty seed.
+    $receipt=Join-Path $project "build/datos-$Unidad.sha256"
+    if($NuevosDatos -and $DatosEsperadosSHA256){throw 'ROJO [DATOS]: no combinar -NuevosDatos con -DatosEsperadosSHA256'}
+    $expectedData=$DatosEsperadosSHA256
+    if(-not $expectedData -and -not $NuevosDatos -and (Test-Path -LiteralPath $receipt)){
+        $expectedData=(Get-Content -LiteralPath $receipt -Raw).Trim()
+        if($expectedData -notmatch '^[0-9a-fA-F]{64}$'){throw 'ROJO [DATOS]: recibo local invalido'}
+    }
+    $dataPath=Join-Path $root 'ULTRA\datos.ext4'
+    $dataBefore=$null
+    if(Test-Path -LiteralPath $dataPath){$dataBefore=(Get-FileHash -LiteralPath $dataPath -Algorithm SHA256).Hash}
+    $hasInstallation=(Test-Path -LiteralPath (Join-Path $root 'EFI\ULTRA\ULTRA.EFI')) -or
+                     (Test-Path -LiteralPath (Join-Path $root 'EFI\ULTRA\ULTRA-PC.EFI')) -or
+                     [bool](Get-Entrada)
+    # A saved volume legitimately changes after Linux writes to it. The receipt
+    # requires its presence; only an explicit expected hash requires exact bytes.
+    if(-not $NuevosDatos -and -not $dataBefore -and ($expectedData -or $hasInstallation)){throw 'ROJO [DATOS]: faltan los datos de la instalacion anterior; restaurarlos antes de copiar (o usar -NuevosDatos intencionadamente)'}
+    if($DatosEsperadosSHA256 -and $dataBefore -ine $DatosEsperadosSHA256){throw 'ROJO [DATOS]: datos.ext4 no coincide con el hash esperado; no se ha escrito nada'}
+    if($dataBefore -and -not $NuevosDatos){
+        $backup=Join-Path $project "build/respaldo-datos/$dataBefore.ext4"
+        New-Item -ItemType Directory -Force (Split-Path $backup)|Out-Null
+        if(-not(Test-Path -LiteralPath $backup)){Copy-Item -LiteralPath $dataPath -Destination $backup}
+        if((Get-FileHash -LiteralPath $backup -Algorithm SHA256).Hash -ine $dataBefore){throw 'ROJO [DATOS]: respaldo local incorrecto; no se ha escrito en destino'}
+    }
     # Leftovers of earlier layouts, by exact name only: the shared system image from before
     # each kernel had its own, and the reports that now live in ULTRA\informe.
     foreach($old in 'ULTRA\sistema-a.erofs','ULTRA\PC-configuracion.txt','ULTRA\arranques.txt'){
@@ -75,7 +101,7 @@ ULTRA\informe\                  lo que ULTRA deja para leer desde Windows,
 Apagar siempre con "poweroff" dentro de ULTRA.
 Instalado y actualizado por instalar-en-A.ps1 (proyecto Linux Reconstruido).
 '@
-    [IO.File]::WriteAllText((Join-Path $root 'ULTRA\LEEME.txt'),($leeme -replace "`r?`n","`r`n"),(New-Object Text.UTF8Encoding $false))
+    [IO.File]::WriteAllText((Join-Path (Convert-Path -LiteralPath (Join-Path $root 'ULTRA')) 'LEEME.txt'),($leeme -replace "`r?`n","`r`n"),(New-Object Text.UTF8Encoding $false))
     foreach($name in $files.Keys){
         $src=Join-Path $build $name
         if((Get-FileHash $src).Hash -ine (Get-Esperado $name)){throw "ROJO [HASH]: $name no coincide con SHA256SUMS"}
@@ -94,6 +120,9 @@ Instalado y actualizado por instalar-en-A.ps1 (proyecto Linux Reconstruido).
         if((Get-FileHash $dst).Hash -ine (Get-Esperado $name)){throw "ROJO [COPIA]: $dst no quedo igual que el original"}
         Write-Host "VERDE [COPIA]: $dst"
     }
+    $dataAfter=(Get-FileHash -LiteralPath $dataPath -Algorithm SHA256).Hash
+    if($dataBefore -and -not $NuevosDatos -and $dataAfter -ine $dataBefore){throw 'ROJO [DATOS]: los datos cambiaron durante la copia; comprobar el respaldo local'}
+    Set-Content -LiteralPath $receipt -Value $dataAfter -Encoding ascii
     $next=if(Get-Entrada){"elegir $title en F11"}else{'-Accion CrearEntrada'}
     Write-Host "VERDE: $title ($release) instalado en ${Unidad}:\ (disco $($part.DiskNumber), particion $($part.PartitionNumber)). Siguiente: $next"
 }elseif($Accion -eq 'CrearEntrada'){

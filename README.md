@@ -30,6 +30,10 @@ La [revision de Ethernet](docs/RED-W3G.md) incorpora firmware Realtek, contadore
 RX/TX en C con guardianes y un banco aislado de perdida, retardo y duplicados.
 Las pruebas virtuales no sustituyen la medicion del cable y la tarjeta fisica.
 
+El [analisis del nuevo arranque real](docs/PC-REAL-W3H.md) distingue los 3290 ms
+de preparacion del hardware de los 10 ms de diferencia, registra el consumo
+de la RTX y corrige DHCP cuando el enlace Ethernet aparece tarde.
+
 ## ULTRA LinuX en el metal: de 2009 ms a 920 ms
 
 ![Tarjeta de arranque de ULTRA LinuX en el PC real: 920 ms](evidencias/pc-real/foto-tarjeta-pc-920ms.webp)

@@ -1,0 +1,270 @@
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x4,0x0)
+BdsDxe: starting Boot0001 "UEFI Misc Device" from PciRoot(0x0)/Pci(0x4,0x0)
+VERDE [MONTAJE]: devtmpfs en /dev
+VERDE [MONTAJE]: proc en /proc
+VERDE [MONTAJE]: sysfs en /sys
+VERDE [MONTAJE]: tmpfs en /tmp
+VERDE [MONTAJE]: tmpfs en /run
+VERDE [MONTAJE]: devpts en /dev/pts
+VERDE [MONTAJE]: tmpfs en /dev/shm
+
+ULTRA LinuX: INIT C READY
+ULTRA LinuX - Influencia BMO-X
+Eddi Salazar: creador de un sistema propio, sin ser un OS
+
+VERDE [KERNEL]: Linux 7.3.0-rc7-g32c52ec87d62 x86_64
+VERDE [PARTICION]: BMO (/dev/vda2, vfat) en /bmo
+VERDE [PARTICION]: ULTRA-SISTEMA-A <- /bmo/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs (/dev/loop0, erofs, solo lectura) en /sistema
+VERDE [PARTICION]: ULTRA-DATOS <- /bmo/ULTRA/datos.ext4 (/dev/loop1, ext4) en /datos
+VERDE [HARDWARE]: primer arranque en este PC (no hay PC.configuracion valida): deteccion completa
+VERDE [HARDWARE]: 7 componentes, 0 modulos necesarios (0 cargados, 0 de otros kernels, 0 fallos); deteccion 498 us + carga 214 us
+VERDE [HARDWARE]: guardado en /datos/PC.configuración
+VERDE [MEDIDA]: hasta el hardware: 680 ms; primer arranque medido con este kernel
+AMARILLO [PERFIL]: no hay version propia instalada en A:\ (ULTRA-PC.EFI y su sistema)
+VERDE [SISTEMA]: base Arch en /arch (322 paquetes, glibc 2.44; EROFS + capa en memoria); entra con: ultra-entrar
+VERDE [TARJETA]: AMD Ryzen 5 5600X 6-Core | sin sensor | 959 MiB | 7.3.0-rc7-g32c52ec87d62 | 680 ms (antes -1) | CET Landlock seccomp FORTIFY
+VERDE [LOGO]: 248x300 en la pantalla de 1280x800
+VERDE [CONSOLA]: shell en /dev/tty1
+VERDE [CONSOLA]: shell en /dev/ttyS0
+ULTRA LinuX 0.1 - shell BusyBox supervisada por init C (PID 1).
+Prueba: uname -a, cat /etc/os-release, ps, free, ls /proc. Apagar: poweroff
+Recomendacion: ultra-entrar  (entra en el sistema Arch: bash, coreutils, grep, sed, less; exit para volver)
+Escritorio: e  (menu con flechas y Enter; GPU, recuperacion y diagnostico)
+ultra:~# : > /arch/tmp/red-candidato.b64; echo ENLACE-FIN-$((100+1))
+ENLACE-FIN-101
+ultra:~# printf '%s' 'IyEvdXNyL2Jpbi9iYXNoCiMgU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IE
+dQTC0yLjAtb25seQojIFdpcmVkIElQdjQgREhDUCBvbmx5LiBObyBXaS1GaSBjcmVkZW50aWFscyBvci
+BoYXJkY29kZWQgcHVibGljIEROUy4Kc2V0IC11byBwaXBlZmFpbApbWyAkKGlkIC11KSA9PSAwIF1dIH
+x8IGV4aXQgMQpleGVjIDk+Ji0gIyBESENQIG1h' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+2))
+ENLACE-FIN-102
+ultra:~# printf '%s' 'eSBvdXRsaXZlIHRoZSBkZXNrdG9wOyBuZXZlciByZXRhaW4gaXRzIHNlc3
+Npb24gbG9jay4KcHJpbnRmICdVTFRSQSBSRURcbicKcmVhZHkoKSB7CiAgICBsb2NhbCByb3V0ZSBpZm
+FjZSBpIHJvdXRlcwogICAgcm91dGVzPSQoaXAgLTQgcm91dGUgc2hvdyBkZWZhdWx0KSB8fCByZXR1cm
+4gMQogICAgd2hpbGUgcmVhZCAtciAtYSByb3V0' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+3))
+ENLACE-FIN-103
+ultra:~# printf '%s' 'ZTsgZG8KICAgICAgICBbWyAke3JvdXRlWzBdOi19ID09IGRlZmF1bHQgJi
+YgIiAke3JvdXRlWypdfSAiICE9IConIGxpbmtkb3duICcqIF1dIHx8IGNvbnRpbnVlCiAgICAgICAgaW
+ZhY2U9JycKICAgICAgICBmb3IgKChpPTA7aSsxPCR7I3JvdXRlW0BdfTtpKyspKTsgZG8KICAgICAgIC
+AgICAgW1sgJHtyb3V0ZVtpXX0gIT0gZGV2IF1d' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+4))
+ENLACE-FIN-104
+ultra:~# printf '%s' 'IHx8IHsgaWZhY2U9JHtyb3V0ZVtpKzFdfTsgYnJlYWs7IH0KICAgICAgIC
+Bkb25lCiAgICAgICAgW1sgLW4gJGlmYWNlICYmICRpZmFjZSA9fiBeW2EtekEtWjAtOV8uOi1dKyQgXV
+0gfHwgY29udGludWUKICAgICAgICBbWyAkKGNhdCAiL3N5cy9jbGFzcy9uZXQvJGlmYWNlL2NhcnJpZX
+IiIDI+L2Rldi9udWxsKSA9PSAxIF1dIHx8IGNv' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+5))
+ENLACE-FIN-105
+ultra:~# printf '%s' 'bnRpbnVlCiAgICAgICAgaXAgLTQgLW8gYWRkcmVzcyBzaG93IGRldiAiJG
+lmYWNlIiBzY29wZSBnbG9iYWwgfCBncmVwIC1xICcgaW5ldCAnIHx8IGNvbnRpbnVlCiAgICAgICAgIy
+BQcmVzZW5jZSBpcyByZXBvcnRlZCBzZXBhcmF0ZWx5OyBpdCBkb2VzIG5vdCBwcm92ZSBETlMvSFRUUF
+MgcmVhY2hhYmlsaXR5LgogICAgICAgIGdyZXAg' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+6))
+ENLACE-FIN-106
+ultra:~# printf '%s' 'LUVxICdeW1s6c3BhY2U6XV0qbmFtZXNlcnZlcltbOnNwYWNlOl1dK1teWz
+pzcGFjZTpdIztdKycgL2V0Yy9yZXNvbHYuY29uZiB8fCBjb250aW51ZQogICAgICAgIHJldHVybiAwCi
+AgICBkb25lIDw8PCAiJHJvdXRlcyIKICAgIHJldHVybiAxCn0Kc2hvd19yZWFkeSgpIHsKICAgIGlwIC
+00IC1icmllZiBhZGRyZXNzCiAgICBpcCAtNCBy' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+7))
+ENLACE-FIN-107
+ultra:~# printf '%s' 'b3V0ZSBzaG93IGRlZmF1bHQKICAgIGVjaG8gJ1ZFUkRFIFtSRURdOiBlbm
+xhY2UsIElQdjQsIHJ1dGEgeSBETlMgY29uZmlndXJhZG9zOyBhY2Nlc28gRE5TL0hUVFBTIGF1biBzaW
+4gY29tcHJvYmFyJwp9CmlmIHJlYWR5OyB0aGVuIHNob3dfcmVhZHk7IGV4aXQgMDsgZmkKY291bnQ9MD
+sgbGF1bmNoZWQ9MDsgZGVhZGxpbmU9JCgoU0VD' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+8))
+ENLACE-FIN-108
+ultra:~# printf '%s' 'T05EUysxMikpCmZvciBlbnRyeSBpbiAvc3lzL2NsYXNzL25ldC8qOyBkbw
+ogICAgaWZhY2U9JHtlbnRyeSMjKi99CiAgICBbWyAkaWZhY2UgIT0gbG8gJiYgJGlmYWNlID1+IF5bYS
+16QS1aMC05Xy46LV0rJCAmJiAhIC1kICRlbnRyeS93aXJlbGVzcyBdXSB8fCBjb250aW51ZQogICAgW1
+sgJChjYXQgIiRlbnRyeS90eXBlIiAyPi9kZXYv' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+9))
+ENLACE-FIN-109
+ultra:~# printf '%s' 'bnVsbCkgPT0gMSBdXSB8fCBjb250aW51ZQogICAgKChjb3VudCs9MSkpOy
+AoKGNvdW50IDw9IDQpKSB8fCBicmVhawogICAgaXAgbGluayBzZXQgZGV2ICIkaWZhY2UiIHVwIHx8IG
+NvbnRpbnVlCiAgICByZW1haW5pbmc9JCgoZGVhZGxpbmUtU0VDT05EUykpOyAoKHJlbWFpbmluZz4wKS
+kgfHwgYnJlYWsKICAgICgocmVtYWluaW5nPD0z' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+10))
+ENLACE-FIN-110
+ultra:~# printf '%s' 'KSkgfHwgcmVtYWluaW5nPTMKICAgICMgU3RhcnQgZXZlbiB3aXRob3V0IG
+NhcnJpZXIuIGRoY3BjZCB3YXRjaGVzIGxpbmsgY2hhbmdlcyBhbmQga2VlcHMgdHJ5aW5nCiAgICAjIH
+doZW4gYSBjYWJsZSBpcyBjb25uZWN0ZWQgQUZURVIgdGhlIGJvdW5kZWQgZm9yZWdyb3VuZCB3YWl0IG
+hhcyBlbmRlZC4KICAgIGlmIHRpbWVvdXQgLWsg' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+11))
+ENLACE-FIN-111
+ultra:~# printf '%s' 'MSAiJHJlbWFpbmluZyIgZGhjcGNkIC00IC0tYmFja2dyb3VuZCAtLXRpbW
+VvdXQgMCAiJGlmYWNlIjsgdGhlbgogICAgICAgICgobGF1bmNoZWQrPTEpKQogICAgICAgIHByaW50Zi
+AnUkVEIERIQ1Agc3VwZXJ2aXNvciBpbmljaWFkbyBpbnRlcmZhej0lc1xuJyAiJGlmYWNlIgogICAgZm
+kKZG9uZQppZiAoKGxhdW5jaGVkKSk7IHRoZW4K' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+12))
+ENLACE-FIN-112
+ultra:~# printf '%s' 'ICAgIHdoaWxlICgoU0VDT05EUzxkZWFkbGluZSkpOyBkbwogICAgICAgIG
+lmIHJlYWR5OyB0aGVuIHNob3dfcmVhZHk7IGV4aXQgMDsgZmkKICAgICAgICBzbGVlcCAuMgogICAgZG
+9uZQpmaQpwcmludGYgJ0FNQVJJTExPIFtSRURdOiBJUHY0L3J1dGEvRE5TIHBlbmRpZW50ZXM7IHN1cG
+Vydmlzb3JlcyBESENQPSVzOyBlbCBlc2NyaXRv' >> /arch/tmp/red-candidato.b64; echo ENL
+ACE-FIN-$((100+13))
+ENLACE-FIN-113
+ultra:~# printf '%s' 'cmlvIHB1ZWRlIGFicmlyIHNpbiBpbnRlcm5ldFxuJyAiJGxhdW5jaGVkIg
+ppcCAtNCAtYnJpZWYgYWRkcmVzcwppcCAtNCByb3V0ZSBzaG93IGRlZmF1bHQKZXhpdCAxCg==' >> /
+arch/tmp/red-candidato.b64; echo ENLACE-FIN-$((100+14))
+ENLACE-FIN-114
+ultra:~# busybox base64 -d /arch/tmp/red-candidato.b64 > /arch/usr/local/libexec
+/ultra-preparar-red; sha256sum /arch/usr/local/libexec/ultra-preparar-red; echo
+ENLACE-FIN-$((100+15))
+783455d5e6378a51c4728e7113f3bb53924e5289827bb342b82663ef6b386fbe  /arch/usr/local/libexec/ultra-preparar-red
+ENLACE-FIN-115
+ultra:~# ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-red; echo
+RED-RC-$?; echo ENLACE-FIN-$((100+16))
+ULTRA RED
+dhcpcd-10.5.2 starting
+RED DHCP supervisor iniciado interfaz=eth0
+AMARILLO [RED]: IPv4/ruta/DNS pendientes; supervisores DHCP=1; el escritorio puede abrir sin internet
+RED-RC-1
+ENLACE-FIN-116
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+17))
+ENLACE-FIN-117
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+18))
+ENLACE-FIN-118
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+19))
+ENLACE-FIN-119
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+20))
+ENLACE-FIN-120
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+21))
+ENLACE-FIN-121
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+22))
+ENLACE-FIN-122
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+23))
+ENLACE-FIN-123
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+24))
+ENLACE-FIN-124
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+25))
+ENLACE-FIN-125
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+26))
+ENLACE-FIN-126
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+27))
+ENLACE-FIN-127
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+28))
+ENLACE-FIN-128
+ultra:~# ultra-entrar /usr/bin/ip -4 route show default; echo ENLACE-FIN-$((100+
+29))
+default via [1;35m10.0.2.2 [0mdev [1;36meth0 [0mproto dhcp src [1;35m10.0.2.15 [0mmetric 1002
+ENLACE-FIN-129
+ultra:~# ultra-entrar /usr/bin/grep nameserver /etc/resolv.conf; echo ENLACE-FIN
+-$((100+30))
+nameserver 10.0.2.3
+ENLACE-FIN-130
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+31))
+<!doctype html><html lang=en><head><meta charset=utf-8><link rel=icon href=data:,><meta name=viewport content="width=device-width,initial-scale=1"><title>Example Domain</title><style>html{color-scheme:light dark;background:light-dark(#eee,#222)}body{font:16px/1.6 system-ui,sans-serif;max-width:26em;margin:auto;padding:25vh 2em 2em;text-align:center}</style></head><body><p>This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.</p><script src=/s.js></script></body></html>
+HTTPS-RC-0
+ENLACE-FIN-131
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+32))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-132
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+33))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-133
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+34))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-134
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+35))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-135
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+36))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-136
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+37))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-137
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+38))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-138
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+39))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-139
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+40))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-140
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+41))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-141
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+42))
+curl: (6) Could not resolve host: example.com
+HTTPS-RC-6
+ENLACE-FIN-142
+ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups
+--no-new-privs --bounding-set=-all /usr/bin/curl --silent --show-error --noproxy
+ "*" --fail --connect-timeout 4 --max-time 10 https://example.com/; echo HTTPS-R
+C-$?; echo ENLACE-FIN-$((100+43))
+<!doctype html><html lang=en><head><meta charset=utf-8><link rel=icon href=data:,><meta name=viewport content="width=device-width,initial-scale=1"><title>Example Domain</title><style>html{color-scheme:light dark;background:light-dark(#eee,#222)}body{font:16px/1.6 system-ui,sans-serif;max-width:26em;margin:auto;padding:25vh 2em 2em;text-align:center}</style></head><body><p>This domain is for use in documentation examples without needing permission. This is not a service; avoid relying on it for testing and monitoring purposes.</p><script src=/s.js></script></body></html>
+HTTPS-RC-0
+ENLACE-FIN-143
+ultra:~# ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-red; echo
+RED-RC-$?; echo ENLACE-FIN-$((100+44))
+ULTRA RED
+[1;36meth0             [0m[1;32mUP             [0m[1;35m10.0.2.15[0m/24
+default via [1;35m10.0.2.2 [0mdev [1;36meth0 [0mproto dhcp src [1;35m10.0.2.15 [0mmetric 1002
+VERDE [RED]: enlace, IPv4, ruta y DNS configurados; acceso DNS/HTTPS aun sin comprobar
+RED-RC-0
+ENLACE-FIN-144
+ultra:~# poweroff
+AMARILLO [APAGADO]: apagado
+Terminated
+ultra:~#

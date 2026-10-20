@@ -1,0 +1,7 @@
+{
+  "instalar-en-A.ps1": "6840f66693c27a88aecfc590ac7a316f1169105ae094a3fac0c26fe29ac88c15",
+  "scripts/probar_instalacion_datos.ps1": "376dce5699f9f5d0acc085c639b138933f9ff3196adb9bb4f28b09d54ecfa0d7",
+  "scripts/probar_enlace_tardio.py": "785ca9cc3abdb303dc247f823d68b852ba455d151639845faff5ffa22bec4a7d",
+  "src/rootfs/bin/ultra-preparar-red": "783455d5e6378a51c4728e7113f3bb53924e5289827bb342b82663ef6b386fbe",
+  "src/tarjeta.c": "5ae84b6679311d2d2e0a8dd6122f8716e3137f3187d6adffc96dc8745c7b2a47"
+}

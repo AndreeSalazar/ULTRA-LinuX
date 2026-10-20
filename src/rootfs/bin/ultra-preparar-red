@@ -3,32 +3,55 @@
 # Wired IPv4 DHCP only. No Wi-Fi credentials or hardcoded public DNS.
 set -uo pipefail
 [[ $(id -u) == 0 ]] || exit 1
+exec 9>&- # DHCP may outlive the desktop; never retain its session lock.
 printf 'ULTRA RED\n'
-if ip -4 route show default | grep -q '^default '; then
-    echo 'VERDE [RED]: ya hay ruta IPv4'
+ready() {
+    local route iface i routes
+    routes=$(ip -4 route show default) || return 1
+    while read -r -a route; do
+        [[ ${route[0]:-} == default && " ${route[*]} " != *' linkdown '* ]] || continue
+        iface=''
+        for ((i=0;i+1<${#route[@]};i++)); do
+            [[ ${route[i]} != dev ]] || { iface=${route[i+1]}; break; }
+        done
+        [[ -n $iface && $iface =~ ^[a-zA-Z0-9_.:-]+$ ]] || continue
+        [[ $(cat "/sys/class/net/$iface/carrier" 2>/dev/null) == 1 ]] || continue
+        ip -4 -o address show dev "$iface" scope global | grep -q ' inet ' || continue
+        # Presence is reported separately; it does not prove DNS/HTTPS reachability.
+        grep -Eq '^[[:space:]]*nameserver[[:space:]]+[^[:space:]#;]+' /etc/resolv.conf || continue
+        return 0
+    done <<< "$routes"
+    return 1
+}
+show_ready() {
     ip -4 -brief address
-    exit 0
-fi
-count=0
+    ip -4 route show default
+    echo 'VERDE [RED]: enlace, IPv4, ruta y DNS configurados; acceso DNS/HTTPS aun sin comprobar'
+}
+if ready; then show_ready; exit 0; fi
+count=0; launched=0; deadline=$((SECONDS+12))
 for entry in /sys/class/net/*; do
     iface=${entry##*/}
     [[ $iface != lo && $iface =~ ^[a-zA-Z0-9_.:-]+$ && ! -d $entry/wireless ]] || continue
     [[ $(cat "$entry/type" 2>/dev/null) == 1 ]] || continue
     ((count+=1)); ((count <= 4)) || break
     ip link set dev "$iface" up || continue
-    for ((i=0;i<5;i++)); do
-        [[ $(cat "$entry/carrier" 2>/dev/null) == 1 ]] && break
-        sleep .2
-    done
-    [[ $(cat "$entry/carrier" 2>/dev/null) == 1 ]] || continue
-    if timeout -k 1 18 dhcpcd -4 --waitip=4 --timeout 12 "$iface"; then
-        ip -4 -brief address show dev "$iface"
-        ip -4 route
-        if ip -4 route show default | grep -q '^default '; then
-            echo 'VERDE [RED]: DHCP IPv4 preparado; HTTPS se comprueba en el navegador'
-            exit 0
-        fi
+    remaining=$((deadline-SECONDS)); ((remaining>0)) || break
+    ((remaining<=3)) || remaining=3
+    # Start even without carrier. dhcpcd watches link changes and keeps trying
+    # when a cable is connected AFTER the bounded foreground wait has ended.
+    if timeout -k 1 "$remaining" dhcpcd -4 --background --timeout 0 "$iface"; then
+        ((launched+=1))
+        printf 'RED DHCP supervisor iniciado interfaz=%s\n' "$iface"
     fi
 done
-echo 'AMARILLO [RED]: sin ruta IPv4; escritorio y pagina local disponibles'
+if ((launched)); then
+    while ((SECONDS<deadline)); do
+        if ready; then show_ready; exit 0; fi
+        sleep .2
+    done
+fi
+printf 'AMARILLO [RED]: IPv4/ruta/DNS pendientes; supervisores DHCP=%s; el escritorio puede abrir sin internet\n' "$launched"
+ip -4 -brief address
+ip -4 route show default
 exit 1

@@ -1,0 +1,8 @@
+b27b40ec4bc4eddda1d44db5da81c5c17ce8d68b7aa53925cdef9b1302a3c891  /home/builder/linux-reconstruido/artifacts/pc/bzImage-tiny64
+7f2ce3b3bea2f08767ef51314ccc893b0b769020be2855ff8e14b6efb9f8e701  /home/builder/linux-reconstruido/build/init-c-pc/init
+292e512125559b6161e0d3385cbdf090a3c6963b469511a3af8eb482de3b96ea  /home/builder/linux-reconstruido/build/init-c-pc/caja
+7100b3e9b20a72872d0f86e809dd71c62b10f16414bdddbed8ff647cdb7fe4f8  /home/builder/linux-reconstruido/artifacts/pc/ultra-esp.img
+5f509993f72b430458b3aaa62103b60b4458fc9eeff90eb4f32f78342cc71b4e  /home/builder/linux-reconstruido/artifacts/pc/disco-bmo.img
+285b873bd44d3dfec048ef47715c94df150f9d9ae6db6e3ba1bb97fc6b4770c6  /home/builder/linux-reconstruido/artifacts/pc/sistema-a.erofs
+1334880c08f23b21856efd319b6f6efce208d8396c83d24faa65a01ebcda213e  /home/builder/linux-reconstruido/artifacts/pc/datos.ext4
+bbc08cfe2fd9aad40553daa1fc9c1f9859f43650027cb40e5186548fb23db144  /home/builder/linux-reconstruido/artifacts/pc/disco-bmo-doble.img

@@ -1,0 +1,8 @@
+{
+  "informes/arranques.txt": "551a360a6530b893df8bcfe3555464c1ada599e25db94bb260f2bcb7248193c9",
+  "informes/dmesg-7.3.0-rc7-g32c52ec87d62.txt": "95e755af5af242fe60fb60f1274612bcf6e0527882579c292aecdc5502d78bf7",
+  "informes/dmesg-7.3.0-rc7-pc-g32c52ec87d62.txt": "75682cd5d84c9a780c8ccddc862f24c73b92ba14c3f2726b7ed90972865c6afd",
+  "informes/gpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-hyprland.txt": "18bf9e62daf65c3ef3153c82586bc387930361e0e2029b2e3b5b20298163afcb",
+  "informes/gpu-7.3.0-rc7-pc-g32c52ec87d62.txt": "18bf9e62daf65c3ef3153c82586bc387930361e0e2029b2e3b5b20298163afcb",
+  "informes/PC-configuracion.txt": "531fa419867c4979cabb31a4c64c05c63b62bd90ecdc32e8c456ab2e44e43fae"
+}

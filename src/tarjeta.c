@@ -195,11 +195,13 @@ void show_card(void) {
         for (int64_t i = 0; i < BAR; i++) ULTRA_APPEND(bar, i < cells ? "█" : "\033[0;90m░");
         ULTRA_APPEND(bar, RESET);
         char delta[96] = "";
-        if (before >= 0 && now < before) snprintf(delta, sizeof(delta), "  \033[1;32m▼ %" PRId64 " ms" RESET, before - now);
-        else if (before >= 0 && now > before) snprintf(delta, sizeof(delta), "  \033[1;33m▲ %" PRId64 " ms" RESET, now - before);
+        if (before >= 0 && now < before) snprintf(delta, sizeof(delta), "\033[1;32m%" PRId64 " ms menos que el anterior" RESET, before - now);
+        else if (before >= 0 && now > before) snprintf(delta, sizeof(delta), "\033[1;33m%" PRId64 " ms mas que el anterior" RESET, now - before);
+        else if (before >= 0) ULTRA_COPY(delta, "igual que el anterior");
         else if (before < 0) ULTRA_COPY(delta, "  \033[0;90mprimera medida" RESET);
-        snprintf(text, sizeof(text), "%s %" PRId64 " ms%s", bar, now, delta);
+        snprintf(text, sizeof(text), "%s %" PRId64 " ms", bar, now);
         row("Tubería", text);
+        row("Cambio", delta);
     }
 
     text[0] = 0;

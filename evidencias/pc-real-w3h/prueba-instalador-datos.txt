@@ -1,0 +1,31 @@
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+VERDE [COPIA]: Z:\ULTRA\datos.ext4
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: primera instalacion registra presencia esperada
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+AMARILLO [DATOS]: se conserva Z:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: actualizacion conserva datos legitimos modificados
+VERDE: respaldo completo y verificado
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE: no crea una semilla si faltan datos anteriores
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE: reconoce instalacion previa aunque falte el recibo
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+AMARILLO [DATOS]: se conserva Z:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: hash esperado correcto permite actualizar
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+VERDE [COPIA]: Z:\ULTRA\datos.ext4
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: reinicio de datos solo con opcion explicita
