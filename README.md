@@ -19,8 +19,9 @@
 
 `e` abre el menu con teclado. Dentro de Hyprland, **Super+B** abre Brave
 con la pagina local de pruebas y **Super+G** su diagnostico GPU. Apps incluye
-el navegador y la pagina de estado de su sandbox. El perfil y las descargas
-son temporales en RAM. La conexion por cable intenta obtener IPv4 y DNS por DHCP.
+el navegador y la pagina de estado de su sandbox. Con el almacenamiento de juegos
+montado, el perfil y las descargas persisten en el ext4 de D:; sin el, son temporales
+en RAM. La conexion por cable intenta obtener IPv4 y DNS por DHCP.
 
 Instalacion, pruebas y funciones pendientes en [BRAVE-W3F.md](docs/BRAVE-W3F.md).
 La [medicion por perfil](docs/MEDICION-W3E.md) registra RAM/CPU y, en NVIDIA,
@@ -33,6 +34,10 @@ Las pruebas virtuales no sustituyen la medicion del cable y la tarjeta fisica.
 El [escritorio BMO-X / Night Circuit](docs/ESCRITORIO-BMO-X.md) agrega dock,
 iconos, texturas, notificaciones y controles de ambiente con teclado. El
 proyecto Windows conserva los respaldos e informes antes de actualizar A:.
+
+**Super+A** abre el audio maestro USB (volumen, silencio y boost opcional).
+**Super+J** abre Steam, GOG/Heroic y Cyberpunk mediante Proton. La preparacion
+y los limites de las pruebas se explican en [Audio y juegos](docs/AUDIO-JUEGOS.md).
 
 El [analisis del nuevo arranque real](docs/PC-REAL-W3H.md) distingue los 3290 ms
 de preparacion del hardware de los 10 ms de diferencia, registra el consumo

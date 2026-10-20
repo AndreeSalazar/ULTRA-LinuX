@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -uo pipefail
+[[ $(id -u) == 1000 ]] || exit 1
+mkdir -p "$HOME/.cache/ultra"
+children=()
+finish() {
+    wpctl status > "$XDG_RUNTIME_DIR/ultra-audio-estado.txt" 2>&1 || true
+    for pid in "${children[@]}"; do kill "$pid" 2>/dev/null || true; done
+    for pid in "${children[@]}"; do wait "$pid" 2>/dev/null || true; done
+}
+trap finish EXIT
+pipewire > "$HOME/.cache/ultra/pipewire.log" 2>&1 & children+=("$!")
+pipewire-pulse > "$HOME/.cache/ultra/pipewire-pulse.log" 2>&1 & children+=("$!")
+wireplumber > "$HOME/.cache/ultra/wireplumber.log" 2>&1 & children+=("$!")
+start-hyprland -- --config /etc/ultra/hyprland.lua
+exit $?

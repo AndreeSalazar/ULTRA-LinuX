@@ -13,3 +13,8 @@ evidencias/tema-bmox/** text eol=lf
 evidencias/tema-bmox/**/*.png binary
 evidencias/tema-bmox/*.png binary
 evidencias/tema-bmox/*.zip binary
+evidencias/audio-juegos/** text eol=lf
+evidencias/audio-juegos/**/*.png binary
+evidencias/audio-juegos/*.png binary
+evidencias/audio-juegos/*.zip binary
+evidencias/audio-juegos/*.wav binary

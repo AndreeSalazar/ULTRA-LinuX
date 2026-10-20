@@ -1,0 +1,274 @@
+#!/usr/bin/env python3
+"""Boot ULTRA with USB audio recorded to WAV and a disposable NTFS game fixture.
+No host drives, user accounts or actual game binaries are exposed to QEMU.
+"""
+import hashlib
+import base64
+import importlib.util
+import json
+from pathlib import Path
+import re
+import shutil
+import socket
+import subprocess
+import sys
+import time
+import wave
+import struct
+
+
+def main():
+    profile = sys.argv[1]
+    preflight = '--prevalidar' in sys.argv
+    dependencies = '--deps-steam' in sys.argv
+    assert not dependencies or preflight
+    reuse = '--reanudar' in sys.argv or '--diagnostico' in sys.argv
+    diagnose = '--diagnostico' in sys.argv
+    sys.argv = [sys.argv[0], profile, '--bmo']
+    spec = importlib.util.spec_from_file_location('arranque', Path(__file__).with_name('probar_arranque.py'))
+    base = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(base)
+    base.check_kernel()
+    lab = base.ROOT / 'build/juegos'
+    dependencies_digest = None
+    if dependencies:
+        with (base.ROOT/'vm/public/deps-steam.tar').open('rb') as stream:
+            dependencies_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+    config = json.loads((lab/'ntfs-lab.json').read_text())
+    assert re.fullmatch(r'[0-9A-Fa-f]{16}', config['uuid'])
+    image = base.BUILD/'audio-juegos-bmo.img'
+    games = base.BUILD/'audio-juegos-ntfs.img'
+    variables = base.BUILD/'audio-juegos-vars.fd'
+    capture = base.BUILD/'audio-usb.wav'
+    shutil.copyfile(base.IMG, image)
+    if not reuse or not games.exists(): shutil.copyfile(lab/'ntfs-lab.img', games)
+    shutil.copyfile(base.QEMU_SHARE/'edk2-i386-vars.fd', variables)
+    capture.unlink(missing_ok=True)
+    transcript = ''
+    results = []
+    counter = 0
+    process = None
+    console = None
+    monitor = None
+
+    def start():
+        nonlocal process, console, monitor, transcript
+        process = subprocess.Popen([str(base.QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host',
+            '-smp', '4', '-m', '4096', '-display', 'none', '-no-reboot',
+            '-drive', f'if=pflash,format=raw,readonly=on,file={base.QEMU_SHARE/"edk2-x86_64-code.fd"}',
+            '-drive', f'if=pflash,format=raw,file={variables}',
+            '-drive', f'file={image},format=raw,if=virtio',
+            '-drive', f'file={games},format=raw,if=virtio',
+            '-netdev', 'user,id=net0', '-device', 'virtio-net-pci,netdev=net0',
+            '-device', 'virtio-vga', '-device', 'qemu-xhci,id=usb0',
+            '-audiodev', f'wav,id=sound0,path={capture}',
+            '-device', 'usb-audio,id=usbaudio0,bus=usb0.0,audiodev=sound0',
+            '-serial', 'tcp:127.0.0.1:15755,server=on,wait=off',
+            '-monitor', 'tcp:127.0.0.1:15756,server=on,wait=off'],
+            stdout=subprocess.DEVNULL, stderr=(base.BUILD/'audio-juegos-qemu-error.txt').open('w'))
+        for _ in range(80):
+            try:
+                console = socket.create_connection(('127.0.0.1', 15755), timeout=1)
+                monitor = socket.create_connection(('127.0.0.1', 15756), timeout=1)
+                break
+            except OSError:
+                if process.poll() is not None: raise RuntimeError('QEMU no arranco')
+                time.sleep(.2)
+        else: raise ConnectionError('Sin consola QEMU')
+        console.settimeout(.5); monitor.settimeout(.5)
+        transcript += base.read_until(console, 'ultra:', 120)
+
+    def command(text, timeout=30):
+        nonlocal counter, transcript
+        counter += 1
+        marker = f'AUDIO-JUEGOS-FIN-{200+counter}'
+        separator = ' ' if text.rstrip().endswith('&') else '; '
+        console.sendall((text+separator+f'echo AUDIO-JUEGOS-FIN-$((200+{counter}))\n').encode())
+        try: output = base.read_until(console, marker, timeout)
+        except base.Incomplete as error:
+            transcript += error.partial
+            raise
+        transcript += output
+        return output
+
+    def check(ok, label):
+        print(('VERDE' if ok else 'ROJO'), label, flush=True)
+        if not ok: raise AssertionError(label)
+        results.append(label)
+
+    def setup():
+        if preflight:
+            for name in ('ultra-preparar-juegos', 'ultra-sesion', 'ultra-preparar-red'):
+                source=base.ROOT/'src/rootfs/bin'/name
+                encoded=base64.b64encode(source.read_bytes()).decode()
+                command(': > /arch/tmp/juegos-helper.b64')
+                for i in range(0,len(encoded),256):
+                    command(f"printf '%s' '{encoded[i:i+256]}' >> /arch/tmp/juegos-helper.b64")
+                command(f'busybox base64 -d /arch/tmp/juegos-helper.b64 > /arch/usr/local/libexec/{name}')
+        if dependencies:
+            command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-red', 45)
+            out=command('ultra-entrar /usr/bin/curl --fail --silent --max-time 30 http://10.0.2.2:18765/deps-steam.tar -o /tmp/deps-steam.tar; ultra-entrar /usr/bin/sha256sum /tmp/deps-steam.tar')
+            assert dependencies_digest in out
+            command('busybox tar -xf /arch/tmp/deps-steam.tar -C /arch')
+        content = ''.join(f'{k}={v}\\n' for k, v in config.items())
+        command(f"printf '{content}' > /arch/etc/ultra/juegos.conf")
+        out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-juegos; echo MONTAJE-RC-$?', 40)
+        check('MONTAJE-RC-0' in out, 'NTFS identificado y ext4 montado sin formatear')
+
+    user = ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --init-groups '
+            '--no-new-privs --bounding-set=-all /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 '
+            'HOME=/juegos/usuarios/ultra ')
+    ipc = 'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 '
+
+    def clients():
+        out = command(ipc+'-j clients')
+        m = re.search(r'(?m)^\s*\[\s*(?:\{|\])', out)
+        return json.JSONDecoder().raw_decode(out[m.start():].lstrip())[0] if m else []
+
+    def wait_app(name, timeout=120):
+        deadline = time.monotonic()+timeout
+        while time.monotonic()<deadline:
+            if any(name in a.get('class','').lower() for a in clients()): return True
+            time.sleep(1)
+        return False
+
+    def wait_steam_login():
+        deadline = time.monotonic()+600
+        report_at = time.monotonic()+30
+        paint_deadline = None
+        while time.monotonic()<deadline:
+            for app in clients():
+                title = app.get('title','').lower()
+                if 'transport error' in title:
+                    return False
+                if 'steam' in app.get('class','').lower() and any(s in title for s in ('sign in', 'iniciar sesi', 'steam login')):
+                    # A CEF helper distinguishes the actual client from its updater.
+                    out = command('pidof steamwebhelper || true')
+                    if re.search(r'(?m)^\d+(?: \d+)*$', out.replace('\r', '')):
+                        if paint_deadline is None: paint_deadline=time.monotonic()+60
+                        from PIL import Image
+                        snapshot('steam-login.png')
+                        x,y=app['at']; w,h=app['size']
+                        with Image.open(base.BUILD/'steam-login.png') as screen:
+                            pixels=list(screen.convert('RGB').crop((x+12,y+12,x+w-12,y+h-12)).resize((40,25)).getdata())
+                        if sum(max(pixel)>35 for pixel in pixels)>100 and len(set(pixels))>30:
+                            return True
+                        if time.monotonic()>paint_deadline: return False
+            if time.monotonic() >= report_at:
+                out = command('ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt')
+                print('STEAM:', out.replace('\r', '').strip()[-500:], flush=True)
+                report_at = time.monotonic()+30
+            time.sleep(2)
+        return False
+
+    def snapshot(name):
+        from PIL import Image
+        path = base.BUILD/name
+        path.unlink(missing_ok=True)
+        monitor.sendall(f'screendump "{path.as_posix()}" -f png\n'.encode())
+        for _ in range(80):
+            try:
+                with Image.open(path) as im: im.verify()
+                return
+            except (OSError, SyntaxError): time.sleep(.1)
+        raise ValueError('Captura incompleta')
+
+    try:
+        start()
+        if diagnose:
+            command('ultra-entrar /usr/bin/mkdir -p /run/diagnostico-ntfs /run/diagnostico-ext4; ultra-entrar /usr/bin/mount -t ntfs3 -o ro /dev/vdb /run/diagnostico-ntfs; ultra-entrar /usr/bin/mount -t ext4 -o loop,ro,noload /run/diagnostico-ntfs/ULTRA-juegos.ext4 /run/diagnostico-ext4')
+            command('ultra-entrar /usr/bin/bash -c \'ls /run/diagnostico-ext4/usuarios/ultra/.local/share/Steam/logs; tail -n 100 /run/diagnostico-ext4/usuarios/ultra/.cache/ultra/steam.log /run/diagnostico-ext4/usuarios/ultra/.local/share/Steam/logs/cef_log.txt /run/diagnostico-ext4/usuarios/ultra/.local/share/Steam/logs/webhelper-linux.txt /run/diagnostico-ext4/usuarios/ultra/.local/share/Steam/logs/console-linux.txt\'',60)
+            console.sendall(b'poweroff\n');transcript+=base.read_until(console,'APAGADO',30);process.wait(timeout=20)
+            return
+        setup()
+        out = command(user+"/usr/bin/bash -c 'set -e; echo PERSISTENCIA-BMO > /juegos/usuarios/ultra/prueba.txt; echo ESCRITURA-OVERLAY > /juegos/Cyberpunk2077/prueba.txt; test ! -x /run/ultra-juegos && echo D-PRIVADO-$((6*7))'")
+        check('D-PRIVADO-42' in out, 'UID1000 escribe en ext4 y no puede recorrer D:')
+        out = command(user+"/usr/bin/bash -c 'mkdir -p \"$HOME/.local/state/prueba\" \"$HOME/Juegos/cliente\" && echo PADRES-$((6*7))'")
+        check('PADRES-42' in out, 'carpetas de estado y juegos pertenecen al usuario')
+        out = command('test ! -e "/arch/run/ultra-juegos/volumen/Cyberpunk 2077/prueba.txt" && cat "/arch/run/ultra-juegos/volumen/Cyberpunk 2077/bin/x64/Cyberpunk2077.exe"')
+        check('ULTRA-LAB-GAME-ORIGINAL' in out, 'escritura overlay no modifica el juego original NTFS')
+        command('ultra-escritorio --hyprland --software > /tmp/audio-juegos-sesion.log 2>&1 &')
+        check(wait_app('foot', 60), 'escritorio usa home persistente')
+        out=command(user+'/usr/bin/python -c \'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print("LOOPBACK-"+str(6*7)); s.close()\'')
+        check('LOOPBACK-42' in out, 'usuario puede crear un servicio local TCP en loopback')
+        deadline=time.monotonic()+35
+        while time.monotonic()<deadline:
+            out=command(user+'/usr/bin/pactl list sinks short')
+            if 'alsa_output.usb-' in out: break
+            time.sleep(1)
+        check('alsa_output.usb-' in out, 'PipeWire detecta salida USB mediante ALSA real emulada')
+        out=command(user+'/usr/bin/wpctl inspect @DEFAULT_AUDIO_SINK@')
+        check(bool(re.search(r'priority[.]session\s*=\s*"?2000',out)), 'USB tiene prioridad de salida configurada')
+        command(user+'/usr/local/bin/ultra-audio boost150')
+        for _ in range(20):
+            out=command(user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
+            if '1.50' in out:break
+            time.sleep(.2)
+        if '1.50' not in out:
+            command(user+'/usr/bin/pactl get-sink-volume @DEFAULT_SINK@; '+user+'/usr/bin/wpctl inspect @DEFAULT_AUDIO_SINK@')
+            command(user+'/usr/bin/pactl set-sink-volume @DEFAULT_SINK@ 150%; sleep .5; '+user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
+        check('1.50' in out, 'boost maestro 150% aplicado')
+        out=command(user+'/usr/local/bin/ultra-audio subir; '+user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
+        check('1.50' in out and '1.55' not in out, 'subir respeta el limite 150%')
+        out=command(user+'/usr/local/bin/ultra-audio silencio; '+user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
+        check('[MUTED]' in out, 'silencio maestro')
+        command(user+'/usr/local/bin/ultra-audio silencio; '+user+'/usr/local/bin/ultra-audio normal')
+        out=command(user+'/usr/bin/timeout -k 2 10 /usr/bin/speaker-test -D default -c 2 -t sine -f 440 -l 0; echo REPRODUCCION-RC-$?', 25)
+        check('REPRODUCCION-RC-124' in out, 'generador ALSA detenido al terminar la ventana de diez segundos')
+        command(ipc+'eval \'hl.exec_cmd("ultra-juegos gog")\'')
+        check(wait_app('heroic', 90), 'Heroic abre en Wayland como usuario sin root')
+        snapshot('heroic-gog.png')
+        command(ipc+'eval \'hl.exec_cmd("ultra-juegos steam")\'')
+        steam_ready=wait_steam_login()
+        if not steam_ready:
+            command('ultra-entrar /usr/bin/tail -n 80 /juegos/usuarios/ultra/.cache/ultra/steam.log /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt /juegos/usuarios/ultra/.local/share/Steam/logs/cef_log.txt',60)
+            snapshot('steam-diagnostico.png')
+        check(steam_ready, 'Steam abre cliente/login sin iniciar sesion de cuenta')
+        snapshot('steam-login.png')
+        snapshot('clientes-listos.png')
+        out=command('for name in heroic steam pipewire wireplumber; do for p in $(pidof "$name"); do echo CRED-$name; cat /proc/$p/status; echo CRED-FIN; done; done')
+        secured=set()
+        for name,status in re.findall(r'^CRED-(\w+)\n(.*?)^CRED-FIN',out.replace('\r',''),re.M|re.S):
+            good=bool(re.search(r'^Uid:\s+1000\s+1000\s+1000\s+1000\s*$',status,re.M))
+            good &= all(bool(re.search(rf'^{field}:\s+0+\s*$',status,re.M)) for field in ('CapEff','CapBnd','CapAmb','CapPrm'))
+            good &= bool(re.search(r'^NoNewPrivs:\s+1\s*$',status,re.M))
+            if good:secured.add(name)
+        check({'heroic','steam','pipewire','wireplumber'}<=secured, 'clientes mantienen UID1000, capacidades cero y NoNewPrivs')
+        console.sendall(b'reboot\n')
+        transcript += base.read_until(console, 'Restarting system', 40)
+        process.wait(timeout=20); console.close(); monitor.close()
+        raw=capture.read_bytes()
+        # QEMU on Windows can leave zero RIFF/data lengths when -no-reboot exits.
+        # Validate its actual PCM bytes and write a playable container with real lengths.
+        assert raw[:4]==b'RIFF' and raw[8:16]==b'WAVEfmt ' and raw[36:40]==b'data'
+        fmt,channels,rate,_,align,bits=struct.unpack('<HHIIHH',raw[20:36])
+        assert fmt==1 and bits==16 and align==channels*2
+        pcm=raw[44:]
+        check(len(pcm)>1000*align and len(pcm)%align==0 and any(pcm), 'audio USB produjo muestras PCM no silenciosas')
+        with wave.open(str(base.BUILD/'audio-usb-prueba.wav'),'wb') as wav:
+            wav.setnchannels(channels); wav.setsampwidth(bits//8); wav.setframerate(rate); wav.writeframes(pcm)
+        start(); setup()
+        out=command('ultra-entrar /usr/bin/cat /juegos/usuarios/ultra/prueba.txt /juegos/Cyberpunk2077/prueba.txt')
+        check('PERSISTENCIA-BMO' in out and 'ESCRITURA-OVERLAY' in out, 'home y cambios de juego sobreviven a reinicio')
+        console.sendall(b'poweroff\n')
+        transcript += base.read_until(console, 'APAGADO', 30)
+        process.wait(timeout=20)
+        verified={Path(line.split()[1]).name:line.split()[0] for line in (base.BUILD/'SHA256SUMS').read_text().splitlines() if line.strip()}
+        result={'perfil':profile,'pruebas':results,'disco_real_expuesto':False,
+                'imagen':base.IMG.name,'imagen_sha256':verified[base.IMG.name],
+                'cache_cliente_reutilizada':reuse}
+        if preflight:result['helper_prevalidacion_sha256']=hashlib.sha256((base.ROOT/'src/rootfs/bin/ultra-preparar-juegos').read_bytes()).hexdigest()
+        if dependencies:result['bibliotecas_prevalidacion_sha256']=dependencies_digest
+        (base.BUILD/'audio-juegos-resultados.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    finally:
+        if process is not None and process.poll() is None:
+            try:
+                console.sendall(b'poweroff\n')
+                transcript+=base.read_until(console,'APAGADO',30)
+                process.wait(timeout=20)
+            except (OSError,base.Incomplete,subprocess.TimeoutExpired):
+                process.kill(); process.wait(timeout=10)
+        (base.BUILD/'audio-juegos.log').write_text(transcript,encoding='utf-8')
+
+
+if __name__=='__main__': main()

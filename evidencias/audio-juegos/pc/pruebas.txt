@@ -1,0 +1,51 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE carpetas de estado y juegos pertenecen al usuario
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE usuario puede crear un servicio local TCP en loopback
+VERDE PipeWire detecta salida USB mediante ALSA real emulada
+VERDE USB tiene prioridad de salida configurada
+VERDE boost maestro 150% aplicado
+VERDE subir respeta el limite 150%
+VERDE silencio maestro
+VERDE generador ALSA detenido al terminar la ventana de diez segundos
+VERDE Heroic abre en Wayland como usuario sin root
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+68))
+[2026-10-20 11:49:52] [2026-10-20 11:49:52] Downloading update (20556 of 503789 KB)...
+[2026-10-20 11:49:52] [2026-10-20 11:49:52] Set status message: Downloading update (20556 of 503789 KB)...
+[2026-10-20 11:49:52] [2026-10-20 11:49:52] Set percent complete: 4
+AUDIO-JUEGOS-FIN-268
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+83))
+[2026-10-20 11:50:24] [2026-10-20 11:50:24] Downloading update (292551 of 503789 KB)...
+[2026-10-20 11:50:24] [2026-10-20 11:50:24] Set status message: Downloading update (292551 of 503789 KB)...
+[2026-10-20 11:50:24] [2026-10-20 11:50:24] Set percent complete: 58
+AUDIO-JUEGOS-FIN-283
+STEAM: al/share/Steam/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+97))
+ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+97))
+[2026-10-20 11:50:54] [2026-10-20 11:50:54] Downloading update (500237 of 503789 KB)...
+[2026-10-20 11:50:54] [2026-10-20 11:50:54] Set status message: Downloading update (500237 of 503789 KB)...
+[2026-10-20 11:50:54] [2026-10-20 11:50:54] Set percent complete: 99
+AUDIO-JUEGOS-FIN-297
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+112))
+[2026-10-20 11:50:56] [2026-10-20 11:50:56] Set status message: Extracting package...
+[2026-10-20 11:51:25] [2026-10-20 11:51:25] Installing update...
+[2026-10-20 11:51:25] [2026-10-20 11:51:25] Set status message: Installing update...
+AUDIO-JUEGOS-FIN-312
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+127))
+[2026-10-20 11:51:47] BInit - Unable to initialize Vulkan!
+[2026-10-20 11:51:47] vkEnumeratePhysicalDevices failed, unable to init and enumerate GPUs with Vulkan.
+[2026-10-20 11:51:47] BInit - Unable to initialize Vulkan!
+AUDIO-JUEGOS-FIN-327
+C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py:153: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  pixels=list(screen.convert('RGB').crop((x+12,y+12,x+w-12,y+h-12)).resize((40,25)).getdata())
+VERDE Steam abre cliente/login sin iniciar sesion de cuenta
+VERDE clientes mantienen UID1000, capacidades cero y NoNewPrivs
+VERDE audio USB produjo muestras PCM no silenciosas
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE home y cambios de juego sobreviven a reinicio

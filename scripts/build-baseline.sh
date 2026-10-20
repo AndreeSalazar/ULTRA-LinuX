@@ -15,7 +15,7 @@ case $perfil in
         extra=(KFENCE MODULES MODULE_UNLOAD BLK_DEV_NVME ATA SATA_AHCI VIRTIO_PCI VIRTIO_BLK VIRTIO_NET
                USB_XHCI_HCD USB_STORAGE USB_HID HID_GENERIC EXT4_FS VFAT_FS EFI EFI_STUB DRM DRM_SIMPLEDRM
                SYSFB_SIMPLEFB CPU_SUP_AMD MICROCODE_AMD X86_AMD_PSTATE AMD_IOMMU EROFS_FS EFI_PARTITION
-               BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1
+               BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 NTFS3_FS
                # simpledrm alone draws nothing: text on the firmware screen needs fbdev emulation and fbcon.
                DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE
                # efivarfs built in: the init itself prepares the F11 entry of the tuned kernel.
@@ -24,7 +24,7 @@ case $perfil in
                FB_DEVICE
                # Arch's system as a root: EROFS below, a writable layer in memory on top.
                OVERLAY_FS USER_NS)
-        modules_list=(R8169 SND_HDA_INTEL SENSORS_K10TEMP)
+        modules_list=(R8169 SND_HDA_INTEL SND_HDA_GENERIC SND_HDA_CODEC_REALTEK SND_HDA_CODEC_HDMI SND_USB_AUDIO SENSORS_K10TEMP)
         # No boot loader: the firmware runs the kernel directly, so its arguments live inside it.
         # The last console becomes /dev/console; init starts a shell on every active console.
         # libahci.ignore_sss=1 (the parameter lives in libahci.c, so "ahci." is silently ignored):
@@ -202,29 +202,34 @@ if [[ -n $cmdline ]]; then
     sudo mkdir -p "$sistema/var/lib/pacman"
     # DownloadUser out: pacman's own user cannot enter /home/builder, where the root is built.
     sed -e '/^\[options\]/a NoExtract = usr/share/man/* usr/share/doc/* usr/share/info/* usr/share/locale/* usr/share/i18n/*\nNoExtract = usr/share/gtk-doc/* usr/share/help/* usr/include/*' \
-        -e '/^DownloadUser/d' /etc/pacman.conf > "$art/pacman-sistema.conf"
+        -e '/^DownloadUser/d' -e '/^#\[multilib\]/,+1s/^#//' /etc/pacman.conf > "$art/pacman-sistema.conf"
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
     arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow
         hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata swaybg librsvg
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
-        ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify)
+        ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
+        pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
+        steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk vulkan-tools e2fsprogs)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
+    if [[ $perfil = pc ]]; then arch_pkgs+=("lib32-nvidia-utils=$nv_ver");
+    else arch_pkgs+=(vulkan-swrast lib32-vulkan-swrast lib32-mesa); fi
     sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \
         -Sy --noconfirm "${arch_pkgs[@]}" > "$art/pacman-sistema.log" 2>&1 ||
         { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo instalar el sistema base de Arch'; exit 1; }
     sudo pacman --root "$sistema" --dbpath "$sistema/var/lib/pacman" -Q > "$art/sistema-paquetes.txt"
     bash "$lab/instalar-brave.sh" "$sistema" "$art" "$base"
+    bash "$lab/instalar-heroic.sh" "$sistema" "$art" "$base"
     # Fixed session identity; render nodes only. KMS/input go through root seatd.
     sudo systemd-sysusers --root="$sistema"
     sudo chroot "$sistema" /usr/bin/groupadd -f -r render
     sudo chroot "$sistema" /usr/bin/groupadd -g 1000 ultra
-    sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render -m -s /usr/bin/bash ultra
+    sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render,audio -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red ultra-informe-red; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red ultra-informe-red ultra-desktop-session ultra-preparar-juegos; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
@@ -241,6 +246,9 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
+    for helper in ultra-audio ultra-juegos; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    sudo install -d -m 0755 "$sistema/etc/wireplumber/wireplumber.conf.d"
+    sudo install -m 0644 "$lab/rootfs/desktop/wireplumber-usb.conf" "$sistema/etc/wireplumber/wireplumber.conf.d/51-ultra-usb.conf"
     sudo install -m 0644 "$lab/rootfs/desktop/"*.desktop "$sistema/usr/share/applications/"
     for config in foot fuzzel gtk-3.0; do sudo install -d -m 0755 "$sistema/home/ultra/.config/$config"; done
     sudo install -m 0644 "$lab/rootfs/desktop/foot.ini" "$sistema/home/ultra/.config/foot/foot.ini"

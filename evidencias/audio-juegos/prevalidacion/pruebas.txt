@@ -1,0 +1,18 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE PipeWire detecta salida USB mediante ALSA real emulada
+VERDE boost maestro 150% aplicado
+VERDE subir respeta el limite 150%
+VERDE silencio maestro
+VERDE Heroic abre en Wayland como usuario sin root
+Traceback (most recent call last):
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 208, in <module>
+    if __name__=='__main__': main()
+                             ^^^^^^
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 175, in main
+    snapshot('heroic-gog.png')
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 142, in snapshot
+    raise ValueError('Captura incompleta')
+ValueError: Captura incompleta

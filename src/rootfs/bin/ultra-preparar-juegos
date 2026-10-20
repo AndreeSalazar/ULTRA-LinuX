@@ -1,0 +1,63 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Privileged mounts only. Never formats, repairs NTFS, forces hibernation or scans game files.
+set -euo pipefail
+[[ $(id -u) == 0 ]] || exit 1
+uuid=''; image_uuid=''; image_bytes=''
+while IFS='=' read -r key value; do
+    case $key in uuid) uuid=$value;; image_uuid) image_uuid=$value;; image_bytes) image_bytes=$value;; esac
+done < /etc/ultra/juegos.conf
+[[ $uuid =~ ^[0-9A-Fa-f]{16}$ && $image_uuid =~ ^[0-9a-f-]{36}$ && $image_bytes =~ ^[0-9]{8,12}$ ]] || exit 2
+private=/run/ultra-juegos
+volume=$private/volumen
+if mountpoint -q /juegos; then
+    [[ $(findmnt -n -o UUID --target /juegos) == "$image_uuid" ]]
+    exit $?
+fi
+devices=()
+found=$(blkid -t "UUID=${uuid^^}" -o device || true)
+[[ -z $found ]] || mapfile -t devices <<< "$found"
+(( ${#devices[@]} == 1 )) || { echo 'AMARILLO [JUEGOS]: D: no esta disponible; no se monta otro volumen'; exit 1; }
+device=${devices[0]}
+[[ -b $device && $(blkid -s TYPE -o value "$device") == ntfs ]] || exit 1
+install -d -m 0700 "$private" "$volume"
+mounted_volume=0; mounted_data=0; success=0
+rollback() {
+    ((success)) && return
+    ((mounted_data==0)) || umount /juegos || true
+    ((mounted_volume==0)) || umount "$volume" || true
+}
+trap rollback EXIT
+# root-only ancestor hides the entire Windows volume from desktop applications.
+# File ownership below is usable through the game overlay without opening D: globally.
+mount -t ntfs3 -o rw,nosuid,nodev,noexec,uid=1000,gid=1000,dmask=0022,fmask=0133,windows_names "$device" "$volume"
+mounted_volume=1
+image=$volume/ULTRA-juegos.ext4
+[[ -f $image && ! -L $image && $(stat -c %s "$image") == "$image_bytes" ]] || { echo 'ROJO [JUEGOS]: imagen de almacenamiento ausente o tamano distinto'; exit 1; }
+[[ $(blkid -p -s TYPE -o value "$image") == ext4 && $(blkid -p -s UUID -o value "$image") == "$image_uuid" ]] || { echo 'ROJO [JUEGOS]: identidad ext4 distinta; no se formatea'; exit 1; }
+install -d -m 0755 /juegos
+mount -t ext4 -o loop,rw,nosuid,nodev "$image" /juegos
+mounted_data=1
+install -d -m 0755 /juegos/usuarios
+[[ ! -L /juegos/usuarios/ultra ]] || exit 1
+install -d -m 0700 -o 1000 -g 1000 /juegos/usuarios/ultra
+home=/juegos/usuarios/ultra
+# Never follow user-controlled paths with root when seeding applications.
+setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
+    --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+    /usr/bin/bash -c '
+        set -e
+        umask 077
+        home=$1
+        mkdir -p "$home/.config" "$home/.local/share" "$home/.local/state" "$home/.cache" "$home/Juegos/prefijos"
+        cp -an /home/ultra/.config/. "$home/.config/"
+    ' ultra-seed "$home"
+game="$volume/Cyberpunk 2077"
+if [[ -f $game/bin/x64/Cyberpunk2077.exe && ! -L $game ]]; then
+    install -d -m 0755 /juegos/Cyberpunk2077 /juegos/overlay
+    install -d -m 0755 -o 1000 -g 1000 /juegos/overlay/upper /juegos/overlay/work
+    # Writes go to ext4 upper; the installed GOG game on D: remains the lower layer.
+    mount -t overlay overlay -o "nosuid,nodev,lowerdir=$game,upperdir=/juegos/overlay/upper,workdir=/juegos/overlay/work" /juegos/Cyberpunk2077
+fi
+success=1
+echo 'VERDE [JUEGOS]: almacenamiento ext4 persistente y home preparados; D: privado; juego con capa de escritura separada'

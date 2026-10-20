@@ -25,6 +25,20 @@ tmp=$out.$$
     if [[ -r /run/ultra-escritorio/red.log ]]; then cat /run/ultra-escritorio/red.log;
     else printf 'NA: no se llego a preparar la red\n'; fi
     /usr/bin/bash /usr/local/libexec/ultra-informe-red
+    printf '\n[AUDIO: tarjetas, nodos y ultimo estado del servidor de usuario]\n'
+    cat /proc/asound/cards /proc/asound/pcm 2>/dev/null || true
+    ls -l /dev/snd 2>/dev/null || true
+    [[ ! -r /run/user/1000/ultra-audio-estado.txt ]] || cat /run/user/1000/ultra-audio-estado.txt
+    for home in /home/ultra /juegos/usuarios/ultra; do
+        for log in pipewire pipewire-pulse wireplumber; do
+            file=$home/.cache/ultra/$log.log
+            [[ ! -r $file ]] || { printf '\n%s\n' "$file"; tail -n 40 "$file"; }
+        done
+    done
+    printf '\n[JUEGOS: montaje y espacio, sin exportar cuentas o credenciales]\n'
+    [[ ! -r /run/ultra-escritorio/juegos.log ]] || cat /run/ultra-escritorio/juegos.log
+    findmnt /juegos /juegos/Cyberpunk2077 2>/dev/null || true
+    mountpoint -q /juegos && df -h /juegos || true
     printf '\n[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]\n'
     if [[ -r /run/ultra-escritorio/medicion.log ]]; then
         cat /run/ultra-escritorio/medicion.log

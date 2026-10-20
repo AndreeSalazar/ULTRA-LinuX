@@ -17,4 +17,4 @@ export XDG_DATA_HOME="$HOME/.local/share" HYPRLAND_NO_RT=1
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME"
 rm -f "${XDG_RUNTIME_DIR:?}/ultra-efectos"
 cd "$HOME"
-exec dbus-run-session -- start-hyprland -- --config /etc/ultra/hyprland.lua
+exec dbus-run-session -- /usr/bin/bash /usr/local/libexec/ultra-desktop-session

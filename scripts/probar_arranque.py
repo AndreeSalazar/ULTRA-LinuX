@@ -170,7 +170,9 @@ def check_kernel():
         if not f.exists() or f.name not in expected:
             print(f'AMARILLO [SIN-DISCO]: falta {f.name}; el disco EFI solo existe en el perfil generico.')
             sys.exit(2)
-        if hashlib.sha256(f.read_bytes()).hexdigest() != expected[f.name]:
+        with f.open('rb') as source:
+            actual_hash = hashlib.file_digest(source, 'sha256').hexdigest()
+        if actual_hash != expected[f.name]:
             print(f'ROJO [HASH]: {f.name} no coincide con SHA256SUMS; volver a descargar.')
             sys.exit(1)
 

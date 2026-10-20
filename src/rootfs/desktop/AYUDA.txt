@@ -12,6 +12,9 @@ SUPER + H           Esta ayuda
 SUPER + Space       Centro BMO-X: aplicaciones y ambiente
 SUPER + Shift + A   Alternar efectos vivos / reducidos
 SUPER + C           Limpiar notificaciones
+SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 150%
+SUPER + J           Juegos: Steam, GOG/Heroic, Cyberpunk y espacio disponible
+Teclas multimedia   Volumen maestro +/- y silencio
 SUPER + Q           Cerrar la ventana activa
 SUPER + V           Alternar ventana flotante
 SUPER + flechas     Cambiar el foco
@@ -27,8 +30,12 @@ En NVIDIA se activan animaciones breves, sombras y desenfoque ligero.
 El modo software inicia con efectos reducidos. Se pueden cambiar en el centro.
 Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 
-Esta primera sesion usa un home temporal en RAM. No guardes aqui archivos
+Si D: y ULTRA-juegos.ext4 estan disponibles, el home es persistente en ext4.
+Steam, Heroic, Proton, configuracion y partidas se guardan alli.
+El juego de D: se lee como base; las escrituras van a una capa ext4 separada.
+Sin ese almacenamiento la sesion usa un home temporal en RAM. No guardes aqui archivos
 que necesites conservar tras apagar. No se han migrado datos personales.
 La recuperacion software del menu sigue disponible si falla Hyprland.
-Brave usa Wayland y su sandbox. Su perfil y descargas son temporales en RAM.
-La red por cable intenta DHCP; Wi-Fi y audio fisico aun requieren validacion.
+Brave usa Wayland y su sandbox. Su perfil sigue el home activo de esta sesion.
+La red por cable intenta DHCP; Wi-Fi aun requiere validacion.
+USB tiene prioridad de audio; pavucontrol permite cambiar salida y volumen por app.

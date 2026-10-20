@@ -1,0 +1,34 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -euo pipefail
+[[ $(id -u) == 1000 ]] || exit 1
+action=${1:-menu}
+if [[ $action == menu ]]; then
+    choice=$(printf '%s\n' 'Steam' 'GOG / Heroic' 'Cyberpunk 2077' 'Estado y espacio' |
+        fuzzel --dmenu --prompt='Juegos /' --lines=4) || exit 0
+    case $choice in Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;; 'Estado y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;; *) exit 0;; esac
+fi
+if [[ $action == estado ]]; then
+    printf 'HOME=%s\n' "$HOME"
+    findmnt /juegos || true
+    df -h /juegos
+    vulkaninfo --summary || true
+    exit 0
+fi
+if ! mountpoint -q /juegos || [[ $HOME != /juegos/usuarios/ultra ]]; then
+    notify-send --urgency=critical 'Juegos: falta almacenamiento' 'No se montó la imagen persistente de D:. Consulta el informe; no se descargan clientes a RAM.' || true
+    exit 1
+fi
+mkdir -p "$HOME/.cache/ultra"
+case $action in
+    steam) exec steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
+    gog) exec /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
+    cyberpunk)
+        game=/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe
+        [[ -f $game ]] || { notify-send 'Cyberpunk no encontrado' 'No se encontró el ejecutable GOG en D:.'; exit 1; }
+        cd /juegos/Cyberpunk2077/bin/x64
+        export WINEPREFIX="$HOME/Juegos/prefijos/cyberpunk2077" GAMEID=umu-0 PROTONPATH=GE-Proton
+        notify-send 'Cyberpunk / Proton' 'El primer inicio puede descargar Proton y su runtime. El juego original de D: se conserva.' || true
+        exec umu-run "$game" --launcher-skip >> "$HOME/.cache/ultra/cyberpunk.log" 2>&1;;
+    *) exit 2;;
+esac

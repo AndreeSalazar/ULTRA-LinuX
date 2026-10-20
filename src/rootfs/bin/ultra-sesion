@@ -32,6 +32,11 @@ trap 'exit 143' TERM
 rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log /run/ultra-escritorio/medicion.log /run/ultra-escritorio/medicion.stop /run/ultra-escritorio/red.log
 [[ ! -e /run/seatd.sock && ! -L /run/seatd.sock ]] || { echo 'ROJO [SESION]: socket seatd ya ocupado'; exit 1; }
 export SYSTEMD_IGNORE_CHROOT=1
+# devtmpfs supplies devices; these conventional links normally come from a distro init.
+for pair in fd:/proc/self/fd stdin:/proc/self/fd/0 stdout:/proc/self/fd/1 stderr:/proc/self/fd/2; do
+    name=${pair%%:*}; target=${pair#*:}
+    [[ -e /dev/$name || -L /dev/$name ]] || ln -s "$target" "/dev/$name" || exit 1
+done
 if ! udevadm control --ping 2>/dev/null; then
     # A long-lived daemon must not retain the exclusive session lock.
     /usr/lib/systemd/systemd-udevd --daemon 9>&- || { echo 'ROJO [ESCRITORIO]: udevd no arranco'; exit 1; }
@@ -40,6 +45,10 @@ udevadm trigger --action=add --type=subsystems || exit 1
 udevadm trigger --action=add --type=devices || exit 1
 udevadm settle --timeout=15 || exit 1
 /usr/bin/bash /usr/local/libexec/ultra-preparar-red > /run/ultra-escritorio/red.log 2>&1 9>&- || echo 'AMARILLO [RED]: sin conexion; el escritorio puede abrir sin internet'
+for driver in snd_usb_audio snd_hda_codec_realtek snd_hda_codec_hdmi snd_hda_generic; do
+    modprobe "$driver" 9>&- || echo "AMARILLO [AUDIO]: no se pudo cargar $driver"
+done
+/usr/bin/bash /usr/local/libexec/ultra-preparar-juegos > /run/ultra-escritorio/juegos.log 2>&1 9>&- || echo 'AMARILLO [JUEGOS]: almacenamiento no disponible; escritorio temporal operativo'
 nvidia=(); software=(); cards=()
 for entry in /sys/class/drm/card*; do
     name=${entry##*/}
@@ -75,7 +84,9 @@ for ((i=0;i<50;i++)); do
 done
 (( ready )) || { echo 'ROJO [SESION]: seatd no preparo su socket'; exit 1; }
 echo "VERDE [ESCRITORIO]: compositor=$compositor modo=$mode dispositivo=$card; usuario=ultra"
-client_env=(HOME=/home/ultra USER=ultra LOGNAME=ultra XDG_RUNTIME_DIR=/run/user/1000
+desktop_home=/home/ultra
+if mountpoint -q /juegos && [[ -d /juegos/usuarios/ultra ]]; then desktop_home=/juegos/usuarios/ultra; fi
+client_env=("HOME=$desktop_home" USER=ultra LOGNAME=ultra XDG_RUNTIME_DIR=/run/user/1000
     "ULTRA_COMPOSITOR=$compositor" "ULTRA_RENDER_MODE=$mode"
     PATH=/usr/local/bin:/usr/bin LANG=C.UTF-8 TERM=linux
     "GLIBC_TUNABLES=${GLIBC_TUNABLES:-}" LIBSEAT_BACKEND=seatd SEATD_SOCK=/run/seatd.sock

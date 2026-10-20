@@ -20,6 +20,7 @@
       "cpu",
       "memory",
       "network",
+      "pulseaudio",
       "custom/ambiente",
       "custom/logout"
     ],
@@ -79,6 +80,16 @@
       "format": "",
       "tooltip-format": "Volver a la consola",
       "on-click": "hyprctl dispatch 'hl.dsp.exit()'"
+    },
+    "pulseaudio": {
+      "format": " {volume}%",
+      "format-muted": " MUTE",
+      "format-source": " {volume}%",
+      "on-click": "ultra-audio menu",
+      "on-click-right": "pavucontrol",
+      "on-scroll-up": "ultra-audio subir",
+      "on-scroll-down": "ultra-audio bajar",
+      "tooltip-format": "Audio maestro: {desc}\nClick: control · derecho: salidas y aplicaciones"
     }
   },
   {
@@ -86,12 +97,13 @@
     "layer": "top",
     "position": "bottom",
     "height": 56,
-    "width": 360,
+    "width": 420,
     "margin-bottom": 12,
     "spacing": 4,
     "exclusive": true,
     "modules-center": [
       "custom/browser",
+      "custom/games",
       "custom/files",
       "custom/terminal",
       "custom/editor",
@@ -121,6 +133,11 @@
       "format": "",
       "tooltip-format": "Ayuda · Super+H",
       "on-click": "foot /usr/bin/less /etc/ultra/AYUDA.txt"
+    },
+    "custom/games": {
+      "format": "",
+      "tooltip-format": "Juegos · Super+J",
+      "on-click": "ultra-juegos menu"
     }
   }
 ]

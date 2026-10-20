@@ -1,0 +1,27 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE carpetas de estado y juegos pertenecen al usuario
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE usuario puede crear un servicio local TCP en loopback
+VERDE PipeWire detecta salida USB mediante ALSA real emulada
+VERDE USB tiene prioridad de salida configurada
+VERDE boost maestro 150% aplicado
+VERDE subir respeta el limite 150%
+VERDE silencio maestro
+VERDE generador ALSA detenido al terminar la ventana de diez segundos
+VERDE Heroic abre en Wayland como usuario sin root
+STEAM: /logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+52))
+ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+52))
+[2026-10-20 11:39:50] Steam Runtime Launch Service: starting steam-runtime-launcher-service
+[2026-10-20 11:39:50] Steam Runtime Launch Service: steam-runtime-launcher-service is running pid 1005
+[2026-10-20 11:39:51] bus_name=com.steampowered.PressureVessel.LaunchAlongsideSteam
+AUDIO-JUEGOS-FIN-252
+C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py:153: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  pixels=list(screen.convert('RGB').crop((x+12,y+12,x+w-12,y+h-12)).resize((40,25)).getdata())
+VERDE Steam abre cliente/login sin iniciar sesion de cuenta
+VERDE clientes mantienen UID1000, capacidades cero y NoNewPrivs
+VERDE audio USB produjo muestras PCM no silenciosas
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE home y cambios de juego sobreviven a reinicio

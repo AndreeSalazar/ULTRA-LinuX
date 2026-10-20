@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Steam
+Comment=Cliente Steam con almacenamiento persistente
+Exec=/usr/local/bin/ultra-juegos steam
+Icon=steam
+Terminal=false
+Categories=Game;

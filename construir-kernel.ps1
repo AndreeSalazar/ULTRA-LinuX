@@ -46,7 +46,7 @@ if($Accion -eq 'Compilar'){
     Invoke-Guest 'pacman -Q erofs-utils >/dev/null 2>&1 || sudo pacman -S --noconfirm --needed erofs-utils'
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/init.c') (Join-Path $project 'src/init.h') (Join-Path $project 'src/particiones.c') (Join-Path $project 'src/hardware.c') (Join-Path $project 'src/tarjeta.c') (Join-Path $project 'src/efi.c') (Join-Path $project 'src/perfil.c') (Join-Path $project 'src/logo.c') (Join-Path $project 'src/sistema.c') (Join-Path $project 'scripts/build-baseline.sh') (Join-Path $project 'scripts/guardianes.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia de fuentes incompleta.'}
-    & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/raiz.c') (Join-Path $project 'src/red.c') (Join-Path $project 'scripts/instalar-brave.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
+    & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/raiz.c') (Join-Path $project 'src/red.c') (Join-Path $project 'scripts/instalar-brave.sh') (Join-Path $project 'scripts/instalar-heroic.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: preparacion Brave incompleta.'}
     & scp.exe -r -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/rootfs') (Join-Path $project 'src/guardian') (Join-Path $project 'src/caja') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia del rootfs incompleta.'}
@@ -65,7 +65,7 @@ if($Accion -eq 'Compilar'){
     $out=Join-Path $project ('build/'+$local[$Perfil])
     New-Item -ItemType Directory -Force $out | Out-Null
     $files=@('bzImage-tiny64','tiny64.config','kernelrelease.txt','guardianes.txt','SHA256SUMS')
-    if($Perfil -in @('generico','pc')){$files+=@('modulos.tar.gz','ultra-esp.img','disco-bmo.img','sistema-a.erofs','datos.ext4','brave-origen.txt','brave-bibliotecas.txt','sistema-paquetes.txt'); if($Perfil -eq 'pc'){$files+='disco-bmo-doble.img'}}
+    if($Perfil -in @('generico','pc')){$files+=@('modulos.tar.gz','ultra-esp.img','disco-bmo.img','sistema-a.erofs','datos.ext4','brave-origen.txt','brave-bibliotecas.txt','heroic-origen.txt','heroic-bibliotecas.txt','sistema-paquetes.txt'); if($Perfil -eq 'pc'){$files+='disco-bmo-doble.img'}}
     foreach($file in $files){
         & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known ('builder@127.0.0.1:/home/builder/linux-reconstruido/artifacts/'+$Perfil+'/'+$file) $out
         if($LASTEXITCODE -ne 0){throw "ROJO: falta descargar $file"}

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Cyberpunk 2077 - GOG en D
+Comment=Proton y partidas en ext4; archivos originales con capa de escritura separada
+Exec=/usr/local/bin/ultra-juegos cyberpunk
+Icon=applications-games
+Terminal=false
+Categories=Game;

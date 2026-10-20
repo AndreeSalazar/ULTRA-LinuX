@@ -49,8 +49,9 @@ para cada cambio se documentan separadamente en `evidencias/`.
 `-NuevosDatos` expresa un reinicio intencional del ext4 de pruebas. Si se espera
 una actualizacion y faltan los datos anteriores, el instalador se detiene para
 evitar crear una semilla sin advertirlo. La copia principal se conserva en
-Windows. El home del escritorio, perfil de Brave y descargas siguen siendo
-temporales en RAM: este tema no los convierte en almacenamiento persistente.
+Windows. El [almacenamiento de juegos](AUDIO-JUEGOS.md) permite conservar el
+home del escritorio, perfil de Brave y descargas en el ext4 de D:. Cuando ese
+almacenamiento no esta disponible, el escritorio usa un home temporal en RAM.
 
 ## Validacion
 

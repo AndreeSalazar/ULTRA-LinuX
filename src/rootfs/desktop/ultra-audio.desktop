@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Audio maestro
+Exec=/usr/local/bin/ultra-audio menu
+Icon=audio-volume-high
+Terminal=false
+Categories=Settings;Audio;

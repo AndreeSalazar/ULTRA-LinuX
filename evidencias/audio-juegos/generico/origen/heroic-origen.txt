@@ -1,0 +1,4 @@
+version=2.22.4
+url=https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/releases/download/v2.22.4/Heroic-2.22.4-linux-x64.tar.xz
+sha256=81497c4e67d42905da5839a32be053c011eae35fb1fd5ec9441249b238d8f99b
+sandbox=sin desactivar; setuid desactivado; apertura pendiente de prueba

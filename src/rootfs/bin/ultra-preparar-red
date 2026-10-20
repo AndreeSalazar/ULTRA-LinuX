@@ -5,6 +5,8 @@ set -uo pipefail
 [[ $(id -u) == 0 ]] || exit 1
 exec 9>&- # DHCP may outlive the desktop; never retain its session lock.
 printf 'ULTRA RED\n'
+# Local IPC over TCP must work even with Ethernet unplugged (Steam WebUI, etc.).
+ip link set dev lo up || { echo 'ROJO [RED]: no se pudo activar loopback'; exit 1; }
 ready() {
     local route iface i routes
     routes=$(ip -4 route show default) || return 1

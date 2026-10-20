@@ -92,6 +92,13 @@ void prepare_system(bool data) {
 
 void release_system(void) {
     if (!ready) return;
+    /* Games are nested: overlay first, ext4 loop (autoclear), then NTFS D:.
+       PID 1 has already stopped all processes. Never detach a live backing store. */
+    const char *const games[] = {ARCH "/juegos/Cyberpunk2077", ARCH "/juegos", ARCH "/run/ultra-juegos/volumen"};
+    for (size_t i = 0; i < ULTRA_LEN(games); i++) {
+        if (umount(games[i]) == 0) report("VERDE", "JUEGOS", games[i]);
+        else if (errno != EINVAL && errno != ENOENT) report("AMARILLO", "JUEGOS-DESMONTAJE", games[i]);
+    }
     /* Detached as a whole tree: the binds go with it, and /sistema and BMO can be unmounted cleanly. */
     if (umount2(ARCH, MNT_DETACH) < 0) report("AMARILLO", "SISTEMA", "no se pudo soltar /arch");
     umount2(LAYER, MNT_DETACH);

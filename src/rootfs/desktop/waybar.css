@@ -30,3 +30,8 @@ tooltip label { color: #d3edf3; padding: 6px; }
 #custom-editor { color: #a9b9fa; }
 #custom-help { color: #809db6; }
 .dock #custom-browser:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover { color: #e6ffff; background: #173b4d; border-bottom-color: #44f4cc; }
+
+#pulseaudio { color: #86dfdf; padding: 0 10px; font-size: 11px; }
+#pulseaudio.muted { color: #ffad78; }
+.dock #custom-games { font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 2px; border-radius: 7px; border-bottom: 2px solid transparent; color: #59efbc; }
+.dock #custom-games:hover { background: #173b4d; color: #e6ffff; border-bottom-color: #44f4cc; }
