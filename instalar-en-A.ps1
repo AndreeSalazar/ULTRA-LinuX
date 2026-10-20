@@ -64,11 +64,27 @@ if($Accion -eq 'Copiar'){
     # requires its presence; only an explicit expected hash requires exact bytes.
     if(-not $NuevosDatos -and -not $dataBefore -and ($expectedData -or $hasInstallation)){throw 'ROJO [DATOS]: faltan los datos de la instalacion anterior; restaurarlos antes de copiar (o usar -NuevosDatos intencionadamente)'}
     if($DatosEsperadosSHA256 -and $dataBefore -ine $DatosEsperadosSHA256){throw 'ROJO [DATOS]: datos.ext4 no coincide con el hash esperado; no se ha escrito nada'}
-    if($dataBefore -and -not $NuevosDatos){
+    # Windows project is the master copy, including before an intentional reset.
+    if($dataBefore){
         $backup=Join-Path $project "build/respaldo-datos/$dataBefore.ext4"
         New-Item -ItemType Directory -Force (Split-Path $backup)|Out-Null
         if(-not(Test-Path -LiteralPath $backup)){Copy-Item -LiteralPath $dataPath -Destination $backup}
         if((Get-FileHash -LiteralPath $backup -Algorithm SHA256).Hash -ine $dataBefore){throw 'ROJO [DATOS]: respaldo local incorrecto; no se ha escrito en destino'}
+    }
+    $reportsPath=Join-Path $root 'ULTRA\informe'
+    if(Test-Path -LiteralPath $reportsPath){
+        $reportBackup=Join-Path $project ("build/respaldo-informes/"+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Force $reportBackup|Out-Null
+        $reportHashes=[ordered]@{}
+        foreach($report in Get-ChildItem -LiteralPath $reportsPath -File -Filter '*.txt'){
+            $sha=(Get-FileHash -LiteralPath $report.FullName -Algorithm SHA256).Hash
+            $saved=Join-Path $reportBackup $report.Name
+            Copy-Item -LiteralPath $report.FullName -Destination $saved
+            if((Get-FileHash -LiteralPath $saved -Algorithm SHA256).Hash -ine $sha){throw 'ROJO [INFORMES]: respaldo local incorrecto; no se ha escrito en destino'}
+            $reportHashes[$report.Name]=$sha
+        }
+        $reportHashes|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $reportBackup 'SHA256.json') -Encoding utf8
+        Write-Host "VERDE [RESPALDO]: informes guardados en $reportBackup"
     }
     # Leftovers of earlier layouts, by exact name only: the shared system image from before
     # each kernel had its own, and the reports that now live in ULTRA\informe.

@@ -7,11 +7,14 @@ if [[ ${1:-direct} == software ]]; then
     # Explicit laboratory path: Mesa renders on CPU, DRM still supplies buffers.
     unset __EGL_VENDOR_LIBRARY_FILENAMES
     export LIBGL_ALWAYS_SOFTWARE=1
+    export ULTRA_EFECTOS=sobrio
     echo 'AMARILLO [HYPRLAND]: laboratorio GLES por software; requiere DRM/GBM compatible'
 fi
+export XCURSOR_THEME=Adwaita XCURSOR_SIZE=24 GTK_THEME=Adwaita:dark
 export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland
 export XDG_CONFIG_HOME="$HOME/.config" XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share" HYPRLAND_NO_RT=1
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME"
+rm -f "${XDG_RUNTIME_DIR:?}/ultra-efectos"
 cd "$HOME"
 exec dbus-run-session -- start-hyprland -- --config /etc/ultra/hyprland.lua

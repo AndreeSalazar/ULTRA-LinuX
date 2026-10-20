@@ -1,5 +1,9 @@
 # W3c: Hyprland con aplicaciones
 
+El aspecto y los controles actuales se describen en
+[BMO-X / Night Circuit](ESCRITORIO-BMO-X.md); los efectos desactivados descritos
+en esta etapa historica ya no son el valor inicial de NVIDIA.
+
 Actualizacion: [W3d](GPU-NEON-W3D.md) corrige la omision del minor 255
 (nvidiactl), sustituye la prueba insuficiente y agrega informes persistentes
 y el tema neon. Las afirmaciones sobre -c 0 -m mas abajo son historicas y

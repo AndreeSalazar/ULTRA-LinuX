@@ -359,6 +359,42 @@ def check_hyprland(conn, failures):
         if not initial:
             transcript += run(conn, [('cat /tmp/hyprland-session.log; echo HYPR-DIAG', 'HYPR-DIAG')], failures)
             return transcript
+        # The shell must actually draw both panels, not merely leave waybar alive.
+        panels_ready = False
+        for _ in range(20):
+            conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j layers; echo BMO-LAYERS-$((10+1))\n')
+            layers = response('BMO-LAYERS-11')
+            transcript += layers
+            panels_ready = all(re.search(r'"namespace"\s*:\s*"'+name+r'"', layers) for name in ('hud', 'dock'))
+            if panels_ready: break
+            time.sleep(.25)
+        expect(panels_ready, 'BMO-X: barra y dock mapeados en Wayland')
+        transcript += run(conn, [('test -n "$(pidof mako)" && test -f /arch/usr/share/icons/Papirus-Dark/index.theme && ultra-entrar /usr/bin/fc-match "Font Awesome 7 Free:charset=f120" | grep -q "[.]otf" && echo BMO-ICONOS-$((10+2))', 'BMO-ICONOS-12')], failures)
+        for wanted in (1, 0):
+            mon.sendall(b'sendkey meta_l-shift-a\n')
+            time.sleep(1)
+            conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j getoption animations:enabled; echo BMO-EFECTOS-$((10+3))\n')
+            effect = response('BMO-EFECTOS-13')
+            transcript += effect
+            expect(bool(re.search(r'"bool"\s*:\s*'+('true' if wanted else 'false')+r'\b', effect)),
+                   f'BMO-X: teclado cambia animaciones a {wanted}')
+        mon.sendall(b'sendkey meta_l-spc\n')
+        time.sleep(1)
+        transcript += run(conn, [('test -n "$(pidof fuzzel)" && echo BMO-CENTRO-$((10+4))', 'BMO-CENTRO-14')], failures)
+        control_capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-bmox-centro.png'
+        control_capture.unlink(missing_ok=True)
+        mon.sendall(f'screendump {control_capture} -f png\n'.encode())
+        for _ in range(50):
+            try:
+                from PIL import Image
+                with Image.open(control_capture) as shot: shot.verify()
+                break
+            except (OSError, SyntaxError): time.sleep(.1)
+        else: raise ValueError('captura del centro BMO-X incompleta')
+        shutil.copyfile(control_capture, LOG.with_name(LOG.stem + '-centro.png'))
+        mon.sendall(b'sendkey esc\n')
+        time.sleep(.4)
+        transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo BMO-CENTRO-CERRADO-$((10+5))', 'BMO-CENTRO-CERRADO-15')], failures)
         mon.sendall(b'sendkey meta_l-n\n')
         edited = wait_apps(lambda apps: any('mousepad' in a.get('class', '').lower() for a in apps))
         expect(bool(edited), 'Hyprland: Super+N abre Mousepad')
@@ -458,13 +494,21 @@ def check_hyprland(conn, failures):
                 break
             time.sleep(1)
         expect(launcher, 'Hyprland: Super+R abre Fuzzel')
+        # QEMU may still hold Super+R when pidof first sees the launcher.
+        time.sleep(.3)
         mon.sendall(b'sendkey esc\n')
+        time.sleep(.4)
+        transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo BMO-APPS-CERRADO-$((10+6))', 'BMO-APPS-CERRADO-16')], failures)
         capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-hyprland.png'
         capture.unlink(missing_ok=True)
         mon.sendall(f'screendump {capture} -f png\n'.encode())
         for _ in range(50):
-            if capture.exists() and capture.stat().st_size: break
-            time.sleep(.1)
+            try:
+                from PIL import Image
+                with Image.open(capture) as shot: shot.verify()
+                break
+            except (OSError, SyntaxError): time.sleep(.1)
+        else: raise ValueError('captura de ventanas incompleta')
         shutil.copyfile(capture, LOG.with_name(LOG.stem + '-hyprland.png'))
         # GTK can change argv[0]/comm. Get app PIDs from compositor IPC, not pidof names.
         processes = {'Hyprland': '$(pidof Hyprland)'}
@@ -507,8 +551,12 @@ def check_hyprland(conn, failures):
         background.unlink(missing_ok=True)
         mon.sendall(f'screendump {background} -f png\n'.encode())
         for _ in range(50):
-            if background.exists() and background.stat().st_size: break
-            time.sleep(.1)
+            try:
+                from PIL import Image
+                with Image.open(background) as shot: shot.verify()
+                break
+            except (OSError, SyntaxError): time.sleep(.1)
+        else: raise ValueError('captura del fondo incompleta')
         shutil.copyfile(background, LOG.with_name(LOG.stem + '-fondo.png'))
         mon.sendall(b'sendkey meta_l-shift-m\n')
         time.sleep(4)

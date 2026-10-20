@@ -1,0 +1,10 @@
+VERDE [RESPALDO]: informes guardados en C:\Users\Salazar\Documents\Linux Reconstruido\build\respaldo-informes\20261020-040205-aac921d5a85446ccada9953e114e798f
+VERDE [COPIA]: A:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: A:\ULTRA\sistema-7.3.0-rc7-g32c52ec87d62.erofs
+AMARILLO [DATOS]: se conserva A:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX (7.3.0-rc7-g32c52ec87d62) instalado en A:\ (disco 0, particion 2). Siguiente: elegir ULTRA LinuX en F11
+VERDE [RESPALDO]: informes guardados en C:\Users\Salazar\Documents\Linux Reconstruido\build\respaldo-informes\20261020-040216-cf21b48c56ac48cf93a559b4917069ba
+VERDE [COPIA]: A:\EFI\ULTRA\ULTRA-PC.EFI
+VERDE [COPIA]: A:\ULTRA\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs
+AMARILLO [DATOS]: se conserva A:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX PC (Zen 3) (7.3.0-rc7-pc-g32c52ec87d62) instalado en A:\ (disco 0, particion 2). Siguiente: elegir ULTRA LinuX PC (Zen 3) en F11

@@ -1,0 +1,36 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Session controls only: no root, hardware tuning, external commands from labels or eval.
+set -euo pipefail
+[[ $(id -u) == 1000 ]] || exit 1
+mode=${1:-menu}
+if [[ $mode == menu ]]; then
+    choice=$(printf '%s\n' 'Aplicaciones' 'Navegador Brave' 'Archivos' 'Terminal' 'Editor' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Ayuda' |
+        fuzzel --dmenu --prompt='BMO-X / ' --lines=9) || exit 0
+    case $choice in
+        Aplicaciones) exec fuzzel;;
+        'Navegador Brave') exec ultra-brave;;
+        Archivos) exec thunar;;
+        Terminal) exec foot;;
+        Editor) exec mousepad;;
+        'Efectos vivos') mode=vivo;;
+        'Efectos reducidos') mode=sobrio;;
+        'Limpiar notificaciones') exec makoctl dismiss -a;;
+        Ayuda) exec foot /usr/bin/less /etc/ultra/AYUDA.txt;;
+        *) exit 0;;
+    esac
+fi
+state="${XDG_RUNTIME_DIR:?}/ultra-efectos"
+if [[ $mode == alternar ]]; then
+    previous=${ULTRA_EFECTOS:-vivo}
+    [[ ! -f $state ]] || read -r previous < "$state"
+    if [[ $previous == vivo ]]; then mode=sobrio; else mode=vivo; fi
+fi
+case $mode in
+    vivo) enabled=true; message='Animaciones, sombras y desenfoque activados';;
+    sobrio) enabled=false; message='Animaciones, sombras y desenfoque desactivados';;
+    *) printf 'Uso: ultra-ambiente menu|alternar|vivo|sobrio\n' >&2; exit 2;;
+esac
+hyprctl eval "hl.config({animations={enabled=$enabled},decoration={blur={enabled=$enabled},shadow={enabled=$enabled}}})" >/dev/null
+printf '%s\n' "$mode" > "$state"
+notify-send --app-name=ULTRA --icon=preferences-desktop-theme 'BMO-X / Ambiente' "$message" || true

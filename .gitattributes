@@ -9,3 +9,7 @@ src/rootfs/**/*.bin binary
 evidencias/pc-real-w3h/** text eol=lf
 evidencias/pc-real-w3h/**/*.png binary
 evidencias/pc-real-w3h/*.zip binary
+evidencias/tema-bmox/** text eol=lf
+evidencias/tema-bmox/**/*.png binary
+evidencias/tema-bmox/*.png binary
+evidencias/tema-bmox/*.zip binary

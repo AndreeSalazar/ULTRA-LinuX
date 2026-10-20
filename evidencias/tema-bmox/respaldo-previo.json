@@ -1,0 +1,30 @@
+{
+  "FechaUtc": "2026-10-20T03:57:44.8087902Z",
+  "Archivos": [
+    {
+      "Original": "A:/EFI/ULTRA/ULTRA.EFI",
+      "Respaldo": "C:\\Users\\Salazar\\Documents\\Linux Reconstruido\\build\\antes-tema-bmox-e1e1133ac7d84e85b9727d770d4752ec\\ULTRA.EFI",
+      "SHA256": "4C751779C549969C143A941A456CAA6D58B1C2BB8866E0320C3724730DC037E7"
+    },
+    {
+      "Original": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "Respaldo": "C:\\Users\\Salazar\\Documents\\Linux Reconstruido\\build\\antes-tema-bmox-e1e1133ac7d84e85b9727d770d4752ec\\ULTRA-PC.EFI",
+      "SHA256": "B27B40EC4BC4EDDDA1D44DB5DA81C5C17CE8D68B7AA53925CDEF9B1302A3C891"
+    },
+    {
+      "Original": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "Respaldo": "C:\\Users\\Salazar\\Documents\\Linux Reconstruido\\build\\antes-tema-bmox-e1e1133ac7d84e85b9727d770d4752ec\\sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "SHA256": "021FF0125554920A5F1F984AB7EF34F6B743D710C0FD7D05283F8A883782B013"
+    },
+    {
+      "Original": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "Respaldo": "C:\\Users\\Salazar\\Documents\\Linux Reconstruido\\build\\antes-tema-bmox-e1e1133ac7d84e85b9727d770d4752ec\\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "SHA256": "285B873BD44D3DFEC048EF47715C94DF150F9D9AE6DB6E3BA1BB97FC6B4770C6"
+    },
+    {
+      "Original": "A:/ULTRA/datos.ext4",
+      "Respaldo": "C:\\Users\\Salazar\\Documents\\Linux Reconstruido\\build\\antes-tema-bmox-e1e1133ac7d84e85b9727d770d4752ec\\datos.ext4",
+      "SHA256": "A0D74BC9C69CADBDEB5DCA13287166C843659DDD26C5CADDD62E6FE130700903"
+    }
+  ]
+}

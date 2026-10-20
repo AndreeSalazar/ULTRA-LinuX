@@ -30,11 +30,15 @@ try {
     & "$fixture/instalar-en-A.ps1" -Accion Copiar -Unidad $letter
     Assert (Test-Path "$fixture/build/datos-$letter.sha256") 'primera instalacion registra presencia esperada'
     $data="$fixture/destino/ULTRA/datos.ext4"
+    New-Item -ItemType Directory -Force "$fixture/destino/ULTRA/informe"|Out-Null
+    Set-Content "$fixture/destino/ULTRA/informe/arranques.txt" 'informe de prueba'
     Set-Content $data 'datos escritos por Linux despues del arranque'
     $expected=(Get-FileHash $data).Hash
     & "$fixture/instalar-en-A.ps1" -Accion Copiar -Unidad $letter
     Assert ((Get-FileHash $data).Hash -eq $expected) 'actualizacion conserva datos legitimos modificados'
     Assert ((Get-FileHash "$fixture/build/respaldo-datos/$expected.ext4").Hash -eq $expected) 'respaldo completo y verificado'
+    $savedReport=Get-ChildItem "$fixture/build/respaldo-informes" -Recurse -Filter arranques.txt|Select-Object -First 1
+    Assert ($savedReport -and (Get-FileHash -LiteralPath $savedReport.FullName).Hash -eq (Get-FileHash "$fixture/destino/ULTRA/informe/arranques.txt").Hash) 'informe original respaldado en proyecto Windows'
     $script:kernelBefore=(Get-FileHash "$fixture/destino/EFI/ULTRA/ULTRA.EFI").Hash
     Move-Item -LiteralPath $data -Destination "$fixture/datos-apartados.ext4"
     Rechaza @{}
@@ -48,8 +52,11 @@ try {
     Rechaza @{DatosEsperadosSHA256=$expected;NuevosDatos=$true}
     & "$fixture/instalar-en-A.ps1" -Accion Copiar -Unidad $letter -DatosEsperadosSHA256 $expected
     Assert ((Get-FileHash $data).Hash -eq $expected) 'hash esperado correcto permite actualizar'
+    Set-Content $data 'ultimos datos antes del reinicio intencional'
+    $resetHash=(Get-FileHash $data).Hash
     & "$fixture/instalar-en-A.ps1" -Accion Copiar -Unidad $letter -NuevosDatos
     Assert ((Get-FileHash $data).Hash -eq (Get-FileHash "$fixture/build/generico/datos.ext4").Hash) 'reinicio de datos solo con opcion explicita'
+    Assert ((Get-FileHash "$fixture/build/respaldo-datos/$resetHash.ext4").Hash -eq $resetHash) 'reinicio intencional conserva el ultimo original en Windows'
 } finally {
     Remove-PSDrive -Name $letter
 }

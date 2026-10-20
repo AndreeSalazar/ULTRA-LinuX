@@ -13,3 +13,16 @@ entry { background-color: #050a12; color: #c2dce8; border-color: #234455; }
 entry:focus { border-color: #00d4e8; }
 *:selected, selection { background-color: #123e50; color: #63f4ff; }
 .destructive-action { color: #ff7185; border-color: #743246; }
+
+/* Night Circuit: focused controls and tactile dark metal. */
+headerbar { border-bottom: 1px solid #167587; padding: 6px; }
+button, entry, scrollbar slider { transition: background-color 150ms ease, border-color 150ms ease; }
+button:checked, button:active { background-image: linear-gradient(to bottom, #155166, #103242); border-color: #2cd6d6; color: #b8fff0; }
+notebook header { background-color: #07101c; border-color: #21394c; }
+notebook tab { padding: 8px 14px; border-bottom: 2px solid transparent; }
+notebook tab:checked { background-color: #10303e; border-bottom-color: #42e6b4; color: #9dffdd; }
+scrollbar { background-color: #07101a; }
+scrollbar slider { min-width: 6px; min-height: 6px; border-radius: 6px; background-color: #245269; }
+scrollbar slider:hover { background-color: #2bbcc7; }
+progressbar progress { background-image: linear-gradient(to right, #00b8d0, #48e9aa); border-color: #1a958d; }
+menu, popover { background-color: #091725; color: #c2dce8; border: 1px solid #245268; }

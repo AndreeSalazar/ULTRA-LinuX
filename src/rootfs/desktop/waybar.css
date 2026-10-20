@@ -1,12 +1,32 @@
-* { font-family: DejaVu Sans; font-size: 13px; font-weight: bold; min-height: 0; }
-window#waybar { background: linear-gradient(110deg, #03060b, #09172b, #050a12); color: #a9c8d6; border-bottom: 2px solid #12344a; }
-#workspaces button { color: #607a92; padding: 0 12px; border-radius: 0; border-bottom: 2px solid transparent; }
-#workspaces button.active { background: #082b38; color: #00e5ff; border-bottom: 2px solid #48ffb4; }
-#workspaces button:hover { background: #12364c; color: #d2fcff; }
-#custom-apps, #custom-help, #custom-logout, #clock { padding: 8px 16px; margin: 3px 4px; border-radius: 2px; }
-#custom-apps { color: #00e5ff; border: 1px solid #12546a; background: #071521; }
-#clock { color: #48ffb4; letter-spacing: 2px; }
-#custom-help { color: #8ab8dc; }
-#custom-logout { color: #ff647a; border: 1px solid #743246; background: linear-gradient(135deg, #37141e, #100b13); }
-#custom-apps:hover, #custom-help:hover { background: #123349; color: #e0ffff; }
-#custom-logout:hover { background: #681c32; color: #fff0f3; }
+/* BMO-X / Night Circuit. GTK CSS. */
+* { font-family: "DejaVu Sans", "Font Awesome 7 Free", "Font Awesome 7 Brands"; font-size: 12px; font-weight: bold; min-height: 0; }
+window#waybar { background: transparent; color: #b9d5e3; }
+window#waybar.hud > box { background: linear-gradient(115deg, #050a12, #0c1b2e, #07101c); border: 1px solid #214356; border-bottom: 2px solid #128a9a; border-radius: 9px; box-shadow: 0 4px 12px rgba(0, 5, 12, .65); }
+window#waybar.dock > box { background: linear-gradient(120deg, #0c1c2d, #050a12); border: 1px solid #245365; border-top: 2px solid #22b7c7; border-radius: 12px; padding: 5px 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .6); }
+tooltip { background: #091725; border: 1px solid #128a9a; border-radius: 7px; }
+tooltip label { color: #d3edf3; padding: 6px; }
+#custom-apps { color: #61f4ff; background: linear-gradient(115deg, #103b4b, #0a1a2a); border-right: 1px solid #236174; border-radius: 8px 0 0 8px; padding: 0 18px; letter-spacing: 2px; }
+#workspaces { margin: 4px 6px; }
+#workspaces button { color: #6a859b; min-width: 18px; padding: 0 8px; margin: 1px 2px; border: 1px solid transparent; border-radius: 5px; transition: background-color .16s, color .16s; }
+#workspaces button.active { background: #103a49; color: #70ffd2; border: 1px solid #279790; }
+#workspaces button.urgent { color: #ff6b83; border-color: #a83850; }
+#workspaces button:hover { background: #18374c; color: #ddfbff; box-shadow: none; }
+#window { color: #7e9bb2; font-weight: normal; margin-left: 6px; }
+#clock { color: #d6faff; font-size: 15px; letter-spacing: 2px; padding: 0 16px; }
+#cpu, #memory, #network { padding: 0 10px; font-size: 11px; }
+#cpu { color: #7cc8f1; }
+#memory { color: #7bdbb7; }
+#network { color: #70dccb; }
+#network.disconnected, #network.linked { color: #ffad78; }
+#custom-ambiente, #custom-logout { padding: 0 14px; font-size: 16px; }
+#custom-ambiente { color: #6de8e9; border-left: 1px solid #1b3e50; }
+#custom-logout { color: #ff8295; border-radius: 0 8px 8px 0; background: linear-gradient(125deg, #441b2a, #180f1c); border-left: 1px solid #7c344b; }
+#custom-apps:hover, #custom-ambiente:hover { background: #164054; color: #e8fdff; }
+#custom-logout:hover { background: #7d263f; color: #fff2f4; }
+.dock #custom-browser, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help { font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 2px; border-radius: 7px; border-bottom: 2px solid transparent; transition: background-color .16s, color .16s; }
+#custom-browser { color: #ff8896; }
+#custom-files { color: #70cfff; }
+#custom-terminal { color: #60edbe; }
+#custom-editor { color: #a9b9fa; }
+#custom-help { color: #809db6; }
+.dock #custom-browser:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover { color: #e6ffff; background: #173b4d; border-bottom-color: #44f4cc; }

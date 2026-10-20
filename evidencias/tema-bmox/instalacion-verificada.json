@@ -1,0 +1,30 @@
+{
+  "FechaUtc": "2026-10-20T04:02:27.8120190Z",
+  "Archivos": [
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "SHA256": "EE950A0B5775864199893221F3FD2A58CA62F68628D85D526733414271E4A3CD"
+    },
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "SHA256": "1B8FAA03FA651F30EA2881D11DF0CA846B5B6EBE6D59E64291C0036C58778FB1"
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "SHA256": "44D659701AC32C6822557AD04D965A0C2F26BC31072E57CEC9CA3E63FCE9543E"
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "SHA256": "A8908F3FF70C26A322D1CDA6B416885B918FCC01950B6F42A50AB994E8EBA68B"
+    }
+  ],
+  "DatosAntes": "A0D74BC9C69CADBDEB5DCA13287166C843659DDD26C5CADDD62E6FE130700903",
+  "DatosDespues": "A0D74BC9C69CADBDEB5DCA13287166C843659DDD26C5CADDD62E6FE130700903",
+  "DatosConservados": true,
+  "NoSeRecuperaPapelera": true,
+  "RespaldoPrincipal": "respaldo-previo.json"
+}

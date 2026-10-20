@@ -208,7 +208,7 @@ if [[ -n $cmdline ]]; then
     arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow
         hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata swaybg librsvg
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
-        ethtool linux-firmware-realtek)
+        ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -240,6 +240,7 @@ if [[ -n $cmdline ]]; then
     sudo install -m 0644 "$lab/rootfs/desktop/"* "$sistema/etc/ultra/"
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
+    sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
     sudo install -m 0644 "$lab/rootfs/desktop/"*.desktop "$sistema/usr/share/applications/"
     for config in foot fuzzel gtk-3.0; do sudo install -d -m 0755 "$sistema/home/ultra/.config/$config"; done
     sudo install -m 0644 "$lab/rootfs/desktop/foot.ini" "$sistema/home/ultra/.config/foot/foot.ini"

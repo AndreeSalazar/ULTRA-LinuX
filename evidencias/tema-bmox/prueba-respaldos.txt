@@ -1,0 +1,36 @@
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+VERDE [COPIA]: Z:\ULTRA\datos.ext4
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: primera instalacion registra presencia esperada
+VERDE [RESPALDO]: informes guardados en C:\Users\Salazar\Documents\Linux Reconstruido\build\prueba-instalador-16a244746efa4c5da0b39f44bffee177\build\respaldo-informes\20261020-034810-cf56f324625e427ea7d131d8acd7ed9c
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+AMARILLO [DATOS]: se conserva Z:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: actualizacion conserva datos legitimos modificados
+VERDE: respaldo completo y verificado
+VERDE: informe original respaldado en proyecto Windows
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE: no crea una semilla si faltan datos anteriores
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE: reconoce instalacion previa aunque falte el recibo
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE: rechaza antes de escribir
+VERDE: kernel intacto tras rechazo
+VERDE [RESPALDO]: informes guardados en C:\Users\Salazar\Documents\Linux Reconstruido\build\prueba-instalador-16a244746efa4c5da0b39f44bffee177\build\respaldo-informes\20261020-034810-21a6dabc5c464748a0eed763141bc3d8
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+AMARILLO [DATOS]: se conserva Z:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: hash esperado correcto permite actualizar
+VERDE [RESPALDO]: informes guardados en C:\Users\Salazar\Documents\Linux Reconstruido\build\prueba-instalador-16a244746efa4c5da0b39f44bffee177\build\respaldo-informes\20261020-034810-a8ce4a2b237d4aabaebf56d9bee93756
+VERDE [COPIA]: Z:\EFI\ULTRA\ULTRA.EFI
+VERDE [COPIA]: Z:\ULTRA\sistema-prueba.erofs
+VERDE [COPIA]: Z:\ULTRA\datos.ext4
+VERDE: ULTRA LinuX (prueba) instalado en Z:\ (disco -1, particion -1). Siguiente: -Accion CrearEntrada
+VERDE: reinicio de datos solo con opcion explicita
+VERDE: reinicio intencional conserva el ultimo original en Windows

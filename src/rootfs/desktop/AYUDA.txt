@@ -9,6 +9,9 @@ SUPER + N           Editor de texto (Mousepad)
 SUPER + B           Brave y pagina local de pruebas
 SUPER + G           Diagnostico GPU de Brave
 SUPER + H           Esta ayuda
+SUPER + Space       Centro BMO-X: aplicaciones y ambiente
+SUPER + Shift + A   Alternar efectos vivos / reducidos
+SUPER + C           Limpiar notificaciones
 SUPER + Q           Cerrar la ventana activa
 SUPER + V           Alternar ventana flotante
 SUPER + flechas     Cambiar el foco
@@ -17,7 +20,11 @@ SUPER + Shift + 1..9  Mover ventana a otro escritorio
 SUPER + arrastrar con boton izquierdo/derecho: mover/redimensionar
 SUPER + Shift + M   Terminar Hyprland y volver al menu/consola
 
-La barra permite abrir Apps, Ayuda y Salir con el raton.
+La barra muestra CPU, RAM y enlace de red; enlace no garantiza Internet.
+El dock inferior abre Brave, archivos, terminal y editor con el raton.
+El boton BMO-X abre el centro con teclado; Escape lo cierra.
+En NVIDIA se activan animaciones breves, sombras y desenfoque ligero.
+El modo software inicia con efectos reducidos. Se pueden cambiar en el centro.
 Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 
 Esta primera sesion usa un home temporal en RAM. No guardes aqui archivos

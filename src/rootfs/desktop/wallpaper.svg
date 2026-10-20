@@ -1,27 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
 <defs>
- <linearGradient id="base" x2="1" y2="1"><stop stop-color="#020408"/><stop offset=".6" stop-color="#081426"/><stop offset="1" stop-color="#03080e"/></linearGradient>
- <radialGradient id="cyan"><stop stop-color="#00d4e8" stop-opacity=".12"/><stop offset="1" stop-color="#00d4e8" stop-opacity="0"/></radialGradient>
- <radialGradient id="green"><stop stop-color="#48ffb4" stop-opacity=".08"/><stop offset="1" stop-color="#48ffb4" stop-opacity="0"/></radialGradient>
- <linearGradient id="metal"><stop stop-color="#6e2638"/><stop offset=".45" stop-color="#25101b"/><stop offset=".6" stop-color="#94354b"/><stop offset="1" stop-color="#180d15"/></linearGradient>
- <pattern id="grid" width="72" height="72" patternUnits="userSpaceOnUse"><path d="M72 0H0V72" fill="none" stroke="#235674" stroke-opacity=".11"/></pattern>
+ <linearGradient id="base" x2="100%" y2="100%"><stop stop-color="#02050a"/><stop offset=".55" stop-color="#09172a"/><stop offset="1" stop-color="#02070c"/></linearGradient>
+ <linearGradient id="metal" x2="20%" y2="100%"><stop stop-color="#101f30"/><stop offset=".38" stop-color="#070c14"/><stop offset=".39" stop-color="#273c50"/><stop offset=".41" stop-color="#0b1725"/><stop offset="1" stop-color="#03070d"/></linearGradient>
+ <linearGradient id="red" x2="100%" y2="100%"><stop stop-color="#1a0b15"/><stop offset=".35" stop-color="#5f2538"/><stop offset=".48" stop-color="#a8495c"/><stop offset=".5" stop-color="#30131e"/><stop offset="1" stop-color="#0a080f"/></linearGradient>
+ <radialGradient id="halo"><stop stop-color="#007b93" stop-opacity=".22"/><stop offset="1" stop-color="#004566" stop-opacity="0"/></radialGradient>
+ <pattern id="carbon" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 0h6v6H0zM6 6h6v6H6z" fill="#34506a" fill-opacity=".045"/></pattern>
+ <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 0h4" stroke="#77c9df" stroke-opacity=".035"/></pattern>
+ <pattern id="mesh" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#29516c" stroke-opacity=".18"/><circle cx="1" cy="1" r="1" fill="#3c7b8c" fill-opacity=".3"/></pattern>
 </defs>
 <rect width="1920" height="1080" fill="url(#base)"/>
-<ellipse cx="430" cy="580" rx="800" ry="750" fill="url(#cyan)"/>
-<ellipse cx="1620" cy="900" rx="650" ry="600" fill="url(#green)"/>
-<rect width="1920" height="1080" fill="url(#grid)"/>
-<g fill="none" stroke="#00d4e8" stroke-opacity=".4">
- <path d="M0 220H140L200 160H465M0 235H146L207 174H380M1920 760H1780L1700 840H1530"/>
- <path d="M100 90H300M100 90V200M1820 990H1610M1820 990V880" stroke-width="2"/>
+<ellipse cx="1220" cy="550" rx="1000" ry="800" fill="url(#halo)"/>
+<rect width="1920" height="1080" fill="url(#carbon)"/>
+<path d="M0 0H660L775 115V825L650 950H0Z" fill="url(#metal)"/>
+<path d="M0 108H540L604 172V1080H0Z" fill="#030910" fill-opacity=".46"/>
+<path d="M0 120H530L590 180V870L530 930H0" fill="none" stroke="#27445a"/>
+<path d="M1740 0V230L1650 320V690L1780 820V1080H1920V0Z" fill="url(#red)"/>
+<path d="M1762 0V236L1672 326V682L1802 812V1080" fill="none" stroke="#d65873" stroke-opacity=".65" stroke-width="2"/>
+<path d="M1700 0V214L1610 304V715L1740 845V1080" fill="none" stroke="#542438"/>
+<path d="M690 152H1525L1590 217V811L1525 876H690" fill="url(#mesh)" stroke="#193a50"/>
+<g fill="none" stroke="#2be5ef" stroke-opacity=".45">
+ <path d="M0 330H215L256 289H412M0 344H222L265 301H363M690 152H820M1460 152H1525L1590 217V320"/>
+ <path d="M690 876H795M1470 876H1525L1590 811V732M740 197H885M740 197V287"/>
+ <path d="M910 1030H1240L1300 970H1655M910 1042H1248L1308 982H1590"/>
 </g>
-<path d="M1780 0V255L1735 300V440H1750V308L1796 262V0Z" fill="url(#metal)"/>
-<path d="M1810 0V275L1775 310V390" fill="none" stroke="#e65b73" stroke-opacity=".55"/>
-<path d="M0 1000H420L465 955H720" fill="none" stroke="#48ffb4" stroke-opacity=".35"/>
-<g font-family="DejaVu Sans, sans-serif">
- <text x="110" y="865" fill="#102b3b" font-size="112" font-weight="bold" letter-spacing="12">ULTRA</text>
- <text x="115" y="910" fill="#6596a9" font-size="18" letter-spacing="9">LINUX / PERSONAL SYSTEM</text>
- <path d="M115 936H270" stroke="#00e5ff" stroke-width="3"/>
- <path d="M280 936H330" stroke="#48ffb4" stroke-width="3"/>
- <path d="M340 936H360" stroke="#dc546b" stroke-width="3"/>
+<g fill="none" stroke="#4fffc5" stroke-opacity=".45">
+ <path d="M0 999H360L412 947H670M0 1012H370L424 959H600"/>
+ <path d="M1530 708V770L1490 810H1360M1542 708V776L1496 822H1410"/>
 </g>
+<g fill="#070f1a" stroke="#172a3c" stroke-width="1"><path d="M770 875v-25h25v25z"/><path d="M807 875v-54h25v54z"/><path d="M844 875v-83h25v83z"/><path d="M881 875v-112h25v112z"/><path d="M918 875v-32h25v32z"/><path d="M955 875v-61h25v61z"/><path d="M992 875v-90h25v90z"/><path d="M1029 875v-119h25v119z"/><path d="M1066 875v-39h25v39z"/><path d="M1103 875v-68h25v68z"/><path d="M1140 875v-97h25v97z"/><path d="M1177 875v-126h25v126z"/><path d="M1214 875v-46h25v46z"/><path d="M1251 875v-75h25v75z"/><path d="M1288 875v-104h25v104z"/><path d="M1325 875v-133h25v133z"/><path d="M1362 875v-53h25v53z"/><path d="M1399 875v-82h25v82z"/><path d="M1436 875v-111h25v111z"/><path d="M1473 875v-31h25v31z"/><path d="M1510 875v-60h25v60z"/></g>
+<g font-family="DejaVu Sans Mono, monospace">
+ <text x="100" y="220" font-size="13" fill="#52758b" letter-spacing="5">ULTRA LINUX / PERSONAL SYSTEM</text>
+ <text x="101" y="252" font-size="11" fill="#2e536c" letter-spacing="3">NIGHT CIRCUIT · 01</text>
+ <text x="766" y="450" font-family="DejaVu Sans, sans-serif" font-size="112" font-weight="bold" fill="#183f53" letter-spacing="8">BMO-X</text>
+ <text x="770" y="495" font-size="15" fill="#59a5b6" letter-spacing="8">YOUR MACHINE. YOUR WORLD.</text>
+ <path d="M770 528H1110" stroke="#23c5db" stroke-width="3"/><path d="M1120 528H1180" stroke="#4fffc5" stroke-width="3"/><path d="M1190 528H1210" stroke="#e66580" stroke-width="3"/>
+ <text x="770" y="577" font-size="11" fill="#466e88" letter-spacing="3">SUPER + SPACE  /  CENTRO BMO-X</text>
+ <text x="100" y="817" font-size="52" fill="#214157" font-weight="bold" letter-spacing="6">ULTRA</text>
+ <text x="103" y="852" font-size="12" fill="#4c7b8c" letter-spacing="4">BLACK / CYAN / EMERALD</text>
+ <text x="103" y="878" font-size="10" fill="#325063" letter-spacing="3">DARK BLUE / METAL RED</text>
+</g>
+<g fill="#31536b"><circle cx="40" cy="85" r="3"/><circle cx="650" cy="85" r="3"/><circle cx="40" cy="930" r="3"/><circle cx="650" cy="930" r="3"/></g>
+<rect width="1920" height="1080" fill="url(#scan)"/>
 </svg>
