@@ -37,14 +37,18 @@ tmp=$out.$$
     done
     printf '\n[JUEGOS: montaje y espacio, sin exportar cuentas o credenciales]\n'
     [[ ! -r /run/ultra-escritorio/juegos.log ]] || cat /run/ultra-escritorio/juegos.log
-    findmnt /juegos /juegos/Cyberpunk2077 2>/dev/null || true
+    # Query mountpoints separately: two positional arguments mean source + target.
+    for target in /juegos /juegos/Cyberpunk2077; do
+        findmnt --mountpoint "$target" --output TARGET,FSTYPE,OPTIONS 2>/dev/null ||
+            printf 'NO MONTADO %s\n' "$target"
+    done
     mountpoint -q /juegos && df -h /juegos || true
     printf '\n[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]\n'
     if [[ -r /run/ultra-escritorio/medicion.log ]]; then
         cat /run/ultra-escritorio/medicion.log
     else printf 'NA: la sesion no llego a iniciar el observador\n'; fi
     printf '\n[KERNEL: GPU y audio, ultimas 70 coincidencias]\n'
-    dmesg | grep -Ei 'NVRM|nvidia|drm|snd_hda' | tail -n 70
+    dmesg | grep -Ei 'NVRM|nvidia|drm|snd_hda|snd_usb|snd-usb|USB Audio|usbaudio' | tail -n 70
     printf '\n[LANZAMIENTO DEL CLIENTE: puede faltar si la preparacion fallo]\n'
     [[ ! -r /run/ultra-escritorio/ultima.log ]] || tail -n 160 /run/ultra-escritorio/ultima.log
 } > "$tmp" 2>&1

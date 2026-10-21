@@ -1,0 +1,20 @@
+{
+  "fecha": "2026-10-21",
+  "instalado_en_A": false,
+  "datos_personales_utilizados": false,
+  "perfiles": {
+    "generico": {
+      "numero_compilacion_kernel": 45,
+      "comprobaciones_arranque": 107,
+      "comprobaciones_audio_juegos": 18,
+      "cache_sintetica_reutilizada": true
+    },
+    "pc": {
+      "numero_compilacion_kernel": 31,
+      "comprobaciones_arranque": 111,
+      "comprobaciones_audio_juegos": 18,
+      "cache_sintetica_reutilizada": true
+    }
+  },
+  "comprobaciones_aprobadas": 254
+}

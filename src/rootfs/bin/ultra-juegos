@@ -10,8 +10,12 @@ if [[ $action == menu ]]; then
 fi
 if [[ $action == estado ]]; then
     printf 'HOME=%s\n' "$HOME"
-    findmnt /juegos || true
-    df -h /juegos
+    if mountpoint -q /juegos; then
+        findmnt --mountpoint /juegos --output TARGET,FSTYPE,OPTIONS || true
+        df -h /juegos
+    else
+        printf 'Almacenamiento de juegos no montado: la sesion puede ser temporal en RAM.\n'
+    fi
     vulkaninfo --summary || true
     exit 0
 fi

@@ -1,0 +1,27 @@
+{
+  "perfil": "pc",
+  "pruebas": [
+    "NTFS identificado y ext4 montado sin formatear",
+    "UID1000 escribe en ext4 y no puede recorrer D:",
+    "carpetas de estado y juegos pertenecen al usuario",
+    "escritura overlay no modifica el juego original NTFS",
+    "escritorio usa home persistente",
+    "usuario puede crear un servicio local TCP en loopback",
+    "PipeWire detecta salida USB mediante ALSA real emulada",
+    "USB tiene prioridad de salida configurada",
+    "boost maestro 150% aplicado",
+    "subir respeta el limite 150%",
+    "silencio maestro",
+    "generador ALSA detenido al terminar la ventana de diez segundos",
+    "Heroic abre en Wayland como usuario sin root",
+    "Steam abre cliente/login sin iniciar sesion de cuenta",
+    "clientes mantienen UID1000, capacidades cero y NoNewPrivs",
+    "audio USB produjo muestras PCM no silenciosas",
+    "NTFS identificado y ext4 montado sin formatear",
+    "home y cambios de juego sobreviven a reinicio"
+  ],
+  "disco_real_expuesto": false,
+  "imagen": "disco-bmo.img",
+  "imagen_sha256": "b310a842beb454a60915a626e94d31ed18967dd4f0361bbcce87165ba332a16f",
+  "cache_cliente_reutilizada": true
+}

@@ -1,0 +1,98 @@
+[
+  {
+    "archivo": "artefactos-verificados.json",
+    "sha256": "28c3220c717f39d1e184ef17e3dab8abbc0ba383a4f4278c3a47cd98921d3633"
+  },
+  {
+    "archivo": "fuentes-diagnostico.json",
+    "sha256": "82a3236a7fcd981c5bf8b1c37e07f77e7f068a71d864ff5a597233b62f0c69f9"
+  },
+  {
+    "archivo": "generico/arranque-resultados.txt",
+    "sha256": "5e1aa11e0031b0fb2c4dce0d8cd8b74738e5436cb732d357bbbe871feaa4e071"
+  },
+  {
+    "archivo": "generico/audio-juegos-resultados.json",
+    "sha256": "72c29a8fc630ca87f9f672120dff06e66a410feee479e05fe7d9248c7a728c78"
+  },
+  {
+    "archivo": "generico/brave-origen.txt",
+    "sha256": "2c3f13bdff27d7bf1b94f0830de08a8b1251d1873807b3e73bf806ec769c1566"
+  },
+  {
+    "archivo": "generico/brave.png",
+    "sha256": "fe1d403076d39f1bdd768c7568ec8d690d1bbec82544222740c4931709ca381e"
+  },
+  {
+    "archivo": "generico/escritorio.png",
+    "sha256": "718817bd6be64c0bdb3340f6ef0b9ec1314995c5761c13273233f5c1f6f6bb05"
+  },
+  {
+    "archivo": "generico/heroic-origen.txt",
+    "sha256": "b56a67d1b5d060768b8a79487dc849599941e920afd4711f78d6d0ed376e807d"
+  },
+  {
+    "archivo": "generico/SHA256SUMS",
+    "sha256": "59dd8ab5e0a584bb5a523a11e4a9d32e64768000264c8ac715061293489ff1be"
+  },
+  {
+    "archivo": "generico/sistema-paquetes.txt",
+    "sha256": "ddcfbdc824561cf628e742c1bb12169db95000b28e139085f88cf0e71bb86c0e"
+  },
+  {
+    "archivo": "generico/steam-login.png",
+    "sha256": "c697714020096b98505ad3dfd115687324ab25e2edb6aaed8876f0998e2a2493"
+  },
+  {
+    "archivo": "pc/arranque-resultados.txt",
+    "sha256": "63b855ca232aa1112b35a5bfb53f6e0ac4c076e88dff417758c2a830758ab021"
+  },
+  {
+    "archivo": "pc/audio-juegos-resultados.json",
+    "sha256": "a1db6cc45dd755a055ee966a19da0d20bfaa2ab13de76b50dbd13baa7d7031c1"
+  },
+  {
+    "archivo": "pc/brave-origen.txt",
+    "sha256": "2c3f13bdff27d7bf1b94f0830de08a8b1251d1873807b3e73bf806ec769c1566"
+  },
+  {
+    "archivo": "pc/brave.png",
+    "sha256": "fe1d403076d39f1bdd768c7568ec8d690d1bbec82544222740c4931709ca381e"
+  },
+  {
+    "archivo": "pc/escritorio.png",
+    "sha256": "38dedf05031eff2aefd3b25d096ae8791d4b63a0c99453881c38c1e90b688477"
+  },
+  {
+    "archivo": "pc/heroic-origen.txt",
+    "sha256": "b56a67d1b5d060768b8a79487dc849599941e920afd4711f78d6d0ed376e807d"
+  },
+  {
+    "archivo": "pc/nvidia-guardian.txt",
+    "sha256": "a204209dfc7695d6ebfe5f8bd537ecfbc39fc60d280ec5d9b97770351281a4fc"
+  },
+  {
+    "archivo": "pc/SHA256SUMS",
+    "sha256": "2b2b9e59a577d3488e317cc1137a7de454923171825c748bf444af1b8da76cb4"
+  },
+  {
+    "archivo": "pc/sistema-paquetes.txt",
+    "sha256": "9ce4a097d400df8afb650a5ae1d61874b221a4b6c4fe3d24dca9d234fc0be0fe"
+  },
+  {
+    "archivo": "pc/steam-login.png",
+    "sha256": "b3da80446c7ff9fc458436ffec2272a4811f9a60917d9ff298f14c4e5c7323ed"
+  },
+  {
+    "archivo": "README.md",
+    "sha256": "89ffa4b81bbc54098b4e50d0a74c214f757879199ec59e8d6f1d5aa5788ec859"
+  },
+  {
+    "archivo": "registros.zip",
+    "sha256": "60fab4a0a65420f3e21bd51aeb43527cefd504c582909a22c8af776c934d31a3"
+  },
+  {
+    "archivo": "resumen.json",
+    "sha256": "8b9c36d30df483bf00d5fa3c79dab43894bdd700d3924f715c4ad0699947e3ce"
+  }
+]

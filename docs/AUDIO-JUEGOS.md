@@ -51,8 +51,12 @@ descargas grandes en el home temporal.
 Cyberpunk se identifico como la edicion GOG 1423049311 en D:. El acceso directo
 usa `bin/x64/Cyberpunk2077.exe` con UMU y GE-Proton; el primer inicio puede
 descargar Proton y Steam Runtime. No exige comprar otra copia en Steam.
-Las cuentas de Steam/GOG y cualquier confirmacion del cliente se completan por
-el usuario. No se inicia sesion automaticamente ni se exportan credenciales.
+Las imagenes publicas no contienen cuentas ni credenciales. Una migracion
+personal autorizada puede conservarse exclusivamente en el almacenamiento
+privado y el home persistente; no forma parte de Git ni del banco sintetico.
+La apertura de una ventana no demuestra una sesion autenticada. Steam puede
+requerir acceso inicial en Linux y las confirmaciones del cliente corresponden
+al usuario.
 
 ## Almacenamiento sin reparticionar
 

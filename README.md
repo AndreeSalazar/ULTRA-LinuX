@@ -1,148 +1,195 @@
 <p align="center">
-  <img src="src/logo/ultra-tux.webp" alt="ULTRA LinuX: Tux demonio, rojo y metalico" width="360">
+  <img src="src/logo/ultra-tux.webp" alt="ULTRA LinuX: Tux rojo y metálico" width="240">
 </p>
 
-<h1 align="center">ULTRA LinuX</h1>
+<h1 align="center">ULTRA LinuX · BMO-X</h1>
 
-<p align="center">
-  <b>Influencia BMO-X</b> · Eddi Salazar: creador de un sistema propio, sin ser un OS<br>
-  Kernel oficial de Linux · init en C con guardianes · arranque en 0,9 s en el metal
-</p>
+<p align="center">Distribución personal y experimental para x86-64, creada e integrada por Eddi Salazar.<br>Linux + entorno Arch + init propio en C + escritorio Wayland con Hyprland.</p>
 
-<p align="center">
-  <img src="evidencias/pc-real/logo/foto-monitor-logo.webp" alt="ULTRA LinuX arrancando en el PC real, con el logo en la esquina" width="720">
-</p>
+![Escritorio BMO-X con terminal, ayuda, archivos y editor](evidencias/rebuild-2026-10-21/generico/escritorio.png)
 
-# Linux Reconstruido
+BMO-X / Night Circuit combina negro, azul oscuro, cyan y verde neón con acentos
+rojo metálico. Incluye barra de estado, dock con iconos, lanzador con teclado,
+notificaciones, efectos regulables y aplicaciones con ventanas. La captura es
+real del banco QEMU; no es una maqueta ni una medición de la RTX física.
 
-## Escritorio y Brave
+## ¿Es una distro?
 
-`e` abre el menu con teclado. Dentro de Hyprland, **Super+B** abre Brave
-con la pagina local de pruebas y **Super+G** su diagnostico GPU. Apps incluye
-el navegador y la pagina de estado de su sandbox. Con el almacenamiento de juegos
-montado, el perfil y las descargas persisten en el ext4 de D:; sin el, son temporales
-en RAM. La conexion por cable intenta obtener IPv4 y DNS por DHCP.
+**Sí: una distribución Linux personal y experimental.** Integra un kernel Linux
+configurado y compilado, un sistema de usuario, paquetes, arranque, políticas,
+escritorio e imágenes que se pueden ejecutar en una máquina real. La integración
+propia incluye PID 1 en C, detección de hardware, perfiles, menú, guardianes,
+informes, almacenamiento y herramientas de construcción y prueba.
 
-Instalacion, pruebas y funciones pendientes en [BRAVE-W3F.md](docs/BRAVE-W3F.md).
-La [medicion por perfil](docs/MEDICION-W3E.md) registra RAM/CPU y, en NVIDIA,
-VRAM/ocupacion/temperatura/potencia durante la sesion.
+El kernel procede de upstream Linux y buena parte del entorno de usuario procede
+de Arch. Es una distribución basada en esos componentes, con identidad e
+integración propias; no un kernel escrito desde cero. Todavía no tiene el proceso
+de publicaciones, mantenimiento y soporte de una distribución de uso general.
+El taller Arch que compila las imágenes es distinto del sistema ULTRA que arranca.
 
-La [revision de Ethernet](docs/RED-W3G.md) incorpora firmware Realtek, contadores
-RX/TX en C con guardianes y un banco aislado de perdida, retardo y duplicados.
-Las pruebas virtuales no sustituyen la medicion del cable y la tarjeta fisica.
+## Qué funciona y qué queda por confirmar
 
-El [escritorio BMO-X / Night Circuit](docs/ESCRITORIO-BMO-X.md) agrega dock,
-iconos, texturas, notificaciones y controles de ambiente con teclado. El
-proyecto Windows conserva los respaldos e informes antes de actualizar A:.
+La [reconstrucción del 21 de octubre](evidencias/rebuild-2026-10-21/README.md)
+actualiza los informes de montajes y audio USB, y permite consultar el estado
+de juegos aunque falte el almacenamiento persistente.
 
-**Super+A** abre el audio maestro USB (volumen, silencio y boost opcional).
-**Super+J** abre Steam, GOG/Heroic y Cyberpunk mediante Proton. La preparacion
-y los limites de las pruebas se explican en [Audio y juegos](docs/AUDIO-JUEGOS.md).
+| Área | Estado y evidencia |
+|---|---|
+| Arranque | UEFI, init C, consola BusyBox y perfiles genérico/PC; probado en QEMU y PC real |
+| Escritorio | Hyprland, Waybar, Fuzzel, Foot, Thunar, Mousepad, Mako e iconos Papirus |
+| NVIDIA | RTX 3060 detectada; Hyprland, EGL y Brave/WebGL registrados en el PC real |
+| Navegador | Brave con Wayland y sandbox; página local de pruebas y diagnóstico GPU |
+| Ethernet | Firmware Realtek, DHCP incluso con enlace tardío, DNS y HTTPS en el banco |
+| Audio | USB/HDA, PipeWire y control maestro; USB emulado probado, audición del dispositivo físico pendiente |
+| Juegos | Steam, Heroic/GOG y UMU; interfaces y persistencia probadas, Cyberpunk real aún sin validar |
+| Seguridad | Casos concretos de CET, FORTIFY, seccomp, Landlock y detectores de UB; cobertura parcial documentada |
 
-El [analisis del nuevo arranque real](docs/PC-REAL-W3H.md) distingue los 3290 ms
-de preparacion del hardware de los 10 ms de diferencia, registra el consumo
-de la RTX y corrige DHCP cuando el enlace Ethernet aparece tarde.
+La reconstrucción del **21 de octubre pasó 254 comprobaciones**: 107 de arranque
+en genérico, 111 en PC y 18 de audio/juegos por perfil. Los [resultados nuevos](evidencias/rebuild-2026-10-21/README.md)
+conservan sus hashes y capturas; la [ronda del 20 de octubre](evidencias/audio-juegos/README.md)
+permanece como referencia histórica. Cada reconstrucción necesita su propia evidencia.
+Los resultados virtuales no acreditan FPS, latencia de audio ni consumo físico.
 
-## ULTRA LinuX en el metal: de 2009 ms a 920 ms
+![Steam con formulario visible y Heroic detrás, en el laboratorio](evidencias/rebuild-2026-10-21/generico/steam-login.png)
 
-![Tarjeta de arranque de ULTRA LinuX en el PC real: 920 ms](evidencias/pc-real/foto-tarjeta-pc-920ms.webp)
+Versiones de esta reconstrucción: Linux **7.3-rc7**, commit
+`32c52ec87d6245ee2d12ed5dd509e40062939b50`; Hyprland **0.56.2-4**;
+NVIDIA **615.78.08** y Heroic **2.22.4**. El kernel es una candidata experimental.
+Los manifiestos `sistema-paquetes.txt` y `SHA256SUMS` de cada construcción describen
+sus versiones y artefactos efectivos; no se promete que reconstruir más tarde
+produzca los mismos bytes usando repositorios cambiantes.
 
-ULTRA LinuX arrancando en el PC real (Ryzen 5 5600X, MSI A320M-A PRO MAX, RTX 3060), desde archivos en `A:\` con su propia entrada F11 y sin tocar Windows. La tarjeta lo dice todo: **67 °C** del sensor `k10temp` que ULTRA detectó solo, los cuatro guardianes en verde preguntados al kernel, y la **tubería: 920 ms** desde que arranca el kernel hasta que el hardware está listo.
+## Controles del escritorio
 
-| Arranque | Hasta el hardware | Qué cambió |
-|---|---|---|
-| Antes, con los dos kernels | **2009 ms** | La placa revisaba los puertos SATA uno por uno (arranque escalonado) |
-| Kernel `pc` (Zen 3), guiado | **920 ms** | `libahci.ignore_sss=1`: los cuatro puertos a la vez. Módulos cargados en paralelo (17,4 → 12,5 ms) |
+Super es la tecla Windows. En la consola, `e` abre el menú con flechas y Enter.
 
-El logo de ULTRA (el pingüino rojo y metálico de `src/logo/ultra-tux.webp`) lo dibuja el propio init en la esquina de la pantalla, a través de `/dev/fb0` y sin modificar el kernel (`src/logo.c`, captura en `evidencias/pantalla-logo-ultra.png`). Está basado en Tux, de Larry Ewing (lewing@isc.tamu.edu), hecho con The GIMP.
+| Teclas | Acción |
+|---|---|
+| Super + Enter | Terminal |
+| Super + R | Buscar aplicaciones |
+| Super + Space | Centro BMO-X y ambiente |
+| Super + E / N | Archivos / editor |
+| Super + B / G | Brave / diagnóstico GPU del navegador |
+| Super + A | Audio maestro, salida, silencio y boost opcional hasta 150 % |
+| Super + J | Steam, Heroic, Cyberpunk y espacio |
+| Super + Shift + A | Alternar efectos vivos y reducidos |
+| Super + 1…9 | Cambiar de escritorio |
+| Super + Q / H | Cerrar ventana / ayuda completa |
+| Super + Shift + M | Terminar Hyprland y regresar a la consola |
 
-Medido por el propio init en cada arranque, y confirmado en el `dmesg`: `Run /init` pasó de 2,27 s a 1,17 s, y desapareció la línea `parallel bus scan disabled`. Datos completos en [`evidencias/pc-real/`](evidencias/pc-real/). El camino hasta aquí (pantalla negra, el `dmesg` que delató al SATA, el primer intento con el nombre de parámetro equivocado) está en [PRUEBA-PC-REAL.md](docs/PRUEBA-PC-REAL.md), y Linux medido por categorías en [ANTI3M-LINUX.md](docs/ANTI3M-LINUX.md).
+El audio USB tiene prioridad; pavucontrol permite elegir otra salida y ajustar
+cada aplicación. El arranque no fuerza amplificación. La recuperación con render
+software sigue disponible si falla la ruta NVIDIA.
 
-El [Museo viviente de C y sus guardianes](docs/MUSEO-UB.md) reune ejemplos estudiados,
-alternativas validas, referencias y evidencia del campo de minas. Distingue UB de
-otros comportamientos de C y deja visibles los casos aun sin prueba.
+## Perfiles y almacenamiento
 
-La [historia de C, UB y aislamiento hasta 2026](docs/HISTORIA-C-Y-SEGURIDAD.md)
-conecta las fuentes originales con un [inventario de pendientes](docs/PENDIENTES-GUARDIANES.md)
-para ampliar los guardianes sin confundir investigacion con cobertura demostrada.
+| Perfil | Uso |
+|---|---|
+| `generico` | Recuperación y compatibilidad, sin la pila NVIDIA del perfil PC |
+| `pc` | Configuración Zen 3 para el Ryzen 5 5600X y módulos NVIDIA compilados para su kernel |
 
-Taller de **ULTRA LinuX**: kernel oficial + init C con guardianes + BusyBox, compilados con GCC. Plan, guardianes y fases en [docs/ULTRA-LINUX.md](docs/ULTRA-LINUX.md).
+Los sistemas se empaquetan en EROFS de solo lectura. `A:\ULTRA\datos.ext4`
+conserva el estado del arranque por separado. El archivo ordinario de 16 GiB
+`D:\ULTRA-juegos.ext4` aporta el home persistente en `/juegos/usuarios/ultra`,
+las configuraciones, clientes, partidas y prefijos. Sin él, el escritorio puede
+funcionar con un home temporal en RAM; los lanzadores de juegos evitan descargar allí.
 
-Laboratorio personal x86-64 para modificar el Linux oficial con C y GCC. Inspirado en el control de Arch. Perfil físico inicial: Ryzen 5 5600X y MSI A320M-A PRO MAX.
+Cyberpunk de Windows se presenta mediante una capa overlay: la instalación de
+`D:\Cyberpunk 2077` se lee como base y las escrituras van al ext4 separado.
+No se reparticiona D:. El apagado desmonta overlay, ext4 y NTFS en ese orden.
+La imagen viva de D: contiene datos personales: no se sustituye por una imagen
+vacía durante una actualización ni se utiliza en las pruebas desechables.
 
-## Ruta elegida: QEMU y después metal
+El **proyecto de Windows es la copia principal** de fuentes, informes y respaldos;
+A: sirve para arrancar y probar. `privado/`, `build/` y `vm/` están excluidos de
+Git. Las sesiones personales quedan fuera de los commits y de las imágenes
+públicas. Steam puede requerir autenticación inicial en Linux; copiar sus datos
+Windows no demuestra una sesión Linux válida.
 
-El taller es una máquina Arch Linux dentro de QEMU. Las fuentes, GCC y la compilación viven en su disco Linux. Windows solo ejecuta QEMU y los lanzadores; WSL no forma parte de esta ruta. WSL se instaló durante la preparación anterior, pero aquí no se utiliza y no se desinstala automáticamente.
+## Construcción y pruebas
 
-La imagen Arch aporta el taller de trabajo; el kernel que reconstruimos es el original de Linus, conservado por separado. No confundir el kernel de la imagen Arch con el kernel experimental. El sistema final y sus decisiones de paquetes todavía están pendientes.
-
-## Componentes
-
-- `upstream/linux.git`: repositorio oficial de Linus, bare y superficial; no incluye todo el historial.
-- `evidencias/origen-inicial.json`: commit original fijado, `32c52ec87d6245ee2d12ed5dd509e40062939b50`, Linux 7.3-rc7. Es una candidata, no una publicación estable.
-- `evidencias/imagen-arch.json`: origen y SHA-256 de la imagen oficial del taller; no se afirma verificación de firma.
-- `vm/`: imagen base, disco de trabajo de 64 GiB virtuales, configuración inicial y clave local. Todo excluido de Git.
-- `scripts/taller_qemu.py`: prepara el disco y cloud-init, inicia QEMU y comprueba GCC/fuentes por SSH.
-- `docs/PLAN.md`: etapas y criterios de avance.
-
-La VM reserva 4 GiB de RAM y 4 CPU virtuales usando TCG con reloj por instrucciones (`icount`) y un hilo de emulación. Los primeros perfiles Q35/PC sin ese reloj fallaron al comprobar el temporizador; sus registros están en evidencias. No necesita WSL ni reiniciar Windows para usar ese emulador. Compilar un kernel completo con emulación puede ser lento. No se conectan discos físicos a la VM.
-
-## Uso
+El taller se ejecuta con QEMU en Windows, WHPX por defecto y 4 GiB/4 CPU virtuales.
+TCG es una alternativa explícita. No requiere WSL y no conecta discos físicos.
+Las herramientas GCC/Kbuild y los paquetes se ejecutan dentro de Linux.
 
 ```powershell
-.\preparar-entorno.ps1 -Accion Preparar
 .\preparar-entorno.ps1 -Accion Iniciar
-.\preparar-entorno.ps1 -Accion Estado
-.\conectar-taller.ps1
+.\construir-kernel.ps1 -Accion Compilar -Perfil generico
+.\construir-kernel.ps1 -Accion Estado -Perfil generico
+.\construir-kernel.ps1 -Accion Descargar -Perfil generico
 ```
 
-Preparar requiere la imagen y las herramientas locales ya descargadas. Iniciar rechaza puertos ocupados y discos ausentes. El primer arranque instala paquetes oficiales Arch y copia el repositorio original al disco Linux. Estado comprueba por separado la marca de finalización, herramientas, commit y ausencia de archivos borrados; muestra además el diagnóstico de cloud-init sin confundir un error histórico con una prueba aprobada. Revisar `vm/serial.log`, `vm/qemu.log` y `vm/http.log` ante fallos.
+Esperar a que finalice cada construcción antes de lanzar el otro perfil; repetir
+con `-Perfil pc`. Los registros y manifiestos se guardan por perfil en `build/`.
+El taller publica SSH solo en `127.0.0.1:12222` y fuentes en
+`127.0.0.1:18765`; su usuario de construcción tiene sudo dentro de esa VM.
 
-SSH se publica únicamente en `127.0.0.1:12222`, autenticado por la clave generada en `vm/`. El servidor local `127.0.0.1:18765` entrega solo la copia de las fuentes. QMP usa `127.0.0.1:14444`. El usuario `builder` tiene sudo en esta VM de laboratorio y no usa contraseña SSH. No reutilizar esta imagen/configuración como servidor público.
+```powershell
+python scripts/probar_arranque.py generico --bmo --brave
+python scripts/probar_arranque.py pc --bmo --brave
+python scripts/probar_audio_juegos.py generico
+python scripts/probar_audio_juegos.py pc
+```
 
-Dentro de la VM, las fuentes están en `/home/builder/linux-reconstruido/kernel`. Para apagarla limpiamente: `sudo poweroff`. El servidor local de fuentes puede seguir en marcha hasta cerrarlo mediante el PID registrado en `vm/session.json`; no se deben terminar procesos por nombre global.
+Usar un Python 3 disponible y el banco sintético de juegos preparado según
+[Audio y juegos](docs/AUDIO-JUEGOS.md). Ejecutar las pruebas de una en una: usan
+puertos locales fijos. Trabajan sobre copias y almacenamiento de laboratorio,
+sin cuentas personales ni el juego real. Descargar y comprobar hashes antes de probar.
 
-## Ecosistema y guardianes
+Para instalar una imagen ya validada, el instalador verifica el destino FAT32
+etiquetado BMO, conserva `datos.ext4` y respalda informes en el proyecto:
 
-Objetivo: acceso amplio al ecosistema Linux, incluyendo aplicaciones gráficas, compiladores, herramientas, servicios, redes, sonido y juegos compatibles. Chromium será una prueba entre varias. No existe un paquete que incluya todo el ecosistema ni una promesa automática de compatibilidad universal.
+```powershell
+.\instalar-en-A.ps1 -Accion Estado -Perfil pc
+.\instalar-en-A.ps1 -Accion Copiar -Perfil generico
+.\instalar-en-A.ps1 -Accion Copiar -Perfil pc
+```
 
-Primero se preservan la ABI Linux x86-64 y las dependencias necesarias; después se miden cambios. POSIX se documentará por interfaces y pruebas. No se eliminarán componentes por antigüedad sin identificar sus usos.
+La letra de unidad por sí sola no identifica el disco correcto. Revisar el estado
+antes de copiar y conservar las entradas de recuperación. No usar `-NuevosDatos`
+en una actualización normal.
 
-ROJO: falla una condición obligatoria y se detiene ese avance. AMARILLO: comportamiento no medido o dependencia pendiente. VERDE: comprobación concreta aprobada, sin extrapolarla al sistema completo. Cada guardián debe explicar motivo, evidencia, acción y coste.
+## Medición y guardianes
 
-## Próximos hitos
+La tarjeta mide desde el comienzo del kernel hasta completar la preparación del
+hardware, no desde el botón de encendido hasta el escritorio. Hubo una muestra
+histórica de **920 ms**; una posterior con NVIDIA dio **3290 ms**. Los **10 ms**
+mostrados junto a la flecha eran la diferencia respecto de 3300 ms, no el tiempo
+total. Los perfiles cargan componentes distintos y no son una comparación equivalente.
 
-1. Herramientas y fuentes verificadas dentro de QEMU.
-2. Kernel oficial sin cambios compilado con GCC, configuración e informe reproducibles.
-3. Arranque de ese kernel con initramfs y consola en otra prueba QEMU.
-4. Entorno de usuario y pruebas de compatibilidad, gráficos, USB, red y sonido.
-5. Arranque en el PC real conservando recuperación y las entradas actuales.
+El [informe del PC real](docs/PC-REAL-W3H.md) registra RAM estimada del sistema
+entre 476,48 y 1057,08 MiB y VRAM total entre 1 y 236 MiB en aquella sesión.
+Son extremos muestreados durante el arranque de aplicaciones, no consumo estable
+ni mediciones actuales de Steam/Cyberpunk. No se suman PSS, RAM y VRAM.
 
-Todavía no se afirma que el kernel experimental haya compilado o arrancado. Los registros distinguen instalación de herramientas, compilación y ejecución.
+Verde significa que pasó una comprobación concreta; amarillo, algo pendiente o
+no medido; rojo, un requisito que falló. Los guardianes no aprenden C por sí solos
+ni garantizan eliminar todo UB. El museo mantiene ejemplos, alternativas válidas,
+referencias, pruebas y límites de cobertura. Optimizar requiere medir antes y
+después, conservando compatibilidad y aislamiento.
+
+## Documentación
+
+- [Escritorio BMO-X: aspecto y controles](docs/ESCRITORIO-BMO-X.md)
+- [Audio, juegos, almacenamiento y límites](docs/AUDIO-JUEGOS.md)
+- [Wayland y NVIDIA](docs/WAYLAND.md)
+- [Brave](docs/BRAVE-W3F.md) y [medición por perfil](docs/MEDICION-W3E.md)
+- [Ethernet y banco de red](docs/RED-W3G.md)
+- [Museo de UB](docs/MUSEO-UB.md), [historia de C](docs/HISTORIA-C-Y-SEGURIDAD.md) y [pendientes de guardianes](docs/PENDIENTES-GUARDIANES.md)
+- [Diseño de ULTRA](docs/ULTRA-LINUX.md) y [primer kernel](docs/PRIMER-KERNEL.md)
 
 ## Licencias y procedencia
 
-El kernel conserva `COPYING`, `LICENSES/` y los avisos por archivo. Los archivos originales del laboratorio se ofrecen bajo GPL-2.0-only; los componentes de terceros mantienen sus licencias. La licencia no se determina por usar C o GCC.
+Los archivos originales del laboratorio se ofrecen bajo GPL-2.0-only. Linux,
+Arch y las aplicaciones conservan sus propias licencias; el repositorio no
+cambia las condiciones de redistribución de NVIDIA, Brave, Steam o Heroic.
+El logo se basa en Tux de Larry Ewing (lewing@isc.tamu.edu), creado con The GIMP.
+El tema BMO-X es una integración propia inspirada en la organización de
+[end-4/dots-hyprland](https://github.com/end-4/dots-hyprland); no instala ese
+proyecto completo ni afirma ser su escritorio Quickshell.
 
-Fuentes oficiales:
-- https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-- https://www.kernel.org/doc/html/latest/process/license-rules.html
-- https://wiki.archlinux.org/title/Arch_Linux_on_a_VPS
-- https://github.com/archlinux/arch-boxes
-## Herramientas comprobadas
-
-GCC 16.2.1 y GNU Make 4.4.1 se ejecutaron dentro de QEMU, y una prueba C17 compilada con avisos tratados como errores produjo `Linux Reconstruido: GCC C OK`. CMake 4.4.4 se instaló en Windows desde el MSI oficial de Kitware con SHA-256 y firma verificados. Abrir una terminal nueva para recoger su cambio de PATH.
-
-El kernel usa Make/Kbuild y GCC; no usa CMake como sistema de construcción. No se instala un GCC MinGW de Windows para compilar este kernel: la cadena elegida vive en Linux dentro de QEMU. El taller incluye además CMake y Ninja para otros proyectos del ecosistema.
-
-El despliegue usa `git worktree`: los clones locales de un origen superficial ignoran `--local` y rehacen el índice mediante transporte. Se conservaron los intentos incompletos en el disco virtual como diagnóstico. La copia del repositorio dentro de Linux ajusta symlinks, permisos y sensibilidad a mayúsculas; el origen Windows no se altera.
-## Resultado de esta preparación
-
-Taller QEMU iniciado; GCC, Make, CMake y Ninja ejecutados. Programa C17 compilado y ejecutado. Fuentes desplegadas con el commit esperado y sin archivos rastreados ausentes. No se ha compilado el kernel completo ni probado su arranque.
-
-La cancelación de un clon inicial coincidió con el despliegue y dejó 25.870 archivos ausentes. Se restauraron únicamente desde el índice del repositorio verificado y se repitió la comprobación de archivos ausentes. El inicializador recuperado también se ejecutó correctamente. Cloud-init conserva el error histórico `scripts_user` del intento interrumpido: se registra como AMARILLO y no se certifica un arranque limpio del taller. El informe separa ese diagnóstico de las comprobaciones de herramientas y fuentes.
-
-Antes de modificar código, la siguiente referencia debe incluir compilación del kernel sin cambios y su arranque QEMU. Esa prueba sigue pendiente. El kernel conserva también el ensamblador y los demás componentes de upstream: usar GCC y C como base no significa reescribir todo el árbol en C.
-## Primera aplicación en C y GCC
-
-La [guía de primer kernel](docs/PRIMER-KERNEL.md) describe la referencia mínima, el init propio, los guardianes y la secuencia para verla en QEMU. `construir-kernel.ps1` permite Compilar, Estado, Descargar y Ver. El kernel oficial y el init C ya compilan con GCC, y el arranque sin pantalla en QEMU/WHPX llega al prompt del init (ver la guía). El taller principal requiere ahora WHPX por defecto; TCG debe elegirse explícitamente.
+Fuentes de los componentes: [Linux upstream](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git),
+[licencias del kernel](https://www.kernel.org/doc/html/latest/process/license-rules.html),
+[Arch Boxes](https://github.com/archlinux/arch-boxes),
+[Hyprland](https://github.com/hyprwm/Hyprland) y
+[Heroic](https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher).

@@ -1,0 +1,10 @@
+[
+  {
+    "archivo": "src/rootfs/bin/ultra-informe-gpu",
+    "sha256": "c974dc6ccc1ca4e70fa81f994b42433c43a87066842a335af56f8ba2872f9db5"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-juegos",
+    "sha256": "8110e2d976b26722052f10ebbf47c54481c53aea19315e03e39f05075372adbc"
+  }
+]
