@@ -1,0 +1,35 @@
+{
+  "fecha_utc": "2026-10-21T22:27:01.7647006Z",
+  "destino": "A: BMO FAT32",
+  "archivos": [
+    {
+      "perfil": "generico",
+      "archivo": "A:\\EFI\\ULTRA\\ULTRA.EFI",
+      "bytes": 18535424,
+      "sha256": "f54d379a623135872d2369ed79c90595c6336019887f04e4c3a739e5b64a20fb"
+    },
+    {
+      "perfil": "generico",
+      "archivo": "A:\\ULTRA\\sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "bytes": 1146601472,
+      "sha256": "0ed53ed373e8fb7912663162c003d272daabddc6441c66c96ad5f0cc743c47d3"
+    },
+    {
+      "perfil": "pc",
+      "archivo": "A:\\EFI\\ULTRA\\ULTRA-PC.EFI",
+      "bytes": 18482176,
+      "sha256": "a250748d41979d0db6ded03dd0c25dec56e5159e1c7ba6929f29161c8ead0f61"
+    },
+    {
+      "perfil": "pc",
+      "archivo": "A:\\ULTRA\\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "bytes": 1733001216,
+      "sha256": "1df66743bb286df7d1e4fe21cbfcc405fdc21e0a64b71b2ebb91b77fb59b7d76"
+    }
+  ],
+  "datos_restaurados_sha256": "2c0cb2cd2d195f8f43f9a26699f70564a4a9b8e8c8321e459b1f17fe4d20cbbd",
+  "respaldo": "build/respaldo-datos",
+  "entradas_firmware_reutilizadas": true,
+  "orden_arranque_modificado": false,
+  "almacen_D_modificado": false
+}

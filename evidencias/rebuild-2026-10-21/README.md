@@ -52,8 +52,12 @@ el PC real. Se conserva `pc/nvidia-guardian.txt`.
 La biblioteca de imágenes de las pruebas emite una advertencia de API futura
 sobre getdata; no impidió verificar las capturas ni cambió el resultado.
 
-No se instala en A: en esta ronda: está etiquetada BMO, pero tiene una estructura
-nueva sin A:\ULTRA y sin los archivos de la instalación anterior. No se modifica
-el almacenamiento personal de D: ni se utiliza en el banco de pruebas.
+Tras las pruebas, el usuario solicitó reinstalar en A:, que había vaciado para
+otros experimentos. Se verificó BMO FAT32 de datos, disco 0, partición 2, y se
+restauró datos.ext4 desde el respaldo principal cuyo hash coincide con el recibo.
+Se copiaron ambos kernels y sistemas ya probados y se comprobaron sus hashes
+en destino. Las entradas F11 existentes se reutilizan sin alterar su orden.
+`instalacion-A.json` conserva la verificación. No se modifica el almacenamiento
+personal de D: ni se utiliza en el banco de pruebas.
 El taller se apagó limpiamente al acabar la construcción; las máquinas de
 prueba también terminaron con apagado. No se deja un servicio nuevo ejecutándose.

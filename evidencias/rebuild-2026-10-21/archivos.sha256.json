@@ -44,6 +44,10 @@
     "sha256": "c697714020096b98505ad3dfd115687324ab25e2edb6aaed8876f0998e2a2493"
   },
   {
+    "archivo": "instalacion-A.json",
+    "sha256": "012b3c5b4368745b590fc3bf5e4625efb849482755c87f0e6b600593f73f75b9"
+  },
+  {
     "archivo": "pc/arranque-resultados.txt",
     "sha256": "63b855ca232aa1112b35a5bfb53f6e0ac4c076e88dff417758c2a830758ab021"
   },
@@ -85,7 +89,7 @@
   },
   {
     "archivo": "README.md",
-    "sha256": "89ffa4b81bbc54098b4e50d0a74c214f757879199ec59e8d6f1d5aa5788ec859"
+    "sha256": "7a33ba7f0d9ebc735354abfd4b955fd8f2886cafe5819bce532b5c41105c7ac6"
   },
   {
     "archivo": "registros.zip",
@@ -93,6 +97,6 @@
   },
   {
     "archivo": "resumen.json",
-    "sha256": "8b9c36d30df483bf00d5fa3c79dab43894bdd700d3924f715c4ad0699947e3ce"
+    "sha256": "f73dbff649104cd1abb0727d6f622b49a532fda9e371d17a023bb9352d4a7def"
   }
 ]
