@@ -269,6 +269,7 @@ snd_hda_core 131072 2 snd_hda_intel,snd_hda_codec, Live 0xffffffffc0415000
 snd_pcm 188416 3 snd_hda_intel,snd_hda_codec,snd_hda_core, Live 0xffffffffc0401000
 snd_intel_dspcfg 16384 1 snd_hda_intel, Live 0xffffffffc0400000
 ultra:~# echo PERSISTE-032e1ea6 > /datos/prueba-persistencia; sync; echo ESCRITO
+
 -$((1+1))
 ESCRITO-2
 ultra:~# ultra-entrar /usr/bin/bash -c 'echo ARCH-$BASH_VERSION'
@@ -293,9 +294,11 @@ ultra:~# ultra-entrar /usr/bin/ls /datos
  LEEME.txt			 arranques.log	 prueba-persistencia
 'PC.configuraci'$'\303\263''n'	 lost+found
 ultra:~# ultra-entrar /usr/bin/bash -c 'echo capa-$((2+2)) > /etc/prueba-capa &&
+
  cat /etc/prueba-capa'
 capa-4
 ultra:~# grep -c prueba-capa /sistema/etc/prueba-capa 2>&1; echo IMAGEN-$((1+1))
+
 grep: /sistema/etc/prueba-capa: No such file or directory
 IMAGEN-2
 ultra:~# ls /sistema/lib/modules/$(uname -r)/kernel/drivers/video/
@@ -309,15 +312,18 @@ ultra:~# ultra-entrar /usr/bin/nvidia-smi
 NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver. Make sure that the latest NVIDIA driver is installed and running.
 
 ultra:~# test -s /sistema/usr/lib/firmware/rtl_nic/rtl8168h-2.fw && echo REALTEK
+
 -FW-$((4+5))
 REALTEK-FW-9
 ultra:~# cat /sys/module/firmware_class/parameters/path
 /sistema/usr/lib/firmware
 ultra:~# ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups 
+
 --no-new-privs --bounding-set=-all /usr/local/libexec/ultra-red-contadores
 RED iface=eth0 indice=2 monotonic_s=2.770766803 rx_bytes=0 rx_packets=0 rx_errors=0 rx_dropped=0 tx_bytes=0 tx_packets=0 tx_errors=0 tx_dropped=0 carrier=NA speed_Mbps=NA mtu=1500
 ultra:~# ultra-escritorio --nvidia 2>&1
 Starting systemd-udevd version 262.1-1-arch
+
 modprobe: FATAL: Module snd_hda_codec_realtek not found in directory /lib/modules/7.3.0-rc7-pc-g32c52ec87d62
 AMARILLO [AUDIO]: no se pudo cargar snd_hda_codec_realtek
 modprobe: FATAL: Module snd_hda_generic not found in directory /lib/modules/7.3.0-rc7-pc-g32c52ec87d62
@@ -328,11 +334,13 @@ AMARILLO [WARFRAME]: integracion no disponible; consulta Estado y espacio
 ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA
 VERDE [INFORME-GPU]: /bmo/ULTRA/informe/gpu-7.3.0-rc7-pc-g32c52ec87d62.txt
 ultra:~# ultra-escritorio --nvidia >/tmp/gpu-rechazo.log 2>&1; echo GPU-ESTADO-$
+
 ?
 GPU-ESTADO-1
 ultra:~# ultra-entrar /opt/brave/brave --version
 Brave Browser 155.1.97.59 unknown
 ultra:~# test -e /proc/sys/user/max_user_namespaces && echo USERNS-DISPONIBLE-$(
+
 (4+4))
 USERNS-DISPONIBLE-8
 ultra:~# grep " /bmo " /proc/mounts
@@ -347,6 +355,7 @@ ultra:~# ls /bmo/ULTRA/informe
 [1;32mgpu-7.3.0-rc7-pc-g32c52ec87d62.txt[m
 [1;32mgpu-fallo-7.3.0-rc7-pc-g32c52ec87d62.txt[m
 ultra:~# echo DMESG-$(cat /bmo/ULTRA/informe/dmesg-*.txt | grep -c "Linux versio
+
 n")
 DMESG-1
 ultra:~# e
@@ -448,6 +457,7 @@ Al cerrar Hyprland con Super+Shift+M vuelves al menu. Cage: exit.
 VERDE [INFORME-GPU]: /bmo/ULTRA/informe/gpu-7.3.0-rc7-pc-g32c52ec87d62.txt
 ultra:~# ultra-escritorio --auto > /tmp/escritorio.log 2>&1 &
 ultra:~# for n in cage foot; do for p in $(pidof "$n"); do echo ULTRA-CRED-$n; c
+
 at /proc/$p/status; echo ULTRA-CRED-FIN; done; done
 ULTRA-CRED-cage
 Name:	cage
@@ -584,63 +594,76 @@ CAGE-1
 ultra:~# test ! -S /arch/run/seatd.sock && echo SEATD-LIMPIO
 SEATD-LIMPIO
 ultra:~# ultra-escritorio --hyprland --software > /tmp/hyprland-session.log 2>&1
+
  &
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 no such instance
 
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -681,6 +704,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -757,6 +781,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j layers; echo BMO-LAYERS-$((10+1))
 {
 "Virtual-1": {
@@ -786,6 +811,7 @@ tl -i 0 -j layers; echo BMO-LAYERS-$((10+1))
 
 BMO-LAYERS-11
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j layers; echo BMO-LAYERS-$((10+1))
 {
 "Virtual-1": {
@@ -834,19 +860,24 @@ tl -i 0 -j layers; echo BMO-LAYERS-$((10+1))
 
 BMO-LAYERS-11
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 eval 'hl.exec_cmd("ultra-graficos informe")'; echo GRAFICA-INICIO-$((40+
+
 1))
 ok
 GRAFICA-INICIO-41
 ultra:~# ultra-entrar /usr/bin/cat /run/user/1000/ultra-graficos.txt; echo GRAFI
+
 CA-REPORTE-$((40+2))
 cat: /run/user/1000/ultra-graficos.txt: No such file or directory
 GRAFICA-REPORTE-42
 ultra:~# ultra-entrar /usr/bin/cat /run/user/1000/ultra-graficos.txt; echo GRAFI
+
 CA-REPORTE-$((40+2))
 cat: /run/user/1000/ultra-graficos.txt: No such file or directory
 GRAFICA-REPORTE-42
 ultra:~# ultra-entrar /usr/bin/cat /run/user/1000/ultra-graficos.txt; echo GRAFI
+
 CA-REPORTE-$((40+2))
 ULTRA GRAFICOS v1
 fecha_utc=2026-10-22T18:46:29Z
@@ -934,25 +965,34 @@ ERROR at /usr/src/debug/vulkan-tools/Vulkan-Tools/vulkaninfo/./vulkaninfo.h:249:
 codigo_salida=1
 GRAFICA-REPORTE-42
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 eval 'hl.exec_cmd("gdbus call --session --dest org.freedesktop.portal.De
+
 sktop --object-path /org/freedesktop/portal/desktop --method org.freedesktop.por
+
 tal.Settings.Read org.freedesktop.appearance color-scheme > /run/user/1000/porta
+
 l-prueba.txt 2>&1")'; echo PORTAL-INICIO-$((40+3))
 ok
 PORTAL-INICIO-43
 ultra:~# ultra-entrar /usr/bin/cat /run/user/1000/portal-prueba.txt; echo PORTAL
+
 -RESULTADO-$((40+4))
 (<<uint32 0>>,)
 PORTAL-RESULTADO-44
 ultra:~# test -n "$(pidof mako)" && test -f /arch/usr/share/icons/Papirus-Dark/i
+
 ndex.theme && ultra-entrar /usr/bin/fc-match "Font Awesome 7 Free:charset=f120" 
+
 | grep -q "[.]otf" && echo BMO-ICONOS-$((10+2))
 BMO-ICONOS-12
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j getoption animations:enabled; echo BMO-EFECTOS-$((10+3))
 {"option": "animations:enabled", "bool": true, "set": true }
 BMO-EFECTOS-13
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j getoption animations:enabled; echo BMO-EFECTOS-$((10+3))
 {"option": "animations:enabled", "bool": false, "set": true }
 BMO-EFECTOS-13
@@ -961,6 +1001,7 @@ BMO-CENTRO-14
 ultra:~# test -z "$(pidof fuzzel)" && echo BMO-CENTRO-CERRADO-$((10+5))
 BMO-CENTRO-CERRADO-15
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -1037,118 +1078,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
-tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
-[{
-    "address": "0x5630128186b0",
-    "mapped": true,
-    "hidden": false,
-    "visible": true,
-    "acceptsInput": true,
-    "at": [16, 64],
-    "size": [616, 652],
-    "workspace": {
-        "id": 1,
-        "name": "1"
-    },
-    "floating": false,
-    "monitor": 0,
-    "class": "foot",
-    "title": "ultra@ultra:~",
-    "initialClass": "foot",
-    "initialTitle": "ULTRA-Terminal",
-    "pid": 1295,
-    "xwayland": false,
-    "pinned": false,
-    "pinFullscreened": false,
-    "fullscreen": 0,
-    "fullscreenClient": 0,
-    "fullscreenHandler": "default",
-    "allowedOverFullscreen": true,
-    "grouped": [],
-    "tags": [],
-    "swallowing": "0x0",
-    "focusHistoryID": 2,
-    "inhibitingIdle": false,
-    "xdgTag": "",
-    "xdgDescription": "",
-    "contentType": "none",
-    "tearingHint": false,
-    "stableId": "18000000"
-},{
-    "address": "0x563012ff9440",
-    "mapped": true,
-    "hidden": false,
-    "visible": true,
-    "acceptsInput": true,
-    "at": [648, 64],
-    "size": [616, 318],
-    "workspace": {
-        "id": 1,
-        "name": "1"
-    },
-    "floating": false,
-    "monitor": 0,
-    "class": "foot",
-    "title": "ULTRA-Bienvenida",
-    "initialClass": "foot",
-    "initialTitle": "ULTRA-Bienvenida",
-    "pid": 1294,
-    "xwayland": false,
-    "pinned": false,
-    "pinFullscreened": false,
-    "fullscreen": 0,
-    "fullscreenClient": 0,
-    "fullscreenHandler": "default",
-    "allowedOverFullscreen": true,
-    "grouped": [],
-    "tags": [],
-    "swallowing": "0x0",
-    "focusHistoryID": 1,
-    "inhibitingIdle": false,
-    "xdgTag": "",
-    "xdgDescription": "",
-    "contentType": "none",
-    "tearingHint": false,
-    "stableId": "18000001"
-},{
-    "address": "0x5630157b8920",
-    "mapped": true,
-    "hidden": false,
-    "visible": true,
-    "acceptsInput": true,
-    "at": [648, 398],
-    "size": [616, 318],
-    "workspace": {
-        "id": 1,
-        "name": "1"
-    },
-    "floating": false,
-    "monitor": 0,
-    "class": "org.xfce.mousepad",
-    "title": "Untitled 1 - Mousepad",
-    "initialClass": "org.xfce.mousepad",
-    "initialTitle": "Untitled 1 - Mousepad",
-    "pid": 1511,
-    "xwayland": false,
-    "pinned": false,
-    "pinFullscreened": false,
-    "fullscreen": 0,
-    "fullscreenClient": 0,
-    "fullscreenHandler": "default",
-    "allowedOverFullscreen": true,
-    "grouped": [],
-    "tags": [],
-    "swallowing": "0x0",
-    "focusHistoryID": 0,
-    "inhibitingIdle": false,
-    "xdgTag": "",
-    "xdgDescription": "",
-    "contentType": "none",
-    "tearingHint": false,
-    "stableId": "18000007"
-}]
-HYPR-IPC-7
-ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -1261,6 +1191,120 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
+tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
+[{
+    "address": "0x5630128186b0",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [16, 64],
+    "size": [616, 652],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ultra@ultra:~",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Terminal",
+    "pid": 1295,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 2,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000000"
+},{
+    "address": "0x563012ff9440",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [648, 64],
+    "size": [616, 318],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "foot",
+    "title": "ULTRA-Bienvenida",
+    "initialClass": "foot",
+    "initialTitle": "ULTRA-Bienvenida",
+    "pid": 1294,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 1,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000001"
+},{
+    "address": "0x5630157b8920",
+    "mapped": true,
+    "hidden": false,
+    "visible": true,
+    "acceptsInput": true,
+    "at": [648, 398],
+    "size": [616, 318],
+    "workspace": {
+        "id": 1,
+        "name": "1"
+    },
+    "floating": false,
+    "monitor": 0,
+    "class": "org.xfce.mousepad",
+    "title": "Untitled 1 - Mousepad",
+    "initialClass": "org.xfce.mousepad",
+    "initialTitle": "Untitled 1 - Mousepad",
+    "pid": 1511,
+    "xwayland": false,
+    "pinned": false,
+    "pinFullscreened": false,
+    "fullscreen": 0,
+    "fullscreenClient": 0,
+    "fullscreenHandler": "default",
+    "allowedOverFullscreen": true,
+    "grouped": [],
+    "tags": [],
+    "swallowing": "0x0",
+    "focusHistoryID": 0,
+    "inhibitingIdle": false,
+    "xdgTag": "",
+    "xdgDescription": "",
+    "contentType": "none",
+    "tearingHint": false,
+    "stableId": "18000007"
+}]
+HYPR-IPC-7
+ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -1409,6 +1453,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -1557,6 +1602,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -1705,6 +1751,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -1853,6 +1900,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -2001,6 +2049,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -2149,6 +2198,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -2297,6 +2347,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -2481,11 +2532,17 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# echo BRAVE-BROKER; cat /proc/1634/status; echo ns_user=$(readlink /proc
+
 /1634/ns/user); echo ns_pid=$(readlink /proc/1634/ns/pid); echo BRAVE-BROKER-FIN
+
 ; for p in /proc/[0-9]*; do args=$(tr "\0" " " < "$p/cmdline" 2>/dev/null); case
+
  "$args" in /opt/brave/brave*--type=renderer*) echo BRAVE-RENDERER; cat "$p/stat
+
 us"; echo ns_user=$(readlink "$p/ns/user"); echo ns_pid=$(readlink "$p/ns/pid");
+
  cat "$p/uid_map"; echo BRAVE-RENDERER-FIN;; esac; done; echo BRAVE-CRED-LISTO-$
+
 ((9+4))
 BRAVE-BROKER
 Name:	brave
@@ -2686,6 +2743,7 @@ ns_pid=pid:[4026532676]
 BRAVE-RENDERER-FIN
 BRAVE-CRED-LISTO-13
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -2906,6 +2964,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -3126,11 +3185,14 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 dispatch 'hl.dsp.focus({ window = "address:0x5630132af110" })'; echo FOC
+
 O-ENVIO-$((30+1))
 ok
 FOCO-ENVIO-31
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 {
     "address": "0x5630132af110",
@@ -3171,6 +3233,7 @@ tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 }
 FOCO-ACTIVO-32
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -3355,6 +3418,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -3539,6 +3603,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -3723,11 +3788,14 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 dispatch 'hl.dsp.focus({ window = "address:0x563012fc27d0" })'; echo FOC
+
 O-ENVIO-$((30+1))
 ok
 FOCO-ENVIO-31
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 {
     "address": "0x563012fc27d0",
@@ -3768,6 +3836,7 @@ tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 }
 FOCO-ACTIVO-32
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -3952,6 +4021,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -4136,6 +4206,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -4320,11 +4391,14 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 dispatch 'hl.dsp.focus({ window = "address:0x563012fc27d0" })'; echo FOC
+
 O-ENVIO-$((30+1))
 ok
 FOCO-ENVIO-31
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 {
     "address": "0x563012fc27d0",
@@ -4365,6 +4439,7 @@ tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 }
 FOCO-ACTIVO-32
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -4513,22 +4588,37 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/curl --fail --silent --show-error --max-time 12 -
+
 I https://example.com && echo HTTPS-VERIFICADO-$((3+5)); echo HTTPS-FIN-$((4+5))
+
 HTTP/2 200 
+
 [1mdate[0m: Thu, 22 Oct 2026 18:47:40 GMT
+
 [1mcontent-type[0m: text/html; charset=utf-8
+
 [1mserver[0m: cloudflare
+
 [1mlast-modified[0m: Wed, 21 Oct 2026 19:59:02 GMT
+
 [1mallow[0m: GET, HEAD
+
 [1maccept-ranges[0m: bytes
+
 [1mage[0m: 0
+
 [1mcf-cache-status[0m: HIT
+
 [1mcf-ray[0m: a4eaabffe997845f-MIA
+
 [1malt-svc[0m: h3=":443"; ma=86400
+
+
 
 HTTPS-VERIFICADO-8
 HTTPS-FIN-9
 ultra:~# test -n "$(pidof fuzzel)" && echo LANZADOR-$((2+2)); echo HYPR-QUERY-$(
+
 (2+3))
 LANZADOR-4
 HYPR-QUERY-5
@@ -4539,10 +4629,15 @@ JUEGOS-MENU-17
 ultra:~# test -z "$(pidof fuzzel)" && echo JUEGOS-CERRADO-$((10+8))
 JUEGOS-CERRADO-18
 ultra:~# for p in $(pidof Hyprland); do echo HYPR-CRED-Hyprland; cat /proc/$p/st
+
 atus; echo HYPR-CRED-FIN; done; for p in 1294; do echo HYPR-CRED-foot; cat /proc
+
 /$p/status; echo HYPR-CRED-FIN; done; for p in 1511; do echo HYPR-CRED-mousepad;
+
  cat /proc/$p/status; echo HYPR-CRED-FIN; done; for p in 1542; do echo HYPR-CRED
+
 -thunar; cat /proc/$p/status; echo HYPR-CRED-FIN; done; echo HYPR-CRED-LISTO-$((
+
 4+7))
 HYPR-CRED-Hyprland
 Name:	Hyprland
@@ -4798,6 +4893,7 @@ x86_Thread_features_locked:	shstk wrss
 HYPR-CRED-FIN
 HYPR-CRED-LISTO-11
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -4946,11 +5042,14 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 dispatch 'hl.dsp.focus({ window = "address:0x563014fcac70" })'; echo FOC
+
 O-ENVIO-$((30+1))
 ok
 FOCO-ENVIO-31
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 {
     "address": "0x563014fcac70",
@@ -4991,6 +5090,7 @@ tl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))
 }
 FOCO-ACTIVO-32
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -5139,6 +5239,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -5287,6 +5388,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprc
+
 tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 [{
     "address": "0x5630128186b0",
@@ -5399,6 +5501,7 @@ tl -i 0 -j clients; echo HYPR-IPC-$((4+3))
 }]
 HYPR-IPC-7
 ultra:~# test -n "$(pidof swaybg)" && echo FONDO-$((2+2)); echo FONDO-FIN-$((4+3
+
 ))
 FONDO-4
 FONDO-FIN-7
@@ -5407,35 +5510,47 @@ ultra:~#
 ultra:~# echo HYPR-SINC-$((3+4))
 HYPR-SINC-7
 ultra:~# echo HYPR-$(grep -c "hyprland termino (salida 0)" /tmp/hyprland-session
+
 .log)
 HYPR-1
 ultra:~# test ! -S /arch/run/seatd.sock && echo HYPR-SEATD-LIMPIO
 HYPR-SEATD-LIMPIO
 ultra:~# test -s /bmo/ULTRA/informe/gpu-$(uname -r).txt && echo GPU-INFORME-$((2
+
 +2))
 GPU-INFORME-4
 ultra:~# grep -q "^AUSENTE /dev/nvidiactl$" /bmo/ULTRA/informe/gpu-fallo-$(uname
+
  -r).txt && echo GPU-FALLO-$((2+3))
 GPU-FALLO-5
 ultra:~# grep -Eq "^RAM total_kB=[0-9]+ disponible_kB=[0-9]+ usada_estimada_kB=[
+
 0-9]+" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RAM-MEDI
+
 DA-$((3+3))
 RAM-MEDIDA-6
 ultra:~# grep -q "^PROCESO .*nombre=Hyprland .*pss_kB=[0-9]" /bmo/ULTRA/informe/
+
 gpu-$(uname -r)-software-hyprland.txt && echo PSS-CLIENTE-$((3+4))
 PSS-CLIENTE-7
 ultra:~# grep -q "^GPU NA modo_software_o_nodos_ausentes" /bmo/ULTRA/informe/gpu
+
 -$(uname -r)-software-hyprland.txt && test ! -S /arch/run/seatd.sock && echo OBS
+
 ERVADOR-FINAL-$((4+4))
 OBSERVADOR-FINAL-8
 ultra:~# grep -q "ETHERNET: estado posterior" /bmo/ULTRA/informe/gpu-$(uname -r)
+
 -software-hyprland.txt && grep -q "contadores globales acumulados" /bmo/ULTRA/in
+
 forme/gpu-$(uname -r)-software-hyprland.txt && echo RED-EXPORTADA-$((4+5))
 RED-EXPORTADA-9
 ultra:~# grep -Eq "^RED iface=.* rx_bytes=[0-9]+ rx_packets=[0-9]+" /bmo/ULTRA/i
+
 nforme/gpu-$(uname -r)-software-hyprland.txt && echo RED-C-MEDIDA-$((5+5))
 RED-C-MEDIDA-10
 ultra:~# busybox base64 /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt
+
 VUxUUkEgR1BVIC0gdWx0aW1vIGludGVudG8KZmVjaGFfdXRjPTIwMjYtMTAtMjJUMTg6NDc6MTFa
 Cmtlcm5lbD03LjMuMC1yYzctcGMtZzMyYzUyZWM4N2Q2Mgptb2RvPXNvZnR3YXJlCmNvbXBvc2l0
 b3I9aHlwcmxhbmQKc2FsaWRhPTAKCltOT0RPUzogZXN0YWRvIHBvc3RlcmlvciBhbCBpbnRlbnRv
