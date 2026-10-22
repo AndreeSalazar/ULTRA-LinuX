@@ -1,0 +1,5 @@
+gcc (GCC) 16.2.1 20260810
+REVISION-OK: ignorar el resultado del buffer rechazado con causa
+prod: BUFFERS-OK: matriz=16807 validos=357 rechazos=16450; controles=11; sin reservar ni mapear buffers
+diag: BUFFERS-OK: matriz=16807 validos=357 rechazos=16450; controles=11; sin reservar ni mapear buffers
+ALCANCE: contrato aritmetico probado; sin compositor, GPU, fd ni proteccion contra truncamiento concurrente

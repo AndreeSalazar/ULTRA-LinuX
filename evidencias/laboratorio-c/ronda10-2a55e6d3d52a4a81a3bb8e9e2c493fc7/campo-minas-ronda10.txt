@@ -1,0 +1,341 @@
+gcc (GCC) 16.2.1 20260810
+AISLAMIENTO-OK: home ausente, artefactos RO, PID privado, sin rutas, entorno limpio, CapEff=0, NNP=1, limites CPU/core
+
+== Minas de compilacion: el codigo no debe compilar ==
+VERDE    alloca: alloca reserva pila sin limite ni aviso de fallo
+         bandera: alloca.c:5:37: error: use of 'alloca' [-Werror=alloca]
+VERDE    analizador-doble-free: el analizador ve dos free sobre el mismo puntero
+         bandera: analizador-doble-free.c:4:46: error: pointer 'p' used after 'free' [-Werror=use-after-free=]
+VERDE    analizador-nulo: malloc puede devolver NULL y se usa sin comprobar
+         bandera: analizador-nulo.c:4:48: error: dereference of possibly-NULL 'p' [CWE-690] [-Werror=analyzer-possible-null-deref
+VERDE    analizador-uso-tras-free: el analizador ve un uso tras free en compilacion, aunque produccion no lo detecte al ejecutar
+         bandera: analizador-uso-tras-free.c:4:87: error: pointer 'p' used after 'free' [-Werror=use-after-free=]
+VERDE    atoi: atoi es UB si el numero no cabe en int y no informa errores; envenenado, usar strtol
+         bandera: atoi.c:4:31: error: attempt to use poisoned 'atoi'
+VERDE    caida-switch: un case sin break cae al siguiente sin que se note
+         bandera: caida-switch.c:3:50: error: this statement may fall through [-Werror=implicit-fallthrough=]
+VERDE    cast-desalineado: convertir char* en int* puede crear un puntero desalineado
+         bandera: cast-desalineado.c:3:27: error: cast increases required alignment of target type [-Werror=cast-align]
+VERDE    cast-funcion: llamar una funcion con otra firma corrompe argumentos y retorno
+         bandera: cast-funcion.c:5:21: error: cast between incompatible function types from 'long int (*)(long int,  long int)' t
+VERDE    comparar-signo: comparar int con size_t convierte -1 en un numero enorme
+         bandera: comparar-signo.c:4:35: error: comparison of integer expressions of different signedness: 'int' and 'size_t' {ak
+VERDE    constante-desborda: 3000000000 no cabe en int
+         bandera: constante-desborda.c:3:23: error: conversion from 'long int' to 'int' changes value from '3000000000' to '-1294
+VERDE    copia-constante: memcpy de 8 bytes en un destino de 4, visible al compilar
+         bandera: copia-constante.c:5:27: error: stack-based buffer overflow [CWE-121] [-Werror=analyzer-out-of-bounds]
+VERDE    declaracion-implicita: llamar sin prototipo: el compilador inventa la firma
+         bandera: declaracion-implicita.c:3:22: error: implicit declaration of function 'no_declarada' [-Wimplicit-function-decla
+VERDE    desplazamiento-constante: desplazar 40 bits un int de 32, visible al compilar
+         bandera: desplazamiento-constante.c:3:24: error: left shift count >= width of type [-Werror=shift-count-overflow]
+VERDE    division-constante: dividir por cero literal
+         bandera: division-constante.c:3:25: error: division by zero [-Werror=div-by-zero]
+VERDE    formato: printf con texto del usuario como formato permite leer y escribir memoria
+         bandera: formato.c:4:1: error: format not a string literal and no format arguments [-Werror=format-security]
+VERDE    fuga: el analizador encuentra un camino donde malloc nunca se libera
+         bandera: fuga.c:4:71: error: leak of 'p' [CWE-401] [-Werror=analyzer-malloc-leak]
+VERDE    funcion-anidada: una funcion anidada con trampolin exige pila ejecutable
+         bandera: funcion-anidada.c:4:20: error: trampoline generated for nested function 'add' [-Werror=trampolines]
+VERDE    indice-constante: indice 10 en un arreglo de 4, visible al compilar
+         bandera: indice-constante.c:3:48: error: stack-based buffer over-read [CWE-126] [-Werror=analyzer-out-of-bounds]
+VERDE    len-puntero: ULTRA_LEN sobre un puntero daria 8/1 en vez del tamano real
+         bandera: ../../produccion/ultra_guard.h:49:16: error: division 'sizeof (char *) / sizeof (char)' does not compute the nu
+VERDE    memcpy-solapado-constante: memcpy con regiones solapadas visibles al compilar; -Wrestrict
+         bandera: memcpy-solapado-constante.c:4:19: error: 'memcpy' accessing 16 bytes at offsets 4 and 0 overlaps 12 bytes at of
+VERDE    memset-puntero: memset con sizeof(puntero) borra 8 bytes en vez del objeto
+         bandera: memset-puntero.c:5:42: error: argument to 'sizeof' in 'memset' call is the same expression as the destination;
+VERDE    puntero-a-int: un puntero de 64 bits metido en int pierde la mitad
+         bandera: puntero-a-int.c:3:25: error: cast from pointer to integer of different size [-Werror=pointer-to-int-cast]
+VERDE    puntero-colgante: guardar en un global la direccion de una local
+         bandera: puntero-colgante.c:4:29: error: storing the address of local variable 'x' in 'g' [-Werror=dangling-pointer=]
+VERDE    punto-secuencia: modificar i dos veces sin punto de secuencia es UB
+         bandera: punto-secuencia.c:3:18: error: operation on 'i' may be undefined [-Werror=sequence-point]
+VERDE    quitar-const: quitar const con un cast permite escribir en memoria de solo lectura
+         bandera: quitar-const.c:3:35: error: cast discards 'const' qualifier from pointer target type [-Werror=cast-qual]
+VERDE    retorna-local: devolver la direccion de una variable local que muere al salir
+         bandera: retorna-local.c:3:34: error: function returns address of local variable [-Werror=return-local-addr]
+VERDE    signo: un int negativo convertido a size_t se vuelve un tamano gigante
+         bandera: signo.c:4:26: error: conversion to 'size_t' {aka 'long unsigned int'} from 'int' may change the sign of the res
+VERDE    sin-inicializar: leer una variable sin valor es UB
+         bandera: sin-inicializar.c:3:44: error: use of uninitialized value 'x' [CWE-457] [-Werror=analyzer-use-of-uninitialized-
+VERDE    sin-return: una funcion int que termina sin return devuelve basura
+         bandera: sin-return.c:3:33: error: control reaches end of non-void function [-Werror=return-type]
+VERDE    sizeof-parametro: sizeof de un arreglo parametro mide el puntero, no el arreglo
+         bandera: sizeof-parametro.c:4:39: error: 'sizeof' on array function parameter 'buf' will return size of 'char *' [-Werro
+VERDE    sombra: una variable interna tapa a otra con el mismo nombre
+         bandera: sombra.c:3:33: error: declaration of 'r' shadows a previous local [-Werror=shadow]
+VERDE    sprintf: sprintf escribe sin limite; envenenado, usar snprintf
+         bandera: sprintf.c:4:26: error: attempt to use poisoned 'sprintf'
+VERDE    strcpy: strcpy no conoce el tamano del destino; envenenado por ultra_guard.h
+         bandera: strcpy.c:4:34: error: attempt to use poisoned 'strcpy'
+VERDE    strncpy: strncpy no termina la cadena si no cabe; envenenado
+         bandera: strncpy.c:4:34: error: attempt to use poisoned 'strncpy'
+VERDE    truncado: un long en int pierde bits sin avisar
+         bandera: truncado.c:3:24: error: conversion from 'long int' to 'int' may change value [-Werror=conversion]
+VERDE    vla: un arreglo de tamano variable en la pila puede saltar la pagina de guarda
+         bandera: vla.c:4:1: error: ISO C90 forbids variable length array 'buf' [-Werror=vla]
+
+== Minas de ejecucion: sin guardianes / produccion (trampas, FORTIFY, CET) / diagnostico (ASan+UBSan) ==
+pila sombra en produccion: ACTIVA (shstk)
+VERDE    ultra-division-cero: division explicita rechaza cero antes de dividir
+         sin guardianes: laboratorio/minas.c:193: divisor cero
+         produccion:     laboratorio/minas.c:193: divisor cero
+         diagnostico:    laboratorio/minas.c:193: divisor cero
+VERDE    ultra-division-min: division explicita rechaza INT_MIN / -1
+         sin guardianes: laboratorio/minas.c:194: INT_MIN / -1 no cabe en int
+         produccion:     laboratorio/minas.c:194: INT_MIN / -1 no cabe en int
+         diagnostico:    laboratorio/minas.c:194: INT_MIN / -1 no cabe en int
+VERDE    ultra-resto-cero: resto explicito rechaza cero antes de calcular
+         sin guardianes: laboratorio/minas.c:195: divisor cero en resto
+         produccion:     laboratorio/minas.c:195: divisor cero en resto
+         diagnostico:    laboratorio/minas.c:195: divisor cero en resto
+VERDE    ultra-resto-min: resto explicito rechaza INT_MIN % -1
+         sin guardianes: laboratorio/minas.c:196: INT_MIN % -1 tambien es UB
+         produccion:     laboratorio/minas.c:196: INT_MIN % -1 tambien es UB
+         diagnostico:    laboratorio/minas.c:196: INT_MIN % -1 tambien es UB
+VERDE    ultra-shl-negativo: desplazamiento explicito rechaza base negativa
+         sin guardianes: laboratorio/minas.c:197: base negativa o resultado fuera de int
+         produccion:     laboratorio/minas.c:197: base negativa o resultado fuera de int
+         diagnostico:    laboratorio/minas.c:197: base negativa o resultado fuera de int
+VERDE    ultra-shl-contador: desplazamiento explicito rechaza contador negativo
+         sin guardianes: laboratorio/minas.c:198: contador fuera del ancho de int
+         produccion:     laboratorio/minas.c:198: contador fuera del ancho de int
+         diagnostico:    laboratorio/minas.c:198: contador fuera del ancho de int
+VERDE    ultra-shl-ancho: desplazamiento explicito rechaza contador igual al ancho
+         sin guardianes: laboratorio/minas.c:199: contador fuera del ancho de int
+         produccion:     laboratorio/minas.c:199: contador fuera del ancho de int
+         diagnostico:    laboratorio/minas.c:199: contador fuera del ancho de int
+VERDE    ultra-shl-desborde: desplazamiento explicito rechaza resultado fuera de int
+         sin guardianes: laboratorio/minas.c:200: base negativa o resultado fuera de int
+         produccion:     laboratorio/minas.c:200: base negativa o resultado fuera de int
+         diagnostico:    laboratorio/minas.c:200: base negativa o resultado fuera de int
+VERDE    producto-desborde: multiplicacion con signo fuera de rango
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:204:60: runtime error: signed integer overflow: 2147483647 * 2 cannot be represented in type 'int'
+VERDE    negar-int-min: -INT_MIN no cabe en int
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:205:54: runtime error: negation of -2147483648 cannot be represented in type 'int'; cast to an unsigned type to negate th
+VERDE    resto-int-min: INT_MIN % -1 tambien es UB
+         sin guardianes: muere sin explicacion (senal 8)
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:206:65: runtime error: division of -2147483648 by -1 cannot be represented in type 'int'
+VERDE    vla-cero: VLA con longitud cero viola C17
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:207:54: runtime error: variable length array bound evaluates to non-positive value 0
+VERDE    indice-negativo: indice anterior al inicio del arreglo
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:208:75: runtime error: index -1 out of bounds for type 'int [4]'
+VERDE    subobjeto-fuera: cruzar del arreglo a al vecino b no valida el indice de a
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:212:25: runtime error: index 2 out of bounds for type 'int [2]'
+AMARILLO cadena-sin-nul: strlen necesita un terminador dentro del objeto
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     explota en silencio: el programa siguio como si nada
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7b7fff3e0018 at pc 0x7f6001a8841c bp 0x7fffcb20da70 sp 0x7fffcb20d228
+AMARILLO uso-tras-scope: la vida de una local termina al salir de su bloque
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     explota en silencio: el programa siguio como si nada
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-use-after-scope on address 0x7b4efb9f0020 at pc 0x55c7a58824a0 bp 0x7fff63b75da0 sp 0x7fff63b75d90
+AMARILLO comparar-punteros-ajenos: comparacion relacional de dos reservas distintas
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     explota en silencio: el programa siguio como si nada
+         diagnostico:    ==2==ERROR: AddressSanitizer: invalid-pointer-pair: 0x7b716ade0010 0x7b716ade0030
+AMARILLO restar-punteros-ajenos: resta de punteros que no pertenecen al mismo arreglo
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     explota en silencio: el programa siguio como si nada
+         diagnostico:    ==2==ERROR: AddressSanitizer: invalid-pointer-pair: 0x7b5eb93e0010 0x7b5eb93e0030
+VERDE    entero-desborde: int con signo pasa de INT_MAX: en C es UB y el optimizador puede borrar tus comprobaciones
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:27:56: runtime error: signed integer overflow: 2147483647 + 1 cannot be represented in type 'int'
+VERDE    division-cero: dividir por cero es UB; en x86 suele matar, pero el compilador puede asumir que nunca pasa
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:28:52: runtime error: division by zero
+VERDE    desplazamiento: desplazar 40 bits un int de 32 es UB; el resultado depende de la CPU
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:29:51: runtime error: shift exponent 40 is too large for 32-bit type 'int'
+VERDE    indice-fuera: escribir a[6] en un arreglo de 4 pisa memoria vecina sin avisar
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:30:49: runtime error: index 6 out of bounds for type 'int [4]'
+VERDE    copia-pila: memcpy de 16 bytes en un buffer de 8: clasico desborde de pila
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     *** buffer overflow detected ***: terminated
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b7790cf0040 at pc 0x55d24931585a bp 0x7fffeeae6b90 sp 0x7fffeeae6b80
+VERDE    desborde-heap: memset de 16 bytes en un malloc de 8 corrompe el heap
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     *** buffer overflow detected ***: terminated
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7b4e257e0018 at pc 0x7f2e27f28a47 bp 0x7ffd5e71ed20 sp 0x7ffd5e71e4d8
+AMARILLO uso-tras-free: leer memoria ya liberada: puede contener datos de otro objeto
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     explota en silencio: el programa siguio como si nada
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-use-after-free on address 0x7b65ccbe0080 at pc 0x558f8334c161 bp 0x7ffcd1fe93c0 sp 0x7ffcd1fe93b0
+         gemela de compilacion: analizador-uso-tras-free (la revision la para antes de ejecutar)
+VERDE    doble-free: liberar dos veces corrompe el allocator; base de muchos exploits
+         sin guardianes: free(): double free detected in tcache 2
+         produccion:     free(): double free detected in tcache 2
+         diagnostico:    ==2==ERROR: AddressSanitizer: attempting double-free on 0x7c5a053e0080 in thread T0:
+VERDE    puntero-nulo: escribir a traves de NULL; el compilador puede asumir que nunca es NULL
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:56:58: runtime error: store to null pointer of type 'int'
+VERDE    pila-destruida: un bucle escribe 64 bytes en un buffer de 8 hasta pisar el retorno
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     *** stack smashing detected ***: terminated
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7bd3d4bf0048 at pc 0x55d5a2556cc4 bp 0x7fffe0bc0390 sp 0x7fffe0bc0380
+VERDE    bool-invalido: un bool con valor 7 rompe la logica: ni true ni false
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:66:24: runtime error: load of value 7, which is not a valid value for type 'bool'
+VERDE    desalineado: leer un int desde una direccion impar es UB en C
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:71:22: runtime error: load of misaligned address 0x7b5cb87f0061 for type 'int', which requires 4 byte alignment
+VERDE    puntero-vuelta: aritmetica de punteros que da la vuelta al espacio de direcciones
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:75:26: runtime error: pointer index expression with base 0xfffffffffffffffd overflowed to 0x00000000000d
+VERDE    float-a-int: convertir 1e20 a int no cabe: UB
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:78:1: runtime error: 1e+20 is outside the range of representable values of type 'int'
+VERDE    retorno-secuestrado: sobrescribir la direccion de retorno: base del ROP; solo CET lo bloquea en el retorno
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+                         (SEGV_CPERR: la pila sombra CET bloqueo un retorno falso)
+         diagnostico:    ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+VERDE    ultra-suma: ULTRA_ADD: el guardian explicito comprueba la suma antes de usarla
+         sin guardianes: laboratorio/minas.c:189: suma desborda su tipo
+         produccion:     laboratorio/minas.c:189: suma desborda su tipo
+         diagnostico:    laboratorio/minas.c:189: suma desborda su tipo
+VERDE    ultra-resta: ULTRA_SUB debe rechazar INT_MIN menos uno
+         sin guardianes: laboratorio/minas.c:190: resta desborda su tipo
+         produccion:     laboratorio/minas.c:190: resta desborda su tipo
+         diagnostico:    laboratorio/minas.c:190: resta desborda su tipo
+VERDE    ultra-producto: ULTRA_MUL debe rechazar producto con signo fuera de rango
+         sin guardianes: laboratorio/minas.c:191: multiplicacion desborda su tipo
+         produccion:     laboratorio/minas.c:191: multiplicacion desborda su tipo
+         diagnostico:    laboratorio/minas.c:191: multiplicacion desborda su tipo
+VERDE    tamano-producto: size_t puede envolver legalmente: comprobar antes de reservar memoria
+         sin guardianes: laboratorio/minas.c:192: multiplicacion desborda su tipo
+         produccion:     laboratorio/minas.c:192: multiplicacion desborda su tipo
+         diagnostico:    laboratorio/minas.c:192: multiplicacion desborda su tipo
+VERDE    resta-desborde: restar uno a INT_MIN es UB
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:201:64: runtime error: signed integer overflow: -2147483648 - 1 cannot be represented in type 'int'
+VERDE    desplazamiento-negativo: un contador de desplazamiento negativo es UB
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:202:60: runtime error: shift exponent -1 is negative
+VERDE    ultra-indice: ULTRA_AT: el guardian explicito comprueba el indice antes de acceder
+         sin guardianes: laboratorio/minas.c:203: indice fuera del arreglo
+         produccion:     laboratorio/minas.c:203: indice fuera del arreglo
+         diagnostico:    laboratorio/minas.c:203: indice fuera del arreglo
+VERDE    vla-negativa: un arreglo de tamano -1 en la pila: UB, la pila se rompe
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:90:63: runtime error: variable length array bound evaluates to non-positive value -1
+VERDE    inalcanzable: llegar a __builtin_unreachable: el compilador borro el codigo que seguia
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:91:53: runtime error: execution reached an unreachable program point
+VERDE    nonnull: pasar NULL a una funcion que prometio no recibirlo
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:93:85: runtime error: null pointer passed as argument 1, which is declared to never be null
+VERDE    tamano-vuelta: count*16 da la vuelta a 16 (sin UB); malloc pequeno y escritura grande: el clasico de los exploits
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     *** buffer overflow detected ***: terminated
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7bc63f1e0020 at pc 0x7fa641928a47 bp 0x7fff2e4c11d0 sp 0x7fff2e4c0988
+VERDE    recursion-infinita: la pila crece hasta la pagina de guarda
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+                         (SEGV_MAPERR: direccion sin mapear: pagina de guarda, NULL o puntero salvaje)
+         diagnostico:    ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+VERDE    alloca-gigante: alloca de 64 MiB salta la pagina de guarda hacia otra memoria
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+                         (SEGV_MAPERR: direccion sin mapear: pagina de guarda, NULL o puntero salvaje)
+         diagnostico:    ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+VERDE    free-pila: liberar memoria que no vino de malloc
+         sin guardianes: double free or corruption (out)
+         produccion:     double free or corruption (out)
+         diagnostico:    ==2==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x7b6ccddf0040 in thread T0
+VERDE    free-medio: liberar un puntero desplazado dentro del bloque
+         sin guardianes: free(): invalid pointer
+         produccion:     free(): invalid pointer
+         diagnostico:    ==2==ERROR: AddressSanitizer: attempting free on address which was not malloc()-ed: 0x7c2cd19e0088 in thread T0
+VERDE    heap-subdesborde: escribir antes del bloque pisa la cabecera del allocator
+         sin guardianes: double free or corruption (out)
+         produccion:     double free or corruption (out)
+         diagnostico:    ==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7c31637e007f at pc 0x55582bd57ccb bp 0x7ffecfec9d40 sp 0x7ffecfec9d30
+VERDE    formato-n: %n en un formato escribible: printf escribe en memoria
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     *** %n in writable segments detected ***
+         diagnostico:    explota en silencio: el programa siguio como si nada
+VERDE    memcpy-solapado: memcpy con origen y destino solapados es UB; usar memmove
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     laboratorio/minas.c:126: memcpy con regiones solapadas es UB; usar memmove
+         diagnostico:    laboratorio/minas.c:126: memcpy con regiones solapadas es UB; usar memmove
+         gemela de compilacion: memcpy-solapado-constante (la revision la para antes de ejecutar)
+AMARILLO lectura-fuera: leer p[6] de un arreglo de 4 a traves de un puntero: filtra memoria vecina
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     explota en silencio: el programa siguio como si nada
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b11221f0078 at pc 0x555b73a6009e bp 0x7ffc144f2b90 sp 0x7ffc144f2b80
+AMARILLO uso-tras-retorno: usar la direccion de una local de una funcion que ya volvio
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     explota en silencio: el programa siguio como si nada
+         diagnostico:    ==2==ERROR: AddressSanitizer: stack-use-after-return on address 0x7bf130ff0030 at pc 0x55727d66f1a8 bp 0x7ffdc2e84970 sp 0x7ffdc2e84960
+         gemela de compilacion: retorna-local (la revision la para antes de ejecutar)
+VERDE    int-min-entre-menos-uno: INT_MIN / -1 desborda: UB y excepcion en x86
+         sin guardianes: muere sin explicacion (senal 8)
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:132:63: runtime error: division of -2147483648 by -1 cannot be represented in type 'int'
+VERDE    desplazar-negativo: desplazar a la izquierda un numero negativo es UB en C17
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:133:73: runtime error: left shift of negative value -1
+VERDE    abs-int-min: abs(INT_MIN) no cabe en int
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+         diagnostico:    laboratorio/minas.c:134:55: runtime error: negation of -2147483648 cannot be represented in type 'int'; cast to an unsigned type to negate th
+VERDE    ejecutar-pila: saltar a bytes en la pila: inyeccion de codigo
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+                         (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable)
+         diagnostico:    ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+VERDE    escribir-literal: escribir en un literal de cadena, que vive en memoria de solo lectura
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+                         (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable)
+         diagnostico:    ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+VERDE    secuestrar-arranque: sobrescribir un puntero de init_array, como un ataque a la GOT
+         sin guardianes: explota en silencio: el programa siguio como si nada
+         produccion:     ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+                         (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable)
+         diagnostico:    ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+VERDE    signo-tamano: un cast explicito convierte -1 en tamano gigante y calla al guardian de compilacion
+         sin guardianes: muere sin explicacion (senal 11)
+         produccion:     *** buffer overflow detected ***: terminated
+         diagnostico:    ==2==ERROR: AddressSanitizer: global-buffer-overflow on address 0x55f626257dc0 at pc 0x55f62625344a bp 0x7ffe750ea240 sp 0x7ffe750ea230
+NEUTRA   alias-estricto: leer un int por un float*: con alias estricto el optimizador devuelve un valor viejo
+         sin guardianes: UB VISIBLE: resultado 1, se esperaba 0: la memoria real
+         produccion:     NEUTRALIZADA: resultado definido 0 (0: la memoria real)
+         diagnostico:    NEUTRALIZADA: resultado definido 0 (0: la memoria real)
+AMARILLO sin-inicializar-ejecucion: leer una local sin valor; medido: GCC 16 -O2 la convierte en 5 aunque el guardian la ponga a cero
+         sin guardianes: UB VISIBLE: resultado 5, se esperaba 0: variable puesta a cero por el guardian
+         produccion:     UB VISIBLE: resultado 5, se esperaba 0: variable puesta a cero por el guardian
+         diagnostico:    UB VISIBLE: resultado 5, se esperaba 0: variable puesta a cero por el guardian
+         gemela de compilacion: sin-inicializar (la revision la para antes de ejecutar)
+
+RESUMEN compilacion: VERDE=36 ROJO=0
+RESUMEN ejecucion:   VERDE=53 NEUTRA=1 AMARILLO=8 ROJO=0 (de 62)
+SIN GUARDIANES:      45 de 62 minas explotan en silencio o mueren sin explicar por que

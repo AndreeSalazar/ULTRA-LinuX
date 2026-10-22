@@ -1,5 +1,11 @@
 # Produccion: C17 con GCC
 
+[ultra_string.h](ultra_string.h) ofrece copia/append con limites explicitos de
+origen y destino, resultado obligatorio, solapamiento permitido y destino
+intacto al rechazar. Ver [contrato y primera ronda QEMU](../../../docs/CADENAS-ACOTADAS.md).
+Requiere spans reales y vivos; no valida punteros arbitrarios. No sustituye
+automaticamente las interfaces antiguas ni los binarios instalados.
+
 `ultra_guard.c/h` contienen la API real. `perfil-gcc.sh` es la fuente unica
 de banderas para codigo de usuario: avisos como errores, revision con
 analizador en O0 y avisos en O2, endurecimiento y trampas de UB en produccion.

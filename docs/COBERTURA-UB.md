@@ -1,5 +1,12 @@
 # Cobertura de C17 y GCC
 
+La [primera entrega de cadenas acotadas](CADENAS-ACOTADAS.md) agrega una API
+con limites en ambos lados, rechazo sin modificar destino y soporte de alias.
+Pasaron 10368 combinaciones por cada uno de cuatro perfiles en QEMU del taller,
+mas controles de pagina protegida y del primer consumidor. La adopcion es
+explicita; no se cierra globalmente el hueco de cadenas sin NUL ni se cambia
+la evidencia historica de las 62 minas. A: aun no contiene esa nueva build.
+
 La [organizacion de ronda 8](ORGANIZACION-GUARDIANES.md) separa produccion
 y laboratorio, conserva las pruebas y asigna salidas independientes por ejecucion.
 

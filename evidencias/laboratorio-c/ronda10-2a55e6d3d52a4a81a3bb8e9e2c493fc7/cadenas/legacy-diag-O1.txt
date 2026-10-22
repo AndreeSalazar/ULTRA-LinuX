@@ -1,0 +1,23 @@
+LEGACY: origen sin NUL junto a PROT_NONE; se espera fallo
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==2==ERROR: AddressSanitizer: SEGV on unknown address 0x7f98dae91000 (pc 0x7f98da579184 bp 0x7ffe6312eaa0 sp 0x7ffe6312e238 T0)
+==2==The signal is caused by a READ memory access.
+    #0 0x7f98da579184  (/usr/lib/libc.so.6+0x179184) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #1 0x7f98db088324  (/usr/lib/libasan.so.8+0x88324) (BuildId: b8a4241051a1621937fdc46e867ba7ecb56d96ea)
+    #2 0x5641d26a53f8 in ultra_append /home/builder/linux-reconstruido/auditoria-guardianes-2a55e6d3d52a4a81a3bb8e9e2c493fc7/guardian/produccion/ultra_guard.c:157
+    #3 0x5641d26a5601 in ultra_copy /home/builder/linux-reconstruido/auditoria-guardianes-2a55e6d3d52a4a81a3bb8e9e2c493fc7/guardian/produccion/ultra_guard.c:151
+    #4 0x5641d26a29ec in pages /home/builder/linux-reconstruido/auditoria-guardianes-2a55e6d3d52a4a81a3bb8e9e2c493fc7/guardian/laboratorio/probar-cadenas.c:67
+    #5 0x5641d26a3c2d in main /home/builder/linux-reconstruido/auditoria-guardianes-2a55e6d3d52a4a81a3bb8e9e2c493fc7/guardian/laboratorio/probar-cadenas.c:91
+    #6 0x7f98da427780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #7 0x7f98da4278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #8 0x5641d26a15d4 in _start (/minas/cadenas-diag-O1+0x75d4) (BuildId: d46d249d56b35a563fb8ff4905722836191f0dc5)
+
+==2==Register values:
+rax = 0x0000000000000000  rbx = 0x00007f98dae90ffc  rcx = 0x0000000000000000  rdx = 0x00007f98dae90ffc  
+rdi = 0x00007f98dae90fff  rsi = 0x00000f739aeb6008  rbp = 0x00007ffe6312eaa0  rsp = 0x00007ffe6312e238  
+ r8 = 0x00000f731aebe008   r9 = 0x00000f739aeb6008  r10 = 0x0000000000000000  r11 = 0x00007f98db0568c0  
+r12 = 0x0000000000000008  r13 = 0x0000000000000000  r14 = 0x00007f98dae90ffc  r15 = 0x00007b98d75f0000  
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/usr/lib/libc.so.6+0x179184) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b) 
+==2==ABORTING

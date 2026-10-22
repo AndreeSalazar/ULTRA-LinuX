@@ -33,6 +33,8 @@ _Noreturn void ultra_fail(const char *code, const char *file, int line, const ch
 /*
  * Installs the signal flags: a crash, a UB trap, a FORTIFY abort or a
  * seccomp kill is explained before the process dies with the same signal.
+ * If alternate stack/mask/handler installation fails, print its errno and exit
+ * with status 78. Never continue after a partially installed guard.
  */
 void ultra_guard_install(const char *program);
 

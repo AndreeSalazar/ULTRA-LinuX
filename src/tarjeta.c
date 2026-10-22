@@ -18,6 +18,7 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 #include "init.h"
+#include "guardian/produccion/ultra_string.h"
 /* Last: it poisons unsafe functions after the system headers are parsed. */
 #include "guardian/ultra_guard.h"
 
@@ -52,7 +53,7 @@ static bool line_value(const char *text, const char *key, char *out, size_t cap)
     size_t n = strcspn(p, "\n");
     char tmp[128];
     snprintf(tmp, sizeof(tmp), "%.*s", n < sizeof(tmp) ? (int)n : (int)sizeof(tmp) - 1, p);
-    return ultra_copy(out, cap, tmp);
+    return ultra_string_copy(out, cap, tmp, sizeof(tmp)) == ULTRA_STRING_OK;
 }
 
 static void cpu_model(char *out, size_t cap) {

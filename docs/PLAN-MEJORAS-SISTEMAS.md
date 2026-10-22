@@ -1,6 +1,7 @@
 # Plan de mejoras: C, ASM, C++, graficos y juegos
 
-Fecha: 2026-10-22. Estado: **plan preparado; nuevas etapas de ejecucion pendientes**.
+Fecha: 2026-10-22. Estado: **primera entrega C de cadenas verificada en el taller;
+propiedad y las siguientes etapas pendientes**. Ver [resultado y limites](CADENAS-ACOTADAS.md).
 El objetivo es conservar la experiencia de juego que el propietario confirma y
 convertir problemas concretos en mejoras verificadas. No se da por terminada una
 etapa por escribir este documento ni por agregar fichas al museo.
@@ -23,7 +24,7 @@ el rendimiento. No se publica un porcentaje de aceleracion por contar rechazos.
 | Paso | Trabajo | Motivo y dependencia | Estado |
 |---|---|---|---|
 | 0 | Registrar la base y el protocolo | Permitir volver a la configuracion que ya funciona | Inventario documentado; nuevas mediciones pendientes |
-| 1 | C: limites, propiedad y errores | C es la base propia de init, caja y herramientas | Pendiente |
+| 1 | C: limites, propiedad y errores | C es la base propia de init, caja y herramientas | Cadenas, primer consumidor e instalacion del guardian verificados en fuentes/QEMU; propiedad y despliegue pendientes |
 | 2 | ASM: puentes C/ASM | Comprobar contratos de la frontera con el compilador | Pendiente; usa el harness del paso 1 |
 | 3 | C++: vida util y recursos | Ampliar las sondas propias sin trasladar supuestos de C | Pendiente; aprovecha controles de limites |
 | 4 | OpenGL/EGL/GLES | Comprobar recursos, contexto y recuperacion | Pendiente; depende del manejo de recursos C++ |

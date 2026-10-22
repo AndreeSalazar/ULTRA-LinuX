@@ -1,0 +1,2 @@
+PAGINAS-OK: 5 controles con frontera PROT_NONE real
+CADENAS-OK: matriz=10368 validos=1308 rechazos=9060; nulos=4; alias y canarios comprobados

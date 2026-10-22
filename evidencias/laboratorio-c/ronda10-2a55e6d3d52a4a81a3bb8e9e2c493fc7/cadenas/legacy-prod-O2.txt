@@ -1,0 +1,3 @@
+LEGACY: origen sin NUL junto a PROT_NONE; se espera fallo
+ROJO [FRONTERA-MEMORIA: acceso a memoria fuera de las reglas (ver code)]
+  programa=probar-cadenas senal=11 code=2 (SEGV_ACCERR: memoria protegida: solo lectura, RELRO o pila no ejecutable) direccion=0x7ff9b9177000 pc=inicio+0x25f04

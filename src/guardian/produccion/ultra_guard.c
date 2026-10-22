@@ -98,19 +98,33 @@ static void flag_handler(int sig, siginfo_t *info, void *context) {
     /* Faults re-execute the instruction and now die with the default action. */
 }
 
+static _Noreturn void install_failure(const char *step) {
+    int saved_errno = errno;
+    put("ROJO [GUARDIAN-INSTALACION] programa=");
+    put(guarded_program);
+    put(" paso=");
+    put(step);
+    put(" errno=");
+    put_dec(saved_errno);
+    put("; no se continua con proteccion parcial\n");
+    /* No reliance on a possibly half-installed signal handler, including PID 1. */
+    _exit(78);
+}
+
 void ultra_guard_install(const char *program) {
     guarded_program = program;
     stack_t ss = {.ss_sp = alt_stack, .ss_size = sizeof(alt_stack), .ss_flags = 0};
     /* The alternate stack lets the flag print even after a stack overflow. */
-    (void)sigaltstack(&ss, NULL);
+    if (sigaltstack(&ss, NULL) < 0) install_failure("sigaltstack");
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sa.sa_sigaction = flag_handler;
     /* SA_RESETHAND is bit 31: an unsigned pattern stored in the int sa_flags. */
     sa.sa_flags = (int)(SA_SIGINFO | SA_ONSTACK | SA_RESETHAND);
-    sigemptyset(&sa.sa_mask);
+    if (sigemptyset(&sa.sa_mask) < 0) install_failure("sigemptyset");
     const int sigs[] = {SIGILL, SIGSEGV, SIGBUS, SIGFPE, SIGABRT, SIGSYS};
-    for (size_t i = 0; i < ULTRA_LEN(sigs); i++) (void)sigaction(sigs[i], &sa, NULL);
+    for (size_t i = 0; i < ULTRA_LEN(sigs); i++)
+        if (sigaction(sigs[i], &sa, NULL) < 0) install_failure("sigaction");
 }
 
 _Noreturn void ultra_fail(const char *code, const char *file, int line, const char *why) {

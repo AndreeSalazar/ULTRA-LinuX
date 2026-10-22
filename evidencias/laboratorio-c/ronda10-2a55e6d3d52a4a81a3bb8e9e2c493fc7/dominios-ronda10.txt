@@ -1,0 +1,22 @@
+gcc (GCC) 16.2.1 20260810
+CTYPE-VALIDO: 256 bytes y EOF; tres operaciones; evaluacion unica
+VERDE: prod tolower negativo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod tolower grande rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod tolower extremo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod toupper negativo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod toupper grande rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod toupper extremo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod isalpha negativo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod isalpha grande rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: prod isalpha extremo rechazado ANTES de llamar a ctype (UB-CTYPE)
+CTYPE-VALIDO: 256 bytes y EOF; tres operaciones; evaluacion unica
+VERDE: diag tolower negativo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag tolower grande rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag tolower extremo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag toupper negativo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag toupper grande rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag toupper extremo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag isalpha negativo rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag isalpha grande rechazado ANTES de llamar a ctype (UB-CTYPE)
+VERDE: diag isalpha extremo rechazado ANTES de llamar a ctype (UB-CTYPE)
+DOMINIOS-OK: 18/18 rechazos; 2 perfiles con 257 entradas validas x 3 operaciones; no se ejecuta ctype fuera de dominio

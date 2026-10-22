@@ -1,0 +1,1 @@
+ROJO [GUARDIAN-INSTALACION] programa=probar-instalacion paso=sigaction errno=1; no se continua con proteccion parcial

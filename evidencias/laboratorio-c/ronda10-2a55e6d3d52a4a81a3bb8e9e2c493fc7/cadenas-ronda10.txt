@@ -1,0 +1,24 @@
+gcc (GCC) 16.2.1 20260810
+Linux 7.2.11-arch1-1 x86_64 GNU/Linux
+REVISION-OK: resultado obligatorio rechazado por warn_unused_result
+PERFIL prod-O2: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O2 -fhardened -fstrict-flex-arrays=3 -fsanitize=undefined\,float-cast-overflow\,bounds-strict -fsanitize-trap=all -fno-strict-aliasing -O2 -static-pie
+PAGINAS-OK: 5 controles con frontera PROT_NONE real
+CADENAS-OK: matriz=10368 validos=1308 rechazos=9060; nulos=4; alias y canarios comprobados
+TARJETA-OK: 5 controles del parser real; rechazo conserva destino
+CONTRASTE-OK: prod-O2 legacy sin NUL termina con rc=139; nueva API rechaza y conserva destino
+PERFIL prod-O3: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O2 -fhardened -fstrict-flex-arrays=3 -fsanitize=undefined\,float-cast-overflow\,bounds-strict -fsanitize-trap=all -fno-strict-aliasing -O3 -static-pie
+PAGINAS-OK: 5 controles con frontera PROT_NONE real
+CADENAS-OK: matriz=10368 validos=1308 rechazos=9060; nulos=4; alias y canarios comprobados
+TARJETA-OK: 5 controles del parser real; rechazo conserva destino
+CONTRASTE-OK: prod-O3 legacy sin NUL termina con rc=139; nueva API rechaza y conserva destino
+PERFIL diag-O1: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O1 -g -fno-omit-frame-pointer -fsanitize=address\,undefined\,float-cast-overflow\,bounds-strict\,pointer-compare\,pointer-subtract -fno-sanitize-recover=all -fcf-protection=full -O1
+PAGINAS-OK: 5 controles con frontera PROT_NONE real
+CADENAS-OK: matriz=10368 validos=1308 rechazos=9060; nulos=4; alias y canarios comprobados
+TARJETA-OK: 5 controles del parser real; rechazo conserva destino
+CONTRASTE-OK: diag-O1 legacy sin NUL termina con rc=1; nueva API rechaza y conserva destino
+PERFIL diag-O2: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O1 -g -fno-omit-frame-pointer -fsanitize=address\,undefined\,float-cast-overflow\,bounds-strict\,pointer-compare\,pointer-subtract -fno-sanitize-recover=all -fcf-protection=full -O2
+PAGINAS-OK: 5 controles con frontera PROT_NONE real
+CADENAS-OK: matriz=10368 validos=1308 rechazos=9060; nulos=4; alias y canarios comprobados
+TARJETA-OK: 5 controles del parser real; rechazo conserva destino
+CONTRASTE-OK: diag-O2 legacy sin NUL termina con rc=1; nueva API rechaza y conserva destino
+ALCANCE: spans reales y vivos; no valida punteros arbitrarios ni vida util/concurrencia; parser tarjeta adoptado en fuentes; otras llamadas antiguas sin migrar
