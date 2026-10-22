@@ -37,7 +37,10 @@ try {
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/probar-contratos',
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-egl',
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-gpus',
-        'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-vulkan'
+        'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-vulkan',
+        'for api in egl vulkan; do rc=0; bash ejecutar-grafica-limitada.sh "diag/laboratorio/sonda-$api" --medir > "rechazo-medicion-$api.txt" 2>&1 || rc=$?; cat "rechazo-medicion-$api.txt"; test "$rc" = 2; grep -qx "ROJO \[MEDICION\]: compilacion instrumentada rechazada" "rechazo-medicion-$api.txt"; done',
+        'echo "BENCH_COLUMNAS,api,ronda,ruta,wall_ns,cpu_us,rss_pico_proceso_kib"',
+        'for run in 1 2 3; do echo "BENCH_EJECUCION,$run"; bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-egl --medir; bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-vulkan --medir; done'
     )
     & ssh.exe @opts -p 12222 $guest ($commands -join '; ') 2>&1 |
         Tee-Object -FilePath "$evidence/informe.txt"

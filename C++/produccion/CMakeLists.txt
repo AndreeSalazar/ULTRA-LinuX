@@ -6,6 +6,7 @@ target_compile_options(ultra_cxx_perfil INTERFACE
     -fno-lto -fhardened)
 target_link_options(ultra_cxx_perfil INTERFACE -fhardened -fno-lto)
 if(ULTRA_CXX_DIAGNOSTICO)
+    target_compile_definitions(ultra_cxx_perfil INTERFACE ULTRA_CXX_DIAGNOSTICO=1)
     target_compile_options(ultra_cxx_perfil INTERFACE
         -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined
         -fno-sanitize-recover=all)

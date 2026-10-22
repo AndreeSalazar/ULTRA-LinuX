@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include "../../produccion/guard_gles.hpp"
+#include "medicion.hpp"
 
 namespace {
 void require(bool condition, const char* message) {
@@ -225,9 +226,51 @@ void texture_controls(Session& session, EGLConfig config) {
     pixel_control();
     std::cout << "VERDE [G-11]: 256 ciclos crear/mover/destruir; nombres liberados y pixel posterior correcto\n";
 }
+bool texture_workload(bool reuse) {
+    struct Framebuffer {
+        GLuint id = 0;
+        Framebuffer() { glGenFramebuffers(1, &id); require(id != 0, "framebuffer de medicion"); }
+        ~Framebuffer() { glBindFramebuffer(GL_FRAMEBUFFER, 0); glDeleteFramebuffers(1, &id); }
+    } target;
+    std::array<std::uint8_t, 64> pixels{};
+    auto prepare = [&](unsigned cycle) {
+        for (std::size_t i = 0; i < pixels.size(); i += 4) {
+            pixels[i] = static_cast<std::uint8_t>(cycle);
+            pixels[i + 1] = 255; pixels[i + 2] = 0; pixels[i + 3] = 255;
+        }
+    };
+    auto verify = [&](const ultra::gles::Texture& texture) {
+        glBindFramebuffer(GL_FRAMEBUFFER, target.id);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.name(), 0);
+        require(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE,
+                "framebuffer incompleto en medicion");
+        std::array<GLubyte, 4> pixel{};
+        glReadPixels(1, 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
+        return glGetError() == GL_NO_ERROR && pixel == std::array<GLubyte, 4>{pixels[0],255,0,255};
+    };
+    if (reuse) {
+        prepare(0);
+        auto texture = ultra::gles::Texture::rgba8(4, 4, pixels, 64);
+        if (!texture || !verify(*texture)) return false;
+        for (unsigned cycle = 1; cycle < 2048; ++cycle) {
+            prepare(cycle);
+            if (!texture->update_rgba8(pixels, 64) || !verify(*texture)) return false;
+        }
+    } else {
+        for (unsigned cycle = 0; cycle < 2048; ++cycle) {
+            prepare(cycle);
+            auto texture = ultra::gles::Texture::rgba8(4, 4, pixels, 64);
+            if (!texture || !verify(*texture)) return false;
+        }
+    }
+    return true;
+}
 }
 
-int main() {
+int main(int argc, char** argv) {
+    const bool measure = argc == 2 && std::string_view{argv[1]} == "--medir";
+    if (argc != 1 && !measure) return 2;
+    if (measure && !ultra::lab::measurement_allowed()) return 2;
     try {
         // bwrap runner supplies no GPU, network or session sockets. Verify the GPU path too.
         Session session;
@@ -261,6 +304,10 @@ int main() {
         const std::string_view renderer{text(glGetString(GL_RENDERER))};
         require(renderer.find("llvmpipe") != std::string_view::npos, "este banco exige llvmpipe software");
         require(glGetError() == GL_NO_ERROR, "error GL antes de los controles");
+        if (measure) {
+            std::cout << "GLES MEDICION: 2048 cargas RGBA8 de 4x4 por ruta; lectura/comprobacion incluidas\n";
+            require(ultra::lab::compare("GLES", texture_workload), "medicion GLES incorrecta");
+        } else {
         pixel_control();
         std::cout << "VERDE [G-01]: contexto GLES3 y pixel RGBA8 correctos\n";
         // Invalid enum has defined API behavior; it is not undefined C++ behavior.
@@ -287,6 +334,7 @@ int main() {
         pixel_control();
         std::cout << "VERDE [G-04]: GLSL valido compila despues del rechazo; contexto sigue utilizable\n";
         texture_controls(session, config);
+        }
         require(eglMakeCurrent(session.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) == EGL_TRUE,
                 "desvincular contexto");
         require(eglDestroyContext(session.display, session.context) == EGL_TRUE, "destruir contexto");

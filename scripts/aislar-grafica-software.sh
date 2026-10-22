@@ -23,6 +23,9 @@ if [[ $name == sonda-vulkan ]]; then
     # Keep driver/layer mappings for LSan attribution; never suppress leak detection.
     vulkan_env=(--setenv VK_LOADER_DISABLE_DYNAMIC_LIBRARY_UNLOADING 1
         --setenv VK_DRIVER_FILES /usr/share/vulkan/icd.d/lvp_icd.json)
+    if [[ ${1:-} == --medir ]]; then
+        vulkan_env+=(--setenv VK_LOADER_LAYERS_DISABLE '~all~')
+    fi
 fi
 exec timeout --kill-after=2s 30s prlimit --core=0 --cpu=20 --fsize=1048576 --nofile=128 --nproc=128 --stack=8388608 -- \
     bwrap --unshare-all --die-with-parent --new-session --cap-drop ALL \

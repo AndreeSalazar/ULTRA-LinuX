@@ -63,6 +63,10 @@ sin instrumentacion, cache de pipelines (todavia no hay pipelines en esta sonda)
 dependencias entre etapas de dibujo y mediciones nativas antes de integrar un
 consumidor real. No se eliminan barreras o comprobaciones globalmente.
 
+Ampliacion posterior: [mediciones de las dos rutas en software](GRAFICA-MEDICIONES.md).
+La ausencia de mediciones descrita arriba corresponde a esta primera entrega
+de reutilizacion; el nuevo informe ya cuantifica tiempo, sin acreditar FPS nativos.
+
 Referencias: [actualizacion de textura GLES](https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexSubImage2D.xhtml),
 [dependencias y lectura desde CPU en Vulkan](https://docs.vulkan.org/guide/latest/synchronization_examples.html),
 [cache de pipelines](https://docs.vulkan.org/guide/latest/pipeline_cache.html).

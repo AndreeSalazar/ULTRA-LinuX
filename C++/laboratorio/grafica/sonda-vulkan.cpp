@@ -8,6 +8,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <vector>
+#include "medicion.hpp"
 
 namespace {
 struct Evidence {
@@ -135,18 +136,25 @@ struct Transfer {
         return true;
     }
 };
-bool transfer_cycles(VkPhysicalDevice physical, VkDevice device, std::uint32_t family) {
+bool transfer_workload(VkPhysicalDevice physical, VkDevice device, std::uint32_t family, bool reuse,
+                       unsigned cycles = 64) {
     VkQueue queue = VK_NULL_HANDLE;
     vkGetDeviceQueue(device, family, 0, &queue);
-    for (unsigned cycle = 0; cycle < 64; ++cycle) {
-        Transfer fresh{device};
-        if (!fresh.initialize(physical, family) || !fresh.run(queue)) return false;
-    }
-    {
+    if (reuse) {
         Transfer reused{device};
         if (!reused.initialize(physical, family)) return false;
-        for (unsigned cycle = 0; cycle < 64; ++cycle) if (!reused.run(queue)) return false;
+        for (unsigned cycle = 0; cycle < cycles; ++cycle) if (!reused.run(queue)) return false;
+    } else {
+        for (unsigned cycle = 0; cycle < cycles; ++cycle) {
+            Transfer fresh{device};
+            if (!fresh.initialize(physical, family) || !fresh.run(queue)) return false;
+        }
     }
+    return true;
+}
+bool transfer_cycles(VkPhysicalDevice physical, VkDevice device, std::uint32_t family) {
+    if (!transfer_workload(physical, device, family, false) ||
+        !transfer_workload(physical, device, family, true)) return false;
     std::puts("VERDE [V-04]: 128 envios con fence y patron correcto; 64 recreados frente a 1 reutilizado");
     return true;
 }
@@ -167,7 +175,9 @@ bool memory_cycles(VkPhysicalDevice physical, VkDevice device) {
 
 int main(int argc, char** argv) {
     const bool late_error = argc == 2 && std::strcmp(argv[1], "--control-error-final") == 0;
-    if (argc != 1 && !late_error) return 2;
+    const bool measure = argc == 2 && std::strcmp(argv[1], "--medir") == 0;
+    if (argc != 1 && !late_error && !measure) return 2;
+    if (measure && !ultra::lab::measurement_allowed()) return 2;
     std::setvbuf(stdout, nullptr, _IONBF, 0);
     Evidence evidence;
     VkDebugUtilsMessengerCreateInfoEXT debug{};
@@ -186,22 +196,25 @@ int main(int argc, char** argv) {
     const char* extensions[] = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME};
     VkInstanceCreateInfo instance_info{};
     instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instance_info.pNext = &validation;
-    instance_info.enabledLayerCount = 1;
-    instance_info.ppEnabledLayerNames = &layer;
-    instance_info.enabledExtensionCount = 2;
-    instance_info.ppEnabledExtensionNames = extensions;
+    if (!measure) {
+        instance_info.pNext = &validation;
+        instance_info.enabledLayerCount = 1;
+        instance_info.ppEnabledLayerNames = &layer;
+        instance_info.enabledExtensionCount = 2;
+        instance_info.ppEnabledExtensionNames = extensions;
+    }
     VkInstance instance = VK_NULL_HANDLE;
     const VkResult instance_result = vkCreateInstance(&instance_info, nullptr, &instance);
     if (instance_result != VK_SUCCESS) {
         std::fprintf(stderr, "ROJO vkCreateInstance=%d\n", static_cast<int>(instance_result));
         return 1;
     }
-    std::puts("VULKAN validacion de sincronizacion solicitada explicitamente");
+    std::puts(measure ? "VULKAN MEDICION: sin capas; 2048 envios de 4096 bytes por ruta; fence y comprobacion incluidas"
+                      : "VULKAN validacion de sincronizacion solicitada explicitamente");
     auto create_debug = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
     auto destroy_debug = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
     VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
-    if (!create_debug || !destroy_debug || create_debug(instance, &debug, nullptr, &messenger) != VK_SUCCESS) {
+    if (!measure && (!create_debug || !destroy_debug || create_debug(instance, &debug, nullptr, &messenger) != VK_SUCCESS)) {
         vkDestroyInstance(instance, nullptr); return 1;
     }
     bool passed = false;
@@ -231,6 +244,12 @@ int main(int argc, char** argv) {
                     info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
                     info.queueCreateInfoCount = 1; info.pQueueCreateInfos = &queue;
                     if (vkCreateDevice(physical[0], &info, nullptr, &device) != VK_SUCCESS) break;
+                    if (measure) {
+                        passed = ultra::lab::compare("Vulkan", [&](bool reuse) {
+                            return transfer_workload(physical[0], device, index, reuse, 2048);
+                        });
+                        break;
+                    }
                     VkBufferCreateInfo buffer_info{};
                     buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
                     buffer_info.size = 4096;
@@ -268,12 +287,14 @@ int main(int argc, char** argv) {
         if (result != VK_ERROR_VALIDATION_FAILED_EXT) passed = false;
     }
     if (device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
-    destroy_debug(instance, messenger, nullptr);
+    if (messenger != VK_NULL_HANDLE) destroy_debug(instance, messenger, nullptr);
     vkDestroyInstance(instance, nullptr);
     // The pNext callback remains active for instance teardown; do not pass before it.
-    passed = passed && evidence.errors.load() == 1 && evidence.expected.load() == 1;
+    const unsigned required = measure ? 0U : 1U;
+    passed = passed && evidence.errors.load() == required && evidence.expected.load() == required;
     std::printf("VULKAN errores=%u esperados=%u inesperados=%u\n", evidence.errors.load(),
         evidence.expected.load(), evidence.errors.load() - evidence.expected.load());
-    std::puts(passed ? "VERDE: buffer valido y llamada invalida bloqueada por validacion" : "ROJO: resultado Vulkan inesperado");
+    std::puts(passed ? (measure ? "VERDE: medicion Vulkan completada con datos correctos" :
+        "VERDE: buffer valido y llamada invalida bloqueada por validacion") : "ROJO: resultado Vulkan inesperado");
     return passed ? 0 : 1;
 }

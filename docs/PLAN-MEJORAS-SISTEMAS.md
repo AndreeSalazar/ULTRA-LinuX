@@ -200,6 +200,8 @@ construccion propia y regresiones; instalar un paquete no acredita ese fork.
 Avance conjunto GLES/Vulkan: [vida util y evidencia del 22 de octubre](GRAFICA-VIDA-UTIL.md).
 Los controles se ejecutan en el taller; no acreditan una integracion en Hyprland.
 Ampliacion: [reutilizacion con actualizaciones GLES y fences Vulkan](GRAFICA-REUTILIZACION.md).
+Ya existe [comparacion temporal en software](GRAFICA-MEDICIONES.md), sin capas
+ni sanitizadores durante la medicion; el rendimiento nativo sigue pendiente.
 
 **Motivo:** sus condiciones de uso no son identicas a OpenGL; las capas de
 validacion ayudan a detectar incumplimientos concretos, no certifican toda la API.
