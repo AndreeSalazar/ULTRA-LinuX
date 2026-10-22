@@ -1,0 +1,113 @@
+
+/home/builder/linux-reconstruido/build/laboratorio-c/116ad4197ab843599a2c700c94378ee2/owner-asm/asm-prod-O2:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .text:
+
+0000000000009199 <ultra_abi_probe>:
+    9199:	55                                              	push   rbp
+    919a:	53                                              	push   rbx
+    919b:	41 54                                           	push   r12
+    919d:	41 55                                           	push   r13
+    919f:	41 56                                           	push   r14
+    91a1:	41 57                                           	push   r15
+    91a3:	48 83 ec 08                                     	sub    rsp,0x8
+    91a7:	48 89 f8                                        	mov    rax,rdi
+    91aa:	48 c7 c3 65 00 00 00                            	mov    rbx,0x65
+    91b1:	49 c7 c4 66 00 00 00                            	mov    r12,0x66
+    91b8:	49 c7 c5 67 00 00 00                            	mov    r13,0x67
+    91bf:	49 c7 c6 68 00 00 00                            	mov    r14,0x68
+    91c6:	49 c7 c7 69 00 00 00                            	mov    r15,0x69
+    91cd:	48 c7 c5 6a 00 00 00                            	mov    rbp,0x6a
+    91d4:	ff d0                                           	call   rax
+    91d6:	31 d2                                           	xor    edx,edx
+    91d8:	83 f8 08                                        	cmp    eax,0x8
+    91db:	74 03                                           	je     91e0 <ultra_abi_probe+0x47>
+    91dd:	83 ca 40                                        	or     edx,0x40
+    91e0:	48 83 fb 65                                     	cmp    rbx,0x65
+    91e4:	74 03                                           	je     91e9 <ultra_abi_probe+0x50>
+    91e6:	83 ca 01                                        	or     edx,0x1
+    91e9:	49 83 fc 66                                     	cmp    r12,0x66
+    91ed:	74 03                                           	je     91f2 <ultra_abi_probe+0x59>
+    91ef:	83 ca 02                                        	or     edx,0x2
+    91f2:	49 83 fd 67                                     	cmp    r13,0x67
+    91f6:	74 03                                           	je     91fb <ultra_abi_probe+0x62>
+    91f8:	83 ca 04                                        	or     edx,0x4
+    91fb:	49 83 fe 68                                     	cmp    r14,0x68
+    91ff:	74 03                                           	je     9204 <ultra_abi_probe+0x6b>
+    9201:	83 ca 08                                        	or     edx,0x8
+    9204:	49 83 ff 69                                     	cmp    r15,0x69
+    9208:	74 03                                           	je     920d <ultra_abi_probe+0x74>
+    920a:	83 ca 10                                        	or     edx,0x10
+    920d:	48 83 fd 6a                                     	cmp    rbp,0x6a
+    9211:	74 03                                           	je     9216 <ultra_abi_probe+0x7d>
+    9213:	83 ca 20                                        	or     edx,0x20
+    9216:	89 d0                                           	mov    eax,edx
+    9218:	48 83 c4 08                                     	add    rsp,0x8
+    921c:	41 5f                                           	pop    r15
+    921e:	41 5e                                           	pop    r14
+    9220:	41 5d                                           	pop    r13
+    9222:	41 5c                                           	pop    r12
+    9224:	5b                                              	pop    rbx
+    9225:	5d                                              	pop    rbp
+    9226:	c3                                              	ret
+
+Disassembly of section .fini:
+
+
+/home/builder/linux-reconstruido/build/laboratorio-c/116ad4197ab843599a2c700c94378ee2/owner-asm/asm-prod-O2:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .text:
+
+0000000000009227 <ultra_abi_good>:
+    9227:	48 89 e0                                        	mov    rax,rsp
+    922a:	83 e0 0f                                        	and    eax,0xf
+    922d:	c3                                              	ret
+
+Disassembly of section .fini:
+
+
+/home/builder/linux-reconstruido/build/laboratorio-c/116ad4197ab843599a2c700c94378ee2/owner-asm/asm-prod-O2:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .text:
+
+000000000000922e <ultra_abi_bad>:
+    922e:	31 db                                           	xor    ebx,ebx
+    9230:	45 31 e4                                        	xor    r12d,r12d
+    9233:	45 31 ed                                        	xor    r13d,r13d
+    9236:	45 31 f6                                        	xor    r14d,r14d
+    9239:	45 31 ff                                        	xor    r15d,r15d
+    923c:	31 ed                                           	xor    ebp,ebp
+    923e:	eb e7                                           	jmp    9227 <ultra_abi_good>
+
+Disassembly of section .fini:
+
+
+/home/builder/linux-reconstruido/build/laboratorio-c/116ad4197ab843599a2c700c94378ee2/owner-asm/asm-prod-O2:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .text:
+
+0000000000009240 <ultra_abi_bad_alignment>:
+    9240:	e8 e2 ff ff ff                                  	call   9227 <ultra_abi_good>
+    9245:	c3                                              	ret
+
+Disassembly of section .fini:

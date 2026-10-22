@@ -1,0 +1,37 @@
+{
+  "Schema": 1,
+  "BinarySHA256": "1fb6da483a7e88c6fb9256d52f97db3f0fddfc429186dd1af01ac5f182a964dd",
+  "InspectorSHA256": "8e68379412d6431b053f19de32f2638f874f1a72e6f02a8cb514a738e5505a32",
+  "Tool": "GNU objdump (GNU Binutils) 2.47",
+  "Symbols": [
+    {
+      "Symbol": "ultra_abi_probe",
+      "Bytes": 142,
+      "Hex": "55 53 41 54 41 55 41 56 41 57 48 83 EC 08 48 89 F8 48 C7 C3 65 00 00 00 49 C7 C4 66 00 00 00 49 C7 C5 67 00 00 00 49 C7 C6 68 00 00 00 49 C7 C7 69 00 00 00 48 C7 C5 6A 00 00 00 FF D0 31 D2 83 F8 08 74 03 83 CA 40 48 83 FB 65 74 03 83 CA 01 49 83 FC 66 74 03 83 CA 02 49 83 FD 67 74 03 83 CA 04 49 83 FE 68 74 03 83 CA 08 49 83 FF 69 74 03 83 CA 10 48 83 FD 6A 74 03 83 CA 20 89 D0 48 83 C4 08 41 5F 41 5E 41 5D 41 5C 5B 5D C3",
+      "SHA256": "40b824d5504d3db911a967e5d661c54296dec2493fea6a72faaefa4237c6f885",
+      "ExactContract": false
+    },
+    {
+      "Symbol": "ultra_abi_good",
+      "Bytes": 7,
+      "Hex": "48 89 E0 83 E0 0F C3",
+      "SHA256": "789ac613548768c01085a361447a18ba0fd0ae7ae1084a7e092c03f1bfb59aca",
+      "ExactContract": true
+    },
+    {
+      "Symbol": "ultra_abi_bad",
+      "Bytes": 18,
+      "Hex": "31 DB 45 31 E4 45 31 ED 45 31 F6 45 31 FF 31 ED EB E7",
+      "SHA256": "77fc31cf7b61f960e980d25b6f7baeea69fc3323a9c1820315119e0647891bc8",
+      "ExactContract": false
+    },
+    {
+      "Symbol": "ultra_abi_bad_alignment",
+      "Bytes": 6,
+      "Hex": "E8 E2 FF FF FF C3",
+      "SHA256": "00be259e6158571b6e7fe1d96d1727892a9cd4e9eb9916cc2bcc1367716be33f",
+      "ExactContract": false
+    }
+  ],
+  "Scope": "Static inspection only; exact bytes for one leaf. No execution, UB/lifetime proof or speed claim."
+}

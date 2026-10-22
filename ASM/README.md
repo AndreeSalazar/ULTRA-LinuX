@@ -9,6 +9,10 @@ registros de la ABI, operands/clobbers de GCC y sincronizacion del algoritmo.
 El inline ASM tambien puede romper las suposiciones del codigo C/C++ que lo
 contiene. Que el ensamblador acepte el texto no valida esas cuatro capas.
 
+La [inspeccion HEX inspirada en TALK-CPU](../docs/HEX-TALK-CPU.md) relaciona
+los bytes reales de cuatro simbolos con sus evidencias y aplica un contrato
+exacto a una rutina de siete bytes.
+
 Los seis casos iniciales del museo siguen siendo fichas conceptuales. Ahora
 [laboratorio](laboratorio) contiene un puente C/ASM ejecutable y controles de
 registros y alineacion, verificados en QEMU en cuatro perfiles. No instala
