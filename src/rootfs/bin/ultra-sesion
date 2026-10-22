@@ -45,6 +45,7 @@ udevadm trigger --action=add --type=subsystems || exit 1
 udevadm trigger --action=add --type=devices || exit 1
 udevadm settle --timeout=15 || exit 1
 /usr/bin/bash /usr/local/libexec/ultra-preparar-red > /run/ultra-escritorio/red.log 2>&1 9>&- || echo 'AMARILLO [RED]: sin conexion; el escritorio puede abrir sin internet'
+/usr/bin/bash /usr/local/libexec/ultra-preparar-hora > /run/ultra-escritorio/hora.log 2>&1 9>&- &
 for driver in snd_usb_audio snd_hda_codec_realtek snd_hda_codec_hdmi snd_hda_generic; do
     modprobe "$driver" 9>&- || echo "AMARILLO [AUDIO]: no se pudo cargar $driver"
 done
@@ -91,7 +92,7 @@ desktop_home=/home/ultra
 if mountpoint -q /juegos && [[ -d /juegos/usuarios/ultra ]]; then desktop_home=/juegos/usuarios/ultra; fi
 client_env=("HOME=$desktop_home" USER=ultra LOGNAME=ultra XDG_RUNTIME_DIR=/run/user/1000
     "ULTRA_COMPOSITOR=$compositor" "ULTRA_RENDER_MODE=$mode"
-    PATH=/usr/local/bin:/usr/bin LANG=C.UTF-8 TERM=linux
+    PATH=/usr/local/bin:/usr/bin LANG=C.UTF-8 LC_TIME=es_PE.UTF-8 TERM=linux
     "GLIBC_TUNABLES=${GLIBC_TUNABLES:-}" LIBSEAT_BACKEND=seatd SEATD_SOCK=/run/seatd.sock
     WLR_BACKENDS=drm,libinput "WLR_DRM_DEVICES=$card" "WLR_RENDERER=$renderer")
 [[ $compositor != hyprland ]] || client_env+=("AQ_DRM_DEVICES=$card")

@@ -1,0 +1,35 @@
+{
+  "Fecha": "2026-10-22T14:32:52.5054551-05:00",
+  "Zona": "America/Lima",
+  "LocaleFecha": "es_PE.UTF-8",
+  "DatosSHA256Antes": "9d15db669eee41d495aa514697ea324ca7dc3bd1357a0cbf8f3ae94c5ffb9a74",
+  "DatosSHA256Despues": "9d15db669eee41d495aa514697ea324ca7dc3bd1357a0cbf8f3ae94c5ffb9a74",
+  "Artefactos": [
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "SHA256": "1e4f4121ee8d6de8268480c45568aa9b26d6ea663000dcb87591817be4b73af5",
+      "Bytes": 18531328
+    },
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "SHA256": "119810bd5a937db025394d9bb51e2362774e847dec62c48d783c93f58faa5870",
+      "Bytes": 1164550144
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "SHA256": "276a5706cbe5f9346bd6328d9e319dffa4d5baf9a1040cb3161b94499c280a00",
+      "Bytes": 18486272
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "SHA256": "889335e18d3eb4bca849e0f2511ba3f8be7d83fbe85f7b080c640c6406003a59",
+      "Bytes": 1750941696
+    }
+  ],
+  "Respaldo": "build/respaldo-antes-hora-2026-10-22",
+  "ArranqueNativo": "pendiente de prueba por el propietario"
+}

@@ -1,0 +1,28 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Invoked as a bounded background task, never on the desktop's critical path.
+set -uo pipefail
+[[ $(id -u) == 0 ]] || exit 1
+exec 9>&- 8>&-
+install -d -m 0755 -o 0 -g 0 /run/ultra-hora || exit 1
+install -d -m 0700 -o 0 -g 0 /run/ultra-hora/nts || exit 1
+exec 7>/run/ultra-hora/lock
+flock -n 7 || { echo 'HORA: sincronizacion en curso'; exit 0; }
+if [[ -f /run/ultra-hora/sincronizado ]]; then
+    now=$(date +%s); last=$(stat -c %Y /run/ultra-hora/sincronizado)
+    if [[ $now =~ ^[0-9]+$ && $last =~ ^[0-9]+$ ]] && ((now >= last && now-last < 3600)); then
+        echo 'HORA: ultima sincronizacion correcta hace menos de una hora'; exit 0
+    fi
+fi
+rc=0
+timeout -k 2 30 /usr/bin/chronyd -d -q -t 25 -u root -f /etc/ultra/chrony.conf \
+    > /run/ultra-hora/ultima.log 2>&1 || rc=$?
+if ((rc != 0)); then
+    printf 'AMARILLO [HORA]: sincronizacion pendiente (codigo %s); consulta ultra-hora\n' "$rc"
+    exit 1
+fi
+tmp=$(mktemp /run/ultra-hora/sincronizado.XXXXXX) || exit 1
+date -u '+%Y-%m-%dT%H:%M:%SZ' > "$tmp"
+chmod 0644 "$tmp"
+mv -f -- "$tmp" /run/ultra-hora/sincronizado
+echo 'VERDE [HORA]: reloj sincronizado por NTS; zona local America/Lima'

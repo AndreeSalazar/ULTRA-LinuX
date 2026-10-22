@@ -1,0 +1,27 @@
+PERFIL=generico
+ELF-PRODUCCION-OK: init 1a1dab974f3340a094d6e7927f41aaed1129360f0c52b095fbdae78c9cdb0ef4
+ELF-PRODUCCION-OK: caja e353a61bb4f11ec4bb640e6886ccc8748cfd2433253e889ba183396db17696c1
+ELF-PRODUCCION-OK: ultra-raiz 43f5dfcbd114b507c1f0d5490746f8eb75a07655d84a345ff6eca98650a6671c
+ELF-PRODUCCION-OK: ultra-red-contadores 57e920d13d9601ccbe8936d4a327550f8dacfd4e697c4e67c75aeb763d706c49
+ELF-PRODUCCION-OK: minas 3e30e3a95517181bc7c415a92040391d56cdd732e1151104d842e9956fd1c2ae
+Kernel: arch/x86/boot/bzImage is ready  (#50)
+VERDE: Brave 1.97.59 oficial instalado; apertura y sandbox pendientes de prueba
+VERDE: sistema A con base Arch: 66 pedidos, 506 instalados, EROFS lzma 1110 MiB
+VERDE: disco EFI sin GRUB: ultra-esp.img: ESP FAT32 64 MiB, ULTRA-SISTEMA-A EROFS 1137256 KiB, ULTRA-DATOS ext4 64 MiB
+VERDE: disco de prueba disco-bmo.img: EFI de Windows simulada, FAT32 BMO con ULTRA en archivos y particion vacia
+VERDE: kernel generico e init C compilados. Arranque QEMU todavia pendiente.
+PERFIL=pc
+ELF-PRODUCCION-OK: init a91b24cb341ef45eb708a9ee033638976ab98b60e5c0de8990ae4ffdd9fa88ee
+ELF-PRODUCCION-OK: caja 58633a26dfe7d47fede49a714f67ef0d2b66934a01c0dfccab949fc5b4eb539b
+ELF-PRODUCCION-OK: ultra-raiz 1d3fe2bac79c6e0301567301b96323e535decf1a9c3f5c39782c6a7385ec6e11
+ELF-PRODUCCION-OK: ultra-red-contadores 2214c88429137906bbf1b6179ea231237570b9d28ee0b926fc8f8d123346db2f
+ELF-PRODUCCION-OK: minas 29896777101a37ea9f7b7c6dd0ed3fd0b0b8a3b30f3ef37f2c706dccff7ecdae
+Kernel: arch/x86/boot/bzImage is ready  (#36)
+VERDE: nvidia-open 615.78.08 compilado para 7.3.0-rc7-pc-g32c52ec87d62 (35M)
+AMARILLO [SRSO]: 11674 avisos observados; cobertura real pendiente (ver nvidia-guardian.txt)
+VERDE: Brave 1.97.59 oficial instalado; apertura y sandbox pendientes de prueba
+VERDE: sistema A con base Arch: 65 pedidos, 507 instalados, EROFS lzma 1669 MiB
+VERDE: disco EFI sin GRUB: ultra-esp.img: ESP FAT32 64 MiB, ULTRA-SISTEMA-A EROFS 1709904 KiB, ULTRA-DATOS ext4 64 MiB
+VERDE: disco de prueba disco-bmo.img: EFI de Windows simulada, FAT32 BMO con ULTRA en archivos y particion vacia
+VERDE: disco doble disco-bmo-doble.img: generico (7.3.0-rc7-g32c52ec87d62) por defecto y pc en BMO\EFI\ULTRA\ULTRA-PC.EFI
+VERDE: kernel pc e init C compilados. Arranque QEMU todavia pendiente.

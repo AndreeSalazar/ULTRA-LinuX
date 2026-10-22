@@ -103,6 +103,7 @@ busybox=/usr/bin/busybox
     echo 'slink /lib/modules /sistema/lib/modules 0777 0 0'
     echo 'nod /dev/console 0600 0 0 c 5 1'
     echo 'nod /dev/ttyS0 0600 0 0 c 4 64'
+    echo 'file /etc/localtime /usr/share/zoneinfo/America/Lima 0644 0 0'
     echo "file /init $user/init 0755 0 0"
     echo "file /bin/busybox $busybox 0755 0 0"
     echo "file /bin/caja $user/caja 0755 0 0"
@@ -213,7 +214,7 @@ if [[ -n $cmdline ]]; then
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
     arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow
-        hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata swaybg librsvg
+        hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata chrony swaybg librsvg
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
         pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
@@ -237,7 +238,7 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render,audio -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
@@ -255,7 +256,12 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
+    printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
+    sudo install -d -m 0755 "$sistema/usr/lib/locale"
+    sudo localedef --prefix="$sistema" -i es_PE -f UTF-8 es_PE.UTF-8
+    sudo chroot "$sistema" /usr/bin/env LC_ALL=es_PE.UTF-8 /usr/bin/locale charmap | grep -qx UTF-8
     sudo install -d -m 0755 "$sistema/etc/wireplumber/wireplumber.conf.d"
     sudo install -m 0644 "$lab/rootfs/desktop/wireplumber-usb.conf" "$sistema/etc/wireplumber/wireplumber.conf.d/51-ultra-usb.conf"
     sudo install -m 0644 "$lab/rootfs/desktop/"*.desktop "$sistema/usr/share/applications/"

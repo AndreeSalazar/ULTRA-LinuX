@@ -1,0 +1,8 @@
+ULTRA GPU - ultimo intento
+fecha_utc=2026-10-22T19:30:41Z
+fecha_local=2026-10-22T14:30:41-05:00
+zona_horaria=America/Lima
+kernel=7.3.0-rc7-pc-g32c52ec87d62
+modo=software
+compositor=hyprland
+salida=0

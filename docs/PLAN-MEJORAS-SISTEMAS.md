@@ -3,8 +3,10 @@
 Fecha: 2026-10-22. Estado: **cadenas, handles C y primer banco ASM verificados en el taller;
 integracion de propiedad y las siguientes etapas pendientes**. Ver [resultado y limites](CADENAS-ACOTADAS.md).
 La [puerta ELF](ELF-PRODUCCION.md) ya forma parte de build/instalacion;
-generico #49 y PC #35 estan probados en QEMU y copiados en A:, con arranque
+generico #50 y PC #36 estan probados en QEMU y copiados en A:, con arranque
 nativo pendiente de confirmacion.
+La [entrega de hora peruana](HORA-PERU.md) incorpora America/Lima, LC_TIME
+peruano y ajuste NTS puntual al abrir el escritorio.
 El objetivo es conservar la experiencia de juego que el propietario confirma y
 convertir problemas concretos en mejoras verificadas. No se da por terminada una
 etapa por escribir este documento ni por agregar fichas al museo.
@@ -49,6 +51,8 @@ No promover una imagen experimental sobre esta referencia antes de evaluar su re
 La nueva [instalacion ELF](../evidencias/elf-produccion-2026-10-22/instalacion-A.json)
 reemplaza esos archivos de A: tras validar los candidatos. Los dos kernels y
 dos sistemas anteriores se conservan en el respaldo local bajo build/.
+La [instalacion horaria posterior](../evidencias/hora-peru-2026-10-22/instalacion-A.json)
+conserva otro respaldo de esos perfiles y el mismo datos.ext4.
 
 El ultimo analisis disponible de la partida registra 120 muestras, RAM maxima
 7,645 GiB, VRAM maxima 3364 MiB y 30 GiB libres al cerrar. El propietario

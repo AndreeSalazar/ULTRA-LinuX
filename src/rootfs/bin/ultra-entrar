@@ -7,4 +7,4 @@
 [ -x /arch/usr/bin/bash ] || { echo "ROJO [SISTEMA]: no hay sistema Arch en /arch"; exit 1; }
 [ $# -gt 0 ] || set -- /usr/bin/bash -l
 exec chroot /arch /usr/bin/env -i HOME=/root TERM="${TERM:-linux}" \
-    PATH=/usr/local/sbin:/usr/local/bin:/usr/bin GLIBC_TUNABLES="$GLIBC_TUNABLES" "$@"
+    PATH=/usr/local/sbin:/usr/local/bin:/usr/bin LC_TIME=es_PE.UTF-8 GLIBC_TUNABLES="$GLIBC_TUNABLES" "$@"

@@ -1,0 +1,1 @@
+VERDE [ELF]: cinco ejecutables de produccion auditados y ligados al manifiesto.

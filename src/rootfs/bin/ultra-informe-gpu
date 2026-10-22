@@ -8,6 +8,8 @@ tmp=$out.$$
 {
     printf 'ULTRA GPU - ultimo intento\n'
     date -u '+fecha_utc=%Y-%m-%dT%H:%M:%SZ'
+    TZ=America/Lima date '+fecha_local=%Y-%m-%dT%H:%M:%S%:z'
+    printf 'zona_horaria=America/Lima\n'
     printf 'kernel=%s\nmodo=%s\ncompositor=%s\nsalida=%s\n' "$(uname -r)" "${1:-?}" "${2:-?}" "${3:-?}"
     printf '\n[NODOS: estado posterior al intento, sin ejecutar nvidia-smi]\n'
     for node in /dev/nvidia0 /dev/nvidiactl /dev/nvidia-modeset /dev/dri/card* /dev/dri/renderD*; do

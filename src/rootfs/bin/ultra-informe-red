@@ -5,6 +5,7 @@ set -uo pipefail
 export LC_ALL=C
 printf '\n[ETHERNET: estado posterior a la sesion; contadores no atomicos]\n'
 date -u '+red_fecha_utc=%Y-%m-%dT%H:%M:%SZ'
+TZ=America/Lima date '+red_fecha_local=%Y-%m-%dT%H:%M:%S%:z'
 timeout -k 1 2 /usr/local/libexec/ultra-red-contadores || echo 'RED NA consulta_fallida'
 timeout -k 1 2 ip -4 route show default
 printf '[TCP/IP: contadores globales acumulados desde arranque, no por aplicacion]\n'

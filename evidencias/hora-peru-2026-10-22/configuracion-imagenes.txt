@@ -1,0 +1,24 @@
+PERFIL=generico
+/usr/share/zoneinfo/America/Lima
+America/Lima
+1969-12-31 19:00 -0500 diciembre
+server time.cloudflare.com iburst nts
+port 0
+cmdport 0
+pidfile /run/ultra-hora/chronyd.pid
+bindcmdaddress /run/ultra-hora/chronyd.sock
+ntsdumpdir /run/ultra-hora/nts
+49a3e26af11eb64d6946ee026a6a9ac36b035677e508ce31ce1041d582a77153  /home/builder/linux-reconstruido/artifacts/generico/sistema-a/usr/local/libexec/ultra-preparar-hora
+aa3aec592fab980b57ebf560d4f52b1027d3d59bb06db98fde74423b141ce109  /home/builder/linux-reconstruido/artifacts/generico/sistema-a/etc/ultra/chrony.conf
+PERFIL=pc
+/usr/share/zoneinfo/America/Lima
+America/Lima
+1969-12-31 19:00 -0500 diciembre
+server time.cloudflare.com iburst nts
+port 0
+cmdport 0
+pidfile /run/ultra-hora/chronyd.pid
+bindcmdaddress /run/ultra-hora/chronyd.sock
+ntsdumpdir /run/ultra-hora/nts
+49a3e26af11eb64d6946ee026a6a9ac36b035677e508ce31ce1041d582a77153  /home/builder/linux-reconstruido/artifacts/pc/sistema-a/usr/local/libexec/ultra-preparar-hora
+aa3aec592fab980b57ebf560d4f52b1027d3d59bb06db98fde74423b141ce109  /home/builder/linux-reconstruido/artifacts/pc/sistema-a/etc/ultra/chrony.conf

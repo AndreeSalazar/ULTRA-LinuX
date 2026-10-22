@@ -1,0 +1,1 @@
+AMARILLO [HORA]: sincronizacion pendiente (codigo 1); consulta ultra-hora

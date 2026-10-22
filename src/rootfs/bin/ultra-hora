@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -uo pipefail
+export TZ=America/Lima LC_TIME=es_PE.UTF-8
+printf 'Peru · America/Lima\n'
+date '+Hora local: %d/%m/%Y %H:%M:%S (UTC%:z)'
+date -u '+Hora UTC:   %Y-%m-%d %H:%M:%SZ'
+if [[ -r /run/ultra-hora/sincronizado ]]; then
+    printf 'Ultima sincronizacion valida (UTC): '
+    head -c 64 /run/ultra-hora/sincronizado
+else
+    printf 'Sincronizacion por internet pendiente; la zona horaria ya esta configurada.\n'
+fi
+printf 'Se intenta al abrir el escritorio; sin internet no bloquea la sesion.\n'

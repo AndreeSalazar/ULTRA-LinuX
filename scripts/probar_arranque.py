@@ -30,6 +30,7 @@ CHECKS = [
     ('uname -sm', 'Linux x86_64'),
     ('ps', '/init'),
     ('echo $((6*7))', '42'),
+    ("date -d @0 '+%Y-%m-%d %H:%M %z'", '1969-12-31 19:00 -0500'),
     ('ls /proc/self/fd', '0'),
     # Guardians on the ULTRA kernel itself: CET, a UB trap and the box.
     ('minas --cet', 'ACTIVA (shstk)'),
@@ -52,6 +53,9 @@ if PERFIL == 'pc':
 if PERFIL in ('generico', 'pc'):
     # The generic kernel sees the PC's buses and drivers, not only a serial console.
     CHECKS += [
+        ("ultra-entrar /usr/bin/date -d @0 '+%Y-%m-%d %H:%M %z'", '1969-12-31 19:00 -0500'),
+        ("ultra-entrar /usr/bin/date -d @0 '+%B'", 'diciembre'),
+        ('ultra-entrar /usr/local/bin/ultra-hora', 'America/Lima'),
         ('ls /sys/bus/pci/drivers', 'ahci'),
         ('grep -c processor /proc/cpuinfo', '1'),
         ('cat /proc/filesystems', 'ext4'),
@@ -560,6 +564,11 @@ def check_hyprland(conn, failures):
             network = response('HTTPS-FIN-9', timeout=20)
             transcript += network
             expect('HTTPS-VERIFICADO-8' in network, 'Red: DHCP, DNS y HTTPS con certificados validos')
+            conn.sendall(b'ultra-entrar /usr/bin/cat /run/ultra-hora/sincronizado; ultra-entrar /usr/bin/cat /run/ultra-hora/ultima.log; echo HORA-NTS-FIN-$((40+8))\n')
+            hour = response('HORA-NTS-FIN-48')
+            transcript += hour
+            expect(bool(re.search(r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ\s*$', hour.replace('\r', ''), re.M)),
+                   'Hora: sincronizacion NTS real confirmada por el auxiliar')
         mon.sendall(b'sendkey meta_l-r\n')
         launcher = False
         for _ in range(15):

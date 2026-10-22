@@ -1,0 +1,8 @@
+2026-10-22T19:09:54Z chronyd version 4.9 starting (+CMDMON +REFCLOCK +RTC +PRIVDROP +SCFILTER +SIGND +NTS +SECHASH +IPV6 -DEBUG)
+2026-10-22T19:09:54Z Wrong permissions on /run/ultra-hora
+2026-10-22T19:09:54Z Disabled command socket /run/ultra-hora/chronyd.sock
+2026-10-22T19:09:54Z Disabled control of system clock
+2026-10-22T19:09:54Z Running with root privileges
+2026-10-22T19:10:01Z System clock wrong by 0.024343 seconds (ignored)
+2026-10-22T19:10:01Z chronyd exiting
+NTS-CONSULTA-SIN-AJUSTE-RESULTADO=0

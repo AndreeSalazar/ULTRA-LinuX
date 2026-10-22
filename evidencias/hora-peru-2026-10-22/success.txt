@@ -1,0 +1,2 @@
+VERDE [HORA]: reloj sincronizado por NTS; zona local America/Lima
+HORA: ultima sincronizacion correcta hace menos de una hora

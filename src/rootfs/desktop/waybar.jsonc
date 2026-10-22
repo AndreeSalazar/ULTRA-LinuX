@@ -51,6 +51,8 @@
       "format": "{:%H:%M}",
       "format-alt": "{:%a %d / %m}",
       "timezone": "America/Lima",
+      "locale": "es_PE.UTF-8",
+      "on-click-right": "foot --hold ultra-hora",
       "tooltip-format": "<big>{:%A %d de %B}</big>\n<tt>{calendar}</tt>"
     },
     "cpu": {

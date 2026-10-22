@@ -47,3 +47,4 @@ evidencias/asm-hex/** whitespace=-blank-at-eol
 evidencias/elf-produccion-2026-10-22/** text eol=lf whitespace=-blank-at-eol
 evidencias/elf-produccion-2026-10-22/**/*.png binary
 evidencias/elf-produccion-2026-10-22/*.png binary
+evidencias/hora-peru-2026-10-22/** text eol=lf whitespace=-blank-at-eol

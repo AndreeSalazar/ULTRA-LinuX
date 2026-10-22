@@ -31,6 +31,7 @@ case $mode in
         {
             printf 'ULTRA GRAFICOS v1\n'
             date -u '+fecha_utc=%Y-%m-%dT%H:%M:%SZ'
+            TZ=America/Lima date '+fecha_local=%Y-%m-%dT%H:%M:%S%:z'
             printf 'modo=%s wayland=%s\n' "${ULTRA_RENDER_MODE:-desconocido}" "${WAYLAND_DISPLAY:-ausente}"
             printf 'Los proveedores informados son reales; software no equivale a GPU fisica.\n'
             printf '\n[PAQUETES: manifiesto de construccion]\n'

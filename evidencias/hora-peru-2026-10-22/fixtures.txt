@@ -1,0 +1,4 @@
+HORA-TEST-OK: fail; stub sin cambios al reloj
+HORA-TEST-OK: success; stub sin cambios al reloj
+HORA-TEST-OK: busy; stub sin cambios al reloj
+chronyd (chrony) version 4.9 (+CMDMON +REFCLOCK +RTC +PRIVDROP +SCFILTER +SIGND +NTS +SECHASH +IPV6 -DEBUG)
