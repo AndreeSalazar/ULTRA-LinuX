@@ -208,6 +208,9 @@ Vulkan y rechazo de dependencia ausente durante grabacion, en ambos perfiles.
 Por preferencia del propietario, la prueba fisica RTX queda fuera del alcance
 actual y no bloquea la integracion portable en un consumidor y backend definidos.
 Las afirmaciones de rendimiento nativo siguen requiriendo medicion nativa.
+El [primer cambio del comando grafico](GRAFICA-INTEGRACION-COMANDO.md) queda
+probado en su fuente, aun sin empaquetar una imagen nueva. Se distinguen INT-02
+(ciclo de vida del comando) e INT-01 (consumidor de la reutilizacion C++ pendiente).
 
 **Motivo:** sus condiciones de uso no son identicas a OpenGL; las capas de
 validacion ayudan a detectar incumplimientos concretos, no certifican toda la API.

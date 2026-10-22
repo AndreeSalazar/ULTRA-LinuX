@@ -2,12 +2,12 @@
 
 Fecha de revision: 2026-10-22, America/Lima.
 
-- [Tareas](tareas-graficas.csv): 18 registros con prioridad, dependencia,
+- [Tareas](tareas-graficas.csv): 19 registros con prioridad, dependencia,
   criterio de cierre, evidencia, siguiente accion y limites. Prioridad 1 es
   trabajo previo o importante; prioridad 2 es ampliacion posterior. El estado
   describe el alcance probado, no un nivel universal de seguridad.
-- [Mediciones](mediciones-graficas.csv): 12 filas de medianas por proceso,
-  conservando el experimento base y esta ampliacion. Cada fila resume siete
+- [Mediciones](mediciones-graficas.csv): 18 filas de medianas por proceso,
+  conservando el experimento base y las ampliaciones. Cada fila resume siete
   muestras por ruta con 2048 operaciones por muestra. Las observaciones crudas
   permanecen en el informe enlazado de cada experimento.
 
@@ -28,6 +28,8 @@ tienen costes y dependencias distintos. Mantener los estados especificos:
 `PROBADO_LAB`, `PROBADO_SOFTWARE`, `MEDIDO_SOFTWARE`, `INTEGRADO_QEMU`,
 `PENDIENTE_SOFTWARE`, `PENDIENTE_HARDWARE`, `PENDIENTE_INTEGRACION` y
 `FUERA_ALCANCE_ACTUAL` para trabajo opcional apartado por el propietario.
+`INTEGRADO_FUENTE` indica un consumidor propio modificado y probado, aun sin
+empaquetar/desplegar una imagen nueva. No equivale a `INTEGRADO_QEMU` del sistema.
 Actualizar la evidencia y el criterio de cierre antes de cambiar un estado.
 
 ## Controles agregados en esta revision
@@ -84,5 +86,9 @@ GPU concreta se retoma si se solicita; no se atribuyen mejoras nativas sin ella.
 
 Fuentes: [capacidades CUDA por GPU](https://developer.nvidia.com/cuda/gpus),
 [PTX, cubin y objetivos SM](https://developer.nvidia.com/blog/understanding-ptx-the-assembly-language-of-cuda-gpu-computing/).
+
+Ampliacion posterior: [G-14 y primer cambio en el comando grafico](../GRAFICA-INTEGRACION-COMANDO.md).
+El historial CSV conserva los experimentos anteriores. Las mejoras del comando
+y el readback a 1080p son controles separados del microbenchmark temporal.
 
 Referencia: [dependencias de memoria Vulkan](https://docs.vulkan.org/guide/latest/synchronization_examples.html).

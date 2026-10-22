@@ -1,0 +1,903 @@
+ffe222d59592fe5ec6210f54189ec39280e430ae3ea9194917fbbf87a9e9f647  C++/CMakeLists.txt
+9ea9c356bfa9dad73b714b558968fd637ac8bcbc7df158b0e2394c1898afa2ce  C++/GPUS.md
+bf39219fbda1e2334e1ae80a320c01aabc8afccd75e9e73fd582714184a507a1  C++/README.md
+d3f61f85537f887f9e538f1bab634888dfe39f5a67433dd78d214f59a47f3fec  C++/laboratorio/CMakeLists.txt
+9bd41e3556da675fc0743c256a4eeffd2119c31a9b2377aa4bc77ced2929a937  C++/laboratorio/categorias.md
+c8336113c6a2f830aefcf4047af19478033545fa523963c37a7e4f18ec734348  C++/laboratorio/grafica/medicion.hpp
+1a69af11861b4bb3116472a40c442bd325ded25c7d172168534c109dca4a8ccd  C++/laboratorio/grafica/sonda-egl.cpp
+d4c46ec2cc18afab965b27482359bcd799447b9b8af9cba957f03e13d29e9bd9  C++/laboratorio/grafica/sonda-gpus.cpp
+8d10165b56dafcc00f8d816871e3eb90850060b1ff08ab4b112982bb9882576d  C++/laboratorio/grafica/sonda-vulkan.cpp
+faea21ac08d86ce03b2eeb2a36f5a3c414e4669ed4ededdc72e7aed876eb07c7  C++/laboratorio/herramientas/probar-contratos.cpp
+d9fe46bc73aea5a0e732181a78685fef6a578c05b85b717823cba7c604fde071  C++/laboratorio/herramientas/sonda-cxx.cpp
+a597c41e425e64636e3542a5b1c6ada38c2e75cc6ec6980bb4e1c6e98f3c0bc9  C++/produccion/CMakeLists.txt
+32da05cc28ec76c78f3eb8a4818fab6fbb5d007aa7e15b1ceb34dc7d25807eb2  C++/produccion/gpus.hpp
+4d570493a0389c32e3e505fc7081b4f8ae2848e4236aa3d7e56a1e4e50bbfab7  C++/produccion/guard_gles.hpp
+11b5bbac29e96ab84bd6b70b9ce80f7cbd5643758afe78dffeaaa9c7592a7e0e  C++/produccion/limites.hpp
+b952b1b4d19541f58a1877261acae8c1c38dfeb97275c68208f095292cf425db  aislar-grafica-software.sh
+ef1607ccebb5ffa0daf15ac18e62bd979c25114f0f8cbbec0dccf102626ddf3b  ejecutar-grafica-limitada.sh
+52776cc372f009e035f28759734a80d96c6f9b470c73ef164d30cbfdfa259081  probar-ultra-graficos.sh
+08f3d39519959891e1b26caaa595adfc0ed7e443741476cac366ab3a79128adf  ultra-graficos
+g++ (GCC) 16.2.1 20260810
+Copyright (C) 2026 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+abseil-cpp 20260817.0-2
+acl 2.4.0-1
+adwaita-cursors 51.0-1
+adwaita-fonts 51.0-2
+adwaita-icon-theme 51.0-1
+adwaita-icon-theme-legacy 46.2-3
+alsa-lib 1.2.16.1-1
+alsa-topology-conf 1.2.5.1-4
+alsa-ucm-conf 1.2.16.1-1
+aquamarine 0.15.1-1
+archlinux-keyring 20260909-1
+at-spi2-core 2.62.1-1
+atkmm 2.28.5-2
+attr 2.6.0-1
+audit 4.2.1-1
+autoconf 2.73-1
+automake 1.19-1
+avahi 1:0.9rc5-2
+base 3-3
+base-devel 1-2
+bash 5.3.20-1
+bc 1.08.2-1
+binutils 2.47-4
+bison 3.8.2-8
+bluez-libs 5.87-2
+boost-libs 1.92.0-1
+brotli 1.2.0-1
+btrfs-progs 7.1-1
+bubblewrap 0.13.1-1
+busybox 1.36.1-4
+bzip2 1.0.8-6
+ca-certificates 20240618-1
+ca-certificates-mozilla 3.131-1
+ca-certificates-utils 20240618-1
+cage 0.3.1-1
+cairo 1.18.6-1
+cairomm 1.14.6-1
+ccache 4.14.1-1
+chrony 4.9-1
+cloud-guest-utils 0.33-3
+cloud-init 26.2-1
+cmake 4.4.4-1
+coreutils 9.12-2
+cpio 2.15-3
+cppdap 1.58.0-3
+cryptsetup 2.8.8-1
+curl 8.23.0-1
+dav1d 1.5.4-1
+db5.3 5.3.28-7
+dbus 1.16.2-2
+dbus-broker 37-3
+dbus-broker-units 37-3
+dbus-units 37-3
+dconf 51.0-1
+debugedit 5.3-2
+default-cursors 3-1
+desktop-file-utils 0.28-1
+device-mapper 2.03.43-2
+dhclient 4.4.3.P1-4
+diffutils 3.12-2
+dosfstools 4.2-5
+duktape 2.7.0-7
+e2fsprogs 1.47.4-1
+efibootmgr 18-4
+efivar 39-2
+elfutils 0.196-1
+erofs-utils 1.9.4-1
+exo 4.20.0-2
+expat 2.9.0-1
+fakeroot 1:1.37.2-3
+fcft 3.3.3-1
+file 5.48-1
+filesystem 2025.10.12-1
+findutils 4.11.0-1
+flac 1.5.0-1
+flex 2.6.4-6
+fmt 12.2.0-1
+fontconfig 2:2.18.3-2
+foot 1.28.0-2
+freetype2 2.15.0-1
+fribidi 1.0.17-1
+fuse-common 3.18.3-1
+fuse2 2.9.9-6
+fuzzel 1.15.0-1
+gawk 5.4.1-1
+gc 8.2.12-1
+gcc 16.2.1+r23+gd564253eb6c8-1
+gcc-libs 16.2.1+r23+gd564253eb6c8-1
+gcr 3.41.2-2
+gcr-4 4.4.1-1
+gdb 18.1-1
+gdb-common 18.1-1
+gdbm 1.26-2
+gdk-pixbuf2 2.44.8-1
+gettext 1.0-2
+giflib 6.1.3-2
+git 2.56.0-1
+glib-networking 1:2.90.0-1
+glib2 2.90.1-1
+glibc 2.44+r50+g1848099f063e-1
+glibmm 2.66.10-1
+glslang 1:1.4.363.0-1
+glycin 2.2.3-1
+gmp 6.3.0-3
+gnome-keyring 1:51.1-1
+gnulib-l10n 20241231-1
+gnupg 2.4.9-3
+gnutls 3.8.13-3
+gperftools 2.18.1-1
+gpgme 2.2.0-1
+gpsd 3.27.5-1
+gptfdisk 1.0.10-2
+graphite 1:1.3.15-1
+grep 3.12-2
+groff 1.24.2-1
+grub 2:2.16-1
+gsettings-desktop-schemas 51.0-1
+gsettings-system-schemas 51.0-1
+gtest 1.18.0-1
+gtk-layer-shell 0.10.1-1
+gtk-update-icon-cache 1:4.24.1-1
+gtk3 1:3.24.52-2
+gtkmm3 3.24.11-1
+gtksourceview4 4.8.4-2
+guile 3.0.11-1
+gzip 1.15-1
+harfbuzz 14.6.0-1
+hicolor-icon-theme 0.18-1
+highway 1.4.0-1
+hiredis 1.4.1-1
+hwdata 0.412-1
+hwloc 2.15.0-1
+hyprcursor 0.1.13-7
+hyprgraphics 0.5.1-4
+hyprland 0.56.2-4
+hyprland-guiutils 0.2.2-4
+hyprlang 0.6.8-5
+hyprtoolkit 0.6.0-1
+hyprutils 0.14.2-1
+hyprwire 0.3.1-3
+iana-etc 20260617-1
+icu 78.3-1
+iniparser 4.3.2-1
+iproute2 7.2.0-1
+iptables 1:1.8.13-1
+iputils 20250605-1
+iso-codes 4.20.1-1
+jack2 1.9.22-2
+jansson 2.15.1-1
+jbigkit 2.2-1
+json-c 0.19-1
+json-glib 1.10.8-1
+jsoncpp 1.9.8-1
+kbd 2.10.0-1
+keyutils 1.6.3-4
+kmod 34.2-1
+krb5 1.22.2-1
+lame 4.0-1
+lcms2 2.19.1-1
+leancrypto 1.9.1-1
+less 1:710-1
+libarchive 3.8.10-1
+libasan 16.2.1+r23+gd564253eb6c8-1
+libassuan 3.0.0-1
+libasyncns 1:0.8+r3+g68cd5af-3
+libatomic 16.2.1+r23+gd564253eb6c8-1
+libblake3 1.8.7-1
+libbpf 1.7.0-1
+libbsd 0.12.2-2
+libcap 2.78-1
+libcap-ng 0.9.6-1
+libcloudproviders 0.4.1-1
+libcolord 1.4.8-2
+libcups 2:2.4.20-1
+libdaemon 0.14-6
+libdatrie 0.2.14-1
+libdbusmenu-glib 18.10.20180917-2
+libdbusmenu-gtk3 18.10.20180917-2
+libdecor 0.2.5-1
+libdeflate 1.26-1
+libdisplay-info 0.3.0-1
+libdrm 2.4.134-1
+libedit 20260512_3.1-1
+libei 1.6.0-2
+libelf 0.196-1
+libepoxy 1.5.10-3
+libevdev 1.14.0-1
+libevent 2.1.13-2
+libexif 0.6.26-1
+libffi 3.8.0-1
+libfontenc 1.1.9-1
+libgcc 16.2.1+r23+gd564253eb6c8-1
+libgcrypt 1.12.4-1
+libgfortran 16.2.1+r23+gd564253eb6c8-1
+libglvnd 1.7.0-3
+libgomp 16.2.1+r23+gd564253eb6c8-1
+libgpg-error 1.61-1
+libgtop 2.41.3-2
+libgudev 238-4
+libhwasan 16.2.1+r23+gd564253eb6c8-1
+libice 1.1.2-1
+libidn2 2.3.8-1
+libimobiledevice 1.4.0-2
+libimobiledevice-glue 1.3.2-1
+libinput 1.32.0-1
+libisl 0.28-1
+libjpeg-turbo 3.2.0-2
+libjxl 0.12.0-1
+libksba 1.8.1-1
+libldap 2.7.1-1
+libliftoff 0.5.0-1
+liblsan 16.2.1+r23+gd564253eb6c8-1
+libmakepkg-dropins 20-2
+libmd 1.3.0-1
+libmnl 1.0.5-2
+libmpc 1.4.1-1
+libmpdclient 2.27-1
+libnetfilter_conntrack 1.1.1-1
+libnfnetlink 1.0.2-2
+libnftnl 1.3.2-1
+libnghttp2 1.70.0-1
+libnghttp3 1.18.0-1
+libngtcp2 1.25.0-1
+libnl 3.12.0-1
+libnotify 0.8.9-1
+libnsl 2.0.1-2
+libntfs-3g 2026.9.28-1
+libobjc 16.2.1+r23+gd564253eb6c8-1
+libogg 1.3.6-1
+libp11-kit 0.26.5-1
+libpcap 1.11.0-1
+libpciaccess 0.19-1
+libpipeline 1.5.8-1
+libpipewire 1:1.6.9-1
+libplist 2.7.0-3
+libpng 1.6.59-1
+libproxy 0.5.12-1
+libpsl 0.21.5-2
+libpulse 17.0+r134+g77d25a1e6-1
+libquadmath 16.2.1+r23+gd564253eb6c8-1
+librsvg 2:2.63.3-1
+libsamplerate 0.2.2-3
+libsasl 2.1.28-5
+libseccomp 2.6.0-1
+libsecret 0.21.8.2-1
+libsigc++ 2.12.2-1
+libsm 1.2.6-1
+libsndfile 1.2.2-4
+libsoup3 3.8.0-1
+libssh2 1.11.1-7
+libstdc++ 16.2.1+r23+gd564253eb6c8-1
+libstemmer 3.1.1-1
+libsysprof-capture 51.0-1
+libtasn1 4.21.0-1
+libtatsu 1.0.5-1
+libthai 0.1.30-1
+libtiff 4.7.2-2
+libtirpc 1.3.8-1
+libtool 2.6.2-5
+libtsan 16.2.1+r23+gd564253eb6c8-1
+libubsan 16.2.1+r23+gd564253eb6c8-1
+libunistring 1.4.2-1
+libunwind 1.8.3-1
+liburing 2.15-1
+libusb 1.0.30-1
+libusbmuxd 2.1.1-2
+libutf8proc 2.12.0-1
+libuv 1.52.1-2
+libverto 0.3.2-6
+libvorbis 1.3.7-4
+libwacom 2.20.0-1
+libwebp 1.6.0-2
+libwireplumber 0.5.18-1
+libx11 1.8.14-1
+libxau 1.0.12-1
+libxcb 1.17.0-1
+libxcomposite 0.4.7-1
+libxcrypt 4.5.2-1
+libxcursor 1.2.3-1
+libxcvt 0.1.3-1
+libxdamage 1.1.7-1
+libxdmcp 1.1.5-2
+libxext 1.3.7-1
+libxfce4ui 4.20.2-1
+libxfce4util 4.20.1-1
+libxfixes 6.0.2-1
+libxfont2 2.0.9-1
+libxft 2.3.9-1
+libxi 1.8.4-1
+libxinerama 1.1.6-1
+libxkbcommon 1.13.2-1
+libxkbcommon-x11 1.13.2-1
+libxkbfile 1.2.0-1
+libxml2 2.15.4-1
+libxrandr 1.5.5-1
+libxrender 0.9.13-1
+libxshmfence 1.3.3-1
+libxtst 1.2.6-1
+libxxf86vm 1.1.7-1
+libyaml 0.2.5-3
+libzip 1.11.4-1
+licenses 20240728-1
+linux 7.2.11.arch1-1
+linux-api-headers 7.2-1
+llvm-libs 23.1.3-3
+lm_sensors 1:3.6.2-1
+lmdb 0.9.35-1
+lua 5.5.1-1
+lua54 5.4.9-1
+lz4 1:1.10.0-2
+lzo 2.10-5
+m4 1.4.21-2
+make 4.4.1-3
+man-db 2.13.1-2
+man-pages 6.19-1
+mesa 1:26.2.5-1
+mesa-utils 9.0.0-7
+mkinitcpio 42.2-1
+mkinitcpio-busybox 1.36.1-1
+mousepad 0.7.0-1
+mpdecimal 4.0.1-3
+mpfr 4.2.2-1
+mpg123 1.33.7-1
+mtdev 1.1.7-1
+mtools 1:4.0.49-1
+muparser 2.3.5-2
+ncurses 6.6-2
+nettle 4.0-1
+nftables 1:1.1.7-3
+ninja 1.13.2-3
+npth 1.8-1
+ntfs-3g 2026.9.28-1
+ntfsprogs 2026.9.28-1
+numactl 2.0.19-1
+onetbb 2023.1.0-1
+openbsd-netcat 1.238_1-1
+openssh 10.6p1-2
+openssl 3.6.5-1
+opus 1.6.1-1
+p11-kit 0.26.5-1
+pacman 7.1.0.r9.g54d9411-3
+pacman-mirrorlist 20260610-1
+pahole 1:1.32-1
+pam 1.7.3-1
+pambase 20260616-1
+pango 1:1.58.2-1
+pangomm 2.46.5-1
+patch 2.8-1
+pciutils 3.15.0-1
+pcre2 10.49-1
+perl 5.42.3-1
+perl-error 0.17030-3
+perl-mailtools 2.22-3
+perl-timedate 2.35-1
+pinentry 1.3.3-1
+pixman 0.46.4-1
+pkgconf 3.0.7-1
+playerctl 2.4.1-5
+polkit 128-1
+popt 1.19-2
+pps-tools 1.0.3-2
+procps-ng 4.0.7-1
+psmisc 23.7-2
+pugixml 1.16-1
+python 3.14.8-1
+python-attrs 26.1.0-1
+python-certifi 2026.07.22-1
+python-charset-normalizer 3.5.1-1
+python-configobj 5.0.9-6
+python-idna 3.20-1
+python-jinja 1:3.1.6-3
+python-jsonpatch 1.35-1
+python-jsonpointer 3.2.1-1
+python-jsonschema 4.26.0-1
+python-jsonschema-specifications 2025.9.1-2
+python-markupsafe 3.0.4-1
+python-netifaces 0.11.0-9
+python-oauthlib 3.3.1-2
+python-pyserial 3.5-9
+python-referencing 0.37.0-3
+python-requests 2.34.2-1
+python-rpds-py 2026.9.1-1
+python-typing_extensions 4.16.0-1
+python-urllib3 2.8.0-1
+python-yaml 6.0.3-2
+python-z3-solver 4.16.0-1
+qemu-guest-agent 11.1.2-1
+re2 2:2025.11.05-6
+readline 8.3.6-1
+resvg 0.48.1-1
+rhash 1.4.6-1
+rsync 3.5.1-3
+run-parts 5.24-1
+seatd 0.9.3-1
+sed 4.10-2
+shadow 4.20.0.arch1-1
+shared-mime-info 2.5.1-2
+sndio 1.10.0-1
+source-highlight 3.1.9-19
+spdlog 1.17.0-2
+spirv-tools 1:1.4.363.0-1
+sqlite 3.54.0-1
+startup-notification 0.12-9
+strace 7.2-1
+sudo 1.9.17.p2-6
+systemd 262.1-1
+systemd-libs 262.1-1
+systemd-sysvcompat 262.1-1
+tar 1.35-5
+texinfo 7.3-1
+thunar 4.20.10-1
+tinysparql 3.12.0-1
+tomlplusplus 3.4.0-2
+tpm2-tss 4.2.0-2
+tzdata 2026e-1
+upower 1.91.5-1
+util-linux 2.42.4-1
+util-linux-libs 2.42.4-1
+vulkan-headers 1:1.4.363.0-1
+vulkan-icd-loader 1.4.363.0-1
+vulkan-mesa-implicit-layers 1:26.2.5-1
+vulkan-swrast 1:26.2.5-1
+vulkan-tools 1.4.363.0-1
+vulkan-validation-layers 1.4.363.0-1
+waybar 0.15.0-3
+wayland 1.26.0-1
+wayland-protocols 1.49-1
+which 2.25-1
+wlroots0.20 0.20.2-1
+xcb-proto 1.17.0-4
+xcb-util 0.4.1-2
+xcb-util-errors 1.0.1-2
+xcb-util-image 0.4.1-3
+xcb-util-keysyms 0.4.1-5
+xcb-util-renderutil 0.3.10-2
+xcb-util-wm 0.4.2-2
+xfconf 4.20.0-2
+xkeyboard-config 2.48-1
+xorg-fonts-encodings 1.1.0-2
+xorg-server-common 21.1.25-2
+xorg-setxkbmap 1.3.5-1
+xorg-xkbcomp 1.5.0-1
+xorg-xprop 1.2.8-1
+xorg-xwayland 24.1.14-1
+xorgproto 2026.1-1
+xxhash 0.8.4-1
+xz 5.8.4-1
+z3 4.16.0-1
+zlib 1:1.3.2-4
+zlib-ng 2.3.3-1
+zstd 1.5.7-3
+1.5
+3.2
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found PkgConfig: /usr/bin/pkg-config (found version "3.0.7")
+-- Checking for module 'egl'
+--   Found egl, version 1.5
+-- Checking for module 'glesv2'
+--   Found glesv2, version 3.2
+-- Found Vulkan: /usr/lib/libvulkan.so (found version "1.4.363") found components: glslangValidator missing components: glslc
+-- Configuring done (0.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/prod
+[ 10%] Building CXX object laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o
+[ 20%] Linking CXX executable sonda-cxx
+[ 20%] Built target sonda-cxx
+[ 30%] Building CXX object laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o
+[ 40%] Linking CXX executable probar-contratos
+[ 40%] Built target probar-contratos
+[ 50%] Building CXX object laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o
+[ 60%] Linking CXX executable sonda-egl
+[ 60%] Built target sonda-egl
+[ 70%] Building CXX object laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o
+[ 80%] Linking CXX executable sonda-gpus
+[ 80%] Built target sonda-gpus
+[ 90%] Building CXX object laboratorio/CMakeFiles/sonda-vulkan.dir/grafica/sonda-vulkan.cpp.o
+[100%] Linking CXX executable sonda-vulkan
+[100%] Built target sonda-vulkan
+[
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "output": "laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-egl.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-egl.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/prod/laboratorio",
+  "command": "/usr/bin/g++   -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O2 -o CMakeFiles/sonda-vulkan.dir/grafica/sonda-vulkan.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-vulkan.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-vulkan.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-vulkan.dir/grafica/sonda-vulkan.cpp.o"
+}
+]VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VERDE [CPU-01]: 3479 contratos contra oraculo de 128 bits y dos limites
+VERDE [CPU-02]: prefijos, mutaciones, limites maximos y rechazos del serializador
+VERDE [CPU-04]: 30 cabeceras con checksum valido; checksum no autentica contenido
+VERDE [CPU-03]: 4096 entradas pseudoaleatorias acotadas rechazadas
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+EGL: 1.5 vendor=Mesa Project
+GL_VENDOR: Mesa
+GL_RENDERER: llvmpipe (LLVM 23.1.3, 256 bits)
+GL_VERSION: OpenGL ES 3.2 Mesa 26.2.5-arch1.1
+GLSL: OpenGL ES GLSL ES 3.20
+VERDE [G-01]: contexto GLES3 y pixel RGBA8 correctos
+VERDE [G-02]: enum rechazado y contexto recuperado
+SHADER-ERROR-ESPERADO: 0:2(1): error: syntax error, unexpected NEW_IDENTIFIER
+VERDE [G-03]: GLSL invalido rechazado con diagnostico
+VERDE [G-04]: GLSL valido compila despues del rechazo; contexto sigue utilizable
+VERDE [G-06]: dimensiones, capacidad, presupuesto y limite del dispositivo rechazados
+VERDE [G-12]: 64 actualizaciones sin recrear textura; pixels, limites y estado conservados
+VERDE [G-07]: textura correcta con PBO/stride adversos y estado restaurado
+VERDE [G-08]: propiedad de contexto, rechazo sin contexto y cierre idempotente
+VERDE [G-09]: RAII libera y error GL previo se rechaza sin romper contexto
+VERDE [G-10]: otro contexto rechazado; recurso del propietario conservado
+VERDE [G-11]: 256 ciclos crear/mover/destruir; nombres liberados y pixel posterior correcto
+VERDE [G-14]: 1x1, 4 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-14]: 31x17, 2108 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-14]: 256x128, 131072 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-14]: 1920x1080, 8294400 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-13]: 16 contextos recreados; pixel correcto y textura liberada antes del cierre
+VERDE [G-05]: recursos EGL liberados
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VERDE [S-01]: dinamico compila, dibuja y guarda .gpus (6738 bytes)
+VERDE [S-02]: estatico importa en contexto nuevo y produce el mismo pixel sin recompilar GLSL
+VERDE [S-03]: dinamico reutiliza cache compatible
+VERDE [S-04.0]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.1]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.2]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.3]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.4]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.5]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.6]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.7]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.8]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.9]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-05]: reemplazo fallido conserva programa y pixel anteriores
+VERDE [S-06]: candidato validado se activa entre dibujos y programa anterior se libera
+ALCANCE: GLES experimental; no hot-reload asincrono ni aceleracion medida
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN validacion de sincronizacion solicitada explicitamente
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+VERDE [V-02]: 64 ciclos buffer/memoria coherente, patron CPU y liberacion ordenada
+VERDE [V-04]: 128 envios con fence y patron correcto; 64 recreados frente a 1 reutilizado
+VERDE [V-05]: 64 fill/copy con barrera transferencia-lectura, fence y 1024 palabras verificadas
+VALIDACION VUID-VkBufferCreateInfo-size-00912
+VULKAN errores=1 esperados=1 inesperados=0
+VERDE: buffer valido y llamada invalida bloqueada por validacion
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN validacion de sincronizacion solicitada explicitamente
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+VALIDACION SYNC-HAZARD-READ-AFTER-WRITE
+VULKAN errores=1 esperados=1 inesperados=0
+VERDE [V-06]: barrera ausente detectada al grabar; cero envios
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN validacion de sincronizacion solicitada explicitamente
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+VERDE [V-02]: 64 ciclos buffer/memoria coherente, patron CPU y liberacion ordenada
+VERDE [V-04]: 128 envios con fence y patron correcto; 64 recreados frente a 1 reutilizado
+VERDE [V-05]: 64 fill/copy con barrera transferencia-lectura, fence y 1024 palabras verificadas
+VALIDACION VUID-VkBufferCreateInfo-size-00912
+VALIDACION VUID-VkBufferCreateInfo-size-00912
+VULKAN errores=2 esperados=1 inesperados=1
+ROJO: resultado Vulkan inesperado
+VERDE [V-03]: error tardio convierte la ejecucion en rechazo
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found PkgConfig: /usr/bin/pkg-config (found version "3.0.7")
+-- Checking for module 'egl'
+--   Found egl, version 1.5
+-- Checking for module 'glesv2'
+--   Found glesv2, version 3.2
+-- Found Vulkan: /usr/lib/libvulkan.so (found version "1.4.363") found components: glslangValidator missing components: glslc
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/diag
+[ 10%] Building CXX object laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o
+[ 20%] Linking CXX executable sonda-cxx
+[ 20%] Built target sonda-cxx
+[ 30%] Building CXX object laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o
+[ 40%] Linking CXX executable probar-contratos
+[ 40%] Built target probar-contratos
+[ 50%] Building CXX object laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o
+[ 60%] Linking CXX executable sonda-egl
+[ 60%] Built target sonda-egl
+[ 70%] Building CXX object laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o
+[ 80%] Linking CXX executable sonda-gpus
+[ 80%] Built target sonda-gpus
+[ 90%] Building CXX object laboratorio/CMakeFiles/sonda-vulkan.dir/grafica/sonda-vulkan.cpp.o
+[100%] Linking CXX executable sonda-vulkan
+[100%] Built target sonda-vulkan
+[
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/diag/laboratorio",
+  "command": "/usr/bin/g++ -DULTRA_CXX_DIAGNOSTICO=1  -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/sonda-cxx.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-cxx.dir/herramientas/sonda-cxx.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/diag/laboratorio",
+  "command": "/usr/bin/g++ -DULTRA_CXX_DIAGNOSTICO=1  -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/herramientas/probar-contratos.cpp",
+  "output": "laboratorio/CMakeFiles/probar-contratos.dir/herramientas/probar-contratos.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/diag/laboratorio",
+  "command": "/usr/bin/g++ -DULTRA_CXX_DIAGNOSTICO=1  -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-egl.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-egl.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-egl.dir/grafica/sonda-egl.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/diag/laboratorio",
+  "command": "/usr/bin/g++ -DULTRA_CXX_DIAGNOSTICO=1  -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-gpus.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-gpus.dir/grafica/sonda-gpus.cpp.o"
+},
+{
+  "directory": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/diag/laboratorio",
+  "command": "/usr/bin/g++ -DULTRA_CXX_DIAGNOSTICO=1  -std=c++26 -Wall -Wextra -Wpedantic -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wold-style-cast -Wnon-virtual-dtor -Woverloaded-virtual -fno-lto -fhardened -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all -o CMakeFiles/sonda-vulkan.dir/grafica/sonda-vulkan.cpp.o -c /home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-vulkan.cpp",
+  "file": "/home/builder/linux-reconstruido/grafica-cxx-0d1596f6c6b94a07b502babaa99d9052/C++/laboratorio/grafica/sonda-vulkan.cpp",
+  "output": "laboratorio/CMakeFiles/sonda-vulkan.dir/grafica/sonda-vulkan.cpp.o"
+}
+]VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VERDE [CPU-01]: 3479 contratos contra oraculo de 128 bits y dos limites
+VERDE [CPU-02]: prefijos, mutaciones, limites maximos y rechazos del serializador
+VERDE [CPU-04]: 30 cabeceras con checksum valido; checksum no autentica contenido
+VERDE [CPU-03]: 4096 entradas pseudoaleatorias acotadas rechazadas
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+EGL: 1.5 vendor=Mesa Project
+GL_VENDOR: Mesa
+GL_RENDERER: llvmpipe (LLVM 23.1.3, 256 bits)
+GL_VERSION: OpenGL ES 3.2 Mesa 26.2.5-arch1.1
+GLSL: OpenGL ES GLSL ES 3.20
+VERDE [G-01]: contexto GLES3 y pixel RGBA8 correctos
+VERDE [G-02]: enum rechazado y contexto recuperado
+SHADER-ERROR-ESPERADO: 0:2(1): error: syntax error, unexpected NEW_IDENTIFIER
+VERDE [G-03]: GLSL invalido rechazado con diagnostico
+VERDE [G-04]: GLSL valido compila despues del rechazo; contexto sigue utilizable
+VERDE [G-06]: dimensiones, capacidad, presupuesto y limite del dispositivo rechazados
+VERDE [G-12]: 64 actualizaciones sin recrear textura; pixels, limites y estado conservados
+VERDE [G-07]: textura correcta con PBO/stride adversos y estado restaurado
+VERDE [G-08]: propiedad de contexto, rechazo sin contexto y cierre idempotente
+VERDE [G-09]: RAII libera y error GL previo se rechaza sin romper contexto
+VERDE [G-10]: otro contexto rechazado; recurso del propietario conservado
+VERDE [G-11]: 256 ciclos crear/mover/destruir; nombres liberados y pixel posterior correcto
+VERDE [G-14]: 1x1, 4 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-14]: 31x17, 2108 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-14]: 256x128, 131072 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-14]: 1920x1080, 8294400 bytes completos; tres patrones y rechazo sin cambios
+VERDE [G-13]: 16 contextos recreados; pixel correcto y textura liberada antes del cierre
+VERDE [G-05]: recursos EGL liberados
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VERDE [S-01]: dinamico compila, dibuja y guarda .gpus (6738 bytes)
+VERDE [S-02]: estatico importa en contexto nuevo y produce el mismo pixel sin recompilar GLSL
+VERDE [S-03]: dinamico reutiliza cache compatible
+VERDE [S-04.0]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.1]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.2]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.3]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.4]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.5]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.6]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.7]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.8]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-04.9]: estatico rechaza y dinamico reconstruye caso invalido
+VERDE [S-05]: reemplazo fallido conserva programa y pixel anteriores
+VERDE [S-06]: candidato validado se activa entre dibujos y programa anterior se libera
+ALCANCE: GLES experimental; no hot-reload asincrono ni aceleracion medida
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN validacion de sincronizacion solicitada explicitamente
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+VERDE [V-02]: 64 ciclos buffer/memoria coherente, patron CPU y liberacion ordenada
+VERDE [V-04]: 128 envios con fence y patron correcto; 64 recreados frente a 1 reutilizado
+VERDE [V-05]: 64 fill/copy con barrera transferencia-lectura, fence y 1024 palabras verificadas
+VALIDACION VUID-VkBufferCreateInfo-size-00912
+VULKAN errores=1 esperados=1 inesperados=0
+VERDE: buffer valido y llamada invalida bloqueada por validacion
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN validacion de sincronizacion solicitada explicitamente
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+VALIDACION SYNC-HAZARD-READ-AFTER-WRITE
+VULKAN errores=1 esperados=1 inesperados=0
+VERDE [V-06]: barrera ausente detectada al grabar; cero envios
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+ROJO [MEDICION]: compilacion instrumentada rechazada
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+ROJO [MEDICION]: compilacion instrumentada rechazada
+BENCH_COLUMNAS,api,ronda,ruta,wall_ns,cpu_us,rss_pico_proceso_kib
+BENCH_EJECUCION,1
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+EGL: 1.5 vendor=Mesa Project
+GL_VENDOR: Mesa
+GL_RENDERER: llvmpipe (LLVM 23.1.3, 256 bits)
+GL_VERSION: OpenGL ES 3.2 Mesa 26.2.5-arch1.1
+GLSL: OpenGL ES GLSL ES 3.20
+GLES MEDICION: 2048 cargas RGBA8 de 4x4 por ruta; lectura/comprobacion incluidas
+BENCH,GLES,0,recrear,6066667,5987.300,79884
+BENCH,GLES,0,reutilizar,3544423,2693.600,79884
+BENCH,GLES,1,reutilizar,3300981,3129.300,79884
+BENCH,GLES,1,recrear,5839028,4834.200,79884
+BENCH,GLES,2,recrear,6183688,5978.600,79884
+BENCH,GLES,2,reutilizar,3476911,2802.600,79884
+BENCH,GLES,3,reutilizar,3257373,2324.200,79884
+BENCH,GLES,3,recrear,5939645,5051.800,79884
+BENCH,GLES,4,recrear,6153283,6102.500,79884
+BENCH,GLES,4,reutilizar,3371093,2950.200,79884
+BENCH,GLES,5,reutilizar,3529921,2798.500,79884
+BENCH,GLES,5,recrear,6335114,6019.600,79884
+BENCH,GLES,6,recrear,6116677,5699.600,79884
+BENCH,GLES,6,reutilizar,3565528,2593.200,79884
+BENCH_RESUMEN,GLES,recrear,min_ns=5839028,mediana_ns=6116677,max_ns=6335114
+BENCH_RESUMEN,GLES,reutilizar,min_ns=3257373,mediana_ns=3476911,max_ns=3565528
+VERDE [MEDICION]: 7 pares con orden alternado y resultado comprobado
+VERDE [G-05]: recursos EGL liberados
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN MEDICION: sin capas; 2048 envios de 4096 bytes por ruta; fence y comprobacion incluidas
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+BENCH,Vulkan,0,recrear,127101967,108360.400,74048
+BENCH,Vulkan,0,reutilizar,82082445,65081.300,74048
+BENCH,Vulkan,1,reutilizar,81193188,64709.900,74048
+BENCH,Vulkan,1,recrear,127705374,109642.100,74048
+BENCH,Vulkan,2,recrear,133156733,113120.100,74048
+BENCH,Vulkan,2,reutilizar,83690710,66115.600,74048
+BENCH,Vulkan,3,reutilizar,83030445,66090.600,74048
+BENCH,Vulkan,3,recrear,150193430,122587.100,74048
+BENCH,Vulkan,4,recrear,129673960,110709.500,74048
+BENCH,Vulkan,4,reutilizar,82495852,65956.100,74048
+BENCH,Vulkan,5,reutilizar,82709890,65651.300,74048
+BENCH,Vulkan,5,recrear,129003243,110445.500,74048
+BENCH,Vulkan,6,recrear,128891924,110249.900,74048
+BENCH,Vulkan,6,reutilizar,81321649,65043.100,74048
+BENCH_RESUMEN,Vulkan,recrear,min_ns=127101967,mediana_ns=129003243,max_ns=150193430
+BENCH_RESUMEN,Vulkan,reutilizar,min_ns=81193188,mediana_ns=82495852,max_ns=83690710
+VERDE [MEDICION]: 7 pares con orden alternado y resultado comprobado
+VULKAN errores=0 esperados=0 inesperados=0
+VERDE: medicion Vulkan completada con datos correctos
+BENCH_EJECUCION,2
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+EGL: 1.5 vendor=Mesa Project
+GL_VENDOR: Mesa
+GL_RENDERER: llvmpipe (LLVM 23.1.3, 256 bits)
+GL_VERSION: OpenGL ES 3.2 Mesa 26.2.5-arch1.1
+GLSL: OpenGL ES GLSL ES 3.20
+GLES MEDICION: 2048 cargas RGBA8 de 4x4 por ruta; lectura/comprobacion incluidas
+BENCH,GLES,0,recrear,5869410,5958.000,79552
+BENCH,GLES,0,reutilizar,3429890,2750.300,79552
+BENCH,GLES,1,reutilizar,3276964,2329.800,79552
+BENCH,GLES,1,recrear,6031737,5040.300,79552
+BENCH,GLES,2,recrear,6192165,5992.800,79552
+BENCH,GLES,2,reutilizar,3292666,2816.700,79552
+BENCH,GLES,3,reutilizar,3258261,2521.100,79552
+BENCH,GLES,3,recrear,6355894,6242.300,79552
+BENCH,GLES,4,recrear,5830103,4892.600,79552
+BENCH,GLES,4,reutilizar,3265062,3063.500,79552
+BENCH,GLES,5,reutilizar,3279564,2796.300,79552
+BENCH,GLES,5,recrear,5944622,5505.200,79552
+BENCH,GLES,6,recrear,5814000,5559.200,79552
+BENCH,GLES,6,reutilizar,3258961,2749.500,79552
+BENCH_RESUMEN,GLES,recrear,min_ns=5814000,mediana_ns=5944622,max_ns=6355894
+BENCH_RESUMEN,GLES,reutilizar,min_ns=3258261,mediana_ns=3276964,max_ns=3429890
+VERDE [MEDICION]: 7 pares con orden alternado y resultado comprobado
+VERDE [G-05]: recursos EGL liberados
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN MEDICION: sin capas; 2048 envios de 4096 bytes por ruta; fence y comprobacion incluidas
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+BENCH,Vulkan,0,recrear,124218570,106270.200,73884
+BENCH,Vulkan,0,reutilizar,81128857,64649.600,73884
+BENCH,Vulkan,1,reutilizar,81462215,64893.500,73884
+BENCH,Vulkan,1,recrear,126293227,108417.400,73884
+BENCH,Vulkan,2,recrear,163065953,135732.500,73884
+BENCH,Vulkan,2,reutilizar,114658428,87024.800,73884
+BENCH,Vulkan,3,reutilizar,108708897,83687.900,73884
+BENCH,Vulkan,3,recrear,177011320,143273.400,73884
+BENCH,Vulkan,4,recrear,128622886,111044.300,73884
+BENCH,Vulkan,4,reutilizar,98537667,76525.200,73884
+BENCH,Vulkan,5,reutilizar,106346196,82446.200,73884
+BENCH,Vulkan,5,recrear,168237027,140826.200,73884
+BENCH,Vulkan,6,recrear,160603527,134417.500,73884
+BENCH,Vulkan,6,reutilizar,81799870,65617.600,73884
+BENCH_RESUMEN,Vulkan,recrear,min_ns=124218570,mediana_ns=160603527,max_ns=177011320
+BENCH_RESUMEN,Vulkan,reutilizar,min_ns=81128857,mediana_ns=98537667,max_ns=114658428
+VERDE [MEDICION]: 7 pares con orden alternado y resultado comprobado
+VULKAN errores=0 esperados=0 inesperados=0
+VERDE: medicion Vulkan completada con datos correctos
+BENCH_EJECUCION,3
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+EGL: 1.5 vendor=Mesa Project
+GL_VENDOR: Mesa
+GL_RENDERER: llvmpipe (LLVM 23.1.3, 256 bits)
+GL_VERSION: OpenGL ES 3.2 Mesa 26.2.5-arch1.1
+GLSL: OpenGL ES GLSL ES 3.20
+GLES MEDICION: 2048 cargas RGBA8 de 4x4 por ruta; lectura/comprobacion incluidas
+BENCH,GLES,0,recrear,5830381,5965.600,79432
+BENCH,GLES,0,reutilizar,3284653,2876.600,79432
+BENCH,GLES,1,reutilizar,3320159,2588.000,79432
+BENCH,GLES,1,recrear,6457587,6245.600,79432
+BENCH,GLES,2,recrear,5824081,5791.200,79432
+BENCH,GLES,2,reutilizar,3799840,2976.100,79432
+BENCH,GLES,3,reutilizar,3304056,3164.200,79432
+BENCH,GLES,3,recrear,5765971,4855.200,79432
+BENCH,GLES,4,recrear,6013813,5066.300,79432
+BENCH,GLES,4,reutilizar,3525393,3055.200,79432
+BENCH,GLES,5,reutilizar,3491088,2540.100,79432
+BENCH,GLES,5,recrear,6234250,6021.700,79432
+BENCH,GLES,6,recrear,5989308,5796.300,79432
+BENCH,GLES,6,reutilizar,3270751,2815.300,79432
+BENCH_RESUMEN,GLES,recrear,min_ns=5765971,mediana_ns=5989308,max_ns=6457587
+BENCH_RESUMEN,GLES,reutilizar,min_ns=3270751,mediana_ns=3320159,max_ns=3799840
+VERDE [MEDICION]: 7 pares con orden alternado y resultado comprobado
+VERDE [G-05]: recursos EGL liberados
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+VULKAN MEDICION: sin capas; 2048 envios de 4096 bytes por ruta; fence y comprobacion incluidas
+VULKAN dispositivo=llvmpipe (LLVM 23.1.3, 256 bits) tipo=4
+BENCH,Vulkan,0,recrear,135915979,115452.300,73856
+BENCH,Vulkan,0,reutilizar,86029182,67836.800,73856
+BENCH,Vulkan,1,reutilizar,85843750,68130.500,73856
+BENCH,Vulkan,1,recrear,135101415,114758.900,73856
+BENCH,Vulkan,2,recrear,129016089,110277.200,73856
+BENCH,Vulkan,2,reutilizar,80944583,64490.700,73856
+BENCH,Vulkan,3,reutilizar,100343814,79239.600,73856
+BENCH,Vulkan,3,recrear,144480866,120685.100,73856
+BENCH,Vulkan,4,recrear,183111701,135777.300,73856
+BENCH,Vulkan,4,reutilizar,84553484,67380.100,73856
+BENCH,Vulkan,5,reutilizar,85953617,67936.900,73856
+BENCH,Vulkan,5,recrear,128313973,109597.100,73856
+BENCH,Vulkan,6,recrear,135171264,114899.500,73856
+BENCH,Vulkan,6,reutilizar,87422713,69551.300,73856
+BENCH_RESUMEN,Vulkan,recrear,min_ns=128313973,mediana_ns=135171264,max_ns=183111701
+BENCH_RESUMEN,Vulkan,reutilizar,min_ns=80944583,mediana_ns=85953617,max_ns=100343814
+VERDE [MEDICION]: 7 pares con orden alternado y resultado comprobado
+VULKAN errores=0 esperados=0 inesperados=0
+VERDE: medicion Vulkan completada con datos correctos
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+/minas/probar-ultra-graficos.sh: line 16:    10 File size limit exceeded   (core dumped) cage -d -- /usr/bin/bash "$helper" validar > /tmp/real.log 2>&1

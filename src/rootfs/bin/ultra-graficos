@@ -51,10 +51,15 @@ case $mode in
         # Validation is per process. It is not exported to the compositor or games.
         args=()
         [[ $mode != validar ]] || args+=(VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation)
-        notify-send 'Vulkan: prueba de 12 segundos' 'Validacion y resultados en la cache de ULTRA. No es un benchmark.' || true
+        notify-send 'Vulkan: prueba de 120 fotogramas' 'Cierre normal al terminar. Limite de 30 segundos si se bloquea. No es un benchmark.' || true
         result=0
-        env "${args[@]}" timeout -k 2 12 vkcube --wsi wayland > "$HOME/.cache/ultra/vulkan-cubo.log" 2>&1 || result=$?
-        [[ $result == 0 || $result == 124 ]] || { notify-send 'Vulkan no pudo iniciar' 'Consulta el informe y vulkan-cubo.log.' || true; exit "$result"; }
+        log=$HOME/.cache/ultra/vulkan-cubo.log
+        env "${args[@]}" timeout -k 2 30 vkcube --wsi wayland --c 120 > "$log" 2>&1 || result=$?
+        printf '\nULTRA_CUBO codigo_salida=%s fotogramas_solicitados=120\n' "$result" >> "$log"
+        if [[ $result != 0 ]]; then
+            notify-send 'La prueba Vulkan no termino normalmente' 'Consulta vulkan-cubo.log. Un timeout cuenta como fallo.' || true
+            exit "$result"
+        fi
         ;;
     *) exit 2;;
 esac

@@ -1,0 +1,4 @@
+VERDE: G-14 en ambos perfiles; lectura completa hasta 1080p
+VERDE: comando real Wayland termina sin timeout con validacion cargada
+VERDE: timeout 124 y error 7 simulados no se ocultan
+VERDE: 19 tareas y 18 porcentajes contrastados con fuentes

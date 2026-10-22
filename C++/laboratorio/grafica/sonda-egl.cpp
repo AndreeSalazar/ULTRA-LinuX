@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 #include "../../produccion/guard_gles.hpp"
 #include "medicion.hpp"
 
@@ -298,6 +299,43 @@ void recreate_contexts(Session& session, EGLConfig config) {
     }
     std::cout << "VERDE [G-13]: 16 contextos recreados; pixel correcto y textura liberada antes del cierre\n";
 }
+void texture_matrix() {
+    constexpr std::size_t budget = 16 * 1024 * 1024;
+    for (const auto& [width, height] : {std::pair<GLsizei,GLsizei>{1,1}, {31,17}, {256,128}, {1920,1080}}) {
+        const auto columns = static_cast<std::size_t>(width);
+        const auto rows = static_cast<std::size_t>(height);
+        const auto bytes = columns * rows * 4;
+        std::vector<std::uint8_t> pixels(bytes), readback(bytes);
+        struct Framebuffer {
+            GLuint id = 0;
+            Framebuffer() { glGenFramebuffers(1, &id); require(id != 0, "framebuffer de matriz"); }
+            ~Framebuffer() { glBindFramebuffer(GL_FRAMEBUFFER, 0); glDeleteFramebuffers(1, &id); }
+        } target;
+        auto texture = ultra::gles::Texture::rgba8(width, height, pixels, budget);
+        require(texture.has_value(), "crear textura de matriz");
+        glBindFramebuffer(GL_FRAMEBUFFER, target.id);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->name(), 0);
+        require(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE, "FBO de matriz incompleto");
+        for (unsigned frame = 0; frame < 3; ++frame) {
+            for (std::size_t y = 0; y < rows; ++y) for (std::size_t x = 0; x < columns; ++x) {
+                const auto offset = (y * columns + x) * 4;
+                pixels[offset] = static_cast<std::uint8_t>((x + frame) % 256);
+                pixels[offset + 1] = static_cast<std::uint8_t>(y % 256);
+                pixels[offset + 2] = static_cast<std::uint8_t>((x ^ y) % 256);
+                pixels[offset + 3] = 255;
+            }
+            require(texture->update_rgba8(pixels, budget).has_value(), "actualizar textura de matriz");
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, readback.data());
+            require(glGetError() == GL_NO_ERROR && readback == pixels, "lectura completa de matriz incorrecta");
+        }
+        const auto rejected = texture->update_rgba8(std::span{pixels}.first(bytes - 1), budget);
+        require(!rejected && rejected.error() == ultra::gles::Error::layout, "matriz acepto capacidad insuficiente");
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, readback.data());
+        require(glGetError() == GL_NO_ERROR && readback == pixels, "rechazo altero matriz");
+        std::cout << "VERDE [G-14]: " << width << 'x' << height << ", " << bytes
+                  << " bytes completos; tres patrones y rechazo sin cambios\n";
+    }
+}
 }
 
 int main(int argc, char** argv) {
@@ -367,6 +405,7 @@ int main(int argc, char** argv) {
         pixel_control();
         std::cout << "VERDE [G-04]: GLSL valido compila despues del rechazo; contexto sigue utilizable\n";
         texture_controls(session, config);
+        texture_matrix();
         }
         require(eglMakeCurrent(session.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) == EGL_TRUE,
                 "desvincular contexto");

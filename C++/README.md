@@ -75,6 +75,11 @@ y siete pares alternados por proceso; rechaza builds instrumentados. Ver
 [tiempos observados y limites](../docs/GRAFICA-MEDICIONES.md).
 El [seguimiento de tareas y mediciones en CSV](../docs/seguimiento/README.md)
 incluye la ampliacion de contextos EGL y dependencias fill/copy Vulkan.
+G-14 amplia la comprobacion de texturas hasta 1920x1080 con readback completo;
+el [comando grafico](../docs/GRAFICA-INTEGRACION-COMANDO.md) integra cierre normal
+y propagacion de errores de vkcube. Ese cambio no incorpora estas clases en Hyprland.
+El ejecutor grafico requiere tambien `cage` y `vulkan-tools` en el taller para
+la prueba Wayland headless del comando, ademas de las dependencias EGL/Vulkan.
 
 El siguiente prototipo ya ofrece cache .gpus con modos estatico y dinamico:
 ver [formato, controles y limites](GPUS.md). Solo banco GLES, sin integracion

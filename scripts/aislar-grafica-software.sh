@@ -19,6 +19,9 @@ dir=$(dirname -- "$binary")
 name=$(basename -- "$binary")
 [[ -x $binary ]] || { echo 'AISLAMIENTO-ERROR: ejecutable ausente' >&2; exit 125; }
 vulkan_env=()
+file_limit=1048576
+# A real Wayland compositor needs shared-memory framebuffers larger than shader caches.
+if [[ $name == probar-ultra-graficos.sh ]]; then file_limit=8388608; fi
 if [[ $name == sonda-vulkan ]]; then
     # Keep driver/layer mappings for LSan attribution; never suppress leak detection.
     vulkan_env=(--setenv VK_LOADER_DISABLE_DYNAMIC_LIBRARY_UNLOADING 1
@@ -27,7 +30,7 @@ if [[ $name == sonda-vulkan ]]; then
         vulkan_env+=(--setenv VK_LOADER_LAYERS_DISABLE '~all~')
     fi
 fi
-exec timeout --kill-after=2s 30s prlimit --core=0 --cpu=20 --fsize=1048576 --nofile=128 --nproc=128 --stack=8388608 -- \
+exec timeout --kill-after=2s 30s prlimit --core=0 --cpu=20 --fsize="$file_limit" --nofile=128 --nproc=128 --stack=8388608 -- \
     bwrap --unshare-all --die-with-parent --new-session --cap-drop ALL \
     --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 \
     --symlink usr/bin /bin --proc /proc --dev /dev \
