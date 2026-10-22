@@ -242,6 +242,7 @@ después, conservando compatibilidad y aislamiento.
 
 ## Documentación
 
+- [Plan de mejoras: C, ASM, C++, OpenGL, Vulkan, Proton y recuperacion](docs/PLAN-MEJORAS-SISTEMAS.md)
 - [Escritorio BMO-X: aspecto y controles](docs/ESCRITORIO-BMO-X.md)
 - [Audio, juegos, almacenamiento y límites](docs/AUDIO-JUEGOS.md)
 - [Wayland y NVIDIA](docs/WAYLAND.md)

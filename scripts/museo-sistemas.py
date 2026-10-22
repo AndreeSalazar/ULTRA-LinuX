@@ -38,6 +38,7 @@ def render(data):
     counts = Counter(c['lenguaje'] for c in data['piezas'])
     lines = ['# Museo de C, C++ y ASM', '',
              'Entrada comun de investigacion. Generada desde `catalogo.json`; no mueve ni modifica el sistema de juegos.', '',
+             '[Plan de las siete areas: motivos, pruebas, medidas y criterios de cierre](../docs/PLAN-MEJORAS-SISTEMAS.md).', '',
              '## Mapa de carpetas', '',
              '| Area | Donde estudiar y comprobar |', '|---|---|',
              '| C existente | [24 fichas y sus evidencias](../docs/MUSEO-UB.md), [cobertura](../docs/COBERTURA-UB.md), [laboratorio](../src/guardian/laboratorio/) |',

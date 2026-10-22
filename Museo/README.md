@@ -2,6 +2,8 @@
 
 Entrada comun de investigacion. Generada desde `catalogo.json`; no mueve ni modifica el sistema de juegos.
 
+[Plan de las siete areas: motivos, pruebas, medidas y criterios de cierre](../docs/PLAN-MEJORAS-SISTEMAS.md).
+
 ## Mapa de carpetas
 
 | Area | Donde estudiar y comprobar |
