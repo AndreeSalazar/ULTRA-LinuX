@@ -51,6 +51,12 @@ con el archivo en solo lectura, identifica 6,56 GiB en la capa Steam, incluidos
 runtimes, cambios de Warframe, shaders y prefijos. Queda comprobar el progreso
 del verificador y decidir capacidad sin borrar datos ni suponer un fallo grafico.
 
+La [auditoria Ethernet](docs/RED-RENDIMIENTO.md) identifica que el otro extremo
+del enlace anuncia 100 Mbps, mientras el PC anuncia 1 Gbps; Windows tambien
+negocia 100 Mbps. El banco aislado favorece FQ-CoDel para latencia bajo congestion,
+pero aun no se activo en el kernel ULTRA: se preparo un fragmento de laboratorio
+y un informe de red mas completo, pendientes de construccion y prueba nativa.
+
 ![Selector de discos y carpetas en el banco virtual](evidencias/bibliotecas-2026-10-21/generico/discos.png)
 
 La [reconstrucción del 21 de octubre](evidencias/rebuild-2026-10-21/README.md)

@@ -1,0 +1,76 @@
+{
+  "interfaces": [
+    {
+      "interfaz": "enp37s0",
+      "campos": {
+        "driver": "r8169",
+        "firmware-version": "rtl8168h-2_0.0.2 02/26/15",
+        "Speed": "100Mb/s",
+        "Duplex": "Full",
+        "Auto-negotiation": "on",
+        "rx_errors": "0",
+        "tx_errors": "0",
+        "rx_missed": "0",
+        "align_errors": "0"
+      },
+      "modos": {
+        "Supported link modes": [
+          "10baseT/Half",
+          "10baseT/Full",
+          "100baseT/Half",
+          "100baseT/Full",
+          "1000baseT/Full"
+        ],
+        "Advertised link modes": [
+          "10baseT/Half",
+          "10baseT/Full",
+          "100baseT/Half",
+          "100baseT/Full",
+          "1000baseT/Full"
+        ],
+        "Link partner advertised link modes": [
+          "10baseT/Half",
+          "10baseT/Full",
+          "100baseT/Half",
+          "100baseT/Full"
+        ]
+      },
+      "offloads": {
+        "rx-checksumming": "on",
+        "tx-checksumming": "on",
+        "tcp-segmentation-offload": "on",
+        "generic-segmentation-offload": "on",
+        "generic-receive-offload": "on",
+        "receive-hashing": "off [fixed]"
+      },
+      "max_anunciado_local_Mbps": 1000,
+      "max_anunciado_otro_extremo_Mbps": 100
+    }
+  ],
+  "pico_RX_intervalo_Mbps": 98.33614969127265,
+  "intervalos_validos": 117,
+  "discontinuidades": 0,
+  "softnet_CPUs_observadas": 12,
+  "softnet_descartes": 0,
+  "softnet_time_squeeze": 0,
+  "limites": [
+    "Capacidades anunciadas no prueban la capacidad fisica maxima del puerto remoto.",
+    "NIC sin errores no equivale a Internet sin perdidas o retransmisiones.",
+    "No identifica el modelo del router ni prueba el cable.",
+    "El pico es de la interfaz completa y promediado entre muestras."
+  ],
+  "informe_sha256": "219cdaf7770e1d59f14a53d8dabe63429dd6b6c4796382c848edcdd10e28457d",
+  "kernel_config_sha256": "2d9ad44ff01a115f6205775fba29e015a532dd3ffca461e8a4abfe15337a93e7",
+  "configuracion_kernel": {
+    "NET_SCH_FQ_CODEL": "no habilitado",
+    "NET_SCH_FQ": "no habilitado",
+    "NET_SCH_CAKE": "no habilitado",
+    "TCP_CONG_BBR": "no habilitado",
+    "TCP_CONG_CUBIC": "y",
+    "RPS": "y",
+    "RFS_ACCEL": "y",
+    "XPS": "y",
+    "BQL": "y",
+    "NET_FLOW_LIMIT": "y"
+  }
+}

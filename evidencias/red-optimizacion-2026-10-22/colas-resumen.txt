@@ -1,0 +1,4 @@
+{"qdisc": "fifo", "TCP_bytes_receptor": 8077312, "UDP_enviados": 226, "UDP_recibidos": 226, "UDP_sin_respuesta_en_ventana": 0, "RTT_mediana_ms": 90.656, "RTT_p95_ms": 122.231, "RTT_max_ms": 137.786}
+{"qdisc": "fq_codel", "TCP_bytes_receptor": 6733824, "UDP_enviados": 220, "UDP_recibidos": 220, "UDP_sin_respuesta_en_ventana": 0, "RTT_mediana_ms": 11.248, "RTT_p95_ms": 22.854, "RTT_max_ms": 34.143}
+{"qdisc": "fq_codel", "TCP_bytes_receptor": 6373376, "UDP_enviados": 215, "UDP_recibidos": 215, "UDP_sin_respuesta_en_ventana": 0, "RTT_mediana_ms": 13.569, "RTT_p95_ms": 24.369, "RTT_max_ms": 36.34}
+{"qdisc": "fifo", "TCP_bytes_receptor": 7864320, "UDP_enviados": 219, "UDP_recibidos": 219, "UDP_sin_respuesta_en_ventana": 0, "RTT_mediana_ms": 92.739, "RTT_p95_ms": 125.714, "RTT_max_ms": 147.163}

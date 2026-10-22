@@ -12,17 +12,36 @@ head -c 16384 /proc/net/snmp
 head -c 16384 /proc/net/netstat
 printf '\n[SOFTNET: contadores hex por CPU; columnas segun version del kernel]\n'
 head -n 128 /proc/net/softnet_stat
-count=0; deadline=$((SECONDS+12)); queue_count=0
+printf '\n[COLAS Y TCP: configuracion observada, sin aplicar ajustes]\n'
+timeout -k 1 2 tc -s qdisc show 2>&1 | head -c 8192 || echo 'RED NA qdisc_no_disponible'
+for key in net.core.default_qdisc net.ipv4.tcp_congestion_control net.ipv4.tcp_available_congestion_control \
+           net.ipv4.tcp_moderate_rcvbuf net.ipv4.tcp_rmem net.ipv4.tcp_wmem \
+           net.core.netdev_max_backlog net.core.rps_sock_flow_entries; do
+    timeout -k 1 1 sysctl "$key" 2>&1 | head -c 512 || echo 'RED NA sysctl_no_disponible'
+done
+printf '\n[SOFTIRQ: contadores acumulados, no porcentaje de CPU]\n'
+head -c 16384 /proc/softirqs
+count=0; deadline=$((SECONDS+18)); queue_count=0; irq_count=0
 for entry in /sys/class/net/*; do
     iface=${entry##*/}
     [[ $iface != lo && $iface =~ ^[a-zA-Z0-9_.:-]+$ && ! -d $entry/wireless ]] || continue
     ((count+=1)); ((count<=8)) || { echo 'RED NA detalle_truncado_limite_8'; break; }
     printf '\n[INTERFAZ %s: driver, enlace, offloads, colas, coalescencia, estadisticas]\n' "$iface"
     # Different NICs support different queries. Failure is explicit, not zero.
-    for query in -i '' -k -l -c -S; do
+    for query in -i '' -k -l -c -S -g -a --show-eee --get-phy-tunable; do
         ((SECONDS<deadline)) || { echo 'RED NA limite_tiempo_detalle'; exit 0; }
         if [[ -n $query ]]; then args=("$query" "$iface"); else args=("$iface"); fi
+        [[ $query != --get-phy-tunable ]] || args+=(downshift)
         timeout -k 1 1 ethtool "${args[@]}" 2>&1 | head -c 8192 || printf '\nRED NA consulta_ethtool_no_disponible\n'
+        printf '\n'
+    done
+    for irq in "$entry"/device/msi_irqs/*; do
+        [[ -e $irq ]] || continue
+        ((irq_count+=1)); ((irq_count<=128 && SECONDS<deadline)) || { echo 'RED NA limite_detalle_IRQ'; exit 0; }
+        number=${irq##*/}
+        [[ $number =~ ^[0-9]+$ ]] || continue
+        printf 'RED IRQ=%s afinidad_CPU=' "$number"
+        head -c 256 "/proc/irq/$number/smp_affinity_list" 2>/dev/null || echo NA
         printf '\n'
     done
     for file in "$entry"/queues/rx-*/rps_cpus "$entry"/queues/rx-*/rps_flow_cnt "$entry"/queues/tx-*/xps_cpus; do

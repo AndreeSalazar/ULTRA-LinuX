@@ -1,0 +1,54 @@
+{
+  "entorno": "VM de taller Linux, veth privado; no es NIC real ni kernel ULTRA",
+  "kernel": "7.2.11-arch1-1",
+  "cuello_sintetico_Mbit_s": 10,
+  "carga": "TCP mas sondas UDP; FIFO de 1000 paquetes frente a FQ-CoDel por defecto",
+  "casos": [
+    {
+      "qdisc": "fifo",
+      "TCP_bytes_receptor": 8077312,
+      "UDP_enviados": 226,
+      "UDP_recibidos": 226,
+      "UDP_sin_respuesta_en_ventana": 0,
+      "RTT_mediana_ms": 90.656,
+      "RTT_p95_ms": 122.231,
+      "RTT_max_ms": 137.786,
+      "tc": "qdisc tbf 1: root refcnt 5 rate 10Mbit burst 16Kb lat 1s \n Sent 8456708 bytes 5816 pkt (dropped 0, overlimits 4525 requeues 0) \n backlog 0b 0p requeues 0\nqdisc pfifo 10: parent 1:1 limit 1000p\n Sent 8456708 bytes 5816 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\n"
+    },
+    {
+      "qdisc": "fq_codel",
+      "TCP_bytes_receptor": 6733824,
+      "UDP_enviados": 220,
+      "UDP_recibidos": 220,
+      "UDP_sin_respuesta_en_ventana": 0,
+      "RTT_mediana_ms": 11.248,
+      "RTT_p95_ms": 22.854,
+      "RTT_max_ms": 34.143,
+      "tc": "qdisc tbf 1: root refcnt 5 rate 10Mbit burst 16Kb lat 1s \n Sent 7082622 bytes 4897 pkt (dropped 10, overlimits 2244 requeues 0) \n backlog 0b 0p requeues 0\nqdisc fq_codel 10: parent 1:1 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 \n Sent 7082622 bytes 4897 pkt (dropped 10, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\n  maxpacket 15140 drop_overlimit 0 new_flow_count 238 ecn_mark 0\n  new_flows_len 0 old_flows_len 0\n"
+    },
+    {
+      "qdisc": "fq_codel",
+      "TCP_bytes_receptor": 6373376,
+      "UDP_enviados": 215,
+      "UDP_recibidos": 215,
+      "UDP_sin_respuesta_en_ventana": 0,
+      "RTT_mediana_ms": 13.569,
+      "RTT_p95_ms": 24.369,
+      "RTT_max_ms": 36.34,
+      "tc": "qdisc tbf 1: root refcnt 5 rate 10Mbit burst 16Kb lat 1s \n Sent 6722584 bytes 4654 pkt (dropped 10, overlimits 1988 requeues 0) \n backlog 0b 0p requeues 0\nqdisc fq_codel 10: parent 1:1 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64 \n Sent 6722584 bytes 4654 pkt (dropped 10, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\n  maxpacket 15140 drop_overlimit 0 new_flow_count 223 ecn_mark 0\n  new_flows_len 0 old_flows_len 0\n"
+    },
+    {
+      "qdisc": "fifo",
+      "TCP_bytes_receptor": 7864320,
+      "UDP_enviados": 219,
+      "UDP_recibidos": 219,
+      "UDP_sin_respuesta_en_ventana": 0,
+      "RTT_mediana_ms": 92.739,
+      "RTT_p95_ms": 125.714,
+      "RTT_max_ms": 147.163,
+      "tc": "qdisc tbf 1: root refcnt 5 rate 10Mbit burst 16Kb lat 1s \n Sent 8233182 bytes 5655 pkt (dropped 0, overlimits 5219 requeues 0) \n backlog 0b 0p requeues 0\nqdisc pfifo 10: parent 1:1 limit 1000p\n Sent 8233182 bytes 5655 pkt (dropped 0, overlimits 0 requeues 0) \n backlog 0b 0p requeues 0\n"
+    }
+  ],
+  "red_externa_expuesta": false,
+  "limite": "No demuestra mejora en descarga, recepcion WAN, r8169, TLS o juegos reales."
+}

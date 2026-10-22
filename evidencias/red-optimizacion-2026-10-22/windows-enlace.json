@@ -1,0 +1,7 @@
+{
+  "Name": "Ethernet",
+  "InterfaceDescription": "Realtek PCIe GbE Family Controller",
+  "Status": "Up",
+  "LinkSpeed": "100 Mbps",
+  "DriverVersion": "10.37.1028.2019"
+}
