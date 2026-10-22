@@ -1,5 +1,10 @@
 # Area C++
 
+El [museo comun](../Museo/README.md) organiza vida util, invalidacion, liberadores,
+carreras y diferencias de secuenciacion por dialecto. Las cinco fichas C++ nuevas
+son investigacion pendiente de fixtures; no amplian la cobertura acreditada de
+las sondas actuales. Los contratos ABI y de inline ASM se estudian en [ASM](../ASM/README.md).
+
 La ampliación de [Vulkan, EGL y NVMe](../docs/GRAFICA-Y-NVME.md) añade
 `ULTRA_CXX_VULKAN=ON`: una sonda de recursos válidos y rechazo de parámetros
 incorrectos mediante la capa Khronos. Solo se ejecuta en el banco software

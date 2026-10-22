@@ -76,6 +76,7 @@ def render(root, report_path):
     counts = Counter(c['clase'] for c in data['piezas'])
     lines = ['# Museo viviente de C y sus guardianes', '',
              'Generado desde `museo-ub.json`; las fichas se estudian y revisan, no se ejecutan desde este documento.', '',
+             'Entrada comun de [C, C++ y ASM](../Museo/README.md); este documento conserva el banco C y sus evidencias historicas.', '',
              f"Dialectos: {data['dialecto']}.", '',
              f"Coleccion inicial: **{len(ids)} piezas** ({counts['UB']} de UB y {len(ids) - counts['UB']} de contraste). "
              f'Enlaza {len(mapped)} de las {len(runtime)} minas actuales; una pieza no equivale a una sola mina.', '',

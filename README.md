@@ -248,7 +248,7 @@ después, conservando compatibilidad y aislamiento.
 - [Vulkan, OpenGL, portales y Windows en el NVMe](docs/GRAFICA-Y-NVME.md)
 - [Brave](docs/BRAVE-W3F.md) y [medición por perfil](docs/MEDICION-W3E.md)
 - [Ethernet y banco de red](docs/RED-W3G.md)
-- [Museo de UB](docs/MUSEO-UB.md), [historia de C](docs/HISTORIA-C-Y-SEGURIDAD.md) y [pendientes de guardianes](docs/PENDIENTES-GUARDIANES.md)
+- [Museo comun de C, C++ y ASM](Museo/README.md), [banco C y evidencias](docs/MUSEO-UB.md), [historia de C](docs/HISTORIA-C-Y-SEGURIDAD.md) y [pendientes de guardianes](docs/PENDIENTES-GUARDIANES.md)
 - [Diseño de ULTRA](docs/ULTRA-LINUX.md) y [primer kernel](docs/PRIMER-KERNEL.md)
 
 ## Licencias y procedencia

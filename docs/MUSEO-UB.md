@@ -2,6 +2,8 @@
 
 Generado desde `museo-ub.json`; las fichas se estudian y revisan, no se ejecutan desde este documento.
 
+Entrada comun de [C, C++ y ASM](../Museo/README.md); este documento conserva el banco C y sus evidencias historicas.
+
 Dialectos: C17 / GCC; las referencias N1570 son del borrador C11 y N3155 trata C23: no intercambiar sus numeraciones.
 
 Coleccion inicial: **24 piezas** (21 de UB y 3 de contraste). Enlaza 26 de las 62 minas actuales; una pieza no equivale a una sola mina.
