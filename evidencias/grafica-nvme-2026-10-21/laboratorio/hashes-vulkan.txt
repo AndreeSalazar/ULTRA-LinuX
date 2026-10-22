@@ -1,0 +1,3 @@
+4e2cbef551a0988f3dcd5329ade9b4bad96a36388f20a61126b704e937981a6c  C++/laboratorio/grafica/sonda-vulkan.cpp
+b731f7bd66952e52115d8fc51a7e0429305576da1588143c4c6b43bcc9500f16  produccion/laboratorio/sonda-vulkan
+da345329270bb2f2d0ec6b0417079c64fe0bb2034d4c7060e0b9a6c7122e4f75  diagnostico/laboratorio/sonda-vulkan

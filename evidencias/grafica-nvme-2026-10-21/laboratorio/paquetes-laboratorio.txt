@@ -1,0 +1,7 @@
+gcc 16.2.1+r23+gd564253eb6c8-1
+cmake 4.4.4-1
+mesa 1:26.2.5-1
+vulkan-headers 1:1.4.363.0-1
+vulkan-icd-loader 1.4.363.0-1
+vulkan-validation-layers 1.4.363.0-1
+vulkan-swrast 1:26.2.5-1

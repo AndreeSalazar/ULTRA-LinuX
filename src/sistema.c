@@ -92,6 +92,8 @@ void prepare_system(bool data) {
 
 void release_system(void) {
     if (!ready) return;
+    if (umount(ARCH "/windows") == 0) report("VERDE", "WINDOWS", "NVMe desmontado");
+    else if (errno != EINVAL && errno != ENOENT) report("AMARILLO", "WINDOWS-DESMONTAJE", "/windows");
     /* Games are nested: overlay first, ext4 loop (autoclear), then NTFS D:.
        PID 1 has already stopped all processes. Never detach a live backing store. */
     const char *const games[] = {ARCH "/juegos/Cyberpunk2077", ARCH "/juegos", ARCH "/run/ultra-juegos/volumen"};

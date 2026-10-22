@@ -1,0 +1,106 @@
+[
+  {
+    "archivo": "src/sistema.c",
+    "sha256": "6ee0effc32f99013bce50f78cd92f2e817acbe4b78050414649ef48194164ef8"
+  },
+  {
+    "archivo": "C++/laboratorio/grafica/sonda-vulkan.cpp",
+    "sha256": "4e2cbef551a0988f3dcd5329ade9b4bad96a36388f20a61126b704e937981a6c"
+  },
+  {
+    "archivo": "scripts/aislar-grafica-software.sh",
+    "sha256": "0a90ca1fc65e1b5bb0c22bbf4d29848cba3531b646c5d57253306cc9d1054445"
+  },
+  {
+    "archivo": "scripts/crear-banco-windows.sh",
+    "sha256": "7f2f62d35e80e57c8c91836a4883015d0df879634b5af435fde2e48d4d8e1dad"
+  },
+  {
+    "archivo": "scripts/crear-banco-juegos.sh",
+    "sha256": "7792535b68260e2248e8046c94e6a965861fd5c00fa10154cc4184a7269e56e5"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-ambiente",
+    "sha256": "6e251460168bddabb38e1c98b77525481082478790d72011b74de0b16e3335c9"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-audio",
+    "sha256": "b2131ab9574afe9473dc056e1bb2bb588a0f1567d0bec6df90ed4553a42a1713"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-brave",
+    "sha256": "ed63f26706944bf4bdce1780be7e8c2f33b39956d48a3793c776f51e70999739"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-cliente",
+    "sha256": "11881bee280634b2814497b28a352f0d0e6f28fb2021d871e0d96554cb6cd0d2"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-desktop-session",
+    "sha256": "5dad64a384ce5a6b3f410906bfe561f949fdd37c82c0f1c2b9669b937c04cfbd"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-entrar",
+    "sha256": "3ea5b2b03c3cce16cba5205c44dbfbbf48c9700ba185ff565894b3bae361e9ed"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-escritorio",
+    "sha256": "dc5189dd72bbbdba43071cebb00d3ee1cfc0bcfbd53c9fbac5eb624a3e950612"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-graficos",
+    "sha256": "63cafb38877167d9b56502418f43cc77d68d4117cb6aee7eb9d82192321b2180"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-hyprland",
+    "sha256": "34dfa735360eea0ec98b2ec83966d97788db3c171c35b6175a759ed07377890f"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-informe-gpu",
+    "sha256": "cace1486389b57837f9cf368afaa3de1e2383d984e9668568ef946697d2d63a9"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-informe-red",
+    "sha256": "1d68b4f44fbc6d5863a7526c98a6487482b646f7d081c707f12228ea9e3762e1"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-iniciar-escritorio",
+    "sha256": "8637a48a346a1078f8915ac5a46a0a054e41f0325e623dc8f25263dabc711a8e"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-juegos",
+    "sha256": "8110e2d976b26722052f10ebbf47c54481c53aea19315e03e39f05075372adbc"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-medir-sesion",
+    "sha256": "f60cb6541b15e893e86f4348e4ace668c7e50eef33fae048154cb8a10f84f53b"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-menu",
+    "sha256": "009cf1ac02f540855221a5d512319caf396dcf93e34366ac9475dd3dacd571bc"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-preparar-juegos",
+    "sha256": "822ecf90ff0c7076b1cc9cb5bf0fb117a2fe95c9dde85993546671ad4d0a1122"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-preparar-nvidia",
+    "sha256": "e97a823c548b9e678ac16a92d74470f60cfce68dde107772043b0d68abb76aa2"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-preparar-red",
+    "sha256": "9a7730e24afa5a946046ee30cb6ad395ad555fcb408b3ee7ee23b9df5f6d8d8b"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-preparar-windows",
+    "sha256": "48b7cf4f359e152511c6f4f2ef6dc84953ca60dca8d656a9e3a9141f4f805a70"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-sesion",
+    "sha256": "d75e16a1e6ef0a646e0ba6ac93ab1a6d5285153578849d0bf111de4fc8705102"
+  },
+  {
+    "archivo": "src/rootfs/bin/ultra-windows",
+    "sha256": "7243a778537e8307cea8f0d3694fd2aa3981403157953f9a7a4f97b9c88366d7"
+  }
+]

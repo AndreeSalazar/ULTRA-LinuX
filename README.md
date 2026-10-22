@@ -6,7 +6,7 @@
 
 <p align="center">Distribución personal y experimental para x86-64, creada e integrada por Eddi Salazar.<br>Linux + entorno Arch + init propio en C + escritorio Wayland con Hyprland.</p>
 
-![Escritorio BMO-X con terminal, ayuda, archivos y editor](evidencias/rebuild-2026-10-21/generico/escritorio.png)
+![Escritorio BMO-X con terminal, ayuda, archivos y editor](evidencias/grafica-nvme-2026-10-21/generico/escritorio.png)
 
 BMO-X / Night Circuit combina negro, azul oscuro, cyan y verde neón con acentos
 rojo metálico. Incluye barra de estado, dock con iconos, lanzador con teclado,
@@ -33,6 +33,11 @@ La [reconstrucción del 21 de octubre](evidencias/rebuild-2026-10-21/README.md)
 actualiza los informes de montajes y audio USB, y permite consultar el estado
 de juegos aunque falte el almacenamiento persistente.
 
+La ampliación de [gráficos y NVMe](docs/GRAFICA-Y-NVME.md) incorpora diagnóstico
+Vulkan/OpenGL, validación por proceso, corrección de la activación de portales
+Wayland y acceso a Windows C: en solo lectura. El laboratorio C++ prueba EGL
+y Vulkan con render por CPU, separado de la RTX y del escritorio.
+
 | Área | Estado y evidencia |
 |---|---|
 | Arranque | UEFI, init C, consola BusyBox y perfiles genérico/PC; probado en QEMU y PC real |
@@ -44,13 +49,14 @@ de juegos aunque falte el almacenamiento persistente.
 | Juegos | Steam, Heroic/GOG y UMU; interfaces y persistencia probadas, Cyberpunk real aún sin validar |
 | Seguridad | Casos concretos de CET, FORTIFY, seccomp, Landlock y detectores de UB; cobertura parcial documentada |
 
-La reconstrucción del **21 de octubre pasó 254 comprobaciones**: 107 de arranque
-en genérico, 111 en PC y 18 de audio/juegos por perfil. Los [resultados nuevos](evidencias/rebuild-2026-10-21/README.md)
-conservan sus hashes y capturas; la [ronda del 20 de octubre](evidencias/audio-juegos/README.md)
-permanece como referencia histórica. Cada reconstrucción necesita su propia evidencia.
+La ampliación gráfica del **21 de octubre pasó 283 comprobaciones**: 113 de
+arranque en genérico, 114 en PC y 28 de audio/juegos/NVMe por perfil. Los
+[resultados nuevos](evidencias/grafica-nvme-2026-10-21/README.md) conservan hashes,
+capturas y límites. Las rondas de [reconstrucción previa](evidencias/rebuild-2026-10-21/README.md)
+y [audio/juegos](evidencias/audio-juegos/README.md) permanecen como historial.
 Los resultados virtuales no acreditan FPS, latencia de audio ni consumo físico.
 
-![Steam con formulario visible y Heroic detrás, en el laboratorio](evidencias/rebuild-2026-10-21/generico/steam-login.png)
+![Steam actualizado con formulario visible en el laboratorio](evidencias/grafica-nvme-2026-10-21/generico/steam-login.png)
 
 Versiones de esta reconstrucción: Linux **7.3-rc7**, commit
 `32c52ec87d6245ee2d12ed5dd509e40062939b50`; Hyprland **0.56.2-4**;
@@ -70,6 +76,8 @@ Super es la tecla Windows. En la consola, `e` abre el menú con flechas y Enter.
 | Super + Space | Centro BMO-X y ambiente |
 | Super + E / N | Archivos / editor |
 | Super + B / G | Brave / diagnóstico GPU del navegador |
+| Super + Shift + G | Informe OpenGL/Vulkan y cubo con validación opcional |
+| Super + Shift + E | Archivos de Windows en el NVMe, solo lectura |
 | Super + A | Audio maestro, salida, silencio y boost opcional hasta 150 % |
 | Super + J | Steam, Heroic, Cyberpunk y espacio |
 | Super + Shift + A | Alternar efectos vivos y reducidos |
@@ -127,13 +135,14 @@ El taller publica SSH solo en `127.0.0.1:12222` y fuentes en
 ```powershell
 python scripts/probar_arranque.py generico --bmo --brave
 python scripts/probar_arranque.py pc --bmo --brave
-python scripts/probar_audio_juegos.py generico
-python scripts/probar_audio_juegos.py pc
+python scripts/probar_audio_juegos.py generico --windows --banco-grafica
+python scripts/probar_audio_juegos.py pc --windows --banco-grafica
 ```
 
-Usar un Python 3 disponible y el banco sintético de juegos preparado según
-[Audio y juegos](docs/AUDIO-JUEGOS.md). Ejecutar las pruebas de una en una: usan
-puertos locales fijos. Trabajan sobre copias y almacenamiento de laboratorio,
+Usar un Python 3 disponible y los bancos sintéticos preparados según
+[Gráficos y NVMe](docs/GRAFICA-Y-NVME.md). Ejecutar las pruebas de arranque de
+una en una: comparten puertos locales fijos. Audio/juegos usa puertos distintos
+por perfil y cada VM reserva 4 GiB. Trabajan sobre copias de laboratorio,
 sin cuentas personales ni el juego real. Descargar y comprobar hashes antes de probar.
 
 Para instalar una imagen ya validada, el instalador verifica el destino FAT32
@@ -173,6 +182,7 @@ después, conservando compatibilidad y aislamiento.
 - [Escritorio BMO-X: aspecto y controles](docs/ESCRITORIO-BMO-X.md)
 - [Audio, juegos, almacenamiento y límites](docs/AUDIO-JUEGOS.md)
 - [Wayland y NVIDIA](docs/WAYLAND.md)
+- [Vulkan, OpenGL, portales y Windows en el NVMe](docs/GRAFICA-Y-NVME.md)
 - [Brave](docs/BRAVE-W3F.md) y [medición por perfil](docs/MEDICION-W3E.md)
 - [Ethernet y banco de red](docs/RED-W3G.md)
 - [Museo de UB](docs/MUSEO-UB.md), [historia de C](docs/HISTORIA-C-Y-SEGURIDAD.md) y [pendientes de guardianes](docs/PENDIENTES-GUARDIANES.md)

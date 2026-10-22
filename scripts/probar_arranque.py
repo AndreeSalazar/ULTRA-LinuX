@@ -371,6 +371,52 @@ def check_hyprland(conn, failures):
             if panels_ready: break
             time.sleep(.25)
         expect(panels_ready, 'BMO-X: barra y dock mapeados en Wayland')
+        conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval \'hl.exec_cmd("ultra-graficos informe")\'; echo GRAFICA-INICIO-$((40+1))\n')
+        transcript += response('GRAFICA-INICIO-41')
+        report_ready = False
+        for _ in range(45):
+            conn.sendall(b'ultra-entrar /usr/bin/cat /run/user/1000/ultra-graficos.txt; echo GRAFICA-REPORTE-$((40+2))\n')
+            report = response('GRAFICA-REPORTE-42')
+            transcript += report
+            if 'ULTRA GRAFICOS v1' in report:
+                report_ready = True
+                break
+            time.sleep(1)
+        expect(report_ready and '[VULKAN]' in report and 'OpenGL' in report,
+               'Graficos: informe atomico Vulkan/OpenGL con proveedores reales')
+        expect('llvmpipe' in report.lower(), 'Graficos: laboratorio identifica render software')
+        if PERFIL == 'generico':
+            expect('PHYSICAL_DEVICE_TYPE_CPU' in report or 'deviceType         = CPU' in report,
+                   'Vulkan: dispositivo CPU del banco identificado')
+        # Ask an activated service to open its real Wayland connection, not just check env strings.
+        portal_cmd = ('gdbus call --session --dest org.freedesktop.portal.Desktop '
+                      '--object-path /org/freedesktop/portal/desktop '
+                      '--method org.freedesktop.portal.Settings.Read '
+                      'org.freedesktop.appearance color-scheme > /run/user/1000/portal-prueba.txt 2>&1')
+        conn.sendall(('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '
+                      + "'hl.exec_cmd(\"" + portal_cmd + "\")'; echo PORTAL-INICIO-$((40+3))\n").encode())
+        transcript += response('PORTAL-INICIO-43')
+        portal_ready = False
+        for _ in range(20):
+            conn.sendall(b'ultra-entrar /usr/bin/cat /run/user/1000/portal-prueba.txt; echo PORTAL-RESULTADO-$((40+4))\n')
+            portal = response('PORTAL-RESULTADO-44')
+            transcript += portal
+            if 'uint32' in portal:
+                portal_ready = True
+                break
+            time.sleep(1)
+        expect(portal_ready, 'Wayland: portal Settings responde tras activacion D-Bus')
+        if PERFIL == 'generico':
+            conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval \'hl.exec_cmd("ultra-graficos validar")\'; echo VULKAN-CUBO-$((40+5))\n')
+            transcript += response('VULKAN-CUBO-45')
+            cube = wait_apps(lambda apps: any('vkcube' in (a.get('class', '') + ' ' + a.get('title', '')).lower() for a in apps))
+            expect(bool(cube), 'Vulkan: cubo Wayland mapeado con validacion por proceso')
+            time.sleep(13)
+            conn.sendall(b'ultra-entrar /usr/bin/cat /home/ultra/.cache/ultra/vulkan-cubo.log; echo VULKAN-CUBO-FIN-$((40+6))\n')
+            cube_log = response('VULKAN-CUBO-FIN-46')
+            transcript += cube_log
+            expect('llvmpipe' in cube_log.lower() and 'Validation Error' not in cube_log,
+                   'Vulkan: cubo CPU sin errores de validacion reportados')
         transcript += run(conn, [('test -n "$(pidof mako)" && test -f /arch/usr/share/icons/Papirus-Dark/index.theme && ultra-entrar /usr/bin/fc-match "Font Awesome 7 Free:charset=f120" | grep -q "[.]otf" && echo BMO-ICONOS-$((10+2))', 'BMO-ICONOS-12')], failures)
         for wanted in (1, 0):
             mon.sendall(b'sendkey meta_l-shift-a\n')

@@ -100,7 +100,7 @@ ULTRA LinuX en esta particion (BMO, A:\ en Windows)
 EFI\ULTRA\ULTRA.EFI       kernel generico      -> F11: "ULTRA LinuX"
 EFI\ULTRA\ULTRA-PC.EFI    kernel Zen 3 (pc)    -> F11: "ULTRA LinuX PC (Zen 3)"
 
-ULTRA\sistema-<version>.erofs   modulos de cada kernel, solo lectura.
+ULTRA\sistema-<version>.erofs   sistema y modulos de cada kernel, solo lectura.
                                  Sin "-pc-": generico. Con "-pc-": Zen 3.
 ULTRA\datos.ext4                /datos, compartido por los dos kernels.
                                  Windows no lo lee; no borrarlo.
@@ -115,6 +115,8 @@ ULTRA\informe\                  lo que ULTRA deja para leer desde Windows,
                          cada kernel, con sus marcas de tiempo
 
 Apagar siempre con "poweroff" dentro de ULTRA.
+"e" abre el menu con teclado. En Hyprland, Super+Shift+G abre graficos.
+Super+Shift+E abre Windows NVMe en /windows, solo lectura.
 Instalado y actualizado por instalar-en-A.ps1 (proyecto Linux Reconstruido).
 '@
     [IO.File]::WriteAllText((Join-Path (Convert-Path -LiteralPath (Join-Path $root 'ULTRA')) 'LEEME.txt'),($leeme -replace "`r?`n","`r`n"),(New-Object Text.UTF8Encoding $false))

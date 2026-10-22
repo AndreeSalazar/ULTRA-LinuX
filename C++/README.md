@@ -1,5 +1,10 @@
 # Area C++
 
+La ampliación de [Vulkan, EGL y NVMe](../docs/GRAFICA-Y-NVME.md) añade
+`ULTRA_CXX_VULKAN=ON`: una sonda de recursos válidos y rechazo de parámetros
+incorrectos mediante la capa Khronos. Solo se ejecuta en el banco software
+aislado; no sustituye la implementación gráfica de las aplicaciones.
+
 El [plan de aplicacion y estado actual](../docs/PLAN-GUARDIANES-GRAFICOS.md)
 registra la ronda de guardianes CPU/GLES, limites de laboratorio y reemplazo
 de programas con conservacion del anterior.

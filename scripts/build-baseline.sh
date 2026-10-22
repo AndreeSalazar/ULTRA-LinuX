@@ -210,7 +210,8 @@ if [[ -n $cmdline ]]; then
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
         pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
-        steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk vulkan-tools e2fsprogs)
+        steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk vulkan-tools e2fsprogs
+        mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -229,7 +230,7 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render,audio -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red ultra-informe-red ultra-desktop-session ultra-preparar-juegos; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-preparar-red ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-iniciar-escritorio; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
@@ -243,10 +244,11 @@ if [[ -n $cmdline ]]; then
         { echo 'ROJO: falta firmware Ethernet RTL8168h'; exit 1; }
     sudo install -d -m 0755 "$sistema/etc/ultra"
     sudo install -m 0644 "$lab/rootfs/desktop/"* "$sistema/etc/ultra/"
+    sudo install -m 0644 "$art/sistema-paquetes.txt" "$sistema/etc/ultra/sistema-paquetes.txt"
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-graficos ultra-windows; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo install -d -m 0755 "$sistema/etc/wireplumber/wireplumber.conf.d"
     sudo install -m 0644 "$lab/rootfs/desktop/wireplumber-usb.conf" "$sistema/etc/wireplumber/wireplumber.conf.d/51-ultra-usb.conf"
     sudo install -m 0644 "$lab/rootfs/desktop/"*.desktop "$sistema/usr/share/applications/"

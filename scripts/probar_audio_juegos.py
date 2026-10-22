@@ -24,17 +24,27 @@ def main():
     assert not dependencies or preflight
     reuse = '--reanudar' in sys.argv or '--diagnostico' in sys.argv
     diagnose = '--diagnostico' in sys.argv
+    windows_test = '--windows' in sys.argv
+    graphics_bank = '--banco-grafica' in sys.argv
     sys.argv = [sys.argv[0], profile, '--bmo']
     spec = importlib.util.spec_from_file_location('arranque', Path(__file__).with_name('probar_arranque.py'))
     base = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(base)
+    serial_port = 15755 if profile == 'generico' else 15855
     base.check_kernel()
-    lab = base.ROOT / 'build/juegos'
+    lab = base.ROOT / ('build/juegos-grafica' if graphics_bank else 'build/juegos')
     dependencies_digest = None
     if dependencies:
         with (base.ROOT/'vm/public/deps-steam.tar').open('rb') as stream:
             dependencies_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     config = json.loads((lab/'ntfs-lab.json').read_text())
+    windows_original = base.ROOT / 'build/juegos/windows.img'
+    windows_copy = base.BUILD / 'windows-prueba.img'
+    windows_before = None
+    if windows_test:
+        with windows_original.open('rb') as stream:
+            windows_before = hashlib.file_digest(stream, 'sha256').hexdigest()
+        shutil.copyfile(windows_original, windows_copy)
     assert re.fullmatch(r'[0-9A-Fa-f]{16}', config['uuid'])
     image = base.BUILD/'audio-juegos-bmo.img'
     games = base.BUILD/'audio-juegos-ntfs.img'
@@ -59,17 +69,19 @@ def main():
             '-drive', f'if=pflash,format=raw,file={variables}',
             '-drive', f'file={image},format=raw,if=virtio',
             '-drive', f'file={games},format=raw,if=virtio',
+            *(['-drive', f'file={windows_copy},format=raw,if=none,id=windows',
+               '-device', 'nvme,drive=windows,serial=ULTRA-WINDOWS-LAB'] if windows_test else []),
             '-netdev', 'user,id=net0', '-device', 'virtio-net-pci,netdev=net0',
             '-device', 'virtio-vga', '-device', 'qemu-xhci,id=usb0',
             '-audiodev', f'wav,id=sound0,path={capture}',
             '-device', 'usb-audio,id=usbaudio0,bus=usb0.0,audiodev=sound0',
-            '-serial', 'tcp:127.0.0.1:15755,server=on,wait=off',
-            '-monitor', 'tcp:127.0.0.1:15756,server=on,wait=off'],
+            '-serial', f'tcp:127.0.0.1:{serial_port},server=on,wait=off',
+            '-monitor', f'tcp:127.0.0.1:{serial_port+1},server=on,wait=off'],
             stdout=subprocess.DEVNULL, stderr=(base.BUILD/'audio-juegos-qemu-error.txt').open('w'))
         for _ in range(80):
             try:
-                console = socket.create_connection(('127.0.0.1', 15755), timeout=1)
-                monitor = socket.create_connection(('127.0.0.1', 15756), timeout=1)
+                console = socket.create_connection(('127.0.0.1', serial_port), timeout=1)
+                monitor = socket.create_connection(('127.0.0.1', serial_port+1), timeout=1)
                 break
             except OSError:
                 if process.poll() is not None: raise RuntimeError('QEMU no arranco')
@@ -114,6 +126,19 @@ def main():
         command(f"printf '{content}' > /arch/etc/ultra/juegos.conf")
         out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-juegos; echo MONTAJE-RC-$?', 40)
         check('MONTAJE-RC-0' in out, 'NTFS identificado y ext4 montado sin formatear')
+        if windows_test:
+            out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-windows; echo WINDOWS-RC-$?')
+            check('WINDOWS-RC-0' in out, 'NVMe Windows ficticio identificado por UUID y montado')
+            out = command(user+'/usr/bin/cat /windows/prueba.txt; ultra-entrar /usr/bin/blockdev --getro /dev/nvme0n1')
+            check('WINDOWS-LECTURA-LAB' in out and re.search(r'(?m)^1\r?$', out),
+                  'Windows legible por UID1000 con dispositivo NVMe de solo lectura')
+            out = command(user+"/usr/bin/bash -c 'if echo CAMBIO > /windows/prueba.txt; then exit 1; fi; echo ESCRITURA-DENEGADA'")
+            check('ESCRITURA-DENEGADA' in out and 'Read-only file system' in out,
+                  'Windows rechaza escrituras de aplicaciones')
+            out = command("ultra-entrar /usr/bin/bash -c 'if printf X | dd of=/dev/nvme0n1 bs=1 count=1 conv=notrunc; then exit 1; fi; echo DISPOSITIVO-DENEGADO'")
+            check('DISPOSITIVO-DENEGADO' in out and '0 bytes copied' in out
+                  and any(message in out for message in ('Read-only file system', 'Operation not permitted')),
+                  'NVMe ficticio rechaza escritura directa incluso del preparador root')
 
     user = ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --init-groups '
             '--no-new-privs --bounding-set=-all /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 '
@@ -157,6 +182,8 @@ def main():
             if time.monotonic() >= report_at:
                 out = command('ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt')
                 print('STEAM:', out.replace('\r', '').strip()[-500:], flush=True)
+                if 'No space left on device' in out:
+                    return False
                 report_at = time.monotonic()+30
             time.sleep(2)
         return False
@@ -189,6 +216,11 @@ def main():
         check('ULTRA-LAB-GAME-ORIGINAL' in out, 'escritura overlay no modifica el juego original NTFS')
         command('ultra-escritorio --hyprland --software > /tmp/audio-juegos-sesion.log 2>&1 &')
         check(wait_app('foot', 60), 'escritorio usa home persistente')
+        if windows_test:
+            monitor.sendall(b'sendkey meta_l-shift-e\n')
+            check(wait_app('thunar', 25), 'Windows abre desde el teclado en el explorador de archivos')
+            time.sleep(.5)
+            snapshot('windows-nvme.png')
         out=command(user+'/usr/bin/python -c \'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print("LOOPBACK-"+str(6*7)); s.close()\'')
         check('LOOPBACK-42' in out, 'usuario puede crear un servicio local TCP en loopback')
         deadline=time.monotonic()+35
@@ -224,6 +256,7 @@ def main():
             command('ultra-entrar /usr/bin/tail -n 80 /juegos/usuarios/ultra/.cache/ultra/steam.log /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt /juegos/usuarios/ultra/.local/share/Steam/logs/cef_log.txt',60)
             snapshot('steam-diagnostico.png')
         check(steam_ready, 'Steam abre cliente/login sin iniciar sesion de cuenta')
+        space = command('ultra-entrar /usr/bin/df -B1 --output=size,used,avail /juegos')
         snapshot('steam-login.png')
         snapshot('clientes-listos.png')
         out=command('for name in heroic steam pipewire wireplumber; do for p in $(pidof "$name"); do echo CRED-$name; cat /proc/$p/status; echo CRED-FIN; done; done')
@@ -237,6 +270,9 @@ def main():
         console.sendall(b'reboot\n')
         transcript += base.read_until(console, 'Restarting system', 40)
         process.wait(timeout=20); console.close(); monitor.close()
+        if windows_test:
+            check('VERDE [WINDOWS]: NVMe desmontado' in transcript,
+                  'Windows se desmonta limpiamente antes de reiniciar')
         raw=capture.read_bytes()
         # QEMU on Windows can leave zero RIFF/data lengths when -no-reboot exits.
         # Validate its actual PCM bytes and write a playable container with real lengths.
@@ -257,6 +293,13 @@ def main():
         result={'perfil':profile,'pruebas':results,'disco_real_expuesto':False,
                 'imagen':base.IMG.name,'imagen_sha256':verified[base.IMG.name],
                 'cache_cliente_reutilizada':reuse}
+        result['banco_grafica_12GiB'] = graphics_bank
+        result['espacio_tras_abrir_clientes'] = space
+        if windows_test:
+            with windows_copy.open('rb') as stream:
+                windows_after = hashlib.file_digest(stream, 'sha256').hexdigest()
+            assert windows_after == windows_before, 'El NTFS Windows ficticio cambio'
+            result['windows_ficticio_sha256_antes_despues'] = windows_after
         if preflight:result['helper_prevalidacion_sha256']=hashlib.sha256((base.ROOT/'src/rootfs/bin/ultra-preparar-juegos').read_bytes()).hexdigest()
         if dependencies:result['bibliotecas_prevalidacion_sha256']=dependencies_digest
         (base.BUILD/'audio-juegos-resultados.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

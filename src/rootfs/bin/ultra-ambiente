@@ -5,12 +5,14 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 mode=${1:-menu}
 if [[ $mode == menu ]]; then
-    choice=$(printf '%s\n' 'Aplicaciones' 'Navegador Brave' 'Archivos' 'Terminal' 'Editor' 'Audio maestro' 'Juegos' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Ayuda' |
-        fuzzel --dmenu --prompt='BMO-X / ' --lines=11) || exit 0
+    choice=$(printf '%s\n' 'Aplicaciones' 'Navegador Brave' 'Archivos' 'Windows NVMe' 'Graficos Vulkan y OpenGL' 'Terminal' 'Editor' 'Audio maestro' 'Juegos' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Ayuda' |
+        fuzzel --dmenu --prompt='BMO-X / ' --lines=13) || exit 0
     case $choice in
         Aplicaciones) exec fuzzel;;
         'Navegador Brave') exec ultra-brave;;
         Archivos) exec thunar;;
+        'Windows NVMe') exec ultra-windows;;
+        'Graficos Vulkan y OpenGL') exec ultra-graficos menu;;
         Terminal) exec foot;;
         Editor) exec mousepad;;
         'Audio maestro') exec ultra-audio menu;;

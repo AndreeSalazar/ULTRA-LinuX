@@ -1,0 +1,29 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Exact NTFS identity, block-level read-only, never repairs or unlocks a volume.
+set -euo pipefail
+[[ $(id -u) == 0 ]] || exit 1
+uuid=''
+while IFS='=' read -r key value; do
+    [[ $key != uuid ]] || uuid=$value
+done < /etc/ultra/windows.conf
+[[ $uuid =~ ^[0-9A-Fa-f]{16}$ ]] || exit 2
+if mountpoint -q /windows; then
+    [[ $(findmnt -n -o UUID --mountpoint /windows) == "${uuid^^}" ]] || exit 1
+    options=,$(findmnt -n -o OPTIONS --mountpoint /windows),
+    [[ $options == *,ro,* && $options == *,nosuid,* && $options == *,nodev,* && $options == *,noexec,* ]]
+    exit $?
+fi
+devices=()
+found=$(blkid -t "UUID=${uuid^^}" -o device || true)
+[[ -z $found ]] || mapfile -t devices <<< "$found"
+(( ${#devices[@]} == 1 )) || { echo 'AMARILLO [WINDOWS]: volumen ausente o ambiguo'; exit 1; }
+device=${devices[0]}
+[[ -b $device && $(blkid -s TYPE -o value "$device") == ntfs ]] || exit 1
+# Prevent even journal recovery from writing through this partition device.
+blockdev --setro "$device"
+[[ $(blockdev --getro "$device") == 1 ]] || exit 1
+install -d -m 0755 /windows
+mount -t ntfs3 -o ro,nosuid,nodev,noexec,uid=1000,gid=1000,dmask=0022,fmask=0133 "$device" /windows
+echo 'VERDE [WINDOWS]: /windows solo lectura, dispositivo protegido contra escritura'
+findmnt --mountpoint /windows --output TARGET,FSTYPE,OPTIONS

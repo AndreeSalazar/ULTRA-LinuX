@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -euo pipefail
+[[ $(id -u) == 1000 ]] || exit 1
+if ! mountpoint -q /windows; then
+    notify-send 'Windows no disponible' 'No se pudo montar el NVMe en solo lectura. Consulta el informe.' || true
+    exit 1
+fi
+exec thunar /windows

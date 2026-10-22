@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=ULTRA Graficos Vulkan y OpenGL
+Exec=ultra-graficos menu
+Icon=video-display
+Categories=System;

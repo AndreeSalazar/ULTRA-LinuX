@@ -1,0 +1,68 @@
+[
+  {
+    "perfil": "generico",
+    "archivo": "bzImage-tiny64",
+    "bytes": 18535424,
+    "sha256": "fd6f2a6cd1f71e1365bde01f10ef3727e30e4739bb03d8c79bad42d12b8b50f4"
+  },
+  {
+    "perfil": "generico",
+    "archivo": "ultra-esp.img",
+    "bytes": 1360003072,
+    "sha256": "5a79140155c2c0d0bbf2784b8557ab2cb472f3ced3ae121c9708a560ba7e747e"
+  },
+  {
+    "perfil": "generico",
+    "archivo": "disco-bmo.img",
+    "bytes": 1431306240,
+    "sha256": "28fe099b0cd81d77c92a4ee9d027d75e46a59f5a366a19c96f9ba73997700414"
+  },
+  {
+    "perfil": "generico",
+    "archivo": "sistema-a.erofs",
+    "bytes": 1157554176,
+    "sha256": "e6656e172f48d1c60ee7a70fea6e76d22caf6e6d8173a381a6fe181b9ea13bc7"
+  },
+  {
+    "perfil": "generico",
+    "archivo": "datos.ext4",
+    "bytes": 67108864,
+    "sha256": "2704c451a80079a497816afca28407c88d30ce8ea10bf5b43127c09e5f8e6d51"
+  },
+  {
+    "perfil": "pc",
+    "archivo": "bzImage-tiny64",
+    "bytes": 18482176,
+    "sha256": "6a59a710d07e3ca647580986747e1dc6d20a78b8e2dbf617ff1df134f786fd79"
+  },
+  {
+    "perfil": "pc",
+    "archivo": "ultra-esp.img",
+    "bytes": 1947205632,
+    "sha256": "17ca2eed5d15a3bd95a289a44e351d5a1834f4227c056575f2dfc817de077b9a"
+  },
+  {
+    "perfil": "pc",
+    "archivo": "disco-bmo.img",
+    "bytes": 3217031168,
+    "sha256": "4c953f67bd2e637288c41a314ab48c9c5d600a346e7c5fdc0611e537194601bd"
+  },
+  {
+    "perfil": "pc",
+    "archivo": "sistema-a.erofs",
+    "bytes": 1743958016,
+    "sha256": "04a87760a67edfb25972181db78bee78ad614c8e392dc2daa1b042e9260e45e5"
+  },
+  {
+    "perfil": "pc",
+    "archivo": "datos.ext4",
+    "bytes": 67108864,
+    "sha256": "04125c6a8d54badcbd72857e082396422fa2443e4236dd937296865d6d3c9361"
+  },
+  {
+    "perfil": "pc",
+    "archivo": "disco-bmo-doble.img",
+    "bytes": 3217031168,
+    "sha256": "64220e5dbc7b3f8b2dbe900afc4e5a95a66ec80438122e19e4f8c74161424af4"
+  }
+]

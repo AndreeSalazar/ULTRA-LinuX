@@ -18,6 +18,12 @@ binary=$(realpath -- "$1"); shift
 dir=$(dirname -- "$binary")
 name=$(basename -- "$binary")
 [[ -x $binary ]] || { echo 'AISLAMIENTO-ERROR: ejecutable ausente' >&2; exit 125; }
+vulkan_env=()
+if [[ $name == sonda-vulkan ]]; then
+    # Keep driver/layer mappings for LSan attribution; never suppress leak detection.
+    vulkan_env=(--setenv VK_LOADER_DISABLE_DYNAMIC_LIBRARY_UNLOADING 1
+        --setenv VK_DRIVER_FILES /usr/share/vulkan/icd.d/lvp_icd.json)
+fi
 exec timeout --kill-after=2s 30s prlimit --core=0 --cpu=20 --fsize=1048576 --nofile=128 --nproc=128 --stack=8388608 -- \
     bwrap --unshare-all --die-with-parent --new-session --cap-drop ALL \
     --ro-bind /usr /usr --symlink usr/lib /lib --symlink usr/lib /lib64 \
@@ -29,6 +35,7 @@ exec timeout --kill-after=2s 30s prlimit --core=0 --cpu=20 --fsize=1048576 --nof
     --setenv LP_NUM_THREADS 2 --setenv MESA_SHADER_CACHE_DISABLE true \
     --setenv ASAN_OPTIONS detect_leaks=1:halt_on_error=1 \
     --setenv UBSAN_OPTIONS halt_on_error=1:print_stacktrace=1 \
+    "${vulkan_env[@]}" \
     -- /usr/bin/bash -c '
         set -euo pipefail
         task_uid=$(id -u)

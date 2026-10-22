@@ -1,0 +1,1 @@
+VERDE: banco creado; ejecutable ficticio; ningun volumen fisico conectado

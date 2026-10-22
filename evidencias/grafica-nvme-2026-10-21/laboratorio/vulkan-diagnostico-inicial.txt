@@ -1,0 +1,33 @@
+VERDE [AISLAMIENTO]: uid=1000 memoria=536870912 swap=0 tareas=64
+VERDE [CREDENCIALES]: uid=1000 dentro del aislamiento; sin /dev/dri
+
+=================================================================
+==2==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 512 byte(s) in 1 object(s) allocated from:
+    #0 0x7f150ad2b161  (/usr/lib/libasan.so.8+0x12b161) (BuildId: b8a4241051a1621937fdc46e867ba7ecb56d96ea)
+    #1 0x7b1505d7eb0e  (<unknown module>)
+    #2 0x7b1505d7eff7  (<unknown module>)
+    #3 0x7f1509c9d79b  (/usr/lib/libc.so.6+0x9d79b) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #4 0x7f1509c9d818 in pthread_once (/usr/lib/libc.so.6+0x9d818) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #5 0x7b150602e0b7  (<unknown module>)
+    #6 0x7b1505c11005  (<unknown module>)
+    #7 0x7b1505ced69c  (<unknown module>)
+    #8 0x7b1505ced60e  (<unknown module>)
+    #9 0x7b1505cc0f1f  (<unknown module>)
+    #10 0x7b1505cc2827  (<unknown module>)
+    #11 0x7b1505ca5880  (<unknown module>)
+    #12 0x7b1505ca6371  (<unknown module>)
+    #13 0x7f150b47d3a7  (/usr/lib/libvulkan.so.1+0x3a3a7) (BuildId: b26800ca3fbde913f56586b0bff54ffaa21d73b4)
+    #14 0x7f150b47e13e  (/usr/lib/libvulkan.so.1+0x3b13e) (BuildId: b26800ca3fbde913f56586b0bff54ffaa21d73b4)
+    #15 0x7b14f7444c6f  (<unknown module>)
+    #16 0x7b14f7441395  (<unknown module>)
+    #17 0x7f150a62d333  (<unknown module>)
+    #18 0x7f150b474302  (/usr/lib/libvulkan.so.1+0x31302) (BuildId: b26800ca3fbde913f56586b0bff54ffaa21d73b4)
+    #19 0x7f150b49b3ed in vkCreateInstance (/usr/lib/libvulkan.so.1+0x583ed) (BuildId: b26800ca3fbde913f56586b0bff54ffaa21d73b4)
+    #20 0x558d728a4db2 in main /home/builder/linux-reconstruido/cxx-vulkan/C++/laboratorio/grafica/sonda-vulkan.cpp:43
+    #21 0x7f1509c27780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #22 0x7f1509c278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #23 0x558d728a45d4 in _start (/minas/sonda-vulkan+0x45d4) (BuildId: 752d0dee221ac4f71ff8e40dd8a3e7a85f0fd5cf)
+
+SUMMARY: AddressSanitizer: 512 byte(s) leaked in 1 allocation(s).

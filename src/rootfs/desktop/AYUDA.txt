@@ -8,6 +8,8 @@ SUPER + E           Archivos (Thunar)
 SUPER + N           Editor de texto (Mousepad)
 SUPER + B           Brave y pagina local de pruebas
 SUPER + G           Diagnostico GPU de Brave
+SUPER + Shift + G   Graficos: informe Vulkan/OpenGL, cubo y validacion
+SUPER + Shift + E   Abrir Windows NVMe en solo lectura (/windows)
 SUPER + H           Esta ayuda
 SUPER + Space       Centro BMO-X: aplicaciones y ambiente
 SUPER + Shift + A   Alternar efectos vivos / reducidos

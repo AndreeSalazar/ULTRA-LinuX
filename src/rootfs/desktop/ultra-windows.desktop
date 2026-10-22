@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Windows NVMe (solo lectura)
+Exec=ultra-windows
+Icon=drive-harddisk
+Categories=System;FileManager;

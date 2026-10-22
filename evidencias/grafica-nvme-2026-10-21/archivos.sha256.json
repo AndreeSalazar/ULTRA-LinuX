@@ -1,0 +1,146 @@
+[
+  {
+    "archivo": "artefactos-verificados.json",
+    "sha256": "83e53d7186523eaa9f005f3f66b9755d7bb9d6e49e4ad6720e7969e173afd0d5"
+  },
+  {
+    "archivo": "bancos/fabrica-juegos.txt",
+    "sha256": "c7373905035e101b6bd7371e2917ed34b7d3360814d2fe67589cf6ce2cfade16"
+  },
+  {
+    "archivo": "bancos/ntfs-lab.json",
+    "sha256": "4a3eae99dd7ff052d13f7daaae93b92174bf1334856dc510f8d4020b702dddae"
+  },
+  {
+    "archivo": "bancos/ntfs-lab.sha256",
+    "sha256": "d1b78c023b6cd0f491bf3b3f43784cb42b8b7e47b0668ad7566a8aeb5818d35d"
+  },
+  {
+    "archivo": "bancos/windows.sha256",
+    "sha256": "14d98429298eb749d8edf8fbebaf923edc76074215ce0c7c184e84235fb906dc"
+  },
+  {
+    "archivo": "fuentes.sha256.json",
+    "sha256": "a77090221ce648638455a8779893bf47102b883e67cf54d8bba3eb9eace9edc4"
+  },
+  {
+    "archivo": "generico/arranque-resultados.txt",
+    "sha256": "5d8601d2ea1d23971dd81869c6048b15fa7dbf2fa2a74cb83f4a557a1648dd76"
+  },
+  {
+    "archivo": "generico/audio-juegos-resultados.json",
+    "sha256": "a683cfe6521d94829cc09a34ecaedbb842a102ede74fe51417814df55dbc59ec"
+  },
+  {
+    "archivo": "generico/escritorio.png",
+    "sha256": "d12a367219fbfaf9c8bf469c9e532a9e3622dc000cf481bb1c1b3278f7887529"
+  },
+  {
+    "archivo": "generico/gpu-qemu-software-hyprland.txt",
+    "sha256": "7fbbd1aef414592c4ba821633b9b48ffc9fecd97baf10eae878bbfac2b673c36"
+  },
+  {
+    "archivo": "generico/SHA256SUMS",
+    "sha256": "9e0cef1290f847490a8e94a5142a1bf6c180f0a2c1d7bd669b76189dd35c83ff"
+  },
+  {
+    "archivo": "generico/sistema-paquetes.txt",
+    "sha256": "4bea1d62440feef7ca60e23262f9d3d03fdf9a9dbe70acf1bffa98160d3bc9d1"
+  },
+  {
+    "archivo": "generico/steam-login.png",
+    "sha256": "b662a121577a9c401dbb9e6cb8199ce24fbc7b1a8d6a0f9679dd84a226577735"
+  },
+  {
+    "archivo": "generico/windows-nvme.png",
+    "sha256": "bd3593a1b95145cb6c82c3853bb999d5b2f1762fa113c7e2de4b79fcd80a655b"
+  },
+  {
+    "archivo": "instalacion-A.json",
+    "sha256": "512287b8dde026ce0530e22082e9cb0ab424e7e894307e6f0184addd202216ec"
+  },
+  {
+    "archivo": "laboratorio/egl-diagnostico.txt",
+    "sha256": "2467b0bc77df4c85c99e8b2f239a3466288d8ebe6756fc396b15af8b43bda314"
+  },
+  {
+    "archivo": "laboratorio/egl-produccion.txt",
+    "sha256": "2467b0bc77df4c85c99e8b2f239a3466288d8ebe6756fc396b15af8b43bda314"
+  },
+  {
+    "archivo": "laboratorio/hashes-vulkan.txt",
+    "sha256": "deb305d2d0650e6eaa672a8acbb6337677d4b26f4bca77e0b640cd794bcbf8a7"
+  },
+  {
+    "archivo": "laboratorio/paquetes-laboratorio.txt",
+    "sha256": "997e3ffa1ee55b2b979a21d1b413f9ddc2e4dd18fbfa38df7f8b17885006d637"
+  },
+  {
+    "archivo": "laboratorio/vulkan-diagnostico-anterior.txt",
+    "sha256": "59b5cdd6128f2797449388d4bf3303dd9f1740d22512bf0968e4e312af904f02"
+  },
+  {
+    "archivo": "laboratorio/vulkan-diagnostico-inicial.txt",
+    "sha256": "9f44b6310891d3baf2cd64847c91115f10447b8aacad7ae6092c3518d229df37"
+  },
+  {
+    "archivo": "laboratorio/vulkan-diagnostico.txt",
+    "sha256": "9312851a3a930594c7da8defd69bad9a41e1defb68496b8d6a485ef7938d36f8"
+  },
+  {
+    "archivo": "laboratorio/vulkan-produccion-inicial.txt",
+    "sha256": "9312851a3a930594c7da8defd69bad9a41e1defb68496b8d6a485ef7938d36f8"
+  },
+  {
+    "archivo": "laboratorio/vulkan-produccion.txt",
+    "sha256": "9312851a3a930594c7da8defd69bad9a41e1defb68496b8d6a485ef7938d36f8"
+  },
+  {
+    "archivo": "pc/arranque-resultados.txt",
+    "sha256": "5eb3733a2b074a8cd622083e6798aedc9884adc87b130ed4ae550e4b1e35ecfe"
+  },
+  {
+    "archivo": "pc/audio-juegos-resultados.json",
+    "sha256": "f94bb700d05f9d0ddb70805bdabacd301f279b2275410fcf09e3f4f69fdbd9f0"
+  },
+  {
+    "archivo": "pc/escritorio.png",
+    "sha256": "e20ced6f737e21863c655507762c5c32e20991254ef34934dc5e5a1ab36338a6"
+  },
+  {
+    "archivo": "pc/gpu-qemu-software-hyprland.txt",
+    "sha256": "20cec0617e60b89ea5e8cb0b6dc3a57926d3cc9436951b4b96d34f0a461e4a4b"
+  },
+  {
+    "archivo": "pc/nvidia-guardian.txt",
+    "sha256": "a204209dfc7695d6ebfe5f8bd537ecfbc39fc60d280ec5d9b97770351281a4fc"
+  },
+  {
+    "archivo": "pc/SHA256SUMS",
+    "sha256": "2ffbb4228c2cc24786de05611e51de5a46836b615f690934fb3f25f7e216a6bf"
+  },
+  {
+    "archivo": "pc/sistema-paquetes.txt",
+    "sha256": "0a63d851e0568045eeeac101b3e070ac1bd8f3e582a8e12a527a75aaee53fc05"
+  },
+  {
+    "archivo": "pc/steam-login.png",
+    "sha256": "7cd61796ff1d8caf75129677211c07114205c1912dd587e9a28286c49c72ee03"
+  },
+  {
+    "archivo": "pc/windows-nvme.png",
+    "sha256": "2fbdf80b9bebc03fc23d254f0ea605974cafc0f8875fadb40c41d5492d2a1d01"
+  },
+  {
+    "archivo": "README.md",
+    "sha256": "9c73273cef9dd73ef74bc4a05b58799f187e7f202d33c998e76dab63ac1e9733"
+  },
+  {
+    "archivo": "registros.zip",
+    "sha256": "4df32e33d5ea26d1db3f963907e1aea83c035b34db13a9e6b3abbb252ed0603b"
+  },
+  {
+    "archivo": "resumen.json",
+    "sha256": "d70ac3ef0d413e35591332594f95b94ef1c34e0076631e94b67e47db0092a258"
+  }
+]

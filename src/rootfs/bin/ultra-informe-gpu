@@ -44,6 +44,14 @@ tmp=$out.$$
     done
     mountpoint -q /juegos && df -h /juegos || true
     printf '\n[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]\n'
+    printf '\n[WINDOWS NVME: solo metadatos de montaje]\n'
+    [[ ! -r /run/ultra-escritorio/windows.log ]] || cat /run/ultra-escritorio/windows.log
+    printf '\n[DIAGNOSTICO GRAFICO SOLICITADO POR EL USUARIO]\n'
+    if [[ -f /run/user/1000/ultra-graficos.txt ]]; then
+        setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
+            --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+            timeout -k 1 2 head -c 131072 /run/user/1000/ultra-graficos.txt || true
+    fi
     if [[ -r /run/ultra-escritorio/medicion.log ]]; then
         cat /run/ultra-escritorio/medicion.log
     else printf 'NA: la sesion no llego a iniciar el observador\n'; fi

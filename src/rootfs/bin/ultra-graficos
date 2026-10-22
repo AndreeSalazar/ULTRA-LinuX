@@ -1,0 +1,59 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -euo pipefail
+[[ $(id -u) == 1000 && -n ${XDG_RUNTIME_DIR:-} ]] || exit 1
+mode=${1:-menu}
+if [[ $mode == menu ]]; then
+    choice=$(printf '%s\n' 'Informe Vulkan / OpenGL' 'Cubo Vulkan' 'Cubo Vulkan con validacion' 'Efectos reducidos' 'Efectos vivos' |
+        fuzzel --dmenu --prompt='Graficos / ' --lines=5) || exit 0
+    case $choice in
+        'Informe Vulkan / OpenGL') exec foot --hold /usr/local/bin/ultra-graficos informe;;
+        'Cubo Vulkan') mode=cubo;;
+        'Cubo Vulkan con validacion') mode=validar;;
+        'Efectos reducidos') exec ultra-ambiente sobrio;;
+        'Efectos vivos') exec ultra-ambiente vivo;;
+        *) exit 0;;
+    esac
+fi
+mkdir -p "$HOME/.cache/ultra"
+case $mode in
+    informe)
+        umask 077
+        report=$XDG_RUNTIME_DIR/ultra-graficos.txt
+        tmp=$(mktemp "$XDG_RUNTIME_DIR/ultra-graficos.XXXXXX")
+        trap 'rm -f -- "$tmp"' EXIT
+        probe() {
+            printf '\n[%s]\n' "$1"; shift
+            local result=0
+            timeout -k 2 15 "$@" || result=$?
+            printf 'codigo_salida=%s\n' "$result"
+        }
+        {
+            printf 'ULTRA GRAFICOS v1\n'
+            date -u '+fecha_utc=%Y-%m-%dT%H:%M:%SZ'
+            printf 'modo=%s wayland=%s\n' "${ULTRA_RENDER_MODE:-desconocido}" "${WAYLAND_DISPLAY:-ausente}"
+            printf 'Los proveedores informados son reales; software no equivale a GPU fisica.\n'
+            printf '\n[PAQUETES: manifiesto de construccion]\n'
+            grep -E '^(mesa|libglvnd|vulkan-|mesa-utils|nvidia-utils|lib32-nvidia-utils)' /etc/ultra/sistema-paquetes.txt || true
+            probe 'EGL / OPENGL ES WAYLAND' eglinfo -B -p wayland
+            if [[ -n ${DISPLAY:-} ]]; then probe 'OPENGL / GLX' glxinfo -B;
+            else printf '\n[OPENGL / GLX]\nNA: no hay DISPLAY de Xwayland\n'; fi
+            probe 'VULKAN' vulkaninfo --summary
+            if [[ ${ULTRA_RENDER_MODE:-} == nvidia ]]; then
+                probe 'NVIDIA' nvidia-smi --query-gpu=name,driver_version,memory.used,utilization.gpu,temperature.gpu,power.draw --format=csv
+            fi
+        } > "$tmp" 2>&1
+        mv -f -- "$tmp" "$report"
+        cat "$report"
+        ;;
+    cubo|validar)
+        # Validation is per process. It is not exported to the compositor or games.
+        args=()
+        [[ $mode != validar ]] || args+=(VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation)
+        notify-send 'Vulkan: prueba de 12 segundos' 'Validacion y resultados en la cache de ULTRA. No es un benchmark.' || true
+        result=0
+        env "${args[@]}" timeout -k 2 12 vkcube --wsi wayland > "$HOME/.cache/ultra/vulkan-cubo.log" 2>&1 || result=$?
+        [[ $result == 0 || $result == 124 ]] || { notify-send 'Vulkan no pudo iniciar' 'Consulta el informe y vulkan-cubo.log.' || true; exit "$result"; }
+        ;;
+    *) exit 2;;
+esac

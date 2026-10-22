@@ -11,5 +11,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(ULTRA_CXX_DIAGNOSTICO "ASan/UBSan para el banco CPU; no usar para medir rendimiento" OFF)
 option(ULTRA_CXX_EGL "Construir banco grafico EGL/GLES3" OFF)
+option(ULTRA_CXX_VULKAN "Construir banco Vulkan con validacion, solo software" OFF)
 add_subdirectory(produccion)
 add_subdirectory(laboratorio)

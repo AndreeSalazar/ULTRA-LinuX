@@ -1,0 +1,18 @@
+{
+  "fecha_local": "2026-10-21",
+  "zona_horaria": "America/Lima",
+  "discos_personales_expuestos_a_QEMU": false,
+  "perfiles": {
+    "generico": {
+      "arranque": 113,
+      "audio_juegos_windows": 28,
+      "windows_ficticio_inalterado_sha256": "6cc8c9736d376121b7c4023672dfe242befdcf16138bee5723f97b77a9e42e6c"
+    },
+    "pc": {
+      "arranque": 114,
+      "audio_juegos_windows": 28,
+      "windows_ficticio_inalterado_sha256": "6cc8c9736d376121b7c4023672dfe242befdcf16138bee5723f97b77a9e42e6c"
+    }
+  },
+  "comprobaciones_aprobadas": 283
+}
