@@ -346,6 +346,166 @@ def prepare():
     print('BIBLIOTECAS:', json.dumps(catalog, ensure_ascii=True))
 
 
+def read_vdf(path):
+    """Bounded KeyValues reader; reject ambiguous input instead of losing fields."""
+    with path.open('r', encoding='utf-8-sig') as stream:
+        raw = stream.read(LIMIT+1)
+    if len(raw.encode()) > LIMIT:
+        raise ValueError('metadatos Steam demasiado grandes')
+    tokens, pos = [], 0
+    pattern = re.compile(r'\s+|//[^\n]*|"((?:\\.|[^"\\])*)"|([{}])')
+    while pos < len(raw):
+        match = pattern.match(raw, pos)
+        if not match:
+            raise ValueError('formato Steam desconocido; se conserva el original')
+        pos = match.end()
+        if match.group(1) is not None:
+            tokens.append(('text', re.sub(r'\\([\\"])', r'\1', match.group(1))))
+        elif match.group(2):
+            tokens.append((match.group(2), ''))
+    index = 0
+    def obj(depth=0):
+        nonlocal index
+        if depth > 16:
+            raise ValueError('metadatos Steam demasiado anidados')
+        result = {}
+        while index < len(tokens) and tokens[index][0] != '}':
+            token, key = tokens[index]; index += 1
+            if token != 'text' or key in result or index >= len(tokens):
+                raise ValueError('metadatos Steam ambiguos')
+            token, value = tokens[index]; index += 1
+            if token == '{':
+                value = obj(depth+1)
+                if index >= len(tokens) or tokens[index][0] != '}':
+                    raise ValueError('metadatos Steam incompletos')
+                index += 1
+            elif token != 'text':
+                raise ValueError('metadatos Steam invalidos')
+            result[key] = value
+        return result
+    value = obj()
+    if index != len(tokens):
+        raise ValueError('metadatos Steam con cierre inesperado')
+    return value
+
+
+def write_vdf(value, depth=0):
+    def quote(text):
+        return '"'+text.replace('\\', '\\\\').replace('"', '\\"')+'"'
+    lines = []
+    for key, item in value.items():
+        prefix = '\t'*depth+quote(key)
+        if isinstance(item, dict):
+            lines.extend([prefix, '\t'*depth+'{', write_vdf(item, depth+1).rstrip('\n'), '\t'*depth+'}'])
+        else:
+            lines.append(prefix+'\t\t'+quote(item))
+    return '\n'.join(lines)+'\n'
+
+
+def register_steam():
+    user_config()
+    active = subprocess.run(['pgrep', '-u', '1000', '-x', 'steam'], stdout=subprocess.DEVNULL)
+    if active.returncode == 0:
+        print('STEAM: ya abierto; cierra Steam completamente para registrar nuevas bibliotecas')
+        return
+    if active.returncode != 1:
+        raise ValueError('no se pudo comprobar si Steam esta cerrado')
+    catalog = read_json(CATALOG)
+    root = HOME/'.local/share/Steam'
+    root.mkdir(parents=True, exist_ok=True)
+    canonical, legacy = root/'config/libraryfolders.vdf', root/'steamapps/libraryfolders.vdf'
+    # Current clients keep a config copy as well as the steamapps copy. Updating
+    # only one can be undone by Steam at startup. Preserve each existing record.
+    for path, fallback in ((canonical, legacy), (legacy, canonical)):
+        path.parent.mkdir(exist_ok=True)
+        register_steam_file(path, fallback, root, catalog)
+
+
+def register_steam_file(path, fallback, root, catalog):
+    try:
+        with path.open('rb') as stream:
+            original = stream.read(LIMIT+1)
+        if len(original) > LIMIT:
+            raise ValueError('registro Steam demasiado grande; se conserva')
+        data = read_vdf(path)
+    except FileNotFoundError:
+        original = None
+        if fallback.exists():
+            data = read_vdf(fallback)
+        else:
+            data = {'libraryfolders': {'0': {'path': str(root), 'label': '', 'apps': {}}}}
+    libraries = data.get('libraryfolders')
+    if not isinstance(libraries, dict) or any(not k.isdecimal() or not isinstance(v, dict)
+                                              or not isinstance(v.get('path'), str)
+                                              for k, v in libraries.items()):
+        raise ValueError('registro Steam desconocido; no se modifica')
+    added, changed = 0, False
+    for item in catalog.get('folders', []):
+        if item.get('kind') != 'steam' or item.get('status') != 'activa':
+            continue
+        expected = selection(item)
+        library = TARGETS/expected['id']
+        if item.get('path') != str(library) or not (library/'steamapps').is_dir():
+            raise ValueError('biblioteca preparada no valida')
+        apps, names = {}, []
+        manifests = sorted((library/'steamapps').glob('appmanifest_*.acf'))
+        if len(manifests) > 512:
+            raise ValueError('demasiados manifiestos Steam')
+        for manifest in manifests:
+            if manifest.is_symlink():
+                continue
+            state = read_vdf(manifest).get('AppState', {})
+            if not isinstance(state, dict):
+                raise ValueError('manifiesto Steam invalido')
+            appid, size = state.get('appid', ''), state.get('SizeOnDisk', '')
+            if (not isinstance(appid, str) or not isinstance(size, str) or not appid.isdecimal()
+                    or manifest.name != f'appmanifest_{appid}.acf' or not size.isdecimal()
+                    or state.get('StateFlags') != '4'):
+                continue
+            install = state.get('installdir', '')
+            if not isinstance(install, str) or not install or '/' in install or '\\' in install or install in ('.', '..'):
+                continue
+            if not (library/'steamapps/common'/install).is_dir():
+                continue
+            apps[appid] = size
+            names.append(str(state.get('name', appid)))
+        existing = next((v for v in libraries.values() if v['path'] == str(library)), None)
+        if existing is None:
+            index = str(max((int(k) for k in libraries), default=-1)+1)
+            libraries[index] = {'path': str(library), 'label': 'ULTRA / '+Path(item['relative']).name,
+                                'contentid': str(int(item['id'][:16], 16) & ((1 << 63)-1)),
+                                'totalsize': '0', 'update_clean_bytes_tally': '0',
+                                'time_last_update_verified': '0', 'apps': apps}
+            added += 1
+            changed = True
+        else:
+            installed = existing.setdefault('apps', {})
+            if not isinstance(installed, dict):
+                raise ValueError('indice de juegos Steam desconocido; se conserva')
+            for appid, size in apps.items():
+                if appid not in installed:
+                    installed[appid] = size
+                    changed = True
+        print('STEAM: biblioteca '+item['relative']+'; juegos con manifiesto instalado: '+str(len(apps)))
+        for name in names:
+            print('  '+name.replace('\n', ' '))
+    if changed or (original is None and libraries):
+        # Only Linux library metadata. Never import Windows accounts or sessions.
+        if original is not None:
+            backup = path.with_name('libraryfolders.vdf.ultra-anterior')
+            backup.write_bytes(original)
+            backup.chmod(0o600)
+        fd, temp = tempfile.mkstemp(prefix='.ultra-', dir=path.parent)
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+                stream.write(write_vdf(data)); stream.flush(); os.fsync(stream.fileno())
+            os.replace(temp, path)
+        finally:
+            if os.path.exists(temp):
+                os.unlink(temp)
+    print(f'STEAM: {added} bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad')
+
+
 def choose(title, rows):
     labels = [f'{i+1}. {label.replace(chr(10), " ")}' for i, (label, _) in enumerate(rows)]
     process = subprocess.run(['fuzzel', '--dmenu', '--prompt='+title+' / ', '--lines=12'],
@@ -391,7 +551,9 @@ def status():
     for item in user_config():
         active = next((r for r in catalog.get('folders', []) if r['id'] == item['id']), {})
         print(item['uuid'], item['relative'] or '/', item['kind'], active.get('status', 'pendiente'))
-        print('  Steam/Heroic/archivos:', active.get('path', str(TARGETS/item['id'])))
+        print('  Carpeta preparada:', active.get('path', str(TARGETS/item['id'])))
+        if item['kind'] == 'steam':
+            print('  Abre Steam desde Super+J para registrar esta biblioteca automaticamente (Steam debe estar cerrado).')
     print('Las vistas /discos son solo lectura. Cambios y caches usan el ext4 de /juegos.')
     print('Una actualizacion puede copiar archivos grandes; comprueba el espacio libre.')
     if catalog.get('error'):
@@ -414,7 +576,7 @@ def ui():
             raise ValueError('limite de 32 carpetas alcanzado')
         CONFIG.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         atomic_json(CONFIG, config+[item])
-        run('/usr/bin/notify-send', 'Carpeta registrada', 'Cierra el escritorio y vuelve a abrirlo desde e para activar la carpeta. Luego agregala en Steam > Almacenamiento.')
+        run('/usr/bin/notify-send', 'Carpeta registrada', 'Cierra el escritorio y vuelve a abrirlo desde e. Despues abre Steam desde Super+J: las bibliotecas Steam activas se registran automaticamente.')
     elif action == 'status':
         subprocess.Popen(['foot', '--hold', '/usr/local/bin/ultra-bibliotecas', 'estado'])
     elif action in ('open', 'play'):
@@ -471,6 +633,8 @@ def main():
         status()
     elif action == 'menu':
         ui()
+    elif action == 'registrar-steam':
+        register_steam()
     else:
         raise ValueError('accion desconocida')
 

@@ -47,7 +47,7 @@ if [[ $action == estado ]]; then
 fi
 if [[ $action == registros ]]; then
     printf 'Ultimas lineas de lanzadores. No se exportan sesiones ni cuentas.\n'
-    for name in steam cyberpunk; do
+    for name in steam steam-bibliotecas cyberpunk; do
         file=$HOME/.cache/ultra/$name.log
         if [[ -f $file ]]; then printf '\n[%s]\n' "$name"; tail -n 60 -- "$file"; fi
     done
@@ -60,7 +60,11 @@ if ! mountpoint -q /juegos || [[ $HOME != /juegos/usuarios/ultra ]]; then
 fi
 mkdir -p "$HOME/.cache/ultra"
 case $action in
-    steam) exec steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
+    steam)
+        if ! ultra-bibliotecas registrar-steam > "$HOME/.cache/ultra/steam-bibliotecas.log" 2>&1; then
+            notify-send 'Steam: revisar bibliotecas' 'No se completo el registro automatico. Consulta Registros de juegos.' || true
+        fi
+        exec steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     warframe)
         mountpoint -q /juegos/Warframe || { notify-send 'Warframe no disponible' 'Consulta Estado y espacio; C: y el ext4 deben estar montados.'; exit 1; }
         [[ -f $HOME/Juegos/SteamLibrary/steamapps/appmanifest_230410.acf ]] || { notify-send 'Warframe: falta preparar' 'Usa Preparar Warframe de Windows en el menu de juegos.'; exit 1; }

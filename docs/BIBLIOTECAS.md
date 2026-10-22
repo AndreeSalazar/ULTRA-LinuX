@@ -14,13 +14,21 @@ identificadas por UUID del volumen y ruta relativa, no por letras C:/D:.
 4. Cierra el escritorio y vuelve a abrirlo desde `e`. La preparacion privilegiada
    activa los nuevos montajes antes de lanzar las aplicaciones. No se cambia
    el montaje de un juego desde una aplicacion mientras esta ejecutandose.
-5. **Mis carpetas y bibliotecas** muestra el estado y la ruta preparada.
-   Agrega esa ruta en Steam > Ajustes > Almacenamiento, o utiliza la importacion
-   de juegos de Heroic. En Steam, selecciona Proton para las instalaciones Windows
-   y verifica sus archivos antes de jugar.
+5. Abre **Steam desde Super+J**. Con Steam cerrado, ULTRA registra automaticamente
+   las bibliotecas Steam activas en su configuracion Linux. No necesitas copiar
+   identificadores ni volver a elegir un disco en Almacenamiento. Si Steam estaba
+   abierto, cierralo completamente y vuelve a abrirlo desde ese menu.
+6. En Steam, selecciona Proton para las instalaciones Windows y verifica sus
+   archivos antes de jugar. El registro no obliga al cliente a declarar un juego
+   compatible ni completo: puede necesitar actualizaciones, runtimes o espacio.
 
-Para copiar la ruta sin escribirla: usa **Abrir carpeta preparada**, pulsa
-Ctrl+L y Ctrl+C en el explorador, y pegala en el selector de Steam con Ctrl+V.
+**Registros de juegos** muestra las bibliotecas y juegos encontrados. El informe
+GPU tambien incluye ese resumen, sin sesiones ni cuentas. ULTRA conserva los
+campos existentes de `config/libraryfolders.vdf` y `steamapps/libraryfolders.vdf`,
+incluido el indice de juegos instalados, y guarda un respaldo local anterior
+cuando agrega bibliotecas; no modifica ese archivo si detecta Steam abierto o
+un formato desconocido. Los manifiestos originales no se reescriben.
+Las carpetas independientes siguen usando Heroic o UMU, sin registrarse como Steam.
 
 El gestor tambien permite abrir una carpeta preparada en el explorador y elegir
 un EXE de una carpeta independiente para iniciarlo con UMU/GE-Proton. Cada carpeta

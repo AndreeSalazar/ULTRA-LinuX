@@ -45,6 +45,10 @@ tmp=$out.$$
             printf 'NO MONTADO %s\n' "$target"
     done
     mountpoint -q /juegos && df -h /juegos || true
+    printf '\n[REGISTRO DE BIBLIOTECAS STEAM: sin cuentas o sesiones]\n'
+    setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
+        --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+        timeout -k 1 2 head -c 16384 /juegos/usuarios/ultra/.cache/ultra/steam-bibliotecas.log 2>/dev/null || true
     printf '\n[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]\n'
     printf '\n[WINDOWS NVME: solo metadatos de montaje]\n'
     [[ ! -r /run/ultra-escritorio/windows.log ]] || cat /run/ultra-escritorio/windows.log

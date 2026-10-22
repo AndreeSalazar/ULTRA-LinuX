@@ -26,6 +26,7 @@ def main():
     diagnose = '--diagnostico' in sys.argv
     warframe_test = '--warframe' in sys.argv
     libraries_test = '--bibliotecas' in sys.argv
+    library_client_test = '--cliente-steam' in sys.argv
     warm_udev = '--udev-temprano' in sys.argv
     assert not warframe_test or not (preflight or dependencies), 'La prueba Warframe exige ayudantes nativos, sin inyeccion'
     assert not libraries_test or not (preflight or dependencies or warframe_test)
@@ -162,8 +163,8 @@ def main():
             time.sleep(1)
         return False
 
-    def wait_steam_login():
-        deadline = time.monotonic()+600
+    def wait_steam_login(timeout=600):
+        deadline = time.monotonic()+timeout
         report_at = time.monotonic()+30
         paint_deadline = None
         while time.monotonic()<deadline:
@@ -247,6 +248,35 @@ def main():
             steam_library = next(r for r in catalog['folders'] if r['kind']=='steam')
             check(steam_library['status']=='activa', 'biblioteca Steam seleccionada por UUID y carpeta; sin AppID fijo')
             steam_path = steam_library['path']
+            # An installed synthetic app, not a real game or account. The older
+            # Warframe fixture intentionally lacks installdir and is not indexed.
+            record = '"AppState" { "appid" "123" "name" "ULTRA fixture" "StateFlags" "4" "SizeOnDisk" "0" "installdir" "Warframe" }'
+            code = ('from pathlib import Path;p=Path('+json.dumps(steam_path)+')/"steamapps";'
+                    '(p/"appmanifest_123.acf").write_text('+json.dumps(record)+')')
+            # Base64 avoids shell interpretation of the fixture text.
+            encoded = base64.b64encode(code.encode()).decode()
+            command(user+"/usr/bin/python -I -c 'import base64;exec(base64.b64decode(\""+encoded+"\"))'")
+            out = command(user+'/usr/local/bin/ultra-bibliotecas registrar-steam; echo REGISTRO-RC-$?')
+            check('REGISTRO-RC-0' in out and 'biblioteca Program Files (x86)/Steam' in out,
+                  'registro Steam nativo sin seleccionar rutas en su interfaz')
+            code = ('import json;from pathlib import Path;'
+                    'p=Path.home()/".local/share/Steam/steamapps/libraryfolders.vdf";'
+                    's=p.read_text();assert '+json.dumps(steam_path)+' in s;print("REGISTRO-PRESENTE-42")')
+            out = command(user+"/usr/bin/python -I -c '"+code+"'")
+            check('REGISTRO-PRESENTE-42' in out, 'configuracion Linux de Steam contiene la biblioteca activa')
+            out = command(user+'/usr/local/bin/ultra-bibliotecas registrar-steam')
+            check('0 bibliotecas nuevas registradas' in out and 'ULTRA fixture' in out,
+                  'registro idempotente encuentra juego sintetico por manifiesto y carpeta')
+            code = ('import runpy;from pathlib import Path;'
+                    'm=runpy.run_path("/usr/local/libexec/ultra-bibliotecas.py");'
+                    'root=Path.home()/".local/share/Steam";'
+                    'a=m["read_vdf"](root/"config/libraryfolders.vdf");'
+                    'b=m["read_vdf"](root/"steamapps/libraryfolders.vdf");'
+                    'assert all(any(v["path"]=='+json.dumps(steam_path)+' and "123" in v.get("apps",{}) '
+                    'for v in d["libraryfolders"].values()) for d in (a,b));print("DOS-REGISTROS-42")')
+            encoded = base64.b64encode(code.encode()).decode()
+            out = command(user+"/usr/bin/python -I -c 'import base64;exec(base64.b64decode(\""+encoded+"\"))'")
+            check('DOS-REGISTROS-42' in out, 'config y steamapps conservan el indice de la instalacion existente')
             out = command(user+f'/usr/bin/bash -c \'echo LINUX-PREFIJO > "{steam_path}/steamapps/compatdata/prueba.txt"; echo CACHE-LINUX > "{steam_path}/steamapps/shadercache/prueba.txt"; cat "{steam_path}/steamapps/compatdata/prueba.txt"\'')
             check('LINUX-PREFIJO' in out and 'Permission denied' not in out, 'Steam escribe prefijos y caches Linux en ext4')
             for volume in (by_uuid[c_uuid], by_uuid[config['uuid']]):
@@ -282,6 +312,25 @@ def main():
                   'teclado elige carpeta en el segundo disco y guarda seleccion persistente')
             out=command('ultra-entrar /usr/bin/cat /run/ultra-bibliotecas.json')
             check('Cyberpunk 2077' not in out, 'seleccion nueva queda pendiente; no se monta en caliente desde la interfaz')
+            if library_client_test:
+                command(ipc+'eval \'hl.exec_cmd("ultra-juegos steam")\'')
+                check(wait_steam_login(180), 'cliente Steam abre desde el integrador sin cuenta autenticada')
+                command(ipc+'eval \'hl.exec_cmd("steam -shutdown")\'')
+                deadline = time.monotonic()+30
+                while time.monotonic() < deadline:
+                    out = command(user+'/usr/bin/pgrep -x steam || true')
+                    if not re.search(r'(?m)^\d+\r?$',out):
+                        break
+                    time.sleep(1)
+                check(not re.search(r'(?m)^\d+\r?$',out), 'Steam cierra sin forzar terminacion')
+                code = ('import runpy;from pathlib import Path;'
+                        'm=runpy.run_path("/usr/local/libexec/ultra-bibliotecas.py");'
+                        'p=Path.home()/".local/share/Steam/config/libraryfolders.vdf";'
+                        'd=m["read_vdf"](p);assert any(v["path"]=='+json.dumps(steam_path)+' '
+                        'for v in d["libraryfolders"].values());print("CLIENTE-CONSERVA-42")')
+                encoded = base64.b64encode(code.encode()).decode()
+                out = command(user+"/usr/bin/python -I -c 'import base64;exec(base64.b64decode(\""+encoded+"\"))'")
+                check('CLIENTE-CONSERVA-42' in out, 'cliente real conserva biblioteca preparada tras abrir y cerrar')
             monitor.sendall(b'sendkey meta_l-shift-m\n');time.sleep(4)
             console.sendall(b'reboot\n')
             transcript += base.read_until(console,'Restarting system',40)
@@ -305,6 +354,7 @@ def main():
                     'imagen_sha256':image_hash,'windows_ficticio_sha256_antes_despues':windows_after,
                     'seleccion_teclado':True,'juegos_reales_ejecutados':False,'udev_previamente_iniciado':warm_udev,
                     'almacen_sintetico_reutilizado':reuse}
+            result['cliente_steam_sin_cuenta'] = library_client_test
             (base.BUILD/'bibliotecas-resultados.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
             return
         if warframe_test:

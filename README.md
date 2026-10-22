@@ -34,10 +34,15 @@ El [gestor general de bibliotecas](docs/BIBLIOTECAS.md), accesible con
 en distintos discos. Reconoce bibliotecas Steam y carpetas independientes,
 recuerda sus identidades y separa las escrituras en ext4. Las carpetas nuevas
 se activan al volver a abrir el escritorio; cada juego mantiene sus requisitos
-de compatibilidad y Steam necesita registrar/verificar la biblioteca.
+de compatibilidad. Al abrir Steam desde **Super+J**, ULTRA registra las bibliotecas
+Steam activas automaticamente con el cliente cerrado, conservando su registro
+anterior. Steam sigue realizando la comprobacion de archivos y compatibilidad.
 
 El gestor paso [87 comprobaciones especificas](evidencias/bibliotecas-2026-10-21/README.md)
 y esta instalado en ambos perfiles de A:, conservando los datos existentes.
+La mejora de [registro automatico de Steam](evidencias/registro-steam/README.md)
+paso otras 33 comprobaciones de arranque en generico y 36 en PC; el cliente real
+abre y cierra conservando la biblioteca en el banco sin una cuenta autenticada.
 
 ![Selector de discos y carpetas en el banco virtual](evidencias/bibliotecas-2026-10-21/generico/discos.png)
 

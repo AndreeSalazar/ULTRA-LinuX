@@ -1,0 +1,44 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE NVMe Windows ficticio identificado por UUID y montado
+VERDE Windows legible por UID1000 con dispositivo NVMe de solo lectura
+VERDE Windows rechaza escrituras de aplicaciones
+VERDE NVMe ficticio rechaza escritura directa incluso del preparador root
+VERDE preparador general nativo termina sin inyectar ayudantes
+VERDE dos discos NTFS distintos disponibles en vistas de solo lectura
+VERDE preparador general nativo termina sin inyectar ayudantes
+VERDE exportador privilegiado ignora modulos Python controlados por el usuario
+VERDE biblioteca Steam seleccionada por UUID y carpeta; sin AppID fijo
+VERDE registro Steam nativo sin seleccionar rutas en su interfaz
+VERDE configuracion Linux de Steam contiene la biblioteca activa
+VERDE registro idempotente encuentra juego sintetico por manifiesto y carpeta
+VERDE config y steamapps conservan el indice de la instalacion existente
+VERDE Steam escribe prefijos y caches Linux en ext4
+VERDE vista del disco D8BAB58CBAB567A0 rechaza escrituras
+VERDE vista del disco 30A1143626C5ABED rechaza escrituras
+VERDE D: privado conserva escritura para el ext4, su vista publica permanece solo lectura
+VERDE escritorio con home persistente para el selector general
+VERDE gestor de carpetas abre como usuario del escritorio
+VERDE teclado elige carpeta en el segundo disco y guarda seleccion persistente
+VERDE seleccion nueva queda pendiente; no se monta en caliente desde la interfaz
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+56))
+[2026-10-22 05:20:24] BInit - Unable to initialize Vulkan!
+[2026-10-22 05:20:25] vkEnumeratePhysicalDevices failed, unable to init and enumerate GPUs with Vulkan.
+[2026-10-22 05:20:25] BInit - Unable to initialize Vulkan!
+AUDIO-JUEGOS-FIN-256
+C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py:184: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  pixels=list(screen.convert('RGB').crop((x+12,y+12,x+w-12,y+h-12)).resize((40,25)).getdata())
+VERDE cliente Steam abre desde el integrador sin cuenta autenticada
+VERDE Steam cierra sin forzar terminacion
+VERDE cliente real conserva biblioteca preparada tras abrir y cerrar
+VERDE PID1 desmonta las bibliotecas dinamicas antes del almacenamiento
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE NVMe Windows ficticio identificado por UUID y montado
+VERDE Windows legible por UID1000 con dispositivo NVMe de solo lectura
+VERDE Windows rechaza escrituras de aplicaciones
+VERDE NVMe ficticio rechaza escritura directa incluso del preparador root
+VERDE preparador general nativo termina sin inyectar ayudantes
+VERDE tras reinicio se activan carpetas de ambos discos elegidos
+VERDE prefijo Steam persiste y carpeta independiente admite escrituras aisladas
+VERDE carpeta original del segundo disco permanece intacta
+VERDE SHA256 completo del primer disco ficticio sin cambios

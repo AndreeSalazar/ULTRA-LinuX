@@ -1,0 +1,42 @@
+{
+  "fecha_lima": "2026-10-22T00:24:06.685607-05:00",
+  "archivos": [
+    {
+      "perfil": "generico",
+      "archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "sha256": "c31e7131630e7cb44bbe435e1bfc7698a96a9a5c4a46195619c1d753fe138db4"
+    },
+    {
+      "perfil": "generico",
+      "archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "sha256": "bc18524ce0e67a1a07762f20ba16c3a08bb05a841b4cc000314cfee7b87c406b"
+    },
+    {
+      "perfil": "pc",
+      "archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "sha256": "7077278e611cf30dd87c23b4032a9c44eff59ea78091d5c201dc098489255b9b"
+    },
+    {
+      "perfil": "pc",
+      "archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "sha256": "e03bb3bcc5309e4918663057820b0207f48ff21f6f4b392037fe9b65e0a84726"
+    }
+  ],
+  "perfiles": {
+    "generico": {
+      "pruebas": 33,
+      "cliente_sin_cuenta": false
+    },
+    "pc": {
+      "pruebas": 36,
+      "cliente_sin_cuenta": true
+    }
+  },
+  "datos_personales_D_modificados": false,
+  "datos_ext4_conservados_sha256": "a5f038e84f11dbfe09778f8f7421670fb16e0f61512ba1dcaa0e4a2789b51ee7",
+  "ayudantes": {
+    "ultra-bibliotecas.py": "56245173c85b4933e4ba53ac3974620f7b5818ecb19a413d270e4d4dfee3f908",
+    "ultra-juegos": "9238072b5523b188cd55fdff80b76ce1fe3b1fd466c0abc5e5f40774d18d7ad7",
+    "ultra-informe-gpu": "a486066211cdc418f693e219c8320744b20a040eb76119854e8eaf0e6e14fcbd"
+  }
+}
