@@ -3,6 +3,10 @@
 Fecha: 2026-10-22. Verificado en QEMU; candidato de biblioteca, sin consumidor
 de produccion ni despliegue en A:. No se afirma una mejora de FPS o de latencia.
 
+La [entrega ELF posterior](ELF-PRODUCCION.md) se integra en build/instalacion
+de las herramientas actuales; no convierte este pool ni el ASM sintetico en
+consumidores de produccion.
+
 ## Objetos C con propietario
 
 [ultra_owner.h](../src/guardian/produccion/ultra_owner.h) y su implementacion

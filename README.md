@@ -245,6 +245,7 @@ después, conservando compatibilidad y aislamiento.
 - [Primera entrega C: cadenas acotadas y controles QEMU](docs/CADENAS-ACOTADAS.md)
 - [Instalacion del guardian y auditoria completa de ronda 10](docs/GUARDIAN-INSTALACION.md)
 - [Vida util con handles y primer banco ASM: ronda 11](docs/VIDA-UTIL-Y-ASM.md)
+- [Contratos HEX/ELF obligatorios en la construccion e instalacion](docs/ELF-PRODUCCION.md)
 - [Plan de mejoras: C, ASM, C++, OpenGL, Vulkan, Proton y recuperacion](docs/PLAN-MEJORAS-SISTEMAS.md)
 - [Escritorio BMO-X: aspecto y controles](docs/ESCRITORIO-BMO-X.md)
 - [Audio, juegos, almacenamiento y límites](docs/AUDIO-JUEGOS.md)

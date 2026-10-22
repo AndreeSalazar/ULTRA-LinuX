@@ -1,0 +1,12 @@
+53dd071ccb94f7195fb1bfba4d14cd1066200bd04a114d1a82ba8bf621cd751b  /home/builder/linux-reconstruido/artifacts/pc/bzImage-tiny64
+a91b24cb341ef45eb708a9ee033638976ab98b60e5c0de8990ae4ffdd9fa88ee  /home/builder/linux-reconstruido/build/init-c-pc/init
+58633a26dfe7d47fede49a714f67ef0d2b66934a01c0dfccab949fc5b4eb539b  /home/builder/linux-reconstruido/build/init-c-pc/caja
+1d3fe2bac79c6e0301567301b96323e535decf1a9c3f5c39782c6a7385ec6e11  /home/builder/linux-reconstruido/build/init-c-pc/ultra-raiz
+2214c88429137906bbf1b6179ea231237570b9d28ee0b926fc8f8d123346db2f  /home/builder/linux-reconstruido/build/init-c-pc/ultra-red-contadores
+29896777101a37ea9f7b7c6dd0ed3fd0b0b8a3b30f3ef37f2c706dccff7ecdae  /home/builder/linux-reconstruido/build/init-c-pc/minas
+dc432af4a801237a5b2beefcc6c7f5c918616f0f06152a25b357a4d8f142cad4  /home/builder/linux-reconstruido/artifacts/pc/elf-produccion.tar.gz
+d5309a980efa0b8fe4d04a0186600f1c576eeb59cfb1f29af266296e04673016  /home/builder/linux-reconstruido/artifacts/pc/ultra-esp.img
+4bbb49fd495b91def44dcd532d795b294372e0442f755d223cbba402d8cc4202  /home/builder/linux-reconstruido/artifacts/pc/disco-bmo.img
+39a034eca60a281d5369159a160101b15fa23cf47257b28e31fcd898a2a7d747  /home/builder/linux-reconstruido/artifacts/pc/sistema-a.erofs
+f22f6026a9b1ef06c95f16aeb8125cb7d48d7a499319c558de5b53915f3bdd5a  /home/builder/linux-reconstruido/artifacts/pc/datos.ext4
+71e75dc0420eafea58f808444388ddfd3efe22401707634a24f669af47998384  /home/builder/linux-reconstruido/artifacts/pc/disco-bmo-doble.img

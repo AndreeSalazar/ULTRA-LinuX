@@ -44,3 +44,6 @@ evidencias/laboratorio-c/ronda11-*/** whitespace=-blank-at-eol
 evidencias/asm-hex/** text eol=lf
 # objdump pads its original instruction columns with spaces.
 evidencias/asm-hex/** whitespace=-blank-at-eol
+evidencias/elf-produccion-2026-10-22/** text eol=lf whitespace=-blank-at-eol
+evidencias/elf-produccion-2026-10-22/**/*.png binary
+evidencias/elf-produccion-2026-10-22/*.png binary

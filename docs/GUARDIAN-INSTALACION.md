@@ -43,5 +43,7 @@ dominios ctype, buffers y nuevas cadenas. La carrera de hilos conserva su
 limitacion AMARILLO; no se convierte en deteccion acreditada por pasar el script.
 
 Evidencia y controles individuales: [ronda 10](../evidencias/laboratorio-c/ronda10-2a55e6d3d52a4a81a3bb8e9e2c493fc7/README.md).
-El siguiente requisito de despliegue es reconstruir y probar init/caja y su
-arranque real en una imagen desechable antes de reemplazar la version de A:.
+La [promocion posterior](ELF-PRODUCCION.md) reconstruyo init/caja en ambos
+perfiles y probo sus imagenes en QEMU antes de copiarlas a A:. Pasaron 119
+controles en generico y 120 en PC, mas cambio de perfil y recuperacion. Falta
+confirmar el nuevo arranque en el PC fisico; QEMU no sustituye esa comprobacion.

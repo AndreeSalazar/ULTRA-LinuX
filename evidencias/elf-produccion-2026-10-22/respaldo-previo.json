@@ -1,0 +1,22 @@
+[
+  {
+    "Archivo": "ULTRA.EFI",
+    "SHA256": "c31e7131630e7cb44bbe435e1bfc7698a96a9a5c4a46195619c1d753fe138db4",
+    "Bytes": 18535424
+  },
+  {
+    "Archivo": "ULTRA-PC.EFI",
+    "SHA256": "7077278e611cf30dd87c23b4032a9c44eff59ea78091d5c201dc098489255b9b",
+    "Bytes": 18486272
+  },
+  {
+    "Archivo": "sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+    "SHA256": "a3033790ba7ed65b2c3fb0cd4b7bf883de52be03bfb6bbcfa8e7ae9447921e28",
+    "Bytes": 1164021760
+  },
+  {
+    "Archivo": "sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+    "SHA256": "95569d50cf9e602848a6ef33d1cff158a07137dc7cc9a2e30af6577c2b3b2081",
+    "Bytes": 1750413312
+  }
+]

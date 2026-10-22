@@ -1,0 +1,131 @@
+
+/home/builder/linux-reconstruido/build/init-c-generico/ultra-raiz:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+00000000000090b0 <main>:
+    90b0:	f3 0f 1e fa                                     	endbr64
+    90b4:	55                                              	push   rbp
+    90b5:	89 fd                                           	mov    ebp,edi
+    90b7:	53                                              	push   rbx
+    90b8:	48 89 f3                                        	mov    rbx,rsi
+    90bb:	48 83 ec 08                                     	sub    rsp,0x8
+    90bf:	e8 6c a3 01 00                                  	call   23430 <__geteuid>
+    90c4:	85 c0                                           	test   eax,eax
+    90c6:	75 53                                           	jne    911b <main+0x6b>
+    90c8:	83 fd 02                                        	cmp    ebp,0x2
+    90cb:	7e 4e                                           	jle    911b <main+0x6b>
+    90cd:	48 83 fb f8                                     	cmp    rbx,0xfffffffffffffff8
+    90d1:	0f 83 b1 01 00 00                               	jae    9288 <main+0x1d8>
+    90d7:	f6 c3 07                                        	test   bl,0x7
+    90da:	0f 85 a8 01 00 00                               	jne    9288 <main+0x1d8>
+    90e0:	48 8b 43 08                                     	mov    rax,QWORD PTR [rbx+0x8]
+    90e4:	48 85 c0                                        	test   rax,rax
+    90e7:	0f 84 9b 01 00 00                               	je     9288 <main+0x1d8>
+    90ed:	80 38 2f                                        	cmp    BYTE PTR [rax],0x2f
+    90f0:	75 29                                           	jne    911b <main+0x6b>
+    90f2:	48 83 fb f0                                     	cmp    rbx,0xfffffffffffffff0
+    90f6:	0f 83 8c 01 00 00                               	jae    9288 <main+0x1d8>
+    90fc:	48 8d 6b 10                                     	lea    rbp,[rbx+0x10]
+    9100:	f6 c3 07                                        	test   bl,0x7
+    9103:	0f 85 7f 01 00 00                               	jne    9288 <main+0x1d8>
+    9109:	48 8b 43 10                                     	mov    rax,QWORD PTR [rbx+0x10]
+    910d:	48 85 c0                                        	test   rax,rax
+    9110:	0f 84 72 01 00 00                               	je     9288 <main+0x1d8>
+    9116:	80 38 2f                                        	cmp    BYTE PTR [rax],0x2f
+    9119:	74 32                                           	je     914d <main+0x9d>
+    911b:	48 8b 0d e6 d4 0b 00                            	mov    rcx,QWORD PTR [rip+0xbd4e6]        # c6608 <stderr>
+    9122:	48 85 c9                                        	test   rcx,rcx
+    9125:	0f 84 5f 01 00 00                               	je     928a <main+0x1da>
+    912b:	ba 3a 00 00 00                                  	mov    edx,0x3a
+    9130:	be 01 00 00 00                                  	mov    esi,0x1
+    9135:	48 8d 3d 3c 22 08 00                            	lea    rdi,[rip+0x8223c]        # 8b378 <slashdot.0+0x7be>
+    913c:	e8 8f 4b 00 00                                  	call   dcd0 <_IO_fwrite>
+    9141:	b8 02 00 00 00                                  	mov    eax,0x2
+    9146:	48 83 c4 08                                     	add    rsp,0x8
+    914a:	5b                                              	pop    rbx
+    914b:	5d                                              	pop    rbp
+    914c:	c3                                              	ret
+    914d:	bf 00 00 02 00                                  	mov    edi,0x20000
+    9152:	e8 99 b2 01 00                                  	call   243f0 <unshare>
+    9157:	85 c0                                           	test   eax,eax
+    9159:	0f 88 bf 00 00 00                               	js     921e <main+0x16e>
+    915f:	45 31 c0                                        	xor    r8d,r8d
+    9162:	31 d2                                           	xor    edx,edx
+    9164:	31 ff                                           	xor    edi,edi
+    9166:	b9 00 40 04 00                                  	mov    ecx,0x44000
+    916b:	48 8d 35 4b 1a 08 00                            	lea    rsi,[rip+0x81a4b]        # 8abbd <slashdot.0+0x3>
+    9172:	e8 19 b2 01 00                                  	call   24390 <__mount>
+    9177:	85 c0                                           	test   eax,eax
+    9179:	0f 88 c3 00 00 00                               	js     9242 <main+0x192>
+    917f:	48 8b 7b 08                                     	mov    rdi,QWORD PTR [rbx+0x8]
+    9183:	45 31 c0                                        	xor    r8d,r8d
+    9186:	31 d2                                           	xor    edx,edx
+    9188:	b9 00 50 00 00                                  	mov    ecx,0x5000
+    918d:	48 89 fe                                        	mov    rsi,rdi
+    9190:	e8 fb b1 01 00                                  	call   24390 <__mount>
+    9195:	85 c0                                           	test   eax,eax
+    9197:	0f 88 c1 00 00 00                               	js     925e <main+0x1ae>
+    919d:	48 8b 7b 08                                     	mov    rdi,QWORD PTR [rbx+0x8]
+    91a1:	48 85 ff                                        	test   rdi,rdi
+    91a4:	0f 84 18 e1 ff ff                               	je     72c2 <main.cold>
+    91aa:	e8 a1 a2 01 00                                  	call   23450 <__chdir>
+    91af:	85 c0                                           	test   eax,eax
+    91b1:	0f 88 99 00 00 00                               	js     9250 <main+0x1a0>
+    91b7:	48 8d 15 73 18 08 00                            	lea    rdx,[rip+0x81873]        # 8aa31 <null+0xa24>
+    91be:	31 c0                                           	xor    eax,eax
+    91c0:	bf 9b 00 00 00                                  	mov    edi,0x9b
+    91c5:	48 89 d6                                        	mov    rsi,rdx
+    91c8:	e8 b3 af 01 00                                  	call   24180 <syscall>
+    91cd:	48 85 c0                                        	test   rax,rax
+    91d0:	78 62                                           	js     9234 <main+0x184>
+    91d2:	be 02 00 00 00                                  	mov    esi,0x2
+    91d7:	48 8d 3d 53 18 08 00                            	lea    rdi,[rip+0x81853]        # 8aa31 <null+0xa24>
+    91de:	e8 7d b1 01 00                                  	call   24360 <__umount2>
+    91e3:	85 c0                                           	test   eax,eax
+    91e5:	0f 88 81 00 00 00                               	js     926c <main+0x1bc>
+    91eb:	48 8d 3d cb 19 08 00                            	lea    rdi,[rip+0x819cb]        # 8abbd <slashdot.0+0x3>
+    91f2:	e8 59 a2 01 00                                  	call   23450 <__chdir>
+    91f7:	85 c0                                           	test   eax,eax
+    91f9:	78 7f                                           	js     927a <main+0x1ca>
+    91fb:	48 8b 7b 10                                     	mov    rdi,QWORD PTR [rbx+0x10]
+    91ff:	48 85 ff                                        	test   rdi,rdi
+    9202:	0f 84 ba e0 ff ff                               	je     72c2 <main.cold>
+    9208:	48 89 ee                                        	mov    rsi,rbp
+    920b:	e8 e0 a1 01 00                                  	call   233f0 <execv>
+    9210:	48 8d 3d 85 fe 07 00                            	lea    rdi,[rip+0x7fe85]        # 8909c <__rseq_flags+0x98>
+    9217:	e8 c4 01 00 00                                  	call   93e0 <fail.isra.0>
+    921c:	eb 0c                                           	jmp    922a <main+0x17a>
+    921e:	48 8d 3d 00 fe 07 00                            	lea    rdi,[rip+0x7fe00]        # 89025 <__rseq_flags+0x21>
+    9225:	e8 b6 01 00 00                                  	call   93e0 <fail.isra.0>
+    922a:	b8 01 00 00 00                                  	mov    eax,0x1
+    922f:	e9 12 ff ff ff                                  	jmp    9146 <main+0x96>
+    9234:	48 8d 3d 35 fe 07 00                            	lea    rdi,[rip+0x7fe35]        # 89070 <__rseq_flags+0x6c>
+    923b:	e8 a0 01 00 00                                  	call   93e0 <fail.isra.0>
+    9240:	eb e8                                           	jmp    922a <main+0x17a>
+    9242:	48 8d 3d f2 fd 07 00                            	lea    rdi,[rip+0x7fdf2]        # 8903b <__rseq_flags+0x37>
+    9249:	e8 92 01 00 00                                  	call   93e0 <fail.isra.0>
+    924e:	eb da                                           	jmp    922a <main+0x17a>
+    9250:	48 8d 3d 06 fe 07 00                            	lea    rdi,[rip+0x7fe06]        # 8905d <__rseq_flags+0x59>
+    9257:	e8 84 01 00 00                                  	call   93e0 <fail.isra.0>
+    925c:	eb cc                                           	jmp    922a <main+0x17a>
+    925e:	48 8d 3d ea fd 07 00                            	lea    rdi,[rip+0x7fdea]        # 8904f <__rseq_flags+0x4b>
+    9265:	e8 76 01 00 00                                  	call   93e0 <fail.isra.0>
+    926a:	eb be                                           	jmp    922a <main+0x17a>
+    926c:	48 8d 3d 08 fe 07 00                            	lea    rdi,[rip+0x7fe08]        # 8907b <__rseq_flags+0x77>
+    9273:	e8 68 01 00 00                                  	call   93e0 <fail.isra.0>
+    9278:	eb b0                                           	jmp    922a <main+0x17a>
+    927a:	48 8d 3d 0f fe 07 00                            	lea    rdi,[rip+0x7fe0f]        # 89090 <__rseq_flags+0x8c>
+    9281:	e8 5a 01 00 00                                  	call   93e0 <fail.isra.0>
+    9286:	eb a2                                           	jmp    922a <main+0x17a>
+    9288:	0f 0b                                           	ud2
+    928a:	e9 33 e0 ff ff                                  	jmp    72c2 <main.cold>
+
+Disassembly of section .fini:

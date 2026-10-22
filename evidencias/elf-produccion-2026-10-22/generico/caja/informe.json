@@ -1,0 +1,157 @@
+{
+  "Schema": 1,
+  "Binary": "caja",
+  "SHA256": "e353a61bb4f11ec4bb640e6886ccc8748cfd2433253e889ba183396db17696c1",
+  "InspectorSHA256": "596fc2a06dc220f6e4fd03e1ed4b9a2c4669d7f2c6c3eb1926d5a79271f5d332",
+  "Status": "PASS",
+  "Segments": [
+    {
+      "Type": 1,
+      "Flags": 4,
+      "Offset": 0,
+      "Address": 0,
+      "FileBytes": 37912,
+      "MemoryBytes": 37912,
+      "HeaderOffset": 64
+    },
+    {
+      "Type": 1,
+      "Flags": 5,
+      "Offset": 40960,
+      "Address": 40960,
+      "FileBytes": 557309,
+      "MemoryBytes": 557309,
+      "HeaderOffset": 120
+    },
+    {
+      "Type": 1,
+      "Flags": 4,
+      "Offset": 602112,
+      "Address": 602112,
+      "FileBytes": 241536,
+      "MemoryBytes": 241536,
+      "HeaderOffset": 176
+    },
+    {
+      "Type": 1,
+      "Flags": 6,
+      "Offset": 845256,
+      "Address": 845256,
+      "FileBytes": 29664,
+      "MemoryBytes": 70784,
+      "HeaderOffset": 232
+    },
+    {
+      "Type": 2,
+      "Flags": 6,
+      "Offset": 867432,
+      "Address": 867432,
+      "FileBytes": 432,
+      "MemoryBytes": 432,
+      "HeaderOffset": 288
+    },
+    {
+      "Type": 4,
+      "Flags": 4,
+      "Offset": 848,
+      "Address": 848,
+      "FileBytes": 36,
+      "MemoryBytes": 36,
+      "HeaderOffset": 344
+    },
+    {
+      "Type": 4,
+      "Flags": 4,
+      "Offset": 843536,
+      "Address": 843536,
+      "FileBytes": 80,
+      "MemoryBytes": 80,
+      "HeaderOffset": 400
+    },
+    {
+      "Type": 4,
+      "Flags": 4,
+      "Offset": 843616,
+      "Address": 843616,
+      "FileBytes": 32,
+      "MemoryBytes": 32,
+      "HeaderOffset": 456
+    },
+    {
+      "Type": 7,
+      "Flags": 4,
+      "Offset": 845256,
+      "Address": 845256,
+      "FileBytes": 56,
+      "MemoryBytes": 80,
+      "HeaderOffset": 512
+    },
+    {
+      "Type": 1685382483,
+      "Flags": 4,
+      "Offset": 843536,
+      "Address": 843536,
+      "FileBytes": 80,
+      "MemoryBytes": 80,
+      "HeaderOffset": 568
+    },
+    {
+      "Type": 1685382480,
+      "Flags": 4,
+      "Offset": 724992,
+      "Address": 724992,
+      "FileBytes": 10020,
+      "MemoryBytes": 10020,
+      "HeaderOffset": 624
+    },
+    {
+      "Type": 1685382484,
+      "Flags": 4,
+      "Offset": 786128,
+      "Address": 786128,
+      "FileBytes": 57171,
+      "MemoryBytes": 57171,
+      "HeaderOffset": 680
+    },
+    {
+      "Type": 1685382481,
+      "Flags": 6,
+      "Offset": 0,
+      "Address": 0,
+      "FileBytes": 0,
+      "MemoryBytes": 0,
+      "HeaderOffset": 736
+    },
+    {
+      "Type": 1685382482,
+      "Flags": 4,
+      "Offset": 845256,
+      "Address": 845256,
+      "FileBytes": 23096,
+      "MemoryBytes": 23096,
+      "HeaderOffset": 792
+    }
+  ],
+  "Rules": [
+    "ELF64-LE",
+    "STATIC-PIE-X86-64",
+    "PHDR-BOUNDS",
+    "LOAD-ALIGNMENT",
+    "NO-WX-LOAD",
+    "ENTRY-IN-EXECUTABLE-FILE-REGION",
+    "NO-INTERPRETER",
+    "STACK-RW-NX",
+    "RELRO-REQUIRED",
+    "RELRO-IN-WRITABLE-LOAD",
+    "NO-DT-NEEDED",
+    "NO-TEXTREL",
+    "DYNAMIC-NOW",
+    "CET-PROPERTY-IBT-SHSTK",
+    "MAIN-ENDBR64"
+  ],
+  "Tools": [
+    "GNU readelf (GNU Binutils) 2.47",
+    "GNU objdump (GNU Binutils) 2.47"
+  ],
+  "Scope": "Own unstripped static PIE binaries only. Structural metadata and main entry bytes; not semantic verification or proof CET is active at runtime."
+}

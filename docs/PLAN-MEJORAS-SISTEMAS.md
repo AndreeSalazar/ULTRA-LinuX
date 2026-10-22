@@ -2,6 +2,9 @@
 
 Fecha: 2026-10-22. Estado: **cadenas, handles C y primer banco ASM verificados en el taller;
 integracion de propiedad y las siguientes etapas pendientes**. Ver [resultado y limites](CADENAS-ACOTADAS.md).
+La [puerta ELF](ELF-PRODUCCION.md) ya forma parte de build/instalacion;
+generico #49 y PC #35 estan probados en QEMU y copiados en A:, con arranque
+nativo pendiente de confirmacion.
 El objetivo es conservar la experiencia de juego que el propietario confirma y
 convertir problemas concretos en mejoras verificadas. No se da por terminada una
 etapa por escribir este documento ni por agregar fichas al museo.
@@ -24,8 +27,8 @@ el rendimiento. No se publica un porcentaje de aceleracion por contar rechazos.
 | Paso | Trabajo | Motivo y dependencia | Estado |
 |---|---|---|---|
 | 0 | Registrar la base y el protocolo | Permitir volver a la configuracion que ya funciona | Inventario documentado; nuevas mediciones pendientes |
-| 1 | C: limites, propiedad y errores | C es la base propia de init, caja y herramientas | Cadenas, primer consumidor e instalacion del guardian verificados en fuentes/QEMU; API de propiedad candidata verificada; consumidor y despliegue pendientes |
-| 2 | ASM: puentes C/ASM | Comprobar contratos de la frontera con el compilador | Primer banco de registros y alineacion verificado; ampliacion pendiente |
+| 1 | C: limites, propiedad y errores | C es la base propia de init, caja y herramientas | Cadenas y errores de instalacion del guardian probados en QEMU y copiados en A:; API de propiedad candidata, sin consumidor; arranque nativo pendiente |
+| 2 | ASM: puentes C/ASM | Comprobar contratos de la frontera con el compilador | Banco de registros/alineacion verificado; puerta ELF obligatoria para cinco ejecutables propios; ampliar contratos de ASM sigue pendiente |
 | 3 | C++: vida util y recursos | Ampliar las sondas propias sin trasladar supuestos de C | Pendiente; aprovecha controles de limites |
 | 4 | OpenGL/EGL/GLES | Comprobar recursos, contexto y recuperacion | Pendiente; depende del manejo de recursos C++ |
 | 5 | Vulkan | Comprobar sincronizacion y vida de recursos explicitas | Pendiente; compara con los controles CPU/graficos |
@@ -38,11 +41,14 @@ clientes desde el laboratorio; su integracion final viene despues de 4 a 6.
 
 ## Paso 0: base y reglas comunes
 
-Base funcional instalada: reconstruccion de almacenamiento del commit `1013461`.
+Base funcional previa de juego: reconstruccion de almacenamiento del commit `1013461`.
 El museo posterior `9f6c395` agrega investigacion documental, sin reemplazar los
 binarios de A:. Conservar los manifiestos de ambas imagenes y el recibo de
 [instalacion](../evidencias/almacen-c-2026-10-22/instalacion-A.json).
 No promover una imagen experimental sobre esta referencia antes de evaluar su resultado.
+La nueva [instalacion ELF](../evidencias/elf-produccion-2026-10-22/instalacion-A.json)
+reemplaza esos archivos de A: tras validar los candidatos. Los dos kernels y
+dos sistemas anteriores se conservan en el respaldo local bajo build/.
 
 El ultimo analisis disponible de la partida registra 120 muestras, RAM maxima
 7,645 GiB, VRAM maxima 3364 MiB y 30 GiB libres al cerrar. El propietario

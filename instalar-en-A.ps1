@@ -45,6 +45,8 @@ function Get-Entrada {
 
 if($Accion -eq 'Copiar'){
     $part=Test-Destino
+    # Fail before writing/backups: no silent promotion of unaudited old builds.
+    & (Join-Path $project 'scripts/validar-elf-produccion.ps1') -Build $build
     # Keep the receipt outside the removable drive, so removing ULTRA cannot
     # silently turn an update into a first installation with an empty seed.
     $receipt=Join-Path $project "build/datos-$Unidad.sha256"

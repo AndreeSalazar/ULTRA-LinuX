@@ -1,0 +1,1241 @@
+
+/home/builder/linux-reconstruido/build/init-c-pc/caja:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000000c0c0 <main>:
+    c0c0:	f3 0f 1e fa                                     	endbr64
+    c0c4:	4c 8d 54 24 08                                  	lea    r10,[rsp+0x8]
+    c0c9:	48 83 e4 e0                                     	and    rsp,0xffffffffffffffe0
+    c0cd:	c5 f9 ef c0                                     	vpxor  xmm0,xmm0,xmm0
+    c0d1:	41 ff 72 f8                                     	push   QWORD PTR [r10-0x8]
+    c0d5:	55                                              	push   rbp
+    c0d6:	48 89 e5                                        	mov    rbp,rsp
+    c0d9:	41 57                                           	push   r15
+    c0db:	41 56                                           	push   r14
+    c0dd:	41 55                                           	push   r13
+    c0df:	41 54                                           	push   r12
+    c0e1:	41 52                                           	push   r10
+    c0e3:	53                                              	push   rbx
+    c0e4:	31 db                                           	xor    ebx,ebx
+    c0e6:	48 81 ec 80 0d 00 00                            	sub    rsp,0xd80
+    c0ed:	89 bd 88 f2 ff ff                               	mov    DWORD PTR [rbp-0xd78],edi
+    c0f3:	64 4c 8b 24 25 28 00 00 00                      	mov    r12,QWORD PTR fs:0x28
+    c0fc:	4c 89 65 c8                                     	mov    QWORD PTR [rbp-0x38],r12
+    c100:	49 89 f4                                        	mov    r12,rsi
+    c103:	c5 fe 7f 85 c0 f7 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x840],ymm0
+    c10b:	c5 fe 7f 85 e0 f7 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x820],ymm0
+    c113:	c5 fe 7f 85 00 f8 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x800],ymm0
+    c11b:	48 8d b5 c0 f7 ff ff                            	lea    rsi,[rbp-0x840]
+    c122:	c5 fe 7f 85 20 f8 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x7e0],ymm0
+    c12a:	c5 f9 7f 85 40 f8 ff ff                         	vmovdqa XMMWORD PTR [rbp-0x7c0],xmm0
+    c132:	c5 fd 7f 85 90 f2 ff ff                         	vmovdqa YMMWORD PTR [rbp-0xd70],ymm0
+    c13a:	89 df                                           	mov    edi,ebx
+    c13c:	c5 f8 77                                        	vzeroupper
+    c13f:	e8 7c 79 01 00                                  	call   23ac0 <__fstat>
+    c144:	c5 fd 6f 85 90 f2 ff ff                         	vmovdqa ymm0,YMMWORD PTR [rbp-0xd70]
+    c14c:	85 c0                                           	test   eax,eax
+    c14e:	75 2c                                           	jne    c17c <main+0xbc>
+    c150:	8b 85 d8 f7 ff ff                               	mov    eax,DWORD PTR [rbp-0x828]
+    c156:	25 00 f0 00 00                                  	and    eax,0xf000
+    c15b:	3d 00 80 00 00                                  	cmp    eax,0x8000
+    c160:	0f 84 c8 00 00 00                               	je     c22e <main+0x16e>
+    c166:	3d 00 10 00 00                                  	cmp    eax,0x1000
+    c16b:	0f 84 bd 00 00 00                               	je     c22e <main+0x16e>
+    c171:	3d 00 20 00 00                                  	cmp    eax,0x2000
+    c176:	0f 84 a1 00 00 00                               	je     c21d <main+0x15d>
+    c17c:	c5 f9 ef c0                                     	vpxor  xmm0,xmm0,xmm0
+    c180:	48 8d b5 c0 f7 ff ff                            	lea    rsi,[rbp-0x840]
+    c187:	bf 02 00 00 00                                  	mov    edi,0x2
+    c18c:	c5 fe 7f 85 c0 f7 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x840],ymm0
+    c194:	c5 fe 7f 85 e0 f7 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x820],ymm0
+    c19c:	c5 fe 7f 85 00 f8 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x800],ymm0
+    c1a4:	c5 fe 7f 85 20 f8 ff ff                         	vmovdqu YMMWORD PTR [rbp-0x7e0],ymm0
+    c1ac:	c5 f9 7f 85 40 f8 ff ff                         	vmovdqa XMMWORD PTR [rbp-0x7c0],xmm0
+    c1b4:	c5 f8 77                                        	vzeroupper
+    c1b7:	e8 04 79 01 00                                  	call   23ac0 <__fstat>
+    c1bc:	85 c0                                           	test   eax,eax
+    c1be:	75 30                                           	jne    c1f0 <main+0x130>
+    c1c0:	8b 85 d8 f7 ff ff                               	mov    eax,DWORD PTR [rbp-0x828]
+    c1c6:	25 00 f0 00 00                                  	and    eax,0xf000
+    c1cb:	3d 00 80 00 00                                  	cmp    eax,0x8000
+    c1d0:	0f 84 6e 04 00 00                               	je     c644 <main+0x584>
+    c1d6:	3d 00 10 00 00                                  	cmp    eax,0x1000
+    c1db:	0f 84 63 04 00 00                               	je     c644 <main+0x584>
+    c1e1:	3d 00 20 00 00                                  	cmp    eax,0x2000
+    c1e6:	0f 84 47 04 00 00                               	je     c633 <main+0x573>
+    c1ec:	0f 1f 40 00                                     	nop    DWORD PTR [rax+0x0]
+    c1f0:	b8 04 00 00 00                                  	mov    eax,0x4
+    c1f5:	48 8b 55 c8                                     	mov    rdx,QWORD PTR [rbp-0x38]
+    c1f9:	64 48 2b 14 25 28 00 00 00                      	sub    rdx,QWORD PTR fs:0x28
+    c202:	0f 85 ce 0a 00 00                               	jne    ccd6 <main+0xc16>
+    c208:	48 8d 65 d0                                     	lea    rsp,[rbp-0x30]
+    c20c:	5b                                              	pop    rbx
+    c20d:	41 5a                                           	pop    r10
+    c20f:	41 5c                                           	pop    r12
+    c211:	41 5d                                           	pop    r13
+    c213:	41 5e                                           	pop    r14
+    c215:	41 5f                                           	pop    r15
+    c217:	5d                                              	pop    rbp
+    c218:	49 8d 62 f8                                     	lea    rsp,[r10-0x8]
+    c21c:	c3                                              	ret
+    c21d:	48 81 bd e8 f7 ff ff 03 01 00 00                	cmp    QWORD PTR [rbp-0x818],0x103
+    c228:	0f 85 60 05 00 00                               	jne    c78e <main+0x6ce>
+    c22e:	ff c3                                           	inc    ebx
+    c230:	83 fb 03                                        	cmp    ebx,0x3
+    c233:	0f 85 ca fe ff ff                               	jne    c103 <main+0x43>
+    c239:	48 8d 05 1f ec 08 00                            	lea    rax,[rip+0x8ec1f]        # 9ae5f <slashdot.0+0x80a>
+    c240:	45 31 d2                                        	xor    r10d,r10d
+    c243:	31 f6                                           	xor    esi,esi
+    c245:	48 8d bd e0 f2 ff ff                            	lea    rdi,[rbp-0xd20]
+    c24c:	48 89 05 dd 8d 0c 00                            	mov    QWORD PTR [rip+0xc8ddd],rax        # d5030 <guarded_program>
+    c253:	48 8d 05 86 a7 0c 00                            	lea    rax,[rip+0xca786]        # d69e0 <alt_stack>
+    c25a:	4c 89 95 e8 f2 ff ff                            	mov    QWORD PTR [rbp-0xd18],r10
+    c261:	48 c7 85 f0 f2 ff ff 00 40 00 00                	mov    QWORD PTR [rbp-0xd10],0x4000
+    c26c:	48 89 85 e0 f2 ff ff                            	mov    QWORD PTR [rbp-0xd20],rax
+    c273:	c5 f8 77                                        	vzeroupper
+    c276:	e8 25 81 00 00                                  	call   143a0 <__sigaltstack>
+    c27b:	85 c0                                           	test   eax,eax
+    c27d:	0f 88 a0 07 00 00                               	js     ca23 <main+0x963>
+    c283:	31 c0                                           	xor    eax,eax
+    c285:	b9 24 00 00 00                                  	mov    ecx,0x24
+    c28a:	48 8d bd c8 f7 ff ff                            	lea    rdi,[rbp-0x838]
+    c291:	f3 ab                                           	rep stos DWORD PTR [rdi],eax
+    c293:	48 8d 05 b6 2f 00 00                            	lea    rax,[rip+0x2fb6]        # f250 <flag_handler>
+    c29a:	48 8d bd c8 f7 ff ff                            	lea    rdi,[rbp-0x838]
+    c2a1:	c7 85 48 f8 ff ff 04 00 00 88                   	mov    DWORD PTR [rbp-0x7b8],0x88000004
+    c2ab:	48 89 85 c0 f7 ff ff                            	mov    QWORD PTR [rbp-0x840],rax
+    c2b2:	e8 19 81 00 00                                  	call   143d0 <sigemptyset>
+    c2b7:	85 c0                                           	test   eax,eax
+    c2b9:	0f 88 1c 0a 00 00                               	js     ccdb <main+0xc1b>
+    c2bf:	c5 f9 6f 05 79 0c 09 00                         	vmovdqa xmm0,XMMWORD PTR [rip+0x90c79]        # 9cf40 <empty_path_elem+0x90>
+    c2c7:	48 8d 9d c0 f6 ff ff                            	lea    rbx,[rbp-0x940]
+    c2ce:	48 b8 06 00 00 00 1f 00 00 00                   	movabs rax,0x1f00000006
+    c2d8:	41 be 04 00 00 00                               	mov    r14d,0x4
+    c2de:	48 89 85 d0 f6 ff ff                            	mov    QWORD PTR [rbp-0x930],rax
+    c2e5:	49 89 df                                        	mov    r15,rbx
+    c2e8:	49 29 de                                        	sub    r14,rbx
+    c2eb:	45 31 ed                                        	xor    r13d,r13d
+    c2ee:	c5 f9 7f 85 c0 f6 ff ff                         	vmovdqa XMMWORD PTR [rbp-0x940],xmm0
+    c2f6:	66 2e 0f 1f 84 00 00 00 00 00                   	cs nop WORD PTR [rax+rax*1+0x0]
+    c300:	49 83 fd 06                                     	cmp    r13,0x6
+    c304:	0f 83 3e 08 00 00                               	jae    cb48 <main+0xa88>
+    c30a:	4b 8d 14 3e                                     	lea    rdx,[r14+r15*1]
+    c30e:	4a 8d 04 ad 00 00 00 00                         	lea    rax,[r13*4+0x0]
+    c316:	48 83 fa 18                                     	cmp    rdx,0x18
+    c31a:	0f 87 1f 08 00 00                               	ja     cb3f <main+0xa7f>
+    c320:	48 01 d8                                        	add    rax,rbx
+    c323:	0f 82 1f 08 00 00                               	jb     cb48 <main+0xa88>
+    c329:	41 8b 3f                                        	mov    edi,DWORD PTR [r15]
+    c32c:	31 d2                                           	xor    edx,edx
+    c32e:	48 8d b5 c0 f7 ff ff                            	lea    rsi,[rbp-0x840]
+    c335:	e8 a6 7d 00 00                                  	call   140e0 <__sigaction>
+    c33a:	85 c0                                           	test   eax,eax
+    c33c:	0f 88 08 08 00 00                               	js     cb4a <main+0xa8a>
+    c342:	49 ff c5                                        	inc    r13
+    c345:	49 83 c7 04                                     	add    r15,0x4
+    c349:	49 83 fd 06                                     	cmp    r13,0x6
+    c34d:	75 b1                                           	jne    c300 <main+0x240>
+    c34f:	83 bd 88 f2 ff ff 02                            	cmp    DWORD PTR [rbp-0xd78],0x2
+    c356:	0f 84 59 04 00 00                               	je     c7b5 <main+0x6f5>
+    c35c:	0f 8e 36 03 00 00                               	jle    c698 <main+0x5d8>
+    c362:	49 83 fc f8                                     	cmp    r12,0xfffffffffffffff8
+    c366:	0f 83 dc 07 00 00                               	jae    cb48 <main+0xa88>
+    c36c:	41 f6 c4 07                                     	test   r12b,0x7
+    c370:	0f 85 d2 07 00 00                               	jne    cb48 <main+0xa88>
+    c376:	4d 8b 6c 24 08                                  	mov    r13,QWORD PTR [r12+0x8]
+    c37b:	4d 85 ed                                        	test   r13,r13
+    c37e:	0f 84 c4 07 00 00                               	je     cb48 <main+0xa88>
+    c384:	48 8d 35 06 ea 08 00                            	lea    rsi,[rip+0x8ea06]        # 9ad91 <slashdot.0+0x73c>
+    c38b:	4c 89 ef                                        	mov    rdi,r13
+    c38e:	e8 9d de ff ff                                  	call   a230 <_init+0x230>
+    c393:	85 c0                                           	test   eax,eax
+    c395:	0f 85 e6 02 00 00                               	jne    c681 <main+0x5c1>
+    c39b:	48 8d 35 01 ea 08 00                            	lea    rsi,[rip+0x8ea01]        # 9ada3 <slashdot.0+0x74e>
+    c3a2:	4c 89 ef                                        	mov    rdi,r13
+    c3a5:	e8 86 de ff ff                                  	call   a230 <_init+0x230>
+    c3aa:	85 c0                                           	test   eax,eax
+    c3ac:	48 8d 05 ed 4a 0c 00                            	lea    rax,[rip+0xc4aed]        # d0ea0 <cajas+0x40>
+    c3b3:	48 8d 50 c0                                     	lea    rdx,[rax-0x40]
+    c3b7:	48 0f 44 d0                                     	cmove  rdx,rax
+    c3bb:	49 89 d7                                        	mov    r15,rdx
+    c3be:	31 d2                                           	xor    edx,edx
+    c3c0:	31 f6                                           	xor    esi,esi
+    c3c2:	31 c0                                           	xor    eax,eax
+    c3c4:	b9 01 00 00 00                                  	mov    ecx,0x1
+    c3c9:	bf bc 01 00 00                                  	mov    edi,0x1bc
+    c3ce:	e8 2d 84 01 00                                  	call   24800 <syscall>
+    c3d3:	48 c7 c2 ff ff ff ff                            	mov    rdx,0xffffffffffffffff
+    c3da:	48 85 c0                                        	test   rax,rax
+    c3dd:	48 0f 49 d0                                     	cmovns rdx,rax
+    c3e1:	49 89 d5                                        	mov    r13,rdx
+    c3e4:	83 fa 05                                        	cmp    edx,0x5
+    c3e7:	0f 8e b5 04 00 00                               	jle    c8a2 <main+0x7e2>
+    c3ed:	45 31 c0                                        	xor    r8d,r8d
+    c3f0:	31 c9                                           	xor    ecx,ecx
+    c3f2:	31 d2                                           	xor    edx,edx
+    c3f4:	31 f6                                           	xor    esi,esi
+    c3f6:	31 c0                                           	xor    eax,eax
+    c3f8:	bf 15 00 00 00                                  	mov    edi,0x15
+    c3fd:	e8 ee 84 01 00                                  	call   248f0 <__prctl>
+    c402:	85 c0                                           	test   eax,eax
+    c404:	0f 88 25 06 00 00                               	js     ca2f <main+0x96f>
+    c40a:	45 31 c9                                        	xor    r9d,r9d
+    c40d:	48 8d bd b8 f3 ff ff                            	lea    rdi,[rbp-0xc48]
+    c414:	be 00 00 08 00                                  	mov    esi,0x80000
+    c419:	4c 89 8d b8 f3 ff ff                            	mov    QWORD PTR [rbp-0xc48],r9
+    c420:	e8 1b 78 01 00                                  	call   23c40 <pipe2>
+    c425:	85 c0                                           	test   eax,eax
+    c427:	0f 85 c5 08 00 00                               	jne    ccf2 <main+0xc32>
+    c42d:	bf 00 00 02 6c                                  	mov    edi,0x6c020000
+    c432:	c7 85 b8 f2 ff ff 00 00 02 6c                   	mov    DWORD PTR [rbp-0xd48],0x6c020000
+    c43c:	e8 8f 86 01 00                                  	call   24ad0 <unshare>
+    c441:	85 c0                                           	test   eax,eax
+    c443:	0f 88 bf 06 00 00                               	js     cb08 <main+0xa48>
+    c449:	45 31 c0                                        	xor    r8d,r8d
+    c44c:	31 d2                                           	xor    edx,edx
+    c44e:	31 ff                                           	xor    edi,edi
+    c450:	b9 00 40 04 00                                  	mov    ecx,0x44000
+    c455:	48 8d 35 fc e1 08 00                            	lea    rsi,[rip+0x8e1fc]        # 9a658 <slashdot.0+0x3>
+    c45c:	e8 0f 86 01 00                                  	call   24a70 <__mount>
+    c461:	85 c0                                           	test   eax,eax
+    c463:	0f 88 9f 06 00 00                               	js     cb08 <main+0xa48>
+    c469:	e8 32 65 01 00                                  	call   229a0 <__fork>
+    c46e:	41 89 c6                                        	mov    r14d,eax
+    c471:	85 c0                                           	test   eax,eax
+    c473:	0f 88 8f 06 00 00                               	js     cb08 <main+0xa48>
+    c479:	0f 84 10 09 00 00                               	je     cd8f <main+0xccf>
+    c47f:	8b bd b8 f3 ff ff                               	mov    edi,DWORD PTR [rbp-0xc48]
+    c485:	e8 46 75 01 00                                  	call   239d0 <__close>
+    c48a:	31 d2                                           	xor    edx,edx
+    c48c:	31 c0                                           	xor    eax,eax
+    c48e:	b9 9e 00 10 00                                  	mov    ecx,0x10009e
+    c493:	44 89 f6                                        	mov    esi,r14d
+    c496:	bf 06 42 00 00                                  	mov    edi,0x4206
+    c49b:	e8 d0 81 01 00                                  	call   24670 <ptrace>
+    c4a0:	48 85 c0                                        	test   rax,rax
+    c4a3:	0f 85 a9 05 00 00                               	jne    ca52 <main+0x992>
+    c4a9:	ba 00 01 00 00                                  	mov    edx,0x100
+    c4ae:	31 f6                                           	xor    esi,esi
+    c4b0:	48 8d bd c0 f3 ff ff                            	lea    rdi,[rbp-0xc40]
+    c4b7:	e8 64 dd ff ff                                  	call   a220 <_init+0x220>
+    c4bc:	f6 85 bb f2 ff ff 40                            	test   BYTE PTR [rbp-0xd45],0x40
+    c4c3:	48 8d 05 3b e8 08 00                            	lea    rax,[rip+0x8e83b]        # 9ad05 <slashdot.0+0x6b0>
+    c4ca:	48 8d 15 1d e8 08 00                            	lea    rdx,[rip+0x8e81d]        # 9acee <slashdot.0+0x699>
+    c4d1:	48 0f 45 c2                                     	cmovne rax,rdx
+    c4d5:	49 83 ff d0                                     	cmp    r15,0xffffffffffffffd0
+    c4d9:	0f 83 69 06 00 00                               	jae    cb48 <main+0xa88>
+    c4df:	50                                              	push   rax
+    c4e0:	41 ff 77 30                                     	push   QWORD PTR [r15+0x30]
+    c4e4:	41 55                                           	push   r13
+    c4e6:	48 8d bd c0 f3 ff ff                            	lea    rdi,[rbp-0xc40]
+    c4ed:	41 ff 77 08                                     	push   QWORD PTR [r15+0x8]
+    c4f1:	4c 8d 05 f8 c3 08 00                            	lea    r8,[rip+0x8c3f8]        # 988f0 <__PRETTY_FUNCTION__.0+0x910>
+    c4f8:	b9 00 01 00 00                                  	mov    ecx,0x100
+    c4fd:	ba 02 00 00 00                                  	mov    edx,0x2
+    c502:	4d 8b 0f                                        	mov    r9,QWORD PTR [r15]
+    c505:	be 00 01 00 00                                  	mov    esi,0x100
+    c50a:	31 c0                                           	xor    eax,eax
+    c50c:	e8 3f d6 07 00                                  	call   89b50 <___snprintf_chk>
+    c511:	48 8b 3d 58 8b 0c 00                            	mov    rdi,QWORD PTR [rip+0xc8b58]        # d5070 <stderr>
+    c518:	48 83 c4 20                                     	add    rsp,0x20
+    c51c:	48 85 ff                                        	test   rdi,rdi
+    c51f:	0f 84 23 06 00 00                               	je     cb48 <main+0xa88>
+    c525:	4c 8d 8d c0 f3 ff ff                            	lea    r9,[rbp-0xc40]
+    c52c:	4c 8d 05 11 e9 08 00                            	lea    r8,[rip+0x8e911]        # 9ae44 <slashdot.0+0x7ef>
+    c533:	48 8d 0d e3 e7 08 00                            	lea    rcx,[rip+0x8e7e3]        # 9ad1d <slashdot.0+0x6c8>
+    c53a:	48 8d 15 fb e7 08 00                            	lea    rdx,[rip+0x8e7fb]        # 9ad3c <slashdot.0+0x6e7>
+    c541:	be 02 00 00 00                                  	mov    esi,0x2
+    c546:	31 c0                                           	xor    eax,eax
+    c548:	e8 43 8b 01 00                                  	call   25090 <___fprintf_chk>
+    c54d:	8b bd bc f3 ff ff                               	mov    edi,DWORD PTR [rbp-0xc44]
+    c553:	ba 01 00 00 00                                  	mov    edx,0x1
+    c558:	48 8d 35 c9 e2 08 00                            	lea    rsi,[rip+0x8e2c9]        # 9a828 <slashdot.0+0x1d3>
+    c55f:	e8 0c 77 01 00                                  	call   23c70 <__libc_write>
+    c564:	48 ff c8                                        	dec    rax
+    c567:	0f 85 a4 07 00 00                               	jne    cd11 <main+0xc51>
+    c56d:	8b bd bc f3 ff ff                               	mov    edi,DWORD PTR [rbp-0xc44]
+    c573:	45 31 e4                                        	xor    r12d,r12d
+    c576:	45 31 ff                                        	xor    r15d,r15d
+    c579:	e8 52 74 01 00                                  	call   239d0 <__close>
+    c57e:	48 8d 8d d4 f2 ff ff                            	lea    rcx,[rbp-0xd2c]
+    c585:	48 89 8d 90 f2 ff ff                            	mov    QWORD PTR [rbp-0xd70],rcx
+    c58c:	48 8b b5 90 f2 ff ff                            	mov    rsi,QWORD PTR [rbp-0xd70]
+    c593:	45 31 c9                                        	xor    r9d,r9d
+    c596:	ba 00 00 00 40                                  	mov    edx,0x40000000
+    c59b:	bf ff ff ff ff                                  	mov    edi,0xffffffff
+    c5a0:	44 89 8d d4 f2 ff ff                            	mov    DWORD PTR [rbp-0xd2c],r9d
+    c5a7:	e8 14 74 01 00                                  	call   239c0 <waitpid>
+    c5ac:	41 89 c5                                        	mov    r13d,eax
+    c5af:	85 c0                                           	test   eax,eax
+    c5b1:	0f 88 9f 02 00 00                               	js     c856 <main+0x796>
+    c5b7:	8b 8d d4 f2 ff ff                               	mov    ecx,DWORD PTR [rbp-0xd2c]
+    c5bd:	41 89 c9                                        	mov    r9d,ecx
+    c5c0:	41 83 e1 7f                                     	and    r9d,0x7f
+    c5c4:	74 0c                                           	je     c5d2 <main+0x512>
+    c5c6:	41 8d 41 01                                     	lea    eax,[r9+0x1]
+    c5ca:	fe c8                                           	dec    al
+    c5cc:	0f 8e 16 03 00 00                               	jle    c8e8 <main+0x828>
+    c5d2:	45 39 ee                                        	cmp    r14d,r13d
+    c5d5:	75 b5                                           	jne    c58c <main+0x4cc>
+    c5d7:	31 f6                                           	xor    esi,esi
+    c5d9:	ba 00 01 00 00                                  	mov    edx,0x100
+    c5de:	48 89 df                                        	mov    rdi,rbx
+    c5e1:	89 8d 88 f2 ff ff                               	mov    DWORD PTR [rbp-0xd78],ecx
+    c5e7:	44 89 8d 80 f2 ff ff                            	mov    DWORD PTR [rbp-0xd80],r9d
+    c5ee:	e8 2d dc ff ff                                  	call   a220 <_init+0x220>
+    c5f3:	45 84 e4                                        	test   r12b,r12b
+    c5f6:	0f 85 d1 03 00 00                               	jne    c9cd <main+0x90d>
+    c5fc:	44 8b 8d 80 f2 ff ff                            	mov    r9d,DWORD PTR [rbp-0xd80]
+    c603:	8b 8d 88 f2 ff ff                               	mov    ecx,DWORD PTR [rbp-0xd78]
+    c609:	41 8d 41 01                                     	lea    eax,[r9+0x1]
+    c60d:	d1 e8                                           	shr    eax,1
+    c60f:	0f 84 87 04 00 00                               	je     ca9c <main+0x9dc>
+    c615:	41 8d 41 fc                                     	lea    eax,[r9-0x4]
+    c619:	83 f8 1b                                        	cmp    eax,0x1b
+    c61c:	0f 87 4b 03 00 00                               	ja     c96d <main+0x8ad>
+    c622:	48 8d 15 67 7a 08 00                            	lea    rdx,[rip+0x87a67]        # 94090 <__rseq_flags+0x8c>
+    c629:	48 63 04 82                                     	movsxd rax,DWORD PTR [rdx+rax*4]
+    c62d:	48 01 d0                                        	add    rax,rdx
+    c630:	3e ff e0                                        	notrack jmp rax
+    c633:	48 81 bd e8 f7 ff ff 03 01 00 00                	cmp    QWORD PTR [rbp-0x818],0x103
+    c63e:	0f 85 8d 02 00 00                               	jne    c8d1 <main+0x811>
+    c644:	48 8b 3d 25 8a 0c 00                            	mov    rdi,QWORD PTR [rip+0xc8a25]        # d5070 <stderr>
+    c64b:	48 85 ff                                        	test   rdi,rdi
+    c64e:	0f 84 f4 04 00 00                               	je     cb48 <main+0xa88>
+    c654:	4c 8d 0d 95 be 08 00                            	lea    r9,[rip+0x8be95]        # 984f0 <__PRETTY_FUNCTION__.0+0x510>
+    c65b:	4c 8d 05 cd e6 08 00                            	lea    r8,[rip+0x8e6cd]        # 9ad2f <slashdot.0+0x6da>
+    c662:	48 8d 0d ce e6 08 00                            	lea    rcx,[rip+0x8e6ce]        # 9ad37 <slashdot.0+0x6e2>
+    c669:	48 8d 15 cc e6 08 00                            	lea    rdx,[rip+0x8e6cc]        # 9ad3c <slashdot.0+0x6e7>
+    c670:	be 02 00 00 00                                  	mov    esi,0x2
+    c675:	31 c0                                           	xor    eax,eax
+    c677:	e8 14 8a 01 00                                  	call   25090 <___fprintf_chk>
+    c67c:	e9 6f fb ff ff                                  	jmp    c1f0 <main+0x130>
+    c681:	48 8d 35 1b e7 08 00                            	lea    rsi,[rip+0x8e71b]        # 9ada3 <slashdot.0+0x74e>
+    c688:	4c 89 ef                                        	mov    rdi,r13
+    c68b:	e8 a0 db ff ff                                  	call   a230 <_init+0x230>
+    c690:	85 c0                                           	test   eax,eax
+    c692:	0f 84 2d 02 00 00                               	je     c8c5 <main+0x805>
+    c698:	48 8b 0d d1 89 0c 00                            	mov    rcx,QWORD PTR [rip+0xc89d1]        # d5070 <stderr>
+    c69f:	48 85 c9                                        	test   rcx,rcx
+    c6a2:	0f 84 a0 04 00 00                               	je     cb48 <main+0xa88>
+    c6a8:	ba 2b 00 00 00                                  	mov    edx,0x2b
+    c6ad:	be 01 00 00 00                                  	mov    esi,0x1
+    c6b2:	48 8d 3d 67 be 08 00                            	lea    rdi,[rip+0x8be67]        # 98520 <__PRETTY_FUNCTION__.0+0x540>
+    c6b9:	bb 08 00 00 00                                  	mov    ebx,0x8
+    c6be:	e8 1d 2d 03 00                                  	call   3f3e0 <_IO_fwrite>
+    c6c3:	48 8d 05 96 47 0c 00                            	lea    rax,[rip+0xc4796]        # d0e60 <cajas>
+    c6ca:	48 29 c3                                        	sub    rbx,rax
+    c6cd:	48 8d 50 08                                     	lea    rdx,[rax+0x8]
+    c6d1:	48 8d 0c 13                                     	lea    rcx,[rbx+rdx*1]
+    c6d5:	48 81 f9 80 00 00 00                            	cmp    rcx,0x80
+    c6dc:	0f 87 83 06 00 00                               	ja     cd65 <main+0xca5>
+    c6e2:	48 8d 14 18                                     	lea    rdx,[rax+rbx*1]
+    c6e6:	48 81 fa 80 00 00 00                            	cmp    rdx,0x80
+    c6ed:	0f 87 04 07 00 00                               	ja     cdf7 <main+0xd37>
+    c6f3:	48 8b 3d 76 89 0c 00                            	mov    rdi,QWORD PTR [rip+0xc8976]        # d5070 <stderr>
+    c6fa:	48 85 ff                                        	test   rdi,rdi
+    c6fd:	0f 84 45 04 00 00                               	je     cb48 <main+0xa88>
+    c703:	48 8d 15 8e e6 08 00                            	lea    rdx,[rip+0x8e68e]        # 9ad98 <slashdot.0+0x743>
+    c70a:	4c 8d 05 3f be 08 00                            	lea    r8,[rip+0x8be3f]        # 98550 <__PRETTY_FUNCTION__.0+0x570>
+    c711:	48 8d 0d 79 e6 08 00                            	lea    rcx,[rip+0x8e679]        # 9ad91 <slashdot.0+0x73c>
+    c718:	be 02 00 00 00                                  	mov    esi,0x2
+    c71d:	31 c0                                           	xor    eax,eax
+    c71f:	e8 6c 89 01 00                                  	call   25090 <___fprintf_chk>
+    c724:	48 8d 05 7d 47 0c 00                            	lea    rax,[rip+0xc477d]        # d0ea8 <cajas+0x48>
+    c72b:	48 8d 14 03                                     	lea    rdx,[rbx+rax*1]
+    c72f:	48 81 fa 80 00 00 00                            	cmp    rdx,0x80
+    c736:	0f 87 c6 06 00 00                               	ja     ce02 <main+0xd42>
+    c73c:	48 8d 05 5d 47 0c 00                            	lea    rax,[rip+0xc475d]        # d0ea0 <cajas+0x40>
+    c743:	48 01 c3                                        	add    rbx,rax
+    c746:	48 81 fb 80 00 00 00                            	cmp    rbx,0x80
+    c74d:	0f 87 07 06 00 00                               	ja     cd5a <main+0xc9a>
+    c753:	48 8b 3d 16 89 0c 00                            	mov    rdi,QWORD PTR [rip+0xc8916]        # d5070 <stderr>
+    c75a:	48 85 ff                                        	test   rdi,rdi
+    c75d:	0f 84 e5 03 00 00                               	je     cb48 <main+0xa88>
+    c763:	4c 8d 05 26 be 08 00                            	lea    r8,[rip+0x8be26]        # 98590 <__PRETTY_FUNCTION__.0+0x5b0>
+    c76a:	48 8d 0d 32 e6 08 00                            	lea    rcx,[rip+0x8e632]        # 9ada3 <slashdot.0+0x74e>
+    c771:	48 8d 15 20 e6 08 00                            	lea    rdx,[rip+0x8e620]        # 9ad98 <slashdot.0+0x743>
+    c778:	be 02 00 00 00                                  	mov    esi,0x2
+    c77d:	31 c0                                           	xor    eax,eax
+    c77f:	e8 0c 89 01 00                                  	call   25090 <___fprintf_chk>
+    c784:	b8 02 00 00 00                                  	mov    eax,0x2
+    c789:	e9 67 fa ff ff                                  	jmp    c1f5 <main+0x135>
+    c78e:	c5 fd 7f 85 90 f2 ff ff                         	vmovdqa YMMWORD PTR [rbp-0xd70],ymm0
+    c796:	89 df                                           	mov    edi,ebx
+    c798:	c5 f8 77                                        	vzeroupper
+    c79b:	e8 80 76 01 00                                  	call   23e20 <__isatty>
+    c7a0:	85 c0                                           	test   eax,eax
+    c7a2:	c5 fd 6f 85 90 f2 ff ff                         	vmovdqa ymm0,YMMWORD PTR [rbp-0xd70]
+    c7aa:	0f 85 7e fa ff ff                               	jne    c22e <main+0x16e>
+    c7b0:	e9 c7 f9 ff ff                                  	jmp    c17c <main+0xbc>
+    c7b5:	49 83 fc f8                                     	cmp    r12,0xfffffffffffffff8
+    c7b9:	0f 83 89 03 00 00                               	jae    cb48 <main+0xa88>
+    c7bf:	41 f6 c4 07                                     	test   r12b,0x7
+    c7c3:	0f 85 7f 03 00 00                               	jne    cb48 <main+0xa88>
+    c7c9:	49 8b 7c 24 08                                  	mov    rdi,QWORD PTR [r12+0x8]
+    c7ce:	48 85 ff                                        	test   rdi,rdi
+    c7d1:	0f 84 71 03 00 00                               	je     cb48 <main+0xa88>
+    c7d7:	48 8d 35 83 e5 08 00                            	lea    rsi,[rip+0x8e583]        # 9ad61 <slashdot.0+0x70c>
+    c7de:	e8 4d da ff ff                                  	call   a230 <_init+0x230>
+    c7e3:	85 c0                                           	test   eax,eax
+    c7e5:	0f 85 ad fe ff ff                               	jne    c698 <main+0x5d8>
+    c7eb:	ba 00 08 00 00                                  	mov    edx,0x800
+    c7f0:	31 f6                                           	xor    esi,esi
+    c7f2:	48 8d bd c0 f7 ff ff                            	lea    rdi,[rbp-0x840]
+    c7f9:	e8 22 da ff ff                                  	call   a220 <_init+0x220>
+    c7fe:	ba 2e 00 00 00                                  	mov    edx,0x2e
+    c803:	48 8d 35 f6 78 08 00                            	lea    rsi,[rip+0x878f6]        # 94100 <busybox_base>
+    c80a:	48 8d bd c0 f7 ff ff                            	lea    rdi,[rbp-0x840]
+    c811:	e8 4a 16 00 00                                  	call   de60 <caja_filter_build.part.0.constprop.0>
+    c816:	48 89 c3                                        	mov    rbx,rax
+    c819:	48 85 c0                                        	test   rax,rax
+    c81c:	0f 84 4e 05 00 00                               	je     cd70 <main+0xcb0>
+    c822:	48 8b 0d 4f 88 0c 00                            	mov    rcx,QWORD PTR [rip+0xc884f]        # d5078 <stdout>
+    c829:	48 85 c9                                        	test   rcx,rcx
+    c82c:	0f 84 16 03 00 00                               	je     cb48 <main+0xa88>
+    c832:	48 89 c2                                        	mov    rdx,rax
+    c835:	be 08 00 00 00                                  	mov    esi,0x8
+    c83a:	48 8d bd c0 f7 ff ff                            	lea    rdi,[rbp-0x840]
+    c841:	e8 9a 2b 03 00                                  	call   3f3e0 <_IO_fwrite>
+    c846:	48 39 d8                                        	cmp    rax,rbx
+    c849:	0f 95 c0                                        	setne  al
+    c84c:	0f b6 c0                                        	movzx  eax,al
+    c84f:	01 c0                                           	add    eax,eax
+    c851:	e9 9f f9 ff ff                                  	jmp    c1f5 <main+0x135>
+    c856:	e8 85 77 00 00                                  	call   13fe0 <__errno_location>
+    c85b:	48 85 c0                                        	test   rax,rax
+    c85e:	0f 84 e4 02 00 00                               	je     cb48 <main+0xa88>
+    c864:	a8 03                                           	test   al,0x3
+    c866:	0f 85 dc 02 00 00                               	jne    cb48 <main+0xa88>
+    c86c:	8b 10                                           	mov    edx,DWORD PTR [rax]
+    c86e:	83 fa 04                                        	cmp    edx,0x4
+    c871:	0f 84 15 fd ff ff                               	je     c58c <main+0x4cc>
+    c877:	44 89 f8                                        	mov    eax,r15d
+    c87a:	83 fa 0a                                        	cmp    edx,0xa
+    c87d:	0f 84 72 f9 ff ff                               	je     c1f5 <main+0x135>
+    c883:	48 8d 0d 9e c0 08 00                            	lea    rcx,[rip+0x8c09e]        # 98928 <__PRETTY_FUNCTION__.0+0x948>
+    c88a:	ba be 00 00 00                                  	mov    edx,0xbe
+    c88f:	48 8d 35 72 bb 08 00                            	lea    rsi,[rip+0x8bb72]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    c896:	48 8d 3d 27 e5 08 00                            	lea    rdi,[rip+0x8e527]        # 9adc4 <slashdot.0+0x76f>
+    c89d:	e8 1e 40 00 00                                  	call   108c0 <ultra_fail>
+    c8a2:	48 8b 3d c7 87 0c 00                            	mov    rdi,QWORD PTR [rip+0xc87c7]        # d5070 <stderr>
+    c8a9:	48 85 ff                                        	test   rdi,rdi
+    c8ac:	0f 84 96 02 00 00                               	je     cb48 <main+0xa88>
+    c8b2:	4c 8d 0d 0f bd 08 00                            	lea    r9,[rip+0x8bd0f]        # 985c8 <__PRETTY_FUNCTION__.0+0x5e8>
+    c8b9:	4c 8d 05 ea e4 08 00                            	lea    r8,[rip+0x8e4ea]        # 9adaa <slashdot.0+0x755>
+    c8c0:	e9 9d fd ff ff                                  	jmp    c662 <main+0x5a2>
+    c8c5:	4c 8d 3d d4 45 0c 00                            	lea    r15,[rip+0xc45d4]        # d0ea0 <cajas+0x40>
+    c8cc:	e9 ed fa ff ff                                  	jmp    c3be <main+0x2fe>
+    c8d1:	bf 02 00 00 00                                  	mov    edi,0x2
+    c8d6:	e8 45 75 01 00                                  	call   23e20 <__isatty>
+    c8db:	85 c0                                           	test   eax,eax
+    c8dd:	0f 85 61 fd ff ff                               	jne    c644 <main+0x584>
+    c8e3:	e9 08 f9 ff ff                                  	jmp    c1f0 <main+0x130>
+    c8e8:	80 f9 7f                                        	cmp    cl,0x7f
+    c8eb:	0f 85 9b fc ff ff                               	jne    c58c <main+0x4cc>
+    c8f1:	89 c8                                           	mov    eax,ecx
+    c8f3:	c1 f8 10                                        	sar    eax,0x10
+    c8f6:	83 f8 07                                        	cmp    eax,0x7
+    c8f9:	0f 84 57 02 00 00                               	je     cb56 <main+0xa96>
+    c8ff:	0f b6 cd                                        	movzx  ecx,ch
+    c902:	85 c0                                           	test   eax,eax
+    c904:	0f 85 2e 02 00 00                               	jne    cb38 <main+0xa78>
+    c90a:	83 f9 13                                        	cmp    ecx,0x13
+    c90d:	0f 84 25 02 00 00                               	je     cb38 <main+0xa78>
+    c913:	31 d2                                           	xor    edx,edx
+    c915:	31 c0                                           	xor    eax,eax
+    c917:	89 c9                                           	mov    ecx,ecx
+    c919:	44 89 ee                                        	mov    esi,r13d
+    c91c:	bf 07 00 00 00                                  	mov    edi,0x7
+    c921:	e8 4a 7d 01 00                                  	call   24670 <ptrace>
+    c926:	48 85 c0                                        	test   rax,rax
+    c929:	0f 84 5d fc ff ff                               	je     c58c <main+0x4cc>
+    c92f:	e8 ac 76 00 00                                  	call   13fe0 <__errno_location>
+    c934:	48 85 c0                                        	test   rax,rax
+    c937:	0f 84 0b 02 00 00                               	je     cb48 <main+0xa88>
+    c93d:	a8 03                                           	test   al,0x3
+    c93f:	0f 85 03 02 00 00                               	jne    cb48 <main+0xa88>
+    c945:	83 38 03                                        	cmp    DWORD PTR [rax],0x3
+    c948:	0f 84 3e fc ff ff                               	je     c58c <main+0x4cc>
+    c94e:	48 8d 0d 6b c0 08 00                            	lea    rcx,[rip+0x8c06b]        # 989c0 <__PRETTY_FUNCTION__.0+0x9e0>
+    c955:	ba e1 00 00 00                                  	mov    edx,0xe1
+    c95a:	48 8d 35 a7 ba 08 00                            	lea    rsi,[rip+0x8baa7]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    c961:	48 8d 3d 5c e4 08 00                            	lea    rdi,[rip+0x8e45c]        # 9adc4 <slashdot.0+0x76f>
+    c968:	e8 53 3f 00 00                                  	call   108c0 <ultra_fail>
+    c96d:	48 8d 05 c5 e2 08 00                            	lea    rax,[rip+0x8e2c5]        # 9ac39 <slashdot.0+0x5e4>
+    c974:	4c 8d 05 e9 e4 08 00                            	lea    r8,[rip+0x8e4e9]        # 9ae64 <slashdot.0+0x80f>
+    c97b:	be 00 01 00 00                                  	mov    esi,0x100
+    c980:	48 89 df                                        	mov    rdi,rbx
+    c983:	ba 02 00 00 00                                  	mov    edx,0x2
+    c988:	51                                              	push   rcx
+    c989:	b9 00 01 00 00                                  	mov    ecx,0x100
+    c98e:	50                                              	push   rax
+    c98f:	31 c0                                           	xor    eax,eax
+    c991:	e8 ba d1 07 00                                  	call   89b50 <___snprintf_chk>
+    c996:	48 8b 3d d3 86 0c 00                            	mov    rdi,QWORD PTR [rip+0xc86d3]        # d5070 <stderr>
+    c99d:	5e                                              	pop    rsi
+    c99e:	41 58                                           	pop    r8
+    c9a0:	48 85 ff                                        	test   rdi,rdi
+    c9a3:	0f 84 9f 01 00 00                               	je     cb48 <main+0xa88>
+    c9a9:	49 89 d9                                        	mov    r9,rbx
+    c9ac:	4c 8d 05 be e4 08 00                            	lea    r8,[rip+0x8e4be]        # 9ae71 <slashdot.0+0x81c>
+    c9b3:	48 8d 0d 7d e3 08 00                            	lea    rcx,[rip+0x8e37d]        # 9ad37 <slashdot.0+0x6e2>
+    c9ba:	48 8d 15 7b e3 08 00                            	lea    rdx,[rip+0x8e37b]        # 9ad3c <slashdot.0+0x6e7>
+    c9c1:	be 02 00 00 00                                  	mov    esi,0x2
+    c9c6:	31 c0                                           	xor    eax,eax
+    c9c8:	e8 c3 86 01 00                                  	call   25090 <___fprintf_chk>
+    c9cd:	41 bf 03 00 00 00                               	mov    r15d,0x3
+    c9d3:	e9 b4 fb ff ff                                  	jmp    c58c <main+0x4cc>
+    c9d8:	48 8d 05 f1 b7 08 00                            	lea    rax,[rip+0x8b7f1]        # 981d0 <__PRETTY_FUNCTION__.0+0x1f0>
+    c9df:	eb 93                                           	jmp    c974 <main+0x8b4>
+    c9e1:	48 8d 05 10 b8 08 00                            	lea    rax,[rip+0x8b810]        # 981f8 <__PRETTY_FUNCTION__.0+0x218>
+    c9e8:	eb 8a                                           	jmp    c974 <main+0x8b4>
+    c9ea:	48 8d 05 a7 b7 08 00                            	lea    rax,[rip+0x8b7a7]        # 98198 <__PRETTY_FUNCTION__.0+0x1b8>
+    c9f1:	eb 81                                           	jmp    c974 <main+0x8b4>
+    c9f3:	48 8d 05 5e b8 08 00                            	lea    rax,[rip+0x8b85e]        # 98258 <__PRETTY_FUNCTION__.0+0x278>
+    c9fa:	e9 75 ff ff ff                                  	jmp    c974 <main+0x8b4>
+    c9ff:	48 8d 05 8a b8 08 00                            	lea    rax,[rip+0x8b88a]        # 98290 <__PRETTY_FUNCTION__.0+0x2b0>
+    ca06:	e9 69 ff ff ff                                  	jmp    c974 <main+0x8b4>
+    ca0b:	48 8d 05 ae b6 08 00                            	lea    rax,[rip+0x8b6ae]        # 980c0 <__PRETTY_FUNCTION__.0+0xe0>
+    ca12:	e9 5d ff ff ff                                  	jmp    c974 <main+0x8b4>
+    ca17:	48 8d 05 ea b6 08 00                            	lea    rax,[rip+0x8b6ea]        # 98108 <__PRETTY_FUNCTION__.0+0x128>
+    ca1e:	e9 51 ff ff ff                                  	jmp    c974 <main+0x8b4>
+    ca23:	48 8d 3d 1f e3 08 00                            	lea    rdi,[rip+0x8e31f]        # 9ad49 <slashdot.0+0x6f4>
+    ca2a:	e8 b1 3a 00 00                                  	call   104e0 <install_failure>
+    ca2f:	48 8b 3d 3a 86 0c 00                            	mov    rdi,QWORD PTR [rip+0xc863a]        # d5070 <stderr>
+    ca36:	48 85 ff                                        	test   rdi,rdi
+    ca39:	0f 84 09 01 00 00                               	je     cb48 <main+0xa88>
+    ca3f:	4c 8d 0d e2 bb 08 00                            	lea    r9,[rip+0x8bbe2]        # 98628 <__PRETTY_FUNCTION__.0+0x648>
+    ca46:	4c 8d 05 37 e3 08 00                            	lea    r8,[rip+0x8e337]        # 9ad84 <slashdot.0+0x72f>
+    ca4d:	e9 10 fc ff ff                                  	jmp    c662 <main+0x5a2>
+    ca52:	48 8b 3d 17 86 0c 00                            	mov    rdi,QWORD PTR [rip+0xc8617]        # d5070 <stderr>
+    ca59:	48 85 ff                                        	test   rdi,rdi
+    ca5c:	0f 84 e6 00 00 00                               	je     cb48 <main+0xa88>
+    ca62:	4c 8d 0d 47 be 08 00                            	lea    r9,[rip+0x8be47]        # 988b0 <__PRETTY_FUNCTION__.0+0x8d0>
+    ca69:	4c 8d 05 54 e3 08 00                            	lea    r8,[rip+0x8e354]        # 9adc4 <slashdot.0+0x76f>
+    ca70:	48 8d 0d c0 e2 08 00                            	lea    rcx,[rip+0x8e2c0]        # 9ad37 <slashdot.0+0x6e2>
+    ca77:	48 8d 15 be e2 08 00                            	lea    rdx,[rip+0x8e2be]        # 9ad3c <slashdot.0+0x6e7>
+    ca7e:	be 02 00 00 00                                  	mov    esi,0x2
+    ca83:	31 c0                                           	xor    eax,eax
+    ca85:	e8 06 86 01 00                                  	call   25090 <___fprintf_chk>
+    ca8a:	be 09 00 00 00                                  	mov    esi,0x9
+    ca8f:	44 89 f7                                        	mov    edi,r14d
+    ca92:	e8 d9 78 00 00                                  	call   14370 <__kill>
+    ca97:	e9 54 f7 ff ff                                  	jmp    c1f0 <main+0x130>
+    ca9c:	0f b6 c5                                        	movzx  eax,ch
+    ca9f:	48 89 df                                        	mov    rdi,rbx
+    caa2:	b9 00 01 00 00                                  	mov    ecx,0x100
+    caa7:	4c 8d 05 a2 be 08 00                            	lea    r8,[rip+0x8bea2]        # 98950 <__PRETTY_FUNCTION__.0+0x970>
+    caae:	41 89 c7                                        	mov    r15d,eax
+    cab1:	41 89 c1                                        	mov    r9d,eax
+    cab4:	ba 02 00 00 00                                  	mov    edx,0x2
+    cab9:	31 c0                                           	xor    eax,eax
+    cabb:	be 00 01 00 00                                  	mov    esi,0x100
+    cac0:	e8 8b d0 07 00                                  	call   89b50 <___snprintf_chk>
+    cac5:	48 8b 3d a4 85 0c 00                            	mov    rdi,QWORD PTR [rip+0xc85a4]        # d5070 <stderr>
+    cacc:	45 85 ff                                        	test   r15d,r15d
+    cacf:	48 8d 0d 47 e2 08 00                            	lea    rcx,[rip+0x8e247]        # 9ad1d <slashdot.0+0x6c8>
+    cad6:	48 8d 05 37 e2 08 00                            	lea    rax,[rip+0x8e237]        # 9ad14 <slashdot.0+0x6bf>
+    cadd:	48 0f 45 c8                                     	cmovne rcx,rax
+    cae1:	48 85 ff                                        	test   rdi,rdi
+    cae4:	74 62                                           	je     cb48 <main+0xa88>
+    cae6:	49 89 d9                                        	mov    r9,rbx
+    cae9:	4c 8d 05 8d e3 08 00                            	lea    r8,[rip+0x8e38d]        # 9ae7d <slashdot.0+0x828>
+    caf0:	48 8d 15 45 e2 08 00                            	lea    rdx,[rip+0x8e245]        # 9ad3c <slashdot.0+0x6e7>
+    caf7:	be 02 00 00 00                                  	mov    esi,0x2
+    cafc:	31 c0                                           	xor    eax,eax
+    cafe:	e8 8d 85 01 00                                  	call   25090 <___fprintf_chk>
+    cb03:	e9 84 fa ff ff                                  	jmp    c58c <main+0x4cc>
+    cb08:	e8 d3 74 00 00                                  	call   13fe0 <__errno_location>
+    cb0d:	48 85 c0                                        	test   rax,rax
+    cb10:	74 36                                           	je     cb48 <main+0xa88>
+    cb12:	a8 03                                           	test   al,0x3
+    cb14:	75 32                                           	jne    cb48 <main+0xa88>
+    cb16:	8b 38                                           	mov    edi,DWORD PTR [rax]
+    cb18:	e8 43 ef 00 00                                  	call   1ba60 <strerror>
+    cb1d:	48 8b 3d 4c 85 0c 00                            	mov    rdi,QWORD PTR [rip+0xc854c]        # d5070 <stderr>
+    cb24:	49 89 c1                                        	mov    r9,rax
+    cb27:	48 85 ff                                        	test   rdi,rdi
+    cb2a:	74 1c                                           	je     cb48 <main+0xa88>
+    cb2c:	4c 8d 05 9c e2 08 00                            	lea    r8,[rip+0x8e29c]        # 9adcf <slashdot.0+0x77a>
+    cb33:	e9 2a fb ff ff                                  	jmp    c662 <main+0x5a2>
+    cb38:	31 c9                                           	xor    ecx,ecx
+    cb3a:	e9 d4 fd ff ff                                  	jmp    c913 <main+0x853>
+    cb3f:	4c 01 fa                                        	add    rdx,r15
+    cb42:	0f 82 d8 f7 ff ff                               	jb     c320 <main+0x260>
+    cb48:	0f 0b                                           	ud2
+    cb4a:	48 8d 3d 90 e3 08 00                            	lea    rdi,[rip+0x8e390]        # 9aee1 <slashdot.0+0x88c>
+    cb51:	e8 8a 39 00 00                                  	call   104e0 <install_failure>
+    cb56:	31 c0                                           	xor    eax,eax
+    cb58:	b9 36 00 00 00                                  	mov    ecx,0x36
+    cb5d:	48 8d bd e0 f2 ff ff                            	lea    rdi,[rbp-0xd20]
+    cb64:	31 d2                                           	xor    edx,edx
+    cb66:	f3 ab                                           	rep stos DWORD PTR [rdi],eax
+    cb68:	44 89 ee                                        	mov    esi,r13d
+    cb6b:	48 8d 8d e0 f2 ff ff                            	lea    rcx,[rbp-0xd20]
+    cb72:	bf 0c 00 00 00                                  	mov    edi,0xc
+    cb77:	49 c7 c4 ff ff ff ff                            	mov    r12,0xffffffffffffffff
+    cb7e:	e8 ed 7a 01 00                                  	call   24670 <ptrace>
+    cb83:	ba 00 01 00 00                                  	mov    edx,0x100
+    cb88:	48 8d bd c0 f5 ff ff                            	lea    rdi,[rbp-0xa40]
+    cb8f:	48 85 c0                                        	test   rax,rax
+    cb92:	4c 0f 44 a5 58 f3 ff ff                         	cmove  r12,QWORD PTR [rbp-0xca8]
+    cb9a:	31 f6                                           	xor    esi,esi
+    cb9c:	e8 7f d6 ff ff                                  	call   a220 <_init+0x220>
+    cba1:	48 8d 35 98 2a 0c 00                            	lea    rsi,[rip+0xc2a98]        # cf640 <caja_syscall_names>
+    cba8:	31 c0                                           	xor    eax,eax
+    cbaa:	48 89 f1                                        	mov    rcx,rsi
+    cbad:	eb 13                                           	jmp    cbc2 <main+0xb02>
+    cbaf:	48 ff c0                                        	inc    rax
+    cbb2:	48 83 c1 10                                     	add    rcx,0x10
+    cbb6:	48 3d 82 01 00 00                               	cmp    rax,0x182
+    cbbc:	0f 84 08 01 00 00                               	je     ccca <main+0xc0a>
+    cbc2:	48 3d 82 01 00 00                               	cmp    rax,0x182
+    cbc8:	0f 83 7a ff ff ff                               	jae    cb48 <main+0xa88>
+    cbce:	48 89 c2                                        	mov    rdx,rax
+    cbd1:	48 c1 e2 04                                     	shl    rdx,0x4
+    cbd5:	48 8d 7a 04                                     	lea    rdi,[rdx+0x4]
+    cbd9:	48 81 ff 20 18 00 00                            	cmp    rdi,0x1820
+    cbe0:	0f 87 4a 01 00 00                               	ja     cd30 <main+0xc70>
+    cbe6:	48 89 f7                                        	mov    rdi,rsi
+    cbe9:	48 01 d7                                        	add    rdi,rdx
+    cbec:	0f 82 56 ff ff ff                               	jb     cb48 <main+0xa88>
+    cbf2:	48 63 39                                        	movsxd rdi,DWORD PTR [rcx]
+    cbf5:	49 39 fc                                        	cmp    r12,rdi
+    cbf8:	75 b5                                           	jne    cbaf <main+0xaef>
+    cbfa:	48 3d 82 01 00 00                               	cmp    rax,0x182
+    cc00:	0f 83 42 ff ff ff                               	jae    cb48 <main+0xa88>
+    cc06:	48 83 c2 08                                     	add    rdx,0x8
+    cc0a:	48 8d 7a 08                                     	lea    rdi,[rdx+0x8]
+    cc0e:	48 8d 0c 16                                     	lea    rcx,[rsi+rdx*1]
+    cc12:	48 81 ff 20 18 00 00                            	cmp    rdi,0x1820
+    cc19:	0f 87 c8 00 00 00                               	ja     cce7 <main+0xc27>
+    cc1f:	48 01 f2                                        	add    rdx,rsi
+    cc22:	0f 82 20 ff ff ff                               	jb     cb48 <main+0xa88>
+    cc28:	48 c1 e0 04                                     	shl    rax,0x4
+    cc2c:	4c 8b 4c 06 08                                  	mov    r9,QWORD PTR [rsi+rax*1+0x8]
+    cc31:	41 55                                           	push   r13
+    cc33:	ba 02 00 00 00                                  	mov    edx,0x2
+    cc38:	41 54                                           	push   r12
+    cc3a:	48 8d bd c0 f5 ff ff                            	lea    rdi,[rbp-0xa40]
+    cc41:	4c 8d 05 28 bd 08 00                            	lea    r8,[rip+0x8bd28]        # 98970 <__PRETTY_FUNCTION__.0+0x990>
+    cc48:	b9 00 01 00 00                                  	mov    ecx,0x100
+    cc4d:	be 00 01 00 00                                  	mov    esi,0x100
+    cc52:	31 c0                                           	xor    eax,eax
+    cc54:	e8 f7 ce 07 00                                  	call   89b50 <___snprintf_chk>
+    cc59:	48 8b 3d 10 84 0c 00                            	mov    rdi,QWORD PTR [rip+0xc8410]        # d5070 <stderr>
+    cc60:	58                                              	pop    rax
+    cc61:	5a                                              	pop    rdx
+    cc62:	48 85 ff                                        	test   rdi,rdi
+    cc65:	0f 84 dd fe ff ff                               	je     cb48 <main+0xa88>
+    cc6b:	be 02 00 00 00                                  	mov    esi,0x2
+    cc70:	31 c0                                           	xor    eax,eax
+    cc72:	4c 8d 8d c0 f5 ff ff                            	lea    r9,[rbp-0xa40]
+    cc79:	4c 8d 05 04 e1 08 00                            	lea    r8,[rip+0x8e104]        # 9ad84 <slashdot.0+0x72f>
+    cc80:	48 8d 0d b0 e0 08 00                            	lea    rcx,[rip+0x8e0b0]        # 9ad37 <slashdot.0+0x6e2>
+    cc87:	48 8d 15 ae e0 08 00                            	lea    rdx,[rip+0x8e0ae]        # 9ad3c <slashdot.0+0x6e7>
+    cc8e:	e8 fd 83 01 00                                  	call   25090 <___fprintf_chk>
+    cc93:	be 09 00 00 00                                  	mov    esi,0x9
+    cc98:	44 89 f7                                        	mov    edi,r14d
+    cc9b:	e8 d0 76 00 00                                  	call   14370 <__kill>
+    cca0:	85 c0                                           	test   eax,eax
+    cca2:	74 1b                                           	je     ccbf <main+0xbff>
+    cca4:	e8 37 73 00 00                                  	call   13fe0 <__errno_location>
+    cca9:	48 85 c0                                        	test   rax,rax
+    ccac:	0f 84 96 fe ff ff                               	je     cb48 <main+0xa88>
+    ccb2:	a8 03                                           	test   al,0x3
+    ccb4:	0f 85 8e fe ff ff                               	jne    cb48 <main+0xa88>
+    ccba:	83 38 03                                        	cmp    DWORD PTR [rax],0x3
+    ccbd:	75 7c                                           	jne    cd3b <main+0xc7b>
+    ccbf:	41 bc 01 00 00 00                               	mov    r12d,0x1
+    ccc5:	e9 c2 f8 ff ff                                  	jmp    c58c <main+0x4cc>
+    ccca:	4c 8d 0d 52 e0 08 00                            	lea    r9,[rip+0x8e052]        # 9ad23 <slashdot.0+0x6ce>
+    ccd1:	e9 5b ff ff ff                                  	jmp    cc31 <main+0xb71>
+    ccd6:	e8 e5 84 01 00                                  	call   251c0 <__stack_chk_fail>
+    ccdb:	48 8d 3d 73 e0 08 00                            	lea    rdi,[rip+0x8e073]        # 9ad55 <slashdot.0+0x700>
+    cce2:	e8 f9 37 00 00                                  	call   104e0 <install_failure>
+    cce7:	48 01 f9                                        	add    rcx,rdi
+    ccea:	0f 82 2f ff ff ff                               	jb     cc1f <main+0xb5f>
+    ccf0:	0f 0b                                           	ud2
+    ccf2:	48 8d 0d bf e0 08 00                            	lea    rcx,[rip+0x8e0bf]        # 9adb8 <slashdot.0+0x763>
+    ccf9:	ba 05 01 00 00                                  	mov    edx,0x105
+    ccfe:	48 8d 35 03 b7 08 00                            	lea    rsi,[rip+0x8b703]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    cd05:	48 8d 3d b8 e0 08 00                            	lea    rdi,[rip+0x8e0b8]        # 9adc4 <slashdot.0+0x76f>
+    cd0c:	e8 af 3b 00 00                                  	call   108c0 <ultra_fail>
+    cd11:	48 8d 0d 31 e1 08 00                            	lea    rcx,[rip+0x8e131]        # 9ae49 <slashdot.0+0x7f4>
+    cd18:	ba 1c 01 00 00                                  	mov    edx,0x11c
+    cd1d:	48 8d 35 e4 b6 08 00                            	lea    rsi,[rip+0x8b6e4]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    cd24:	48 8d 3d 99 e0 08 00                            	lea    rdi,[rip+0x8e099]        # 9adc4 <slashdot.0+0x76f>
+    cd2b:	e8 90 3b 00 00                                  	call   108c0 <ultra_fail>
+    cd30:	48 01 cf                                        	add    rdi,rcx
+    cd33:	0f 82 ad fe ff ff                               	jb     cbe6 <main+0xb26>
+    cd39:	0f 0b                                           	ud2
+    cd3b:	48 8d 0d 47 e1 08 00                            	lea    rcx,[rip+0x8e147]        # 9ae89 <slashdot.0+0x834>
+    cd42:	ba da 00 00 00                                  	mov    edx,0xda
+    cd47:	48 8d 35 ba b6 08 00                            	lea    rsi,[rip+0x8b6ba]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    cd4e:	48 8d 3d 6f e0 08 00                            	lea    rdi,[rip+0x8e06f]        # 9adc4 <slashdot.0+0x76f>
+    cd55:	e8 66 3b 00 00                                  	call   108c0 <ultra_fail>
+    cd5a:	48 01 d8                                        	add    rax,rbx
+    cd5d:	0f 82 f0 f9 ff ff                               	jb     c753 <main+0x693>
+    cd63:	0f 0b                                           	ud2
+    cd65:	48 01 ca                                        	add    rdx,rcx
+    cd68:	0f 82 74 f9 ff ff                               	jb     c6e2 <main+0x622>
+    cd6e:	0f 0b                                           	ud2
+    cd70:	48 8d 0d f8 df 08 00                            	lea    rcx,[rip+0x8dff8]        # 9ad6f <slashdot.0+0x71a>
+    cd77:	ba f0 00 00 00                                  	mov    edx,0xf0
+    cd7c:	48 8d 35 85 b6 08 00                            	lea    rsi,[rip+0x8b685]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    cd83:	48 8d 3d fa df 08 00                            	lea    rdi,[rip+0x8dffa]        # 9ad84 <slashdot.0+0x72f>
+    cd8a:	e8 31 3b 00 00                                  	call   108c0 <ultra_fail>
+    cd8f:	8b bd bc f3 ff ff                               	mov    edi,DWORD PTR [rbp-0xc44]
+    cd95:	e8 36 6c 01 00                                  	call   239d0 <__close>
+    cd9a:	49 83 fc f0                                     	cmp    r12,0xfffffffffffffff0
+    cd9e:	0f 83 a4 fd ff ff                               	jae    cb48 <main+0xa88>
+    cda4:	8b bd b8 f3 ff ff                               	mov    edi,DWORD PTR [rbp-0xc48]
+    cdaa:	48 8d b5 b7 f2 ff ff                            	lea    rsi,[rbp-0xd49]
+    cdb1:	b9 01 00 00 00                                  	mov    ecx,0x1
+    cdb6:	ba 01 00 00 00                                  	mov    edx,0x1
+    cdbb:	c6 85 b7 f2 ff ff 00                            	mov    BYTE PTR [rbp-0xd49],0x0
+    cdc2:	89 bd 90 f2 ff ff                               	mov    DWORD PTR [rbp-0xd70],edi
+    cdc8:	e8 d3 83 01 00                                  	call   251a0 <__read_chk>
+    cdcd:	8b bd 90 f2 ff ff                               	mov    edi,DWORD PTR [rbp-0xd70]
+    cdd3:	48 ff c8                                        	dec    rax
+    cdd6:	74 35                                           	je     ce0d <main+0xd4d>
+    cdd8:	48 8d 0d 89 b8 08 00                            	lea    rcx,[rip+0x8b889]        # 98668 <__PRETTY_FUNCTION__.0+0x688>
+    cddf:	ba 91 00 00 00                                  	mov    edx,0x91
+    cde4:	48 8d 35 1d b6 08 00                            	lea    rsi,[rip+0x8b61d]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    cdeb:	48 8d 3d d2 df 08 00                            	lea    rdi,[rip+0x8dfd2]        # 9adc4 <slashdot.0+0x76f>
+    cdf2:	e8 c9 3a 00 00                                  	call   108c0 <ultra_fail>
+    cdf7:	48 01 d0                                        	add    rax,rdx
+    cdfa:	0f 82 f3 f8 ff ff                               	jb     c6f3 <main+0x633>
+    ce00:	0f 0b                                           	ud2
+    ce02:	48 01 d0                                        	add    rax,rdx
+    ce05:	0f 82 31 f9 ff ff                               	jb     c73c <main+0x67c>
+    ce0b:	0f 0b                                           	ud2
+    ce0d:	e8 be 6b 01 00                                  	call   239d0 <__close>
+    ce12:	31 c0                                           	xor    eax,eax
+    ce14:	b9 24 00 00 00                                  	mov    ecx,0x24
+    ce19:	48 8d bd c0 f7 ff ff                            	lea    rdi,[rbp-0x840]
+    ce20:	f3 ab                                           	rep stos DWORD PTR [rdi],eax
+    ce22:	48 8d b5 c0 f7 ff ff                            	lea    rsi,[rbp-0x840]
+    ce29:	44 89 f7                                        	mov    edi,r14d
+    ce2c:	e8 8f 6c 01 00                                  	call   23ac0 <__fstat>
+    ce31:	85 c0                                           	test   eax,eax
+    ce33:	75 20                                           	jne    ce55 <main+0xd95>
+    ce35:	8b 85 d8 f7 ff ff                               	mov    eax,DWORD PTR [rbp-0x828]
+    ce3b:	25 00 f0 00 00                                  	and    eax,0xf000
+    ce40:	3d 00 80 00 00                                  	cmp    eax,0x8000
+    ce45:	74 46                                           	je     ce8d <main+0xdcd>
+    ce47:	3d 00 10 00 00                                  	cmp    eax,0x1000
+    ce4c:	74 3f                                           	je     ce8d <main+0xdcd>
+    ce4e:	3d 00 20 00 00                                  	cmp    eax,0x2000
+    ce53:	74 1f                                           	je     ce74 <main+0xdb4>
+    ce55:	48 8d 0d 34 b8 08 00                            	lea    rcx,[rip+0x8b834]        # 98690 <__PRETTY_FUNCTION__.0+0x6b0>
+    ce5c:	ba 93 00 00 00                                  	mov    edx,0x93
+    ce61:	48 8d 35 a0 b5 08 00                            	lea    rsi,[rip+0x8b5a0]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    ce68:	48 8d 3d c0 de 08 00                            	lea    rdi,[rip+0x8dec0]        # 9ad2f <slashdot.0+0x6da>
+    ce6f:	e8 4c 3a 00 00                                  	call   108c0 <ultra_fail>
+    ce74:	48 81 bd e8 f7 ff ff 03 01 00 00                	cmp    QWORD PTR [rbp-0x818],0x103
+    ce7f:	74 0c                                           	je     ce8d <main+0xdcd>
+    ce81:	44 89 f7                                        	mov    edi,r14d
+    ce84:	e8 97 6f 01 00                                  	call   23e20 <__isatty>
+    ce89:	85 c0                                           	test   eax,eax
+    ce8b:	74 c8                                           	je     ce55 <main+0xd95>
+    ce8d:	41 ff c6                                        	inc    r14d
+    ce90:	41 83 fe 03                                     	cmp    r14d,0x3
+    ce94:	0f 85 78 ff ff ff                               	jne    ce12 <main+0xd52>
+    ce9a:	31 c9                                           	xor    ecx,ecx
+    ce9c:	31 c0                                           	xor    eax,eax
+    ce9e:	ba ff ff ff ff                                  	mov    edx,0xffffffff
+    cea3:	be 03 00 00 00                                  	mov    esi,0x3
+    cea8:	bf b4 01 00 00                                  	mov    edi,0x1b4
+    cead:	e8 4e 79 01 00                                  	call   24800 <syscall>
+    ceb2:	48 85 c0                                        	test   rax,rax
+    ceb5:	74 1f                                           	je     ced6 <main+0xe16>
+    ceb7:	48 8d 0d 32 b8 08 00                            	lea    rcx,[rip+0x8b832]        # 986f0 <__PRETTY_FUNCTION__.0+0x710>
+    cebe:	ba 94 00 00 00                                  	mov    edx,0x94
+    cec3:	48 8d 35 3e b5 08 00                            	lea    rsi,[rip+0x8b53e]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    ceca:	48 8d 3d 5e de 08 00                            	lea    rdi,[rip+0x8de5e]        # 9ad2f <slashdot.0+0x6da>
+    ced1:	e8 ea 39 00 00                                  	call   108c0 <ultra_fail>
+    ced6:	be 04 00 00 00                                  	mov    esi,0x4
+    cedb:	48 8d 3d 7d df 08 00                            	lea    rdi,[rip+0x8df7d]        # 9ae5f <slashdot.0+0x80a>
+    cee2:	e8 e9 78 01 00                                  	call   247d0 <sethostname>
+    cee7:	85 c0                                           	test   eax,eax
+    cee9:	74 1f                                           	je     cf0a <main+0xe4a>
+    ceeb:	48 8d 0d 2e b8 08 00                            	lea    rcx,[rip+0x8b82e]        # 98720 <__PRETTY_FUNCTION__.0+0x740>
+    cef2:	ba 96 00 00 00                                  	mov    edx,0x96
+    cef7:	48 8d 35 0a b5 08 00                            	lea    rsi,[rip+0x8b50a]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    cefe:	48 8d 3d ca de 08 00                            	lea    rdi,[rip+0x8deca]        # 9adcf <slashdot.0+0x77a>
+    cf05:	e8 b6 39 00 00                                  	call   108c0 <ultra_fail>
+    cf0a:	49 83 ff c8                                     	cmp    r15,0xffffffffffffffc8
+    cf0e:	0f 83 34 fc ff ff                               	jae    cb48 <main+0xa88>
+    cf14:	49 8b 77 38                                     	mov    rsi,QWORD PTR [r15+0x38]
+    cf18:	bf 09 00 00 00                                  	mov    edi,0x9
+    cf1d:	e8 1e 3e 00 00                                  	call   10d40 <limit>
+    cf22:	be 20 00 00 00                                  	mov    esi,0x20
+    cf27:	bf 06 00 00 00                                  	mov    edi,0x6
+    cf2c:	e8 0f 3e 00 00                                  	call   10d40 <limit>
+    cf31:	be 40 00 00 00                                  	mov    esi,0x40
+    cf36:	bf 07 00 00 00                                  	mov    edi,0x7
+    cf3b:	e8 00 3e 00 00                                  	call   10d40 <limit>
+    cf40:	31 f6                                           	xor    esi,esi
+    cf42:	bf 04 00 00 00                                  	mov    edi,0x4
+    cf47:	e8 f4 3d 00 00                                  	call   10d40 <limit>
+    cf4c:	31 ff                                           	xor    edi,edi
+    cf4e:	be 1e 00 00 00                                  	mov    esi,0x1e
+    cf53:	e8 e8 3d 00 00                                  	call   10d40 <limit>
+    cf58:	be 00 00 00 01                                  	mov    esi,0x1000000
+    cf5d:	bf 01 00 00 00                                  	mov    edi,0x1
+    cf62:	e8 d9 3d 00 00                                  	call   10d40 <limit>
+    cf67:	45 31 c0                                        	xor    r8d,r8d
+    cf6a:	31 c9                                           	xor    ecx,ecx
+    cf6c:	31 d2                                           	xor    edx,edx
+    cf6e:	31 f6                                           	xor    esi,esi
+    cf70:	31 c0                                           	xor    eax,eax
+    cf72:	bf 08 00 00 00                                  	mov    edi,0x8
+    cf77:	e8 74 79 01 00                                  	call   248f0 <__prctl>
+    cf7c:	85 c0                                           	test   eax,eax
+    cf7e:	0f 85 57 03 00 00                               	jne    d2db <main+0x121b>
+    cf84:	45 31 c0                                        	xor    r8d,r8d
+    cf87:	31 c9                                           	xor    ecx,ecx
+    cf89:	31 d2                                           	xor    edx,edx
+    cf8b:	be 04 00 00 00                                  	mov    esi,0x4
+    cf90:	bf 2f 00 00 00                                  	mov    edi,0x2f
+    cf95:	e8 56 79 01 00                                  	call   248f0 <__prctl>
+    cf9a:	41 89 c6                                        	mov    r14d,eax
+    cf9d:	85 c0                                           	test   eax,eax
+    cf9f:	0f 85 36 03 00 00                               	jne    d2db <main+0x121b>
+    cfa5:	e8 36 70 00 00                                  	call   13fe0 <__errno_location>
+    cfaa:	48 89 85 88 f2 ff ff                            	mov    QWORD PTR [rbp-0xd78],rax
+    cfb1:	eb 2b                                           	jmp    cfde <main+0xf1e>
+    cfb3:	41 83 fe 40                                     	cmp    r14d,0x40
+    cfb7:	0f 84 1e 03 00 00                               	je     d2db <main+0x121b>
+    cfbd:	45 31 c0                                        	xor    r8d,r8d
+    cfc0:	31 c9                                           	xor    ecx,ecx
+    cfc2:	31 d2                                           	xor    edx,edx
+    cfc4:	31 c0                                           	xor    eax,eax
+    cfc6:	44 89 f6                                        	mov    esi,r14d
+    cfc9:	bf 18 00 00 00                                  	mov    edi,0x18
+    cfce:	e8 1d 79 01 00                                  	call   248f0 <__prctl>
+    cfd3:	85 c0                                           	test   eax,eax
+    cfd5:	0f 85 00 03 00 00                               	jne    d2db <main+0x121b>
+    cfdb:	41 ff c6                                        	inc    r14d
+    cfde:	48 8b 85 88 f2 ff ff                            	mov    rax,QWORD PTR [rbp-0xd78]
+    cfe5:	48 85 c0                                        	test   rax,rax
+    cfe8:	0f 84 5a fb ff ff                               	je     cb48 <main+0xa88>
+    cfee:	a8 03                                           	test   al,0x3
+    cff0:	0f 85 52 fb ff ff                               	jne    cb48 <main+0xa88>
+    cff6:	48 8b 85 88 f2 ff ff                            	mov    rax,QWORD PTR [rbp-0xd78]
+    cffd:	45 31 c0                                        	xor    r8d,r8d
+    d000:	31 c9                                           	xor    ecx,ecx
+    d002:	31 d2                                           	xor    edx,edx
+    d004:	44 89 f6                                        	mov    esi,r14d
+    d007:	bf 17 00 00 00                                  	mov    edi,0x17
+    d00c:	44 89 00                                        	mov    DWORD PTR [rax],r8d
+    d00f:	45 31 c0                                        	xor    r8d,r8d
+    d012:	31 c0                                           	xor    eax,eax
+    d014:	e8 d7 78 01 00                                  	call   248f0 <__prctl>
+    d019:	85 c0                                           	test   eax,eax
+    d01b:	79 96                                           	jns    cfb3 <main+0xef3>
+    d01d:	48 8b 85 88 f2 ff ff                            	mov    rax,QWORD PTR [rbp-0xd78]
+    d024:	83 38 16                                        	cmp    DWORD PTR [rax],0x16
+    d027:	0f 85 ae 02 00 00                               	jne    d2db <main+0x121b>
+    d02d:	45 85 f6                                        	test   r14d,r14d
+    d030:	0f 84 a5 02 00 00                               	je     d2db <main+0x121b>
+    d036:	31 f6                                           	xor    esi,esi
+    d038:	31 ff                                           	xor    edi,edi
+    d03a:	e8 d1 67 01 00                                  	call   23810 <setgroups>
+    d03f:	85 c0                                           	test   eax,eax
+    d041:	0f 85 94 02 00 00                               	jne    d2db <main+0x121b>
+    d047:	ba fe ff 00 00                                  	mov    edx,0xfffe
+    d04c:	be fe ff 00 00                                  	mov    esi,0xfffe
+    d051:	bf fe ff 00 00                                  	mov    edi,0xfffe
+    d056:	e8 45 68 01 00                                  	call   238a0 <__setresgid>
+    d05b:	85 c0                                           	test   eax,eax
+    d05d:	0f 85 78 02 00 00                               	jne    d2db <main+0x121b>
+    d063:	ba fe ff 00 00                                  	mov    edx,0xfffe
+    d068:	be fe ff 00 00                                  	mov    esi,0xfffe
+    d06d:	bf fe ff 00 00                                  	mov    edi,0xfffe
+    d072:	e8 b9 68 01 00                                  	call   23930 <__setresuid>
+    d077:	85 c0                                           	test   eax,eax
+    d079:	0f 85 5c 02 00 00                               	jne    d2db <main+0x121b>
+    d07f:	31 ff                                           	xor    edi,edi
+    d081:	48 8d 85 d4 f2 ff ff                            	lea    rax,[rbp-0xd2c]
+    d088:	c5 f9 ef c0                                     	vpxor  xmm0,xmm0,xmm0
+    d08c:	48 89 da                                        	mov    rdx,rbx
+    d08f:	48 89 bd d0 f6 ff ff                            	mov    QWORD PTR [rbp-0x930],rdi
+    d096:	48 89 85 90 f2 ff ff                            	mov    QWORD PTR [rbp-0xd70],rax
+    d09d:	48 89 c6                                        	mov    rsi,rax
+    d0a0:	bf 7e 00 00 00                                  	mov    edi,0x7e
+    d0a5:	31 c0                                           	xor    eax,eax
+    d0a7:	48 c7 85 d4 f2 ff ff 22 05 08 20                	mov    QWORD PTR [rbp-0xd2c],0x20080522
+    d0b2:	c5 f9 7f 85 c0 f6 ff ff                         	vmovdqa XMMWORD PTR [rbp-0x940],xmm0
+    d0ba:	e8 41 77 01 00                                  	call   24800 <syscall>
+    d0bf:	48 85 c0                                        	test   rax,rax
+    d0c2:	0f 85 13 02 00 00                               	jne    d2db <main+0x121b>
+    d0c8:	45 31 c0                                        	xor    r8d,r8d
+    d0cb:	31 c9                                           	xor    ecx,ecx
+    d0cd:	31 d2                                           	xor    edx,edx
+    d0cf:	be 01 00 00 00                                  	mov    esi,0x1
+    d0d4:	bf 26 00 00 00                                  	mov    edi,0x26
+    d0d9:	e8 12 78 01 00                                  	call   248f0 <__prctl>
+    d0de:	85 c0                                           	test   eax,eax
+    d0e0:	0f 85 f5 01 00 00                               	jne    d2db <main+0x121b>
+    d0e6:	31 f6                                           	xor    esi,esi
+    d0e8:	48 8d 95 c4 f2 ff ff                            	lea    rdx,[rbp-0xd3c]
+    d0ef:	48 8d bd bc f2 ff ff                            	lea    rdi,[rbp-0xd44]
+    d0f6:	89 b5 bc f2 ff ff                               	mov    DWORD PTR [rbp-0xd44],esi
+    d0fc:	89 b5 c0 f2 ff ff                               	mov    DWORD PTR [rbp-0xd40],esi
+    d102:	89 b5 c4 f2 ff ff                               	mov    DWORD PTR [rbp-0xd3c],esi
+    d108:	89 b5 c8 f2 ff ff                               	mov    DWORD PTR [rbp-0xd38],esi
+    d10e:	89 b5 cc f2 ff ff                               	mov    DWORD PTR [rbp-0xd34],esi
+    d114:	89 b5 d0 f2 ff ff                               	mov    DWORD PTR [rbp-0xd30],esi
+    d11a:	48 8d b5 c0 f2 ff ff                            	lea    rsi,[rbp-0xd40]
+    d121:	e8 ea 5e 01 00                                  	call   23010 <getresuid>
+    d126:	85 c0                                           	test   eax,eax
+    d128:	0f 85 ad 01 00 00                               	jne    d2db <main+0x121b>
+    d12e:	48 8d 95 d0 f2 ff ff                            	lea    rdx,[rbp-0xd30]
+    d135:	48 8d b5 cc f2 ff ff                            	lea    rsi,[rbp-0xd34]
+    d13c:	48 8d bd c8 f2 ff ff                            	lea    rdi,[rbp-0xd38]
+    d143:	e8 98 5e 01 00                                  	call   22fe0 <getresgid>
+    d148:	85 c0                                           	test   eax,eax
+    d14a:	0f 85 8b 01 00 00                               	jne    d2db <main+0x121b>
+    d150:	81 bd bc f2 ff ff fe ff 00 00                   	cmp    DWORD PTR [rbp-0xd44],0xfffe
+    d15a:	0f 85 7b 01 00 00                               	jne    d2db <main+0x121b>
+    d160:	81 bd c0 f2 ff ff fe ff 00 00                   	cmp    DWORD PTR [rbp-0xd40],0xfffe
+    d16a:	0f 85 6b 01 00 00                               	jne    d2db <main+0x121b>
+    d170:	81 bd c4 f2 ff ff fe ff 00 00                   	cmp    DWORD PTR [rbp-0xd3c],0xfffe
+    d17a:	0f 85 5b 01 00 00                               	jne    d2db <main+0x121b>
+    d180:	81 bd c8 f2 ff ff fe ff 00 00                   	cmp    DWORD PTR [rbp-0xd38],0xfffe
+    d18a:	0f 85 4b 01 00 00                               	jne    d2db <main+0x121b>
+    d190:	81 bd cc f2 ff ff fe ff 00 00                   	cmp    DWORD PTR [rbp-0xd34],0xfffe
+    d19a:	0f 85 3b 01 00 00                               	jne    d2db <main+0x121b>
+    d1a0:	81 bd d0 f2 ff ff fe ff 00 00                   	cmp    DWORD PTR [rbp-0xd30],0xfffe
+    d1aa:	0f 85 2b 01 00 00                               	jne    d2db <main+0x121b>
+    d1b0:	bf ff ff ff ff                                  	mov    edi,0xffffffff
+    d1b5:	e8 96 77 01 00                                  	call   24950 <setfsuid>
+    d1ba:	3d fe ff 00 00                                  	cmp    eax,0xfffe
+    d1bf:	0f 85 16 01 00 00                               	jne    d2db <main+0x121b>
+    d1c5:	bf ff ff ff ff                                  	mov    edi,0xffffffff
+    d1ca:	e8 51 77 01 00                                  	call   24920 <setfsgid>
+    d1cf:	3d fe ff 00 00                                  	cmp    eax,0xfffe
+    d1d4:	0f 85 01 01 00 00                               	jne    d2db <main+0x121b>
+    d1da:	31 f6                                           	xor    esi,esi
+    d1dc:	31 ff                                           	xor    edi,edi
+    d1de:	e8 bd 5d 01 00                                  	call   22fa0 <getgroups>
+    d1e3:	41 89 c6                                        	mov    r14d,eax
+    d1e6:	85 c0                                           	test   eax,eax
+    d1e8:	0f 85 ed 00 00 00                               	jne    d2db <main+0x121b>
+    d1ee:	45 31 c0                                        	xor    r8d,r8d
+    d1f1:	31 c9                                           	xor    ecx,ecx
+    d1f3:	31 d2                                           	xor    edx,edx
+    d1f5:	31 f6                                           	xor    esi,esi
+    d1f7:	31 c0                                           	xor    eax,eax
+    d1f9:	bf 27 00 00 00                                  	mov    edi,0x27
+    d1fe:	e8 ed 76 01 00                                  	call   248f0 <__prctl>
+    d203:	ff c8                                           	dec    eax
+    d205:	0f 85 d0 00 00 00                               	jne    d2db <main+0x121b>
+    d20b:	31 c9                                           	xor    ecx,ecx
+    d20d:	c5 f9 ef c0                                     	vpxor  xmm0,xmm0,xmm0
+    d211:	31 c0                                           	xor    eax,eax
+    d213:	48 8d 95 c0 f7 ff ff                            	lea    rdx,[rbp-0x840]
+    d21a:	48 8d b5 e0 f2 ff ff                            	lea    rsi,[rbp-0xd20]
+    d221:	bf 7d 00 00 00                                  	mov    edi,0x7d
+    d226:	48 c7 85 e0 f2 ff ff 22 05 08 20                	mov    QWORD PTR [rbp-0xd20],0x20080522
+    d231:	c5 f9 7f 85 c0 f7 ff ff                         	vmovdqa XMMWORD PTR [rbp-0x840],xmm0
+    d239:	48 89 8d d0 f7 ff ff                            	mov    QWORD PTR [rbp-0x830],rcx
+    d240:	e8 bb 75 01 00                                  	call   24800 <syscall>
+    d245:	48 85 c0                                        	test   rax,rax
+    d248:	0f 85 8d 00 00 00                               	jne    d2db <main+0x121b>
+    d24e:	83 bd c0 f7 ff ff 00                            	cmp    DWORD PTR [rbp-0x840],0x0
+    d255:	0f 85 80 00 00 00                               	jne    d2db <main+0x121b>
+    d25b:	83 bd c4 f7 ff ff 00                            	cmp    DWORD PTR [rbp-0x83c],0x0
+    d262:	75 77                                           	jne    d2db <main+0x121b>
+    d264:	83 bd c8 f7 ff ff 00                            	cmp    DWORD PTR [rbp-0x838],0x0
+    d26b:	75 6e                                           	jne    d2db <main+0x121b>
+    d26d:	83 bd cc f7 ff ff 00                            	cmp    DWORD PTR [rbp-0x834],0x0
+    d274:	75 65                                           	jne    d2db <main+0x121b>
+    d276:	83 bd d0 f7 ff ff 00                            	cmp    DWORD PTR [rbp-0x830],0x0
+    d27d:	75 5c                                           	jne    d2db <main+0x121b>
+    d27f:	83 bd d4 f7 ff ff 00                            	cmp    DWORD PTR [rbp-0x82c],0x0
+    d286:	75 53                                           	jne    d2db <main+0x121b>
+    d288:	48 8b 85 88 f2 ff ff                            	mov    rax,QWORD PTR [rbp-0xd78]
+    d28f:	31 d2                                           	xor    edx,edx
+    d291:	45 31 c0                                        	xor    r8d,r8d
+    d294:	31 c9                                           	xor    ecx,ecx
+    d296:	44 89 f6                                        	mov    esi,r14d
+    d299:	bf 17 00 00 00                                  	mov    edi,0x17
+    d29e:	89 10                                           	mov    DWORD PTR [rax],edx
+    d2a0:	31 d2                                           	xor    edx,edx
+    d2a2:	31 c0                                           	xor    eax,eax
+    d2a4:	e8 47 76 01 00                                  	call   248f0 <__prctl>
+    d2a9:	48 98                                           	cdqe
+    d2ab:	48 85 c0                                        	test   rax,rax
+    d2ae:	78 4a                                           	js     d2fa <main+0x123a>
+    d2b0:	41 83 fe 40                                     	cmp    r14d,0x40
+    d2b4:	74 25                                           	je     d2db <main+0x121b>
+    d2b6:	48 85 c0                                        	test   rax,rax
+    d2b9:	75 20                                           	jne    d2db <main+0x121b>
+    d2bb:	45 31 c0                                        	xor    r8d,r8d
+    d2be:	31 c9                                           	xor    ecx,ecx
+    d2c0:	44 89 f2                                        	mov    edx,r14d
+    d2c3:	be 01 00 00 00                                  	mov    esi,0x1
+    d2c8:	bf 2f 00 00 00                                  	mov    edi,0x2f
+    d2cd:	e8 1e 76 01 00                                  	call   248f0 <__prctl>
+    d2d2:	85 c0                                           	test   eax,eax
+    d2d4:	75 05                                           	jne    d2db <main+0x121b>
+    d2d6:	41 ff c6                                        	inc    r14d
+    d2d9:	eb ad                                           	jmp    d288 <main+0x11c8>
+    d2db:	48 8d 0d 6e b4 08 00                            	lea    rcx,[rip+0x8b46e]        # 98750 <__PRETTY_FUNCTION__.0+0x770>
+    d2e2:	ba 9d 00 00 00                                  	mov    edx,0x9d
+    d2e7:	48 8d 35 1a b1 08 00                            	lea    rsi,[rip+0x8b11a]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d2ee:	48 8d 3d e2 da 08 00                            	lea    rdi,[rip+0x8dae2]        # 9add7 <slashdot.0+0x782>
+    d2f5:	e8 c6 35 00 00                                  	call   108c0 <ultra_fail>
+    d2fa:	48 8b 85 88 f2 ff ff                            	mov    rax,QWORD PTR [rbp-0xd78]
+    d301:	83 38 16                                        	cmp    DWORD PTR [rax],0x16
+    d304:	75 d5                                           	jne    d2db <main+0x121b>
+    d306:	45 85 f6                                        	test   r14d,r14d
+    d309:	74 d0                                           	je     d2db <main+0x121b>
+    d30b:	41 83 fd 08                                     	cmp    r13d,0x8
+    d30f:	0f 8f 74 03 00 00                               	jg     d689 <main+0x15c9>
+    d315:	48 c7 85 88 f2 ff ff ff ff 00 00                	mov    QWORD PTR [rbp-0xd78],0xffff
+    d320:	b8 03 00 00 00                                  	mov    eax,0x3
+    d325:	48 8b 8d 88 f2 ff ff                            	mov    rcx,QWORD PTR [rbp-0xd78]
+    d32c:	c5 f9 ef c0                                     	vpxor  xmm0,xmm0,xmm0
+    d330:	48 89 85 e8 f2 ff ff                            	mov    QWORD PTR [rbp-0xd18],rax
+    d337:	45 31 ed                                        	xor    r13d,r13d
+    d33a:	ba 30 00 00 00                                  	mov    edx,0x30
+    d33f:	48 8d b5 e0 f2 ff ff                            	lea    rsi,[rbp-0xd20]
+    d346:	bf bc 01 00 00                                  	mov    edi,0x1bc
+    d34b:	31 c0                                           	xor    eax,eax
+    d34d:	c5 fa 7f 85 f8 f2 ff ff                         	vmovdqu XMMWORD PTR [rbp-0xd08],xmm0
+    d355:	4c 89 ad 08 f3 ff ff                            	mov    QWORD PTR [rbp-0xcf8],r13
+    d35c:	48 c7 85 f0 f2 ff ff 03 00 00 00                	mov    QWORD PTR [rbp-0xd10],0x3
+    d367:	48 89 8d e0 f2 ff ff                            	mov    QWORD PTR [rbp-0xd20],rcx
+    d36e:	31 c9                                           	xor    ecx,ecx
+    d370:	e8 8b 74 01 00                                  	call   24800 <syscall>
+    d375:	48 89 85 80 f2 ff ff                            	mov    QWORD PTR [rbp-0xd80],rax
+    d37c:	48 85 c0                                        	test   rax,rax
+    d37f:	0f 88 82 03 00 00                               	js     d707 <main+0x1647>
+    d385:	49 8b 47 10                                     	mov    rax,QWORD PTR [r15+0x10]
+    d389:	4c 89 bd 70 f2 ff ff                            	mov    QWORD PTR [rbp-0xd90],r15
+    d390:	41 be 08 00 00 00                               	mov    r14d,0x8
+    d396:	45 31 ed                                        	xor    r13d,r13d
+    d399:	c5 f9 6f 05 af fb 08 00                         	vmovdqa xmm0,XMMWORD PTR [rip+0x8fbaf]        # 9cf50 <empty_path_elem+0xa0>
+    d3a1:	4c 89 a5 68 f2 ff ff                            	mov    QWORD PTR [rbp-0xd98],r12
+    d3a8:	48 89 85 c0 f6 ff ff                            	mov    QWORD PTR [rbp-0x940],rax
+    d3af:	49 8b 47 18                                     	mov    rax,QWORD PTR [r15+0x18]
+    d3b3:	48 89 85 c8 f6 ff ff                            	mov    QWORD PTR [rbp-0x938],rax
+    d3ba:	49 8b 47 20                                     	mov    rax,QWORD PTR [r15+0x20]
+    d3be:	48 c7 85 d0 f7 ff ff 01 00 00 00                	mov    QWORD PTR [rbp-0x830],0x1
+    d3c9:	49 89 df                                        	mov    r15,rbx
+    d3cc:	c5 f9 7f 85 c0 f7 ff ff                         	vmovdqa XMMWORD PTR [rbp-0x840],xmm0
+    d3d4:	48 89 85 d0 f6 ff ff                            	mov    QWORD PTR [rbp-0x930],rax
+    d3db:	48 8d 85 c0 f7 ff ff                            	lea    rax,[rbp-0x840]
+    d3e2:	49 83 fd 03                                     	cmp    r13,0x3
+    d3e6:	0f 83 5c f7 ff ff                               	jae    cb48 <main+0xa88>
+    d3ec:	4a 8d 0c ed 00 00 00 00                         	lea    rcx,[r13*8+0x0]
+    d3f4:	49 83 fe 18                                     	cmp    r14,0x18
+    d3f8:	0f 87 fb 02 00 00                               	ja     d6f9 <main+0x1639>
+    d3fe:	48 89 da                                        	mov    rdx,rbx
+    d401:	48 01 ca                                        	add    rdx,rcx
+    d404:	0f 82 3e f7 ff ff                               	jb     cb48 <main+0xa88>
+    d40a:	4d 8b 27                                        	mov    r12,QWORD PTR [r15]
+    d40d:	4d 85 e4                                        	test   r12,r12
+    d410:	0f 84 e1 00 00 00                               	je     d4f7 <main+0x1437>
+    d416:	48 8d 8c 0d c0 f7 ff ff                         	lea    rcx,[rbp+rcx*1-0x840]
+    d41e:	4c 89 bd 60 f2 ff ff                            	mov    QWORD PTR [rbp-0xda0],r15
+    d425:	49 89 c7                                        	mov    r15,rax
+    d428:	48 89 8d 78 f2 ff ff                            	mov    QWORD PTR [rbp-0xd88],rcx
+    d42f:	e9 a2 00 00 00                                  	jmp    d4d6 <main+0x1416>
+    d434:	be 00 00 29 00                                  	mov    esi,0x290000
+    d439:	31 c0                                           	xor    eax,eax
+    d43b:	e8 b0 66 01 00                                  	call   23af0 <__libc_open>
+    d440:	41 89 c2                                        	mov    r10d,eax
+    d443:	85 c0                                           	test   eax,eax
+    d445:	0f 88 8f 02 00 00                               	js     d6da <main+0x161a>
+    d44b:	49 83 fd 03                                     	cmp    r13,0x3
+    d44f:	0f 83 f3 f6 ff ff                               	jae    cb48 <main+0xa88>
+    d455:	49 83 fe 18                                     	cmp    r14,0x18
+    d459:	0f 87 6d 02 00 00                               	ja     d6cc <main+0x160c>
+    d45f:	48 8d 8d c0 f7 ff ff                            	lea    rcx,[rbp-0x840]
+    d466:	48 39 8d 78 f2 ff ff                            	cmp    QWORD PTR [rbp-0xd88],rcx
+    d46d:	0f 82 d5 f6 ff ff                               	jb     cb48 <main+0xa88>
+    d473:	48 8b 85 88 f2 ff ff                            	mov    rax,QWORD PTR [rbp-0xd78]
+    d47a:	49 23 07                                        	and    rax,QWORD PTR [r15]
+    d47d:	45 31 c0                                        	xor    r8d,r8d
+    d480:	ba 01 00 00 00                                  	mov    edx,0x1
+    d485:	48 8b 8d 90 f2 ff ff                            	mov    rcx,QWORD PTR [rbp-0xd70]
+    d48c:	48 8b b5 80 f2 ff ff                            	mov    rsi,QWORD PTR [rbp-0xd80]
+    d493:	bf bd 01 00 00                                  	mov    edi,0x1bd
+    d498:	44 89 95 dc f2 ff ff                            	mov    DWORD PTR [rbp-0xd24],r10d
+    d49f:	44 89 95 5c f2 ff ff                            	mov    DWORD PTR [rbp-0xda4],r10d
+    d4a6:	48 89 85 d4 f2 ff ff                            	mov    QWORD PTR [rbp-0xd2c],rax
+    d4ad:	31 c0                                           	xor    eax,eax
+    d4af:	e8 4c 73 01 00                                  	call   24800 <syscall>
+    d4b4:	48 85 c0                                        	test   rax,rax
+    d4b7:	0f 85 f0 01 00 00                               	jne    d6ad <main+0x15ed>
+    d4bd:	8b bd 5c f2 ff ff                               	mov    edi,DWORD PTR [rbp-0xda4]
+    d4c3:	e8 08 65 01 00                                  	call   239d0 <__close>
+    d4c8:	49 83 fc f8                                     	cmp    r12,0xfffffffffffffff8
+    d4cc:	0f 83 76 f6 ff ff                               	jae    cb48 <main+0xa88>
+    d4d2:	49 83 c4 08                                     	add    r12,0x8
+    d4d6:	41 f6 c4 07                                     	test   r12b,0x7
+    d4da:	0f 85 68 f6 ff ff                               	jne    cb48 <main+0xa88>
+    d4e0:	49 8b 3c 24                                     	mov    rdi,QWORD PTR [r12]
+    d4e4:	48 85 ff                                        	test   rdi,rdi
+    d4e7:	0f 85 47 ff ff ff                               	jne    d434 <main+0x1374>
+    d4ed:	4c 89 f8                                        	mov    rax,r15
+    d4f0:	4c 8b bd 60 f2 ff ff                            	mov    r15,QWORD PTR [rbp-0xda0]
+    d4f7:	49 ff c5                                        	inc    r13
+    d4fa:	49 83 c7 08                                     	add    r15,0x8
+    d4fe:	49 83 c6 08                                     	add    r14,0x8
+    d502:	48 83 c0 08                                     	add    rax,0x8
+    d506:	49 83 fd 03                                     	cmp    r13,0x3
+    d50a:	0f 85 d2 fe ff ff                               	jne    d3e2 <main+0x1322>
+    d510:	48 8b b5 80 f2 ff ff                            	mov    rsi,QWORD PTR [rbp-0xd80]
+    d517:	31 d2                                           	xor    edx,edx
+    d519:	31 c0                                           	xor    eax,eax
+    d51b:	bf be 01 00 00                                  	mov    edi,0x1be
+    d520:	4c 8b bd 70 f2 ff ff                            	mov    r15,QWORD PTR [rbp-0xd90]
+    d527:	4c 8b a5 68 f2 ff ff                            	mov    r12,QWORD PTR [rbp-0xd98]
+    d52e:	e8 cd 72 01 00                                  	call   24800 <syscall>
+    d533:	48 85 c0                                        	test   rax,rax
+    d536:	0f 85 96 02 00 00                               	jne    d7d2 <main+0x1712>
+    d53c:	8b bd 80 f2 ff ff                               	mov    edi,DWORD PTR [rbp-0xd80]
+    d542:	e8 89 64 01 00                                  	call   239d0 <__close>
+    d547:	ba 00 08 00 00                                  	mov    edx,0x800
+    d54c:	31 f6                                           	xor    esi,esi
+    d54e:	48 8d bd c0 f7 ff ff                            	lea    rdi,[rbp-0x840]
+    d555:	e8 c6 cc ff ff                                  	call   a220 <_init+0x220>
+    d55a:	49 8b 77 28                                     	mov    rsi,QWORD PTR [r15+0x28]
+    d55e:	49 8b 57 30                                     	mov    rdx,QWORD PTR [r15+0x30]
+    d562:	48 85 f6                                        	test   rsi,rsi
+    d565:	0f 84 48 02 00 00                               	je     d7b3 <main+0x16f3>
+    d56b:	48 83 fa 40                                     	cmp    rdx,0x40
+    d56f:	0f 87 3e 02 00 00                               	ja     d7b3 <main+0x16f3>
+    d575:	48 8d bd c0 f7 ff ff                            	lea    rdi,[rbp-0x840]
+    d57c:	e8 df 08 00 00                                  	call   de60 <caja_filter_build.part.0.constprop.0>
+    d581:	48 85 c0                                        	test   rax,rax
+    d584:	0f 84 29 02 00 00                               	je     d7b3 <main+0x16f3>
+    d58a:	45 31 db                                        	xor    r11d,r11d
+    d58d:	48 8d 95 e0 f2 ff ff                            	lea    rdx,[rbp-0xd20]
+    d594:	be 02 00 00 00                                  	mov    esi,0x2
+    d599:	bf 16 00 00 00                                  	mov    edi,0x16
+    d59e:	4c 89 9d e0 f2 ff ff                            	mov    QWORD PTR [rbp-0xd20],r11
+    d5a5:	66 89 85 e0 f2 ff ff                            	mov    WORD PTR [rbp-0xd20],ax
+    d5ac:	48 8d 85 c0 f7 ff ff                            	lea    rax,[rbp-0x840]
+    d5b3:	48 89 85 e8 f2 ff ff                            	mov    QWORD PTR [rbp-0xd18],rax
+    d5ba:	31 c0                                           	xor    eax,eax
+    d5bc:	e8 2f 73 01 00                                  	call   248f0 <__prctl>
+    d5c1:	85 c0                                           	test   eax,eax
+    d5c3:	0f 85 cb 01 00 00                               	jne    d794 <main+0x16d4>
+    d5c9:	4d 8d 6c 24 10                                  	lea    r13,[r12+0x10]
+    d5ce:	31 f6                                           	xor    esi,esi
+    d5d0:	ba 00 01 00 00                                  	mov    edx,0x100
+    d5d5:	48 8d bd c0 f4 ff ff                            	lea    rdi,[rbp-0xb40]
+    d5dc:	e8 3f cc ff ff                                  	call   a220 <_init+0x220>
+    d5e1:	41 f6 c5 07                                     	test   r13b,0x7
+    d5e5:	0f 85 5d f5 ff ff                               	jne    cb48 <main+0xa88>
+    d5eb:	49 8b 5c 24 10                                  	mov    rbx,QWORD PTR [r12+0x10]
+    d5f0:	48 85 db                                        	test   rbx,rbx
+    d5f3:	0f 84 4f f5 ff ff                               	je     cb48 <main+0xa88>
+    d5f9:	be 2f 00 00 00                                  	mov    esi,0x2f
+    d5fe:	48 89 df                                        	mov    rdi,rbx
+    d601:	e8 7a cc ff ff                                  	call   a280 <_init+0x280>
+    d606:	c6 85 c0 f4 ff ff 00                            	mov    BYTE PTR [rbp-0xb40],0x0
+    d60d:	48 85 c0                                        	test   rax,rax
+    d610:	0f 84 2f 01 00 00                               	je     d745 <main+0x1685>
+    d616:	48 89 de                                        	mov    rsi,rbx
+    d619:	48 8d bd c0 f4 ff ff                            	lea    rdi,[rbp-0xb40]
+    d620:	e8 fb 37 00 00                                  	call   10e20 <ultra_append.constprop.0>
+    d625:	84 c0                                           	test   al,al
+    d627:	0f 84 f9 00 00 00                               	je     d726 <main+0x1666>
+    d62d:	c5 fa 7e 0d ab 38 0c 00                         	vmovq  xmm1,QWORD PTR [rip+0xc38ab]        # d0ee0 <cajas+0x80>
+    d635:	48 8d 05 d4 79 0c 00                            	lea    rax,[rip+0xc79d4]        # d5010 <env_home.0>
+    d63c:	45 31 d2                                        	xor    r10d,r10d
+    d63f:	48 8d 95 c0 f7 ff ff                            	lea    rdx,[rbp-0x840]
+    d646:	4c 89 ee                                        	mov    rsi,r13
+    d649:	48 8d bd c0 f4 ff ff                            	lea    rdi,[rbp-0xb40]
+    d650:	4c 89 95 d0 f7 ff ff                            	mov    QWORD PTR [rbp-0x830],r10
+    d657:	c4 e3 f1 22 c0 01                               	vpinsrq xmm0,xmm1,rax,0x1
+    d65d:	c5 f9 7f 85 c0 f7 ff ff                         	vmovdqa XMMWORD PTR [rbp-0x840],xmm0
+    d665:	e8 06 53 01 00                                  	call   22970 <execve>
+    d66a:	48 8d 0d 1f b2 08 00                            	lea    rcx,[rip+0x8b21f]        # 98890 <__PRETTY_FUNCTION__.0+0x8b0>
+    d671:	ba a7 00 00 00                                  	mov    edx,0xa7
+    d676:	48 8d 35 8b ad 08 00                            	lea    rsi,[rip+0x8ad8b]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d67d:	48 8d 3d b6 d7 08 00                            	lea    rdi,[rip+0x8d7b6]        # 9ae3a <slashdot.0+0x7e5>
+    d684:	e8 37 32 00 00                                  	call   108c0 <ultra_fail>
+    d689:	48 c7 85 88 f2 ff ff ff ff 01 00                	mov    QWORD PTR [rbp-0xd78],0x1ffff
+    d694:	b8 03 00 00 00                                  	mov    eax,0x3
+    d699:	41 83 fd 09                                     	cmp    r13d,0x9
+    d69d:	0f 84 82 fc ff ff                               	je     d325 <main+0x1265>
+    d6a3:	b8 0f 00 00 00                                  	mov    eax,0xf
+    d6a8:	e9 78 fc ff ff                                  	jmp    d325 <main+0x1265>
+    d6ad:	48 8d 0d 5c b1 08 00                            	lea    rcx,[rip+0x8b15c]        # 98810 <__PRETTY_FUNCTION__.0+0x830>
+    d6b4:	ba 78 00 00 00                                  	mov    edx,0x78
+    d6b9:	48 8d 35 48 ad 08 00                            	lea    rsi,[rip+0x8ad48]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d6c0:	48 8d 3d e3 d6 08 00                            	lea    rdi,[rip+0x8d6e3]        # 9adaa <slashdot.0+0x755>
+    d6c7:	e8 f4 31 00 00                                  	call   108c0 <ultra_fail>
+    d6cc:	4c 89 f8                                        	mov    rax,r15
+    d6cf:	4c 01 f0                                        	add    rax,r14
+    d6d2:	0f 82 87 fd ff ff                               	jb     d45f <main+0x139f>
+    d6d8:	0f 0b                                           	ud2
+    d6da:	48 8d 0d f7 b0 08 00                            	lea    rcx,[rip+0x8b0f7]        # 987d8 <__PRETTY_FUNCTION__.0+0x7f8>
+    d6e1:	ba 76 00 00 00                                  	mov    edx,0x76
+    d6e6:	48 8d 35 1b ad 08 00                            	lea    rsi,[rip+0x8ad1b]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d6ed:	48 8d 3d b6 d6 08 00                            	lea    rdi,[rip+0x8d6b6]        # 9adaa <slashdot.0+0x755>
+    d6f4:	e8 c7 31 00 00                                  	call   108c0 <ultra_fail>
+    d6f9:	4c 89 fa                                        	mov    rdx,r15
+    d6fc:	4c 01 f2                                        	add    rdx,r14
+    d6ff:	0f 82 f9 fc ff ff                               	jb     d3fe <main+0x133e>
+    d705:	0f 0b                                           	ud2
+    d707:	48 8d 0d a2 b0 08 00                            	lea    rcx,[rip+0x8b0a2]        # 987b0 <__PRETTY_FUNCTION__.0+0x7d0>
+    d70e:	ba 70 00 00 00                                  	mov    edx,0x70
+    d713:	48 8d 35 ee ac 08 00                            	lea    rsi,[rip+0x8acee]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d71a:	48 8d 3d 89 d6 08 00                            	lea    rdi,[rip+0x8d689]        # 9adaa <slashdot.0+0x755>
+    d721:	e8 9a 31 00 00                                  	call   108c0 <ultra_fail>
+    d726:	48 8d 0d d1 d6 08 00                            	lea    rcx,[rip+0x8d6d1]        # 9adfe <slashdot.0+0x7a9>
+    d72d:	ba a2 00 00 00                                  	mov    edx,0xa2
+    d732:	48 8d 35 cf ac 08 00                            	lea    rsi,[rip+0x8accf]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d739:	48 8d 3d d3 d6 08 00                            	lea    rdi,[rip+0x8d6d3]        # 9ae13 <slashdot.0+0x7be>
+    d740:	e8 7b 31 00 00                                  	call   108c0 <ultra_fail>
+    d745:	48 8d 35 d1 d6 08 00                            	lea    rsi,[rip+0x8d6d1]        # 9ae1d <slashdot.0+0x7c8>
+    d74c:	48 8d bd c0 f4 ff ff                            	lea    rdi,[rbp-0xb40]
+    d753:	e8 c8 36 00 00                                  	call   10e20 <ultra_append.constprop.0>
+    d758:	84 c0                                           	test   al,al
+    d75a:	74 19                                           	je     d775 <main+0x16b5>
+    d75c:	49 8b 74 24 10                                  	mov    rsi,QWORD PTR [r12+0x10]
+    d761:	48 8d bd c0 f4 ff ff                            	lea    rdi,[rbp-0xb40]
+    d768:	e8 b3 36 00 00                                  	call   10e20 <ultra_append.constprop.0>
+    d76d:	84 c0                                           	test   al,al
+    d76f:	0f 85 b8 fe ff ff                               	jne    d62d <main+0x156d>
+    d775:	48 8d 0d a7 d6 08 00                            	lea    rcx,[rip+0x8d6a7]        # 9ae23 <slashdot.0+0x7ce>
+    d77c:	ba a3 00 00 00                                  	mov    edx,0xa3
+    d781:	48 8d 35 80 ac 08 00                            	lea    rsi,[rip+0x8ac80]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d788:	48 8d 3d 84 d6 08 00                            	lea    rdi,[rip+0x8d684]        # 9ae13 <slashdot.0+0x7be>
+    d78f:	e8 2c 31 00 00                                  	call   108c0 <ultra_fail>
+    d794:	48 8d 0d d5 b0 08 00                            	lea    rcx,[rip+0x8b0d5]        # 98870 <__PRETTY_FUNCTION__.0+0x890>
+    d79b:	ba 86 00 00 00                                  	mov    edx,0x86
+    d7a0:	48 8d 35 61 ac 08 00                            	lea    rsi,[rip+0x8ac61]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d7a7:	48 8d 3d d6 d5 08 00                            	lea    rdi,[rip+0x8d5d6]        # 9ad84 <slashdot.0+0x72f>
+    d7ae:	e8 0d 31 00 00                                  	call   108c0 <ultra_fail>
+    d7b3:	48 8d 0d 7e b0 08 00                            	lea    rcx,[rip+0x8b07e]        # 98838 <__PRETTY_FUNCTION__.0+0x858>
+    d7ba:	ba 84 00 00 00                                  	mov    edx,0x84
+    d7bf:	48 8d 35 42 ac 08 00                            	lea    rsi,[rip+0x8ac42]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d7c6:	48 8d 3d b7 d5 08 00                            	lea    rdi,[rip+0x8d5b7]        # 9ad84 <slashdot.0+0x72f>
+    d7cd:	e8 ee 30 00 00                                  	call   108c0 <ultra_fail>
+    d7d2:	48 8d 0d 0d d6 08 00                            	lea    rcx,[rip+0x8d60d]        # 9ade6 <slashdot.0+0x791>
+    d7d9:	ba 7d 00 00 00                                  	mov    edx,0x7d
+    d7de:	48 8d 35 23 ac 08 00                            	lea    rsi,[rip+0x8ac23]        # 98408 <__PRETTY_FUNCTION__.0+0x428>
+    d7e5:	48 8d 3d be d5 08 00                            	lea    rdi,[rip+0x8d5be]        # 9adaa <slashdot.0+0x755>
+    d7ec:	e8 cf 30 00 00                                  	call   108c0 <ultra_fail>
+
+Disassembly of section .fini:

@@ -1,0 +1,262 @@
+
+/home/builder/linux-reconstruido/build/init-c-generico/ultra-red-contadores:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+0000000000009170 <main>:
+    9170:	f3 0f 1e fa                                     	endbr64
+    9174:	48 81 ec b8 00 00 00                            	sub    rsp,0xb8
+    917b:	64 48 8b 3c 25 28 00 00 00                      	mov    rdi,QWORD PTR fs:0x28
+    9184:	48 89 7c 24 78                                  	mov    QWORD PTR [rsp+0x78],rdi
+    9189:	48 8d 3d a4 4e 08 00                            	lea    rdi,[rip+0x84ea4]        # 8e034 <__rseq_flags+0x30>
+    9190:	e8 6b 10 00 00                                  	call   a200 <ultra_guard_install>
+    9195:	66 0f ef c0                                     	pxor   xmm0,xmm0
+    9199:	48 8d 74 24 20                                  	lea    rsi,[rsp+0x20]
+    919e:	bf 01 00 00 00                                  	mov    edi,0x1
+    91a3:	0f 29 44 24 20                                  	movaps XMMWORD PTR [rsp+0x20],xmm0
+    91a8:	e8 a3 dd 01 00                                  	call   26f50 <clock_gettime>
+    91ad:	85 c0                                           	test   eax,eax
+    91af:	74 21                                           	je     91d2 <main+0x62>
+    91b1:	b8 01 00 00 00                                  	mov    eax,0x1
+    91b6:	48 8b 54 24 78                                  	mov    rdx,QWORD PTR [rsp+0x78]
+    91bb:	64 48 2b 14 25 28 00 00 00                      	sub    rdx,QWORD PTR fs:0x28
+    91c4:	0f 85 01 04 00 00                               	jne    95cb <main+0x45b>
+    91ca:	48 81 c4 b8 00 00 00                            	add    rsp,0xb8
+    91d1:	c3                                              	ret
+    91d2:	48 89 9c 24 88 00 00 00                         	mov    QWORD PTR [rsp+0x88],rbx
+    91da:	e8 81 f6 01 00                                  	call   28860 <__if_nameindex>
+    91df:	48 89 c3                                        	mov    rbx,rax
+    91e2:	48 85 c0                                        	test   rax,rax
+    91e5:	0f 84 ae 03 00 00                               	je     9599 <main+0x429>
+    91eb:	a8 07                                           	test   al,0x7
+    91ed:	0f 85 0d 04 00 00                               	jne    9600 <main+0x490>
+    91f3:	4c 89 a4 24 98 00 00 00                         	mov    QWORD PTR [rsp+0x98],r12
+    91fb:	45 31 e4                                        	xor    r12d,r12d
+    91fe:	4c 89 ac 24 a0 00 00 00                         	mov    QWORD PTR [rsp+0xa0],r13
+    9206:	49 89 c5                                        	mov    r13,rax
+    9209:	4c 89 bc 24 b0 00 00 00                         	mov    QWORD PTR [rsp+0xb0],r15
+    9211:	44 8b 38                                        	mov    r15d,DWORD PTR [rax]
+    9214:	45 85 ff                                        	test   r15d,r15d
+    9217:	0f 84 40 03 00 00                               	je     955d <main+0x3ed>
+    921d:	48 89 ac 24 90 00 00 00                         	mov    QWORD PTR [rsp+0x90],rbp
+    9225:	48 8d 05 d4 ec 0b 00                            	lea    rax,[rip+0xbecd4]        # c7f00 <stats.0>
+    922c:	bd 08 00 00 00                                  	mov    ebp,0x8
+    9231:	48 29 c5                                        	sub    rbp,rax
+    9234:	4c 89 b4 24 a8 00 00 00                         	mov    QWORD PTR [rsp+0xa8],r14
+    923c:	48 89 6c 24 08                                  	mov    QWORD PTR [rsp+0x8],rbp
+    9241:	eb 38                                           	jmp    927b <main+0x10b>
+    9243:	0f 1f 44 00 00                                  	nop    DWORD PTR [rax+rax*1+0x0]
+    9248:	41 80 7e 01 6f                                  	cmp    BYTE PTR [r14+0x1],0x6f
+    924d:	75 53                                           	jne    92a2 <main+0x132>
+    924f:	41 80 7e 02 00                                  	cmp    BYTE PTR [r14+0x2],0x0
+    9254:	75 4c                                           	jne    92a2 <main+0x132>
+    9256:	49 83 fd f0                                     	cmp    r13,0xfffffffffffffff0
+    925a:	0f 83 5e 03 00 00                               	jae    95be <main+0x44e>
+    9260:	49 83 c5 10                                     	add    r13,0x10
+    9264:	41 f6 c5 07                                     	test   r13b,0x7
+    9268:	0f 85 50 03 00 00                               	jne    95be <main+0x44e>
+    926e:	45 8b 7d 00                                     	mov    r15d,DWORD PTR [r13+0x0]
+    9272:	45 85 ff                                        	test   r15d,r15d
+    9275:	0f 84 83 02 00 00                               	je     94fe <main+0x38e>
+    927b:	41 f6 c5 07                                     	test   r13b,0x7
+    927f:	0f 85 39 03 00 00                               	jne    95be <main+0x44e>
+    9285:	49 83 fd f8                                     	cmp    r13,0xfffffffffffffff8
+    9289:	0f 83 2f 03 00 00                               	jae    95be <main+0x44e>
+    928f:	4d 8b 75 08                                     	mov    r14,QWORD PTR [r13+0x8]
+    9293:	4d 85 f6                                        	test   r14,r14
+    9296:	0f 84 62 02 00 00                               	je     94fe <main+0x38e>
+    929c:	41 80 3e 6c                                     	cmp    BYTE PTR [r14],0x6c
+    92a0:	74 a6                                           	je     9248 <main+0xd8>
+    92a2:	49 83 fc 3f                                     	cmp    r12,0x3f
+    92a6:	0f 87 c7 02 00 00                               	ja     9573 <main+0x403>
+    92ac:	be 10 00 00 00                                  	mov    esi,0x10
+    92b1:	4c 89 f7                                        	mov    rdi,r14
+    92b4:	e8 e7 de ff ff                                  	call   71a0 <_init+0x1a0>
+    92b9:	48 89 c6                                        	mov    rsi,rax
+    92bc:	48 8d 40 ff                                     	lea    rax,[rax-0x1]
+    92c0:	48 83 f8 0e                                     	cmp    rax,0xe
+    92c4:	77 40                                           	ja     9306 <main+0x196>
+    92c6:	48 bf 04 c0 ff ff ff ff fb ff                   	movabs rdi,0xfffbffffffffc004
+    92d0:	31 c0                                           	xor    eax,eax
+    92d2:	0f 1f 00                                        	nop    DWORD PTR [rax]
+    92d5:	66 66 2e 0f 1f 84 00 00 00 00 00                	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    92e0:	4c 89 f1                                        	mov    rcx,r14
+    92e3:	48 01 c1                                        	add    rcx,rax
+    92e6:	0f 82 d2 02 00 00                               	jb     95be <main+0x44e>
+    92ec:	41 0f b6 0c 06                                  	movzx  ecx,BYTE PTR [r14+rax*1]
+    92f1:	89 ca                                           	mov    edx,ecx
+    92f3:	83 e2 df                                        	and    edx,0xffffffdf
+    92f6:	83 ea 41                                        	sub    edx,0x41
+    92f9:	80 fa 19                                        	cmp    dl,0x19
+    92fc:	76 32                                           	jbe    9330 <main+0x1c0>
+    92fe:	83 e9 2d                                        	sub    ecx,0x2d
+    9301:	80 f9 32                                        	cmp    cl,0x32
+    9304:	76 1a                                           	jbe    9320 <main+0x1b0>
+    9306:	48 8d 3d 3f 4d 08 00                            	lea    rdi,[rip+0x84d3f]        # 8e04c <__rseq_flags+0x48>
+    930d:	e8 7e 4f 00 00                                  	call   e290 <_IO_puts>
+    9312:	e9 3f ff ff ff                                  	jmp    9256 <main+0xe6>
+    9317:	66 0f 1f 84 00 00 00 00 00                      	nop    WORD PTR [rax+rax*1+0x0]
+    9320:	48 0f a3 cf                                     	bt     rdi,rcx
+    9324:	72 e0                                           	jb     9306 <main+0x196>
+    9326:	66 2e 0f 1f 84 00 00 00 00 00                   	cs nop WORD PTR [rax+rax*1+0x0]
+    9330:	48 83 c0 01                                     	add    rax,0x1
+    9334:	48 39 c6                                        	cmp    rsi,rax
+    9337:	75 a7                                           	jne    92e0 <main+0x170>
+    9339:	41 80 3e 2e                                     	cmp    BYTE PTR [r14],0x2e
+    933d:	75 07                                           	jne    9346 <main+0x1d6>
+    933f:	41 80 7e 01 00                                  	cmp    BYTE PTR [r14+0x1],0x0
+    9344:	74 c0                                           	je     9306 <main+0x196>
+    9346:	48 8d 35 fc 4c 08 00                            	lea    rsi,[rip+0x84cfc]        # 8e049 <__rseq_flags+0x45>
+    934d:	4c 89 f7                                        	mov    rdi,r14
+    9350:	e8 db de ff ff                                  	call   7230 <_init+0x230>
+    9355:	85 c0                                           	test   eax,eax
+    9357:	74 ad                                           	je     9306 <main+0x196>
+    9359:	4c 8b 4c 24 28                                  	mov    r9,QWORD PTR [rsp+0x28]
+    935e:	4c 8b 44 24 20                                  	mov    r8,QWORD PTR [rsp+0x20]
+    9363:	44 89 f9                                        	mov    ecx,r15d
+    9366:	4c 89 f2                                        	mov    rdx,r14
+    9369:	48 8d 35 70 70 08 00                            	lea    rsi,[rip+0x87070]        # 903e0 <_libc_intl_domainname+0xf12>
+    9370:	bf 02 00 00 00                                  	mov    edi,0x2
+    9375:	31 c0                                           	xor    eax,eax
+    9377:	45 31 f6                                        	xor    r14d,r14d
+    937a:	e8 d1 f1 01 00                                  	call   28550 <___printf_chk>
+    937f:	4c 89 64 24 18                                  	mov    QWORD PTR [rsp+0x18],r12
+    9384:	4c 8d 3d 75 eb 0b 00                            	lea    r15,[rip+0xbeb75]        # c7f00 <stats.0>
+    938b:	48 89 5c 24 10                                  	mov    QWORD PTR [rsp+0x10],rbx
+    9390:	66 0f ef c0                                     	pxor   xmm0,xmm0
+    9394:	0f 29 44 24 30                                  	movaps XMMWORD PTR [rsp+0x30],xmm0
+    9399:	0f 29 44 24 40                                  	movaps XMMWORD PTR [rsp+0x40],xmm0
+    939e:	0f 29 44 24 50                                  	movaps XMMWORD PTR [rsp+0x50],xmm0
+    93a3:	0f 29 44 24 60                                  	movaps XMMWORD PTR [rsp+0x60],xmm0
+    93a8:	49 83 fe 08                                     	cmp    r14,0x8
+    93ac:	0f 83 0c 02 00 00                               	jae    95be <main+0x44e>
+    93b2:	48 8b 44 24 08                                  	mov    rax,QWORD PTR [rsp+0x8]
+    93b7:	4a 8d 1c f5 00 00 00 00                         	lea    rbx,[r14*8+0x0]
+    93bf:	49 8d 2c 07                                     	lea    rbp,[r15+rax*1]
+    93c3:	48 83 fd 40                                     	cmp    rbp,0x40
+    93c7:	0f 87 e5 01 00 00                               	ja     95b2 <main+0x442>
+    93cd:	48 8d 05 2c eb 0b 00                            	lea    rax,[rip+0xbeb2c]        # c7f00 <stats.0>
+    93d4:	48 01 d8                                        	add    rax,rbx
+    93d7:	0f 82 e1 01 00 00                               	jb     95be <main+0x44e>
+    93dd:	4d 8b 27                                        	mov    r12,QWORD PTR [r15]
+    93e0:	31 c0                                           	xor    eax,eax
+    93e2:	b9 40 00 00 00                                  	mov    ecx,0x40
+    93e7:	ba 02 00 00 00                                  	mov    edx,0x2
+    93ec:	4c 8d 05 73 4c 08 00                            	lea    r8,[rip+0x84c73]        # 8e066 <__rseq_flags+0x62>
+    93f3:	be 40 00 00 00                                  	mov    esi,0x40
+    93f8:	48 8d 7c 24 30                                  	lea    rdi,[rsp+0x30]
+    93fd:	4d 89 e1                                        	mov    r9,r12
+    9400:	e8 3b f2 01 00                                  	call   28640 <___snprintf_chk>
+    9405:	83 f8 3f                                        	cmp    eax,0x3f
+    9408:	0f 87 b1 00 00 00                               	ja     94bf <main+0x34f>
+    940e:	49 83 fe 08                                     	cmp    r14,0x8
+    9412:	0f 83 a6 01 00 00                               	jae    95be <main+0x44e>
+    9418:	48 83 fd 40                                     	cmp    rbp,0x40
+    941c:	0f 87 9e 01 00 00                               	ja     95c0 <main+0x450>
+    9422:	48 8d 05 d7 ea 0b 00                            	lea    rax,[rip+0xbead7]        # c7f00 <stats.0>
+    9429:	48 01 d8                                        	add    rax,rbx
+    942c:	0f 82 8c 01 00 00                               	jb     95be <main+0x44e>
+    9432:	49 8b 7d 08                                     	mov    rdi,QWORD PTR [r13+0x8]
+    9436:	4c 89 e2                                        	mov    rdx,r12
+    9439:	48 8d 74 24 30                                  	lea    rsi,[rsp+0x30]
+    943e:	49 83 c6 01                                     	add    r14,0x1
+    9442:	49 83 c7 08                                     	add    r15,0x8
+    9446:	e8 35 03 00 00                                  	call   9780 <attribute>
+    944b:	49 83 fe 08                                     	cmp    r14,0x8
+    944f:	0f 85 3b ff ff ff                               	jne    9390 <main+0x220>
+    9455:	48 8d 15 18 4c 08 00                            	lea    rdx,[rip+0x84c18]        # 8e074 <__rseq_flags+0x70>
+    945c:	49 8b 7d 08                                     	mov    rdi,QWORD PTR [r13+0x8]
+    9460:	4c 8b 64 24 18                                  	mov    r12,QWORD PTR [rsp+0x18]
+    9465:	48 89 d6                                        	mov    rsi,rdx
+    9468:	48 8b 5c 24 10                                  	mov    rbx,QWORD PTR [rsp+0x10]
+    946d:	e8 0e 03 00 00                                  	call   9780 <attribute>
+    9472:	49 8b 7d 08                                     	mov    rdi,QWORD PTR [r13+0x8]
+    9476:	48 8d 15 ff 4b 08 00                            	lea    rdx,[rip+0x84bff]        # 8e07c <__rseq_flags+0x78>
+    947d:	48 8d 35 03 4c 08 00                            	lea    rsi,[rip+0x84c03]        # 8e087 <__rseq_flags+0x83>
+    9484:	49 83 c4 01                                     	add    r12,0x1
+    9488:	e8 f3 02 00 00                                  	call   9780 <attribute>
+    948d:	48 8d 15 f9 4b 08 00                            	lea    rdx,[rip+0x84bf9]        # 8e08d <__rseq_flags+0x89>
+    9494:	49 8b 7d 08                                     	mov    rdi,QWORD PTR [r13+0x8]
+    9498:	48 89 d6                                        	mov    rsi,rdx
+    949b:	e8 e0 02 00 00                                  	call   9780 <attribute>
+    94a0:	48 8b 35 69 31 0c 00                            	mov    rsi,QWORD PTR [rip+0xc3169]        # cc610 <stdout>
+    94a7:	48 85 f6                                        	test   rsi,rsi
+    94aa:	0f 84 10 de ff ff                               	je     72c0 <main.cold>
+    94b0:	bf 0a 00 00 00                                  	mov    edi,0xa
+    94b5:	e8 46 51 00 00                                  	call   e600 <_IO_putc>
+    94ba:	e9 97 fd ff ff                                  	jmp    9256 <main+0xe6>
+    94bf:	48 8b 7c 24 10                                  	mov    rdi,QWORD PTR [rsp+0x10]
+    94c4:	e8 57 f3 01 00                                  	call   28820 <__if_freenameindex>
+    94c9:	48 8b 9c 24 88 00 00 00                         	mov    rbx,QWORD PTR [rsp+0x88]
+    94d1:	48 8b ac 24 90 00 00 00                         	mov    rbp,QWORD PTR [rsp+0x90]
+    94d9:	4c 8b a4 24 98 00 00 00                         	mov    r12,QWORD PTR [rsp+0x98]
+    94e1:	4c 8b ac 24 a0 00 00 00                         	mov    r13,QWORD PTR [rsp+0xa0]
+    94e9:	4c 8b b4 24 a8 00 00 00                         	mov    r14,QWORD PTR [rsp+0xa8]
+    94f1:	4c 8b bc 24 b0 00 00 00                         	mov    r15,QWORD PTR [rsp+0xb0]
+    94f9:	e9 b3 fc ff ff                                  	jmp    91b1 <main+0x41>
+    94fe:	48 89 df                                        	mov    rdi,rbx
+    9501:	e8 1a f3 01 00                                  	call   28820 <__if_freenameindex>
+    9506:	48 8b ac 24 90 00 00 00                         	mov    rbp,QWORD PTR [rsp+0x90]
+    950e:	4c 8b b4 24 a8 00 00 00                         	mov    r14,QWORD PTR [rsp+0xa8]
+    9516:	4d 85 e4                                        	test   r12,r12
+    9519:	74 4a                                           	je     9565 <main+0x3f5>
+    951b:	48 8b 3d ee 30 0c 00                            	mov    rdi,QWORD PTR [rip+0xc30ee]        # cc610 <stdout>
+    9522:	48 85 ff                                        	test   rdi,rdi
+    9525:	0f 84 ff 00 00 00                               	je     962a <main+0x4ba>
+    952b:	e8 80 4f 00 00                                  	call   e4b0 <_IO_ferror>
+    9530:	48 8b 9c 24 88 00 00 00                         	mov    rbx,QWORD PTR [rsp+0x88]
+    9538:	4c 8b a4 24 98 00 00 00                         	mov    r12,QWORD PTR [rsp+0x98]
+    9540:	85 c0                                           	test   eax,eax
+    9542:	4c 8b ac 24 a0 00 00 00                         	mov    r13,QWORD PTR [rsp+0xa0]
+    954a:	4c 8b bc 24 b0 00 00 00                         	mov    r15,QWORD PTR [rsp+0xb0]
+    9552:	0f 95 c0                                        	setne  al
+    9555:	0f b6 c0                                        	movzx  eax,al
+    9558:	e9 59 fc ff ff                                  	jmp    91b6 <main+0x46>
+    955d:	48 89 c7                                        	mov    rdi,rax
+    9560:	e8 bb f2 01 00                                  	call   28820 <__if_freenameindex>
+    9565:	48 8d 3d a4 6e 08 00                            	lea    rdi,[rip+0x86ea4]        # 90410 <_libc_intl_domainname+0xf42>
+    956c:	e8 1f 4d 00 00                                  	call   e290 <_IO_puts>
+    9571:	eb a8                                           	jmp    951b <main+0x3ab>
+    9573:	48 8d 3d 36 6e 08 00                            	lea    rdi,[rip+0x86e36]        # 903b0 <_libc_intl_domainname+0xee2>
+    957a:	e8 11 4d 00 00                                  	call   e290 <_IO_puts>
+    957f:	48 89 df                                        	mov    rdi,rbx
+    9582:	e8 99 f2 01 00                                  	call   28820 <__if_freenameindex>
+    9587:	48 8b ac 24 90 00 00 00                         	mov    rbp,QWORD PTR [rsp+0x90]
+    958f:	4c 8b b4 24 a8 00 00 00                         	mov    r14,QWORD PTR [rsp+0xa8]
+    9597:	eb 82                                           	jmp    951b <main+0x3ab>
+    9599:	48 8d 3d f0 6d 08 00                            	lea    rdi,[rip+0x86df0]        # 90390 <_libc_intl_domainname+0xec2>
+    95a0:	e8 eb 4c 00 00                                  	call   e290 <_IO_puts>
+    95a5:	48 8b 9c 24 88 00 00 00                         	mov    rbx,QWORD PTR [rsp+0x88]
+    95ad:	e9 ff fb ff ff                                  	jmp    91b1 <main+0x41>
+    95b2:	4c 89 f8                                        	mov    rax,r15
+    95b5:	48 01 e8                                        	add    rax,rbp
+    95b8:	0f 82 0f fe ff ff                               	jb     93cd <main+0x25d>
+    95be:	0f 0b                                           	ud2
+    95c0:	4c 01 fd                                        	add    rbp,r15
+    95c3:	0f 82 59 fe ff ff                               	jb     9422 <main+0x2b2>
+    95c9:	0f 0b                                           	ud2
+    95cb:	48 89 9c 24 88 00 00 00                         	mov    QWORD PTR [rsp+0x88],rbx
+    95d3:	48 89 ac 24 90 00 00 00                         	mov    QWORD PTR [rsp+0x90],rbp
+    95db:	4c 89 a4 24 98 00 00 00                         	mov    QWORD PTR [rsp+0x98],r12
+    95e3:	4c 89 ac 24 a0 00 00 00                         	mov    QWORD PTR [rsp+0xa0],r13
+    95eb:	4c 89 b4 24 a8 00 00 00                         	mov    QWORD PTR [rsp+0xa8],r14
+    95f3:	4c 89 bc 24 b0 00 00 00                         	mov    QWORD PTR [rsp+0xb0],r15
+    95fb:	e8 10 f1 01 00                                  	call   28710 <__stack_chk_fail>
+    9600:	48 89 ac 24 90 00 00 00                         	mov    QWORD PTR [rsp+0x90],rbp
+    9608:	4c 89 a4 24 98 00 00 00                         	mov    QWORD PTR [rsp+0x98],r12
+    9610:	4c 89 ac 24 a0 00 00 00                         	mov    QWORD PTR [rsp+0xa0],r13
+    9618:	4c 89 b4 24 a8 00 00 00                         	mov    QWORD PTR [rsp+0xa8],r14
+    9620:	4c 89 bc 24 b0 00 00 00                         	mov    QWORD PTR [rsp+0xb0],r15
+    9628:	0f 0b                                           	ud2
+    962a:	48 89 ac 24 90 00 00 00                         	mov    QWORD PTR [rsp+0x90],rbp
+    9632:	4c 89 b4 24 a8 00 00 00                         	mov    QWORD PTR [rsp+0xa8],r14
+    963a:	e9 81 dc ff ff                                  	jmp    72c0 <main.cold>
+
+Disassembly of section .fini:

@@ -80,6 +80,8 @@ fueron rechazadas. No se cerraron por ello los ocho huecos globales.
 
 Siguiente: revisar consumidores con limites de origen demostrables antes de
 migrarlos; los [fallos de inicializacion del propio guardian](GUARDIAN-INSTALACION.md)
-ya se verificaron en la ronda 10. Propiedad y vida util siguen pendientes.
-Antes de instalar una imagen nueva hacen falta
-construccion, pruebas de arranque y comprobacion de la tarjeta en ambos perfiles.
+ya se verificaron en la ronda 10. La API de propiedad tiene banco propio;
+su integracion en consumidores sigue pendiente.
+La [promocion posterior a produccion](ELF-PRODUCCION.md) reconstruyo ambos
+perfiles, verifico su tarjeta y arranque en QEMU y los copio en A:. El nuevo
+arranque nativo aun necesita confirmacion del propietario.

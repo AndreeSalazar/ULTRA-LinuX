@@ -1,0 +1,311 @@
+
+/home/builder/linux-reconstruido/build/init-c-generico/minas:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000000a190 <main>:
+    a190:	f3 0f 1e fa                                     	endbr64
+    a194:	48 81 ec 58 01 00 00                            	sub    rsp,0x158
+    a19b:	48 89 ac 24 30 01 00 00                         	mov    QWORD PTR [rsp+0x130],rbp
+    a1a3:	89 fd                                           	mov    ebp,edi
+    a1a5:	48 8d 3d 8d 1f 08 00                            	lea    rdi,[rip+0x81f8d]        # 8c139 <__rseq_flags+0x135>
+    a1ac:	48 89 9c 24 28 01 00 00                         	mov    QWORD PTR [rsp+0x128],rbx
+    a1b4:	64 48 8b 1c 25 28 00 00 00                      	mov    rbx,QWORD PTR fs:0x28
+    a1bd:	48 89 9c 24 18 01 00 00                         	mov    QWORD PTR [rsp+0x118],rbx
+    a1c5:	48 89 f3                                        	mov    rbx,rsi
+    a1c8:	e8 f3 27 00 00                                  	call   c9c0 <ultra_guard_install>
+    a1cd:	83 fd 02                                        	cmp    ebp,0x2
+    a1d0:	74 61                                           	je     a233 <main+0xa3>
+    a1d2:	48 8b 0d 6f 14 0c 00                            	mov    rcx,QWORD PTR [rip+0xc146f]        # cb648 <stderr>
+    a1d9:	48 85 c9                                        	test   rcx,rcx
+    a1dc:	0f 84 14 05 00 00                               	je     a6f6 <main+0x566>
+    a1e2:	ba 22 00 00 00                                  	mov    edx,0x22
+    a1e7:	be 01 00 00 00                                  	mov    esi,0x1
+    a1ec:	48 8d 3d 95 48 08 00                            	lea    rdi,[rip+0x84895]        # 8ea88 <_libc_intl_domainname+0x10ce>
+    a1f3:	e8 98 6c 00 00                                  	call   10e90 <_IO_fwrite>
+    a1f8:	c7 44 24 08 02 00 00 00                         	mov    DWORD PTR [rsp+0x8],0x2
+    a200:	48 8b 84 24 18 01 00 00                         	mov    rax,QWORD PTR [rsp+0x118]
+    a208:	64 48 2b 04 25 28 00 00 00                      	sub    rax,QWORD PTR fs:0x28
+    a211:	0f 85 93 04 00 00                               	jne    a6aa <main+0x51a>
+    a217:	8b 44 24 08                                     	mov    eax,DWORD PTR [rsp+0x8]
+    a21b:	48 8b 9c 24 28 01 00 00                         	mov    rbx,QWORD PTR [rsp+0x128]
+    a223:	48 8b ac 24 30 01 00 00                         	mov    rbp,QWORD PTR [rsp+0x130]
+    a22b:	48 81 c4 58 01 00 00                            	add    rsp,0x158
+    a232:	c3                                              	ret
+    a233:	48 83 fb f8                                     	cmp    rbx,0xfffffffffffffff8
+    a237:	0f 83 92 04 00 00                               	jae    a6cf <main+0x53f>
+    a23d:	f6 c3 07                                        	test   bl,0x7
+    a240:	0f 85 89 04 00 00                               	jne    a6cf <main+0x53f>
+    a246:	4c 89 bc 24 50 01 00 00                         	mov    QWORD PTR [rsp+0x150],r15
+    a24e:	4c 8b 7b 08                                     	mov    r15,QWORD PTR [rbx+0x8]
+    a252:	4d 85 ff                                        	test   r15,r15
+    a255:	0f 84 c0 04 00 00                               	je     a71b <main+0x58b>
+    a25b:	48 8d 35 dd 1e 08 00                            	lea    rsi,[rip+0x81edd]        # 8c13f <__rseq_flags+0x13b>
+    a262:	4c 89 ff                                        	mov    rdi,r15
+    a265:	e8 c6 df ff ff                                  	call   8230 <_init+0x230>
+    a26a:	89 44 24 08                                     	mov    DWORD PTR [rsp+0x8],eax
+    a26e:	85 c0                                           	test   eax,eax
+    a270:	0f 84 28 02 00 00                               	je     a49e <main+0x30e>
+    a276:	48 8d 35 f5 1e 08 00                            	lea    rsi,[rip+0x81ef5]        # 8c172 <__rseq_flags+0x16e>
+    a27d:	4c 89 ff                                        	mov    rdi,r15
+    a280:	4c 89 a4 24 38 01 00 00                         	mov    QWORD PTR [rsp+0x138],r12
+    a288:	48 8d 1d 11 c3 0b 00                            	lea    rbx,[rip+0xbc311]        # c65a0 <mines>
+    a28f:	4c 89 ac 24 40 01 00 00                         	mov    QWORD PTR [rsp+0x140],r13
+    a297:	4c 89 b4 24 48 01 00 00                         	mov    QWORD PTR [rsp+0x148],r14
+    a29f:	e8 8c df ff ff                                  	call   8230 <_init+0x230>
+    a2a4:	89 44 24 08                                     	mov    DWORD PTR [rsp+0x8],eax
+    a2a8:	85 c0                                           	test   eax,eax
+    a2aa:	0f 84 8e 00 00 00                               	je     a33e <main+0x1ae>
+    a2b0:	bd 08 00 00 00                                  	mov    ebp,0x8
+    a2b5:	49 89 de                                        	mov    r14,rbx
+    a2b8:	45 31 e4                                        	xor    r12d,r12d
+    a2bb:	4c 8d 2d 63 1e 08 00                            	lea    r13,[rip+0x81e63]        # 8c125 <__rseq_flags+0x121>
+    a2c2:	eb 38                                           	jmp    a2fc <main+0x16c>
+    a2c4:	0f 1f 40 00                                     	nop    DWORD PTR [rax+0x0]
+    a2c8:	0f 83 b8 02 00 00                               	jae    a586 <main+0x3f6>
+    a2ce:	48 8d 45 20                                     	lea    rax,[rbp+0x20]
+    a2d2:	48 83 c5 28                                     	add    rbp,0x28
+    a2d6:	49 83 c6 28                                     	add    r14,0x28
+    a2da:	48 81 fd b0 09 00 00                            	cmp    rbp,0x9b0
+    a2e1:	0f 87 93 02 00 00                               	ja     a57a <main+0x3ea>
+    a2e7:	48 01 d8                                        	add    rax,rbx
+    a2ea:	0f 82 96 02 00 00                               	jb     a586 <main+0x3f6>
+    a2f0:	4d 8b 2e                                        	mov    r13,QWORD PTR [r14]
+    a2f3:	4d 85 ed                                        	test   r13,r13
+    a2f6:	0f 84 f5 03 00 00                               	je     a6f1 <main+0x561>
+    a2fc:	4c 89 ee                                        	mov    rsi,r13
+    a2ff:	4c 89 ff                                        	mov    rdi,r15
+    a302:	e8 29 df ff ff                                  	call   8230 <_init+0x230>
+    a307:	85 c0                                           	test   eax,eax
+    a309:	0f 84 82 02 00 00                               	je     a591 <main+0x401>
+    a30f:	49 83 c4 01                                     	add    r12,0x1
+    a313:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a317:	75 af                                           	jne    a2c8 <main+0x138>
+    a319:	4c 8b a4 24 38 01 00 00                         	mov    r12,QWORD PTR [rsp+0x138]
+    a321:	4c 8b ac 24 40 01 00 00                         	mov    r13,QWORD PTR [rsp+0x140]
+    a329:	4c 8b b4 24 48 01 00 00                         	mov    r14,QWORD PTR [rsp+0x148]
+    a331:	4c 8b bc 24 50 01 00 00                         	mov    r15,QWORD PTR [rsp+0x150]
+    a339:	e9 94 fe ff ff                                  	jmp    a1d2 <main+0x42>
+    a33e:	49 c7 c5 e9 ff ff ff                            	mov    r13,0xffffffffffffffe9
+    a345:	48 8d 6b 20                                     	lea    rbp,[rbx+0x20]
+    a349:	41 be 20 00 00 00                               	mov    r14d,0x20
+    a34f:	45 31 e4                                        	xor    r12d,r12d
+    a352:	41 bf 28 00 00 00                               	mov    r15d,0x28
+    a358:	49 29 dd                                        	sub    r13,rbx
+    a35b:	e9 d9 00 00 00                                  	jmp    a439 <main+0x2a9>
+    a360:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a364:	0f 83 1c 02 00 00                               	jae    a586 <main+0x3f6>
+    a36a:	49 81 ff b0 09 00 00                            	cmp    r15,0x9b0
+    a371:	0f 87 08 03 00 00                               	ja     a67f <main+0x4ef>
+    a377:	48 89 df                                        	mov    rdi,rbx
+    a37a:	4c 01 f7                                        	add    rdi,r14
+    a37d:	0f 82 03 02 00 00                               	jb     a586 <main+0x3f6>
+    a383:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a387:	0f 83 f9 01 00 00                               	jae    a586 <main+0x3f6>
+    a38d:	49 8d 4f f0                                     	lea    rcx,[r15-0x10]
+    a391:	49 8d 56 f0                                     	lea    rdx,[r14-0x10]
+    a395:	48 8d 75 f0                                     	lea    rsi,[rbp-0x10]
+    a399:	48 81 f9 b0 09 00 00                            	cmp    rcx,0x9b0
+    a3a0:	0f 87 c0 02 00 00                               	ja     a666 <main+0x4d6>
+    a3a6:	48 01 da                                        	add    rdx,rbx
+    a3a9:	0f 82 d7 01 00 00                               	jb     a586 <main+0x3f6>
+    a3af:	4c 8b 45 f0                                     	mov    r8,QWORD PTR [rbp-0x10]
+    a3b3:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a3b7:	0f 83 c9 01 00 00                               	jae    a586 <main+0x3f6>
+    a3bd:	49 8d 4c 2d 00                                  	lea    rcx,[r13+rbp*1+0x0]
+    a3c2:	49 8d 56 e8                                     	lea    rdx,[r14-0x18]
+    a3c6:	48 8d 75 e8                                     	lea    rsi,[rbp-0x18]
+    a3ca:	48 81 f9 b0 09 00 00                            	cmp    rcx,0x9b0
+    a3d1:	0f 87 84 02 00 00                               	ja     a65b <main+0x4cb>
+    a3d7:	48 01 da                                        	add    rdx,rbx
+    a3da:	0f 82 a6 01 00 00                               	jb     a586 <main+0x3f6>
+    a3e0:	0f be 4d e8                                     	movsx  ecx,BYTE PTR [rbp-0x18]
+    a3e4:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a3e8:	0f 83 98 01 00 00                               	jae    a586 <main+0x3f6>
+    a3ee:	49 8d 57 e0                                     	lea    rdx,[r15-0x20]
+    a3f2:	48 8d 75 e0                                     	lea    rsi,[rbp-0x20]
+    a3f6:	48 81 fa b0 09 00 00                            	cmp    rdx,0x9b0
+    a3fd:	0f 87 4d 02 00 00                               	ja     a650 <main+0x4c0>
+    a403:	48 01 d8                                        	add    rax,rbx
+    a406:	0f 82 7a 01 00 00                               	jb     a586 <main+0x3f6>
+    a40c:	48 8b 55 e0                                     	mov    rdx,QWORD PTR [rbp-0x20]
+    a410:	bf 02 00 00 00                                  	mov    edi,0x2
+    a415:	31 c0                                           	xor    eax,eax
+    a417:	49 83 c4 01                                     	add    r12,0x1
+    a41b:	48 8d 35 58 1d 08 00                            	lea    rsi,[rip+0x81d58]        # 8c17a <__rseq_flags+0x176>
+    a422:	48 83 c5 28                                     	add    rbp,0x28
+    a426:	49 83 c7 28                                     	add    r15,0x28
+    a42a:	49 83 c6 28                                     	add    r14,0x28
+    a42e:	e8 2d 26 02 00                                  	call   2ca60 <___printf_chk>
+    a433:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a437:	74 40                                           	je     a479 <main+0x2e9>
+    a439:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a43d:	0f 83 43 01 00 00                               	jae    a586 <main+0x3f6>
+    a443:	49 8d 46 e0                                     	lea    rax,[r14-0x20]
+    a447:	49 81 ff b0 09 00 00                            	cmp    r15,0x9b0
+    a44e:	0f 87 1d 02 00 00                               	ja     a671 <main+0x4e1>
+    a454:	48 89 df                                        	mov    rdi,rbx
+    a457:	4c 01 f7                                        	add    rdi,r14
+    a45a:	0f 82 26 01 00 00                               	jb     a586 <main+0x3f6>
+    a460:	4c 8b 4d 00                                     	mov    r9,QWORD PTR [rbp+0x0]
+    a464:	4d 85 c9                                        	test   r9,r9
+    a467:	0f 85 f3 fe ff ff                               	jne    a360 <main+0x1d0>
+    a46d:	4c 8d 0d f2 33 08 00                            	lea    r9,[rip+0x833f2]        # 8d866 <slashdot.0+0xba>
+    a474:	e9 0a ff ff ff                                  	jmp    a383 <main+0x1f3>
+    a479:	4c 8b a4 24 38 01 00 00                         	mov    r12,QWORD PTR [rsp+0x138]
+    a481:	4c 8b ac 24 40 01 00 00                         	mov    r13,QWORD PTR [rsp+0x140]
+    a489:	4c 8b b4 24 48 01 00 00                         	mov    r14,QWORD PTR [rsp+0x148]
+    a491:	4c 8b bc 24 50 01 00 00                         	mov    r15,QWORD PTR [rsp+0x150]
+    a499:	e9 62 fd ff ff                                  	jmp    a200 <main+0x70>
+    a49e:	48 8d 35 46 34 08 00                            	lea    rsi,[rip+0x83446]        # 8d8eb <slashdot.0+0x13f>
+    a4a5:	48 8d 3d 99 1c 08 00                            	lea    rdi,[rip+0x81c99]        # 8c145 <__rseq_flags+0x141>
+    a4ac:	e8 cf 69 00 00                                  	call   10e80 <_IO_new_fopen>
+    a4b1:	66 0f ef c0                                     	pxor   xmm0,xmm0
+    a4b5:	48 89 c3                                        	mov    rbx,rax
+    a4b8:	31 c0                                           	xor    eax,eax
+    a4ba:	89 c2                                           	mov    edx,eax
+    a4bc:	83 c0 40                                        	add    eax,0x40
+    a4bf:	0f 29 44 14 10                                  	movaps XMMWORD PTR [rsp+rdx*1+0x10],xmm0
+    a4c4:	0f 29 44 14 20                                  	movaps XMMWORD PTR [rsp+rdx*1+0x20],xmm0
+    a4c9:	0f 29 44 14 30                                  	movaps XMMWORD PTR [rsp+rdx*1+0x30],xmm0
+    a4ce:	0f 29 44 14 40                                  	movaps XMMWORD PTR [rsp+rdx*1+0x40],xmm0
+    a4d3:	3d 00 01 00 00                                  	cmp    eax,0x100
+    a4d8:	72 e0                                           	jb     a4ba <main+0x32a>
+    a4da:	31 ed                                           	xor    ebp,ebp
+    a4dc:	48 85 db                                        	test   rbx,rbx
+    a4df:	0f 84 7c 00 00 00                               	je     a561 <main+0x3d1>
+    a4e5:	66 66 2e 0f 1f 84 00 00 00 00 00                	data16 cs nop WORD PTR [rax+rax*1+0x0]
+    a4f0:	48 89 d9                                        	mov    rcx,rbx
+    a4f3:	ba 00 01 00 00                                  	mov    edx,0x100
+    a4f8:	be 00 01 00 00                                  	mov    esi,0x100
+    a4fd:	48 8d 7c 24 10                                  	lea    rdi,[rsp+0x10]
+    a502:	e8 a9 22 02 00                                  	call   2c7b0 <__fgets_chk>
+    a507:	48 85 c0                                        	test   rax,rax
+    a50a:	74 48                                           	je     a554 <main+0x3c4>
+    a50c:	48 b8 78 38 36 5f 54 68 72 65                   	movabs rax,0x657268545f363878
+    a516:	48 33 44 24 10                                  	xor    rax,QWORD PTR [rsp+0x10]
+    a51b:	48 ba 61 64 5f 66 65 61 74 75                   	movabs rdx,0x75746165665f6461
+    a525:	48 33 54 24 18                                  	xor    rdx,QWORD PTR [rsp+0x18]
+    a52a:	48 09 d0                                        	or     rax,rdx
+    a52d:	75 c1                                           	jne    a4f0 <main+0x360>
+    a52f:	81 7c 24 20 72 65 73 3a                         	cmp    DWORD PTR [rsp+0x20],0x3a736572
+    a537:	75 b7                                           	jne    a4f0 <main+0x360>
+    a539:	48 8d 35 2c 1c 08 00                            	lea    rsi,[rip+0x81c2c]        # 8c16c <__rseq_flags+0x168>
+    a540:	48 8d 7c 24 10                                  	lea    rdi,[rsp+0x10]
+    a545:	e8 96 dc ff ff                                  	call   81e0 <_init+0x1e0>
+    a54a:	48 85 c0                                        	test   rax,rax
+    a54d:	0f 95 c0                                        	setne  al
+    a550:	09 c5                                           	or     ebp,eax
+    a552:	eb 9c                                           	jmp    a4f0 <main+0x360>
+    a554:	48 89 df                                        	mov    rdi,rbx
+    a557:	e8 f4 64 00 00                                  	call   10a50 <_IO_new_fclose>
+    a55c:	40 84 ed                                        	test   bpl,bpl
+    a55f:	75 27                                           	jne    a588 <main+0x3f8>
+    a561:	48 8d 3d b4 1b 08 00                            	lea    rdi,[rip+0x81bb4]        # 8c11c <__rseq_flags+0x118>
+    a568:	e8 e3 6b 00 00                                  	call   11150 <_IO_puts>
+    a56d:	4c 8b bc 24 50 01 00 00                         	mov    r15,QWORD PTR [rsp+0x150]
+    a575:	e9 86 fc ff ff                                  	jmp    a200 <main+0x70>
+    a57a:	4c 89 f6                                        	mov    rsi,r14
+    a57d:	48 01 ee                                        	add    rsi,rbp
+    a580:	0f 82 61 fd ff ff                               	jb     a2e7 <main+0x157>
+    a586:	0f 0b                                           	ud2
+    a588:	48 8d 3d 7e 1b 08 00                            	lea    rdi,[rip+0x81b7e]        # 8c10d <__rseq_flags+0x109>
+    a58f:	eb d7                                           	jmp    a568 <main+0x3d8>
+    a591:	41 bf 08 00 00 00                               	mov    r15d,0x8
+    a597:	48 8d 55 f8                                     	lea    rdx,[rbp-0x8]
+    a59b:	49 29 df                                        	sub    r15,rbx
+    a59e:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a5a2:	73 e2                                           	jae    a586 <main+0x3f6>
+    a5a4:	4d 6b cc 28                                     	imul   r9,r12,0x28
+    a5a8:	4a 8d 44 0b 10                                  	lea    rax,[rbx+r9*1+0x10]
+    a5ad:	4a 8d 0c 38                                     	lea    rcx,[rax+r15*1]
+    a5b1:	48 81 f9 b0 09 00 00                            	cmp    rcx,0x9b0
+    a5b8:	0f 87 e1 00 00 00                               	ja     a69f <main+0x50f>
+    a5be:	48 8d 44 2b 08                                  	lea    rax,[rbx+rbp*1+0x8]
+    a5c3:	48 39 d8                                        	cmp    rax,rbx
+    a5c6:	72 be                                           	jb     a586 <main+0x3f6>
+    a5c8:	49 6b c4 28                                     	imul   rax,r12,0x28
+    a5cc:	4c 8b 44 03 10                                  	mov    r8,QWORD PTR [rbx+rax*1+0x10]
+    a5d1:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a5d5:	73 af                                           	jae    a586 <main+0x3f6>
+    a5d7:	48 81 fd b0 09 00 00                            	cmp    rbp,0x9b0
+    a5de:	0f 87 b0 00 00 00                               	ja     a694 <main+0x504>
+    a5e4:	48 01 da                                        	add    rdx,rbx
+    a5e7:	72 9d                                           	jb     a586 <main+0x3f6>
+    a5e9:	48 8b 3d 58 10 0c 00                            	mov    rdi,QWORD PTR [rip+0xc1058]        # cb648 <stderr>
+    a5f0:	48 85 ff                                        	test   rdi,rdi
+    a5f3:	0f 84 eb dc ff ff                               	je     82e4 <main.cold>
+    a5f9:	31 c0                                           	xor    eax,eax
+    a5fb:	4c 89 e9                                        	mov    rcx,r13
+    a5fe:	be 02 00 00 00                                  	mov    esi,0x2
+    a603:	4c 89 4c 24 08                                  	mov    QWORD PTR [rsp+0x8],r9
+    a608:	48 8d 15 78 1b 08 00                            	lea    rdx,[rip+0x81b78]        # 8c187 <__rseq_flags+0x183>
+    a60f:	e8 8c 23 02 00                                  	call   2c9a0 <___fprintf_chk>
+    a614:	49 83 fc 3e                                     	cmp    r12,0x3e
+    a618:	4c 8b 4c 24 08                                  	mov    r9,QWORD PTR [rsp+0x8]
+    a61d:	0f 83 63 ff ff ff                               	jae    a586 <main+0x3f6>
+    a623:	4a 8d 44 0b 18                                  	lea    rax,[rbx+r9*1+0x18]
+    a628:	49 01 c7                                        	add    r15,rax
+    a62b:	49 81 ff b0 09 00 00                            	cmp    r15,0x9b0
+    a632:	77 59                                           	ja     a68d <main+0x4fd>
+    a634:	48 8d 44 2b 10                                  	lea    rax,[rbx+rbp*1+0x10]
+    a639:	48 39 d8                                        	cmp    rax,rbx
+    a63c:	0f 82 44 ff ff ff                               	jb     a586 <main+0x3f6>
+    a642:	4d 6b e4 28                                     	imul   r12,r12,0x28
+    a646:	42 ff 54 23 18                                  	call   QWORD PTR [rbx+r12*1+0x18]
+    a64b:	e8 30 09 00 00                                  	call   af80 <escaped>
+    a650:	48 01 d6                                        	add    rsi,rdx
+    a653:	0f 82 aa fd ff ff                               	jb     a403 <main+0x273>
+    a659:	0f 0b                                           	ud2
+    a65b:	48 01 ce                                        	add    rsi,rcx
+    a65e:	0f 82 73 fd ff ff                               	jb     a3d7 <main+0x247>
+    a664:	0f 0b                                           	ud2
+    a666:	48 01 ce                                        	add    rsi,rcx
+    a669:	0f 82 37 fd ff ff                               	jb     a3a6 <main+0x216>
+    a66f:	0f 0b                                           	ud2
+    a671:	48 89 ee                                        	mov    rsi,rbp
+    a674:	4c 01 fe                                        	add    rsi,r15
+    a677:	0f 82 d7 fd ff ff                               	jb     a454 <main+0x2c4>
+    a67d:	0f 0b                                           	ud2
+    a67f:	48 89 ee                                        	mov    rsi,rbp
+    a682:	4c 01 fe                                        	add    rsi,r15
+    a685:	0f 82 ec fc ff ff                               	jb     a377 <main+0x1e7>
+    a68b:	0f 0b                                           	ud2
+    a68d:	4c 01 f8                                        	add    rax,r15
+    a690:	72 a2                                           	jb     a634 <main+0x4a4>
+    a692:	0f 0b                                           	ud2
+    a694:	49 01 ee                                        	add    r14,rbp
+    a697:	0f 82 47 ff ff ff                               	jb     a5e4 <main+0x454>
+    a69d:	0f 0b                                           	ud2
+    a69f:	48 01 c8                                        	add    rax,rcx
+    a6a2:	0f 82 16 ff ff ff                               	jb     a5be <main+0x42e>
+    a6a8:	0f 0b                                           	ud2
+    a6aa:	4c 89 a4 24 38 01 00 00                         	mov    QWORD PTR [rsp+0x138],r12
+    a6b2:	4c 89 ac 24 40 01 00 00                         	mov    QWORD PTR [rsp+0x140],r13
+    a6ba:	4c 89 b4 24 48 01 00 00                         	mov    QWORD PTR [rsp+0x148],r14
+    a6c2:	4c 89 bc 24 50 01 00 00                         	mov    QWORD PTR [rsp+0x150],r15
+    a6ca:	e8 61 24 02 00                                  	call   2cb30 <__stack_chk_fail>
+    a6cf:	4c 89 a4 24 38 01 00 00                         	mov    QWORD PTR [rsp+0x138],r12
+    a6d7:	4c 89 ac 24 40 01 00 00                         	mov    QWORD PTR [rsp+0x140],r13
+    a6df:	4c 89 b4 24 48 01 00 00                         	mov    QWORD PTR [rsp+0x148],r14
+    a6e7:	4c 89 bc 24 50 01 00 00                         	mov    QWORD PTR [rsp+0x150],r15
+    a6ef:	0f 0b                                           	ud2
+    a6f1:	e9 ee db ff ff                                  	jmp    82e4 <main.cold>
+    a6f6:	4c 89 a4 24 38 01 00 00                         	mov    QWORD PTR [rsp+0x138],r12
+    a6fe:	4c 89 ac 24 40 01 00 00                         	mov    QWORD PTR [rsp+0x140],r13
+    a706:	4c 89 b4 24 48 01 00 00                         	mov    QWORD PTR [rsp+0x148],r14
+    a70e:	4c 89 bc 24 50 01 00 00                         	mov    QWORD PTR [rsp+0x150],r15
+    a716:	e9 c9 db ff ff                                  	jmp    82e4 <main.cold>
+    a71b:	4c 89 a4 24 38 01 00 00                         	mov    QWORD PTR [rsp+0x138],r12
+    a723:	4c 89 ac 24 40 01 00 00                         	mov    QWORD PTR [rsp+0x140],r13
+    a72b:	4c 89 b4 24 48 01 00 00                         	mov    QWORD PTR [rsp+0x148],r14
+    a733:	e9 ac db ff ff                                  	jmp    82e4 <main.cold>
+
+Disassembly of section .fini:

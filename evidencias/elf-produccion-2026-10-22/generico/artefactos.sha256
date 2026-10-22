@@ -1,0 +1,11 @@
+a9a14368e05e05e79e1e53304f5bbd6e362ba8239f6ac43e675550843a2d1055  /home/builder/linux-reconstruido/artifacts/generico/bzImage-tiny64
+1a1dab974f3340a094d6e7927f41aaed1129360f0c52b095fbdae78c9cdb0ef4  /home/builder/linux-reconstruido/build/init-c-generico/init
+e353a61bb4f11ec4bb640e6886ccc8748cfd2433253e889ba183396db17696c1  /home/builder/linux-reconstruido/build/init-c-generico/caja
+43f5dfcbd114b507c1f0d5490746f8eb75a07655d84a345ff6eca98650a6671c  /home/builder/linux-reconstruido/build/init-c-generico/ultra-raiz
+57e920d13d9601ccbe8936d4a327550f8dacfd4e697c4e67c75aeb763d706c49  /home/builder/linux-reconstruido/build/init-c-generico/ultra-red-contadores
+3e30e3a95517181bc7c415a92040391d56cdd732e1151104d842e9956fd1c2ae  /home/builder/linux-reconstruido/build/init-c-generico/minas
+41a138237a45f7e361679ae4f94f3eca1bffd83279c0140618bfa9d8fd1678ed  /home/builder/linux-reconstruido/artifacts/generico/elf-produccion.tar.gz
+b6e6d8cdb0d80d9c29c7f9e36c08ca57104e40db4a9b20713f0cf2f5a84f984c  /home/builder/linux-reconstruido/artifacts/generico/ultra-esp.img
+b19be7f4f9d639da69153485eb8384f6729b5f65718b83c0ad7710f59ec725d1  /home/builder/linux-reconstruido/artifacts/generico/disco-bmo.img
+410dfe120f45a7360a3970669cf82f152a6b7b61eefd0a42b43618b5b4f34c41  /home/builder/linux-reconstruido/artifacts/generico/sistema-a.erofs
+19daed08cba9d64426fa482b30d4c53a8c86eed73b27d2744bfa89f990a404ee  /home/builder/linux-reconstruido/artifacts/generico/datos.ext4

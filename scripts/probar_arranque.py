@@ -354,6 +354,24 @@ def check_hyprland(conn, failures):
             time.sleep(1)
         return []
 
+    def focus_app(name):
+        nonlocal transcript
+        apps = clients()
+        app = next((a for a in apps if name in a.get('class', '').lower()), None)
+        address = app.get('address', '') if app else ''
+        if not re.fullmatch(r'0x[0-9a-fA-F]+', address): return False
+        command = ('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 '
+                   'dispatch \'hl.dsp.focus({ window = "address:' + address + '" })\'; echo FOCO-ENVIO-$((30+1))\n')
+        conn.sendall(command.encode())
+        transcript += response('FOCO-ENVIO-31')
+        for _ in range(10):
+            conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j activewindow; echo FOCO-ACTIVO-$((30+2))\n')
+            active = response('FOCO-ACTIVO-32')
+            transcript += active
+            if re.search(r'"address"\s*:\s*"' + re.escape(address) + r'"', active): return True
+            time.sleep(.2)
+        return False
+
     mon = socket.create_connection(('127.0.0.1', PORT + 1), timeout=5)
     try:
         initial = wait_apps(lambda apps: len(apps) >= 2)
@@ -489,6 +507,16 @@ def check_hyprland(conn, failures):
                                     and namespace(status, name) != namespace(broker_status, name)
                                     for name in ('user', 'pid'))]
                 expect(bool(isolated), 'Brave: renderer UID1000 inicial, user/PID namespaces propios y seccomp activo')
+                # Fresh disposable profile: cancel first-run keyring provisioning.
+                # No test credentials are saved and libsecret/sandbox stay enabled.
+                for _ in range(3):
+                    if not any('gcr-prompter' in a.get('class', '').lower() for a in clients()): break
+                    if not focus_app('gcr-prompter'): break
+                    mon.sendall(b'sendkey meta_l-q 30\n')
+                    time.sleep(.8)
+                expect(not any('gcr-prompter' in a.get('class', '').lower() for a in clients()),
+                       'Brave: dialogo inicial de llavero cancelado en perfil desechable')
+                expect(focus_app('brave'), 'Brave: ventana enfocada antes de enviar teclas')
                 capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-brave.png'
                 mon.sendall(b'sendkey f11\n')
                 time.sleep(1)
@@ -521,6 +549,7 @@ def check_hyprland(conn, failures):
                 if not loaded:
                     conn.sendall(b'ultra-entrar /usr/bin/tail -n 90 /home/ultra/.cache/ultra/brave.log; ultra-entrar /usr/bin/cat /run/ultra-escritorio/red.log; echo BRAVE-HTTPS-DIAG-$((5+6))\n')
                     transcript += response('BRAVE-HTTPS-DIAG-11')
+                expect(focus_app('brave'), 'Brave: foco verificado antes de cerrar navegador')
                 mon.sendall(b'sendkey meta_l-q\n')
                 closed_browser = wait_apps(lambda apps: len(apps) >= 2 and not any('brave' in a.get('class', '').lower() for a in apps))
                 expect(bool(closed_browser), 'Brave: cerrar navegador conserva el escritorio')
@@ -595,6 +624,7 @@ def check_hyprland(conn, failures):
             if good: secured.add(name)
         expect({'Hyprland', 'foot', 'mousepad', 'thunar'} <= secured,
                'Hyprland y apps: UID/GID 1000, capacidades cero, NNP=1')
+        expect(focus_app('thunar'), 'Hyprland: archivos enfocado antes de probar atajos')
         mon.sendall(b'sendkey meta_l-v\n')
         floated = wait_apps(lambda apps: any('thunar' in a.get('class', '').lower() and a.get('floating') for a in apps))
         expect(bool(floated), 'Hyprland: Super+V convierte archivos en ventana flotante')

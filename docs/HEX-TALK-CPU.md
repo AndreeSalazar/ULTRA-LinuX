@@ -79,3 +79,8 @@ revisar CET y desenrollado, incluir relocaciones y limites de secciones, y ampli
 el pool con identidad entre pools y control de concurrencia. Una traduccion
 general de GCC a un lenguaje restringido como CASM requeriria mucho mas trabajo;
 no se incluye ni se promete aqui. No se midio aceleracion ni se instalo en A:.
+
+Actualizacion posterior: [contratos estructurales ELF en produccion](ELF-PRODUCCION.md)
+integra la idea en build/instalacion de cinco ejecutables propios por perfil.
+Los perfiles generico y PC se reconstruyeron, probaron en QEMU y copiaron a A:.
+El contrato de siete bytes de esta inspeccion sigue siendo un banco especifico.

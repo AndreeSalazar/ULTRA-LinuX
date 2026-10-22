@@ -1,0 +1,34 @@
+ELF-PRODUCCION-OK: init 1a1dab974f3340a094d6e7927f41aaed1129360f0c52b095fbdae78c9cdb0ef4
+RECHAZO-OK: stack executable: STACK-RW-NX
+RECHAZO-OK: load writable executable: NO-WX-LOAD
+RECHAZO-OK: missing relro: RELRO-REQUIRED
+RECHAZO-OK: interpreter present: NO-INTERPRETER
+RECHAZO-OK: wrong architecture: STATIC-PIE-X86-64
+RECHAZO-OK: entry outside executable: ENTRY-IN-EXECUTABLE-FILE-REGION
+RECHAZO-OK: phdr beyond file: PHDR-BOUNDS
+RECHAZO-OK: file span overflow: SEGMENT-FILE-BOUNDS
+RECHAZO-OK: truncated: ELF64-LE
+RECHAZO-OK: missing now: DYNAMIC-NOW
+RECHAZO-OK: needed library: NO-DT-NEEDED
+RECHAZO-OK: text relocations: NO-TEXTREL
+RECHAZO-OK: missing cet bits: CET-PROPERTY-IBT-SHSTK
+RECHAZO-OK: main entry changed: MAIN-ENDBR64
+RECHAZO-OK: existing report cannot be reused
+ELF-TESTS-OK: valid control, 14 mutations, stale output rejected; no mutated ELF executed
+ELF-PRODUCCION-OK: init a91b24cb341ef45eb708a9ee033638976ab98b60e5c0de8990ae4ffdd9fa88ee
+RECHAZO-OK: stack executable: STACK-RW-NX
+RECHAZO-OK: load writable executable: NO-WX-LOAD
+RECHAZO-OK: missing relro: RELRO-REQUIRED
+RECHAZO-OK: interpreter present: NO-INTERPRETER
+RECHAZO-OK: wrong architecture: STATIC-PIE-X86-64
+RECHAZO-OK: entry outside executable: ENTRY-IN-EXECUTABLE-FILE-REGION
+RECHAZO-OK: phdr beyond file: PHDR-BOUNDS
+RECHAZO-OK: file span overflow: SEGMENT-FILE-BOUNDS
+RECHAZO-OK: truncated: ELF64-LE
+RECHAZO-OK: missing now: DYNAMIC-NOW
+RECHAZO-OK: needed library: NO-DT-NEEDED
+RECHAZO-OK: text relocations: NO-TEXTREL
+RECHAZO-OK: missing cet bits: CET-PROPERTY-IBT-SHSTK
+RECHAZO-OK: main entry changed: MAIN-ENDBR64
+RECHAZO-OK: existing report cannot be reused
+ELF-TESTS-OK: valid control, 14 mutations, stale output rejected; no mutated ELF executed

@@ -82,9 +82,15 @@ gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/re
 # Production build of the minefield, so the guardians can be watched on the ULTRA kernel itself.
 # Same options as init: a guardian that -O3 or LTO optimizes away shows up in the boot test.
 gcc "${ULTRA_PROD[@]}" "${userflags[@]}" -w -static-pie "$lab/guardian/minas.c" "$lab/guardian/ultra_guard.c" -o "$user/minas"
-for bin in "$user/init" "$user/caja" "$user/ultra-raiz" "$user/ultra-red-contadores"; do
-    readelf -n "$bin" | grep -q 'x86 feature: IBT, SHSTK' || { echo "ROJO: $bin sin marca CET"; exit 1; }
+audit=$(mktemp -d "$user/elf-produccion.XXXXXXXX")
+for name in init caja ultra-raiz ultra-red-contadores minas; do
+    python "$lab/auditar-elf-produccion.py" "$user/$name" --out "$audit/$name"
 done
+sha256sum "${init_src[@]}" "$lab/raiz.c" "$lab/red.c" "$lab/caja/caja.c" \
+    "$lab/guardian/produccion/ultra_guard.c" "$lab/guardian/produccion/ultra_guard.h" \
+    "$lab/guardian/produccion/ultra_string.h" "$lab/guardian/produccion/perfil-gcc.sh" \
+    "$lab/auditar-elf-produccion.py" "$lab/build-baseline.sh" > "$audit/fuentes.sha256"
+tar -C "$audit" -czf "$user/elf-produccion.tar.gz" .
 printf '%s
 ' "$(gcc --version | head -n 1)" "revision: ${ULTRA_WARN[*]} -O0 -fanalyzer / -O2"     "produccion: ${ULTRA_WARN[*]} ${ULTRA_PROD[*]} ${userflags[*]} -static-pie" "$GLIBC_TUNABLES" > "$user/guardianes.txt"
 busybox=/usr/bin/busybox
@@ -177,8 +183,9 @@ fi
 cp "$out/arch/x86/boot/bzImage" "$art/bzImage-tiny64"
 cp "$out/.config" "$art/tiny64.config"
 cp "$user/guardianes.txt" "$art/guardianes.txt"
+cp "$user/elf-produccion.tar.gz" "$art/elf-produccion.tar.gz"
 make -s -C "$src" O="$out" ARCH=x86_64 kernelrelease > "$art/kernelrelease.txt"
-sums=("$art/bzImage-tiny64" "$user/init" "$user/caja")
+sums=("$art/bzImage-tiny64" "$user/init" "$user/caja" "$user/ultra-raiz" "$user/ultra-red-contadores" "$user/minas" "$art/elf-produccion.tar.gz")
 if [[ -n $cmdline ]]; then
     grep -qx 'CONFIG_CMDLINE_BOOL=y' "$out/.config" || { echo 'ROJO: falta la linea de comandos integrada'; exit 1; }
     grep -qx 'CONFIG_CMDLINE_OVERRIDE=y' "$out/.config" || { echo 'ROJO: el firmware podria anadir argumentos al kernel'; exit 1; }

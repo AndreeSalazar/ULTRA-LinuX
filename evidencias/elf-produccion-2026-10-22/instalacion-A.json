@@ -1,0 +1,33 @@
+{
+  "Fecha": "2026-10-22T13:51:36.0430609-05:00",
+  "DatosSHA256Antes": "9d15db669eee41d495aa514697ea324ca7dc3bd1357a0cbf8f3ae94c5ffb9a74",
+  "DatosSHA256Despues": "9d15db669eee41d495aa514697ea324ca7dc3bd1357a0cbf8f3ae94c5ffb9a74",
+  "Artefactos": [
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "SHA256": "a9a14368e05e05e79e1e53304f5bbd6e362ba8239f6ac43e675550843a2d1055",
+      "Bytes": 18531328
+    },
+    {
+      "Perfil": "generico",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "SHA256": "410dfe120f45a7360a3970669cf82f152a6b7b61eefd0a42b43618b5b4f34c41",
+      "Bytes": 1164017664
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "SHA256": "53dd071ccb94f7195fb1bfba4d14cd1066200bd04a114d1a82ba8bf621cd751b",
+      "Bytes": 18486272
+    },
+    {
+      "Perfil": "pc",
+      "Archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "SHA256": "39a034eca60a281d5369159a160101b15fa23cf47257b28e31fcd898a2a7d747",
+      "Bytes": 1750409216
+    }
+  ],
+  "Respaldo": "build/respaldo-produccion-antes-elf-2026-10-22",
+  "ArranqueNativo": "pendiente de prueba por el propietario"
+}

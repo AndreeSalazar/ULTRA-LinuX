@@ -1,0 +1,2 @@
+nvidia-open 615.78.08 para 7.3.0-rc7-pc-g32c52ec87d62
+AMARILLO [SRSO]: 11674 lineas de aviso objtool "naked return" (MITIGATION_RETHUNK); no son un recuento de funciones unicas. Cobertura efectiva pendiente de comprobar con microcodigo, sysfs y pruebas en hardware real.
