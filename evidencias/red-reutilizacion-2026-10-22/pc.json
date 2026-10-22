@@ -1,0 +1,21 @@
+{
+  "perfil": "pc",
+  "version": "--despues",
+  "escenarios": [
+    "espera de primer plano acotada, sin cable ni IPv4",
+    "sin cable, segunda llamada reutiliza el mismo supervisor sin pedir rebind",
+    "daemon DHCP no retiene el bloqueo de preparacion",
+    "DHCP recupera IPv4 al conectar DESPUES de salir del preparador",
+    "DNS recibido mediante DHCP",
+    "HTTPS real con CA valida, como UID1000 sin capacidades",
+    "reconexion tras desconectar y reconectar cable virtual",
+    "reentrada con red activa devuelve configuracion sin espera de lease",
+    "informe ampliado termina en la imagen nativa; fuentes coinciden con el proyecto"
+  ],
+  "espera_sin_cable_s": 11.766000000000531,
+  "reentrada_pendiente_s": 0.17199999999957072,
+  "fuentes_imagen_sha256": {
+    "ultra-preparar-red": "3b26ee1e0cd6829e3b7ed0a0f384ec5fbb485cd8a3294fc664bdc3207b5db13c",
+    "ultra-informe-red": "c124c5906c6cf604336ceb6a1dabdc50a5ba3cf23e1e702e047208f6bc4bdd36"
+  }
+}

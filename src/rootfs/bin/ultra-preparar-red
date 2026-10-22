@@ -4,7 +4,28 @@
 set -uo pipefail
 [[ $(id -u) == 0 ]] || exit 1
 exec 9>&- # DHCP may outlive the desktop; never retain its session lock.
+exec 8>/run/ultra-red-preparar.lock
+flock -w 2 8 || { echo 'AMARILLO [RED]: otra preparacion esta en curso'; exit 1; }
 printf 'ULTRA RED\n'
+supervisor_active() {
+    local pidfile pid permissions executable process_uid service_uid
+    pidfile=$(timeout -k 1 1 dhcpcd -4 --printpidfile "$1" 2>/dev/null) || return 1
+    [[ $pidfile == /run/* && -f $pidfile && ! -L $pidfile ]] || return 1
+    [[ $(stat -c %u -- "$pidfile") == 0 ]] || return 1
+    permissions=$(stat -c %a -- "$pidfile") || return 1
+    [[ $permissions =~ ^[0-7]{3,4}$ ]] && (( (8#$permissions & 022) == 0 )) || return 1
+    pid=$(head -c 32 -- "$pidfile")
+    [[ $pid =~ ^[1-9][0-9]{0,9}$ && -r /proc/$pid/status ]] || return 1
+    process_uid=$(awk '/^Uid:/{print $2; exit}' "/proc/$pid/status")
+    service_uid=$(id -u dhcpcd 2>/dev/null) || service_uid=0
+    # The master may run as dhcpcd's privilege-separated service account.
+    [[ $process_uid == 0 || $process_uid == "$service_uid" ]] || return 1
+    grep -Eq '^State:[[:space:]]+Z' "/proc/$pid/status" && return 1
+    # /proc/exe can show an outer /arch path while we run in chroot. Compare
+    # the executable inode through the proc magic link, not that printed path.
+    executable=$(stat -Lc '%d:%i' -- "/proc/$pid/exe") || return 1
+    [[ $executable == "$(stat -Lc '%d:%i' -- "$(command -v dhcpcd)")" ]]
+}
 # Local IPC over TCP must work even with Ethernet unplugged (Steam WebUI, etc.).
 ip link set dev lo up || { echo 'ROJO [RED]: no se pudo activar loopback'; exit 1; }
 ready() {
@@ -31,23 +52,29 @@ show_ready() {
     echo 'VERDE [RED]: enlace, IPv4, ruta y DNS configurados; acceso DNS/HTTPS aun sin comprobar'
 }
 if ready; then show_ready; exit 0; fi
-count=0; launched=0; deadline=$((SECONDS+12))
+count=0; launched=0; fresh=0; deadline=$((SECONDS+12))
 for entry in /sys/class/net/*; do
     iface=${entry##*/}
     [[ $iface != lo && $iface =~ ^[a-zA-Z0-9_.:-]+$ && ! -d $entry/wireless ]] || continue
     [[ $(cat "$entry/type" 2>/dev/null) == 1 ]] || continue
     ((count+=1)); ((count <= 4)) || break
     ip link set dev "$iface" up || continue
+    if supervisor_active "$iface"; then
+        ((launched+=1))
+        printf 'RED DHCP supervisor reutilizado interfaz=%s\n' "$iface"
+        continue
+    fi
     remaining=$((deadline-SECONDS)); ((remaining>0)) || break
     ((remaining<=3)) || remaining=3
     # Start even without carrier. dhcpcd watches link changes and keeps trying
     # when a cable is connected AFTER the bounded foreground wait has ended.
-    if timeout -k 1 "$remaining" dhcpcd -4 --background --timeout 0 "$iface"; then
+    if timeout -k 1 "$remaining" dhcpcd -4 --background --timeout 0 "$iface" 8>&-; then
         ((launched+=1))
+        ((fresh+=1))
         printf 'RED DHCP supervisor iniciado interfaz=%s\n' "$iface"
     fi
 done
-if ((launched)); then
+if ((fresh)); then
     while ((SECONDS<deadline)); do
         if ready; then show_ready; exit 0; fi
         sleep .2

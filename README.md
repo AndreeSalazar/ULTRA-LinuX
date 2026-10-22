@@ -55,7 +55,12 @@ La [auditoria Ethernet](docs/RED-RENDIMIENTO.md) identifica que el otro extremo
 del enlace anuncia 100 Mbps, mientras el PC anuncia 1 Gbps; Windows tambien
 negocia 100 Mbps. El banco aislado favorece FQ-CoDel para latencia bajo congestion,
 pero aun no se activo en el kernel ULTRA: se preparo un fragmento de laboratorio
-y un informe de red mas completo, pendientes de construccion y prueba nativa.
+y permanece pendiente su construccion. La [reutilizacion DHCP](evidencias/red-reutilizacion-2026-10-22/README.md)
+evita repetir la preparacion cuando el supervisor sigue activo, conserva las
+renovaciones y la reconexion e incluye el informe de red ampliado en ambos
+perfiles. La evidencia registra pruebas sobre las imagenes construidas y su
+instalacion en A:. No se atribuye una mejora de descarga a Steam o Warframe
+sin medirla en el PC.
 
 ![Selector de discos y carpetas en el banco virtual](evidencias/bibliotecas-2026-10-21/generico/discos.png)
 

@@ -1,0 +1,7 @@
+3b26ee1e0cd6829e3b7ed0a0f384ec5fbb485cd8a3294fc664bdc3207b5db13c  src/rootfs/bin/ultra-preparar-red
+c124c5906c6cf604336ceb6a1dabdc50a5ba3cf23e1e702e047208f6bc4bdd36  src/rootfs/bin/ultra-informe-red
+a3d782f739e80a4d25d634d5ff0781ada43099a36ef292f5cd8fbeb269cf48d3  scripts/probar_enlace_tardio.py
+6a6c8d10d688b5057e99a161306e0be5594677fe013676e987cacfc8d88fa919  evidencias/red-reutilizacion-2026-10-22/generico.json
+9ad02aa9218aaa8e0b34e508bc86f69a228e97f82f95f2c6e807864889d816e3  evidencias/red-reutilizacion-2026-10-22/instalacion-A.json
+945bf09182e1f8728d63b7d15255f851b327f795fa2f6903af2d2f8931251140  evidencias/red-reutilizacion-2026-10-22/pc.json
+7e1ecfc68e6fe48205365f11acba35ad8afd00bdc0db486c7bfde3c478ad3fd1  evidencias/red-reutilizacion-2026-10-22/README.md

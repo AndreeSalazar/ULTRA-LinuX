@@ -29,8 +29,9 @@ Los anuncios, velocidad, offloads y coalescencia se consultan con
 buffers automaticos, SOFTIRQ, anillos, pause frames, EEE, downshift y afinidad
 MSI. Las consultas no soportadas se muestran como tales, no como valores cero.
 El informe termina con presupuesto de tiempo y limites de salida. Se comprobo
-su sintaxis y su ejecucion acotada en el taller. Este cambio de fuente aun no
-esta reempaquetado en A:.
+su sintaxis y su ejecucion acotada en el taller. La reconstruccion de ambos
+perfiles incluye este diagnostico; sus resultados nativos y la copia a A:
+se registran en `evidencias/red-reutilizacion-2026-10-22`.
 
 El kernel ULTRA actual no tiene FQ-CoDel, FQ, CAKE ni BBR; tiene CUBIC, RPS/RFS,
 XPS y BQL. El fragmento `config/red-laboratorio.config` prepara FQ-CoDel/FQ y
@@ -60,6 +61,31 @@ ejecuciones cortas en software, no estadistica de hardware o WAN.
 
 Resultados en `evidencias/red-optimizacion-2026-10-22`. Ninguna interfaz fisica,
 router, DNS, MTU, TLS, politica TCP o mascara CPU de produccion fue modificada.
+
+## Reutilizar el supervisor DHCP
+
+Una segunda llamada a `ultra-preparar-red` mientras falta cable o configuracion
+ya no vuelve a ordenar la preparacion a un dhcpcd que sigue vivo. Comprueba el
+pidfile protegido de /run, el propietario del proceso y la identidad del
+ejecutable; acepta la cuenta de servicio usada por la separacion de privilegios
+de dhcpcd. Un bloqueo acota las llamadas simultaneas y se cierra antes de lanzar
+el daemon para que no quede retenido despues.
+
+Solo los supervisores recien iniciados esperan hasta 12 segundos en primer
+plano. Un supervisor reutilizado puede continuar pendiente y el auxiliar devuelve
+el aviso inmediatamente: esto no se presenta como conexion lista. Las renovaciones
+de concesion y la recuperacion al conectar el cable siguen a cargo de dhcpcd.
+La consulta [--printpidfile](https://man.archlinux.org/man/dhcpcd.8.en) no inicia
+otra negociacion.
+
+Steam y Warframe administran sus conexiones HTTP/TLS. Esta mejora no cambia sus
+clientes, no elimina verificaciones de archivos y no acredita mayor velocidad
+de descarga. Una conexion HTTP persistente o la reanudacion TLS dependen del
+cliente y del servidor; no se fuerzan globalmente desde este auxiliar.
+
+Ver la prueba nativa de ambos perfiles y sus limites en
+`evidencias/red-reutilizacion-2026-10-22`. La prueba emplea una NIC virtual y
+HTTPS con certificado validado; no conecta los discos personales a QEMU.
 
 ## Orden de trabajo para aplicar una optimizacion
 

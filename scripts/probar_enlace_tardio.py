@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Real dhcpcd/QEMU regression. Uses an image copy and a private virtual NIC.
-Usage: probar_enlace_tardio.py generico|pc --antes|--despues
+Usage: probar_enlace_tardio.py generico|pc --antes|--despues [preflight-source]
 --antes proves the old bug: link appears after the helper has exited, no DHCP.
 --despues proves recovery AFTER the new helper's foreground deadline, then HTTPS.
 """
@@ -8,6 +8,7 @@ import importlib.util
 import base64
 import hashlib
 import json
+import re
 from pathlib import Path
 import shutil
 import socket
@@ -88,6 +89,25 @@ def main():
         assert elapsed < 18, elapsed
         result['espera_sin_cable_s'] = elapsed
         result['escenarios'].append('espera de primer plano acotada, sin cable ni IPv4')
+        if version == '--despues':
+            pid_query = ('ultra-entrar /usr/bin/bash -c \'for e in /sys/class/net/*; do '
+                         'i=${e##*/}; [[ $i != lo ]] || continue; '
+                         'f=$(dhcpcd -4 --printpidfile "$i"); [[ -f $f ]] || continue; '
+                         'printf "DHCP-PID="; head -c 32 "$f"; echo; done\'')
+            before = command(pid_query)
+            pid = re.search(r'(?m)^DHCP-PID=([0-9]+)',before)
+            assert pid, before
+            reused_at = time.monotonic()
+            output = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-red; echo RED-RC-$?',22)
+            result['reentrada_pendiente_s'] = time.monotonic()-reused_at
+            assert 'supervisor reutilizado' in output and 'supervisor iniciado' not in output and 'RED-RC-1' in output, output
+            assert result['reentrada_pendiente_s'] < 5, result
+            after = command(pid_query)
+            assert 'DHCP-PID='+pid[1] in after, after
+            result['escenarios'].append('sin cable, segunda llamada reutiliza el mismo supervisor sin pedir rebind')
+            output = command("ultra-entrar /usr/bin/flock -n /run/ultra-red-preparar.lock /usr/bin/printf 'LOCK-LIBRE-42\\n'")
+            assert 'LOCK-LIBRE-42' in output, output
+            result['escenarios'].append('daemon DHCP no retiene el bloqueo de preparacion')
         # The helper has completely exited. Only a persistent DHCP client can recover.
         hmp('set_link ultranic on')
         ready = False
@@ -128,6 +148,16 @@ def main():
             output = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-red; echo RED-RC-$?', 18)
             assert 'RED-RC-0' in output, output
             result['escenarios'].append('reentrada con red activa devuelve configuracion sin espera de lease')
+            if source is None:
+                result['fuentes_imagen_sha256'] = {}
+                for helper in ('ultra-preparar-red', 'ultra-informe-red'):
+                    expected = hashlib.sha256((Path(__file__).resolve().parents[1] / 'src/rootfs/bin' / helper).read_bytes()).hexdigest()
+                    output = command('ultra-entrar /usr/bin/sha256sum /usr/local/libexec/'+helper)
+                    assert expected in output, output
+                    result['fuentes_imagen_sha256'][helper] = expected
+                output = command('ultra-entrar /usr/bin/timeout -k 2 40 /usr/bin/bash /usr/local/libexec/ultra-informe-red > /arch/tmp/informe-red-prueba.txt 2>&1; echo INFORME-RC-$?', 48)
+                assert 'INFORME-RC-0' in output, output
+                result['escenarios'].append('informe ampliado termina en la imagen nativa; fuentes coinciden con el proyecto')
         console.sendall(b'poweroff\n')
         transcript += base.read_until(console, 'APAGADO', 20)
         process.wait(timeout=20)
