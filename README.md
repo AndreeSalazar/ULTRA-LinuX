@@ -29,6 +29,18 @@ El taller Arch que compila las imágenes es distinto del sistema ULTRA que arran
 
 ## Qué funciona y qué queda por confirmar
 
+El [gestor general de bibliotecas](docs/BIBLIOTECAS.md), accesible con
+**Super+J > Elegir carpetas y discos**, permite seleccionar varias carpetas
+en distintos discos. Reconoce bibliotecas Steam y carpetas independientes,
+recuerda sus identidades y separa las escrituras en ext4. Las carpetas nuevas
+se activan al volver a abrir el escritorio; cada juego mantiene sus requisitos
+de compatibilidad y Steam necesita registrar/verificar la biblioteca.
+
+El gestor paso [87 comprobaciones especificas](evidencias/bibliotecas-2026-10-21/README.md)
+y esta instalado en ambos perfiles de A:, conservando los datos existentes.
+
+![Selector de discos y carpetas en el banco virtual](evidencias/bibliotecas-2026-10-21/generico/discos.png)
+
 La [reconstrucción del 21 de octubre](evidencias/rebuild-2026-10-21/README.md)
 actualiza los informes de montajes y audio USB, y permite consultar el estado
 de juegos aunque falte el almacenamiento persistente.

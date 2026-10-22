@@ -1,0 +1,29 @@
+{
+  "fecha_utc": "2026-10-22T03:39:36.715402+00:00",
+  "archivos": [
+    {
+      "perfil": "generico",
+      "archivo_A": "A:\\EFI\\ULTRA\\ULTRA.EFI",
+      "sha256": "c31e7131630e7cb44bbe435e1bfc7698a96a9a5c4a46195619c1d753fe138db4"
+    },
+    {
+      "perfil": "generico",
+      "archivo_A": "A:\\ULTRA\\sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "sha256": "caf162010575ce25252cca26fb354de8c4a525bb8ca98c622b82da39d31df52b"
+    },
+    {
+      "perfil": "pc",
+      "archivo_A": "A:\\EFI\\ULTRA\\ULTRA-PC.EFI",
+      "sha256": "7077278e611cf30dd87c23b4032a9c44eff59ea78091d5c201dc098489255b9b"
+    },
+    {
+      "perfil": "pc",
+      "archivo_A": "A:\\ULTRA\\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "sha256": "41c20e0a7c79e316e65d11e4f467edb77ebe6bd004a976cd6805afad62b0b3f0"
+    }
+  ],
+  "datos_ext4_preservados_sha256": "e5ee9c8e24d8077c769d3a54c7a204f7be479c1904b287cab2ff286d17200160",
+  "particiones_formateadas": false,
+  "firmware_modificado": false,
+  "imagen_personal_D_reemplazada": false
+}

@@ -1,0 +1,3 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+exec /usr/bin/python -I /usr/local/libexec/ultra-bibliotecas.py "$@"

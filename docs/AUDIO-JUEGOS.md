@@ -1,5 +1,9 @@
 # Audio maestro, Steam y GOG en BMO-X
 
+El [gestor general de carpetas y discos](BIBLIOTECAS.md) amplia los accesos
+iniciales de juegos. La vista con escritura de D: sigue siendo privada; el
+selector puede ofrecer una vista de datos de solo lectura en `/discos/<UUID>`.
+
 La ampliacion posterior de [Steam y Warframe desde Windows](STEAM-WINDOWS.md)
 documenta el nuevo menu, la biblioteca Linux y las escrituras separadas en ext4.
 Los resultados de audio de este documento corresponden a su ronda historica;
@@ -74,7 +78,10 @@ Windows, dentro de build/juegos. El archivo en D: es el estado vivo de los juego
 La preparacion privilegiada identifica exactamente ese NTFS por UUID, comprueba
 tipo, tamano e identidad del ext4, y monta el archivo con loop autoclear y
 nosuid/nodev. No crea ni formatea imagenes durante el arranque. NTFS se monta
-debajo de un directorio root 0700: el escritorio no puede recorrer el resto de D:.
+debajo de un directorio root 0700: el escritorio no puede recorrer esa vista
+privada de D: con escritura.
+El gestor de bibliotecas puede ofrecer aparte una vista de solo lectura para
+elegir otras carpetas; no da acceso directo al montaje privado con escritura.
 No se usa force ni se elimina hibernacion si Windows no dejo el volumen limpio.
 
 El home de la sesion pasa a `/juegos/usuarios/ultra`: alli quedan clientes,

@@ -1,0 +1,4 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+[[ $(id -u) == 0 ]] || exit 1
+exec /usr/bin/python -I /usr/local/libexec/ultra-bibliotecas.py preparar

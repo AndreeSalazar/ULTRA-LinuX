@@ -38,6 +38,7 @@ tmp=$out.$$
     printf '\n[JUEGOS: montaje y espacio, sin exportar cuentas o credenciales]\n'
     [[ ! -r /run/ultra-escritorio/juegos.log ]] || cat /run/ultra-escritorio/juegos.log
     [[ ! -r /run/ultra-escritorio/warframe.log ]] || cat /run/ultra-escritorio/warframe.log
+    [[ ! -r /run/ultra-escritorio/bibliotecas.log ]] || cat /run/ultra-escritorio/bibliotecas.log
     # Query mountpoints separately: two positional arguments mean source + target.
     for target in /juegos /juegos/Cyberpunk2077 /juegos/Warframe; do
         findmnt --mountpoint "$target" --output TARGET,FSTYPE,OPTIONS 2>/dev/null ||

@@ -90,8 +90,30 @@ void prepare_system(bool data) {
     report("VERDE", "SISTEMA", detail);
 }
 
+/* Mount roots below are owned by root. Names are generated from UUIDs/hashes;
+   never walk arbitrary game contents or detach a backing volume first. */
+static void release_mounts(const char *parent) {
+    DIR *dir = opendir(parent);
+    if (!dir) return;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        const char *name = entry->d_name;
+        size_t len = strlen(name);
+        if (len == 0 || len > 64 || strspn(name, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-") != len) continue;
+        char path[256];
+        int n = snprintf(path, sizeof(path), "%s/%s", parent, name);
+        if (n < 0 || (size_t)n >= sizeof(path)) continue;
+        if (umount(path) == 0) report("VERDE", "BIBLIOTECAS", path);
+        else if (errno != EINVAL && errno != ENOENT) report("AMARILLO", "BIBLIOTECAS-DESMONTAJE", path);
+    }
+    closedir(dir);
+}
+
 void release_system(void) {
     if (!ready) return;
+    release_mounts(ARCH "/juegos/Bibliotecas");
+    release_mounts(ARCH "/run/ultra-bibliotecas/fuentes");
+    release_mounts(ARCH "/discos");
     /* Drop the game overlay before its Windows lower layer and ext4 upper. */
     if (umount(ARCH "/juegos/Warframe") == 0) report("VERDE", "JUEGOS", "Warframe desmontado");
     else if (errno != EINVAL && errno != ENOENT) report("AMARILLO", "JUEGOS-DESMONTAJE", "Warframe");

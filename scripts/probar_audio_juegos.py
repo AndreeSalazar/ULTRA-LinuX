@@ -25,8 +25,11 @@ def main():
     reuse = '--reanudar' in sys.argv or '--diagnostico' in sys.argv
     diagnose = '--diagnostico' in sys.argv
     warframe_test = '--warframe' in sys.argv
+    libraries_test = '--bibliotecas' in sys.argv
+    warm_udev = '--udev-temprano' in sys.argv
     assert not warframe_test or not (preflight or dependencies), 'La prueba Warframe exige ayudantes nativos, sin inyeccion'
-    windows_test = '--windows' in sys.argv or warframe_test
+    assert not libraries_test or not (preflight or dependencies or warframe_test)
+    windows_test = '--windows' in sys.argv or warframe_test or libraries_test
     graphics_bank = '--banco-grafica' in sys.argv
     sys.argv = [sys.argv[0], profile, '--bmo']
     spec = importlib.util.spec_from_file_location('arranque', Path(__file__).with_name('probar_arranque.py'))
@@ -40,7 +43,7 @@ def main():
         with (base.ROOT/'vm/public/deps-steam.tar').open('rb') as stream:
             dependencies_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     config = json.loads((lab/'ntfs-lab.json').read_text())
-    windows_original = base.ROOT / ('build/warframe/windows.img' if warframe_test else 'build/juegos/windows.img')
+    windows_original = base.ROOT / ('build/warframe/windows.img' if warframe_test or libraries_test else 'build/juegos/windows.img')
     windows_copy = base.BUILD / 'windows-prueba.img'
     windows_before = None
     if windows_test:
@@ -210,6 +213,100 @@ def main():
             console.sendall(b'poweroff\n');transcript+=base.read_until(console,'APAGADO',30);process.wait(timeout=20)
             return
         setup()
+        if libraries_test:
+            if warm_udev:
+                command('ultra-entrar /usr/lib/systemd/systemd-udevd --daemon; ultra-entrar /usr/bin/udevadm trigger --action=add --type=devices; ultra-entrar /usr/bin/udevadm settle --timeout=15',30)
+            def prepare_libraries():
+                output = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-bibliotecas; echo BIBLIOTECAS-RC-$?', 60)
+                check('BIBLIOTECAS-RC-0' in output, 'preparador general nativo termina sin inyectar ayudantes')
+                match = re.search(r'(?m)^BIBLIOTECAS: (\{.*\})\r?$', output)
+                assert match, output
+                return json.loads(match[1])
+            catalog = prepare_libraries()
+            by_uuid = {v['uuid']:v for v in catalog['volumes'] if v['status']=='lectura'}
+            c_uuid = 'D8BAB58CBAB567A0'
+            if c_uuid not in by_uuid or config['uuid'] not in by_uuid:
+                print(command('ultra-entrar /usr/bin/lsblk -J -p -o NAME,TYPE,FSTYPE,UUID,LABEL,PARTTYPE; ultra-entrar /usr/bin/blkid',30),flush=True)
+            check(c_uuid in by_uuid and config['uuid'] in by_uuid, 'dos discos NTFS distintos disponibles en vistas de solo lectura')
+            initial = [{'uuid':c_uuid,'relative':'Program Files (x86)/Steam','kind':'steam'}]
+            encoded = base64.b64encode(json.dumps(initial).encode()).decode()
+            code = ('from pathlib import Path;import base64;p=Path.home()/".config/ultra/bibliotecas.json";'
+                    'p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(base64.b64decode("'+encoded+'"))')
+            command(user+"/usr/bin/python -c '"+code+"'")
+            hook = base64.b64encode(b'from pathlib import Path\np=Path.home()/".cache/ultra/site-bibliotecas-probe"\np.parent.mkdir(parents=True,exist_ok=True)\np.write_text("USER-SITE-RAN")\n').decode()
+            hook_setup = ('from pathlib import Path;import site,base64;'
+                          'p=Path(site.getusersitepackages());p.mkdir(parents=True,exist_ok=True);'
+                          'f=p/"sitecustomize.py";b=base64.b64decode("'+hook+'");'
+                          'assert not f.exists() or f.read_bytes()==b;'
+                          'm=Path.home()/".cache/ultra/site-bibliotecas-probe";m.unlink(missing_ok=True);f.write_bytes(b)')
+            command(user+"/usr/bin/python -I -c '"+hook_setup+"'")
+            catalog = prepare_libraries()
+            out = command('test ! -e /arch/juegos/usuarios/ultra/.cache/ultra/site-bibliotecas-probe && echo PYTHON-AISLADO-$((6*7))')
+            check('PYTHON-AISLADO-42' in out, 'exportador privilegiado ignora modulos Python controlados por el usuario')
+            command(user+"/usr/bin/python -I -c 'from pathlib import Path;import site;(Path(site.getusersitepackages())/\"sitecustomize.py\").unlink()'")
+            steam_library = next(r for r in catalog['folders'] if r['kind']=='steam')
+            check(steam_library['status']=='activa', 'biblioteca Steam seleccionada por UUID y carpeta; sin AppID fijo')
+            steam_path = steam_library['path']
+            out = command(user+f'/usr/bin/bash -c \'echo LINUX-PREFIJO > "{steam_path}/steamapps/compatdata/prueba.txt"; echo CACHE-LINUX > "{steam_path}/steamapps/shadercache/prueba.txt"; cat "{steam_path}/steamapps/compatdata/prueba.txt"\'')
+            check('LINUX-PREFIJO' in out and 'Permission denied' not in out, 'Steam escribe prefijos y caches Linux en ext4')
+            for volume in (by_uuid[c_uuid], by_uuid[config['uuid']]):
+                out=command(user+f'/usr/bin/bash -c \'if echo X > "{volume["path"]}/no-escribir.txt"; then exit 1; fi; echo VISTA-PROTEGIDA-$((6*7))\'')
+                check('VISTA-PROTEGIDA-42' in out and 'Read-only file system' in out, 'vista del disco '+volume['uuid']+' rechaza escrituras')
+            out = command('ultra-entrar /usr/bin/blockdev --getro /dev/vdb')
+            check(bool(re.search(r'(?m)^0\r?$', out)), 'D: privado conserva escritura para el ext4, su vista publica permanece solo lectura')
+            command('ultra-escritorio --hyprland --software > /tmp/bibliotecas-sesion.log 2>&1 &')
+            check(wait_app('foot', 60), 'escritorio con home persistente para el selector general')
+            monitor.sendall(b'sendkey meta_l-j\n'); time.sleep(.8)
+            snapshot('bibliotecas-juegos.png')
+            monitor.sendall(b'sendkey down\n'); time.sleep(.2)
+            monitor.sendall(b'sendkey ret\n')
+            time.sleep(1)
+            out=command('pidof fuzzel || true')
+            check(bool(re.search(r'(?m)^\d+(?: \d+)*\r?$', out)), 'gestor de carpetas abre como usuario del escritorio')
+            snapshot('bibliotecas-menu.png')
+            monitor.sendall(b'sendkey ret\n'); time.sleep(.7)
+            snapshot('bibliotecas-discos.png')
+            visible=[v for v in catalog['volumes'] if v['status']=='lectura']
+            index=next(i for i,v in enumerate(visible) if v['uuid']==config['uuid'])
+            for _ in range(index):
+                monitor.sendall(b'sendkey down\n'); time.sleep(.15)
+            monitor.sendall(b'sendkey ret\n'); time.sleep(.7)
+            # The disposable D: fixture has exactly one directory, Cyberpunk 2077.
+            monitor.sendall(b'sendkey ret\n'); time.sleep(.7)
+            snapshot('bibliotecas-carpeta.png')
+            monitor.sendall(b'sendkey ret\n'); time.sleep(1)
+            out=command(user+'/usr/local/bin/ultra-bibliotecas export')
+            match=re.search(r'(?m)^(\[.*\])\r?$',out)
+            selected=json.loads(match[1]) if match else []
+            check(any(r['uuid']==config['uuid'] and r['relative']=='Cyberpunk 2077' and r['kind']=='folder' for r in selected),
+                  'teclado elige carpeta en el segundo disco y guarda seleccion persistente')
+            out=command('ultra-entrar /usr/bin/cat /run/ultra-bibliotecas.json')
+            check('Cyberpunk 2077' not in out, 'seleccion nueva queda pendiente; no se monta en caliente desde la interfaz')
+            monitor.sendall(b'sendkey meta_l-shift-m\n');time.sleep(4)
+            console.sendall(b'reboot\n')
+            transcript += base.read_until(console,'Restarting system',40)
+            process.wait(timeout=20);console.close();monitor.close()
+            check('VERDE [BIBLIOTECAS]: /arch/juegos/Bibliotecas/' in transcript and 'BIBLIOTECAS-DESMONTAJE' not in transcript,
+                  'PID1 desmonta las bibliotecas dinamicas antes del almacenamiento')
+            start();setup();catalog=prepare_libraries()
+            active=[r for r in catalog['folders'] if r['status']=='activa']
+            check(len(active)==2 and {r['uuid'] for r in active}=={c_uuid,config['uuid']},
+                  'tras reinicio se activan carpetas de ambos discos elegidos')
+            game=next(r for r in active if r['kind']=='folder')
+            out=command(user+f'/usr/bin/bash -c \'echo CARPETA-LINUX > "{game["path"]}/prueba-general.txt"; cat "{steam_path}/steamapps/compatdata/prueba.txt"\'')
+            check('LINUX-PREFIJO' in out and 'Permission denied' not in out, 'prefijo Steam persiste y carpeta independiente admite escrituras aisladas')
+            out=command('test ! -e "/arch/run/ultra-juegos/volumen/Cyberpunk 2077/prueba-general.txt" && cat "/arch/run/ultra-juegos/volumen/Cyberpunk 2077/bin/x64/Cyberpunk2077.exe"')
+            check('ULTRA-LAB-GAME-ORIGINAL' in out, 'carpeta original del segundo disco permanece intacta')
+            console.sendall(b'poweroff\n');transcript+=base.read_until(console,'APAGADO',30);process.wait(timeout=20)
+            with windows_copy.open('rb') as stream: windows_after=hashlib.file_digest(stream,'sha256').hexdigest()
+            check(windows_after==windows_before,'SHA256 completo del primer disco ficticio sin cambios')
+            with base.IMG.open('rb') as stream:image_hash=hashlib.file_digest(stream,'sha256').hexdigest()
+            result={'perfil':profile,'pruebas':results,'disco_real_expuesto':False,'helpers_inyectados':False,
+                    'imagen_sha256':image_hash,'windows_ficticio_sha256_antes_despues':windows_after,
+                    'seleccion_teclado':True,'juegos_reales_ejecutados':False,'udev_previamente_iniciado':warm_udev,
+                    'almacen_sintetico_reutilizado':reuse}
+            (base.BUILD/'bibliotecas-resultados.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+            return
         if warframe_test:
             # Focused native-image test: no injected helpers, real game or account.
             out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-warframe; echo CAPA-RC-$?')
@@ -360,7 +457,7 @@ def main():
                 process.wait(timeout=20)
             except (OSError,base.Incomplete,subprocess.TimeoutExpired):
                 process.kill(); process.wait(timeout=10)
-        (base.BUILD/('warframe-boot.log' if warframe_test else 'audio-juegos.log')).write_text(transcript,encoding='utf-8')
+        (base.BUILD/('bibliotecas.log' if libraries_test else 'warframe-boot.log' if warframe_test else 'audio-juegos.log')).write_text(transcript,encoding='utf-8')
 
 
 if __name__=='__main__': main()

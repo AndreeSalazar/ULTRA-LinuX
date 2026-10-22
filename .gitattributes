@@ -27,3 +27,6 @@ evidencias/grafica-nvme-2026-10-21/*.zip binary
 evidencias/warframe-2026-10-21/** text eol=lf
 evidencias/warframe-2026-10-21/**/*.png binary
 evidencias/warframe-2026-10-21/*.zip binary
+evidencias/bibliotecas-2026-10-21/** text eol=lf
+evidencias/bibliotecas-2026-10-21/**/*.png binary
+evidencias/bibliotecas-2026-10-21/*.zip binary

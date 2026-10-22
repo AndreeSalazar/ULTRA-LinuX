@@ -1,0 +1,62 @@
+[
+  {
+    "ruta": "usr/local/bin/ultra-bibliotecas",
+    "perfil": "generico",
+    "sha256": "c63db44348f88d205a755303bc36758a515e00a28bf64a5b0dd30af476450e78"
+  },
+  {
+    "ruta": "usr/local/bin/ultra-juegos",
+    "perfil": "generico",
+    "sha256": "4a70b3b441c43e880dc838a28a420c6d82f5dec7f8006e481317639d5a8a5812"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-bibliotecas.py",
+    "perfil": "generico",
+    "sha256": "026c39f71ee2c11e86b726930a097113c174693b2d6d55a75e5cacb632416de0"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-sesion",
+    "perfil": "generico",
+    "sha256": "bc790919f37906f98b7e943b3b59ef3be0460a4ab0010ce0132a05aeec580e39"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-preparar-bibliotecas",
+    "perfil": "generico",
+    "sha256": "b6c88081638ca44bb01c122f7986f1878a566591141b3a020996cd53c9dc76cb"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-informe-gpu",
+    "perfil": "generico",
+    "sha256": "c972f0f2891e7b1884bc66708786be466022063c3138e235a12119d696b09ea7"
+  },
+  {
+    "ruta": "usr/local/bin/ultra-bibliotecas",
+    "perfil": "pc",
+    "sha256": "c63db44348f88d205a755303bc36758a515e00a28bf64a5b0dd30af476450e78"
+  },
+  {
+    "ruta": "usr/local/bin/ultra-juegos",
+    "perfil": "pc",
+    "sha256": "4a70b3b441c43e880dc838a28a420c6d82f5dec7f8006e481317639d5a8a5812"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-bibliotecas.py",
+    "perfil": "pc",
+    "sha256": "026c39f71ee2c11e86b726930a097113c174693b2d6d55a75e5cacb632416de0"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-sesion",
+    "perfil": "pc",
+    "sha256": "bc790919f37906f98b7e943b3b59ef3be0460a4ab0010ce0132a05aeec580e39"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-preparar-bibliotecas",
+    "perfil": "pc",
+    "sha256": "b6c88081638ca44bb01c122f7986f1878a566591141b3a020996cd53c9dc76cb"
+  },
+  {
+    "ruta": "usr/local/libexec/ultra-informe-gpu",
+    "perfil": "pc",
+    "sha256": "c972f0f2891e7b1884bc66708786be466022063c3138e235a12119d696b09ea7"
+  }
+]

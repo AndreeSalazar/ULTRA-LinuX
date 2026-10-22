@@ -1,5 +1,9 @@
 # Warframe de Windows en Steam de ULTRA
 
+Para seleccionar otras carpetas o bibliotecas de distintos discos, utiliza el
+[gestor general de bibliotecas](BIBLIOTECAS.md). Este documento conserva el
+acceso especifico de Warframe como opcion de compatibilidad.
+
 El kernel reconoce el disco; Steam mantiene su propio registro de bibliotecas.
 Abrir un EXE en el explorador no prepara Steam, Proton ni el prefijo del juego.
 Esta integracion selecciona Warframe (AppID 230410), no toda la biblioteca Windows.

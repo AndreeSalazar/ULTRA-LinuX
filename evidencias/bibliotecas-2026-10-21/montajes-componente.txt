@@ -1,0 +1,13 @@
+PASS 1 FD fijado y alias permiten espacio, coma y Unicode sin inyectar opciones
+PASS 2 prefijos y caches Windows ocultos por directorios opacos Linux
+PASS 3 UID1000 escribe la capa ext4 sin modificar origen protegido
+PASS 4 Steam puede crear metadatos y prefijos sobre ext4
+PASS 5 remontar conserva cambios y reconoce el origen
+PASS 6 rechaza componente simbolico antes del bind privilegiado
+PASS 7 cambio Windows bloquea la capa antigua sin borrarla
+PASS 8 fallo conserva las escrituras existentes
+PASS 9 respeta permisos de lectura Unix en privado-root
+PASS 10 respeta permisos de lectura Unix en privado-root/hijo-publico
+PASS 11 biblioteca publica no revela steamapps privado
+RESULTADO 11 sin discos fisicos; descubrimiento se prueba en arranque nativo
+Banco conservado: /var/tmp/ultra-bibliotecas-nvzqr2kj

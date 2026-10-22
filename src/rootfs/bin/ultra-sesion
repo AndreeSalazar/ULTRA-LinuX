@@ -51,6 +51,7 @@ done
 /usr/bin/bash /usr/local/libexec/ultra-preparar-juegos > /run/ultra-escritorio/juegos.log 2>&1 9>&- || echo 'AMARILLO [JUEGOS]: almacenamiento no disponible; escritorio temporal operativo'
 /usr/bin/bash /usr/local/libexec/ultra-preparar-windows > /run/ultra-escritorio/windows.log 2>&1 9>&- || echo 'AMARILLO [WINDOWS]: NVMe no disponible; el escritorio continua'
 /usr/bin/bash /usr/local/libexec/ultra-preparar-warframe > /run/ultra-escritorio/warframe.log 2>&1 9>&- || echo 'AMARILLO [WARFRAME]: integracion no disponible; consulta Estado y espacio'
+/usr/bin/bash /usr/local/libexec/ultra-preparar-bibliotecas > /run/ultra-escritorio/bibliotecas.log 2>&1 9>&- || echo 'AMARILLO [BIBLIOTECAS]: revisar carpetas; el escritorio continua'
 nvidia=(); software=(); cards=()
 for entry in /sys/class/drm/card*; do
     name=${entry##*/}

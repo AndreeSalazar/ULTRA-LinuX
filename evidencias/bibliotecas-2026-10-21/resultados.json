@@ -1,0 +1,17 @@
+{
+  "validacion": 18,
+  "montajes_componente": 11,
+  "perfiles": {
+    "generico": {
+      "comprobaciones": 29,
+      "imagen_sha256": "b35a6916539e4e7c0069b432f432f16d616bc7cdeb4b4a00997d3e4a9ca568ef"
+    },
+    "pc": {
+      "comprobaciones": 29,
+      "imagen_sha256": "7bc86c719e2905263655ae971ae768f85acf758b20b1228848515e4e8861afd2"
+    }
+  },
+  "discos_reales_expuestos": false,
+  "juegos_reales_ejecutados": false,
+  "total": 87
+}
