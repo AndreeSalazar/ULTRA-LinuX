@@ -1,0 +1,5 @@
+/home/builder/linux-reconstruido/auditoria-guardianes-116ad4197ab843599a2c700c94378ee2/guardian/laboratorio/cadena-ignorada.c: In function 'main':
+/home/builder/linux-reconstruido/auditoria-guardianes-116ad4197ab843599a2c700c94378ee2/guardian/laboratorio/cadena-ignorada.c:5:5: error: ignoring return value of 'ultra_string_copy' declared with attribute 'warn_unused_result' [-Werror=unused-result]
+    5 |     ultra_string_copy(dst, sizeof(dst), "OK", 3);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+cc1: all warnings being treated as errors

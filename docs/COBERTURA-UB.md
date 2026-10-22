@@ -84,3 +84,7 @@ runtime que no arranca o error de compilación ajeno al caso no prueba detecció
 Guardar el hueco cuando no haya protección; no borrar la mina para obtener verde.
 
 Referencia: [instrumentación oficial de GCC](https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html).
+
+Ronda 11: [handles con propietario y banco ASM](VIDA-UTIL-Y-ASM.md) agregan
+rechazo de handles caducados dentro de un pool vivo y controles de ABI. No cierran
+los huecos globales de UAF, concurrencia ni punteros crudos del catalogo anterior.

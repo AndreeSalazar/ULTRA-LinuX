@@ -1,0 +1,3 @@
+INSTALACION-OK: pila y seis manejadores consultados en el kernel
+ROJO [GUARDIAN-UB: trampa de comportamiento indefinido (desborde, indice, desplazamiento, alineacion...); la build de diagnostico da el motivo exacto]
+  programa=probar-instalacion senal=4 code=2 pc=inicio+0x4fbd

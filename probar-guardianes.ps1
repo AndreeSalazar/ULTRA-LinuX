@@ -13,14 +13,16 @@ try {
     & ssh.exe @sshArgs -p 12222 $guest "mkdir -p $remote"
     if($LASTEXITCODE -ne 0){throw 'No se pudo acceder al taller Linux.'}
     $scripts=@('scripts/guardianes.sh','scripts/guardianes-lab.sh','scripts/probar-perfiles.sh','scripts/minas-evaluar.sh','scripts/probar-evaluador.sh',
-               'scripts/campo-minas.sh','scripts/cruces-guardianes.sh','scripts/aislar-mina.sh','scripts/campo-hilos.sh','scripts/campo-dominios.sh','scripts/campo-buffers.sh','scripts/campo-cadenas.sh','scripts/campo-instalacion.sh')
+               'scripts/campo-minas.sh','scripts/cruces-guardianes.sh','scripts/aislar-mina.sh','scripts/campo-hilos.sh','scripts/campo-dominios.sh','scripts/campo-buffers.sh','scripts/campo-cadenas.sh','scripts/campo-instalacion.sh','scripts/campo-owner-asm.sh')
     & scp.exe @sshArgs -P 12222 @scripts "${guest}:$remote/"
     if($LASTEXITCODE -ne 0){throw 'Transferencia de pruebas incompleta.'}
     & scp.exe @sshArgs -P 12222 -r src/guardian "${guest}:$remote/"
     if($LASTEXITCODE -ne 0){throw 'Transferencia de guardianes incompleta.'}
     & scp.exe @sshArgs -P 12222 src/tarjeta.c src/init.h "${guest}:$remote/"
     if($LASTEXITCODE -ne 0){throw 'Transferencia del consumidor C incompleta.'}
-    $runCommand="export ULTRA_INSTALACION_OUT=$runOut/instalacion ULTRA_CADENAS_OUT=$runOut/cadenas ULTRA_BUFFERS_OUT=$runOut/buffers ULTRA_MINAS_OUT=$runOut/minas ULTRA_CRUCES_OUT=$runOut/cruces ULTRA_HILOS_OUT=$runOut/hilos ULTRA_DOMINIOS_OUT=$runOut/dominios ULTRA_PERFILES_OUT=$runOut/perfiles; bash $remote/probar-perfiles.sh && bash $remote/campo-instalacion.sh && bash $remote/probar-evaluador.sh && bash $remote/campo-minas.sh && bash $remote/cruces-guardianes.sh && bash $remote/campo-hilos.sh && bash $remote/campo-dominios.sh && bash $remote/campo-buffers.sh && bash $remote/campo-cadenas.sh"
+    & scp.exe @sshArgs -P 12222 -r ASM "${guest}:$remote/"
+    if($LASTEXITCODE -ne 0){throw 'Transferencia ASM incompleta.'}
+    $runCommand="export ULTRA_OWNER_ASM_OUT=$runOut/owner-asm ULTRA_INSTALACION_OUT=$runOut/instalacion ULTRA_CADENAS_OUT=$runOut/cadenas ULTRA_BUFFERS_OUT=$runOut/buffers ULTRA_MINAS_OUT=$runOut/minas ULTRA_CRUCES_OUT=$runOut/cruces ULTRA_HILOS_OUT=$runOut/hilos ULTRA_DOMINIOS_OUT=$runOut/dominios ULTRA_PERFILES_OUT=$runOut/perfiles; bash $remote/probar-perfiles.sh && bash $remote/campo-instalacion.sh && bash $remote/probar-evaluador.sh && bash $remote/campo-minas.sh && bash $remote/cruces-guardianes.sh && bash $remote/campo-hilos.sh && bash $remote/campo-dominios.sh && bash $remote/campo-buffers.sh && bash $remote/campo-cadenas.sh && bash $remote/campo-owner-asm.sh"
     & ssh.exe @sshArgs -p 12222 $guest $runCommand
     $testCode=$LASTEXITCODE
     if($testCode -ne 0){throw 'ROJO: auditoria fallida; revisar los registros en el taller. No se copian informes anteriores.'}
@@ -36,19 +38,21 @@ try {
     $files += "$runOut/buffers/informe.txt"
     $files += "$runOut/cadenas/informe.txt"
     $files += "$runOut/instalacion/informe.txt"
+    $files += "$runOut/owner-asm/informe.txt"
     $targets=@("evidencias/campo-minas-ronda$Ronda.txt","evidencias/cruces-guardianes-ronda$Ronda.txt","evidencias/hilos-ronda$Ronda.txt",
                "evidencias/hilos-carrera-ronda$Ronda.txt","evidencias/hilos-control-ronda$Ronda.txt","evidencias/aislamiento-ronda$Ronda.txt","evidencias/dominios-ronda$Ronda.txt")
     $targets += "evidencias/perfiles-ronda$Ronda.txt"
     $targets += "evidencias/buffers-ronda$Ronda.txt"
     $targets += "evidencias/cadenas-ronda$Ronda.txt"
     $targets += "evidencias/instalacion-ronda$Ronda.txt"
+    $targets += "evidencias/owner-asm-ronda$Ronda.txt"
     New-Item -ItemType Directory -Path $evidence -Force | Out-Null
     $targets = @($targets | ForEach-Object { Join-Path $evidence (Split-Path $_ -Leaf) })
     for($i=0;$i -lt $files.Count;$i++){
         & scp.exe @sshArgs -P 12222 "${guest}:$($files[$i])" $targets[$i]
         if($LASTEXITCODE -ne 0){throw 'No se pudo recuperar el informe de pruebas.'}
     }
-    foreach($suite in @('cadenas','instalacion')){
+    foreach($suite in @('cadenas','instalacion','owner-asm')){
         $raw=Join-Path $evidence $suite
         New-Item -ItemType Directory -Path $raw | Out-Null
         & scp.exe @sshArgs -P 12222 "${guest}:$runOut/$suite/*.txt" "$raw/"

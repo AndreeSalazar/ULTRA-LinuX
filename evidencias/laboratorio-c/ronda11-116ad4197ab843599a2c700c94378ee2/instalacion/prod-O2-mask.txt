@@ -1,0 +1,1 @@
+ROJO [GUARDIAN-INSTALACION] programa=probar-instalacion paso=sigemptyset errno=22; no se continua con proteccion parcial

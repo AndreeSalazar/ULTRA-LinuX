@@ -9,13 +9,13 @@ registros de la ABI, operands/clobbers de GCC y sincronizacion del algoritmo.
 El inline ASM tambien puede romper las suposiciones del codigo C/C++ que lo
 contiene. Que el ensamblador acepte el texto no valida esas cuatro capas.
 
-Esta carpeta contiene el alcance del area; no instala ensamblador propio,
-guardian ni codigo de produccion. Los seis casos iniciales son conceptuales,
-sin ejecutables nuevos. No se ejecutan instrucciones privilegiadas o casos
-invalidos en Windows, en el escritorio real ni sobre discos personales.
+Los seis casos iniciales del museo siguen siendo fichas conceptuales. Ahora
+[laboratorio](laboratorio) contiene un puente C/ASM ejecutable y controles de
+registros y alineacion, verificados en QEMU en cuatro perfiles. No instala
+ensamblador en la imagen de produccion ni ejecuta casos invalidos sobre discos
+personales. Ver [resultado, contrato y limites](../docs/VIDA-UTIL-Y-ASM.md).
 
-El primer banco debera verificar puentes C/ASM con controles de pila y registros,
-anotar version de la ABI y toolchain y aislar los casos de excepcion. UBSan/ASan
+El primer banco registra toolchain y separa controles validos e invalidos. UBSan/ASan
 no instrumentan automaticamente el interior de una rutina ASM arbitraria.
 
 Fuentes: [GCC extended asm](https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html),

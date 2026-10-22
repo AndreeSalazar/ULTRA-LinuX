@@ -1,0 +1,5 @@
+gcc (GCC) 16.2.1 20260810
+VERDE: ASan/TSan rechazados juntos; diagnosticos en perfiles separados
+VERDE: control atomico sin avisos de carrera
+AMARILLO: carrera detectada por TSan; produccion no instrumenta carreras
+RESUMEN hilos: control atomico VERDE, incompatibilidad VERDE, carrera AMARILLO

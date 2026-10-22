@@ -37,3 +37,5 @@ evidencias/red-reutilizacion-2026-10-22/** text eol=lf
 evidencias/almacen-c-2026-10-22/** text eol=lf
 evidencias/almacen-c-2026-10-22/*.png binary
 evidencias/laboratorio-c/ronda10-*/** text eol=lf
+evidencias/laboratorio-c/ronda11-*/** text eol=lf
+*.S text eol=lf

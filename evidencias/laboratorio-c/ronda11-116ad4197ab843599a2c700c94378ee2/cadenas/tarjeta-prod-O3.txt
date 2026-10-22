@@ -1,0 +1,1 @@
+TARJETA-OK: 5 controles del parser real; rechazo conserva destino

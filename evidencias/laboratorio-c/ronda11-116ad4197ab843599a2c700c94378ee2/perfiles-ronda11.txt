@@ -1,0 +1,4 @@
+PERFIL-OK: produccion no carga ASan, TSan ni perfil crudo
+PERFIL-OK: volver de laboratorio a produccion limpia el estado experimental
+PRODUCCION-OK: /home/builder/linux-reconstruido/build/laboratorio-c/116ad4197ab843599a2c700c94378ee2/perfiles/valido; GCC revisado; static-pie; sin ejecutar
+PERFILES-OK: separacion, compilador reutilizable, rechazo con causa, salida protegida y consumidor de arranque verificados

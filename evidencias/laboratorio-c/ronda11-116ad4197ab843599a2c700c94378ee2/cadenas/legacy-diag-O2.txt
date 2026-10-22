@@ -1,0 +1,22 @@
+LEGACY: origen sin NUL junto a PROT_NONE; se espera fallo
+AddressSanitizer:DEADLYSIGNAL
+=================================================================
+==2==ERROR: AddressSanitizer: SEGV on unknown address 0x7f86b9c27000 (pc 0x7f86b9379184 bp 0x7fff141e8100 sp 0x7fff141e7898 T0)
+==2==The signal is caused by a READ memory access.
+    #0 0x7f86b9379184  (/usr/lib/libc.so.6+0x179184) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #1 0x7f86b9e88324  (/usr/lib/libasan.so.8+0x88324) (BuildId: b8a4241051a1621937fdc46e867ba7ecb56d96ea)
+    #2 0x558254151772 in ultra_append /home/builder/linux-reconstruido/auditoria-guardianes-116ad4197ab843599a2c700c94378ee2/guardian/produccion/ultra_guard.c:157
+    #3 0x55825414feb5 in pages /home/builder/linux-reconstruido/auditoria-guardianes-116ad4197ab843599a2c700c94378ee2/guardian/laboratorio/probar-cadenas.c:67
+    #4 0x55825414e541 in main /home/builder/linux-reconstruido/auditoria-guardianes-116ad4197ab843599a2c700c94378ee2/guardian/laboratorio/probar-cadenas.c:91
+    #5 0x7f86b9227780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #6 0x7f86b92278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #7 0x55825414e694 in _start (/minas/cadenas-diag-O2+0x8694) (BuildId: d56635aeaf717bcfcccdf242d414efc8a3efdbf3)
+
+==2==Register values:
+rax = 0x0000000000000000  rbx = 0x00007f86b9c26ffc  rcx = 0x0000000000000000  rdx = 0x00007f86b9c26ffc  
+rdi = 0x00007f86b9c26fff  rsi = 0x00000f7156c76008  rbp = 0x00007fff141e8100  rsp = 0x00007fff141e7898  
+ r8 = 0x00000f70d6c7e008   r9 = 0x00000f7156c76008  r10 = 0x0000000000000000  r11 = 0x00007f86b9e568c0  
+r12 = 0x00007f86b9c26ffc  r13 = 0x0000000000000000  r14 = 0x0000000000000008  r15 = 0x00000f70d6c7e000  
+AddressSanitizer can not provide additional info.
+SUMMARY: AddressSanitizer: SEGV (/usr/lib/libc.so.6+0x179184) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b) 
+==2==ABORTING
