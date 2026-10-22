@@ -92,6 +92,9 @@ void prepare_system(bool data) {
 
 void release_system(void) {
     if (!ready) return;
+    /* Drop the game overlay before its Windows lower layer and ext4 upper. */
+    if (umount(ARCH "/juegos/Warframe") == 0) report("VERDE", "JUEGOS", "Warframe desmontado");
+    else if (errno != EINVAL && errno != ENOENT) report("AMARILLO", "JUEGOS-DESMONTAJE", "Warframe");
     if (umount(ARCH "/windows") == 0) report("VERDE", "WINDOWS", "NVMe desmontado");
     else if (errno != EINVAL && errno != ENOENT) report("AMARILLO", "WINDOWS-DESMONTAJE", "/windows");
     /* Games are nested: overlay first, ext4 loop (autoclear), then NTFS D:.

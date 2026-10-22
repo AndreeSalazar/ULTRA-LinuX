@@ -1,0 +1,52 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# One selected game, never an entire writable Windows Steam library.
+set -euo pipefail
+umask 077
+[[ $(id -u) == 0 ]] || exit 1
+fail() { echo "AMARILLO [WARFRAME]: $*"; exit 1; }
+mountpoint -q /juegos || fail 'falta almacenamiento persistente'
+[[ $(findmnt -n -o FSTYPE --mountpoint /juegos) == ext4 ]] || fail 'se requiere ext4'
+mountpoint -q /windows || fail 'C: no esta montado'
+options=,$(findmnt -n -o OPTIONS --mountpoint /windows),
+[[ $options == *,ro,* && $options == *,nosuid,* && $options == *,nodev,* && $options == *,noexec,* ]] || fail 'C: debe permanecer protegido y en solo lectura'
+game='/windows/Program Files (x86)/Steam/steamapps/common/Warframe'
+# Reject redirected paths, including symlinked ancestors on the Windows volume.
+[[ $(realpath -e -- "$game" 2>/dev/null) == "$game" ]] || fail 'instalacion ausente o ruta redirigida'
+for file in Warframe.x64.exe Tools/Launcher.exe; do
+    [[ -f $game/$file && $(realpath -e -- "$game/$file") == "$game/$file" ]] || fail "falta $file o es un enlace"
+done
+manifest='/windows/Program Files (x86)/Steam/steamapps/appmanifest_230410.acf'
+[[ -f $manifest && $(realpath -e -- "$manifest") == "$manifest" ]] || fail 'manifiesto Steam ausente o redirigido'
+build=$(awk '$1 == "\"buildid\"" {gsub(/"/, "", $2); print $2; exit}' "$manifest")
+[[ $build =~ ^[0-9]+$ ]] || fail 'version Windows no identificable'
+target=/juegos/Warframe
+if mountpoint -q "$target"; then
+    [[ $(findmnt -n -o FSTYPE --mountpoint "$target") == overlay ]] || fail 'destino ocupado por otro montaje'
+    exit 0
+fi
+# /juegos is a root-owned mount root. Protect mount paths from user replacement.
+[[ ! -L /juegos && $(stat -c %u /juegos) == 0 && $(stat -c %a /juegos) == 755 ]] || fail 'raiz de juegos inesperada'
+store=/juegos/.ultra-warframe
+for path in "$store" "$target"; do
+    [[ ! -L $path ]] || fail 'destino simbolico rechazado'
+    if [[ -e $path ]]; then
+        [[ -d $path && $(stat -c %u "$path") == 0 ]] || fail 'destino no pertenece a root'
+        perm=$(stat -c %a "$path")
+        (( (8#$perm & 0022) == 0 )) || fail 'destino modificable por terceros'
+    fi
+done
+install -d -m 0700 "$store"
+install -d -m 0755 "$target"
+[[ ! -L $store/windows-build ]] || fail 'registro de version simbolico rechazado'
+if [[ -e $store/windows-build ]]; then
+    [[ $(cat "$store/windows-build") == "$build" ]] || fail 'Windows actualizo el juego: conservar la capa y revisar antes de reutilizarla'
+fi
+# The private parent prevents users from replacing upper/work mount paths.
+[[ ! -L $store/upper && ! -L $store/work ]] || fail 'capa simbolica rechazada'
+install -d -m 0755 -o 1000 -g 1000 "$store/upper"
+install -d -m 0700 "$store/work"
+# Space in Program Files is legal here; commas/colons are not present in fixed paths.
+mount -t overlay overlay -o "nosuid,nodev,lowerdir=$game,upperdir=$store/upper,workdir=$store/work" "$target"
+printf '%s\n' "$build" > "$store/windows-build"
+echo 'VERDE [WARFRAME]: originales C: solo lectura; escrituras en ext4; Steam/Proton pendientes de verificar'

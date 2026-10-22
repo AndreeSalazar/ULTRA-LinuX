@@ -4,19 +4,51 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 action=${1:-menu}
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Steam' 'GOG / Heroic' 'Cyberpunk 2077' 'Estado y espacio' |
-        fuzzel --dmenu --prompt='Juegos /' --lines=4) || exit 0
-    case $choice in Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;; 'Estado y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;; *) exit 0;; esac
+    choice=$(printf '%s\n' 'Steam' 'Preparar Warframe de Windows' 'Warframe / Steam' 'GOG / Heroic' 'Cyberpunk 2077' 'Estado y espacio' 'Registros de juegos' |
+        fuzzel --dmenu --prompt='Juegos /' --lines=7) || exit 0
+    case $choice in
+        Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
+        'Warframe / Steam') action=warframe;;
+        'Preparar Warframe de Windows') exec foot --hold /usr/local/bin/ultra-steam-warframe;;
+        'Estado y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;;
+        'Registros de juegos') exec foot --hold /usr/local/bin/ultra-juegos registros;;
+        *) exit 0;;
+    esac
 fi
 if [[ $action == estado ]]; then
-    printf 'HOME=%s\n' "$HOME"
+    printf 'ULTRA / Juegos: montajes y espacio\nHOME=%s\n' "$HOME"
+    printf '\n[DISCOS: visibles al kernel; no implica biblioteca registrada en Steam]\n'
+    lsblk -e 7 -o NAME,TYPE,FSTYPE,SIZE,MOUNTPOINTS || true
     if mountpoint -q /juegos; then
         findmnt --mountpoint /juegos --output TARGET,FSTYPE,OPTIONS || true
         df -h /juegos
     else
         printf 'Almacenamiento de juegos no montado: la sesion puede ser temporal en RAM.\n'
     fi
-    vulkaninfo --summary || true
+    for target in /windows /juegos/Warframe /juegos/Cyberpunk2077; do
+        findmnt --mountpoint "$target" --output TARGET,FSTYPE,OPTIONS || printf 'NO MONTADO %s\n' "$target"
+    done
+    printf '\n[WARFRAME]\n'
+    [[ ! -r '/windows/Program Files (x86)/Steam/steamapps/common/Warframe/Warframe.x64.exe' ]] || printf 'Archivos originales presentes en C:; no acredita Proton funcionando.\n'
+    [[ ! -f $HOME/Juegos/SteamLibrary/steamapps/appmanifest_230410.acf ]] || printf 'Biblioteca preparada: %s/Juegos/SteamLibrary; agregar/verificar en Steam.\n' "$HOME"
+    printf 'Cambios, Proton y caches comparten el espacio ext4. Una actualizacion puede requerir muchos GiB.\n'
+    printf '\n[RAM: sistema completo, no VRAM]\n'
+    free -h || true
+    printf '\n[VRAM: instantanea NVIDIA, si esta disponible]\n'
+    if command -v nvidia-smi >/dev/null; then
+        timeout -k 1 5 nvidia-smi --query-gpu=name,memory.used,memory.total,utilization.gpu --format=csv || true
+    fi
+    printf '\n[VULKAN]\n'
+    timeout -k 2 15 vulkaninfo --summary || true
+    exit 0
+fi
+if [[ $action == registros ]]; then
+    printf 'Ultimas lineas de lanzadores. No se exportan sesiones ni cuentas.\n'
+    for name in steam cyberpunk; do
+        file=$HOME/.cache/ultra/$name.log
+        if [[ -f $file ]]; then printf '\n[%s]\n' "$name"; tail -n 60 -- "$file"; fi
+    done
+    printf '\nPara Warframe: Steam > Propiedades > Opciones de lanzamiento: PROTON_LOG=1 %%command%%\nReproduce el fallo y consulta ~/steam-230410.log; desactiva luego esa opcion.\nLos registros pueden contener rutas personales; revisalos antes de compartir.\n'
     exit 0
 fi
 if ! mountpoint -q /juegos || [[ $HOME != /juegos/usuarios/ultra ]]; then
@@ -26,6 +58,10 @@ fi
 mkdir -p "$HOME/.cache/ultra"
 case $action in
     steam) exec steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
+    warframe)
+        mountpoint -q /juegos/Warframe || { notify-send 'Warframe no disponible' 'Consulta Estado y espacio; C: y el ext4 deben estar montados.'; exit 1; }
+        [[ -f $HOME/Juegos/SteamLibrary/steamapps/appmanifest_230410.acf ]] || { notify-send 'Warframe: falta preparar' 'Usa Preparar Warframe de Windows en el menu de juegos.'; exit 1; }
+        exec steam steam://rungameid/230410 >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     gog) exec /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
     cyberpunk)
         game=/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe

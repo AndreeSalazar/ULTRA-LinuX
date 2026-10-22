@@ -24,3 +24,6 @@ evidencias/rebuild-2026-10-21/*.zip binary
 evidencias/grafica-nvme-2026-10-21/** text eol=lf
 evidencias/grafica-nvme-2026-10-21/**/*.png binary
 evidencias/grafica-nvme-2026-10-21/*.zip binary
+evidencias/warframe-2026-10-21/** text eol=lf
+evidencias/warframe-2026-10-21/**/*.png binary
+evidencias/warframe-2026-10-21/*.zip binary

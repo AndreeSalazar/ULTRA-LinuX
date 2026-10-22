@@ -1,0 +1,18 @@
+{
+  "banco_aislamiento": 15,
+  "perfiles": {
+    "generico": {
+      "arranque_escritorio": 115,
+      "warframe": 20,
+      "imagen_sha256": "d00e751c8f25f2eeb6b56bbcf2781204cf40f16a8cf695acd768a3501f774f7f"
+    },
+    "pc": {
+      "arranque_escritorio": 116,
+      "warframe": 20,
+      "imagen_sha256": "954d8d5ef5e029cbf75fdf1115a251b4869a80efbd72b7a4d5f837850eb66951"
+    }
+  },
+  "discos_fisicos_expuestos_en_pruebas": false,
+  "warframe_real_ejecutado": false,
+  "total": 286
+}

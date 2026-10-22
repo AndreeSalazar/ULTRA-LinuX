@@ -24,7 +24,9 @@ def main():
     assert not dependencies or preflight
     reuse = '--reanudar' in sys.argv or '--diagnostico' in sys.argv
     diagnose = '--diagnostico' in sys.argv
-    windows_test = '--windows' in sys.argv
+    warframe_test = '--warframe' in sys.argv
+    assert not warframe_test or not (preflight or dependencies), 'La prueba Warframe exige ayudantes nativos, sin inyeccion'
+    windows_test = '--windows' in sys.argv or warframe_test
     graphics_bank = '--banco-grafica' in sys.argv
     sys.argv = [sys.argv[0], profile, '--bmo']
     spec = importlib.util.spec_from_file_location('arranque', Path(__file__).with_name('probar_arranque.py'))
@@ -38,7 +40,7 @@ def main():
         with (base.ROOT/'vm/public/deps-steam.tar').open('rb') as stream:
             dependencies_digest = hashlib.file_digest(stream, 'sha256').hexdigest()
     config = json.loads((lab/'ntfs-lab.json').read_text())
-    windows_original = base.ROOT / 'build/juegos/windows.img'
+    windows_original = base.ROOT / ('build/warframe/windows.img' if warframe_test else 'build/juegos/windows.img')
     windows_copy = base.BUILD / 'windows-prueba.img'
     windows_before = None
     if windows_test:
@@ -208,6 +210,53 @@ def main():
             console.sendall(b'poweroff\n');transcript+=base.read_until(console,'APAGADO',30);process.wait(timeout=20)
             return
         setup()
+        if warframe_test:
+            # Focused native-image test: no injected helpers, real game or account.
+            out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-warframe; echo CAPA-RC-$?')
+            check('CAPA-RC-0' in out, 'kernel ULTRA monta overlay Warframe sobre NTFS protegido')
+            out = command(user+'/usr/local/bin/ultra-steam-warframe; echo BIBLIOTECA-RC-$?')
+            check('BIBLIOTECA-RC-0' in out, 'ayudante nativo prepara biblioteca Steam como UID1000')
+            out = command(user+"/usr/bin/bash -c 'set -e; echo CAMBIO-WARFRAME > /juegos/Warframe/Warframe.x64.exe; echo PERSISTE-WARFRAME > /juegos/Warframe/prueba.txt; echo CAPA-ESCRITA-$((6*7))'")
+            check('CAPA-ESCRITA-42' in out, 'escrituras de Warframe se admiten en la capa ext4')
+            original = '/windows/Program Files (x86)/Steam/steamapps/common/Warframe/Warframe.x64.exe'
+            out = command(user+f'/usr/bin/cat "{original}"')
+            check('WARFRAME-SINTETICO' in out, 'ejecutable original permanece intacto')
+            out = command(user+"/usr/bin/bash -c 'readlink \"$HOME/Juegos/SteamLibrary/steamapps/common/Warframe\"; cat \"$HOME/Juegos/SteamLibrary/steamapps/appmanifest_230410.acf\"'")
+            check('/juegos/Warframe' in out and '9876543210' in out and 'CUENTA-SINTETICA' not in out,
+                  'metadatos publicos y enlace importados sin cuenta Windows')
+            out = command(user+'/usr/local/bin/ultra-juegos estado', 45)
+            check('[RAM:' in out and 'Mem:' in out and '[VRAM:' in out and '/juegos/Warframe' in out
+                  and 'command not found' not in out,
+                  'diagnostico nativo distingue discos, RAM, VRAM y biblioteca')
+            command('ultra-entrar /usr/bin/install -m 0755 /usr/bin/sleep /tmp/steam')
+            command(user+'/tmp/steam 60 &')
+            out = command(user+'/usr/local/bin/ultra-steam-warframe; echo STEAM-ABIERTO-RC-$?')
+            check('STEAM-ABIERTO-RC-1' in out and 'cierra Steam' in out,
+                  'imagen nativa rechaza modificar la biblioteca con proceso Steam activo')
+            command('ultra-entrar /usr/bin/pkill -u 1000 -x steam')
+            console.sendall(b'reboot\n')
+            transcript += base.read_until(console, 'Restarting system', 40)
+            process.wait(timeout=20); console.close(); monitor.close()
+            game_unmount = transcript.rfind('VERDE [JUEGOS]: Warframe desmontado')
+            windows_unmount = transcript.rfind('VERDE [WINDOWS]: NVMe desmontado')
+            check(0 <= game_unmount < windows_unmount, 'PID1 desmonta Warframe antes de Windows al reiniciar')
+            start(); setup()
+            out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-warframe; '+user+'/usr/bin/cat /juegos/Warframe/prueba.txt /juegos/Warframe/Warframe.x64.exe')
+            check('PERSISTE-WARFRAME' in out and 'CAMBIO-WARFRAME' in out, 'capa de Warframe persiste tras reinicio real')
+            console.sendall(b'poweroff\n')
+            transcript += base.read_until(console, 'APAGADO', 30)
+            process.wait(timeout=20)
+            with windows_copy.open('rb') as stream:
+                windows_after = hashlib.file_digest(stream, 'sha256').hexdigest()
+            check(windows_after == windows_before, 'SHA256 del NTFS sintetico completo inalterado en ambos arranques')
+            with base.IMG.open('rb') as stream:
+                image_hash = hashlib.file_digest(stream, 'sha256').hexdigest()
+            result = {'perfil': profile, 'pruebas': results, 'disco_real_expuesto': False,
+                      'imagen_sha256': image_hash, 'windows_ficticio_sha256_antes_despues': windows_after,
+                      'juego_real_ejecutado': False, 'helpers_inyectados': False,
+                      'almacen_sintetico_reutilizado': reuse}
+            (base.BUILD/'warframe-boot-resultados.json').write_text(json.dumps(result, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+            return
         out = command(user+"/usr/bin/bash -c 'set -e; echo PERSISTENCIA-BMO > /juegos/usuarios/ultra/prueba.txt; echo ESCRITURA-OVERLAY > /juegos/Cyberpunk2077/prueba.txt; test ! -x /run/ultra-juegos && echo D-PRIVADO-$((6*7))'")
         check('D-PRIVADO-42' in out, 'UID1000 escribe en ext4 y no puede recorrer D:')
         out = command(user+"/usr/bin/bash -c 'mkdir -p \"$HOME/.local/state/prueba\" \"$HOME/Juegos/cliente\" && echo PADRES-$((6*7))'")
@@ -311,7 +360,7 @@ def main():
                 process.wait(timeout=20)
             except (OSError,base.Incomplete,subprocess.TimeoutExpired):
                 process.kill(); process.wait(timeout=10)
-        (base.BUILD/'audio-juegos.log').write_text(transcript,encoding='utf-8')
+        (base.BUILD/('warframe-boot.log' if warframe_test else 'audio-juegos.log')).write_text(transcript,encoding='utf-8')
 
 
 if __name__=='__main__': main()

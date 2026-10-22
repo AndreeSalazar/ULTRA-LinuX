@@ -1,0 +1,56 @@
+AMARILLO [WARFRAME]: destino simbolico rechazado
+PASS 1 rechaza destino simbolico privilegiado
+AMARILLO [WARFRAME]: destino modificable por terceros
+PASS 2 rechaza padre modificable por usuario
+VERDE [WARFRAME]: originales C: solo lectura; escrituras en ext4; Steam/Proton pendientes de verificar
+PASS 3 overlay real NTFS solo lectura + ext4
+PASS 4 preparacion repetida idempotente
+/var/tmp/ultra-warframe.uyiWie/root/juegos 0:0 755
+/var/tmp/ultra-warframe.uyiWie/root/juegos/Warframe 1000:1000 755
+/var/tmp/ultra-warframe.uyiWie/root/juegos/Warframe/Warframe.x64.exe 1000:1000 644
+/var/tmp/ultra-warframe.uyiWie/root/windows/Program Files (x86)/Steam/steamapps/common/Warframe/Warframe.x64.exe 1000:1000 644
+PASS 5 escrituras del usuario aisladas de C:
+
+Biblioteca preparada: /juegos/usuarios/ultra/Juegos/SteamLibrary
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/loop1      488M  228K  452M   1% /juegos
+
+Registro de Windows importado; todavia no verificado por Steam de Linux.
+En Steam: Ajustes > Almacenamiento > agregar esta carpeta.
+Selecciona Proton en Propiedades > Compatibilidad de Warframe.
+Usa Archivos instalados > Verificar integridad antes de jugar.
+Si aparece Instalar, elige esta biblioteca para descubrir los archivos existentes.
+No se acredita compatibilidad ni espacio suficiente para una actualizacion completa.
+C: permanece solo lectura; NO elijas la biblioteca original de /windows.
+Failed to show notification: Cannot spawn a message bus without a machine-id: Unable to load /var/lib/dbus/machine-id or /etc/machine-id: Failed to open file “/var/lib/dbus/machine-id”: No such file or directory
+PASS 6 biblioteca sin cuentas ni manifiestos Windows
+PASS 7 enlace al juego y compatdata ext4
+AMARILLO [WARFRAME]: ya existe otro destino Warframe; se conserva
+PASS 8 conserva instalaciones previas en el destino
+
+Biblioteca preparada: /juegos/usuarios/ultra/Juegos/SteamLibrary
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/loop1      488M  232K  452M   1% /juegos
+
+Registro de Windows importado; todavia no verificado por Steam de Linux.
+En Steam: Ajustes > Almacenamiento > agregar esta carpeta.
+Selecciona Proton en Propiedades > Compatibilidad de Warframe.
+Usa Archivos instalados > Verificar integridad antes de jugar.
+Si aparece Instalar, elige esta biblioteca para descubrir los archivos existentes.
+No se acredita compatibilidad ni espacio suficiente para una actualizacion completa.
+C: permanece solo lectura; NO elijas la biblioteca original de /windows.
+Failed to show notification: Cannot spawn a message bus without a machine-id: Unable to load /var/lib/dbus/machine-id or /etc/machine-id: Failed to open file “/var/lib/dbus/machine-id”: No such file or directory
+PASS 9 no sobreescribe manifiesto existente
+AMARILLO [WARFRAME]: cierra Steam completamente antes de preparar la biblioteca; vuelve a intentarlo desde este menu
+PASS 10 rechaza preparacion con Steam activo
+AMARILLO [WARFRAME]: no se preparo la capa del juego; consulta Estado y espacio
+PASS 11 rechaza biblioteca sin overlay
+AMARILLO [WARFRAME]: Windows actualizo el juego: conservar la capa y revisar antes de reutilizarla
+PASS 12 rechaza mezcla con otra version Windows sin borrar la capa
+VERDE [WARFRAME]: originales C: solo lectura; escrituras en ext4; Steam/Proton pendientes de verificar
+PASS 13 capa persistente tras desmontar/remontar
+AMARILLO [WARFRAME]: C: no esta montado
+PASS 14 rechaza Windows ausente
+PASS 15 SHA256 NTFS completo inalterado
+RESULTADO: 15 comprobaciones; sin juego real, cuenta ni GPU fisica
+Banco sintetico conservado: /var/tmp/ultra-warframe.uyiWie

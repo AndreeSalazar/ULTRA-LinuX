@@ -1,0 +1,31 @@
+{
+  "perfil": "pc",
+  "pruebas": [
+    "NTFS identificado y ext4 montado sin formatear",
+    "NVMe Windows ficticio identificado por UUID y montado",
+    "Windows legible por UID1000 con dispositivo NVMe de solo lectura",
+    "Windows rechaza escrituras de aplicaciones",
+    "NVMe ficticio rechaza escritura directa incluso del preparador root",
+    "kernel ULTRA monta overlay Warframe sobre NTFS protegido",
+    "ayudante nativo prepara biblioteca Steam como UID1000",
+    "escrituras de Warframe se admiten en la capa ext4",
+    "ejecutable original permanece intacto",
+    "metadatos publicos y enlace importados sin cuenta Windows",
+    "diagnostico nativo distingue discos, RAM, VRAM y biblioteca",
+    "imagen nativa rechaza modificar la biblioteca con proceso Steam activo",
+    "PID1 desmonta Warframe antes de Windows al reiniciar",
+    "NTFS identificado y ext4 montado sin formatear",
+    "NVMe Windows ficticio identificado por UUID y montado",
+    "Windows legible por UID1000 con dispositivo NVMe de solo lectura",
+    "Windows rechaza escrituras de aplicaciones",
+    "NVMe ficticio rechaza escritura directa incluso del preparador root",
+    "capa de Warframe persiste tras reinicio real",
+    "SHA256 del NTFS sintetico completo inalterado en ambos arranques"
+  ],
+  "disco_real_expuesto": false,
+  "imagen_sha256": "954d8d5ef5e029cbf75fdf1115a251b4869a80efbd72b7a4d5f837850eb66951",
+  "windows_ficticio_sha256_antes_despues": "c2a01733f9690b3a91acdbc577f95f7d67c72e9f0b90e6e7c578427ee4c4300f",
+  "juego_real_ejecutado": false,
+  "helpers_inyectados": false,
+  "almacen_sintetico_reutilizado": true
+}

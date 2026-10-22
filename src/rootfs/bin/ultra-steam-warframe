@@ -1,0 +1,47 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Unprivileged library preparation. Never edits an active Steam configuration.
+set -euo pipefail
+[[ $(id -u) == 1000 && $HOME == /juegos/usuarios/ultra ]] || exit 1
+umask 077
+fail() { printf 'AMARILLO [WARFRAME]: %s\n' "$*"; exit 1; }
+mountpoint -q /juegos || fail 'falta almacenamiento persistente'
+mountpoint -q /juegos/Warframe || fail 'no se preparo la capa del juego; consulta Estado y espacio'
+[[ $(findmnt -n -o FSTYPE --mountpoint /juegos/Warframe) == overlay ]] || fail 'montaje del juego inesperado'
+# Refuse all changes while Steam may be writing library metadata.
+command -v pgrep >/dev/null || fail 'falta la herramienta para comprobar Steam activo; no se modifica la biblioteca'
+if pgrep -u 1000 -x steam >/dev/null; then
+    fail 'cierra Steam completamente antes de preparar la biblioteca; vuelve a intentarlo desde este menu'
+fi
+source='/windows/Program Files (x86)/Steam/steamapps/appmanifest_230410.acf'
+[[ -f $source ]] || fail 'falta el manifiesto de la instalacion Windows'
+field() { awk -v key="\"$1\"" '$1 == key {gsub(/"/, "", $2); print $2; exit}' "$source"; }
+[[ $(field appid) == 230410 && $(field StateFlags) == 4 ]] || fail 'Windows no declara Warframe instalado por completo'
+build=$(field buildid); size=$(field SizeOnDisk)
+depot=$(awk '$1 == "\"230411\"" {inside=1} inside && $1 == "\"manifest\"" {gsub(/"/, "", $2); print $2; exit}' "$source")
+depot_size=$(awk '$1 == "\"230411\"" {inside=1} inside && $1 == "\"size\"" {gsub(/"/, "", $2); print $2; exit}' "$source")
+for number in "$build" "$size" "$depot" "$depot_size"; do
+    [[ $number =~ ^[0-9]+$ ]] || fail 'metadatos del juego incompletos; se requiere revision manual'
+done
+library=$HOME/Juegos/SteamLibrary
+mkdir -p "$library/steamapps/common" "$library/steamapps/compatdata" "$library/steamapps/shadercache"
+link=$library/steamapps/common/Warframe
+if [[ -e $link || -L $link ]]; then
+    [[ -L $link && $(readlink -- "$link") == /juegos/Warframe ]] || fail 'ya existe otro destino Warframe; se conserva'
+else
+    ln -s /juegos/Warframe "$link"
+fi
+manifest=$library/steamapps/appmanifest_230410.acf
+if [[ ! -e $manifest && ! -L $manifest ]]; then
+    # Only public game identity; no Windows account/session/config files copied.
+    # Import the Windows installation record; this does NOT verify Linux execution.
+    tmp=$(mktemp "$library/steamapps/.warframe.XXXXXX")
+    trap 'rm -f -- "$tmp"' EXIT
+    printf '"AppState"\n{\n\t"appid" "230410"\n\t"name" "Warframe"\n\t"StateFlags" "4"\n\t"installdir" "Warframe"\n\t"buildid" "%s"\n\t"SizeOnDisk" "%s"\n\t"InstalledDepots"\n\t{\n\t\t"230411"\n\t\t{\n\t\t\t"manifest" "%s"\n\t\t\t"size" "%s"\n\t\t}\n\t}\n}\n' "$build" "$size" "$depot" "$depot_size" > "$tmp"
+    # Hard-link publication never replaces a manifest created concurrently.
+    ln -- "$tmp" "$manifest" || fail 'Steam creo un manifiesto; se conserva'
+fi
+printf '\nBiblioteca preparada: %s\n' "$library"
+df -h /juegos
+printf '\nRegistro de Windows importado; todavia no verificado por Steam de Linux.\nEn Steam: Ajustes > Almacenamiento > agregar esta carpeta.\nSelecciona Proton en Propiedades > Compatibilidad de Warframe.\nUsa Archivos instalados > Verificar integridad antes de jugar.\nSi aparece Instalar, elige esta biblioteca para descubrir los archivos existentes.\nNo se acredita compatibilidad ni espacio suficiente para una actualizacion completa.\nC: permanece solo lectura; NO elijas la biblioteca original de /windows.\n'
+notify-send 'Warframe: biblioteca preparada' 'Agrega ~/Juegos/SteamLibrary en Almacenamiento de Steam y verifica Warframe con Proton.' || true

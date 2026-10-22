@@ -1,0 +1,52 @@
+[
+  {
+    "sha256": "cb330cb7bc815bf5e344d67d15f3ded651b208c2175712b449b2f5b91dd7fe79",
+    "ruta": "usr/local/bin/ultra-juegos",
+    "perfil": "generico"
+  },
+  {
+    "sha256": "ff20c5e2c2a1bcf8e84f451cc725b850df827c469ae6ccd3773d6ec1b63fe5c4",
+    "ruta": "usr/local/libexec/ultra-sesion",
+    "perfil": "generico"
+  },
+  {
+    "sha256": "dc1e2e4e26158c754bc64a583e2709f0f8eef056637ab39146eeb2b40ffe5b9d",
+    "ruta": "usr/local/libexec/ultra-informe-gpu",
+    "perfil": "generico"
+  },
+  {
+    "sha256": "0cbf1ecbde1aff43dd4fa3548ca9f0b975e585fc6742ba5a8d9d3f4b34c0ecbc",
+    "ruta": "usr/local/bin/ultra-steam-warframe",
+    "perfil": "generico"
+  },
+  {
+    "sha256": "91525f37c60089aef06755e576ec776a73a42c78520863e3c74381b8443b1c1d",
+    "ruta": "usr/local/libexec/ultra-preparar-warframe",
+    "perfil": "generico"
+  },
+  {
+    "sha256": "cb330cb7bc815bf5e344d67d15f3ded651b208c2175712b449b2f5b91dd7fe79",
+    "ruta": "usr/local/bin/ultra-juegos",
+    "perfil": "pc"
+  },
+  {
+    "sha256": "ff20c5e2c2a1bcf8e84f451cc725b850df827c469ae6ccd3773d6ec1b63fe5c4",
+    "ruta": "usr/local/libexec/ultra-sesion",
+    "perfil": "pc"
+  },
+  {
+    "sha256": "dc1e2e4e26158c754bc64a583e2709f0f8eef056637ab39146eeb2b40ffe5b9d",
+    "ruta": "usr/local/libexec/ultra-informe-gpu",
+    "perfil": "pc"
+  },
+  {
+    "sha256": "0cbf1ecbde1aff43dd4fa3548ca9f0b975e585fc6742ba5a8d9d3f4b34c0ecbc",
+    "ruta": "usr/local/bin/ultra-steam-warframe",
+    "perfil": "pc"
+  },
+  {
+    "sha256": "91525f37c60089aef06755e576ec776a73a42c78520863e3c74381b8443b1c1d",
+    "ruta": "usr/local/libexec/ultra-preparar-warframe",
+    "perfil": "pc"
+  }
+]

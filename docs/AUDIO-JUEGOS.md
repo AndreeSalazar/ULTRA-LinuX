@@ -1,5 +1,10 @@
 # Audio maestro, Steam y GOG en BMO-X
 
+La ampliacion posterior de [Steam y Warframe desde Windows](STEAM-WINDOWS.md)
+documenta el nuevo menu, la biblioteca Linux y las escrituras separadas en ext4.
+Los resultados de audio de este documento corresponden a su ronda historica;
+la nueva ronda de arranque y juegos esta en `evidencias/warframe-2026-10-21`.
+
 El informe fisico de esta ronda identifica un GeneralPlus USB Audio Device
 1b3f:2008 y dos controladores HDA (NVIDIA y AMD). El kernel anterior incluia
 el controlador HDA, pero no sus codecs Realtek/HDMI/generico ni SND_USB_AUDIO.

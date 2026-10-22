@@ -20,17 +20,17 @@ release=$(cat kernelrelease.txt)
 kernel_before=$(sha256sum bzImage-tiny64)
 rm -f build-complete
 sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
-    -S --needed --noconfirm papirus-icon-theme otf-font-awesome mako libnotify gawk lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk
+    -S --needed --noconfirm papirus-icon-theme otf-font-awesome mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk
 if sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -Q woff2-font-awesome >/dev/null 2>&1; then
     sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -R --noconfirm woff2-font-awesome
 fi
 sudo install -m 0644 "$lab/rootfs/desktop/"* "$art/sistema-a/etc/ultra/"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$art/sistema-a/usr/local/bin/ultra-ambiente"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-hyprland" "$art/sistema-a/usr/local/libexec/ultra-hyprland"
-for helper in ultra-preparar-windows ultra-iniciar-escritorio; do
+for helper in ultra-preparar-windows ultra-preparar-warframe ultra-iniciar-escritorio; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/libexec/$helper"
 done
-for helper in ultra-graficos ultra-windows; do
+for helper in ultra-graficos ultra-windows ultra-steam-warframe; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/bin/$helper"
 done
 for helper in "$lab/rootfs/bin/"*; do

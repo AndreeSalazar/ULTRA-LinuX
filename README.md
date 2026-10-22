@@ -38,6 +38,18 @@ Vulkan/OpenGL, validación por proceso, corrección de la activación de portale
 Wayland y acceso a Windows C: en solo lectura. El laboratorio C++ prueba EGL
 y Vulkan con render por CPU, separado de la RTX y del escritorio.
 
+La integracion de [Warframe y Steam con Windows](docs/STEAM-WINDOWS.md) agrega
+opciones al menu Super+J para preparar su biblioteca, iniciarlo mediante Steam
+y consultar discos, espacio, RAM, VRAM y registros. Reutiliza el juego de C:
+con una capa de escritura en ext4 y conserva Windows en solo lectura. Importar
+sus metadatos no acredita todavia el arranque de Warframe con Proton en el PC.
+
+Esta [ronda de Steam y Warframe](evidencias/warframe-2026-10-21/README.md) paso
+**286 comprobaciones**, incluidas las de arranque y escritorio de ambos perfiles.
+Las imagenes estan instaladas en A: con hashes verificados y datos conservados.
+
+![Menu de juegos con preparacion de Warframe y diagnostico](evidencias/warframe-2026-10-21/generico/juegos.png)
+
 | Área | Estado y evidencia |
 |---|---|
 | Arranque | UEFI, init C, consola BusyBox y perfiles genérico/PC; probado en QEMU y PC real |

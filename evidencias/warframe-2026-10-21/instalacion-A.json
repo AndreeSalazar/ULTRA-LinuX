@@ -1,0 +1,29 @@
+{
+  "fecha_utc": "2026-10-22T02:11:42.534909+00:00",
+  "archivos": [
+    {
+      "perfil": "generico",
+      "archivo_A": "A:\\EFI\\ULTRA\\ULTRA.EFI",
+      "sha256": "a05dda7ec929354f828a8c3fcb9ef9e38e110e55d6ec7737231738724f7283aa"
+    },
+    {
+      "perfil": "generico",
+      "archivo_A": "A:\\ULTRA\\sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "sha256": "6f6bec2eeaa08a56190bfff4bd61935f3c69f3b92fa5f04db4c6ec5f7f697107"
+    },
+    {
+      "perfil": "pc",
+      "archivo_A": "A:\\EFI\\ULTRA\\ULTRA-PC.EFI",
+      "sha256": "27a25b933f5fb7a47ac5280987e21bf594debc484e5026c025b079b527e1e9d4"
+    },
+    {
+      "perfil": "pc",
+      "archivo_A": "A:\\ULTRA\\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "sha256": "2e6b03fd1f00531625ea137fedb9f83eb4bdeda7baae45e4c1249879220ccd24"
+    }
+  ],
+  "datos_ext4_preservados_sha256": "e5ee9c8e24d8077c769d3a54c7a204f7be479c1904b287cab2ff286d17200160",
+  "particiones_formateadas": false,
+  "entradas_firmware_modificadas": false,
+  "imagen_personal_juegos_D_reemplazada": false
+}

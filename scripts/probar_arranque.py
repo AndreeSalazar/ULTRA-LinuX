@@ -547,6 +547,23 @@ def check_hyprland(conn, failures):
         mon.sendall(b'sendkey esc\n')
         time.sleep(.4)
         transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo BMO-APPS-CERRADO-$((10+6))', 'BMO-APPS-CERRADO-16')], failures)
+        mon.sendall(b'sendkey meta_l-j\n')
+        time.sleep(1)
+        transcript += run(conn, [('test -n "$(pidof fuzzel)" && echo JUEGOS-MENU-$((10+7))', 'JUEGOS-MENU-17')], failures)
+        games_capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-juegos-menu.png'
+        games_capture.unlink(missing_ok=True)
+        mon.sendall(f'screendump {games_capture} -f png\n'.encode())
+        for _ in range(50):
+            try:
+                from PIL import Image
+                with Image.open(games_capture) as shot: shot.verify()
+                break
+            except (OSError, SyntaxError): time.sleep(.1)
+        else: raise ValueError('captura del menu de juegos incompleta')
+        shutil.copyfile(games_capture, LOG.with_name(LOG.stem + '-juegos.png'))
+        mon.sendall(b'sendkey esc\n')
+        time.sleep(.4)
+        transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo JUEGOS-CERRADO-$((10+8))', 'JUEGOS-CERRADO-18')], failures)
         capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-hyprland.png'
         capture.unlink(missing_ok=True)
         mon.sendall(f'screendump {capture} -f png\n'.encode())
