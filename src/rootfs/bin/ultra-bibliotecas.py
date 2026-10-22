@@ -174,7 +174,7 @@ def enumerate_volumes():
             else:
                 # Reuse C: and D: mounts; D: must stay writable privately for the ext4 image.
                 source = None
-                for candidate in (Path('/windows'), Path('/run/ultra-juegos/volumen')):
+                for candidate in (Path('/windows'), Path('/run/ultra-juegos/volumen'), Path('/run/ultra-juegos/originales')):
                     view = mounted(candidate)
                     if view and view.get('uuid') == uuid:
                         source = candidate
@@ -400,6 +400,35 @@ def write_vdf(value, depth=0):
         else:
             lines.append(prefix+'\t\t'+quote(item))
     return '\n'.join(lines)+'\n'
+
+
+def find_steam_app(appid):
+    user_config()
+    if not re.fullmatch(r'[0-9]{1,10}', appid):
+        raise ValueError('AppID invalido')
+    libraries = []
+    for item in read_json(CATALOG).get('folders', []):
+        if item.get('kind') == 'steam' and item.get('status') == 'activa':
+            expected = selection(item)
+            library = TARGETS/expected['id']
+            if item.get('path') == str(library):
+                libraries.append(library)
+    libraries.append(HOME/'Juegos/SteamLibrary')
+    for library in libraries:
+        manifest = library/'steamapps'/f'appmanifest_{appid}.acf'
+        if not manifest.is_file() or manifest.is_symlink():
+            continue
+        state = read_vdf(manifest).get('AppState', {})
+        if not isinstance(state, dict) or state.get('appid') != appid:
+            continue
+        install = state.get('installdir', '')
+        if (not isinstance(install, str) or not install or '/' in install or '\\' in install
+                or install in ('.', '..')):
+            continue
+        if (library/'steamapps/common'/install).is_dir():
+            print(str(library))
+            return
+    raise ValueError('juego sin manifiesto y carpeta en las bibliotecas activas; revisa el selector de discos')
 
 
 def register_steam():
@@ -635,6 +664,8 @@ def main():
         ui()
     elif action == 'registrar-steam':
         register_steam()
+    elif action == 'buscar-steam' and len(sys.argv) == 3:
+        find_steam_app(sys.argv[2])
     else:
         raise ValueError('accion desconocida')
 

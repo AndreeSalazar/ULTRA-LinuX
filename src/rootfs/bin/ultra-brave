@@ -10,6 +10,12 @@ for arg in "$@"; do
     [[ $arg != -* ]] || { echo 'ROJO [BRAVE]: usa direcciones, no banderas del navegador'; exit 2; }
 done
 [[ $# -gt 0 ]] || set -- file:///etc/ultra/inicio.html
+available_kib=$(df -Pk -- "$HOME" | awk 'END {print $4}')
+if [[ ! $available_kib =~ ^[0-9]+$ ]] || ((available_kib < 262144)); then
+    echo 'ROJO [BRAVE]: quedan menos de 256 MiB libres para el perfil; revisa Estado y espacio en Juegos'
+    notify-send --urgency=critical 'Brave: falta espacio' 'El perfil y la cache necesitan espacio libre. Abre Juegos > Estado y espacio.' || true
+    exit 1
+fi
 umask 077
 # Keep the upstream profile location, including profiles created before this wrapper.
 profile="${XDG_CONFIG_HOME:-$HOME/.config}/BraveSoftware/Brave-Browser"

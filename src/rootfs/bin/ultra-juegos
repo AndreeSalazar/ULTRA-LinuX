@@ -58,16 +58,25 @@ if ! mountpoint -q /juegos || [[ $HOME != /juegos/usuarios/ultra ]]; then
     notify-send --urgency=critical 'Juegos: falta almacenamiento' 'No se montó la imagen persistente de D:. Consulta el informe; no se descargan clientes a RAM.' || true
     exit 1
 fi
+available_kib=$(df -Pk -- /juegos | awk 'END {print $4}')
+if [[ ! $available_kib =~ ^[0-9]+$ ]] || ((available_kib < 2097152)); then
+    notify-send --urgency=critical 'Juegos: poco espacio' 'Quedan menos de 2 GiB. Las actualizaciones pueden fallar con errores de E/S. Revisa Estado y espacio.' || true
+    [[ $action != warframe && $action != cyberpunk ]] || exit 1
+fi
 mkdir -p "$HOME/.cache/ultra"
+if [[ $action == steam || $action == warframe ]]; then
+    if ! ultra-bibliotecas registrar-steam > "$HOME/.cache/ultra/steam-bibliotecas.log" 2>&1; then
+        notify-send 'Steam: revisar bibliotecas' 'No se completo el registro automatico. Consulta Registros de juegos.' || true
+    fi
+fi
 case $action in
     steam)
-        if ! ultra-bibliotecas registrar-steam > "$HOME/.cache/ultra/steam-bibliotecas.log" 2>&1; then
-            notify-send 'Steam: revisar bibliotecas' 'No se completo el registro automatico. Consulta Registros de juegos.' || true
-        fi
         exec steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     warframe)
-        mountpoint -q /juegos/Warframe || { notify-send 'Warframe no disponible' 'Consulta Estado y espacio; C: y el ext4 deben estar montados.'; exit 1; }
-        [[ -f $HOME/Juegos/SteamLibrary/steamapps/appmanifest_230410.acf ]] || { notify-send 'Warframe: falta preparar' 'Usa Preparar Warframe de Windows en el menu de juegos.'; exit 1; }
+        if ! ultra-bibliotecas buscar-steam 230410; then
+            notify-send 'Warframe: biblioteca no encontrada' 'Selecciona su carpeta Steam desde Discos y carpetas; cierra Steam y vuelve a abrirlo.' || true
+            exit 1
+        fi
         exec steam steam://rungameid/230410 >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     gog) exec /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
     cyberpunk)

@@ -1,0 +1,34 @@
+{
+  "perfil": "generico",
+  "pruebas": [
+    "NTFS identificado y ext4 montado sin formatear",
+    "almacen en subcarpeta de C: y vista Windows preparada",
+    "vista C: rechaza escritura con contenedor ext4 activo",
+    "archivo ext4 sigue escribible sin desproteger la vista Windows",
+    "fuente nativa coincide: ultra-preparar-juegos",
+    "fuente nativa coincide: ultra-preparar-windows",
+    "fuente nativa coincide: ultra-bibliotecas.py",
+    "fuente nativa coincide: ultra-brave",
+    "fuente nativa coincide: ultra-juegos",
+    "Brave detecta falta de espacio antes de abrir su perfil",
+    "escritorio inicia con home del contenedor en C:",
+    "Brave abre en Wayland con perfil persistente y espacio suficiente",
+    "PID1 desmonta ext4 y volumen NTFS del contenedor al reiniciar",
+    "NTFS identificado y ext4 montado sin formatear",
+    "almacen en subcarpeta de C: y vista Windows preparada",
+    "vista C: rechaza escritura con contenedor ext4 activo",
+    "archivo ext4 sigue escribible sin desproteger la vista Windows",
+    "datos del contenedor en C: sobreviven a un reinicio real"
+  ],
+  "disco_real_expuesto": false,
+  "helpers_inyectados": false,
+  "imagen_sha256": "989479bab230aeb0623fc85f853df72739192eaf3c456cb349eeb0a5d48fa025",
+  "fuentes_sha256": {
+    "ultra-preparar-juegos": "2d5e38a8b65375bca25c5af2db28701baa8f723c04d38f0b8b41339be8a0b419",
+    "ultra-preparar-windows": "496436556ce9e4ee39c313daa64d73f3259d77f7b45ea5e298c4109566870d6e",
+    "ultra-bibliotecas.py": "0bda5b5beaf5d080ce84a6de17bee423360c1a09ce47d94faf896320f322d77c",
+    "ultra-brave": "c0862157a5e8bcb07dc2730f2555937526580269f34231499cf192a61ca25b56",
+    "ultra-juegos": "d8bb40958e922dac9e38629d032708457b7f490dd1a89ecf695412a610b58e58"
+  },
+  "almacen_c_ficticio": true
+}

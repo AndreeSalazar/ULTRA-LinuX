@@ -1,0 +1,11 @@
+{
+  "candidato_bytes": 103079215104,
+  "uuid": "ecbc9f71-f43c-4d20-9b71-a7929f264ba8",
+  "bloques_fs": 24722899,
+  "bloque_bytes": 4096,
+  "disponible_usuario_bytes": 86575235072,
+  "fsck_posterior": 0,
+  "red": false,
+  "clientes_ejecutados": false,
+  "D_adjuntado": false
+}

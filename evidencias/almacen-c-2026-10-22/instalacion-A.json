@@ -1,0 +1,38 @@
+{
+  "fecha_lima": "2026-10-22T09:52:54.4533155-05:00",
+  "archivos": [
+    {
+      "archivo": "A:/EFI/ULTRA/ULTRA.EFI",
+      "sha256": "c31e7131630e7cb44bbe435e1bfc7698a96a9a5c4a46195619c1d753fe138db4",
+      "perfil": "generico"
+    },
+    {
+      "archivo": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "sha256": "a3033790ba7ed65b2c3fb0cd4b7bf883de52be03bfb6bbcfa8e7ae9447921e28",
+      "perfil": "generico"
+    },
+    {
+      "archivo": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "sha256": "7077278e611cf30dd87c23b4032a9c44eff59ea78091d5c201dc098489255b9b",
+      "perfil": "pc"
+    },
+    {
+      "archivo": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "sha256": "95569d50cf9e602848a6ef33d1cff158a07137dc7cc9a2e30af6577c2b3b2081",
+      "perfil": "pc"
+    }
+  ],
+  "datos_ext4_A_conservados_sha256": "3a3a847490b537dc52876bb4ae60e0fada93d215504f1a0746e3d8e41c1885c5",
+  "almacen_activo": "C:/Espacio para Linux/ULTRA-juegos.ext4",
+  "almacen_bytes": 103079215104,
+  "libre_usuario_verificado_bytes": 86575235072,
+  "original_D_conservado": true,
+  "respaldo_en_proyecto": true,
+  "pruebas_nativas": {
+    "pc": 18,
+    "generico": 18
+  },
+  "kernel_recompilado": false,
+  "particiones_modificadas": false,
+  "firmware_modificado": false
+}

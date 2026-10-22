@@ -1,0 +1,47 @@
+{
+  "informe_sha256": "541520fd787f0525fe1cffe6502bc7a1af4e121c6a230c741def163388d4e1d1",
+  "almacenamiento": {
+    "capacidad": "16G",
+    "usado": "16G",
+    "disponible": "0",
+    "porcentaje": "100%"
+  },
+  "juegos_en_registro": [
+    "Steamworks Common Redistributables",
+    "Warframe",
+    "Zenless Zone Zero",
+    "Left 4 Dead 2",
+    "Dota 2"
+  ],
+  "muestras_RAM": 69,
+  "muestras_GPU": 69,
+  "RAM_max_GiB": 4.975,
+  "VRAM_max_MiB": 559.0,
+  "GPU_uso_max_pct": 46.0,
+  "GPU_temperatura_max_C": 54.0,
+  "enlaces_Mbps_observados": [
+    100
+  ],
+  "trafico_por_interfaz": {
+    "enp37s0": {
+      "recibido_intervalos_GiB": 0.106,
+      "enviado_intervalos_GiB": 0.002,
+      "intervalos_s": 424.433,
+      "pico_rx_intervalo_MiB_s": 5.283
+    }
+  },
+  "ejecutable_warframe_observado": true,
+  "wine_observado": true,
+  "avisos": {
+    "pixman_rectangulo_invalido": false,
+    "kernel_Xid_observado": false,
+    "sin_espacio_observado": true
+  },
+  "limites": [
+    "Picos de muestras; no maximos continuos ni FPS.",
+    "Proceso presente no acredita partida, renderizado correcto o estabilidad.",
+    "El informe no desglosa que carpetas consumieron el espacio.",
+    "El trafico es de la interfaz completa, no se atribuye a Warframe.",
+    "Ausencia de error en este informe no prueba ausencia global de fallos."
+  ]
+}

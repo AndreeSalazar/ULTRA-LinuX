@@ -20,6 +20,20 @@ found=$(blkid -t "UUID=${uuid^^}" -o device || true)
 (( ${#devices[@]} == 1 )) || { echo 'AMARILLO [WINDOWS]: volumen ausente o ambiguo'; exit 1; }
 device=${devices[0]}
 [[ -b $device && $(blkid -s TYPE -o value "$device") == ntfs ]] || exit 1
+private=/run/ultra-juegos/volumen
+if mountpoint -q "$private" && [[ $(findmnt -n -o UUID --mountpoint "$private") == "${uuid^^}" ]]; then
+    # The authorized ext4 container lives on C:. Protect the public view with
+    # a read-only bind; setting the whole device read-only would break its loop.
+    install -d -m 0755 /windows
+    mount --bind "$private" /windows
+    if ! mount -o remount,bind,ro,nosuid,nodev,noexec /windows; then
+        umount /windows
+        exit 1
+    fi
+    echo 'VERDE [WINDOWS]: /windows solo lectura; volumen privado escribible para el archivo ext4 autorizado'
+    findmnt --mountpoint /windows --output TARGET,FSTYPE,OPTIONS
+    exit 0
+fi
 # Prevent even journal recovery from writing through this partition device.
 blockdev --setro "$device"
 [[ $(blockdev --getro "$device") == 1 ]] || exit 1

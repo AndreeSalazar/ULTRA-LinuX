@@ -15,7 +15,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-IMAGE = Path('D:/ULTRA-juegos.ext4')
+IMAGE = Path('C:/Espacio para Linux/ULTRA-juegos.ext4')
 UUID = 'ecbc9f71-f43c-4d20-9b71-a7929f264ba8'
 PORT = 15965
 BUCKETS = {

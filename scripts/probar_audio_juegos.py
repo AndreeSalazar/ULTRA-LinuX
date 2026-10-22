@@ -20,6 +20,7 @@ import struct
 def main():
     profile = sys.argv[1]
     preflight = '--prevalidar' in sys.argv
+    storage_c = '--almacen-c' in sys.argv
     dependencies = '--deps-steam' in sys.argv
     assert not dependencies or preflight
     reuse = '--reanudar' in sys.argv or '--diagnostico' in sys.argv
@@ -128,10 +129,22 @@ def main():
             out=command('ultra-entrar /usr/bin/curl --fail --silent --max-time 30 http://10.0.2.2:18765/deps-steam.tar -o /tmp/deps-steam.tar; ultra-entrar /usr/bin/sha256sum /tmp/deps-steam.tar')
             assert dependencies_digest in out
             command('busybox tar -xf /arch/tmp/deps-steam.tar -C /arch')
+        if storage_c:
+            command("ultra-entrar /usr/bin/mkdir -p /mnt/almacen-c; ultra-entrar /usr/bin/mount -t ntfs3 -o rw /dev/vdb /mnt/almacen-c")
+            command("ultra-entrar /usr/bin/mkdir -p '/mnt/almacen-c/Espacio para Linux'; ultra-entrar /usr/bin/bash -c '[[ ! -f /mnt/almacen-c/ULTRA-juegos.ext4 ]] || mv /mnt/almacen-c/ULTRA-juegos.ext4 \"/mnt/almacen-c/Espacio para Linux/ULTRA-juegos.ext4\"'; ultra-entrar /usr/bin/umount /mnt/almacen-c")
+            config['image_path'] = 'Espacio para Linux/ULTRA-juegos.ext4'
+            command(f"printf 'uuid={config['uuid']}\\n' > /arch/etc/ultra/windows.conf")
         content = ''.join(f'{k}={v}\\n' for k, v in config.items())
         command(f"printf '{content}' > /arch/etc/ultra/juegos.conf")
         out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-juegos; echo MONTAJE-RC-$?', 40)
         check('MONTAJE-RC-0' in out, 'NTFS identificado y ext4 montado sin formatear')
+        if storage_c:
+            out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-windows; echo WINDOWS-C-RC-$?')
+            check('WINDOWS-C-RC-0' in out, 'almacen en subcarpeta de C: y vista Windows preparada')
+            out = command(user+"/usr/bin/bash -c 'if touch /windows/prueba-prohibida; then exit 1; fi; echo C-PUBLICO-DENEGADO'")
+            check('C-PUBLICO-DENEGADO' in out and 'Read-only file system' in out, 'vista C: rechaza escritura con contenedor ext4 activo')
+            out = command(user+"/usr/bin/bash -c 'echo C-EXT4-ESCRITURA > /juegos/usuarios/ultra/c-ext4.txt; cat /juegos/usuarios/ultra/c-ext4.txt'")
+            check('C-EXT4-ESCRITURA' in out, 'archivo ext4 sigue escribible sin desproteger la vista Windows')
         if windows_test:
             out = command('ultra-entrar /usr/bin/bash /usr/local/libexec/ultra-preparar-windows; echo WINDOWS-RC-$?')
             check('WINDOWS-RC-0' in out, 'NVMe Windows ficticio identificado por UUID y montado')
@@ -214,6 +227,38 @@ def main():
             console.sendall(b'poweroff\n');transcript+=base.read_until(console,'APAGADO',30);process.wait(timeout=20)
             return
         setup()
+        if storage_c:
+            assert not (preflight or dependencies or libraries_test or warframe_test or windows_test)
+            hashes = {}
+            for name in ('ultra-preparar-juegos', 'ultra-preparar-windows', 'ultra-bibliotecas.py', 'ultra-brave', 'ultra-juegos'):
+                expected = hashlib.sha256((base.ROOT/'src/rootfs/bin'/name).read_bytes()).hexdigest()
+                subdir = 'libexec' if name in ('ultra-preparar-juegos','ultra-preparar-windows','ultra-bibliotecas.py') else 'bin'
+                out = command(f'ultra-entrar /usr/bin/sha256sum /usr/local/{subdir}/{name}')
+                check(expected in out, 'fuente nativa coincide: '+name)
+                hashes[name] = expected
+            command('ultra-entrar /usr/bin/mkdir -p /run/brave-espacio; ultra-entrar /usr/bin/mount -t tmpfs -o size=128M,mode=0700,uid=1000,gid=1000 tmpfs /run/brave-espacio')
+            out = command(user+'/usr/bin/env HOME=/run/brave-espacio WAYLAND_DISPLAY=prueba /usr/local/bin/ultra-brave; echo BRAVE-ESPACIO-RC-$?')
+            check('ROJO [BRAVE]: quedan menos de 256 MiB' in out and 'BRAVE-ESPACIO-RC-1' in out, 'Brave detecta falta de espacio antes de abrir su perfil')
+            command('ultra-entrar /usr/bin/umount /run/brave-espacio')
+            command(user+"/usr/bin/bash -c 'echo PERSISTENCIA-C-NVME > \"$HOME/prueba-c.txt\"'")
+            command('ultra-escritorio --hyprland --software > /tmp/almacen-c-sesion.log 2>&1 &')
+            check(wait_app('foot',60), 'escritorio inicia con home del contenedor en C:')
+            command(ipc+'eval \'hl.exec_cmd("ultra-brave")\'')
+            check(wait_app('brave',90), 'Brave abre en Wayland con perfil persistente y espacio suficiente')
+            snapshot('almacen-c-brave.png')
+            console.sendall(b'reboot\n'); transcript += base.read_until(console,'Restarting system',40)
+            process.wait(timeout=20); console.close(); monitor.close()
+            check('VERDE [JUEGOS]: /arch/juegos' in transcript and 'VERDE [JUEGOS]: /arch/run/ultra-juegos/volumen' in transcript,
+                  'PID1 desmonta ext4 y volumen NTFS del contenedor al reiniciar')
+            start(); setup()
+            out = command(user+'/usr/bin/cat /juegos/usuarios/ultra/prueba-c.txt')
+            check('PERSISTENCIA-C-NVME' in out, 'datos del contenedor en C: sobreviven a un reinicio real')
+            console.sendall(b'poweroff\n'); transcript += base.read_until(console,'APAGADO',40); process.wait(timeout=20)
+            verified={Path(line.split()[1]).name:line.split()[0] for line in (base.BUILD/'SHA256SUMS').read_text().splitlines() if line.strip()}
+            result={'perfil':profile,'pruebas':results,'disco_real_expuesto':False,'helpers_inyectados':False,
+                    'imagen_sha256':verified[base.IMG.name],'fuentes_sha256':hashes,'almacen_c_ficticio':True}
+            (base.BUILD/'almacen-c-resultados.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+            return
         if libraries_test:
             if warm_udev:
                 command('ultra-entrar /usr/lib/systemd/systemd-udevd --daemon; ultra-entrar /usr/bin/udevadm trigger --action=add --type=devices; ultra-entrar /usr/bin/udevadm settle --timeout=15',30)

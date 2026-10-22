@@ -44,7 +44,7 @@ KINGSTON SNV2S1000G, cuya partición NTFS ShowOS tiene UUID D8BAB58CBAB567A0.
 No se elige un disco por su número o por su tamaño. Si no hay exactamente una
 partición NTFS con esa identidad, no se monta otro volumen como sustituto.
 
-El preparador pone el dispositivo de esa partición en modo de solo lectura
+En el perfil original, el preparador pone el dispositivo de esa partición en modo de solo lectura
 durante Linux, comprueba esa protección y monta /windows con ro,nosuid,nodev,
 noexec. No reparticiona, repara, fuerza hibernación ni cambia archivos o ajustes
 de Windows. Todo C: queda legible por las aplicaciones de la sesión: solo
@@ -55,8 +55,12 @@ Windows tenía Inicio rápido habilitado; no se modificó. Si el estado de NTFS
 impide montar, se registra el fallo y el escritorio continúa. Apagar Windows
 completamente antes de probar. No se fuerza el montaje de un volumen incoherente.
 
-El home y Proton continúan en el ext4 separado de D:. Abrir C: no traslada el
-home ni convierte sus juegos en instalaciones Linux. Un juego que necesite
+Desde la migracion documentada en [Almacenamiento en C:](ALMACENAMIENTO-C.md),
+el home y Proton usan un contenedor de 96 GiB en C:. Para permitir sus escrituras,
+el volumen tiene un montaje privado de root y `/windows` usa un bind de solo
+lectura; ya no se pone todo el dispositivo C: en modo de solo lectura en ese
+caso. Si el contenedor no comparte volumen, se conserva la proteccion anterior.
+Abrir C: no convierte sus juegos en instalaciones Linux. Un juego que necesite
 escribir junto a su ejecutable requerirá una capa específica o importación.
 
 ## Investigación C++ separada

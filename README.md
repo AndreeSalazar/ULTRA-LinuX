@@ -46,10 +46,15 @@ abre y cierra conservando la biblioteca en el banco sin una cuenta autenticada.
 El [informe fisico posterior](evidencias/sesion-steam-2026-10-22/README.md)
 registra cinco juegos y el proceso Warframe bajo Wine. El usuario confirma que
 su lanzador propio esta verificando archivos; aun no se acredita una partida.
-El ext4 termina con 2,8 GiB libres. Una inspeccion de mantenimiento sin red,
+Ese informe anterior termina con 2,8 GiB libres. Una inspeccion de mantenimiento sin red,
 con el archivo en solo lectura, identifica 6,56 GiB en la capa Steam, incluidos
 runtimes, cambios de Warframe, shaders y prefijos. Queda comprobar el progreso
-del verificador y decidir capacidad sin borrar datos ni suponer un fallo grafico.
+del verificador sin suponer un fallo grafico. Un [informe mas reciente](evidencias/almacen-c-2026-10-22/README.md)
+ya muestra el ext4 al 100 %. Se amplio una copia a 96 GiB en
+`C:\Espacio para Linux\ULTRA-juegos.ext4`, con 80,63 GiB disponibles al comprobarla.
+Ambos perfiles nuevos pasaron 18 pruebas cada uno de montaje, Brave y persistencia.
+El original de D: y el respaldo del proyecto se conservan; la partida de Warframe
+y el rendimiento del navegador en el PC aun deben confirmarse tras el arranque.
 
 La [auditoria Ethernet](docs/RED-RENDIMIENTO.md) identifica que el otro extremo
 del enlace anuncia 100 Mbps, mientras el PC anuncia 1 Gbps; Windows tambien
@@ -145,15 +150,26 @@ software sigue disponible si falla la ruta NVIDIA.
 
 Los sistemas se empaquetan en EROFS de solo lectura. `A:\ULTRA\datos.ext4`
 conserva el estado del arranque por separado. El archivo ordinario de 16 GiB
-`D:\ULTRA-juegos.ext4` aporta el home persistente en `/juegos/usuarios/ultra`,
+`D:\ULTRA-juegos.ext4` se conserva como copia anterior. El almacenamiento activo
+se amplia a **96 GiB** en `C:\Espacio para Linux\ULTRA-juegos.ext4` y aporta
+el home persistente en `/juegos/usuarios/ultra`,
 las configuraciones, clientes, partidas y prefijos. Sin él, el escritorio puede
 funcionar con un home temporal en RAM; los lanzadores de juegos evitan descargar allí.
 
 Cyberpunk de Windows se presenta mediante una capa overlay: la instalación de
 `D:\Cyberpunk 2077` se lee como base y las escrituras van al ext4 separado.
-No se reparticiona D:. El apagado desmonta overlay, ext4 y NTFS en ese orden.
-La imagen viva de D: contiene datos personales: no se sustituye por una imagen
+No se reparticionan discos. C: se monta de forma privada para escribir en el
+contenedor; `/windows` y el selector de discos lo presentan con un bind de solo
+lectura. Esto reemplaza la proteccion del dispositivo completo cuando el
+contenedor esta en C:. El apagado desmonta overlay, ext4 y su NTFS en ese orden.
+La imagen viva contiene datos personales: no se sustituye por una imagen
 vacía durante una actualización ni se utiliza en las pruebas desechables.
+
+El [cambio de almacenamiento](docs/ALMACENAMIENTO-C.md) responde a un informe
+con `/juegos` al 100 %. Brave avisa si quedan menos de 256 MiB; los accesos a
+Warframe y Cyberpunk se detienen por debajo de 2 GiB. Ese margen no garantiza
+espacio para cualquier actualizacion. El acceso Warframe busca tambien las
+bibliotecas del selector, sin exigir la carpeta antigua.
 
 El **proyecto de Windows es la copia principal** de fuentes, informes y respaldos;
 A: sirve para arrancar y probar. `privado/`, `build/` y `vm/` están excluidos de
