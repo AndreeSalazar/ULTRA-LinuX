@@ -26,7 +26,7 @@ canvas{width:100%;height:160px;display:block;background:#050a12;border-radius:4p
 <section class="card"><h2>Prueba de dibujo WebGL</h2><canvas id="lienzo" width="640" height="240"></canvas>
 <button id="probar">Dibujar otra vez</button><pre id="resultado">Preparando prueba…</pre>
 <p class="muted">El renderer puede estar oculto por la privacidad del navegador. La página de diagnóstico gráfico ofrece más información.</p></section></div>
-<p class="note">Sesión de pruebas: el perfil de Brave y las descargas están en memoria temporal. Se borran al apagar. Guarda fuera de esta sesión lo que necesites conservar.</p></main>
+<p class="note">El perfil de Brave sigue el almacenamiento de la sesión: se conserva con ULTRA-juegos.ext4 montado; sin él, está en RAM y se pierde al apagar. El llavero puede pedir crear una clave o desbloquearse al primer uso. Usa una clave no vacía para protegerlo.</p></main>
 <script>
 'use strict';
 const canvas=document.getElementById('lienzo'), output=document.getElementById('resultado');

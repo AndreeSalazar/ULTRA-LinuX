@@ -58,10 +58,11 @@ La arquitectura multiproceso se describe en la
 4. La pagina ofrece una prueba WebGL y un enlace a internet.
 5. Super+Q cierra la ventana. Super+Shift+M termina el escritorio; Q sale del menu.
 
-El perfil y las descargas siguen en el home temporal en RAM. No se migran
-datos personales ni se promete persistencia. La pagina y la ayuda lo indican.
+El perfil sigue el home activo: persistente con ULTRA-juegos.ext4 montado,
+temporal en RAM cuando ese almacenamiento falta. Se integra un llavero cifrado
+para las credenciales; consulta [persistencia y desbloqueo](BRAVE-PERSISTENCIA.md).
 El launcher fija Wayland y omite el asistente inicial; conserva el sandbox.
-Su registro temporal queda en /home/ultra/.cache/ultra/brave.log.
+Su registro queda en $HOME/.cache/ultra/brave.log.
 
 ## Red
 

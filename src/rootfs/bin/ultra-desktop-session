@@ -2,7 +2,11 @@
 # SPDX-License-Identifier: GPL-2.0-only
 set -uo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
+umask 077
 mkdir -p "$HOME/.cache/ultra"
+keyrings="${XDG_DATA_HOME:-$HOME/.local/share}/keyrings"
+mkdir -p "$keyrings"
+chmod 0700 "$keyrings"
 children=()
 finish() {
     wpctl status > "$XDG_RUNTIME_DIR/ultra-audio-estado.txt" 2>&1 || true
@@ -10,6 +14,10 @@ finish() {
     for pid in "${children[@]}"; do wait "$pid" 2>/dev/null || true; done
 }
 trap finish EXIT
+# No PAM password reaches this autologin desktop. Let the graphical prompt
+# create/unlock an encrypted keyring; never feed an empty password to the daemon.
+gnome-keyring-daemon --start --foreground --components=secrets \
+    > "$HOME/.cache/ultra/llavero.log" 2>&1 & children+=("$!")
 pipewire > "$HOME/.cache/ultra/pipewire.log" 2>&1 & children+=("$!")
 pipewire-pulse > "$HOME/.cache/ultra/pipewire-pulse.log" 2>&1 & children+=("$!")
 wireplumber > "$HOME/.cache/ultra/wireplumber.log" 2>&1 & children+=("$!")

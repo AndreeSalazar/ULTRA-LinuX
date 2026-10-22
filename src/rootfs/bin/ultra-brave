@@ -10,6 +10,18 @@ for arg in "$@"; do
     [[ $arg != -* ]] || { echo 'ROJO [BRAVE]: usa direcciones, no banderas del navegador'; exit 2; }
 done
 [[ $# -gt 0 ]] || set -- file:///etc/ultra/inicio.html
+umask 077
+# Keep the upstream profile location, including profiles created before this wrapper.
+profile="${XDG_CONFIG_HOME:-$HOME/.config}/BraveSoftware/Brave-Browser"
+mkdir -p "$profile"
 mkdir -p "$HOME/.cache/ultra"
-exec /opt/brave/brave --ozone-platform=wayland --no-first-run --no-default-browser-check "$@" \
+# The desktop starts Secret Service; do not silently start with a different store
+# when its startup failed. Ping does not read or unlock any saved credential.
+if ! dbus-send --session --print-reply --reply-timeout=5000 \
+    --dest=org.freedesktop.secrets /org/freedesktop/secrets org.freedesktop.DBus.Peer.Ping >/dev/null 2>&1; then
+    echo 'ROJO [BRAVE]: no responde el llavero; vuelve a entrar al escritorio'
+    exit 1
+fi
+exec /opt/brave/brave --ozone-platform=wayland --no-first-run --no-default-browser-check \
+    --user-data-dir="$profile" --password-store=gnome-libsecret "$@" \
     >> "$HOME/.cache/ultra/brave.log" 2>&1

@@ -211,7 +211,7 @@ if [[ -n $cmdline ]]; then
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
         pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
         steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk procps-ng vulkan-tools e2fsprogs
-        mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk)
+        mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")

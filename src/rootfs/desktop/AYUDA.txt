@@ -39,5 +39,7 @@ Sin ese almacenamiento la sesion usa un home temporal en RAM. No guardes aqui ar
 que necesites conservar tras apagar. No se han migrado datos personales.
 La recuperacion software del menu sigue disponible si falla Hyprland.
 Brave usa Wayland y su sandbox. Su perfil sigue el home activo de esta sesion.
+El llavero puede pedir crear una clave o desbloquearse al primer uso de Brave.
+Usa una clave no vacia. No es la contrasena de Gmail; ULTRA no la automatiza.
 La red por cable intenta DHCP; Wi-Fi aun requiere validacion.
 USB tiene prioridad de audio; pavucontrol permite cambiar salida y volumen por app.

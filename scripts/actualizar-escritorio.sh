@@ -20,7 +20,7 @@ release=$(cat kernelrelease.txt)
 kernel_before=$(sha256sum bzImage-tiny64)
 rm -f build-complete
 sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
-    -S --needed --noconfirm papirus-icon-theme otf-font-awesome mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk
+    -S --needed --noconfirm papirus-icon-theme otf-font-awesome mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
 if sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -Q woff2-font-awesome >/dev/null 2>&1; then
     sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -R --noconfirm woff2-font-awesome
 fi
