@@ -68,6 +68,8 @@ de UB ni una demostracion de ausencia de fallos.
 Actualizacion del 22 de octubre: el ejecutor tambien prueba Vulkan en ambos
 perfiles. Se agregaron ciclos de propiedad GLES, memoria Vulkan y rechazo de
 errores tardios. Ver [resultado, evidencia y pendientes](../docs/GRAFICA-VIDA-UTIL.md).
+La entrega siguiente agrega `Texture::update_rgba8` y reutilizacion de recursos
+Vulkan despues de completar una fence: [contratos y evidencia](../docs/GRAFICA-REUTILIZACION.md).
 
 El siguiente prototipo ya ofrece cache .gpus con modos estatico y dinamico:
 ver [formato, controles y limites](GPUS.md). Solo banco GLES, sin integracion

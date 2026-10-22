@@ -101,6 +101,39 @@ void texture_controls(Session& session, EGLConfig config) {
     std::array<GLubyte, 4> pixel{};
     glReadPixels(1, 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
     require(glGetError() == GL_NO_ERROR && pixel == std::array<GLubyte, 4>{0,255,0,255}, "pixel de textura incorrecto");
+    const GLuint stable_name = texture->name();
+    for (unsigned cycle = 0; cycle < 64; ++cycle) {
+        for (std::size_t i = 0; i < pixels.size(); i += 4)
+            pixels[i] = static_cast<std::uint8_t>(cycle);
+        require(texture->update_rgba8(pixels, 64).has_value(), "actualizacion de textura");
+        require(texture->name() == stable_name, "actualizacion recreo nombre");
+        glReadPixels(1, 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
+        require(pixel == std::array<GLubyte, 4>{static_cast<GLubyte>(cycle),255,0,255},
+                "actualizacion no llego al pixel");
+    }
+    const auto small = texture->update_rgba8(std::span{pixels}.first(63), 64);
+    const auto budget = texture->update_rgba8(pixels, 63);
+    require(!small && small.error() == ultra::gles::Error::layout &&
+            !budget && budget.error() == ultra::gles::Error::layout, "update acepto limites invalidos");
+    glEnable(0xFFFFFFFFU);
+    const auto dirty_update = texture->update_rgba8(pixels, 64);
+    require(!dirty_update && dirty_update.error() == ultra::gles::Error::dirty_state,
+            "update ignoro error anterior");
+    glReadPixels(1, 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel.data());
+    require(pixel == std::array<GLubyte, 4>{63,255,0,255}, "rechazo altero contenido");
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &value);
+    require(static_cast<GLuint>(value) == sentinel, "update altero binding textura");
+    glGetIntegerv(GL_PIXEL_UNPACK_BUFFER_BINDING, &value);
+    require(static_cast<GLuint>(value) == pbo, "update altero binding PBO");
+    for (const auto& entry : {std::pair{GL_UNPACK_ALIGNMENT, 8}, std::pair{GL_UNPACK_ROW_LENGTH, 16},
+                            std::pair{GL_UNPACK_SKIP_ROWS, 2}, std::pair{GL_UNPACK_SKIP_PIXELS, 2}}) {
+        glGetIntegerv(static_cast<GLenum>(entry.first), &value);
+        require(value == entry.second, "update altero pixel store");
+    }
+    require(glGetError() == GL_NO_ERROR, "update produjo error GL");
+    // Restore the original test data for subsequent controls.
+    for (std::size_t i = 0; i < pixels.size(); i += 4) pixels[i] = 0;
+    std::cout << "VERDE [G-12]: 64 actualizaciones sin recrear textura; pixels, limites y estado conservados\n";
     glBindFramebuffer(GL_FRAMEBUFFER, 0); glDeleteFramebuffers(1, &fbo);
     std::cout << "VERDE [G-07]: textura correcta con PBO/stride adversos y estado restaurado\n";
 
@@ -108,6 +141,9 @@ void texture_controls(Session& session, EGLConfig config) {
     const auto closed_without_owner = texture->close();
     require(!closed_without_owner && closed_without_owner.error() == ultra::gles::Error::wrong_context,
             "cierre sin contexto propietario aceptado");
+    const auto update_without_owner = texture->update_rgba8(pixels, 64);
+    require(!update_without_owner && update_without_owner.error() == ultra::gles::Error::wrong_context,
+            "update sin contexto propietario aceptado");
     const auto without_context = ultra::gles::Texture::rgba8(4, 4, pixels, 64);
     require(!without_context && without_context.error() == ultra::gles::Error::no_context, "creacion sin contexto aceptada");
     require(eglMakeCurrent(session.display, session.surface, session.surface, session.context), "restaurar contexto");
@@ -115,6 +151,9 @@ void texture_controls(Session& session, EGLConfig config) {
     require(glIsTexture(name) == GL_TRUE, "recurso desaparecio antes del cierre");
     require(texture->close().has_value() && glIsTexture(name) == GL_FALSE, "recurso no liberado");
     require(texture->close().has_value(), "segundo close no es idempotente");
+    const auto after_close = texture->update_rgba8(pixels, 64);
+    require(!after_close && after_close.error() == ultra::gles::Error::closed,
+            "update despues de close aceptado");
     std::cout << "VERDE [G-08]: propiedad de contexto, rechazo sin contexto y cierre idempotente\n";
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0); glDeleteBuffers(1, &pbo);
     glBindTexture(GL_TEXTURE_2D, 0); glDeleteTextures(1, &sentinel);
@@ -157,6 +196,9 @@ void texture_controls(Session& session, EGLConfig config) {
         const auto rejected = owned->close();
         require(!rejected && rejected.error() == ultra::gles::Error::wrong_context,
                 "cierre en otro contexto aceptado");
+        const auto bad_update = owned->update_rgba8(pixels, 64);
+        require(!bad_update && bad_update.error() == ultra::gles::Error::wrong_context,
+                "update en otro contexto aceptado");
     }
     require(glIsTexture(owned->name()) == GL_TRUE && owned->close().has_value(),
             "rechazo en segundo contexto altero propietario");
@@ -173,6 +215,9 @@ void texture_controls(Session& session, EGLConfig config) {
                     "move no transfirio propiedad unica");
             require(original->close().has_value() && glIsTexture(released) == GL_TRUE,
                     "objeto movido libero recurso del nuevo propietario");
+            const auto moved_update = original->update_rgba8(pixels, 64);
+            require(!moved_update && moved_update.error() == ultra::gles::Error::closed,
+                    "update sobre objeto movido aceptado");
         }
         require(glIsTexture(released) == GL_FALSE && glGetError() == GL_NO_ERROR,
                 "ciclo dejo nombre de textura vivo o error GL");

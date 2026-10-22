@@ -4,6 +4,10 @@ Fecha: 2026-10-22, America/Lima. Objetivo: mejorar el banco de correccion antes
 de modificar el escritorio diario. Esta entrega cambia sondas y su ejecutor;
 no cambia el renderer de Hyprland ni las imagenes instaladas en A:.
 
+Entrega posterior: [actualizar texturas y reutilizar envios Vulkan](GRAFICA-REUTILIZACION.md).
+Los resultados y pendientes de este documento describen la primera entrega;
+la ampliacion ya incluye trabajo valido en cola y fences en software.
+
 ## Cambios y resultado
 
 El ejecutor `probar-grafica-cxx.ps1` ahora construye y ejecuta tambien Vulkan.

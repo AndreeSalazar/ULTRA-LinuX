@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
-// CPU-only laboratory: validation callback aborts the invalid call before dispatch.
+// Software-only laboratory: validation callback aborts invalid calls before dispatch.
 #include <vulkan/vulkan.h>
 #include <atomic>
 #include <array>
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <cstdlib>
 #include <vector>
 
 namespace {
@@ -26,8 +27,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL message(VkDebugUtilsMessageSeverityFlagBitsEXT se
     }
     return VK_FALSE;
 }
-// No queue work: the bound allocation is used only through host-coherent mapping.
-// Cleanup also runs on allocation/binding/mapping failure, in dependency order.
+// Host-coherent allocation. Queue users must establish completion before destruction.
+// Cleanup runs on allocation/binding/mapping failure, in dependency order.
 struct HostBuffer {
     VkDevice device;
     VkBuffer buffer = VK_NULL_HANDLE;
@@ -36,42 +37,123 @@ struct HostBuffer {
     explicit HostBuffer(VkDevice owner) : device(owner) {}
     HostBuffer(const HostBuffer&) = delete;
     HostBuffer& operator=(const HostBuffer&) = delete;
+    bool initialize(VkPhysicalDevice physical, VkBufferUsageFlags usage) {
+        VkBufferCreateInfo info{};
+        info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        info.size = 4096;
+        info.usage = usage;
+        info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        if (vkCreateBuffer(device, &info, nullptr, &buffer) != VK_SUCCESS) return false;
+        VkMemoryRequirements requirements{};
+        vkGetBufferMemoryRequirements(device, buffer, &requirements);
+        if (requirements.size > 1024 * 1024) return false;
+        VkPhysicalDeviceMemoryProperties types{};
+        vkGetPhysicalDeviceMemoryProperties(physical, &types);
+        constexpr VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        for (std::uint32_t i = 0; i < types.memoryTypeCount; ++i) {
+            if ((requirements.memoryTypeBits & (std::uint32_t{1} << i)) == 0 ||
+                (types.memoryTypes[i].propertyFlags & flags) != flags) continue;
+            VkMemoryAllocateInfo allocation{};
+            allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocation.allocationSize = requirements.size;
+            allocation.memoryTypeIndex = i;
+            return vkAllocateMemory(device, &allocation, nullptr, &memory) == VK_SUCCESS &&
+                vkBindBufferMemory(device, buffer, memory, 0) == VK_SUCCESS &&
+                vkMapMemory(device, memory, 0, 4096, 0, &mapped) == VK_SUCCESS;
+        }
+        return false;
+    }
     ~HostBuffer() {
         if (mapped) vkUnmapMemory(device, memory);
         if (buffer) vkDestroyBuffer(device, buffer, nullptr);
         if (memory) vkFreeMemory(device, memory, nullptr);
     }
 };
+// Never destroy or reuse resources whose completion has not been established.
+// A hung software queue ends this disposable process; the outer sandbox is bounded too.
+[[noreturn]] void queue_failure(const char* step, VkResult result) {
+    std::fprintf(stderr, "ROJO [COLA]: %s resultado=%d; sin liberar recursos pendientes\n",
+                 step, static_cast<int>(result));
+    std::_Exit(1);
+}
+struct Transfer {
+    VkDevice device;
+    HostBuffer resource;
+    VkCommandPool pool = VK_NULL_HANDLE;
+    VkCommandBuffer command = VK_NULL_HANDLE;
+    VkFence fence = VK_NULL_HANDLE;
+    explicit Transfer(VkDevice owner) : device(owner), resource(owner) {}
+    Transfer(const Transfer&) = delete;
+    Transfer& operator=(const Transfer&) = delete;
+    ~Transfer() {
+        if (fence) vkDestroyFence(device, fence, nullptr);
+        if (pool) vkDestroyCommandPool(device, pool, nullptr);
+    }
+    bool initialize(VkPhysicalDevice physical, std::uint32_t family) {
+        if (!resource.initialize(physical, VK_BUFFER_USAGE_TRANSFER_DST_BIT)) return false;
+        VkCommandPoolCreateInfo pool_info{};
+        pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        pool_info.queueFamilyIndex = family;
+        if (vkCreateCommandPool(device, &pool_info, nullptr, &pool) != VK_SUCCESS) return false;
+        VkCommandBufferAllocateInfo allocation{};
+        allocation.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocation.commandPool = pool;
+        allocation.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocation.commandBufferCount = 1;
+        if (vkAllocateCommandBuffers(device, &allocation, &command) != VK_SUCCESS) return false;
+        VkFenceCreateInfo fence_info{};
+        fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        if (vkCreateFence(device, &fence_info, nullptr, &fence) != VK_SUCCESS) return false;
+        VkCommandBufferBeginInfo begin{};
+        begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS) return false;
+        vkCmdFillBuffer(command, resource.buffer, 0, 4096, 0x13579BDFU);
+        VkMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_HOST_READ_BIT;
+        vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT,
+                             0, 1, &barrier, 0, nullptr, 0, nullptr);
+        return vkEndCommandBuffer(command) == VK_SUCCESS;
+    }
+    bool run(VkQueue queue) {
+        // Poison the host view each time: stale data cannot masquerade as a successful fill.
+        std::memset(resource.mapped, 0, 4096);
+        if (vkResetFences(device, 1, &fence) != VK_SUCCESS) return false;
+        VkSubmitInfo submit{};
+        submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit.commandBufferCount = 1;
+        submit.pCommandBuffers = &command;
+        VkResult result = vkQueueSubmit(queue, 1, &submit, fence);
+        if (result != VK_SUCCESS) queue_failure("submit", result);
+        result = vkWaitForFences(device, 1, &fence, VK_TRUE, 1000000000ULL);
+        if (result != VK_SUCCESS) queue_failure("fence (plazo 1 segundo)", result);
+        std::array<std::uint32_t, 1024> output{};
+        std::memcpy(output.data(), resource.mapped, 4096);
+        for (const auto word : output) if (word != 0x13579BDFU) return false;
+        return true;
+    }
+};
+bool transfer_cycles(VkPhysicalDevice physical, VkDevice device, std::uint32_t family) {
+    VkQueue queue = VK_NULL_HANDLE;
+    vkGetDeviceQueue(device, family, 0, &queue);
+    for (unsigned cycle = 0; cycle < 64; ++cycle) {
+        Transfer fresh{device};
+        if (!fresh.initialize(physical, family) || !fresh.run(queue)) return false;
+    }
+    {
+        Transfer reused{device};
+        if (!reused.initialize(physical, family)) return false;
+        for (unsigned cycle = 0; cycle < 64; ++cycle) if (!reused.run(queue)) return false;
+    }
+    std::puts("VERDE [V-04]: 128 envios con fence y patron correcto; 64 recreados frente a 1 reutilizado");
+    return true;
+}
 bool memory_cycles(VkPhysicalDevice physical, VkDevice device) {
-    VkPhysicalDeviceMemoryProperties types{};
-    vkGetPhysicalDeviceMemoryProperties(physical, &types);
     for (unsigned cycle = 0; cycle < 64; ++cycle) {
         HostBuffer resource{device};
-        VkBufferCreateInfo info{};
-        info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        info.size = 4096;
-        info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-        info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        if (vkCreateBuffer(device, &info, nullptr, &resource.buffer) != VK_SUCCESS) return false;
-        VkMemoryRequirements requirements{};
-        vkGetBufferMemoryRequirements(device, resource.buffer, &requirements);
-        // Keep the test bounded even if a different software driver changes its requirements.
-        if (requirements.size > 1024 * 1024) return false;
-        std::uint32_t type = types.memoryTypeCount;
-        constexpr VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-        for (std::uint32_t i = 0; i < types.memoryTypeCount; ++i) {
-            if ((requirements.memoryTypeBits & (std::uint32_t{1} << i)) != 0 &&
-                (types.memoryTypes[i].propertyFlags & flags) == flags) { type = i; break; }
-        }
-        if (type == types.memoryTypeCount) return false;
-        VkMemoryAllocateInfo allocation{};
-        allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocation.allocationSize = requirements.size;
-        allocation.memoryTypeIndex = type;
-        if (vkAllocateMemory(device, &allocation, nullptr, &resource.memory) != VK_SUCCESS ||
-            vkBindBufferMemory(device, resource.buffer, resource.memory, 0) != VK_SUCCESS ||
-            vkMapMemory(device, resource.memory, 0, 4096, 0, &resource.mapped) != VK_SUCCESS) return false;
+        if (!resource.initialize(physical, VK_BUFFER_USAGE_TRANSFER_SRC_BIT)) return false;
         std::array<std::uint8_t, 4096> pattern{};
         for (std::size_t i = 0; i < pattern.size(); ++i)
             pattern[i] = static_cast<std::uint8_t>((i + cycle) % 251);
@@ -94,21 +176,28 @@ int main(int argc, char** argv) {
     debug.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
     debug.pfnUserCallback = message;
     debug.pUserData = &evidence;
+    const VkValidationFeatureEnableEXT synchronization = VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT;
+    VkValidationFeaturesEXT validation{};
+    validation.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+    validation.pNext = &debug;
+    validation.enabledValidationFeatureCount = 1;
+    validation.pEnabledValidationFeatures = &synchronization;
     const char* layer = "VK_LAYER_KHRONOS_validation";
-    const char* extension = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+    const char* extensions[] = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME, VK_EXT_VALIDATION_FEATURES_EXTENSION_NAME};
     VkInstanceCreateInfo instance_info{};
     instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instance_info.pNext = &debug;
+    instance_info.pNext = &validation;
     instance_info.enabledLayerCount = 1;
     instance_info.ppEnabledLayerNames = &layer;
-    instance_info.enabledExtensionCount = 1;
-    instance_info.ppEnabledExtensionNames = &extension;
+    instance_info.enabledExtensionCount = 2;
+    instance_info.ppEnabledExtensionNames = extensions;
     VkInstance instance = VK_NULL_HANDLE;
     const VkResult instance_result = vkCreateInstance(&instance_info, nullptr, &instance);
     if (instance_result != VK_SUCCESS) {
         std::fprintf(stderr, "ROJO vkCreateInstance=%d\n", static_cast<int>(instance_result));
         return 1;
     }
+    std::puts("VULKAN validacion de sincronizacion solicitada explicitamente");
     auto create_debug = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
     auto destroy_debug = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
     VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
@@ -131,7 +220,9 @@ int main(int argc, char** argv) {
                 std::vector<VkQueueFamilyProperties> families(queues);
                 vkGetPhysicalDeviceQueueFamilyProperties(physical[0], &queues, families.data());
                 for (std::uint32_t index = 0; index < queues; ++index) {
-                    if (families[index].queueCount == 0) continue;
+                    if (families[index].queueCount == 0 ||
+                        (families[index].queueFlags & (VK_QUEUE_TRANSFER_BIT | VK_QUEUE_GRAPHICS_BIT |
+                                                      VK_QUEUE_COMPUTE_BIT)) == 0) continue;
                     const float priority = 1.0F;
                     VkDeviceQueueCreateInfo queue{};
                     queue.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -148,14 +239,15 @@ int main(int argc, char** argv) {
                     VkBuffer buffer = VK_NULL_HANDLE;
                     const bool valid = vkCreateBuffer(device, &buffer_info, nullptr, &buffer) == VK_SUCCESS;
                     if (valid) vkDestroyBuffer(device, buffer, nullptr);
-                    const bool memory_valid = valid && memory_cycles(physical[0], device);
+                    const bool memory_valid = valid && memory_cycles(physical[0], device) &&
+                        transfer_cycles(physical[0], device, index);
                     const unsigned before = evidence.errors.load();
                     buffer_info.size = 0;
                     buffer = VK_NULL_HANDLE;
                     evidence.expecting_size.store(true);
                     const VkResult invalid = vkCreateBuffer(device, &buffer_info, nullptr, &buffer);
                     evidence.expecting_size.store(false);
-                    // No memory is allocated, no queue submits or shader dispatches occur.
+                    // Only this invalid call is aborted before driver dispatch.
                     if (invalid == VK_SUCCESS) vkDestroyBuffer(device, buffer, nullptr);
                     passed = memory_valid && before == 0 && evidence.errors.load() == 1 && evidence.expected.load() == 1
                         && invalid == VK_ERROR_VALIDATION_FAILED_EXT;
