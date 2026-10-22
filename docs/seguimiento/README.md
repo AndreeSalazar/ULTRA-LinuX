@@ -26,7 +26,8 @@ Los resultados no miden VRAM ni FPS ni rendimiento nativo de la RTX.
 No hay porcentaje de proyecto completado: el alcance sigue abierto y las tareas
 tienen costes y dependencias distintos. Mantener los estados especificos:
 `PROBADO_LAB`, `PROBADO_SOFTWARE`, `MEDIDO_SOFTWARE`, `INTEGRADO_QEMU`,
-`PENDIENTE_SOFTWARE`, `PENDIENTE_HARDWARE` y `PENDIENTE_INTEGRACION`.
+`PENDIENTE_SOFTWARE`, `PENDIENTE_HARDWARE`, `PENDIENTE_INTEGRACION` y
+`FUERA_ALCANCE_ACTUAL` para trabajo opcional apartado por el propietario.
 Actualizar la evidencia y el criterio de cierre antes de cambiar un estado.
 
 ## Controles agregados en esta revision
@@ -60,7 +61,28 @@ Se corrigio la construccion de los flags sin relajar advertencias ni reutilizar
 resultados del intento fallido.
 
 Siguiente trabajo independiente: inventariar tipos de memoria no coherente del
-backend y ampliar tamanos/regiones de copia. La medicion RTX y la integracion en
-un consumidor real permanecen pendientes. Las imagenes de A: no cambiaron.
+backend y ampliar tamanos/regiones de copia. La integracion portable puede
+avanzar en el backend disponible: HW-01 queda fuera del alcance actual por
+preferencia del propietario y ya no es dependencia de INT-01. Esto no convierte
+una prueba software en validacion nativa. Las imagenes de A: no cambiaron.
+
+## RTX, SM86 e integracion
+
+RTX se referia a la tarjeta fisica del propietario. Las tecnicas de reutilizacion
+y dependencias de este banco no son exclusivas de NVIDIA y se verifican en
+llvmpipe. Adaptarlas a otros drivers requiere respetar las capacidades de la API.
+
+La RTX 3060 tiene compute capability 8.6, asociada al objetivo CUDA `sm_86`.
+Ese objetivo sirve para codigo CUDA y sus binarios; no es una bandera global
+que se pueda pasar a GCC para acelerar OpenGL, Vulkan, Hyprland y los juegos.
+Las optimizaciones especificas de Ampere serian otra rama con kernels/shaders
+concretos, medicion y un camino compatible para el resto de GPUs.
+
+El orden actual es ampliar una carga representativa en software y elegir un
+consumidor real para integrar la mejora con regresiones. La validacion en una
+GPU concreta se retoma si se solicita; no se atribuyen mejoras nativas sin ella.
+
+Fuentes: [capacidades CUDA por GPU](https://developer.nvidia.com/cuda/gpus),
+[PTX, cubin y objetivos SM](https://developer.nvidia.com/blog/understanding-ptx-the-assembly-language-of-cuda-gpu-computing/).
 
 Referencia: [dependencias de memoria Vulkan](https://docs.vulkan.org/guide/latest/synchronization_examples.html).

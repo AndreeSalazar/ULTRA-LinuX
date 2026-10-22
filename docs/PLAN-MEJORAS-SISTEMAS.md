@@ -205,6 +205,9 @@ ni sanitizadores durante la medicion; el rendimiento nativo sigue pendiente.
 El [seguimiento CSV](seguimiento/README.md) registra estados y porcentajes
 medidos por experimento. La ampliacion actual agrega recreacion EGL, copia
 Vulkan y rechazo de dependencia ausente durante grabacion, en ambos perfiles.
+Por preferencia del propietario, la prueba fisica RTX queda fuera del alcance
+actual y no bloquea la integracion portable en un consumidor y backend definidos.
+Las afirmaciones de rendimiento nativo siguen requiriendo medicion nativa.
 
 **Motivo:** sus condiciones de uso no son identicas a OpenGL; las capas de
 validacion ayudan a detectar incumplimientos concretos, no certifican toda la API.
