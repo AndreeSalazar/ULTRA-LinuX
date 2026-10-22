@@ -1,0 +1,3 @@
+VERDE: 18 IDs unicos y dependencias validas
+VERDE: 12 porcentajes y tiempos coinciden con evidencia original
+VERDE: G-13 V-05 V-06 en ambos perfiles; tres rechazos deliberados

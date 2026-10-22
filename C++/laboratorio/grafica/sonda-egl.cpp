@@ -265,6 +265,39 @@ bool texture_workload(bool reuse) {
     }
     return true;
 }
+void recreate_contexts(Session& session, EGLConfig config) {
+    // Entry requires the previous context and surface to have been destroyed.
+    require(session.context == EGL_NO_CONTEXT && session.surface == EGL_NO_SURFACE,
+            "contexto anterior sigue vivo");
+    for (unsigned cycle = 0; cycle < 16; ++cycle) {
+        const EGLint surface_attrs[] = {EGL_WIDTH, 8, EGL_HEIGHT, 8, EGL_NONE};
+        const EGLint context_attrs[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+        session.surface = eglCreatePbufferSurface(session.display, config, surface_attrs);
+        require(session.surface != EGL_NO_SURFACE, "recrear superficie");
+        session.context = eglCreateContext(session.display, config, EGL_NO_CONTEXT, context_attrs);
+        require(session.context != EGL_NO_CONTEXT, "recrear contexto");
+        require(eglMakeCurrent(session.display, session.surface, session.surface, session.context),
+                "activar contexto recreado");
+        GLuint released = 0;
+        {
+            std::array<std::uint8_t, 64> pixels{};
+            auto texture = ultra::gles::Texture::rgba8(4, 4, pixels, 64);
+            require(texture.has_value(), "textura en contexto recreado");
+            released = texture->name();
+            require(glIsTexture(released) == GL_TRUE, "nombre no vivo en contexto recreado");
+            pixel_control();
+        }
+        require(glIsTexture(released) == GL_FALSE && glGetError() == GL_NO_ERROR,
+                "recurso pendiente antes de destruir contexto");
+        require(eglMakeCurrent(session.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT),
+                "desvincular contexto recreado");
+        require(eglDestroyContext(session.display, session.context), "destruir contexto recreado");
+        session.context = EGL_NO_CONTEXT;
+        require(eglDestroySurface(session.display, session.surface), "destruir superficie recreada");
+        session.surface = EGL_NO_SURFACE;
+    }
+    std::cout << "VERDE [G-13]: 16 contextos recreados; pixel correcto y textura liberada antes del cierre\n";
+}
 }
 
 int main(int argc, char** argv) {
@@ -341,6 +374,7 @@ int main(int argc, char** argv) {
         session.context = EGL_NO_CONTEXT;
         require(eglDestroySurface(session.display, session.surface) == EGL_TRUE, "destruir superficie");
         session.surface = EGL_NO_SURFACE;
+        if (!measure) recreate_contexts(session, config);
         require(eglTerminate(session.display) == EGL_TRUE, "terminar EGL");
         session.display = EGL_NO_DISPLAY;
         std::cout << "VERDE [G-05]: recursos EGL liberados\n";

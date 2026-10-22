@@ -14,6 +14,7 @@ namespace {
 struct Evidence {
     std::atomic<unsigned> errors{0}, expected{0};
     std::atomic<bool> expecting_size{false};
+    std::atomic<bool> expecting_dependency{false};
 };
 VKAPI_ATTR VkBool32 VKAPI_CALL message(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* data, void* user) {
@@ -23,6 +24,8 @@ VKAPI_ATTR VkBool32 VKAPI_CALL message(VkDebugUtilsMessageSeverityFlagBitsEXT se
         const char* id = data->pMessageIdName ? data->pMessageIdName : "sin-VUID";
         if (evidence.expecting_size.load() &&
             std::strcmp(id, "VUID-VkBufferCreateInfo-size-00912") == 0) ++evidence.expected;
+        if (evidence.expecting_dependency.load() &&
+            std::strcmp(id, "SYNC-HAZARD-READ-AFTER-WRITE") == 0) ++evidence.expected;
         std::printf("VALIDACION %s\n", id);
         return VK_TRUE;
     }
@@ -81,18 +84,25 @@ struct HostBuffer {
 struct Transfer {
     VkDevice device;
     HostBuffer resource;
+    HostBuffer destination;
+    bool copy = false;
     VkCommandPool pool = VK_NULL_HANDLE;
     VkCommandBuffer command = VK_NULL_HANDLE;
     VkFence fence = VK_NULL_HANDLE;
-    explicit Transfer(VkDevice owner) : device(owner), resource(owner) {}
+    explicit Transfer(VkDevice owner) : device(owner), resource(owner), destination(owner) {}
     Transfer(const Transfer&) = delete;
     Transfer& operator=(const Transfer&) = delete;
     ~Transfer() {
         if (fence) vkDestroyFence(device, fence, nullptr);
         if (pool) vkDestroyCommandPool(device, pool, nullptr);
     }
-    bool initialize(VkPhysicalDevice physical, std::uint32_t family) {
-        if (!resource.initialize(physical, VK_BUFFER_USAGE_TRANSFER_DST_BIT)) return false;
+    bool initialize(VkPhysicalDevice physical, std::uint32_t family, bool copy_buffer = false,
+                    bool with_dependency = true) {
+        copy = copy_buffer;
+        VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+        if (copy) usage |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        if (!resource.initialize(physical, usage)) return false;
+        if (copy && !destination.initialize(physical, VK_BUFFER_USAGE_TRANSFER_DST_BIT)) return false;
         VkCommandPoolCreateInfo pool_info{};
         pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         pool_info.queueFamilyIndex = family;
@@ -110,6 +120,17 @@ struct Transfer {
         begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         if (vkBeginCommandBuffer(command, &begin) != VK_SUCCESS) return false;
         vkCmdFillBuffer(command, resource.buffer, 0, 4096, 0x13579BDFU);
+        if (copy) {
+            VkMemoryBarrier dependency{};
+            dependency.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+            dependency.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            dependency.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+            if (with_dependency)
+                vkCmdPipelineBarrier(command, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                                     0, 1, &dependency, 0, nullptr, 0, nullptr);
+            const VkBufferCopy region{0, 0, 4096};
+            vkCmdCopyBuffer(command, resource.buffer, destination.buffer, 1, &region);
+        }
         VkMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -121,6 +142,7 @@ struct Transfer {
     bool run(VkQueue queue) {
         // Poison the host view each time: stale data cannot masquerade as a successful fill.
         std::memset(resource.mapped, 0, 4096);
+        if (copy) std::memset(destination.mapped, 0, 4096);
         if (vkResetFences(device, 1, &fence) != VK_SUCCESS) return false;
         VkSubmitInfo submit{};
         submit.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -131,7 +153,7 @@ struct Transfer {
         result = vkWaitForFences(device, 1, &fence, VK_TRUE, 1000000000ULL);
         if (result != VK_SUCCESS) queue_failure("fence (plazo 1 segundo)", result);
         std::array<std::uint32_t, 1024> output{};
-        std::memcpy(output.data(), resource.mapped, 4096);
+        std::memcpy(output.data(), copy ? destination.mapped : resource.mapped, 4096);
         for (const auto word : output) if (word != 0x13579BDFU) return false;
         return true;
     }
@@ -158,6 +180,15 @@ bool transfer_cycles(VkPhysicalDevice physical, VkDevice device, std::uint32_t f
     std::puts("VERDE [V-04]: 128 envios con fence y patron correcto; 64 recreados frente a 1 reutilizado");
     return true;
 }
+bool copy_cycles(VkPhysicalDevice physical, VkDevice device, std::uint32_t family) {
+    VkQueue queue = VK_NULL_HANDLE;
+    vkGetDeviceQueue(device, family, 0, &queue);
+    Transfer transfer{device};
+    if (!transfer.initialize(physical, family, true)) return false;
+    for (unsigned cycle = 0; cycle < 64; ++cycle) if (!transfer.run(queue)) return false;
+    std::puts("VERDE [V-05]: 64 fill/copy con barrera transferencia-lectura, fence y 1024 palabras verificadas");
+    return true;
+}
 bool memory_cycles(VkPhysicalDevice physical, VkDevice device) {
     for (unsigned cycle = 0; cycle < 64; ++cycle) {
         HostBuffer resource{device};
@@ -176,7 +207,8 @@ bool memory_cycles(VkPhysicalDevice physical, VkDevice device) {
 int main(int argc, char** argv) {
     const bool late_error = argc == 2 && std::strcmp(argv[1], "--control-error-final") == 0;
     const bool measure = argc == 2 && std::strcmp(argv[1], "--medir") == 0;
-    if (argc != 1 && !late_error && !measure) return 2;
+    const bool missing_dependency = argc == 2 && std::strcmp(argv[1], "--control-sin-barrera") == 0;
+    if (argc != 1 && !late_error && !measure && !missing_dependency) return 2;
     if (measure && !ultra::lab::measurement_allowed()) return 2;
     std::setvbuf(stdout, nullptr, _IONBF, 0);
     Evidence evidence;
@@ -244,6 +276,15 @@ int main(int argc, char** argv) {
                     info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
                     info.queueCreateInfoCount = 1; info.pQueueCreateInfos = &queue;
                     if (vkCreateDevice(physical[0], &info, nullptr, &device) != VK_SUCCESS) break;
+                    if (missing_dependency) {
+                        // Record and discard only: never submit this deliberately invalid dependency.
+                        Transfer rejected{device};
+                        evidence.expecting_dependency.store(true);
+                        const bool recorded = rejected.initialize(physical[0], index, true, false);
+                        evidence.expecting_dependency.store(false);
+                        passed = recorded && evidence.errors.load() == 1 && evidence.expected.load() == 1;
+                        break;
+                    }
                     if (measure) {
                         passed = ultra::lab::compare("Vulkan", [&](bool reuse) {
                             return transfer_workload(physical[0], device, index, reuse, 2048);
@@ -259,7 +300,8 @@ int main(int argc, char** argv) {
                     const bool valid = vkCreateBuffer(device, &buffer_info, nullptr, &buffer) == VK_SUCCESS;
                     if (valid) vkDestroyBuffer(device, buffer, nullptr);
                     const bool memory_valid = valid && memory_cycles(physical[0], device) &&
-                        transfer_cycles(physical[0], device, index);
+                        transfer_cycles(physical[0], device, index) &&
+                        copy_cycles(physical[0], device, index);
                     const unsigned before = evidence.errors.load();
                     buffer_info.size = 0;
                     buffer = VK_NULL_HANDLE;
@@ -295,6 +337,7 @@ int main(int argc, char** argv) {
     std::printf("VULKAN errores=%u esperados=%u inesperados=%u\n", evidence.errors.load(),
         evidence.expected.load(), evidence.errors.load() - evidence.expected.load());
     std::puts(passed ? (measure ? "VERDE: medicion Vulkan completada con datos correctos" :
-        "VERDE: buffer valido y llamada invalida bloqueada por validacion") : "ROJO: resultado Vulkan inesperado");
+        (missing_dependency ? "VERDE [V-06]: barrera ausente detectada al grabar; cero envios" :
+         "VERDE: buffer valido y llamada invalida bloqueada por validacion")) : "ROJO: resultado Vulkan inesperado");
     return passed ? 0 : 1;
 }

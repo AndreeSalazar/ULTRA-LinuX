@@ -73,6 +73,8 @@ Vulkan despues de completar una fence: [contratos y evidencia](../docs/GRAFICA-R
 El modo `--medir` compara recreacion y reutilizacion en O2, con tres procesos
 y siete pares alternados por proceso; rechaza builds instrumentados. Ver
 [tiempos observados y limites](../docs/GRAFICA-MEDICIONES.md).
+El [seguimiento de tareas y mediciones en CSV](../docs/seguimiento/README.md)
+incluye la ampliacion de contextos EGL y dependencias fill/copy Vulkan.
 
 El siguiente prototipo ya ofrece cache .gpus con modos estatico y dinamico:
 ver [formato, controles y limites](GPUS.md). Solo banco GLES, sin integracion

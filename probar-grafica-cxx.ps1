@@ -30,6 +30,7 @@ try {
         'bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-egl',
         'bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-gpus',
         'bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-vulkan',
+        'bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-vulkan --control-sin-barrera',
         'rc=0; bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-vulkan --control-error-final > control-error-final.txt 2>&1 || rc=$?; cat control-error-final.txt; test "$rc" = 1; grep -qx "VULKAN errores=2 esperados=1 inesperados=1" control-error-final.txt; echo "VERDE [V-03]: error tardio convierte la ejecucion en rechazo"',
         "cmake -S 'C++' -B diag -DCMAKE_CXX_COMPILER=g++ -DULTRA_CXX_EGL=ON -DULTRA_CXX_VULKAN=ON -DULTRA_CXX_DIAGNOSTICO=ON",
         'cmake --build diag',
@@ -38,6 +39,7 @@ try {
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-egl',
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-gpus',
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-vulkan',
+        'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-vulkan --control-sin-barrera',
         'for api in egl vulkan; do rc=0; bash ejecutar-grafica-limitada.sh "diag/laboratorio/sonda-$api" --medir > "rechazo-medicion-$api.txt" 2>&1 || rc=$?; cat "rechazo-medicion-$api.txt"; test "$rc" = 2; grep -qx "ROJO \[MEDICION\]: compilacion instrumentada rechazada" "rechazo-medicion-$api.txt"; done',
         'echo "BENCH_COLUMNAS,api,ronda,ruta,wall_ns,cpu_us,rss_pico_proceso_kib"',
         'for run in 1 2 3; do echo "BENCH_EJECUCION,$run"; bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-egl --medir; bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-vulkan --medir; done'

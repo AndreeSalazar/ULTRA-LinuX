@@ -1,0 +1,124 @@
+{
+  "backend": "llvmpipe en QEMU",
+  "operaciones_por_muestra": 2048,
+  "pares_por_proceso": 7,
+  "apis": {
+    "GLES": {
+      "ejecuciones": [
+        {
+          "ejecucion": 1,
+          "recrear": {
+            "wall_mediana_ms": 6.234206,
+            "wall_min_ms": 6.065403,
+            "wall_max_ms": 6.914317,
+            "cpu_mediana_ms": 5.96,
+            "rss_pico_kib": 79624
+          },
+          "reutilizar": {
+            "wall_mediana_ms": 3.704563,
+            "wall_min_ms": 3.347657,
+            "wall_max_ms": 3.956668,
+            "cpu_mediana_ms": 3.1801,
+            "rss_pico_kib": 79624
+          }
+        },
+        {
+          "ejecucion": 2,
+          "recrear": {
+            "wall_mediana_ms": 6.147703,
+            "wall_min_ms": 5.9563,
+            "wall_max_ms": 6.820115,
+            "cpu_mediana_ms": 5.9274,
+            "rss_pico_kib": 80112
+          },
+          "reutilizar": {
+            "wall_mediana_ms": 3.663561,
+            "wall_min_ms": 3.347456,
+            "wall_max_ms": 4.14597,
+            "cpu_mediana_ms": 3.1739,
+            "rss_pico_kib": 80112
+          }
+        },
+        {
+          "ejecucion": 3,
+          "recrear": {
+            "wall_mediana_ms": 6.488108,
+            "wall_min_ms": 6.0094,
+            "wall_max_ms": 7.157219,
+            "cpu_mediana_ms": 5.9655,
+            "rss_pico_kib": 79812
+          },
+          "reutilizar": {
+            "wall_mediana_ms": 3.415057,
+            "wall_min_ms": 3.304255,
+            "wall_max_ms": 4.055368,
+            "cpu_mediana_ms": 2.929,
+            "rss_pico_kib": 79812
+          }
+        }
+      ],
+      "recrear_ms": 6.234206,
+      "reutilizar_ms": 3.663561,
+      "reduccion_wall_porcentaje": 41.2345212846672
+    },
+    "Vulkan": {
+      "ejecuciones": [
+        {
+          "ejecucion": 1,
+          "recrear": {
+            "wall_mediana_ms": 162.378651,
+            "wall_min_ms": 127.356958,
+            "wall_max_ms": 167.496126,
+            "cpu_mediana_ms": 138.8319,
+            "rss_pico_kib": 77288
+          },
+          "reutilizar": {
+            "wall_mediana_ms": 109.239551,
+            "wall_min_ms": 107.044513,
+            "wall_max_ms": 111.972597,
+            "cpu_mediana_ms": 88.8402,
+            "rss_pico_kib": 77288
+          }
+        },
+        {
+          "ejecucion": 2,
+          "recrear": {
+            "wall_mediana_ms": 166.240871,
+            "wall_min_ms": 163.758929,
+            "wall_max_ms": 167.500003,
+            "cpu_mediana_ms": 142.43679999999998,
+            "rss_pico_kib": 73680
+          },
+          "reutilizar": {
+            "wall_mediana_ms": 109.258228,
+            "wall_min_ms": 107.816397,
+            "wall_max_ms": 118.691786,
+            "cpu_mediana_ms": 88.1952,
+            "rss_pico_kib": 73680
+          }
+        },
+        {
+          "ejecucion": 3,
+          "recrear": {
+            "wall_mediana_ms": 165.479446,
+            "wall_min_ms": 161.877976,
+            "wall_max_ms": 181.903707,
+            "cpu_mediana_ms": 140.91389999999998,
+            "rss_pico_kib": 73968
+          },
+          "reutilizar": {
+            "wall_mediana_ms": 107.85569,
+            "wall_min_ms": 106.550369,
+            "wall_max_ms": 110.616829,
+            "cpu_mediana_ms": 87.7312,
+            "rss_pico_kib": 73968
+          }
+        }
+      ],
+      "recrear_ms": 165.479446,
+      "reutilizar_ms": 109.239551,
+      "reduccion_wall_porcentaje": 33.98603050677362
+    }
+  },
+  "limites": "Tiempo incluye comprobacion y finalizacion. RSS es pico acumulado del proceso, no ahorro por ruta. No mide VRAM ni FPS ni rendimiento de NVIDIA."
+}
