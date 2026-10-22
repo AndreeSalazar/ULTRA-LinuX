@@ -23,18 +23,21 @@ try {
         'g++ --version',
         'pacman -Q',
         'pkg-config --modversion egl glesv2',
-        "cmake -S 'C++' -B prod -DCMAKE_CXX_COMPILER=g++ -DULTRA_CXX_EGL=ON",
+        "cmake -S 'C++' -B prod -DCMAKE_CXX_COMPILER=g++ -DULTRA_CXX_EGL=ON -DULTRA_CXX_VULKAN=ON",
         'cmake --build prod',
         'cat prod/compile_commands.json',
         'bash ejecutar-grafica-limitada.sh prod/laboratorio/probar-contratos',
         'bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-egl',
         'bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-gpus',
-        "cmake -S 'C++' -B diag -DCMAKE_CXX_COMPILER=g++ -DULTRA_CXX_EGL=ON -DULTRA_CXX_DIAGNOSTICO=ON",
+        'bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-vulkan',
+        'rc=0; bash ejecutar-grafica-limitada.sh prod/laboratorio/sonda-vulkan --control-error-final > control-error-final.txt 2>&1 || rc=$?; cat control-error-final.txt; test "$rc" = 1; grep -qx "VULKAN errores=2 esperados=1 inesperados=1" control-error-final.txt; echo "VERDE [V-03]: error tardio convierte la ejecucion en rechazo"',
+        "cmake -S 'C++' -B diag -DCMAKE_CXX_COMPILER=g++ -DULTRA_CXX_EGL=ON -DULTRA_CXX_VULKAN=ON -DULTRA_CXX_DIAGNOSTICO=ON",
         'cmake --build diag',
         'cat diag/compile_commands.json',
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/probar-contratos',
         'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-egl',
-        'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-gpus'
+        'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-gpus',
+        'bash ejecutar-grafica-limitada.sh diag/laboratorio/sonda-vulkan'
     )
     & ssh.exe @opts -p 12222 $guest ($commands -join '; ') 2>&1 |
         Tee-Object -FilePath "$evidence/informe.txt"

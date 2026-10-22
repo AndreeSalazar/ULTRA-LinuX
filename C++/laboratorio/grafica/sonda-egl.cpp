@@ -59,7 +59,7 @@ void pixel_control() {
     require(pixel[0] == 0 && pixel[1] == 255 && pixel[2] == 0 && pixel[3] == 255,
             "pixel no coincide con verde RGBA8");
 }
-void texture_controls(Session& session) {
+void texture_controls(Session& session, EGLConfig config) {
     std::array<std::uint8_t, 64> pixels{};
     for (std::size_t i = 0; i < pixels.size(); i += 4) {
         pixels[i + 1] = 255; pixels[i + 3] = 255;
@@ -132,6 +132,53 @@ void texture_controls(Session& session) {
     require(!dirty && dirty.error() == ultra::gles::Error::dirty_state, "error previo ignorado");
     pixel_control();
     std::cout << "VERDE [G-09]: RAII libera y error GL previo se rechaza sin romper contexto\n";
+
+    // An unrelated context may reuse the same numeric name: close must not touch it.
+    auto owned = ultra::gles::Texture::rgba8(4, 4, pixels, 64);
+    require(owned.has_value(), "textura antes de cambiar contexto");
+    {
+        struct OtherContext {
+            Session& owner;
+            EGLContext other;
+            OtherContext(Session& session_owner, EGLConfig configuration) : owner(session_owner) {
+                const EGLint attributes[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+                other = eglCreateContext(owner.display, configuration, EGL_NO_CONTEXT, attributes);
+                require(other != EGL_NO_CONTEXT, "crear segundo contexto");
+            }
+            ~OtherContext() {
+                // Restore even when an assertion unwinds, before Texture destruction.
+                if (!eglMakeCurrent(owner.display, owner.surface, owner.surface, owner.context))
+                    std::terminate();
+                eglDestroyContext(owner.display, other);
+            }
+        } alternate{session, config};
+        require(eglMakeCurrent(session.display, session.surface, session.surface, alternate.other),
+                "activar segundo contexto");
+        const auto rejected = owned->close();
+        require(!rejected && rejected.error() == ultra::gles::Error::wrong_context,
+                "cierre en otro contexto aceptado");
+    }
+    require(glIsTexture(owned->name()) == GL_TRUE && owned->close().has_value(),
+            "rechazo en segundo contexto altero propietario");
+    std::cout << "VERDE [G-10]: otro contexto rechazado; recurso del propietario conservado\n";
+
+    for (unsigned cycle = 0; cycle < 256; ++cycle) {
+        GLuint released = 0;
+        {
+            auto original = ultra::gles::Texture::rgba8(4, 4, pixels, 64);
+            require(original.has_value(), "ciclo de textura");
+            released = original->name();
+            ultra::gles::Texture moved{std::move(*original)};
+            require(original->name() == 0 && moved.name() == released,
+                    "move no transfirio propiedad unica");
+            require(original->close().has_value() && glIsTexture(released) == GL_TRUE,
+                    "objeto movido libero recurso del nuevo propietario");
+        }
+        require(glIsTexture(released) == GL_FALSE && glGetError() == GL_NO_ERROR,
+                "ciclo dejo nombre de textura vivo o error GL");
+    }
+    pixel_control();
+    std::cout << "VERDE [G-11]: 256 ciclos crear/mover/destruir; nombres liberados y pixel posterior correcto\n";
 }
 }
 
@@ -194,7 +241,7 @@ int main() {
         }
         pixel_control();
         std::cout << "VERDE [G-04]: GLSL valido compila despues del rechazo; contexto sigue utilizable\n";
-        texture_controls(session);
+        texture_controls(session, config);
         require(eglMakeCurrent(session.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT) == EGL_TRUE,
                 "desvincular contexto");
         require(eglDestroyContext(session.display, session.context) == EGL_TRUE, "destruir contexto");

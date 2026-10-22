@@ -32,8 +32,8 @@ el rendimiento. No se publica un porcentaje de aceleracion por contar rechazos.
 | 1 | C: limites, propiedad y errores | C es la base propia de init, caja y herramientas | Cadenas y errores de instalacion del guardian probados en QEMU y copiados en A:; API de propiedad candidata, sin consumidor; arranque nativo pendiente |
 | 2 | ASM: puentes C/ASM | Comprobar contratos de la frontera con el compilador | Banco de registros/alineacion verificado; puerta ELF obligatoria para cinco ejecutables propios; ampliar contratos de ASM sigue pendiente |
 | 3 | C++: vida util y recursos | Ampliar las sondas propias sin trasladar supuestos de C | Pendiente; aprovecha controles de limites |
-| 4 | OpenGL/EGL/GLES | Comprobar recursos, contexto y recuperacion | Pendiente; depende del manejo de recursos C++ |
-| 5 | Vulkan | Comprobar sincronizacion y vida de recursos explicitas | Pendiente; compara con los controles CPU/graficos |
+| 4 | OpenGL/EGL/GLES | Comprobar recursos, contexto y recuperacion | Banco software ampliado: otro contexto y 256 ciclos de propiedad; perdida de contexto y medidas pendientes |
+| 5 | Vulkan | Comprobar sincronizacion y vida de recursos explicitas | 64 ciclos de memoria y veredicto final verificados en software; colas/fences y medidas pendientes |
 | 6 | Proton y juegos | Medir el efecto observable en la experiencia real | Pendiente; requiere almacenamiento y captura estable |
 | 7 | Recuperacion del escritorio | Conservar datos y volver a una sesion utilizable | Pendiente; integra resultados de las etapas anteriores |
 
@@ -196,6 +196,9 @@ construccion propia y regresiones; instalar un paquete no acredita ese fork.
 **Salida:** sondas existentes de `C++/laboratorio/grafica/` y evidencia por backend.
 
 ## 5. Vulkan: sincronizacion y vida de recursos
+
+Avance conjunto GLES/Vulkan: [vida util y evidencia del 22 de octubre](GRAFICA-VIDA-UTIL.md).
+Los controles se ejecutan en el taller; no acreditan una integracion en Hyprland.
 
 **Motivo:** sus condiciones de uso no son identicas a OpenGL; las capas de
 validacion ayudan a detectar incumplimientos concretos, no certifican toda la API.

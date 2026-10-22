@@ -2,28 +2,90 @@
 // CPU-only laboratory: validation callback aborts the invalid call before dispatch.
 #include <vulkan/vulkan.h>
 #include <atomic>
+#include <array>
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
 #include <vector>
 
 namespace {
-struct Evidence { std::atomic<unsigned> errors{0}; std::atomic<bool> size_vuid{false}; };
+struct Evidence {
+    std::atomic<unsigned> errors{0}, expected{0};
+    std::atomic<bool> expecting_size{false};
+};
 VKAPI_ATTR VkBool32 VKAPI_CALL message(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT* data, void* user) {
     auto& evidence = *static_cast<Evidence*>(user);
     if ((severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0) {
         ++evidence.errors;
         const char* id = data->pMessageIdName ? data->pMessageIdName : "sin-VUID";
-        if (std::strcmp(id, "VUID-VkBufferCreateInfo-size-00912") == 0) evidence.size_vuid.store(true);
+        if (evidence.expecting_size.load() &&
+            std::strcmp(id, "VUID-VkBufferCreateInfo-size-00912") == 0) ++evidence.expected;
         std::printf("VALIDACION %s\n", id);
         return VK_TRUE;
     }
     return VK_FALSE;
 }
+// No queue work: the bound allocation is used only through host-coherent mapping.
+// Cleanup also runs on allocation/binding/mapping failure, in dependency order.
+struct HostBuffer {
+    VkDevice device;
+    VkBuffer buffer = VK_NULL_HANDLE;
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    void* mapped = nullptr;
+    explicit HostBuffer(VkDevice owner) : device(owner) {}
+    HostBuffer(const HostBuffer&) = delete;
+    HostBuffer& operator=(const HostBuffer&) = delete;
+    ~HostBuffer() {
+        if (mapped) vkUnmapMemory(device, memory);
+        if (buffer) vkDestroyBuffer(device, buffer, nullptr);
+        if (memory) vkFreeMemory(device, memory, nullptr);
+    }
+};
+bool memory_cycles(VkPhysicalDevice physical, VkDevice device) {
+    VkPhysicalDeviceMemoryProperties types{};
+    vkGetPhysicalDeviceMemoryProperties(physical, &types);
+    for (unsigned cycle = 0; cycle < 64; ++cycle) {
+        HostBuffer resource{device};
+        VkBufferCreateInfo info{};
+        info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        info.size = 4096;
+        info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        if (vkCreateBuffer(device, &info, nullptr, &resource.buffer) != VK_SUCCESS) return false;
+        VkMemoryRequirements requirements{};
+        vkGetBufferMemoryRequirements(device, resource.buffer, &requirements);
+        // Keep the test bounded even if a different software driver changes its requirements.
+        if (requirements.size > 1024 * 1024) return false;
+        std::uint32_t type = types.memoryTypeCount;
+        constexpr VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                               VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+        for (std::uint32_t i = 0; i < types.memoryTypeCount; ++i) {
+            if ((requirements.memoryTypeBits & (std::uint32_t{1} << i)) != 0 &&
+                (types.memoryTypes[i].propertyFlags & flags) == flags) { type = i; break; }
+        }
+        if (type == types.memoryTypeCount) return false;
+        VkMemoryAllocateInfo allocation{};
+        allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocation.allocationSize = requirements.size;
+        allocation.memoryTypeIndex = type;
+        if (vkAllocateMemory(device, &allocation, nullptr, &resource.memory) != VK_SUCCESS ||
+            vkBindBufferMemory(device, resource.buffer, resource.memory, 0) != VK_SUCCESS ||
+            vkMapMemory(device, resource.memory, 0, 4096, 0, &resource.mapped) != VK_SUCCESS) return false;
+        std::array<std::uint8_t, 4096> pattern{};
+        for (std::size_t i = 0; i < pattern.size(); ++i)
+            pattern[i] = static_cast<std::uint8_t>((i + cycle) % 251);
+        std::memcpy(resource.mapped, pattern.data(), pattern.size());
+        if (std::memcmp(resource.mapped, pattern.data(), pattern.size()) != 0) return false;
+    }
+    std::puts("VERDE [V-02]: 64 ciclos buffer/memoria coherente, patron CPU y liberacion ordenada");
+    return true;
+}
 }
 
-int main() {
+int main(int argc, char** argv) {
+    const bool late_error = argc == 2 && std::strcmp(argv[1], "--control-error-final") == 0;
+    if (argc != 1 && !late_error) return 2;
     std::setvbuf(stdout, nullptr, _IONBF, 0);
     Evidence evidence;
     VkDebugUtilsMessengerCreateInfoEXT debug{};
@@ -86,22 +148,40 @@ int main() {
                     VkBuffer buffer = VK_NULL_HANDLE;
                     const bool valid = vkCreateBuffer(device, &buffer_info, nullptr, &buffer) == VK_SUCCESS;
                     if (valid) vkDestroyBuffer(device, buffer, nullptr);
+                    const bool memory_valid = valid && memory_cycles(physical[0], device);
                     const unsigned before = evidence.errors.load();
                     buffer_info.size = 0;
                     buffer = VK_NULL_HANDLE;
+                    evidence.expecting_size.store(true);
                     const VkResult invalid = vkCreateBuffer(device, &buffer_info, nullptr, &buffer);
+                    evidence.expecting_size.store(false);
                     // No memory is allocated, no queue submits or shader dispatches occur.
                     if (invalid == VK_SUCCESS) vkDestroyBuffer(device, buffer, nullptr);
-                    passed = valid && before == 0 && evidence.errors.load() > before && evidence.size_vuid.load()
+                    passed = memory_valid && before == 0 && evidence.errors.load() == 1 && evidence.expected.load() == 1
                         && invalid == VK_ERROR_VALIDATION_FAILED_EXT;
                     break;
                 }
             }
         }
     }
+    if (late_error && device != VK_NULL_HANDLE) {
+        // Regression control: an error after the preliminary verdict must change the exit status.
+        VkBufferCreateInfo invalid_info{};
+        invalid_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        invalid_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        invalid_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        VkBuffer rejected = VK_NULL_HANDLE;
+        const VkResult result = vkCreateBuffer(device, &invalid_info, nullptr, &rejected);
+        if (result == VK_SUCCESS) vkDestroyBuffer(device, rejected, nullptr);
+        if (result != VK_ERROR_VALIDATION_FAILED_EXT) passed = false;
+    }
     if (device != VK_NULL_HANDLE) vkDestroyDevice(device, nullptr);
     destroy_debug(instance, messenger, nullptr);
     vkDestroyInstance(instance, nullptr);
+    // The pNext callback remains active for instance teardown; do not pass before it.
+    passed = passed && evidence.errors.load() == 1 && evidence.expected.load() == 1;
+    std::printf("VULKAN errores=%u esperados=%u inesperados=%u\n", evidence.errors.load(),
+        evidence.expected.load(), evidence.errors.load() - evidence.expected.load());
     std::puts(passed ? "VERDE: buffer valido y llamada invalida bloqueada por validacion" : "ROJO: resultado Vulkan inesperado");
     return passed ? 0 : 1;
 }

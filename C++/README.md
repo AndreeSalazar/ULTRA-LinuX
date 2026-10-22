@@ -65,6 +65,10 @@ de UB ni una demostracion de ausencia de fallos.
 
 ## GL/EGL: primer banco instalado y comprobado
 
+Actualizacion del 22 de octubre: el ejecutor tambien prueba Vulkan en ambos
+perfiles. Se agregaron ciclos de propiedad GLES, memoria Vulkan y rechazo de
+errores tardios. Ver [resultado, evidencia y pendientes](../docs/GRAFICA-VIDA-UTIL.md).
+
 El siguiente prototipo ya ofrece cache .gpus con modos estatico y dinamico:
 ver [formato, controles y limites](GPUS.md). Solo banco GLES, sin integracion
 en Hyprland ni actualizacion asincrona.
