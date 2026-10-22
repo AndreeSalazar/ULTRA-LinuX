@@ -43,6 +43,13 @@ y esta instalado en ambos perfiles de A:, conservando los datos existentes.
 La mejora de [registro automatico de Steam](evidencias/registro-steam/README.md)
 paso otras 33 comprobaciones de arranque en generico y 36 en PC; el cliente real
 abre y cierra conservando la biblioteca en el banco sin una cuenta autenticada.
+El [informe fisico posterior](evidencias/sesion-steam-2026-10-22/README.md)
+registra cinco juegos y el proceso Warframe bajo Wine. El usuario confirma que
+su lanzador propio esta verificando archivos; aun no se acredita una partida.
+El ext4 termina con 2,8 GiB libres. Una inspeccion de mantenimiento sin red,
+con el archivo en solo lectura, identifica 6,56 GiB en la capa Steam, incluidos
+runtimes, cambios de Warframe, shaders y prefijos. Queda comprobar el progreso
+del verificador y decidir capacidad sin borrar datos ni suponer un fallo grafico.
 
 ![Selector de discos y carpetas en el banco virtual](evidencias/bibliotecas-2026-10-21/generico/discos.png)
 

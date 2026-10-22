@@ -1,0 +1,54 @@
+{
+  "solo_lectura_QEMU": true,
+  "montaje_ro_noload": true,
+  "red": false,
+  "clientes_ejecutados": false,
+  "imagen_tamano_mtime_conservados": true,
+  "bloques_asignados_bytes": {
+    "total_archivos": 13590081536,
+    "home_total": 6543134720,
+    "steam_total": 4730404864,
+    "steam_common_Proton_runtimes": null,
+    "steam_descargas_temporales": null,
+    "steam_shadercache": null,
+    "steam_compatdata": 354594816,
+    "cache_usuario": 150073344,
+    "prefijos_UMU": 301789184,
+    "capas_bibliotecas": 7046377472,
+    "biblioteca_Steam_upper": 7046336512,
+    "biblioteca_Steam_common": 5458427904,
+    "biblioteca_Steam_descargando": 4096,
+    "biblioteca_Steam_shadercache": 798154752,
+    "biblioteca_Steam_compatdata": 789667840,
+    "capa_Warframe_anterior": 20480,
+    "capa_Cyberpunk": 503808
+  },
+  "software": {
+    "biblioteca_common": {
+      "directorios_publicos_bytes": {
+        "Proton - Experimental": 1554006016,
+        "Left 4 Dead 2": 4096,
+        "SteamLinuxRuntime_sniper": 835125248,
+        "SteamLinuxRuntime_4": 697376768,
+        "Warframe": 2371895296
+      },
+      "otros_directorios_bytes": 8192
+    },
+    "cliente_Steam": {
+      "directorios_publicos_bytes": {
+        "steamapps": 354611200,
+        "package": 520232960,
+        "ubuntu12_64": 406573056,
+        "compatibilitytools.d": 1614995456,
+        "userdata": 458752,
+        "steamrt64": 595640320,
+        "config": 83558400,
+        "steamrt32": 98394112,
+        "logs": 2056192,
+        "ubuntu12_32": 554217472
+      },
+      "otros_directorios_bytes": 420409344
+    }
+  },
+  "nota": "Totales contienen subtotales; no sumar todas las filas. du no sigue enlaces."
+}
