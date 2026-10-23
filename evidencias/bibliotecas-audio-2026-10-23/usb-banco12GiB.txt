@@ -1,0 +1,18 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE carpetas de estado y juegos pertenecen al usuario
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE usuario puede crear un servicio local TCP en loopback
+ROJO PipeWire detecta salida USB mediante ALSA real emulada
+Traceback (most recent call last):
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 568, in <module>
+    if __name__=='__main__': main()
+                             ~~~~^^
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 476, in main
+    check('alsa_output.usb-' in out, 'PipeWire detecta salida USB mediante ALSA real emulada')
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 115, in check
+    if not ok: raise AssertionError(label)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: PipeWire detecta salida USB mediante ALSA real emulada

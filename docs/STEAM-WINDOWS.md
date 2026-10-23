@@ -11,7 +11,8 @@ Esta integracion selecciona Warframe (AppID 230410), no toda la biblioteca Windo
 ## Uso desde el escritorio
 
 1. Cierra Steam por completo, incluida su ventana de notificaciones.
-2. Super+J > **Preparar Warframe de Windows**. La terminal muestra la ruta.
+2. Super+J > **Revisar bibliotecas de juegos**. El panel muestra las carpetas
+   elegidas y su estado; la preparación específica de Warframe se retiró.
 3. Abre Steam > Ajustes > Almacenamiento y agrega
    `/juegos/usuarios/ultra/Juegos/SteamLibrary`.
 4. En Warframe > Propiedades > Compatibilidad, selecciona Proton. Usa

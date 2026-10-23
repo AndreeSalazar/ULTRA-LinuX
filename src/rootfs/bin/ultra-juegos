@@ -4,14 +4,15 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 action=${1:-menu}
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Steam' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'GOG / Heroic' 'Cyberpunk 2077' 'Preparar Warframe de Windows' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' |
-        fuzzel --dmenu --prompt='Juegos /' --lines=9) || exit 0
+    choice=$(printf '%s\n' 'Steam' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'GOG / Heroic' 'Importar juegos GOG' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' |
+        fuzzel --dmenu --prompt='Juegos /' --lines=10) || exit 0
     case $choice in
         Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
+        'Importar juegos GOG') exec ultra-bibliotecas importar-gog;;
         'Warframe / Steam') action=warframe;;
         'Elegir carpetas y discos') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Mis carpetas y bibliotecas') exec foot --hold /usr/local/bin/ultra-bibliotecas estado;;
-        'Preparar Warframe de Windows') exec foot --hold /usr/local/bin/ultra-steam-warframe;;
+        'Revisar bibliotecas de juegos') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Estado y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;;
         'Registros de juegos') exec foot --hold /usr/local/bin/ultra-juegos registros;;
         *) exit 0;;

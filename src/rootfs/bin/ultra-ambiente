@@ -29,11 +29,11 @@ if [[ $mode == menu ]]; then
             discos) title='Discos / TURQUESA'; accent=2de2b8ff
                 rows=('Panel de discos y preparacion' 'Carpetas guardadas' 'Windows NVMe (solo lectura)' 'Explorar discos (solo lectura)' 'Volver a categorias');;
             juegos) title='Juegos / VERDE'; accent=76ff58ff
-                rows=('Steam' 'GOG / Heroic' 'Warframe / Steam' 'Cyberpunk 2077' 'Preparar Warframe de Windows' 'Espacio y estado de juegos' 'Volver a categorias');;
+                rows=('Steam' 'GOG / Heroic' 'Importar juegos GOG' 'Warframe / Steam' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Espacio y estado de juegos' 'Volver a categorias');;
             pantalla) title='Pantalla / AZUL'; accent=5298ffff
                 rows=('Resolucion, Hz y escala' 'Informe Vulkan y OpenGL' 'Cubo Vulkan' 'Cubo Vulkan con validacion' 'Volver a categorias');;
             audio) title='Audio / AMBAR'; accent=ffc857ff
-                rows=('Salidas y volumen por aplicacion' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Volver a categorias');;
+                rows=('Salidas y volumen por aplicacion' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Amplificar 200%' 'Amplificar 300%' 'Amplificar 400%' 'Amplificar 500%' 'Volver a categorias');;
             ambiente) title='Ambiente / VIOLETA'; accent=c49affff
                 rows=('Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Volver a categorias');;
             sistema) title='Sistema / ROJO'; accent=ff657aff
@@ -74,15 +74,18 @@ if [[ $mode == menu ]]; then
         Editor) exec mousepad;;
         Steam) exec ultra-juegos steam;;
         'GOG / Heroic') exec ultra-juegos gog;;
+        'Importar juegos GOG') exec ultra-bibliotecas importar-gog;;
         'Warframe / Steam') exec ultra-juegos warframe;;
         'Cyberpunk 2077') exec ultra-juegos cyberpunk;;
-        'Preparar Warframe de Windows') exec foot --hold /usr/local/bin/ultra-steam-warframe;;
+        'Revisar bibliotecas de juegos') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Espacio y estado de juegos'|'RAM, GPU y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;;
         'Registros de juegos') exec foot --hold /usr/local/bin/ultra-juegos registros;;
         'Salidas y volumen por aplicacion') exec pavucontrol;;
         'Subir volumen') exec ultra-audio subir;; 'Bajar volumen') exec ultra-audio bajar;;
         Silencio) exec ultra-audio silencio;; 'Volumen 100%') exec ultra-audio normal;;
         'Amplificar 125%') exec ultra-audio boost125;; 'Amplificar 150%') exec ultra-audio boost150;;
+        'Amplificar 200%') exec ultra-audio boost200;; 'Amplificar 300%') exec ultra-audio boost300;;
+        'Amplificar 400%') exec ultra-audio boost400;; 'Amplificar 500%') exec ultra-audio boost500;;
         'Estado del audio') exec foot --hold /usr/local/bin/ultra-audio estado;;
         'Efectos vivos') mode=vivo;;
         'Efectos reducidos') mode=sobrio;;

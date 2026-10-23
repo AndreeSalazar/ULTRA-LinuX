@@ -1,0 +1,7 @@
+{
+  "src/rootfs/bin/ultra-audio": "7c7680737e4eed8c15180aa7f0c7389f69b4b2856e9f94707023d54034832125",
+  "src/rootfs/bin/ultra-juegos": "43508ab6e91d2644450acf75307b668633ef8499cef5c94de3ec4f8a2a8c5c0f",
+  "src/rootfs/bin/ultra-ambiente": "d58e3a3a96ba4a24168fd3ab78c0a0ead918c4cc96312f5b89614a6bdc296c4e",
+  "src/rootfs/bin/ultra-bibliotecas.py": "e764a84715ab75786592ac6fb58f257aec0db02e3a8c3b310cdd4988e3c0836b",
+  "src/rootfs/bin/ultra-discos": "f22b562a5a357a7dbe78683a1e1ffef06477a040ed037bbd2dd8a14958587497"
+}

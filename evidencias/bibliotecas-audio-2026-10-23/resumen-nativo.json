@@ -1,0 +1,39 @@
+{
+  "origen": "gpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-hyprland.txt",
+  "sha256": "390d24e7dc6cad88d630d1c9b44334936b03c6cc488fefeb0e84b3da0059d999",
+  "fecha_utc": "2026-10-23T13:58:36Z",
+  "ram_sistema_MiB": {
+    "min": 587.140625,
+    "max_muestreado": 5967.21875,
+    "muestras": 120
+  },
+  "cpu_sistema_pct": {
+    "min": 0.4431080867225827,
+    "max_muestreado": 65.5517578125,
+    "muestras": 119
+  },
+  "gpu": {
+    "vram_MiB": {
+      "min": 1.0,
+      "max_muestreado": 2882.0,
+      "muestras": 120
+    },
+    "uso_pct": {
+      "min": 0.0,
+      "max_muestreado": 99.0,
+      "muestras": 120
+    },
+    "temperatura_C": {
+      "min": 47.0,
+      "max_muestreado": 75.0,
+      "muestras": 120
+    },
+    "potencia_W": {
+      "min": 14.46,
+      "max_muestreado": 169.65,
+      "muestras": 120
+    }
+  },
+  "capturas_completas": 120,
+  "limite": "Maximos muestreados de la sesion, sin atribucion exclusiva a aplicaciones."
+}

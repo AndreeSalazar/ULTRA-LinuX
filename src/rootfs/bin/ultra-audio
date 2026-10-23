@@ -4,21 +4,24 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 action=${1:-menu}
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Salidas y volumen por aplicacion' |
-        fuzzel --dmenu --prompt='Audio maestro /' --lines=7) || exit 0
+    choice=$(printf '%s\n' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Amplificar 200%' 'Amplificar 300%' 'Amplificar 400%' 'Amplificar 500%' 'Salidas y volumen por aplicacion' |
+        fuzzel --dmenu --prompt='Audio maestro /' --lines=11) || exit 0
     case $choice in
         'Subir volumen') action=subir;; 'Bajar volumen') action=bajar;; Silencio) action=silencio;;
         'Volumen 100%') action=normal;; 'Amplificar 125%') action=boost125;; 'Amplificar 150%') action=boost150;;
+        'Amplificar 200%') action=boost200;; 'Amplificar 300%') action=boost300;;
+        'Amplificar 400%') action=boost400;; 'Amplificar 500%') action=boost500;;
         'Salidas y volumen por aplicacion') exec pavucontrol;; *) exit 0;;
     esac
 fi
 case $action in
-    subir) wpctl set-volume --limit 1.5 @DEFAULT_AUDIO_SINK@ 5%+;;
-    bajar) wpctl set-volume --limit 1.5 @DEFAULT_AUDIO_SINK@ 5%-;;
+    subir) wpctl set-volume --limit 5.0 @DEFAULT_AUDIO_SINK@ 5%+;;
+    bajar) wpctl set-volume --limit 5.0 @DEFAULT_AUDIO_SINK@ 5%-;;
     silencio) wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle;;
-    normal) wpctl set-volume --limit 1.5 @DEFAULT_AUDIO_SINK@ 100%;;
-    boost125) wpctl set-volume --limit 1.5 @DEFAULT_AUDIO_SINK@ 125%;;
-    boost150) wpctl set-volume --limit 1.5 @DEFAULT_AUDIO_SINK@ 150%;;
+    normal) wpctl set-volume --limit 5.0 @DEFAULT_AUDIO_SINK@ 100%;;
+    boost125) wpctl set-volume --limit 5.0 @DEFAULT_AUDIO_SINK@ 125%;;
+    boost150) wpctl set-volume --limit 5.0 @DEFAULT_AUDIO_SINK@ 150%;;
+    boost200|boost300|boost400|boost500) wpctl set-volume --limit 5.0 @DEFAULT_AUDIO_SINK@ "${action#boost}%";;
     estado) exec wpctl status;;
     *) exit 2;;
 esac

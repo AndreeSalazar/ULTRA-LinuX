@@ -1,0 +1,130 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE carpetas de estado y juegos pertenecen al usuario
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE usuario puede crear un servicio local TCP en loopback
+VERDE PipeWire detecta salida USB mediante ALSA real emulada
+VERDE USB tiene prioridad de salida configurada
+VERDE boost maestro 150% aplicado
+VERDE boost maestro 500% aplicado
+VERDE subir respeta el limite 500%
+VERDE silencio maestro
+VERDE generador ALSA detenido al terminar la ventana de diez segundos
+VERDE Heroic abre en Wayland como usuario sin root
+STEAM: ocal/share/Steam/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+55))
+ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+55))
+[2026-10-23 09:31:14] [2026-10-23 09:31:14] Downloading update (56968 of 504927 KB)...
+[2026-10-23 09:31:14] [2026-10-23 09:31:14] Set status message: Downloading update (56968 of 504927 KB)...
+[2026-10-23 09:31:14] [2026-10-23 09:31:14] Set percent complete: 11
+AUDIO-JUEGOS-FIN-255
+STEAM: al/share/Steam/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+69))
+ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+69))
+[2026-10-23 09:31:45] [2026-10-23 09:31:45] Downloading update (195293 of 504927 KB)...
+[2026-10-23 09:31:45] [2026-10-23 09:31:45] Set status message: Downloading update (195293 of 504927 KB)...
+[2026-10-23 09:31:45] [2026-10-23 09:31:45] Set percent complete: 38
+AUDIO-JUEGOS-FIN-269
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+82))
+[2026-10-23 09:32:15] [2026-10-23 09:32:15] Downloading update (504927 of 504927 KB)...
+[2026-10-23 09:32:15] [2026-10-23 09:32:15] Set status message: Downloading update (504927 of 504927 KB)...
+[2026-10-23 09:32:15] [2026-10-23 09:32:15] Set percent complete: 100
+AUDIO-JUEGOS-FIN-282
+STEAM: sr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+97))
+ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+97))
+[2026-10-23 09:32:16] [2026-10-23 09:32:16] Set percent complete: -1
+[2026-10-23 09:32:16] [2026-10-23 09:32:16] Extracting package...
+[2026-10-23 09:32:16] [2026-10-23 09:32:16] Set status message: Extracting package...
+AUDIO-JUEGOS-FIN-297
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+112))
+[2026-10-23 09:33:16] [2026-10-23 09:33:16] Set status message: Checking for available updates...
+[2026-10-23 09:33:16] [2026-10-23 09:33:16] Set percent complete: -1
+[2026-10-23 09:33:16] [2026-10-23 09:33:16] Show window
+AUDIO-JUEGOS-FIN-312
+STEAM: /share/Steam/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+126))
+ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+126))
+[2026-10-23 09:33:49] [2026-10-23 09:33:49] Downloading update (307802 of 424455 KB)...
+[2026-10-23 09:33:49] [2026-10-23 09:33:49] Set status message: Downloading update (307802 of 424455 KB)...
+[2026-10-23 09:33:49] [2026-10-23 09:33:49] Set percent complete: 72
+AUDIO-JUEGOS-FIN-326
+STEAM: 4:00] Set status message: Extracting package...
+[2026-10-23 09:34:19] [2026-10-23 09:34:19] Error: Failed to unzip item 1915 (package/tmp/steamrt64/pv-runtime/steam-runtime-steamrt/steamrt3c_platform_3c.0.20260824.257593/files/lib/x86_64-linux-gnu/libicudata.so.67.1_)
+[2026-10-23 09:34:19] [2026-10-23 09:34:19] Error: Failed to unzip package (/juegos/usuarios/ultra/.local/share/Steam/package/runtime_steamrt_steamrt64.zip.vz.dfd243123399054275e5f81d698c080c972de140_79627716).
+AUDIO-JUEGOS-FIN-341
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+156))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-356
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+172))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-372
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+188))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-388
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+204))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-404
+STEAM: ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+220))
+ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+220))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-420
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+236))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-436
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+252))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-452
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+268))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-468
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+284))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-484
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+300))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-500
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+316))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-516
+STEAM: ultra:~# ultra-entrar /usr/bin/tail -n 3 /juegos/usuarios/ultra/.local/share/Ste
+am/logs/console-linux.txt; echo AUDIO-JUEGOS-FIN-$((200+332))
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8
+[2026-10-23 09:34:26] XOpenIM() failed, LANG = C.UTF-8XRRGetOutputInfo Workaround: initialized with override: 0 real: 0xf6178ec0
+[202AUDIO-JUEGOS-FIN-532
+ROJO Steam abre cliente/login sin iniciar sesion de cuenta
+Traceback (most recent call last):
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 564, in <module>
+    process.kill(); process.wait(timeout=10)
+             ^^^^^^
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 505, in main
+    steam_ready=wait_steam_login()
+  File "C:\Users\Salazar\Documents\Linux Reconstruido\scripts\probar_audio_juegos.py", line 115, in check
+    if not ok: raise AssertionError(label)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Steam abre cliente/login sin iniciar sesion de cuenta

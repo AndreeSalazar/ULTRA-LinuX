@@ -13,6 +13,11 @@ rojo metálico. Incluye barra de estado, dock con iconos, lanzador con teclado,
 notificaciones, efectos regulables y aplicaciones con ventanas. La captura es
 real del banco QEMU; no es una maqueta ni una medición de la RTX física.
 
+Actualización de bibliotecas y audio: detección Steam dentro de carpetas
+elegidas, recuperación conservando capas anteriores cuando Windows actualiza
+los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.
+Consulta [evidencia, límites y uso](docs/BIBLIOTECAS-AUDIO-2026-10-23.md).
+
 ## ¿Es una distro?
 
 **Sí: una distribución Linux personal y experimental.** Integra un kernel Linux

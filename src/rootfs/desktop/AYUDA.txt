@@ -15,7 +15,7 @@ SUPER + H           Esta ayuda
 SUPER + Space       Centro BMO-X: aplicaciones y ambiente
 SUPER + Shift + A   Alternar efectos vivos / reducidos
 SUPER + C           Limpiar notificaciones
-SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 150%
+SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + J           Juegos: Steam, GOG/Heroic, Cyberpunk y espacio disponible
 Teclas multimedia   Volumen maestro +/- y silencio
 SUPER + Q           Cerrar la ventana activa

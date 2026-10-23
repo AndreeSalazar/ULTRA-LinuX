@@ -1,0 +1,28 @@
+{
+  "perfil": "pc",
+  "pruebas": [
+    "NTFS identificado y ext4 montado sin formatear",
+    "UID1000 escribe en ext4 y no puede recorrer D:",
+    "carpetas de estado y juegos pertenecen al usuario",
+    "escritura overlay no modifica el juego original NTFS",
+    "escritorio usa home persistente",
+    "usuario puede crear un servicio local TCP en loopback",
+    "PipeWire detecta salida USB mediante ALSA real emulada",
+    "USB tiene prioridad de salida configurada",
+    "boost maestro 150% aplicado",
+    "boost maestro 500% aplicado",
+    "subir respeta el limite 500%",
+    "silencio maestro",
+    "generador ALSA detenido al terminar la ventana de diez segundos",
+    "audio USB produjo muestras PCM no silenciosas",
+    "NTFS identificado y ext4 montado sin formatear",
+    "home y cambios de juego sobreviven a reinicio"
+  ],
+  "disco_real_expuesto": false,
+  "imagen": "disco-bmo.img",
+  "imagen_sha256": "adb2f59a20751902ca9479428bf2adde9a80eb3f40f9df2f71d8829828ecb3df",
+  "cache_cliente_reutilizada": false,
+  "solo_audio": true,
+  "banco_grafica_12GiB": false,
+  "espacio_tras_abrir_clientes": "\r\nultra:~# ultra-entrar /usr/bin/df -B1 --output=size,used,avail /juegos; echo AUD\r\r\nIO-JUEGOS-FIN-$((200+31))\r\n 1B-blocks    Used      Avail\r\n6249086976 4132864 6163755008\r\nAUDIO-JUEGOS-FIN-231"
+}

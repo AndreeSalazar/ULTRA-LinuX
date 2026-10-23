@@ -41,6 +41,12 @@ def snapshot(lib):
         mounted = active.get(item['id'], {})
         state = mounted.get('status', 'pendiente de entrar al escritorio')
         rows.append(dict(item, status=state, path=mounted.get('path', '')))
+    for item in catalog.get('folders', []):
+        if item['id'] not in {r['id'] for r in selected} and any(
+                r['kind'] == 'folder' and r['uuid'] == item['uuid'] and
+                (item['relative'] == r['relative'] or item['relative'].startswith(r['relative']+'/'))
+                for r in selected):
+            rows.append(dict(item, discovered=True))
     space = shutil.disk_usage(lib.HOME)
     return dict(folders=rows, volumes=len([v for v in catalog.get('volumes', []) if v['status']=='lectura']),
                 free_gib=round(space.free / 2**30, 1), error=catalog.get('error', ''))

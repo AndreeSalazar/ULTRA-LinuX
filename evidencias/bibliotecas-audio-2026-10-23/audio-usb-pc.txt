@@ -1,0 +1,16 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE carpetas de estado y juegos pertenecen al usuario
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE usuario puede crear un servicio local TCP en loopback
+VERDE PipeWire detecta salida USB mediante ALSA real emulada
+VERDE USB tiene prioridad de salida configurada
+VERDE boost maestro 150% aplicado
+VERDE boost maestro 500% aplicado
+VERDE subir respeta el limite 500%
+VERDE silencio maestro
+VERDE generador ALSA detenido al terminar la ventana de diez segundos
+VERDE audio USB produjo muestras PCM no silenciosas
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE home y cambios de juego sobreviven a reinicio

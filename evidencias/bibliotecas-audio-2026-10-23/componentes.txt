@@ -1,0 +1,57 @@
+PASS 1 rechazo ('1234-ABCD', '', 'steam')
+PASS 2 rechazo ('1234-ABCD', '/', 'steam')
+PASS 3 rechazo ('1234-ABCD', '../juego', 'steam')
+PASS 4 rechazo ('1234-ABCD', 'games/../Windows', 'steam')
+PASS 5 rechazo ('1234-ABCD', 'games/./foo', 'steam')
+PASS 6 rechazo ('1234-ABCD', '/etc', 'steam')
+PASS 7 rechazo ('1234-ABCD', 'games//foo', 'steam')
+PASS 8 rechazo ('1234-ABCD', 'games\x00foo', 'steam')
+PASS 9 rechazo ('1234-ABCD', 'games\nfoo', 'steam')
+PASS 10 rechazo ('1234-ABCD', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+PASS 11 rechazo ('../disco', 'SteamLibrary', 'steam')
+PASS 12 rechazo ('/dev/sda', 'SteamLibrary', 'steam')
+PASS 13 rechazo ('UUID,upperdir=/etc', 'SteamLibrary', 'steam')
+PASS 14 rechazo ('', 'SteamLibrary', 'steam')
+PASS 15 rechazo (None, 'SteamLibrary', 'steam')
+PASS 16 rechazo ('1234-ABCD', 'SteamLibrary', 'shell')
+PASS 17 rutas con espacios, coma y Unicode no se usan como opciones de montaje
+PASS 18 limite de entrada antes de interpretar JSON
+RESULTADO 18
+test_installed_plus_update_flags_registered (__main__.Discovery.test_installed_plus_update_flags_registered) ... ok
+test_no_symbolic_or_deep_search (__main__.Discovery.test_no_symbolic_or_deep_search) ... ok
+test_parent_and_multiple_steam_libraries (__main__.Discovery.test_parent_and_multiple_steam_libraries) ... ok
+
+STEAM: biblioteca Games/Steam; juegos con manifiesto instalado: 1
+  Test
+STEAM: 1 bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad
+----------------------------------------------------------------------
+Ran 3 tests in 0.007s
+
+OK
+test_automatic_final_state_private (__main__.Discos.test_automatic_final_state_private) ... ok
+test_missing_storage_has_no_write (__main__.Discos.test_missing_storage_has_no_write) ... ok
+test_navigation_remembers_folder_after_cancel (__main__.Discos.test_navigation_remembers_folder_after_cancel) ... ok
+test_pending_is_not_reported_ready (__main__.Discos.test_pending_is_not_reported_ready) ... ok
+test_registration_failure_visible (__main__.Discos.test_registration_failure_visible) ... ok
+test_removed_folder_is_not_registered (__main__.Discos.test_removed_folder_is_not_registered) ... ok
+test_sixty_second_progress (__main__.Discos.test_sixty_second_progress) ... ok
+test_steam_launch_race_not_reported_ready (__main__.Discos.test_steam_launch_race_not_reported_ready) ... ok
+test_steam_open_waits_then_registers_once (__main__.Discos.test_steam_open_waits_then_registers_once) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.011s
+
+OK
+PASS 1 FD fijado y alias permiten espacio, coma y Unicode sin inyectar opciones
+PASS 2 prefijos y caches Windows ocultos por directorios opacos Linux
+PASS 3 UID1000 escribe la capa ext4 sin modificar origen protegido
+PASS 4 Steam puede crear metadatos y prefijos sobre ext4
+PASS 5 remontar conserva cambios y reconoce el origen
+PASS 6 rechaza componente simbolico antes del bind privilegiado
+CAPA CONSERVADA: 60f4ae8d233d27e59046.anterior-1792765111383307535 ; origen actualizado, se crea una vista limpia
+PASS 7 cambio Windows activa vista limpia y conserva capa y prefijos antiguos
+PASS 8 respeta permisos de lectura Unix en privado-root
+PASS 9 respeta permisos de lectura Unix en privado-root/hijo-publico
+PASS 10 biblioteca publica no revela steamapps privado
+RESULTADO 10 sin discos fisicos; descubrimiento se prueba en arranque nativo
+Banco conservado: /var/tmp/ultra-bibliotecas-22xxrvhq

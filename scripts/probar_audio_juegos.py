@@ -19,6 +19,7 @@ import struct
 
 def main():
     profile = sys.argv[1]
+    audio_only = '--solo-audio' in sys.argv
     preflight = '--prevalidar' in sys.argv
     storage_c = '--almacen-c' in sys.argv
     dependencies = '--deps-steam' in sys.argv
@@ -274,7 +275,7 @@ def main():
             if c_uuid not in by_uuid or config['uuid'] not in by_uuid:
                 print(command('ultra-entrar /usr/bin/lsblk -J -p -o NAME,TYPE,FSTYPE,UUID,LABEL,PARTTYPE; ultra-entrar /usr/bin/blkid',30),flush=True)
             check(c_uuid in by_uuid and config['uuid'] in by_uuid, 'dos discos NTFS distintos disponibles en vistas de solo lectura')
-            initial = [{'uuid':c_uuid,'relative':'Program Files (x86)/Steam','kind':'steam'}]
+            initial = [{'uuid':c_uuid,'relative':'Program Files (x86)','kind':'folder'}]
             encoded = base64.b64encode(json.dumps(initial).encode()).decode()
             code = ('from pathlib import Path;import base64;p=Path.home()/".config/ultra/bibliotecas.json";'
                     'p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(base64.b64decode("'+encoded+'"))')
@@ -291,7 +292,7 @@ def main():
             check('PYTHON-AISLADO-42' in out, 'exportador privilegiado ignora modulos Python controlados por el usuario')
             command(user+"/usr/bin/python -I -c 'from pathlib import Path;import site;(Path(site.getusersitepackages())/\"sitecustomize.py\").unlink()'")
             steam_library = next(r for r in catalog['folders'] if r['kind']=='steam')
-            check(steam_library['status']=='activa', 'biblioteca Steam seleccionada por UUID y carpeta; sin AppID fijo')
+            check(steam_library['status']=='activa', 'biblioteca Steam descubierta en la carpeta padre seleccionada; sin AppID fijo')
             steam_path = steam_library['path']
             # An installed synthetic app, not a real game or account. The older
             # Warframe fixture intentionally lacks installdir and is not indexed.
@@ -335,21 +336,34 @@ def main():
             snapshot('bibliotecas-juegos.png')
             monitor.sendall(b'sendkey down\n'); time.sleep(.2)
             monitor.sendall(b'sendkey ret\n')
-            time.sleep(1)
+            deadline = time.monotonic()+40
+            while time.monotonic() < deadline:
+                windows = clients()
+                out = command('pidof fuzzel || true')
+                if (any('Discos y bibliotecas' in a.get('title', '') for a in windows)
+                        and not re.search(r'(?m)^\d+(?: \d+)*\r?$', out)):
+                    break
+                time.sleep(1)
+            check(any('Discos y bibliotecas' in a.get('title', '') for a in windows),
+                  'panel de discos abre antes de enviar teclas al selector')
+            # Second entry now opens the keyboard disk dashboard. Enter on its
+            # first action opens the actual folder selector.
+            monitor.sendall(b'sendkey ret\n')
+            time.sleep(2)
             out=command('pidof fuzzel || true')
             check(bool(re.search(r'(?m)^\d+(?: \d+)*\r?$', out)), 'gestor de carpetas abre como usuario del escritorio')
             snapshot('bibliotecas-menu.png')
-            monitor.sendall(b'sendkey ret\n'); time.sleep(.7)
+            monitor.sendall(b'sendkey ret\n'); time.sleep(2)
             snapshot('bibliotecas-discos.png')
             visible=[v for v in catalog['volumes'] if v['status']=='lectura']
             index=next(i for i,v in enumerate(visible) if v['uuid']==config['uuid'])
             for _ in range(index):
                 monitor.sendall(b'sendkey down\n'); time.sleep(.15)
-            monitor.sendall(b'sendkey ret\n'); time.sleep(.7)
+            monitor.sendall(b'sendkey ret\n'); time.sleep(2)
             # The disposable D: fixture has exactly one directory, Cyberpunk 2077.
-            monitor.sendall(b'sendkey ret\n'); time.sleep(.7)
+            monitor.sendall(b'sendkey ret\n'); time.sleep(2)
             snapshot('bibliotecas-carpeta.png')
-            monitor.sendall(b'sendkey ret\n'); time.sleep(1)
+            monitor.sendall(b'sendkey ret\n'); time.sleep(2)
             out=command(user+'/usr/local/bin/ultra-bibliotecas export')
             match=re.search(r'(?m)^(\[.*\])\r?$',out)
             selected=json.loads(match[1]) if match else []
@@ -384,9 +398,9 @@ def main():
                   'PID1 desmonta las bibliotecas dinamicas antes del almacenamiento')
             start();setup();catalog=prepare_libraries()
             active=[r for r in catalog['folders'] if r['status']=='activa']
-            check(len(active)==2 and {r['uuid'] for r in active}=={c_uuid,config['uuid']},
+            check(len(active)==3 and {r['uuid'] for r in active}=={c_uuid,config['uuid']},
                   'tras reinicio se activan carpetas de ambos discos elegidos')
-            game=next(r for r in active if r['kind']=='folder')
+            game=next(r for r in active if r['kind']=='folder' and r['uuid']==config['uuid'])
             out=command(user+f'/usr/bin/bash -c \'echo CARPETA-LINUX > "{game["path"]}/prueba-general.txt"; cat "{steam_path}/steamapps/compatdata/prueba.txt"\'')
             check('LINUX-PREFIJO' in out and 'Permission denied' not in out, 'prefijo Steam persiste y carpeta independiente admite escrituras aisladas')
             out=command('test ! -e "/arch/run/ultra-juegos/volumen/Cyberpunk 2077/prueba-general.txt" && cat "/arch/run/ultra-juegos/volumen/Cyberpunk 2077/bin/x64/Cyberpunk2077.exe"')
@@ -481,33 +495,41 @@ def main():
             command(user+'/usr/bin/pactl get-sink-volume @DEFAULT_SINK@; '+user+'/usr/bin/wpctl inspect @DEFAULT_AUDIO_SINK@')
             command(user+'/usr/bin/pactl set-sink-volume @DEFAULT_SINK@ 150%; sleep .5; '+user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
         check('1.50' in out, 'boost maestro 150% aplicado')
+        out=command(user+'/usr/local/bin/ultra-audio boost500; '+user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
+        for _ in range(20):
+            if '5.00' in out: break
+            time.sleep(.2)
+            out=command(user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
+        check('5.00' in out, 'boost maestro 500% aplicado')
         out=command(user+'/usr/local/bin/ultra-audio subir; '+user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
-        check('1.50' in out and '1.55' not in out, 'subir respeta el limite 150%')
+        check('5.00' in out and '5.05' not in out, 'subir respeta el limite 500%')
         out=command(user+'/usr/local/bin/ultra-audio silencio; '+user+'/usr/bin/wpctl get-volume @DEFAULT_AUDIO_SINK@')
         check('[MUTED]' in out, 'silencio maestro')
         command(user+'/usr/local/bin/ultra-audio silencio; '+user+'/usr/local/bin/ultra-audio normal')
         out=command(user+'/usr/bin/timeout -k 2 10 /usr/bin/speaker-test -D default -c 2 -t sine -f 440 -l 0; echo REPRODUCCION-RC-$?', 25)
         check('REPRODUCCION-RC-124' in out, 'generador ALSA detenido al terminar la ventana de diez segundos')
-        command(ipc+'eval \'hl.exec_cmd("ultra-juegos gog")\'')
-        check(wait_app('heroic', 90), 'Heroic abre en Wayland como usuario sin root')
-        snapshot('heroic-gog.png')
-        command(ipc+'eval \'hl.exec_cmd("ultra-juegos steam")\'')
-        steam_ready=wait_steam_login()
-        if not steam_ready:
-            command('ultra-entrar /usr/bin/tail -n 80 /juegos/usuarios/ultra/.cache/ultra/steam.log /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt /juegos/usuarios/ultra/.local/share/Steam/logs/cef_log.txt',60)
-            snapshot('steam-diagnostico.png')
-        check(steam_ready, 'Steam abre cliente/login sin iniciar sesion de cuenta')
         space = command('ultra-entrar /usr/bin/df -B1 --output=size,used,avail /juegos')
-        snapshot('steam-login.png')
-        snapshot('clientes-listos.png')
-        out=command('for name in heroic steam pipewire wireplumber; do for p in $(pidof "$name"); do echo CRED-$name; cat /proc/$p/status; echo CRED-FIN; done; done')
-        secured=set()
-        for name,status in re.findall(r'^CRED-(\w+)\n(.*?)^CRED-FIN',out.replace('\r',''),re.M|re.S):
-            good=bool(re.search(r'^Uid:\s+1000\s+1000\s+1000\s+1000\s*$',status,re.M))
-            good &= all(bool(re.search(rf'^{field}:\s+0+\s*$',status,re.M)) for field in ('CapEff','CapBnd','CapAmb','CapPrm'))
-            good &= bool(re.search(r'^NoNewPrivs:\s+1\s*$',status,re.M))
-            if good:secured.add(name)
-        check({'heroic','steam','pipewire','wireplumber'}<=secured, 'clientes mantienen UID1000, capacidades cero y NoNewPrivs')
+        if not audio_only:
+            command(ipc+'eval \'hl.exec_cmd("ultra-juegos gog")\'')
+            check(wait_app('heroic', 90), 'Heroic abre en Wayland como usuario sin root')
+            snapshot('heroic-gog.png')
+            command(ipc+'eval \'hl.exec_cmd("ultra-juegos steam")\'')
+            steam_ready=wait_steam_login()
+            if not steam_ready:
+                command('ultra-entrar /usr/bin/tail -n 80 /juegos/usuarios/ultra/.cache/ultra/steam.log /juegos/usuarios/ultra/.local/share/Steam/logs/console-linux.txt /juegos/usuarios/ultra/.local/share/Steam/logs/cef_log.txt',60)
+                snapshot('steam-diagnostico.png')
+            check(steam_ready, 'Steam abre cliente/login sin iniciar sesion de cuenta')
+            space = command('ultra-entrar /usr/bin/df -B1 --output=size,used,avail /juegos')
+            snapshot('steam-login.png')
+            snapshot('clientes-listos.png')
+            out=command('for name in heroic steam pipewire wireplumber; do for p in $(pidof "$name"); do echo CRED-$name; cat /proc/$p/status; echo CRED-FIN; done; done')
+            secured=set()
+            for name,status in re.findall(r'^CRED-(\w+)\n(.*?)^CRED-FIN',out.replace('\r',''),re.M|re.S):
+                good=bool(re.search(r'^Uid:\s+1000\s+1000\s+1000\s+1000\s*$',status,re.M))
+                good &= all(bool(re.search(rf'^{field}:\s+0+\s*$',status,re.M)) for field in ('CapEff','CapBnd','CapAmb','CapPrm'))
+                good &= bool(re.search(r'^NoNewPrivs:\s+1\s*$',status,re.M))
+                if good:secured.add(name)
+            check({'heroic','steam','pipewire','wireplumber'}<=secured, 'clientes mantienen UID1000, capacidades cero y NoNewPrivs')
         console.sendall(b'reboot\n')
         transcript += base.read_until(console, 'Restarting system', 40)
         process.wait(timeout=20); console.close(); monitor.close()
@@ -534,6 +556,7 @@ def main():
         result={'perfil':profile,'pruebas':results,'disco_real_expuesto':False,
                 'imagen':base.IMG.name,'imagen_sha256':verified[base.IMG.name],
                 'cache_cliente_reutilizada':reuse}
+        result['solo_audio'] = audio_only
         result['banco_grafica_12GiB'] = graphics_bank
         result['espacio_tras_abrir_clientes'] = space
         if windows_test:

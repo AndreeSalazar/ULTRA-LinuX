@@ -14,6 +14,7 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 
 HOME = Path('/juegos/usuarios/ultra')
 CONFIG = HOME / '.config/ultra/bibliotecas.json'
@@ -86,6 +87,59 @@ def atomic_json(path, value, mode=0o600):
     finally:
         if os.path.exists(name):
             os.unlink(name)
+
+
+def discover_selections(items, volumes):
+    """Bounded search inside explicitly selected folders, as the desktop user."""
+    result = {item['id']: item for item in items}
+    visited = 0
+    for item in items:
+        if item['kind'] == 'steam':
+            continue
+        volume = next((v for v in volumes if v['uuid'] == item['uuid'] and v['status'] == 'lectura'), None)
+        if volume is None:
+            continue
+        base = Path(volume['path'])
+        pending = [(base/item['relative'], 0)]
+        while pending and visited < 2048 and len(result) < 128:
+            folder, depth = pending.pop()
+            visited += 1
+            try:
+                if folder.is_symlink():
+                    continue
+                apps = folder/'steamapps'
+                if apps.is_dir() and not apps.is_symlink():
+                    found = selection(dict(uuid=item['uuid'], relative=folder.relative_to(base).as_posix(), kind='steam'))
+                    result[found['id']] = found
+                    continue
+                if depth < 3:
+                    with os.scandir(folder) as entries:
+                        for index, entry in enumerate(entries):
+                            if index >= 512:
+                                break
+                            if (len(pending) < 2048 and entry.is_dir(follow_symlinks=False)
+                                    and not entry.name.startswith('.')):
+                                pending.append((Path(entry.path), depth+1))
+            except OSError:
+                continue
+    return list(result.values())
+
+
+def rotate_changed_store(store, identity):
+    """Never combine an old writable overlay with a changed Windows lower."""
+    if not (store.exists() or store.is_symlink()):
+        return
+    checked_dir(store, 0o700)
+    state = read_json(store/'source.json')
+    if state == identity:
+        return
+    if ({k: v for k, v in state.items() if k != 'version'} !=
+            {k: v for k, v in identity.items() if k != 'version'}):
+        raise ValueError('identidad de origen cambio; revisar la capa anterior')
+    # Same parent, no recursive traversal and no deletion of saves or prefixes.
+    archive = store.with_name(store.name+'.anterior-'+str(time.time_ns()))
+    store.rename(archive)
+    print('CAPA CONSERVADA:', archive.name, '; origen actualizado, se crea una vista limpia')
 
 
 def checked_dir(path, mode=0o755):
@@ -275,6 +329,7 @@ def prepare_folder(item, volume):
     try:
         version = signature(alias, item['kind'])
         identity = {**item, 'version': version}
+        rotate_changed_store(store, identity)
         if store.exists() or store.is_symlink():
             checked_dir(store, 0o700)
             state = read_json(store/'source.json')
@@ -325,10 +380,12 @@ def prepare():
             raw = run('/usr/bin/setpriv', '--reuid=1000', '--regid=1000', '--init-groups',
                       '--no-new-privs', '--bounding-set=-all', '--inh-caps=-all', '--ambient-caps=-all',
                       '/usr/bin/env', f'HOME={HOME}', '/usr/bin/python', '-I',
-                      '/usr/local/libexec/ultra-bibliotecas.py', 'export', stdin=subprocess.DEVNULL)
+                      '/usr/local/libexec/ultra-bibliotecas.py', 'export-descubrir', input=json.dumps(volumes))
             if len(raw.encode()) > LIMIT:
                 raise ValueError('seleccion demasiado grande')
             items = [selection(value) for value in json.loads(raw)]
+            if len(items) > 128:
+                raise ValueError('demasiadas carpetas descubiertas')
             for item in items:
                 record = {**item, 'status': 'pendiente'}
                 try:
@@ -499,7 +556,8 @@ def register_steam_file(path, fallback, root, catalog):
             appid, size = state.get('appid', ''), state.get('SizeOnDisk', '')
             if (not isinstance(appid, str) or not isinstance(size, str) or not appid.isdecimal()
                     or manifest.name != f'appmanifest_{appid}.acf' or not size.isdecimal()
-                    or state.get('StateFlags') != '4'):
+                    or not str(state.get('StateFlags', '')).isdecimal()
+                    or not (int(state['StateFlags']) & 4)):
                 continue
             install = state.get('installdir', '')
             if not isinstance(install, str) or not install or '/' in install or '\\' in install or install in ('.', '..'):
@@ -605,6 +663,12 @@ def status():
         print('  Carpeta preparada:', active.get('path', str(TARGETS/item['id'])))
         if item['kind'] == 'steam':
             print('  Abre Steam desde Super+J para registrar esta biblioteca automaticamente (Steam debe estar cerrado).')
+    selected_ids = {item['id'] for item in user_config()}
+    for item in catalog.get('folders', []):
+        if item['id'] not in selected_ids:
+            print('Descubierta dentro de tu seleccion:', item['relative'], item['status'])
+            print('  Carpeta preparada:', item.get('path', 'no disponible'))
+    print('GOG: usa Importar juegos GOG; en Heroic elige el juego y su carpeta preparada.')
     print('Las vistas /discos son solo lectura. Cambios y caches usan el ext4 de /juegos.')
     print('Una actualizacion puede copiar archivos grandes; comprueba el espacio libre.')
     if catalog.get('error'):
@@ -673,12 +737,44 @@ def play(item):
         return
 
 
+def import_gog():
+    user_config()
+    active = [r for r in read_json(CATALOG).get('folders', [])
+              if r.get('status') == 'activa' and r.get('kind') == 'folder']
+    if not active:
+        raise ValueError('Elige primero la carpeta GOG en Discos y bibliotecas y vuelve a entrar al escritorio.')
+    item = choose('Carpeta para importar en Heroic', [(r['relative'], r) for r in active])
+    if item is None:
+        return
+    expected = TARGETS/selection(item)['id']
+    if item.get('path') != str(expected) or not expected.is_dir():
+        raise ValueError('carpeta preparada no valida')
+    # Heroic owns its import format/account catalogue; do not invent installs.
+    subprocess.Popen(['thunar', str(expected)])
+    subprocess.run(['notify-send', 'GOG / importar archivos existentes',
+                    'En Heroic: selecciona el juego de tu cuenta > Importar juego. Usa la carpeta abierta: '+str(expected)], check=False)
+    subprocess.Popen(['/opt/heroic/heroic', '--ozone-platform=wayland'],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def main():
     action = sys.argv[1] if len(sys.argv) > 1 else 'menu'
     if action == 'preparar':
         prepare()
     elif action == 'export':
         print(json.dumps(user_config(), ensure_ascii=True))
+    elif action == 'export-descubrir':
+        items = user_config()
+        # Root supplies read-only volume metadata, not executable instructions.
+        raw = sys.stdin.read(LIMIT+1)
+        if len(raw.encode()) > LIMIT:
+            raise ValueError('catalogo demasiado grande')
+        volumes = json.loads(raw) if raw.strip() else []
+        if not isinstance(volumes, list) or len(volumes) > 128:
+            raise ValueError('catalogo invalido')
+        volumes = [v for v in volumes if isinstance(v, dict) and isinstance(v.get('uuid'), str)
+                   and UUID.fullmatch(v['uuid']) and v.get('path') == str(VOLUMES/v['uuid'])]
+        print(json.dumps(discover_selections(items, volumes), ensure_ascii=True))
     elif action == 'estado':
         user_config()
         status()
@@ -686,6 +782,8 @@ def main():
         ui()
     elif action == 'registrar-steam':
         register_steam()
+    elif action == 'importar-gog':
+        import_gog()
     elif action == 'buscar-steam' and len(sys.argv) == 3:
         find_steam_app(sys.argv[2])
     else:

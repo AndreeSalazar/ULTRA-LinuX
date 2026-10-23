@@ -1,0 +1,38 @@
+{
+  "perfiles": [
+    {
+      "perfil": "pc",
+      "kernel": "7.3.0-rc7-pc-g32c52ec87d62",
+      "archivos": [
+        {
+          "origen": "build\\pc\\bzImage-tiny64",
+          "destino": "A:\\EFI\\ULTRA\\ULTRA-PC.EFI",
+          "sha256": "9e971b3488b64aa9ec5716492e2e2c046b951eba14b788b6ddf307492ae31bf1"
+        },
+        {
+          "origen": "build\\pc\\sistema-a.erofs",
+          "destino": "A:\\ULTRA\\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+          "sha256": "58d19726238994b0629ce90c397fb183c253c8b223b1bb93f460a40f77a8a9f3"
+        }
+      ]
+    },
+    {
+      "perfil": "generico",
+      "kernel": "7.3.0-rc7-g32c52ec87d62",
+      "archivos": [
+        {
+          "origen": "build\\generico\\bzImage-tiny64",
+          "destino": "A:\\EFI\\ULTRA\\ULTRA.EFI",
+          "sha256": "3bc3942aff3791bde018d114827d580b72238bbcd3e63ab35bfc8c2f205ac90e"
+        },
+        {
+          "origen": "build\\generico\\sistema-a.erofs",
+          "destino": "A:\\ULTRA\\sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+          "sha256": "e8c5d3b8c740a9359cb0c6246731ce78f00aba51c4806f5a5d6e77fa92f7a48e"
+        }
+      ]
+    }
+  ],
+  "datos_ext4_sha256_antes_despues": "3df75509666d5e160964e2643f4e6f9cc3d0611605178b95b6a73a9c7b7da24a",
+  "sin_formatear": true
+}

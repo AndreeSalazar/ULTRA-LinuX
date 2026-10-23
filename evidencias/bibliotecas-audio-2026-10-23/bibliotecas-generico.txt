@@ -1,0 +1,34 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE NVMe Windows ficticio identificado por UUID y montado
+VERDE Windows legible por UID1000 con dispositivo NVMe de solo lectura
+VERDE Windows rechaza escrituras de aplicaciones
+VERDE NVMe ficticio rechaza escritura directa incluso del preparador root
+VERDE preparador general nativo termina sin inyectar ayudantes
+VERDE dos discos NTFS distintos disponibles en vistas de solo lectura
+VERDE preparador general nativo termina sin inyectar ayudantes
+VERDE exportador privilegiado ignora modulos Python controlados por el usuario
+VERDE biblioteca Steam descubierta en la carpeta padre seleccionada; sin AppID fijo
+VERDE registro Steam nativo sin seleccionar rutas en su interfaz
+VERDE configuracion Linux de Steam contiene la biblioteca activa
+VERDE registro idempotente encuentra juego sintetico por manifiesto y carpeta
+VERDE config y steamapps conservan el indice de la instalacion existente
+VERDE Steam escribe prefijos y caches Linux en ext4
+VERDE vista del disco D8BAB58CBAB567A0 rechaza escrituras
+VERDE vista del disco 2FA9E6D234561C9D rechaza escrituras
+VERDE D: privado conserva escritura para el ext4, su vista publica permanece solo lectura
+VERDE escritorio con home persistente para el selector general
+VERDE panel de discos abre antes de enviar teclas al selector
+VERDE gestor de carpetas abre como usuario del escritorio
+VERDE teclado elige carpeta en el segundo disco y guarda seleccion persistente
+VERDE seleccion nueva queda pendiente; no se monta en caliente desde la interfaz
+VERDE PID1 desmonta las bibliotecas dinamicas antes del almacenamiento
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE NVMe Windows ficticio identificado por UUID y montado
+VERDE Windows legible por UID1000 con dispositivo NVMe de solo lectura
+VERDE Windows rechaza escrituras de aplicaciones
+VERDE NVMe ficticio rechaza escritura directa incluso del preparador root
+VERDE preparador general nativo termina sin inyectar ayudantes
+VERDE tras reinicio se activan carpetas de ambos discos elegidos
+VERDE prefijo Steam persiste y carpeta independiente admite escrituras aisladas
+VERDE carpeta original del segundo disco permanece intacta
+VERDE SHA256 completo del primer disco ficticio sin cambios

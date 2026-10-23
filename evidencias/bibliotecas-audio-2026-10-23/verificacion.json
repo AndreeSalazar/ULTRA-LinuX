@@ -1,0 +1,30 @@
+{
+  "arranque_pc": {
+    "verdes": 157,
+    "rojos": 0
+  },
+  "arranque_generico": {
+    "verdes": 156,
+    "rojos": 0
+  },
+  "bibliotecas": {
+    "pruebas": 34,
+    "solo_audio": false
+  },
+  "audio": {
+    "pruebas": 16,
+    "solo_audio": true
+  },
+  "almacen_c": {
+    "pruebas": 18,
+    "solo_audio": false
+  },
+  "limites": [
+    "GOG requiere completar la importacion en Heroic.",
+    "No se ejecuto ningun juego real ni se uso una cuenta en QEMU.",
+    "El intento completo de Steam en 6GiB fallo extrayendo el runtime actualizado.",
+    "El intento USB en 12GiB excedio la espera de deteccion; la prueba aislada USB posterior paso.",
+    "El primer arranque generico excedio una espera; repeticion completa: 156 verdes.",
+    "Las pruebas de teclado se actualizaron para esperar el panel actual, en vez del menu anterior."
+  ]
+}

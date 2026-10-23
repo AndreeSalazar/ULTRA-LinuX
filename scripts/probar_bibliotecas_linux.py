@@ -95,15 +95,14 @@ try:
     subprocess.run(['mount', '-o', 'remount,rw', str(source)], check=True)
     manifest.write_text('"AppState" { "buildid" "67890" }')
     subprocess.run(['mount', '-o', 'remount,ro,nosuid,nodev,noexec', str(source)], check=True)
-    try:
-        mod.prepare_folder(item, volume)
-    except ValueError as error:
-        assert 'version' in str(error)
-        passed('cambio Windows bloquea la capa antigua sin borrarla')
-    else:
-        raise AssertionError('mezcla de versiones admitida')
-    assert (mod.PRIVATE/item['id']/'upper/nuevo.txt').read_text() == 'PERSISTENTE'
-    passed('fallo conserva las escrituras existentes')
+    target = Path(mod.prepare_folder(item, volume))
+    assert not (target/'nuevo.txt').exists()
+    assert (target/'juego.exe').read_text() == 'ORIGINAL'
+    archives = list(mod.PRIVATE.glob(item['id']+'.anterior-*'))
+    assert len(archives) == 1
+    assert (archives[0]/'upper/nuevo.txt').read_text() == 'PERSISTENTE'
+    assert (archives[0]/'upper/steamapps/compatdata/linux.txt').read_text() == 'PREFIJO'
+    passed('cambio Windows activa vista limpia y conserva capa y prefijos antiguos')
     for relative in ('privado-root', 'privado-root/hijo-publico'):
         item = mod.selection({'uuid':'1111-ABCD', 'relative':relative, 'kind':'folder'})
         try:

@@ -27,7 +27,8 @@ Super+A abre el control maestro. Las teclas multimedia suben/bajan y silencian.
 La barra muestra volumen y silencio; click abre el control y click derecho abre
 pavucontrol para salidas y volumen por aplicacion. USB recibe prioridad 2000,
 manteniendo disponible seleccionar otra salida. El boost a 125/150% es explicito;
-el boton de subir se limita a 150%. El arranque no fuerza amplificacion.
+el boton de subir se limita ahora a 500%, con presets 200/300/400/500%.
+El arranque no fuerza amplificacion. Véase [actualización y pruebas](BIBLIOTECAS-AUDIO-2026-10-23.md).
 
 La prueba usa un dispositivo USB Audio de QEMU y un backend WAV, no altavoces
 o microfonos del host. Comprueba enumeracion, prioridad real, volumen aplicado,
