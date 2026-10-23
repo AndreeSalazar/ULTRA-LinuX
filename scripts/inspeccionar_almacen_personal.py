@@ -5,6 +5,7 @@ Never runs the normal game test with personal storage. Only du on fixed paths;
 no account/session file contents are opened or exported.
 """
 import importlib.util
+import argparse
 import json
 from pathlib import Path
 import re
@@ -62,13 +63,19 @@ def public_sizes(output, path):
 
 
 def main():
+    global IMAGE
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--imagen', type=Path, default=IMAGE,
+                        choices=[IMAGE, Path('D:/ULTRA-juegos.ext4')])
+    args = parser.parse_args()
+    IMAGE = args.imagen
     assert IMAGE.is_file() and not IMAGE.is_symlink()
     before = IMAGE.stat()
     sys.argv = [sys.argv[0], 'generico', '--bmo']
     spec = importlib.util.spec_from_file_location('base', ROOT/'scripts/probar_arranque.py')
     base = importlib.util.module_from_spec(spec); spec.loader.exec_module(base)
     base.check_kernel()
-    work = ROOT/'build/inspeccion-sololectura'
+    work = ROOT/('build/inspeccion-sololectura-'+IMAGE.drive[0].lower())
     work.mkdir(parents=True, exist_ok=True)
     variables = work/'vars.fd'
     shutil.copyfile(base.QEMU_SHARE/'edk2-i386-vars.fd', variables)
@@ -110,6 +117,11 @@ def main():
                              'ultra-entrar /usr/bin/findmnt -n -o OPTIONS --mountpoint /mnt/inspeccion; '
                              'echo INSPECCION-MONTAJE-$((40+2))', 'INSPECCION-MONTAJE-42')
             assert re.search(r'(?m)^ro,.*(?:noload|norecovery)', output), output
+            space = command('ultra-entrar /usr/bin/stat -f -c "ESPACIO %b %f %a %S" /mnt/inspeccion; '
+                            'echo INSPECCION-ESPACIO-$((40+2))', 'INSPECCION-ESPACIO-42')
+            match = re.search(r'ESPACIO (\d+) (\d+) (\d+) (\d+)', space)
+            assert match, space
+            blocks, free, available, unit = map(int, match.groups())
             sizes = {}
             for label, relative in BUCKETS.items():
                 # These are source-code constants, not filenames read from disk.
@@ -119,6 +131,11 @@ def main():
                 match = re.search(r'(?m)^(\d+)\s+/mnt/inspeccion', output)
                 sizes[label] = int(match[1]) if match else None
             software = {}
+            output = command('ultra-entrar /usr/bin/du -x -B1 --max-depth=2 /mnt/inspeccion/.ultra-bibliotecas; '
+                             'echo INSPECCION-CAPAS-$((40+2))', 'INSPECCION-CAPAS-42', 120)
+            layers = {}
+            for count, suffix in re.findall(r'(?m)^(\d+)\s+/mnt/inspeccion/\.ultra-bibliotecas/([a-zA-Z0-9_.\-/]+)\r?$', output):
+                layers[suffix] = int(count)
             for label, relative in [('biblioteca_common', BUCKETS['biblioteca_Steam_common']),
                                     ('cliente_Steam', BUCKETS['steam_total'])]:
                 path = '/mnt/inspeccion/'+relative
@@ -131,8 +148,12 @@ def main():
             after = IMAGE.stat()
             assert (before.st_size, before.st_mtime_ns) == (after.st_size, after.st_mtime_ns)
             result = {'solo_lectura_QEMU':True, 'montaje_ro_noload':True, 'red':False,
+                      'archivo':str(IMAGE), 'capacidad_bytes':blocks*unit,
+                      'usado_bytes':(blocks-free)*unit, 'libre_bytes':free*unit,
+                      'disponible_usuario_bytes':available*unit,
                       'clientes_ejecutados':False, 'imagen_tamano_mtime_conservados':True,
                       'bloques_asignados_bytes':sizes,
+                      'capas_bytes':layers,
                       'software':software,
                       'nota':'Totales contienen subtotales; no sumar todas las filas. du no sigue enlaces.'}
             (work/'tamanos.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
