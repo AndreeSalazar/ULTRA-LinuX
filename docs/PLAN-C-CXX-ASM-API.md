@@ -1,5 +1,8 @@
 # Metas de C, C++, ASM y APIs
 
+Marco de trabajo: [Escritura, Caza UB y Fluidez](CATEGORIAS-GUARDIANES.md).
+Cada entrega distingue correccion, coste e integracion en un consumidor.
+
 2026-10-23, America/Lima. El trabajo combina correccion, endurecimiento,
 aislamiento y medicion. Los guardianes ejecutan reglas definidas; las pruebas
 no cambian automaticamente banderas ni permisos ni hacen que aprendan todo C.

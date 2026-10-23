@@ -1,5 +1,9 @@
 # Produccion y banco de investigacion C
 
+Actualizacion 2026-10-23: [tres responsabilidades de los guardianes](CATEGORIAS-GUARDIANES.md):
+Escritura, Caza UB y Fluidez. Se aplican sobre las carpetas existentes, con
+contratos, evidencias y estados separados; no crean protecciones globales.
+
 Ronda 8, 2026-10-19. La reorganizacion no incorpora automaticamente las
 42 lineas pendientes ni promete cobertura de todo C. Crea una base reutilizable
 para desarrollarlas y contrastarlas con el mismo GCC y la misma API.
