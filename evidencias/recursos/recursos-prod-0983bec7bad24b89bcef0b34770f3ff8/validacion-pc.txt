@@ -1,0 +1,9 @@
+VERDE [ELF]: seis ejecutables de produccion auditados y ligados al manifiesto.
+RECHAZO-OK: archivo-alterado
+RECHAZO-OK: hash-init-distinto
+RECHAZO-OK: hash-ambiguo
+RECHAZO-OK: recursos-ausente
+RECHAZO-OK: recursos-distinto
+RECHAZO-OK: estado-fallido
+RECHAZO-OK: regla-ausente
+VALIDACION-ELF-OK: control valido y siete rechazos; sin escribir A: ni ejecutar binarios Linux.

@@ -1,5 +1,7 @@
 # Primer modelo ejecutable de Custodia
 
+Evolucion: [consumidor local de contadores RAM y verificacion HEX](RECURSOS-C-PRODUCCION.md).
+
 Ampliacion: [pruebas de estres, modelo de estados y mutaciones](CUSTODIA-ESTRES.md).
 La primera ronda descrita abajo conserva su evidencia historica.
 Primer candidato de velocidad: [ticket inline y resultados](CUSTODIA-RENDIMIENTO.md).

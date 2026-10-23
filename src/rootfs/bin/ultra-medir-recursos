@@ -61,24 +61,10 @@ for resource in cpu memory io; do
         ((lines > 0)) || printf 'PSI recurso=%s NA\n' "$resource"
     else printf 'PSI recurso=%s NA\n' "$resource"; fi
 done
-if [[ -r /proc/meminfo ]]; then
-    while read -r key value unit rest; do
-        [[ $value =~ ^[0-9]+$ ]] || continue
-        case "$key" in
-            MemTotal:|MemAvailable:|AnonPages:|Cached:|Buffers:|Shmem:|Slab:|SReclaimable:|SUnreclaim:|Dirty:|Writeback:|PageTables:|KernelStack:|Unevictable:|Mlocked:|SwapTotal:|SwapFree:|SwapCached:|AnonHugePages:|HugePages_Total:|HugePages_Free:|Hugepagesize:)
-                printf 'MEM %s %s %s\n' "$key" "$value" "$unit";;
-        esac
-    done < /proc/meminfo
-else printf 'MEM NA\n'; fi
-if [[ -r /proc/vmstat ]]; then
-    while read -r key value rest; do
-        [[ $value =~ ^[0-9]+$ ]] || continue
-        case "$key" in
-            pgfault|pgmajfault|pswpin|pswpout|pgscan_*|pgsteal_*|allocstall*|compact_stall|compact_fail|compact_success|oom_kill|workingset_refault_*|thp_fault_alloc|thp_fault_fallback)
-                printf 'VM %s=%s\n' "$key" "$value";;
-        esac
-    done < /proc/vmstat
-else printf 'VM NA\n'; fi
+# Fixed-path, unprivileged C reader. Failure is unavailable, never zero.
+if ! /usr/local/libexec/ultra-recursos-contadores; then
+    printf 'MEM NA\nVM NA\n'
+fi
 for key in swappiness dirty_background_bytes dirty_bytes dirty_background_ratio dirty_ratio; do
     emit POLITICA "$key" "/proc/sys/vm/$key"
 done

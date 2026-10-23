@@ -22,6 +22,9 @@ for optimization in O2 O3; do
         gcc "${flags[@]}" "${inputs[@]}" -o "$out/$route-$optimization"
         gcc "${flags[@]}" -DCOUNT_ALLOC "${inputs[@]}" -Wl,--wrap=calloc -Wl,--wrap=free -o "$out/$route-$optimization-count"
         sha256sum "$root/laboratorio/custodia/ultra_custodia.c" "$root/laboratorio/custodia/ultra_custodia.h" "$root/produccion/ultra_owner.c" "$root/produccion/ultra_owner.h" > "$out/fuentes-$route-$optimization.sha256"
+        if [[ -f $root/produccion/ultra_custodia.c ]]; then
+            sha256sum "$root/produccion/ultra_custodia.c" "$root/produccion/ultra_custodia.h" >> "$out/fuentes-$route-$optimization.sha256"
+        fi
     done
 done
 python "$lab/comparar-custodia.py" "$out" "$lab/aislar-mina.sh"

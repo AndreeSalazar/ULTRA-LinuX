@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "flags": [
+    "-fhardened",
+    "-fstrict-flex-arrays=3",
+    "-fsanitize=undefined,float-cast-overflow,bounds-strict",
+    "-fsanitize-trap=all",
+    "-fno-strict-aliasing",
+    "-static-pie"
+  ],
+  "pairs": 12,
+  "repetitions": 20,
+  "output_sha256": "a7bd522c97f6d7080d71fb7661ddfa06c735485e3e4df272ff65e4f07cb66667",
+  "median_paired_wall_reduction_percent": 92.92675393001127,
+  "median_wall_ns_per_snapshot": {
+    "bash": 7230740.45,
+    "c-custodia": 513744.8
+  },
+  "scope": "QEMU, process startup plus fixed MEM/VM parsing; not games, physical RAM/SSD or FPS",
+  "records": [
+    {
+      "pair": 0,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 144611559,
+      "child_cpu_s": 0.14151999999999998,
+      "minor_faults": 3288,
+      "major_faults": 0
+    },
+    {
+      "pair": 0,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10431249,
+      "child_cpu_s": 0.008768999999999916,
+      "minor_faults": 750,
+      "major_faults": 0
+    },
+    {
+      "pair": 1,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10579253,
+      "child_cpu_s": 0.009003000000000094,
+      "minor_faults": 755,
+      "major_faults": 0
+    },
+    {
+      "pair": 1,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 144618059,
+      "child_cpu_s": 0.14170099999999974,
+      "minor_faults": 3285,
+      "major_faults": 0
+    },
+    {
+      "pair": 2,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 144532257,
+      "child_cpu_s": 0.14149100000000003,
+      "minor_faults": 3280,
+      "major_faults": 0
+    },
+    {
+      "pair": 2,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10377948,
+      "child_cpu_s": 0.008752000000000093,
+      "minor_faults": 750,
+      "major_faults": 0
+    },
+    {
+      "pair": 3,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10001339,
+      "child_cpu_s": 0.008439000000000085,
+      "minor_faults": 753,
+      "major_faults": 0
+    },
+    {
+      "pair": 3,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 144462955,
+      "child_cpu_s": 0.14156599999999986,
+      "minor_faults": 3291,
+      "major_faults": 0
+    },
+    {
+      "pair": 4,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 144034245,
+      "child_cpu_s": 0.1407010000000002,
+      "minor_faults": 3286,
+      "major_faults": 0
+    },
+    {
+      "pair": 4,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 9971338,
+      "child_cpu_s": 0.008540000000000214,
+      "minor_faults": 748,
+      "major_faults": 0
+    },
+    {
+      "pair": 5,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10140543,
+      "child_cpu_s": 0.008667999999999454,
+      "minor_faults": 748,
+      "major_faults": 0
+    },
+    {
+      "pair": 5,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 145217773,
+      "child_cpu_s": 0.1423680000000005,
+      "minor_faults": 3284,
+      "major_faults": 0
+    },
+    {
+      "pair": 6,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 144646460,
+      "child_cpu_s": 0.14176100000000025,
+      "minor_faults": 3284,
+      "major_faults": 0
+    },
+    {
+      "pair": 6,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10609754,
+      "child_cpu_s": 0.008924999999999406,
+      "minor_faults": 752,
+      "major_faults": 0
+    },
+    {
+      "pair": 7,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10160843,
+      "child_cpu_s": 0.00856100000000004,
+      "minor_faults": 749,
+      "major_faults": 0
+    },
+    {
+      "pair": 7,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 143897241,
+      "child_cpu_s": 0.14079999999999981,
+      "minor_faults": 3267,
+      "major_faults": 0
+    },
+    {
+      "pair": 8,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 143831139,
+      "child_cpu_s": 0.14091000000000076,
+      "minor_faults": 3287,
+      "major_faults": 0
+    },
+    {
+      "pair": 8,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10657354,
+      "child_cpu_s": 0.008895999999999127,
+      "minor_faults": 748,
+      "major_faults": 0
+    },
+    {
+      "pair": 9,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10246545,
+      "child_cpu_s": 0.008706000000000547,
+      "minor_faults": 752,
+      "major_faults": 0
+    },
+    {
+      "pair": 9,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 145604782,
+      "child_cpu_s": 0.1424249999999998,
+      "minor_faults": 3282,
+      "major_faults": 0
+    },
+    {
+      "pair": 10,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 145416978,
+      "child_cpu_s": 0.1424449999999997,
+      "minor_faults": 3281,
+      "major_faults": 0
+    },
+    {
+      "pair": 10,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 10303247,
+      "child_cpu_s": 0.00878900000000038,
+      "minor_faults": 746,
+      "major_faults": 0
+    },
+    {
+      "pair": 11,
+      "route": "c-custodia",
+      "repetitions": 20,
+      "wall_ns": 9965238,
+      "child_cpu_s": 0.008346999999999882,
+      "minor_faults": 755,
+      "major_faults": 0
+    },
+    {
+      "pair": 11,
+      "route": "bash",
+      "repetitions": 20,
+      "wall_ns": 145344576,
+      "child_cpu_s": 0.14222400000000035,
+      "minor_faults": 3287,
+      "major_faults": 0
+    }
+  ]
+}

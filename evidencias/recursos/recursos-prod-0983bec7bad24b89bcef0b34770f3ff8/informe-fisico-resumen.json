@@ -1,0 +1,25 @@
+{
+  "source": "gpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-hyprland.txt",
+  "source_sha256": "e5364b8808f67841e05e7362413772cc3bdc1cde757360781c8834e2c7addd89",
+  "samples": 39,
+  "used_MiB_min": 693.71484375,
+  "used_MiB_max": 2720.046875,
+  "used_MiB_median": 2493.79296875,
+  "swap_total_kB": [
+    0
+  ],
+  "resource_v1_present": false,
+  "dmesg_source": "dmesg-7.3.0-rc7-pc-g32c52ec87d62.txt",
+  "dmesg_sha256": "3fee16a762489b1845aa4b1fe5c04468ff37fe4ae8fc990fc0b9268694fcc535",
+  "selected_error_text_counts": {
+    "I/O error": 0,
+    "EXT4-fs error": 0,
+    "Out of memory": 0,
+    "page allocation failure": 0,
+    "BUG:": 0,
+    "Oops:": 0
+  },
+  "nvme_HMB_MiB": 64,
+  "nvme_queues": "8/0/0 default/read/poll",
+  "scope": "Previous native report, finite capture; no frame times or SSD latency. No proof of absence of faults."
+}

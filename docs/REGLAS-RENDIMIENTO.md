@@ -1,5 +1,12 @@
 # Reglas pendientes para demostrar rendimiento
 
+Actualizacion: [lector C con Custodia](RECURSOS-C-PRODUCCION.md), primer
+consumidor local con comparacion completa y verificacion HEX ampliada.
+La tabla siguiente conserva el alcance del microbenchmark original; RF-02,
+RF-07 y RF-11 avanzan para ese lector, mientras RF-12 sigue requiriendo una
+medicion nativa representativa. Autenticacion solo es requisito de una
+frontera entre procesos; este lector no ofrece IPC ni delegacion de autoridad.
+
 Avance: [ticket inline y comparacion antes/despues](CUSTODIA-RENDIMIENTO.md).
 Hay mejora de la carga reutilizada en QEMU y regresion O2 en el ciclo completo;
 no se declara mejora universal ni validacion nativa.

@@ -31,6 +31,17 @@ Reject $case 'incompatible'
 $case=Fixture 'hash-ambiguo'
 Add-Content -LiteralPath (Join-Path $case 'SHA256SUMS') -Value (('0'*64)+'  /otra/init') -Encoding ascii
 Reject $case 'ambiguo'
+foreach($mode in @('recursos-ausente','recursos-distinto')){
+    $case=Fixture $mode
+    $manifest=Join-Path $case 'SHA256SUMS'
+    $lines=Get-Content -LiteralPath $manifest | ForEach-Object {
+        if($_ -match '/ultra-recursos-contadores$'){
+            if($mode -eq 'recursos-distinto'){('0'*64)+($_.Substring(64))}
+        }else{$_}
+    }
+    $lines | Set-Content -LiteralPath $manifest -Encoding ascii
+    Reject $case 'ausente|incompatible'
+}
 foreach($mode in @('estado-fallido','regla-ausente')){
     $case=Fixture $mode
     $unpack=Join-Path $case 'contenido'
@@ -49,4 +60,4 @@ foreach($mode in @('estado-fallido','regla-ausente')){
     $lines | Set-Content -LiteralPath $manifest -Encoding ascii
     Reject $case 'incompatible|falta la regla'
 }
-Write-Output 'VALIDACION-ELF-OK: control valido y cinco rechazos; sin escribir A: ni ejecutar binarios Linux.'
+Write-Output 'VALIDACION-ELF-OK: control valido y siete rechazos; sin escribir A: ni ejecutar binarios Linux.'

@@ -71,7 +71,7 @@ echo "perfil: $perfil"
 # production build. static-pie keeps ASLR, BIND_NOW and CET in static binaries.
 source "$lab/guardianes.sh"
 init_src=("$lab/init.c" "$lab/particiones.c" "$lab/hardware.c" "$lab/tarjeta.c" "$lab/efi.c" "$lab/perfil.c" "$lab/logo.c" "$lab/sistema.c")
-for file in "${init_src[@]}" "$lab/raiz.c" "$lab/red.c" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; do
+for file in "${init_src[@]}" "$lab/raiz.c" "$lab/red.c" "$lab/recursos.c" "$lab/guardian/produccion/ultra_custodia.c" "$lab/guardian/produccion/ultra_owner.c" "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c"; do
     ultra_revisar "$file" || { echo "ROJO: $file no pasa la revision de guardianes"; exit 1; }
 done
 # Static userspace built separately from the unmodified kernel sources.
@@ -79,16 +79,17 @@ gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "${init_
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/caja/caja.c" "$lab/guardian/ultra_guard.c" -o "$user/caja"
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/raiz.c" "$lab/guardian/ultra_guard.c" -o "$user/ultra-raiz"
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/red.c" "$lab/guardian/ultra_guard.c" -o "$user/ultra-red-contadores"
+gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" "${userflags[@]}" -static-pie "$lab/recursos.c" "$lab/guardian/produccion/ultra_custodia.c" "$lab/guardian/produccion/ultra_owner.c" "$lab/guardian/ultra_guard.c" -o "$user/ultra-recursos-contadores"
 # Production build of the minefield, so the guardians can be watched on the ULTRA kernel itself.
 # Same options as init: a guardian that -O3 or LTO optimizes away shows up in the boot test.
 gcc "${ULTRA_PROD[@]}" "${userflags[@]}" -w -static-pie "$lab/guardian/minas.c" "$lab/guardian/ultra_guard.c" -o "$user/minas"
 audit=$(mktemp -d "$user/elf-produccion.XXXXXXXX")
-for name in init caja ultra-raiz ultra-red-contadores minas; do
+for name in init caja ultra-raiz ultra-red-contadores ultra-recursos-contadores minas; do
     python "$lab/auditar-elf-produccion.py" "$user/$name" --out "$audit/$name"
 done
-sha256sum "${init_src[@]}" "$lab/raiz.c" "$lab/red.c" "$lab/caja/caja.c" \
+sha256sum "${init_src[@]}" "$lab/raiz.c" "$lab/red.c" "$lab/recursos.c" "$lab/guardian/produccion/ultra_custodia.c" "$lab/guardian/produccion/ultra_owner.c" "$lab/caja/caja.c" \
     "$lab/guardian/produccion/ultra_guard.c" "$lab/guardian/produccion/ultra_guard.h" \
-    "$lab/guardian/produccion/ultra_string.h" "$lab/guardian/produccion/perfil-gcc.sh" \
+    "$lab/guardian/produccion/ultra_custodia.h" "$lab/guardian/produccion/ultra_owner.h" "$lab/guardian/produccion/ultra_string.h" "$lab/guardian/produccion/perfil-gcc.sh" \
     "$lab/auditar-elf-produccion.py" "$lab/build-baseline.sh" > "$audit/fuentes.sha256"
 tar -C "$audit" -czf "$user/elf-produccion.tar.gz" .
 printf '%s
@@ -186,7 +187,7 @@ cp "$out/.config" "$art/tiny64.config"
 cp "$user/guardianes.txt" "$art/guardianes.txt"
 cp "$user/elf-produccion.tar.gz" "$art/elf-produccion.tar.gz"
 make -s -C "$src" O="$out" ARCH=x86_64 kernelrelease > "$art/kernelrelease.txt"
-sums=("$art/bzImage-tiny64" "$user/init" "$user/caja" "$user/ultra-raiz" "$user/ultra-red-contadores" "$user/minas" "$art/elf-produccion.tar.gz")
+sums=("$art/bzImage-tiny64" "$user/init" "$user/caja" "$user/ultra-raiz" "$user/ultra-red-contadores" "$user/ultra-recursos-contadores" "$user/minas" "$art/elf-produccion.tar.gz")
 if [[ -n $cmdline ]]; then
     grep -qx 'CONFIG_CMDLINE_BOOL=y' "$out/.config" || { echo 'ROJO: falta la linea de comandos integrada'; exit 1; }
     grep -qx 'CONFIG_CMDLINE_OVERRIDE=y' "$out/.config" || { echo 'ROJO: el firmware podria anadir argumentos al kernel'; exit 1; }
@@ -242,6 +243,7 @@ if [[ -n $cmdline ]]; then
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
+    sudo install -m 0755 "$user/ultra-recursos-contadores" "$sistema/usr/local/libexec/ultra-recursos-contadores"
     # These kernels have FW_LOADER_COMPRESS disabled. Ship plain Realtek NIC
     # firmware rather than merely accepting an unreadable compressed package.
     for firmware in "$sistema"/usr/lib/firmware/rtl_nic/*.zst; do

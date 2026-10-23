@@ -1,0 +1,52 @@
+MEM MemTotal: 4000252 kB
+MEM MemAvailable: 3539192 kB
+MEM Buffers: 1120 kB
+MEM Cached: 348536 kB
+MEM SwapCached: 0 kB
+MEM Unevictable: 48608 kB
+MEM Mlocked: 0 kB
+MEM SwapTotal: 524284 kB
+MEM SwapFree: 524284 kB
+MEM Dirty: 9056 kB
+MEM Writeback: 0 kB
+MEM AnonPages: 31872 kB
+MEM Shmem: 4652 kB
+MEM Slab: 57712 kB
+MEM SReclaimable: 13644 kB
+MEM SUnreclaim: 44068 kB
+MEM KernelStack: 2376 kB
+MEM PageTables: 3092 kB
+MEM AnonHugePages: 0 kB
+MEM HugePages_Total: 0 
+MEM HugePages_Free: 0 
+MEM Hugepagesize: 2048 kB
+VM workingset_refault_anon=0
+VM workingset_refault_file=0
+VM pgsteal_kswapd=0
+VM pgsteal_direct=0
+VM pgsteal_khugepaged=0
+VM pgsteal_proactive=0
+VM pgsteal_anon=0
+VM pgsteal_file=0
+VM pgscan_kswapd=0
+VM pgscan_direct=0
+VM pgscan_khugepaged=0
+VM pgscan_proactive=0
+VM pgscan_anon=0
+VM pgscan_file=0
+VM pswpin=0
+VM pswpout=0
+VM allocstall_dma=0
+VM allocstall_dma32=0
+VM allocstall_normal=0
+VM allocstall_movable=0
+VM allocstall_device=0
+VM pgfault=1089995
+VM pgmajfault=188
+VM pgscan_direct_throttle=0
+VM oom_kill=0
+VM compact_stall=0
+VM compact_fail=0
+VM compact_success=0
+VM thp_fault_alloc=467
+VM thp_fault_fallback=0

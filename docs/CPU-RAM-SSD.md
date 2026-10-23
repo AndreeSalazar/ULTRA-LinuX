@@ -137,6 +137,10 @@ nombre Ryzen no convierte sus cuatro CPUs virtuales en la topologia fisica del
 host. Cero indices de cache mostrados significa que no se recogieron indices,
 no demuestra que el procesador carezca de cache.
 
+Actualizacion: [lector C de recursos y verificacion HEX](RECURSOS-C-PRODUCCION.md).
+Reduce el coste del observador frente a Bash; no demuestra aun aceleracion
+de la memoria o SSD fisicos. Incluye resumen del ultimo informe del PC.
+
 ## Orden para optimizar con los guardianes
 
 1. **CPU:** confirmar driver/EPP reales y temperatura; medir espera del

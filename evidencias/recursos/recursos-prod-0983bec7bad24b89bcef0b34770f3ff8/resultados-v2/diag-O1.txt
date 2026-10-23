@@ -1,0 +1,1 @@
+RECURSOS-C-OK: 2048 fronteras, cinco fallos de asignacion, cero, UINT64_MAX, overflow, NUL, limites y ausencia

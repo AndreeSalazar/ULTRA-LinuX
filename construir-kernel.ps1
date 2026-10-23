@@ -48,7 +48,7 @@ if($Accion -eq 'Compilar'){
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia de fuentes incompleta.'}
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'scripts/auditar-elf-produccion.py') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: falta el auditor ELF de produccion.'}
-    & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/raiz.c') (Join-Path $project 'src/red.c') (Join-Path $project 'scripts/instalar-brave.sh') (Join-Path $project 'scripts/instalar-heroic.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
+    & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/raiz.c') (Join-Path $project 'src/red.c') (Join-Path $project 'src/recursos.c') (Join-Path $project 'scripts/instalar-brave.sh') (Join-Path $project 'scripts/instalar-heroic.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: preparacion Brave incompleta.'}
     & scp.exe -r -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/rootfs') (Join-Path $project 'src/guardian') (Join-Path $project 'src/caja') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia del rootfs incompleta.'}

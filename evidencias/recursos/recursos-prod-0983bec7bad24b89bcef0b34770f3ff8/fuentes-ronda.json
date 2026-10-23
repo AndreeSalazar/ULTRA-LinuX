@@ -1,0 +1,42 @@
+{
+  "before_commit": "684052686ebdfcb934471fe34ccdfd7784fb1c4f",
+  "files": [
+    {
+      "path": "src/recursos.c",
+      "sha256": "8b2df05ff8500342d18e1047b7b2a8d1f9bc09e0c7d215cf313ef696e2b1729d"
+    },
+    {
+      "path": "src/guardian/produccion/ultra_custodia.c",
+      "sha256": "7bfc4e5687bc85f8bc0929475c1b11fce512a6d120af6d6607fa50fd7eb09b11"
+    },
+    {
+      "path": "src/guardian/produccion/ultra_custodia.h",
+      "sha256": "fd24843396d4a661e69d63e5747284d371cb9fdc4e57de06f36962bac2cfae13"
+    },
+    {
+      "path": "src/guardian/produccion/ultra_owner.c",
+      "sha256": "49ad20419412e9756bc29ebb840a1ec3d5c506f28896e99ae0f7a00331c5cd22"
+    },
+    {
+      "path": "src/guardian/produccion/ultra_owner.h",
+      "sha256": "146d5cc1596cda46a441a66db4e26d68f081789758ff9120811c8c05908d3ff7"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-medir-recursos",
+      "sha256": "f9c178ae87a99200bbfa1b5f9fa03076d6e6abc150224b6e5f5f2f7fca66ecd0"
+    },
+    {
+      "path": "scripts/fixture_recursos.py",
+      "sha256": "39a3bd8f641e4620d69cbd3a39877d7fb4e47784deb58c57131b7cf34818b19d"
+    },
+    {
+      "path": "scripts/comparar-recursos.py",
+      "sha256": "35a91211632ebec004134bb5ef5f054efcf48ee8b76aba64c07560aa4faedfe2"
+    },
+    {
+      "path": "scripts/inspeccionar-custodia-hex.py",
+      "sha256": "3fc4150e5731e90a8a936b1f6406a65b30782417b2a3da3bbb31aa93ea5cb3c8"
+    }
+  ],
+  "note": "Hashes of actual workspace/VM input bytes; Git text normalization may differ in line endings."
+}

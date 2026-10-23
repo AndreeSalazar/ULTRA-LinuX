@@ -1,0 +1,19 @@
+gcc (GCC) 16.2.1 20260810
+RECURSOS-C-OK: 2048 fronteras, cinco fallos de asignacion, cero, UINT64_MAX, overflow, NUL, limites y ausencia
+CUSTODIA-HEX-OK: 5 simbolos C; bytes ELF contrastados, desensamblado y hashes; sin prueba semantica automatica
+RECURSOS-C-OK: 2048 fronteras, cinco fallos de asignacion, cero, UINT64_MAX, overflow, NUL, limites y ausencia
+CUSTODIA-HEX-OK: 5 simbolos C; bytes ELF contrastados, desensamblado y hashes; sin prueba semantica automatica
+RECURSOS-C-OK: 2048 fronteras, cinco fallos de asignacion, cero, UINT64_MAX, overflow, NUL, limites y ausencia
+CUSTODIA-HEX-OK: 5 simbolos C; bytes ELF contrastados, desensamblado y hashes; sin prueba semantica automatica
+RECURSOS-C-OK: 2048 fronteras, cinco fallos de asignacion, cero, UINT64_MAX, overflow, NUL, limites y ausencia
+CUSTODIA-HEX-OK: 5 simbolos C; bytes ELF contrastados, desensamblado y hashes; sin prueba semantica automatica
+VERDE: PSI, ausencia vs cero, contadores, politicas, limites 16/32 y fuentes intactas
+VERDE: rechaza argumentos; no modo de aplicar ajustes
+VERDE: inventario AMD/Intel actual, cache, disco, capas acotadas y ausencia sin inventar DDR/ECC
+VERDE: snapshot de recursos integrado en sesion con el mismo procfs de prueba
+VERDE: RAM, UID, RSS/PSS parcial, GPU ausente y una muestra
+VERDE: modo NVIDIA sin nodos no consulta ni prepara dispositivos
+VERDE: MemAvailable ausente no se inventa
+VERDE: limite 128 procesos
+VERDE: parada previa sin atribuir una muestra inexistente
+RECURSOS-OK: lector local sin privilegios, no ajusta RAM ni discos; QEMU no es medida de SSD fisico

@@ -6,6 +6,7 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+from fixture_recursos import build_fixture
 
 source = pathlib.Path(sys.argv[1]).read_text()
 with tempfile.TemporaryDirectory() as directory:
@@ -26,7 +27,9 @@ with tempfile.TemporaryDirectory() as directory:
         put(f'sys/block/fake{i}/queue/scheduler', '[none] mq-deadline\n')
         put(f'sys/block/fake{i}/stat', '1 0 8 2 0 0 0 0 0 2 2\n')
     script = root / 'meter'
-    script.write_text(source.replace('/proc/', str(root / 'proc')+'/').replace('/sys/', str(root / 'sys')+'/'))
+    text = source.replace('/proc/', str(root / 'proc')+'/').replace('/sys/', str(root / 'sys')+'/')
+    text = text.replace('/usr/local/libexec/ultra-recursos-contadores', build_fixture(root))
+    script.write_text(text)
     def hashes():
         return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                 for p in root.rglob('*') if p.is_file()}

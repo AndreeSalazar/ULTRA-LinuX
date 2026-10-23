@@ -1,0 +1,255 @@
+gcc (GCC) 16.2.1 20260810
+perfil: pc
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+gcc: warning: linker hardening options not enabled by ‘-fhardened’ because other link options were specified on the command line
+ELF-PRODUCCION-OK: init a91b24cb341ef45eb708a9ee033638976ab98b60e5c0de8990ae4ffdd9fa88ee
+ELF-PRODUCCION-OK: caja 58633a26dfe7d47fede49a714f67ef0d2b66934a01c0dfccab949fc5b4eb539b
+ELF-PRODUCCION-OK: ultra-raiz 1d3fe2bac79c6e0301567301b96323e535decf1a9c3f5c39782c6a7385ec6e11
+ELF-PRODUCCION-OK: ultra-red-contadores 2214c88429137906bbf1b6179ea231237570b9d28ee0b926fc8f8d123346db2f
+ELF-PRODUCCION-OK: ultra-recursos-contadores f74acaafd43cedc2695ad40a42fae2b1c388cd50a9a6a0438883764b87c8fc73
+ELF-PRODUCCION-OK: minas 29896777101a37ea9f7b7c6dd0ed3fd0b0b8a3b30f3ef37f2c706dccff7ecdae
+make: Entering directory '/home/builder/linux-reconstruido/kernel'
+make[1]: Entering directory '/home/builder/linux-reconstruido/build/x86_64-pc'
+#
+# configuration written to .config
+#
+make[1]: Leaving directory '/home/builder/linux-reconstruido/build/x86_64-pc'
+make: Leaving directory '/home/builder/linux-reconstruido/kernel'
+make: Entering directory '/home/builder/linux-reconstruido/kernel'
+make[1]: Entering directory '/home/builder/linux-reconstruido/build/x86_64-pc'
+  SYNC    include/config/auto.conf
+  DESCEND objtool
+  GEN     usr/initramfs_data.cpio
+  COPY    usr/initramfs_inc_data
+  AS      usr/initramfs_data.o
+  AR      usr/built-in.a
+  AR      built-in.a
+  AR      built-in-fixup.a
+  COPY    vmlinux.a
+  LD      vmlinux.o
+  MODPOST Module.symvers
+  UPD     include/generated/utsversion.h
+  CC      init/version-timestamp.o
+  KSYMS   .tmp_vmlinux0.kallsyms.S
+  AS      .tmp_vmlinux0.kallsyms.o
+  LD      .tmp_vmlinux1
+  NM      .tmp_vmlinux1.syms
+  KSYMS   .tmp_vmlinux1.kallsyms.S
+  AS      .tmp_vmlinux1.kallsyms.o
+  LD      .tmp_vmlinux2
+  NM      .tmp_vmlinux2.syms
+  KSYMS   .tmp_vmlinux2.kallsyms.S
+  AS      .tmp_vmlinux2.kallsyms.o
+  LD      vmlinux.unstripped
+  NM      System.map
+  SORTTAB vmlinux.unstripped
+  OBJCOPY vmlinux
+  GEN     modules.builtin.modinfo
+  GEN     modules.builtin
+  CC      arch/x86/boot/version.o
+  VOFFSET arch/x86/boot/compressed/../voffset.h
+  OBJCOPY arch/x86/boot/compressed/vmlinux.bin
+  RELOCS  arch/x86/boot/compressed/vmlinux.relocs
+  CC      arch/x86/boot/compressed/kaslr.o
+  GZIP    arch/x86/boot/compressed/vmlinux.bin.gz
+  CC      arch/x86/boot/compressed/misc.o
+  MKPIGGY arch/x86/boot/compressed/piggy.S
+  AS      arch/x86/boot/compressed/piggy.o
+  LD      arch/x86/boot/compressed/vmlinux
+  ZOFFSET arch/x86/boot/zoffset.h
+  OBJCOPY arch/x86/boot/vmlinux.bin
+  AS      arch/x86/boot/header.o
+  LD      arch/x86/boot/setup.elf
+  OBJCOPY arch/x86/boot/setup.bin
+  BUILD   arch/x86/boot/bzImage
+Kernel: arch/x86/boot/bzImage is ready  (#37)
+make[1]: Leaving directory '/home/builder/linux-reconstruido/build/x86_64-pc'
+make: Leaving directory '/home/builder/linux-reconstruido/kernel'
+VERDE: nvidia-open 615.78.08 compilado para 7.3.0-rc7-pc-g32c52ec87d62 (35M)
+AMARILLO [SRSO]: 11674 avisos observados; cobertura real pendiente (ver nvidia-guardian.txt)
+/home/builder/linux-reconstruido/brave-cache/brave-1.97.59.zip: OK
+	linux-vdso.so.1 (0x00007f3ebd805000)
+	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007f3ebd7df000)
+	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007f3ebd7da000)
+	libglib-2.0.so.0 => /usr/lib/libglib-2.0.so.0 (0x00007f3ea9a9b000)
+	libgobject-2.0.so.0 => /usr/lib/libgobject-2.0.so.0 (0x00007f3ebd777000)
+	libnspr4.so => /usr/lib/libnspr4.so (0x00007f3ea9a58000)
+	libnss3.so => /usr/lib/libnss3.so (0x00007f3ea990b000)
+	libnssutil3.so => /usr/lib/libnssutil3.so (0x00007f3ea98dc000)
+	libsmime3.so => /usr/lib/libsmime3.so (0x00007f3ea98ad000)
+	libgio-2.0.so.0 => /usr/lib/libgio-2.0.so.0 (0x00007f3ea96ca000)
+	libatk-1.0.so.0 => /usr/lib/libatk-1.0.so.0 (0x00007f3ea96a3000)
+	libatk-bridge-2.0.so.0 => /usr/lib/libatk-bridge-2.0.so.0 (0x00007f3ea9667000)
+	libdbus-1.so.3 => /usr/lib/libdbus-1.so.3 (0x00007f3ea9611000)
+	libcups.so.2 => /usr/lib/libcups.so.2 (0x00007f3ea957b000)
+	libexpat.so.1 => /usr/lib/libexpat.so.1 (0x00007f3ea954c000)
+	libxcb.so.1 => /usr/lib/libxcb.so.1 (0x00007f3ea9521000)
+	libxkbcommon.so.0 => /usr/lib/libxkbcommon.so.0 (0x00007f3ea94c2000)
+	libasound.so.2 => /usr/lib/libasound.so.2 (0x00007f3ea93c9000)
+	libgbm.so.1 => /usr/lib/libgbm.so.1 (0x00007f3ea93c3000)
+	libX11.so.6 => /usr/lib/libX11.so.6 (0x00007f3ea9271000)
+	libXext.so.6 => /usr/lib/libXext.so.6 (0x00007f3ea925d000)
+	libcairo.so.2 => /usr/lib/libcairo.so.2 (0x00007f3ea9114000)
+	libpango-1.0.so.0 => /usr/lib/libpango-1.0.so.0 (0x00007f3ea90a5000)
+	libudev.so.1 => /usr/lib/libudev.so.1 (0x00007f3ea9055000)
+	libm.so.6 => /usr/lib/libm.so.6 (0x00007f3ea8f1e000)
+	libXcomposite.so.1 => /usr/lib/libXcomposite.so.1 (0x00007f3ea8f19000)
+	libXdamage.so.1 => /usr/lib/libXdamage.so.1 (0x00007f3ea8f14000)
+	libXfixes.so.3 => /usr/lib/libXfixes.so.3 (0x00007f3ea8f0c000)
+	libXrandr.so.2 => /usr/lib/libXrandr.so.2 (0x00007f3ea8eff000)
+	libatspi.so.0 => /usr/lib/libatspi.so.0 (0x00007f3ea8ec2000)
+	libgcc_s.so.1 => /usr/lib/libgcc_s.so.1 (0x00007f3ea8e95000)
+	libc.so.6 => /usr/lib/libc.so.6 (0x00007f3ea8c00000)
+	/lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007f3ebd807000)
+	libpcre2-8.so.0 => /usr/lib/libpcre2-8.so.0 (0x00007f3ea8b4d000)
+	libffi.so.8 => /usr/lib/libffi.so.8 (0x00007f3ea8e85000)
+	libplds4.so => /usr/lib/libplds4.so (0x00007f3ea8e80000)
+	libplc4.so => /usr/lib/libplc4.so (0x00007f3ea8e79000)
+	libgmodule-2.0.so.0 => /usr/lib/libgmodule-2.0.so.0 (0x00007f3ea8e70000)
+	libz.so.1 => /usr/lib/libz.so.1 (0x00007f3ea8e55000)
+	libmount.so.1 => /usr/lib/libmount.so.1 (0x00007f3ea8af0000)
+	libsystemd.so.0 => /usr/lib/libsystemd.so.0 (0x00007f3ea89a6000)
+	libavahi-common.so.3 => /usr/lib/libavahi-common.so.3 (0x00007f3ea8e46000)
+	libavahi-client.so.3 => /usr/lib/libavahi-client.so.3 (0x00007f3ea8e31000)
+	libgnutls.so.30 => /usr/lib/libgnutls.so.30 (0x00007f3ea8600000)
+	libXau.so.6 => /usr/lib/libXau.so.6 (0x00007f3ea8e2c000)
+	libXdmcp.so.6 => /usr/lib/libXdmcp.so.6 (0x00007f3ea8e24000)
+	libdrm.so.2 => /usr/lib/libdrm.so.2 (0x00007f3ea898f000)
+	libpng16.so.16 => /usr/lib/libpng16.so.16 (0x00007f3ea8950000)
+	libfontconfig.so.1 => /usr/lib/libfontconfig.so.1 (0x00007f3ea88d5000)
+	libfreetype.so.6 => /usr/lib/libfreetype.so.6 (0x00007f3ea851b000)
+	libXrender.so.1 => /usr/lib/libXrender.so.1 (0x00007f3ea88c9000)
+	libxcb-render.so.0 => /usr/lib/libxcb-render.so.0 (0x00007f3ea88ba000)
+	libxcb-shm.so.0 => /usr/lib/libxcb-shm.so.0 (0x00007f3ea88b5000)
+	libpixman-1.so.0 => /usr/lib/libpixman-1.so.0 (0x00007f3ea846c000)
+	libfribidi.so.0 => /usr/lib/libfribidi.so.0 (0x00007f3ea8891000)
+	libthai.so.0 => /usr/lib/libthai.so.0 (0x00007f3ea8886000)
+	libharfbuzz.so.0 => /usr/lib/libharfbuzz.so.0 (0x00007f3ea8321000)
+	libXi.so.6 => /usr/lib/libXi.so.6 (0x00007f3ea8871000)
+	libblkid.so.1 => /usr/lib/libblkid.so.1 (0x00007f3ea882f000)
+	libleancrypto.so.1.9 => /usr/lib/libleancrypto.so.1.9 (0x00007f3ea8000000)
+	libp11-kit.so.0 => /usr/lib/libp11-kit.so.0 (0x00007f3ea7e5e000)
+	libidn2.so.0 => /usr/lib/libidn2.so.0 (0x00007f3ea82ff000)
+	libunistring.so.5 => /usr/lib/libunistring.so.5 (0x00007f3ea7c77000)
+	libtasn1.so.6 => /usr/lib/libtasn1.so.6 (0x00007f3ea82e9000)
+	libhogweed.so.7 => /usr/lib/libhogweed.so.7 (0x00007f3ea7c30000)
+	libnettle.so.9 => /usr/lib/libnettle.so.9 (0x00007f3ea7bd4000)
+	libgmp.so.10 => /usr/lib/libgmp.so.10 (0x00007f3ea7b2d000)
+	libbz2.so.1.0 => /usr/lib/libbz2.so.1.0 (0x00007f3ea82d6000)
+	libbrotlidec.so.1 => /usr/lib/libbrotlidec.so.1 (0x00007f3ea82c7000)
+	libdatrie.so.1 => /usr/lib/libdatrie.so.1 (0x00007f3ea82be000)
+	libgraphite2.so.3 => /usr/lib/libgraphite2.so.3 (0x00007f3ea7b0a000)
+	libbrotlicommon.so.1 => /usr/lib/libbrotlicommon.so.1 (0x00007f3ea7ae7000)
+VERDE: Brave 1.97.59 oficial instalado; apertura y sandbox pendientes de prueba
+/home/builder/linux-reconstruido/heroic-cache/heroic-2.22.4.tar.xz: OK
+	linux-vdso.so.1 (0x00007f0448301000)
+	libffmpeg.so => /opt/heroic/libffmpeg.so (0x00007f043a800000)
+	libdl.so.2 => /usr/lib/libdl.so.2 (0x00007f04482db000)
+	libpthread.so.0 => /usr/lib/libpthread.so.0 (0x00007f04482d6000)
+	libglib-2.0.so.0 => /usr/lib/libglib-2.0.so.0 (0x00007f0448171000)
+	libgobject-2.0.so.0 => /usr/lib/libgobject-2.0.so.0 (0x00007f043ad9d000)
+	libgio-2.0.so.0 => /usr/lib/libgio-2.0.so.0 (0x00007f043a61d000)
+	libnspr4.so => /usr/lib/libnspr4.so (0x00007f044812c000)
+	libnss3.so => /usr/lib/libnss3.so (0x00007f043ac50000)
+	libnssutil3.so => /usr/lib/libnssutil3.so (0x00007f043ac21000)
+	libsmime3.so => /usr/lib/libsmime3.so (0x00007f043a5ee000)
+	libatk-1.0.so.0 => /usr/lib/libatk-1.0.so.0 (0x00007f043a5c7000)
+	libatk-bridge-2.0.so.0 => /usr/lib/libatk-bridge-2.0.so.0 (0x00007f043a58b000)
+	libcups.so.2 => /usr/lib/libcups.so.2 (0x00007f043a4f5000)
+	libdbus-1.so.3 => /usr/lib/libdbus-1.so.3 (0x00007f043a49f000)
+	libcairo.so.2 => /usr/lib/libcairo.so.2 (0x00007f043a356000)
+	libgtk-3.so.0 => /usr/lib/libgtk-3.so.0 (0x00007f0439c00000)
+	libpango-1.0.so.0 => /usr/lib/libpango-1.0.so.0 (0x00007f0439b91000)
+	libX11.so.6 => /usr/lib/libX11.so.6 (0x00007f0439a3f000)
+	libXcomposite.so.1 => /usr/lib/libXcomposite.so.1 (0x00007f043ac1c000)
+	libXdamage.so.1 => /usr/lib/libXdamage.so.1 (0x00007f043a351000)
+	libXext.so.6 => /usr/lib/libXext.so.6 (0x00007f043a33d000)
+	libXfixes.so.3 => /usr/lib/libXfixes.so.3 (0x00007f0439a37000)
+	libXrandr.so.2 => /usr/lib/libXrandr.so.2 (0x00007f0439a2a000)
+	libgbm.so.1 => /usr/lib/libgbm.so.1 (0x00007f0439a24000)
+	libexpat.so.1 => /usr/lib/libexpat.so.1 (0x00007f04399f5000)
+	libxcb.so.1 => /usr/lib/libxcb.so.1 (0x00007f04399ca000)
+	libxkbcommon.so.0 => /usr/lib/libxkbcommon.so.0 (0x00007f043996b000)
+	libudev.so.1 => /usr/lib/libudev.so.1 (0x00007f043991b000)
+	libasound.so.2 => /usr/lib/libasound.so.2 (0x00007f0439822000)
+	libatspi.so.0 => /usr/lib/libatspi.so.0 (0x00007f04397e5000)
+	libm.so.6 => /usr/lib/libm.so.6 (0x00007f04396ae000)
+	libgcc_s.so.1 => /usr/lib/libgcc_s.so.1 (0x00007f0439681000)
+	libc.so.6 => /usr/lib/libc.so.6 (0x00007f0439400000)
+	/lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007f0448303000)
+	libpcre2-8.so.0 => /usr/lib/libpcre2-8.so.0 (0x00007f043934d000)
+	libffi.so.8 => /usr/lib/libffi.so.8 (0x00007f0439673000)
+	libgmodule-2.0.so.0 => /usr/lib/libgmodule-2.0.so.0 (0x00007f043966c000)
+	libz.so.1 => /usr/lib/libz.so.1 (0x00007f0439651000)
+	libmount.so.1 => /usr/lib/libmount.so.1 (0x00007f04392f0000)
+	libplds4.so => /usr/lib/libplds4.so (0x00007f043964c000)
+	libplc4.so => /usr/lib/libplc4.so (0x00007f0439645000)
+	libavahi-common.so.3 => /usr/lib/libavahi-common.so.3 (0x00007f0439636000)
+	libavahi-client.so.3 => /usr/lib/libavahi-client.so.3 (0x00007f0439623000)
+	libgnutls.so.30 => /usr/lib/libgnutls.so.30 (0x00007f0439000000)
+	libsystemd.so.0 => /usr/lib/libsystemd.so.0 (0x00007f0438eb6000)
+	libpng16.so.16 => /usr/lib/libpng16.so.16 (0x00007f04392b3000)
+	libfontconfig.so.1 => /usr/lib/libfontconfig.so.1 (0x00007f0439238000)
+	libfreetype.so.6 => /usr/lib/libfreetype.so.6 (0x00007f0438dd1000)
+	libXrender.so.1 => /usr/lib/libXrender.so.1 (0x00007f043922a000)
+	libxcb-render.so.0 => /usr/lib/libxcb-render.so.0 (0x00007f0438dc2000)
+	libxcb-shm.so.0 => /usr/lib/libxcb-shm.so.0 (0x00007f0438dbd000)
+	libpixman-1.so.0 => /usr/lib/libpixman-1.so.0 (0x00007f0438d0e000)
+	libgdk-3.so.0 => /usr/lib/libgdk-3.so.0 (0x00007f0438c1a000)
+	libpangocairo-1.0.so.0 => /usr/lib/libpangocairo-1.0.so.0 (0x00007f0438c06000)
+	libharfbuzz.so.0 => /usr/lib/libharfbuzz.so.0 (0x00007f0438abb000)
+	libpangoft2-1.0.so.0 => /usr/lib/libpangoft2-1.0.so.0 (0x00007f0438a9c000)
+	libfribidi.so.0 => /usr/lib/libfribidi.so.0 (0x00007f0438a7a000)
+	libcairo-gobject.so.2 => /usr/lib/libcairo-gobject.so.2 (0x00007f0438a71000)
+	libgdk_pixbuf-2.0.so.0 => /usr/lib/libgdk_pixbuf-2.0.so.0 (0x00007f0438a35000)
+	libepoxy.so.0 => /usr/lib/libepoxy.so.0 (0x00007f0438926000)
+	libXi.so.6 => /usr/lib/libXi.so.6 (0x00007f0438911000)
+	libcloudproviders.so.0 => /usr/lib/libcloudproviders.so.0 (0x00007f04388f9000)
+	libtinysparql-3.0.so.0 => /usr/lib/libtinysparql-3.0.so.0 (0x00007f0438822000)
+	libthai.so.0 => /usr/lib/libthai.so.0 (0x00007f0438817000)
+	libdrm.so.2 => /usr/lib/libdrm.so.2 (0x00007f04387fe000)
+	libXau.so.6 => /usr/lib/libXau.so.6 (0x00007f04387f9000)
+	libXdmcp.so.6 => /usr/lib/libXdmcp.so.6 (0x00007f04387f1000)
+	libblkid.so.1 => /usr/lib/libblkid.so.1 (0x00007f04387b1000)
+	libleancrypto.so.1.9 => /usr/lib/libleancrypto.so.1.9 (0x00007f0438400000)
+	libp11-kit.so.0 => /usr/lib/libp11-kit.so.0 (0x00007f043825e000)
+	libidn2.so.0 => /usr/lib/libidn2.so.0 (0x00007f043878d000)
+	libunistring.so.5 => /usr/lib/libunistring.so.5 (0x00007f0438077000)
+	libtasn1.so.6 => /usr/lib/libtasn1.so.6 (0x00007f0438777000)
+	libhogweed.so.7 => /usr/lib/libhogweed.so.7 (0x00007f0438730000)
+	libnettle.so.9 => /usr/lib/libnettle.so.9 (0x00007f04386d4000)
+	libgmp.so.10 => /usr/lib/libgmp.so.10 (0x00007f0437fd0000)
+	libbz2.so.1.0 => /usr/lib/libbz2.so.1.0 (0x00007f04386bf000)
+	libbrotlidec.so.1 => /usr/lib/libbrotlidec.so.1 (0x00007f0437fc1000)
+	libwayland-client.so.0 => /usr/lib/libwayland-client.so.0 (0x00007f0437fb1000)
+	libwayland-cursor.so.0 => /usr/lib/libwayland-cursor.so.0 (0x00007f0437fa8000)
+	libwayland-egl.so.1 => /usr/lib/libwayland-egl.so.1 (0x00007f04386b8000)
+	libXcursor.so.1 => /usr/lib/libXcursor.so.1 (0x00007f0437f9b000)
+	libXinerama.so.1 => /usr/lib/libXinerama.so.1 (0x00007f0437f96000)
+	libgraphite2.so.3 => /usr/lib/libgraphite2.so.3 (0x00007f0437f73000)
+	libglycin-2.so.0 => /usr/lib/libglycin-2.so.0 (0x00007f0437a00000)
+	libjson-glib-1.0.so.0 => /usr/lib/libjson-glib-1.0.so.0 (0x00007f0437f47000)
+	libxml2.so.16 => /usr/lib/libxml2.so.16 (0x00007f04378bb000)
+	libsqlite3.so.0 => /usr/lib/libsqlite3.so.0 (0x00007f043771b000)
+	libdatrie.so.1 => /usr/lib/libdatrie.so.1 (0x00007f0437f3e000)
+	libbrotlicommon.so.1 => /usr/lib/libbrotlicommon.so.1 (0x00007f0437f1b000)
+	libseccomp.so.2 => /usr/lib/libseccomp.so.2 (0x00007f0437eec000)
+	libicuuc.so.78 => /usr/lib/libicuuc.so.78 (0x00007f0437400000)
+	libicudata.so.78 => /usr/lib/libicudata.so.78 (0x00007f0435400000)
+	libstdc++.so.6 => /usr/lib/libstdc++.so.6 (0x00007f0435000000)
+VERDE: sistema A con base Arch: 65 pedidos, 507 instalados, EROFS lzma 1670 MiB
+Warning: block count mismatch: found 1907712 but assuming 65536.
+VERDE: disco EFI sin GRUB: ultra-esp.img: ESP FAT32 64 MiB, ULTRA-SISTEMA-A EROFS 1710288 KiB, ULTRA-DATOS ext4 64 MiB
+VERDE: disco de prueba disco-bmo.img: EFI de Windows simulada, FAT32 BMO con ULTRA en archivos y particion vacia
+VERDE: disco doble disco-bmo-doble.img: generico (7.3.0-rc7-g32c52ec87d62) por defecto y pc en BMO\EFI\ULTRA\ULTRA-PC.EFI
+VERDE: kernel pc e init C compilados. Arranque QEMU todavia pendiente.

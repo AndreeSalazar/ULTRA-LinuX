@@ -1,5 +1,8 @@
 # Cuarta categoria: Custodia de recursos y prestamos
 
+Actualizacion: [lector C local de RAM con Custodia](RECURSOS-C-PRODUCCION.md).
+Es un consumidor serializado sin servicio ni permisos nuevos.
+
 2026-10-23, America/Lima. Definicion de arquitectura, sin servicio nuevo,
 ABI de kernel, politica de prioridad o cambio de permisos instalado.
 Complementa [las categorias de guardianes](CATEGORIAS-GUARDIANES.md) y

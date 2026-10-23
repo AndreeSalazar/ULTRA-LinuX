@@ -1,0 +1,16 @@
+{
+  "generico": {
+    "green": 152,
+    "red": 0,
+    "release": "7.3.0-rc7-g32c52ec87d62",
+    "kernel_sha256": "4e0ef37f329cee11b7d9aa3a94f62c715ffb86c324b079119b6b3f641158aba4",
+    "system_sha256": "53289357a82ca0ea3bfe2a0745119103044f2b00fe887fd30a13ab6a51f5eca4"
+  },
+  "pc": {
+    "green": 153,
+    "red": 0,
+    "release": "7.3.0-rc7-pc-g32c52ec87d62",
+    "kernel_sha256": "1611982d55c6e847adad878855528e5d63b8fd2de2cb46d2cac10c97aa83304a",
+    "system_sha256": "53c8f94ceaa528cd170d1626648c66c11d9d00841689752ba1c74fd558f0dc70"
+  }
+}

@@ -29,6 +29,17 @@ El taller Arch que compila las imágenes es distinto del sistema ULTRA que arran
 
 ## Qué funciona y qué queda por confirmar
 
+El [lector C de recursos con Custodia](docs/RECURSOS-C-PRODUCCION.md) reduce
+el coste de recoger contadores de RAM frente a los bucles Bash anteriores:
+7,23 ms a 0,51 ms por captura en QEMU, con salida equivalente. Incorpora
+limites, pruebas de fallos de asignacion e inspeccion HEX contrastada con ELF.
+La mejora corresponde al observador; el ajuste de CPU/RAM/SSD y su impacto
+en juegos requieren medicion nativa con los nuevos contadores.
+Esta version esta instalada en los dos perfiles de A: tras 152 comprobaciones
+en generico y 153 en PC, cero fallos; conserva los datos y respalda los informes
+en el proyecto Windows. La verificacion incluye los lectores finales O2 y
+O3/LTO, ademas de las pruebas de laboratorio con sanitizadores.
+
 El [gestor general de bibliotecas](docs/BIBLIOTECAS.md), accesible con
 **Super+J > Elegir carpetas y discos**, permite seleccionar varias carpetas
 en distintos discos. Reconoce bibliotecas Steam y carpetas independientes,

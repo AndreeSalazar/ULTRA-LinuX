@@ -111,7 +111,9 @@ elif PERFIL == 'generico':
 if PERFIL in ('pc', 'generico'):
     BOOT1 += [('test -s /sistema/usr/lib/firmware/rtl_nic/rtl8168h-2.fw && echo REALTEK-FW-$((4+5))', 'REALTEK-FW-9'),
               ('cat /sys/module/firmware_class/parameters/path', '/sistema/usr/lib/firmware'),
-              ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/local/libexec/ultra-red-contadores', 'RED ')]
+              ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/local/libexec/ultra-red-contadores', 'RED '),
+              ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/local/libexec/ultra-recursos-contadores', 'MEM MemTotal:'),
+              ('ultra-entrar /usr/local/libexec/ultra-medir-recursos --inventario', 'fin_recursos snapshot_no_atomico=1')]
     # QEMU has no NVIDIA: explicit acceleration must reject, never pretend software is GPU.
     BOOT1 += [('ultra-escritorio --nvidia 2>&1', 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA'),
               ('ultra-escritorio --nvidia >/tmp/gpu-rechazo.log 2>&1; echo GPU-ESTADO-$?', 'GPU-ESTADO-1')]

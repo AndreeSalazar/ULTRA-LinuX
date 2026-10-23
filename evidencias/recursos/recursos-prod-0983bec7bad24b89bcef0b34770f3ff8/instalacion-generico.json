@@ -1,0 +1,17 @@
+{
+  "profile": "generico",
+  "image_checks": [
+    {
+      "source": "build/generico/bzImage-tiny64",
+      "destination": "A:/EFI/ULTRA/ULTRA.EFI",
+      "sha256": "4e0ef37f329cee11b7d9aa3a94f62c715ffb86c324b079119b6b3f641158aba4"
+    },
+    {
+      "source": "build/generico/sistema-a.erofs",
+      "destination": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "sha256": "53289357a82ca0ea3bfe2a0745119103044f2b00fe887fd30a13ab6a51f5eca4"
+    }
+  ],
+  "datos_sha256_before": "e0b263e1d1b953d6e1677fac5b26add145c899d7f10455529cf8ebfb81b42d2f",
+  "datos_sha256_after": "e0b263e1d1b953d6e1677fac5b26add145c899d7f10455529cf8ebfb81b42d2f"
+}

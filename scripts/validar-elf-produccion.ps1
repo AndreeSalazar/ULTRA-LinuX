@@ -14,7 +14,7 @@ $archive=Join-Path $Build 'elf-produccion.tar.gz'
 if(-not(Test-Path -LiteralPath $archive) -or (Get-FileHash -LiteralPath $archive).Hash -ine (Get-ElfHash 'elf-produccion.tar.gz')){
     throw 'ROJO [ELF]: falta una auditoria de produccion con hash correcto; reconstruir y descargar.'
 }
-foreach($binary in @('init','caja','ultra-raiz','ultra-red-contadores','minas')){
+foreach($binary in @('init','caja','ultra-raiz','ultra-red-contadores','ultra-recursos-contadores','minas')){
     $text=& tar.exe -xOf $archive "./$binary/informe.json"
     if($LASTEXITCODE -ne 0){throw "ROJO [ELF]: falta el informe de $binary"}
     $report=($text -join "`n") | ConvertFrom-Json
@@ -26,4 +26,4 @@ foreach($binary in @('init','caja','ultra-raiz','ultra-red-contadores','minas'))
         if($report.Rules -notcontains $rule){throw "ROJO [ELF]: falta la regla $rule en $binary"}
     }
 }
-Write-Output 'VERDE [ELF]: cinco ejecutables de produccion auditados y ligados al manifiesto.'
+Write-Output 'VERDE [ELF]: seis ejecutables de produccion auditados y ligados al manifiesto.'

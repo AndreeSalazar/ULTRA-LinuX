@@ -4,6 +4,7 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+from fixture_recursos import build_fixture
 
 source = pathlib.Path(sys.argv[1]).read_text()
 with tempfile.TemporaryDirectory() as directory:
@@ -29,7 +30,8 @@ with tempfile.TemporaryDirectory() as directory:
     text = text.replace('/dev/nvidia', str(root / 'missing-nvidia'))
     if len(sys.argv) > 2:
         resource = root / 'resources'
-        resource.write_text(pathlib.Path(sys.argv[2]).read_text().replace('/proc/', f'{proc}/').replace('/sys/', str(root / 'sys')+'/'))
+        resource_text = pathlib.Path(sys.argv[2]).read_text().replace('/proc/', f'{proc}/').replace('/sys/', str(root / 'sys')+'/')
+        resource.write_text(resource_text.replace('/usr/local/libexec/ultra-recursos-contadores', build_fixture(root)))
         # Exercise the snapshot inside the session with the same proc fixture.
         # Privilege dropping is checked separately in the real workshop.
         text = text.replace('user_query /usr/local/libexec/ultra-medir-recursos', f'bash "{resource}"')

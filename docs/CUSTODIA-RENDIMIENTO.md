@@ -1,5 +1,8 @@
 # Custodia: primer ahorro medido, ticket de un byte inline
 
+Actualizacion posterior: [primer consumidor local y lector C de recursos](RECURSOS-C-PRODUCCION.md).
+Los resultados y limites del microbenchmark descrito abajo se conservan.
+
 2026-10-23, America/Lima. Cambio aplicado a la biblioteca candidata de owner y
 probado con Custodia; sin consumidor desplegado, imagen nueva ni cambios de A:.
 No se alteran HZ, interrupciones, governor o mitigaciones. Se reduce trabajo por

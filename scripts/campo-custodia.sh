@@ -32,9 +32,9 @@ for mode in prod-O2 prod-O3 diag-O1 diag-O2; do
     cat "$out/fronteras-$mode.txt"
     python "$lab/inspeccionar-custodia-hex.py" "$out/custodia-$mode" "$out/hex-$mode"
 done
-python "$lab/mutantes-custodia.py" "$unit/ultra_custodia.c" "$out/mutantes"
+python "$lab/mutantes-custodia.py" "$ULTRA_GUARD_ROOT/produccion/ultra_custodia.c" "$out/mutantes"
 for mutation in titular bytes retirada cola; do
-    gcc "${ULTRA_WARN[@]}" "${ULTRA_DIAG[@]}" -I "$unit" "$unit/probar-custodia.c" "$out/mutantes/$mutation.c" "$owner" -Wl,--wrap=calloc -o "$out/mutantes/$mutation"
+    gcc "${ULTRA_WARN[@]}" "${ULTRA_DIAG[@]}" -I "$ULTRA_GUARD_ROOT/produccion" "$unit/probar-custodia.c" "$out/mutantes/$mutation.c" "$owner" -Wl,--wrap=calloc -o "$out/mutantes/$mutation"
     set +e
     bash "$lab/aislar-mina.sh" "$out/mutantes/$mutation" > "$out/mutantes/$mutation.txt" 2>&1
     status=$?
@@ -57,7 +57,7 @@ set -e
 [[ $status -ne 0 && ! -e $out/rechazado-simbolo ]]
 grep -q 'SYMBOL-MISSING' "$out/rechazo-simbolo.txt"
 echo 'CUSTODIA-HEX-NEGATIVOS-OK: formato y simbolo rechazados sin publicar salida'
-sha256sum "$unit"/*.c "$unit"/*.h "$owner" "$ULTRA_GUARD_ROOT/produccion/ultra_owner.h" \
+sha256sum "$unit"/*.c "$unit"/*.h "$ULTRA_GUARD_ROOT/produccion/ultra_custodia.c" "$ULTRA_GUARD_ROOT/produccion/ultra_custodia.h" "$owner" "$ULTRA_GUARD_ROOT/produccion/ultra_owner.h" \
     "$ULTRA_GUARD_ROOT/produccion/perfil-gcc.sh" "$ULTRA_GUARD_ROOT/laboratorio/perfil-gcc.sh" \
     "$lab/campo-custodia.sh" "$lab/mutantes-custodia.py" "$lab/aislar-mina.sh" "$lab/guardianes.sh" "$lab/guardianes-lab.sh" \
     "$lab/inspeccionar-custodia-hex.py" "$lab/inspeccionar-asm-hex.py" "$out"/custodia-* "$out"/secuencias-* "$out"/fronteras-* > "$out/artefactos.sha256"
