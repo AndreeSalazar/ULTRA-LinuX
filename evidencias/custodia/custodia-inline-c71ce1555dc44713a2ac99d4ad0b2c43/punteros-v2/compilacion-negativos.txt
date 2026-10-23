@@ -1,0 +1,8 @@
+In file included from /home/builder/linux-reconstruido/custodia-inline-c71ce1555dc44713a2ac99d4ad0b2c43/guardian/laboratorio/punteros-limites.c:4:
+/home/builder/linux-reconstruido/custodia-inline-c71ce1555dc44713a2ac99d4ad0b2c43/guardian/laboratorio/punteros-limites.c: In function 'main':
+/home/builder/linux-reconstruido/custodia-inline-c71ce1555dc44713a2ac99d4ad0b2c43/guardian/laboratorio/punteros-limites.c:31:16: warning: pointer 'dead' used after 'free' [-Wuse-after-free=]
+   31 |         assert(ultra_owner_write_bounded(a, ha, 0, dead, 8, 8) == UO_OK);
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/home/builder/linux-reconstruido/custodia-inline-c71ce1555dc44713a2ac99d4ad0b2c43/guardian/laboratorio/punteros-limites.c:30:9: note: call to 'free' here
+   30 |         free(dead);
+      |         ^~~~~~~~~~

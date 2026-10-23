@@ -1,0 +1,150 @@
+{
+  "Baseline": "cf52e2f",
+  "Samples": [
+    {
+      "optimization": "O2",
+      "mode": "hot",
+      "size": 64,
+      "rounds": 200000,
+      "pairs": 12,
+      "paired_wall_reduction_pct_median": 15.453964210528671,
+      "paired_wall_reduction_pct_min": 7.228192146326828,
+      "paired_wall_reduction_pct_max": 17.344699170755216,
+      "before": {
+        "wall_ns_median": 7793783.0,
+        "wall_ns_min": 7625933,
+        "wall_ns_max": 7976535,
+        "cpu_ns_median": 7215350.0,
+        "rss_peak_kib_max": 656
+      },
+      "after": {
+        "wall_ns_median": 6573978.5,
+        "wall_ns_min": 6506628,
+        "wall_ns_max": 7191331,
+        "cpu_ns_median": 6132850.0,
+        "rss_peak_kib_max": 608
+      }
+    },
+    {
+      "optimization": "O2",
+      "mode": "hot",
+      "size": 4096,
+      "rounds": 20000,
+      "pairs": 12,
+      "paired_wall_reduction_pct_median": 5.1456147932646195,
+      "paired_wall_reduction_pct_min": -5.272659596998586,
+      "paired_wall_reduction_pct_max": 31.04879019527904,
+      "before": {
+        "wall_ns_median": 2011809.0,
+        "wall_ns_min": 1975308,
+        "wall_ns_max": 2891913,
+        "cpu_ns_median": 1401250.0,
+        "rss_peak_kib_max": 656
+      },
+      "after": {
+        "wall_ns_median": 1907608.0,
+        "wall_ns_min": 1844308,
+        "wall_ns_max": 2152309,
+        "cpu_ns_median": 1318950.0,
+        "rss_peak_kib_max": 588
+      }
+    },
+    {
+      "optimization": "O2",
+      "mode": "cycle",
+      "size": 64,
+      "rounds": 10000,
+      "pairs": 12,
+      "paired_wall_reduction_pct_median": -1.1862745578845812,
+      "paired_wall_reduction_pct_min": -16.554709058100148,
+      "paired_wall_reduction_pct_max": 20.36253783869244,
+      "before": {
+        "wall_ns_median": 1965358.5,
+        "wall_ns_min": 1842208,
+        "wall_ns_max": 2438311,
+        "cpu_ns_median": 1591550.0,
+        "rss_peak_kib_max": 572
+      },
+      "after": {
+        "wall_ns_median": 1973158.5,
+        "wall_ns_min": 1900709,
+        "wall_ns_max": 2377610,
+        "cpu_ns_median": 1516000.0,
+        "rss_peak_kib_max": 592
+      }
+    },
+    {
+      "optimization": "O3",
+      "mode": "hot",
+      "size": 64,
+      "rounds": 200000,
+      "pairs": 12,
+      "paired_wall_reduction_pct_median": 16.211096285712618,
+      "paired_wall_reduction_pct_min": 11.937294051497327,
+      "paired_wall_reduction_pct_max": 19.48987982449776,
+      "before": {
+        "wall_ns_median": 7005782.0,
+        "wall_ns_min": 6861531,
+        "wall_ns_max": 7503533,
+        "cpu_ns_median": 6554650.0,
+        "rss_peak_kib_max": 564
+      },
+      "after": {
+        "wall_ns_median": 5892527.0,
+        "wall_ns_min": 5725825,
+        "wall_ns_max": 6073027,
+        "cpu_ns_median": 5341100.0,
+        "rss_peak_kib_max": 636
+      }
+    },
+    {
+      "optimization": "O3",
+      "mode": "hot",
+      "size": 4096,
+      "rounds": 20000,
+      "pairs": 12,
+      "paired_wall_reduction_pct_median": 4.295025046562262,
+      "paired_wall_reduction_pct_min": -13.084866155165042,
+      "paired_wall_reduction_pct_max": 10.519515448352458,
+      "before": {
+        "wall_ns_median": 1911809.0,
+        "wall_ns_min": 1861708,
+        "wall_ns_max": 2011509,
+        "cpu_ns_median": 1401500.0,
+        "rss_peak_kib_max": 688
+      },
+      "after": {
+        "wall_ns_median": 1831308.5,
+        "wall_ns_min": 1778308,
+        "wall_ns_max": 2105310,
+        "cpu_ns_median": 1344000.0,
+        "rss_peak_kib_max": 688
+      }
+    },
+    {
+      "optimization": "O3",
+      "mode": "cycle",
+      "size": 64,
+      "rounds": 10000,
+      "pairs": 12,
+      "paired_wall_reduction_pct_median": -7.121179675662881,
+      "paired_wall_reduction_pct_min": -14.576202647806502,
+      "paired_wall_reduction_pct_max": 3.287257746916783,
+      "before": {
+        "wall_ns_median": 1721958.0,
+        "wall_ns_min": 1698208,
+        "wall_ns_max": 1885108,
+        "cpu_ns_median": 1311600.0,
+        "rss_peak_kib_max": 672
+      },
+      "after": {
+        "wall_ns_median": 1845058.5,
+        "wall_ns_min": 1791708,
+        "wall_ns_max": 1977709,
+        "cpu_ns_median": 1272250.0,
+        "rss_peak_kib_max": 688
+      }
+    }
+  ],
+  "Scope": "QEMU process benchmark including checks and init/teardown, not CPU cycles, IRQ ticks, FPS, native results or statistical proof; RSS peaks not exclusive route memory."
+}

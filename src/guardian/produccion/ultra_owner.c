@@ -7,8 +7,13 @@
 #define POOL_ID_MAX (UINT32_MAX >> 4)
 /* Process-local IDs are never recycled. Exhaustion fails closed. */
 static _Atomic uint32_t last_pool_id;
-struct slot { unsigned char *data; size_t size; uint32_t generation; };
+struct slot { unsigned char *data; size_t size; uint32_t generation; unsigned char byte; };
 struct ultra_owner { struct slot slots[SLOTS]; uint32_t id; };
+/* The one-byte token payload lives inside the slot, never in a separate heap
+ * allocation. Identity/generation and retirement rules remain unchanged. */
+static void release_data(struct slot *s) {
+    if (s->data && s->data != &s->byte) free(s->data);
+}
 struct ultra_owner *ultra_owner_create(void) {
     struct ultra_owner *p = calloc(1, sizeof(*p));
     if (!p) return NULL;
@@ -23,7 +28,7 @@ struct ultra_owner *ultra_owner_create(void) {
 }
 void ultra_owner_destroy(struct ultra_owner *p) {
     if (!p) return;
-    for (size_t i = 0; i < SLOTS; ++i) free(p->slots[i].data);
+    for (size_t i = 0; i < SLOTS; ++i) release_data(&p->slots[i]);
     free(p);
 }
 static struct slot *lookup(struct ultra_owner *p, ultra_handle h) {
@@ -39,7 +44,9 @@ enum ultra_owner_status ultra_owner_alloc(struct ultra_owner *p, size_t n, ultra
     for (uint32_t i = 0; i < SLOTS; ++i) {
         struct slot *s = &p->slots[i];
         if (s->data || !s->generation) continue;
-        unsigned char *data = calloc(n, 1);
+        unsigned char *data;
+        if (n == 1) { s->byte = 0; data = &s->byte; }
+        else data = calloc(n, 1);
         if (!data) return UO_NOMEM;
         s->data = data; s->size = n;
         *out = ((uint64_t)s->generation << 32) | (p->id << 4) | i;
@@ -50,7 +57,7 @@ enum ultra_owner_status ultra_owner_alloc(struct ultra_owner *p, size_t n, ultra
 enum ultra_owner_status ultra_owner_free(struct ultra_owner *p, ultra_handle h) {
     struct slot *s = lookup(p, h);
     if (!s) return UO_STALE;
-    free(s->data); s->data = NULL; s->size = 0;
+    release_data(s); s->data = NULL; s->size = 0;
     /* Zero permanently retires the slot: never wrap to a previous generation. */
     s->generation = s->generation == UINT32_MAX ? 0 : s->generation + 1;
     return UO_OK;

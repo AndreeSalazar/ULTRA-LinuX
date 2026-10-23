@@ -53,6 +53,28 @@ int main(void) {
     fail_alloc = 1;
     CHECK(ultra_owner_alloc(p, 8, &h) == UO_NOMEM && h == 0);
     fail_alloc = 0;
+    /* Inline/heap transitions preserve zeroing, bounds and stale rejection. */
+    for (unsigned cycle = 0; cycle < 1000; ++cycle) {
+        for (size_t n = 1; n <= 2; ++n) {
+            ultra_handle small = 0;
+            unsigned char bytes[2] = {0xa5, 0xa5}, fill[2] = {0x7b, 0x7c};
+            fail_alloc = 1;
+            enum ultra_owner_status status = ultra_owner_alloc(p, n, &small);
+            CHECK(status == (n == 1 ? UO_OK : UO_NOMEM));
+            fail_alloc = 0;
+            if (n == 2) CHECK(ultra_owner_alloc(p, n, &small) == UO_OK);
+            CHECK(ultra_owner_read_bounded(p, small, 0, bytes, sizeof(bytes), n) == UO_OK);
+            CHECK(bytes[0] == 0 && (n == 1 || bytes[1] == 0));
+            CHECK(ultra_owner_write_bounded(p, small, 0, fill, sizeof(fill), n) == UO_OK);
+            CHECK(ultra_owner_free(p, small) == UO_OK);
+            CHECK(ultra_owner_read(p, small, 0, bytes, n) == UO_STALE);
+        }
+    }
+    struct ultra_owner *inline_live = ultra_owner_create();
+    ultra_handle inline_token = 0;
+    CHECK(inline_live != NULL);
+    CHECK(ultra_owner_alloc(inline_live, 1, &inline_token) == UO_OK);
+    ultra_owner_destroy(inline_live); /* No free() of an interior pointer. */
     for (unsigned cycle = 0; cycle < 1000; ++cycle) {
         CHECK(ultra_owner_alloc(p, 8, &h) == UO_OK);
         CHECK(h != old);

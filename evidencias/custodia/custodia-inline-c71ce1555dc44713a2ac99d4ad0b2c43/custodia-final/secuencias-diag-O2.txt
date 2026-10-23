@@ -1,0 +1,2 @@
+SECUENCIAS-OK: semillas=1..32 pasos_por_semilla=6000 operaciones=192000 comprobaciones=531404; ledger independiente, fallos de calloc y reinicios
+EXITO: prestamos=13636 begin=5807 revoke=5688 complete=2666 cancel=3107 destroy=12646

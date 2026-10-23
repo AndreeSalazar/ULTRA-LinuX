@@ -53,3 +53,9 @@ identidad de pool: rechaza handles ajenos con UO_STALE y no recicla identidades.
 Requiere una unica implementacion enlazada por proceso; tokens no serializables,
 sin intercambio entre fork o copias independientes de bibliotecas dinamicas.
 Plan y evidencia: [punteros, C++, ASM y APIs](../../../docs/PLAN-C-CXX-ASM-API.md).
+
+Owner almacena los payloads de un byte inline, sin reservar/liberar heap en esa
+operacion. Conserva cero inicial, limites, identidad y generacion del handle.
+El [benchmark de Custodia](../../../docs/CUSTODIA-RENDIMIENTO.md) publica mejora
+en reutilizacion y una regresion O2 en creacion/destruccion continua; no es una
+promesa universal. Las APIs siguen sin consumidor desplegado en la imagen.

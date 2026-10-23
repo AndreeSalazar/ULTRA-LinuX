@@ -1,0 +1,29 @@
+{
+  "SourceSHA256": "30ab803aeec164469352e18d79fe7025fc8415810cd0db69171c4df0f8434d39",
+  "Mutations": [
+    {
+      "Name": "titular",
+      "Removed": "if (loan->subject != subject) return UC_DENIED;",
+      "Count": 2,
+      "SHA256": "ad2146d79a026299222a11232018175ca49631e22919f4778759e2e54731f65d"
+    },
+    {
+      "Name": "bytes",
+      "Removed": "if (size > c->max_bytes - c->used_bytes) return UC_QUOTA;",
+      "Count": 1,
+      "SHA256": "b6f85af50c5ddac71622c5425bcd5e7ad07716a6667f07fd70907c03e7463c4b"
+    },
+    {
+      "Name": "retirada",
+      "Removed": "if (loan->retiring) return UC_RETIRING;",
+      "Count": 1,
+      "SHA256": "1b6a46e8017e616b1a4d9d204b74d5de96b52ad15674e08b0dbe1a584594819f"
+    },
+    {
+      "Name": "cola",
+      "Removed": "if (c->pending >= c->max_requests) return UC_QUOTA;",
+      "Count": 1,
+      "SHA256": "9b12d9c216da9cbac6f62a8871fdde3efd50ba617fd357380b0a498d2b9a7bed"
+    }
+  ]
+}

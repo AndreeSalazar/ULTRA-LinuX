@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/builder/linux-reconstruido/custodia-inline-c71ce1555dc44713a2ac99d4ad0b2c43/inspeccionar-custodia-hex.py", line 20, in <module>
+    data = extract(listing, symbol)
+  File "/home/builder/linux-reconstruido/custodia-inline-c71ce1555dc44713a2ac99d4ad0b2c43/inspeccionar-asm-hex.py", line 41, in extract
+    raise ValueError('SYMBOL-MISSING: ' + symbol)
+ValueError: SYMBOL-MISSING: uc_begin

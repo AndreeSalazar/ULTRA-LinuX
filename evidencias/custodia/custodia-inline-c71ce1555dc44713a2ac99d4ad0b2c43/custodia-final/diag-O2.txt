@@ -1,0 +1,1 @@
+CUSTODIA-OK: comprobaciones=50076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion

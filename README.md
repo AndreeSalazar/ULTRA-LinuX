@@ -250,6 +250,7 @@ después, conservando compatibilidad y aislamiento.
 - [Categorias de guardianes: Escritura, Caza UB, Fluidez y Custodia](docs/CATEGORIAS-GUARDIANES.md)
 - [Primer prototipo C de Custodia y su inspeccion HEX](docs/CUSTODIA-PROTOTIPO.md)
 - [Reglas de rendimiento: pendientes, medidas y criterios de aceptacion](docs/REGLAS-RENDIMIENTO.md)
+- [Primer ahorro medido de Custodia: ticket inline y comparacion](docs/CUSTODIA-RENDIMIENTO.md)
 - [CPU, RAM y SSD: investigacion y observador de recursos](docs/CPU-RAM-SSD.md)
 - [Contratos HEX/ELF obligatorios en la construccion e instalacion](docs/ELF-PRODUCCION.md)
 - [Reloj de Peru, formato regional y sincronizacion por internet](docs/HORA-PERU.md)

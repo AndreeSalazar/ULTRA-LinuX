@@ -98,7 +98,7 @@ int main(void) {
                 bool null_source = choose(20) == 0;
                 if (!c || !subject || null_output || null_source || !n) want = UC_ARGUMENT;
                 else if (n + used(m) > m->max_bytes || free_l == SLOTS) want = UC_QUOTA;
-                else if (fail_alloc) want = UC_NOMEM;
+                else if (fail_alloc && n != 1) want = UC_NOMEM;
                 got = uc_lend(c, subject, null_source ? NULL : data, n, null_output ? NULL : &result);
                 CHECK(got == want);
                 if (got == UC_OK) {
@@ -121,7 +121,7 @@ int main(void) {
                 else if (m->loans[li].retiring) want = UC_RETIRING;
                 else if (offset > m->loans[li].size || n > m->loans[li].size - offset) want = UC_RANGE;
                 else if (pending(m, -1) >= m->max_requests || free_r == SLOTS) want = UC_QUOTA;
-                else if (fail_alloc) want = UC_NOMEM;
+                /* One-byte tickets no longer allocate heap memory. */
                 got = uc_begin(c, subject, token, offset, n, null_output ? NULL : &result);
                 CHECK(got == want);
                 if (got == UC_OK) {

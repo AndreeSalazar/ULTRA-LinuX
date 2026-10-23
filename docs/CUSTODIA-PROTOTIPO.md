@@ -2,6 +2,7 @@
 
 Ampliacion: [pruebas de estres, modelo de estados y mutaciones](CUSTODIA-ESTRES.md).
 La primera ronda descrita abajo conserva su evidencia historica.
+Primer candidato de velocidad: [ticket inline y resultados](CUSTODIA-RENDIMIENTO.md).
 
 [Evidencias y hashes de la ronda](../evidencias/custodia/custodia-76f107552ae748529c0ff7c6d6cda321/SHA256SUMS):
 GCC 16.2.1 20260810, kernel del taller 7.2.11-arch1-1 x86-64.

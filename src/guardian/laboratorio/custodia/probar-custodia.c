@@ -44,7 +44,8 @@ int main(void) {
         CHECK(uc_begin(c, 7, h, SIZE_MAX, 1, &a) == UC_RANGE && a == 123);
         CHECK(uc_begin(c, 7, h, 0, SIZE_MAX, &a) == UC_RANGE && a == 123);
         fail_after = 0;
-        CHECK(uc_begin(c, 7, h, 0, 8, &a) == UC_NOMEM && a == 123);
+        CHECK(uc_begin(c, 7, h, 0, 8, &a) == UC_OK); /* Ticket uses inline owner storage. */
+        CHECK(uc_cancel(c, 7, a) == UC_OK);
         fail_after = -1;
         CHECK(uc_begin(c, 7, h, 0, 8, &a) == UC_OK);
         CHECK(uc_begin(c, 7, h, 8, 0, &b) == UC_OK);

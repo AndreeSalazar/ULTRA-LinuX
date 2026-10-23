@@ -1,11 +1,15 @@
 # Reglas pendientes para demostrar rendimiento
 
+Avance: [ticket inline y comparacion antes/despues](CUSTODIA-RENDIMIENTO.md).
+Hay mejora de la carga reutilizada en QEMU y regresion O2 en el ciclo completo;
+no se declara mejora universal ni validacion nativa.
+
 2026-10-23, America/Lima. Investigacion y criterios de aceptacion. La
 [ronda agresiva de Custodia](CUSTODIA-ESTRES.md) ya esta documentada y conserva
 sus evidencias. Sus checks no miden velocidad. Esta ronda no modifica el gestor,
 parametros de kernel, prioridades ni la imagen de A:.
 
-## Hallazgos del codigo actual
+## Hallazgos de la referencia cf52e2f
 
 En `src/guardian/laboratorio/custodia/ultra_custodia.c`, uc_begin llama a
 ultra_owner_alloc para crear un ticket con payload de un byte. Owner ejecuta
@@ -24,10 +28,10 @@ atribuirse a esta implementacion en RAM.
 | ID | Prioridad | Regla | Estado actual y evidencia necesaria |
 | --- | --- | --- | --- |
 | RF-01 | Antes de comparar | Mismo contrato y resultados | Pruebas de correccion del modelo pasan. Cada candidato debe conservar copia estable, limites, retirada, cuotas y rechazo de tickets caducados; comparar bytes y errores |
-| RF-02 | Primero | Referencia reproducible | Pendiente benchmark de Custodia: fijar commit, binario/flags, CPU/kernel, carga, tamaños y condiciones; guardar datos crudos |
-| RF-03 | Primero | Medir el ciclo completo y sus etapas | Pendiente: separar crear/prestar, begin, completar/cancelar, retirar y destruir; declarar que parte incluye el total |
-| RF-04 | Primero | Reducir variabilidad y medir la instrumentacion | Pendiente: repeticiones, orden alternado/pareado, calentamiento separado y coste de reloj/observador; registro de temperatura, politica CPU y carga disponible |
-| RF-05 | Antes de optimizar tickets | Menos asignaciones sin reutilizar autoridad vieja | Candidato pendiente: almacenamiento de tickets reutilizable con generacion/identidad correctas. No basta guardar y devolver el mismo handle |
+| RF-02 | Primero | Referencia reproducible | Parcial: benchmark QEMU frente a cf52e2f con muestras, flags y hashes. Consumidor real y matriz mas amplia pendientes |
+| RF-03 | Primero | Medir el ciclo completo y sus etapas | Parcial: total reutilizado y ciclo completo medidos; faltan etapas aisladas, colas y cancelaciones |
+| RF-04 | Primero | Reducir variabilidad y medir la instrumentacion | Parcial: 12 pares alternados, calentamiento separado y conteo fuera de la medida temporal. Coste del observador/temperatura y validacion nativa pendientes |
+| RF-05 | Antes de optimizar tickets | Menos asignaciones sin reutilizar autoridad vieja | Candidato inline aplicado y probado: cero heap por ticket, generaciones/identidad conservadas; costes y regresion publicados |
 | RF-06 | Antes de eliminar copias | Mantener propiedad y vida util | Copias actuales verificadas, coste pendiente. Quitar la copia inicial rompe el contrato probado con origen inaccesible; requiere otro contrato y pruebas |
 | RF-07 | Antes de atribuir un limite al equipo | CPU/RAM/E/S observables | Snapshot e inventario probados en taller, despliegue nativo pendiente. Correlacionar PSI, reclaim, faults y E/S con la carga; ausencia es NA |
 | RF-08 | Antes de priorizar o agrupar | Cola y presupuesto con contrapresion | Quotas locales probadas. Falta evaluar latencia vs caudal en colas 1/4/16, justicia entre clientes y limite real de recursos del proceso |

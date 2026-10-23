@@ -1,0 +1,86 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
+#define _POSIX_C_SOURCE 200809L
+#include "ultra_custodia.h"
+#include <errno.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/resource.h>
+#include <time.h>
+#define CHECK(x) do { if (!(x)) { fprintf(stderr, "BENCH-FAIL line=%d\n", __LINE__); exit(1); } } while (0)
+#ifdef COUNT_ALLOC
+static uint64_t allocations, releases;
+void *__real_calloc(size_t n, size_t size);
+void __real_free(void *p);
+void *__wrap_calloc(size_t n, size_t size);
+void __wrap_free(void *p);
+void *__wrap_calloc(size_t n, size_t size) { ++allocations; return __real_calloc(n, size); }
+void __wrap_free(void *p) { if (p) ++releases; __real_free(p); }
+#endif
+static uint64_t now(clockid_t clock) {
+    struct timespec t;
+    CHECK(clock_gettime(clock, &t) == 0 && t.tv_sec >= 0);
+    return (uint64_t)t.tv_sec * UINT64_C(1000000000) + (uint64_t)t.tv_nsec;
+}
+static unsigned long number(const char *s, unsigned long maximum) {
+    char *end = NULL; errno = 0;
+    unsigned long n = strtoul(s, &end, 10);
+    CHECK(errno == 0 && end && !*end && n && n <= maximum);
+    return n;
+}
+int main(int argc, char **argv) {
+    CHECK(argc == 4);
+    bool lifecycle;
+    if (strcmp(argv[1], "hot") == 0) lifecycle = false;
+    else { CHECK(strcmp(argv[1], "cycle") == 0); lifecycle = true; }
+    size_t size = (size_t)number(argv[2], 65536);
+    unsigned long rounds = number(argv[3], 1000000);
+    unsigned char *source = malloc(size), *out = malloc(size);
+    CHECK(source && out);
+    for (size_t i = 0; i < size; ++i) source[i] = (unsigned char)(i % 251);
+    memset(out, 0, size);
+    struct rusage before, after;
+    CHECK(getrusage(RUSAGE_SELF, &before) == 0);
+    struct timespec resolution;
+    CHECK(clock_getres(CLOCK_MONOTONIC, &resolution) == 0);
+    uint64_t checksum = 0;
+    struct ultra_custodia *c = NULL; uc_token loan = 0;
+    (void)now(CLOCK_MONOTONIC); (void)now(CLOCK_PROCESS_CPUTIME_ID);
+#ifdef COUNT_ALLOC
+    /* Exclude libc/static startup and harness setup from allocation evidence. */
+    allocations = 0; releases = 0;
+#endif
+    uint64_t wall = now(CLOCK_MONOTONIC), cpu = now(CLOCK_PROCESS_CPUTIME_ID);
+    for (unsigned long i = 0; i < rounds; ++i) {
+        if (lifecycle || i == 0) {
+            c = uc_create(size, 1); CHECK(c != NULL);
+            CHECK(uc_lend(c, 7, source, size, &loan) == UC_OK);
+        }
+        uc_token ticket = 0;
+        CHECK(uc_begin(c, 7, loan, 0, size, &ticket) == UC_OK);
+        CHECK(uc_complete(c, 7, ticket, out, size) == UC_OK);
+        CHECK(memcmp(source, out, size) == 0);
+        checksum += out[i % size];
+        if (lifecycle || i+1 == rounds) {
+            CHECK(uc_revoke(c, 7, loan) == UC_OK);
+            CHECK(uc_destroy(c) == UC_OK);
+        }
+    }
+    cpu = now(CLOCK_PROCESS_CPUTIME_ID)-cpu;
+    wall = now(CLOCK_MONOTONIC)-wall;
+#ifdef COUNT_ALLOC
+    uint64_t counted_allocations = allocations, counted_releases = releases;
+#endif
+    CHECK(getrusage(RUSAGE_SELF, &after) == 0);
+    printf("BENCH mode=%s size=%zu rounds=%lu wall_ns=%" PRIu64 " cpu_ns=%" PRIu64
+           " checksum=%" PRIu64 " rss_peak_kib=%ld minflt=%ld majflt=%ld clock_res_ns=%ld\n",
+           argv[1], size, rounds, wall, cpu, checksum, after.ru_maxrss,
+           after.ru_minflt-before.ru_minflt, after.ru_majflt-before.ru_majflt, resolution.tv_nsec);
+#ifdef COUNT_ALLOC
+    printf("ALLOC calloc=%" PRIu64 " free_nonnull=%" PRIu64 "\n", counted_allocations, counted_releases);
+#endif
+    free(source); free(out);
+    return 0;
+}

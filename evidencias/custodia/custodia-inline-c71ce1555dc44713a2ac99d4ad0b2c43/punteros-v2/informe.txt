@@ -1,0 +1,30 @@
+gcc (GCC) 16.2.1 20260810
+Linux 7.2.11-arch1-1 x86_64 GNU/Linux
+gcc (GCC) 16.2.1 20260810
+Linux 7.2.11-arch1-1 x86_64 GNU/Linux
+PERFIL prod-O2: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O2 -fhardened -fstrict-flex-arrays=3 -fsanitize=undefined\,float-cast-overflow\,bounds-strict -fsanitize-trap=all -fno-strict-aliasing -O2 -static-pie
+OWNER-OK: 1000 ciclos, matriz de limites, handles caducados, doble liberacion, agotamiento y fallo de asignacion
+COMPROBACIONES: 674038
+AGOTAMIENTO-OK: IDs sin reciclaje ni vuelta a cero; slot retirado; pools vivos utilizables
+ASM-OK: 1000 ciclos; ABI correcta, seis registros alterados, alineacion incorrecta y recuperacion
+PERFIL prod-O3: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O2 -fhardened -fstrict-flex-arrays=3 -fsanitize=undefined\,float-cast-overflow\,bounds-strict -fsanitize-trap=all -fno-strict-aliasing -O3 -static-pie
+OWNER-OK: 1000 ciclos, matriz de limites, handles caducados, doble liberacion, agotamiento y fallo de asignacion
+COMPROBACIONES: 674038
+AGOTAMIENTO-OK: IDs sin reciclaje ni vuelta a cero; slot retirado; pools vivos utilizables
+ASM-OK: 1000 ciclos; ABI correcta, seis registros alterados, alineacion incorrecta y recuperacion
+PERFIL diag-O1: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O1 -g -fno-omit-frame-pointer -fsanitize=address\,undefined\,float-cast-overflow\,bounds-strict\,pointer-compare\,pointer-subtract -fno-sanitize-recover=all -fcf-protection=full -O1
+OWNER-OK: 1000 ciclos, matriz de limites, handles caducados, doble liberacion, agotamiento y fallo de asignacion
+COMPROBACIONES: 674038
+AGOTAMIENTO-OK: IDs sin reciclaje ni vuelta a cero; slot retirado; pools vivos utilizables
+ASM-OK: 1000 ciclos; ABI correcta, seis registros alterados, alineacion incorrecta y recuperacion
+PERFIL diag-O2: -std=c17 -Wall -Wextra -Werror -Wconversion -Wsign-conversion -Wshadow -Wformat=2 -Wvla -Wnull-dereference -Wimplicit-fallthrough -Wstrict-prototypes -Walloca -Wcast-qual -Wcast-align=strict -Wtrampolines -O1 -g -fno-omit-frame-pointer -fsanitize=address\,undefined\,float-cast-overflow\,bounds-strict\,pointer-compare\,pointer-subtract -fno-sanitize-recover=all -fcf-protection=full -O2
+OWNER-OK: 1000 ciclos, matriz de limites, handles caducados, doble liberacion, agotamiento y fallo de asignacion
+COMPROBACIONES: 674038
+AGOTAMIENTO-OK: IDs sin reciclaje ni vuelta a cero; slot retirado; pools vivos utilizables
+ASM-OK: 1000 ciclos; ABI correcta, seis registros alterados, alineacion incorrecta y recuperacion
+ALCANCE: handles de un pool vivo sin concurrencia; ABI SysV x86-64 controlada; no proteccion global ni instrumentacion de interiores ASM
+CRUCE_RECHAZADO: handle ajeno no pertenece al pool
+LIMITACION_DIAGNOSTICADA: externo-corto / stack-buffer-overflow / salida=1
+LIMITACION_DIAGNOSTICADA: externo-caducado / heap-use-after-free / salida=1
+LIMITACION_DIAGNOSTICADA: pool-caducado / heap-use-after-free / salida=1
+ALCANCE: capacidades externas e identidad entre pools; no valida vida util de punteros crudos ni pools destruidos; no despliegue en A:

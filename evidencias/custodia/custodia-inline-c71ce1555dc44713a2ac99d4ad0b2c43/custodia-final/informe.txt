@@ -1,0 +1,33 @@
+gcc (GCC) 16.2.1 20260810
+Linux 7.2.11-arch1-1 x86_64 GNU/Linux
+HEX-SELFTEST-OK: valid bytes, four mutations, extraction and missing symbol
+PERFIL prod-O2
+CUSTODIA-OK: comprobaciones=50076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+SECUENCIAS-OK: semillas=1..32 pasos_por_semilla=6000 operaciones=192000 comprobaciones=531404; ledger independiente, fallos de calloc y reinicios
+EXITO: prestamos=13636 begin=5807 revoke=5688 complete=2666 cancel=3107 destroy=12646
+FRONTERAS-OK: tamanos=1..64, todos offsets, guard pages, origen inaccesible tras copia; comprobaciones=8574533
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+PERFIL prod-O3
+CUSTODIA-OK: comprobaciones=50076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+SECUENCIAS-OK: semillas=1..32 pasos_por_semilla=6000 operaciones=192000 comprobaciones=531404; ledger independiente, fallos de calloc y reinicios
+EXITO: prestamos=13636 begin=5807 revoke=5688 complete=2666 cancel=3107 destroy=12646
+FRONTERAS-OK: tamanos=1..64, todos offsets, guard pages, origen inaccesible tras copia; comprobaciones=8574533
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+PERFIL diag-O1
+CUSTODIA-OK: comprobaciones=50076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+SECUENCIAS-OK: semillas=1..32 pasos_por_semilla=6000 operaciones=192000 comprobaciones=531404; ledger independiente, fallos de calloc y reinicios
+EXITO: prestamos=13636 begin=5807 revoke=5688 complete=2666 cancel=3107 destroy=12646
+FRONTERAS-OK: tamanos=1..64, todos offsets, guard pages, origen inaccesible tras copia; comprobaciones=8574533
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+PERFIL diag-O2
+CUSTODIA-OK: comprobaciones=50076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+SECUENCIAS-OK: semillas=1..32 pasos_por_semilla=6000 operaciones=192000 comprobaciones=531404; ledger independiente, fallos de calloc y reinicios
+EXITO: prestamos=13636 begin=5807 revoke=5688 complete=2666 cancel=3107 destroy=12646
+FRONTERAS-OK: tamanos=1..64, todos offsets, guard pages, origen inaccesible tras copia; comprobaciones=8574533
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+MUTACION-DETECTADA: titular salida=1
+MUTACION-DETECTADA: bytes salida=1
+MUTACION-DETECTADA: retirada salida=1
+MUTACION-DETECTADA: cola salida=1
+CUSTODIA-HEX-NEGATIVOS-OK: formato y simbolo rechazados sin publicar salida
+ALCANCE: modelo C serializado y copia de lectura; identidad suministrada confiable; sin IPC, kernel, prioridad ni medicion de velocidad
