@@ -13,7 +13,7 @@ tambien lo no comprobado.
 | Guardian de escritura | Escritura | Revisar al desarrollar y construir: tipos, limites, propiedad, errores, liberaciones y contratos de API/ABI; comprobar las operaciones integradas | Revision y compilacion relevantes; entradas validas e invalidas; rechazo sin cambios parciales donde el contrato lo prometa | No intercepta toda escritura de memoria del sistema. Solo las rutas que integran sus controles |
 | Guardian de caza de UB | Caza UB | Buscar, reproducir y clasificar defectos o limites de cobertura en el laboratorio; conservar el caso minimo | Fuente y revision, compilador, perfil, salida esperada/real, aislamiento y repeticion; regresion que falla antes y pasa despues cuando corresponda | Un diagnostico ausente no prueba ausencia de UB. Un control invalido esperado no es un fallo inesperado |
 | Guardian de rendimiento | Fluidez | Medir coste, latencia y consumo; localizar cuellos de botella y comparar cambios manteniendo el resultado | Datos crudos antes/despues, carga y entorno comparables, repeticiones, p95/p99 y picos; variabilidad y coste de la proteccion | No promete cero tirones ni elimina controles para obtener un resultado favorable. Una prueba funcional no acredita una mejora de velocidad |
-| Guardian de recursos y prestamos | Custodia | Autorizar titular, derechos, presupuesto y vida util; retirar nuevas operaciones y cerrar prestamos de forma controlada | Pruebas de referencia ajena/caducada, cuotas, cierre y trabajo en vuelo; aislamiento y coste medidos | Categoria definida, gestor pendiente. Un handle no crea autoridad del kernel ni permite recuperar corrupcion arbitraria |
+| Guardian de recursos y prestamos | Custodia | Autorizar titular, derechos, presupuesto y vida util; retirar nuevas operaciones y cerrar prestamos de forma controlada | Pruebas de referencia ajena/caducada, cuotas, cierre y trabajo en vuelo; aislamiento y coste medidos | Modelo C serializado probado; gestor autenticado pendiente. Un handle no crea autoridad del kernel ni permite recuperar corrupcion arbitraria |
 
 Escritura incluye tanto las reglas al escribir codigo como los controles de
 escritura ejecutados por una API integrada. Debe distinguirse cual de las dos
@@ -84,7 +84,7 @@ asigna un porcentaje global de seguridad o fluidez sumando pruebas repetidas.
 | Escritura | `src/guardian/produccion/perfil-gcc.sh`, ultra_string, ultra_buffer y ultra_owner | Revision GCC y APIs con contratos. Owner probado como candidato, aun sin consumidor desplegado |
 | Caza UB | `src/guardian/laboratorio/`, `scripts/campo-punteros.sh` y banco ASM | Casos y evidencias existentes; ampliar cobertura por contrato, sin declarar todos los huecos cerrados |
 | Fluidez | Informes existentes y protocolo del plan C/C++/ASM/API | Hay observaciones del sistema; falta la comparacion controlada del coste de owner y su consumidor. Este documento no instala un servicio de medicion |
-| Custodia | Contrato de recursos y prestamos; owner como referencia limitada de vida util | Definicion, sin gestor desplegado ni autoridad nueva del kernel. Primer consumidor acotado pendiente |
+| Custodia | Contrato y modelo C de prestamos con copia, cuotas, tickets y retirada | Probado en laboratorio; sin identidad autenticada, gestor desplegado o autoridad nueva del kernel. Consumidor real pendiente |
 
 Ejemplo owner: Escritura rechaza capacidad insuficiente y handle de otro pool;
 Caza UB conserva las regresiones y demuestra que un buffer externo liberado

@@ -1,7 +1,8 @@
 # Ruta rapida de operaciones: amortizar trabajo sin saltar aislamiento
 
 Cuarta categoria: [Custodia de recursos y prestamos](GUARDIAN-CUSTODIA.md).
-Define titular, derechos, presupuesto y cierre; su gestor aun no esta implementado.
+Define titular, derechos, presupuesto y cierre; hay un modelo C de laboratorio,
+pero el gestor con identidad autenticada sigue pendiente.
 
 2026-10-23, America/Lima. Investigacion y diseno; no modifica el filtro,
 no habilita io_uring en cajas ni instala un hipervisor. No es una optimizacion

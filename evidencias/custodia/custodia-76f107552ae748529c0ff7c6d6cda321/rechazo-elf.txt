@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/builder/linux-reconstruido/custodia-76f107552ae748529c0ff7c6d6cda321/inspeccionar-custodia-hex.py", line 15, in <module>
+    raise ValueError('requires ELF64 little-endian x86-64')
+ValueError: requires ELF64 little-endian x86-64

@@ -5,6 +5,9 @@ ABI de kernel, politica de prioridad o cambio de permisos instalado.
 Complementa [las categorias de guardianes](CATEGORIAS-GUARDIANES.md) y
 [las rutas rapidas](RUTA-RAPIDA-SYSCALLS.md).
 
+Primer avance: [modelo C ejecutable y HEX](CUSTODIA-PROTOTIPO.md), serializado
+y con copia en RAM. Todavia sin identidad autenticada ni autoridad del kernel.
+
 ## Objetivo
 
 Prestar recursos acotados mediante referencias controladas; autorizar su uso,
@@ -97,7 +100,8 @@ su propia recuperacion o un registro completo del incidente.
 Escritura revisa el protocolo; Caza UB prueba limites y fallos; Fluidez mide
 coste y justicia de servicio; Custodia aplica titularidad, presupuestos y vida
 util en el consumidor integrado. Estado actual: categoria y contrato definidos;
-prototipo del gestor, enforcement, experimento e integracion pendientes.
+modelo C de copia/retirada probado. Gestor con identidad autenticada, enforcement
+entre procesos, experimento de rendimiento e integracion siguen pendientes.
 
 Fuentes primarias: [recursos registrados io_uring](https://man7.org/linux/man-pages/man2/io_uring_register.2.html),
 [comportamiento del kernel ante oops/panic](https://www.kernel.org/doc/html/latest/admin-guide/sysctl/kernel.html).

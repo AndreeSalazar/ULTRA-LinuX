@@ -62,5 +62,6 @@ evidencias/menu/** text eol=lf whitespace=-blank-at-eol
 evidencias/menu/**/*.png binary
 evidencias/punteros/** text eol=lf whitespace=-blank-at-eol
 evidencias/recursos/** text eol=lf whitespace=-blank-at-eol
+evidencias/custodia/** text eol=lf whitespace=-blank-at-eol
 evidencias/cxx/grafica-dda73a32cc2c47e58334738e13d38c1b/** text eol=lf whitespace=-blank-at-eol
 evidencias/cxx/grafica-0d1596f6c6b94a07b502babaa99d9052/** text eol=lf whitespace=-blank-at-eol

@@ -1,0 +1,774 @@
+
+/home/builder/linux-reconstruido/custodia-76f107552ae748529c0ff7c6d6cda321/resultados/custodia-diag-O1:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000000b30b <uc_begin>:
+    b30b:	f3 0f 1e fa                                     	endbr64
+    b30f:	55                                              	push   rbp
+    b310:	48 89 e5                                        	mov    rbp,rsp
+    b313:	48 8d a4 24 20 ff ff ff                         	lea    rsp,[rsp-0xe0]
+    b31b:	48 89 5d d8                                     	mov    QWORD PTR [rbp-0x28],rbx
+    b31f:	4c 89 65 e0                                     	mov    QWORD PTR [rbp-0x20],r12
+    b323:	4c 89 6d e8                                     	mov    QWORD PTR [rbp-0x18],r13
+    b327:	4c 89 7d f8                                     	mov    QWORD PTR [rbp-0x8],r15
+    b32b:	48 89 fb                                        	mov    rbx,rdi
+    b32e:	48 89 b5 48 ff ff ff                            	mov    QWORD PTR [rbp-0xb8],rsi
+    b335:	49 89 d7                                        	mov    r15,rdx
+    b338:	48 89 8d 30 ff ff ff                            	mov    QWORD PTR [rbp-0xd0],rcx
+    b33f:	4c 89 85 28 ff ff ff                            	mov    QWORD PTR [rbp-0xd8],r8
+    b346:	4c 89 8d 40 ff ff ff                            	mov    QWORD PTR [rbp-0xc0],r9
+    b34d:	4c 8d a5 50 ff ff ff                            	lea    r12,[rbp-0xb0]
+    b354:	83 3d 0d ba 00 00 00                            	cmp    DWORD PTR [rip+0xba0d],0x0        # 16d68 <__asan_option_detect_stack_use_after_return>
+    b35b:	0f 85 4a 02 00 00                               	jne    b5ab <uc_begin+0x2a0>
+    b361:	49 8d 8c 24 80 00 00 00                         	lea    rcx,[r12+0x80]
+    b369:	48 89 8d 38 ff ff ff                            	mov    QWORD PTR [rbp-0xc8],rcx
+    b370:	49 c7 04 24 b3 8a b5 41                         	mov    QWORD PTR [r12],0x41b58ab3
+    b378:	48 8d 05 59 1d 00 00                            	lea    rax,[rip+0x1d59]        # d0d8 <_IO_stdin_used+0xd8>
+    b37f:	49 89 44 24 08                                  	mov    QWORD PTR [r12+0x8],rax
+    b384:	48 8d 05 80 ff ff ff                            	lea    rax,[rip+0xffffffffffffff80]        # b30b <uc_begin>
+    b38b:	49 89 44 24 10                                  	mov    QWORD PTR [r12+0x10],rax
+    b390:	4d 89 e5                                        	mov    r13,r12
+    b393:	49 c1 ed 03                                     	shr    r13,0x3
+    b397:	41 c7 85 00 80 ff 7f f1 f1 f1 f1                	mov    DWORD PTR [r13+0x7fff8000],0xf1f1f1f1
+    b3a2:	41 c7 85 04 80 ff 7f f1 f1 04 f2                	mov    DWORD PTR [r13+0x7fff8004],0xf204f1f1
+    b3ad:	41 c7 85 08 80 ff 7f 00 f3 f3 f3                	mov    DWORD PTR [r13+0x7fff8008],0xf3f3f300
+    b3b8:	64 48 8b 04 25 28 00 00 00                      	mov    rax,QWORD PTR fs:0x28
+    b3c1:	48 89 45 c8                                     	mov    QWORD PTR [rbp-0x38],rax
+    b3c5:	31 c0                                           	xor    eax,eax
+    b3c7:	48 83 bd 48 ff ff ff 00                         	cmp    QWORD PTR [rbp-0xb8],0x0
+    b3cf:	0f 94 c0                                        	sete   al
+    b3d2:	48 83 bd 40 ff ff ff 00                         	cmp    QWORD PTR [rbp-0xc0],0x0
+    b3da:	0f 94 c2                                        	sete   dl
+    b3dd:	08 d0                                           	or     al,dl
+    b3df:	0f 85 c3 03 00 00                               	jne    b7a8 <uc_begin+0x49d>
+    b3e5:	48 85 db                                        	test   rbx,rbx
+    b3e8:	0f 84 ba 03 00 00                               	je     b7a8 <uc_begin+0x49d>
+    b3ee:	48 8d 79 b0                                     	lea    rdi,[rcx-0x50]
+    b3f2:	48 89 f8                                        	mov    rax,rdi
+    b3f5:	48 c1 e8 03                                     	shr    rax,0x3
+    b3f9:	0f b6 80 00 80 ff 7f                            	movzx  eax,BYTE PTR [rax+0x7fff8000]
+    b400:	84 c0                                           	test   al,al
+    b402:	74 08                                           	je     b40c <uc_begin+0x101>
+    b404:	3c 03                                           	cmp    al,0x3
+    b406:	0f 8e b5 01 00 00                               	jle    b5c1 <uc_begin+0x2b6>
+    b40c:	48 8b 85 38 ff ff ff                            	mov    rax,QWORD PTR [rbp-0xc8]
+    b413:	c7 40 b0 00 00 00 00                            	mov    DWORD PTR [rax-0x50],0x0
+    b41a:	48 8d 50 b0                                     	lea    rdx,[rax-0x50]
+    b41e:	4c 89 fe                                        	mov    rsi,r15
+    b421:	48 89 df                                        	mov    rdi,rbx
+    b424:	e8 b6 ee ff ff                                  	call   a2df <find_loan>
+    b429:	49 89 c7                                        	mov    r15,rax
+    b42c:	48 85 c0                                        	test   rax,rax
+    b42f:	0f 84 c3 03 00 00                               	je     b7f8 <uc_begin+0x4ed>
+    b435:	0f 84 8f 01 00 00                               	je     b5ca <uc_begin+0x2bf>
+    b43b:	a8 07                                           	test   al,0x7
+    b43d:	0f 85 87 01 00 00                               	jne    b5ca <uc_begin+0x2bf>
+    b443:	48 8d 50 08                                     	lea    rdx,[rax+0x8]
+    b447:	48 83 f8 f8                                     	cmp    rax,0xfffffffffffffff8
+    b44b:	0f 83 8c 01 00 00                               	jae    b5dd <uc_begin+0x2d2>
+    b451:	48 8d 78 08                                     	lea    rdi,[rax+0x8]
+    b455:	48 89 f8                                        	mov    rax,rdi
+    b458:	48 c1 e8 03                                     	shr    rax,0x3
+    b45c:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    b463:	0f 85 87 01 00 00                               	jne    b5f0 <uc_begin+0x2e5>
+    b469:	48 8b 85 48 ff ff ff                            	mov    rax,QWORD PTR [rbp-0xb8]
+    b470:	49 39 47 08                                     	cmp    QWORD PTR [r15+0x8],rax
+    b474:	0f 85 85 03 00 00                               	jne    b7ff <uc_begin+0x4f4>
+    b47a:	4c 89 75 f0                                     	mov    QWORD PTR [rbp-0x10],r14
+    b47e:	49 8d 7f 1c                                     	lea    rdi,[r15+0x1c]
+    b482:	48 89 f8                                        	mov    rax,rdi
+    b485:	48 c1 e8 03                                     	shr    rax,0x3
+    b489:	0f b6 80 00 80 ff 7f                            	movzx  eax,BYTE PTR [rax+0x7fff8000]
+    b490:	48 89 fa                                        	mov    rdx,rdi
+    b493:	83 e2 07                                        	and    edx,0x7
+    b496:	38 d0                                           	cmp    al,dl
+    b498:	7f 08                                           	jg     b4a2 <uc_begin+0x197>
+    b49a:	84 c0                                           	test   al,al
+    b49c:	0f 85 57 01 00 00                               	jne    b5f9 <uc_begin+0x2ee>
+    b4a2:	45 0f b6 77 1c                                  	movzx  r14d,BYTE PTR [r15+0x1c]
+    b4a7:	41 80 fe 01                                     	cmp    r14b,0x1
+    b4ab:	0f 87 4d 01 00 00                               	ja     b5fe <uc_begin+0x2f3>
+    b4b1:	41 f6 c6 01                                     	test   r14b,0x1
+    b4b5:	0f 85 4b 03 00 00                               	jne    b806 <uc_begin+0x4fb>
+    b4bb:	49 8d 57 10                                     	lea    rdx,[r15+0x10]
+    b4bf:	49 83 ff f0                                     	cmp    r15,0xfffffffffffffff0
+    b4c3:	0f 83 4a 01 00 00                               	jae    b613 <uc_begin+0x308>
+    b4c9:	49 8d 7f 10                                     	lea    rdi,[r15+0x10]
+    b4cd:	48 89 f8                                        	mov    rax,rdi
+    b4d0:	48 c1 e8 03                                     	shr    rax,0x3
+    b4d4:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    b4db:	0f 85 41 01 00 00                               	jne    b622 <uc_begin+0x317>
+    b4e1:	49 8b 47 10                                     	mov    rax,QWORD PTR [r15+0x10]
+    b4e5:	48 8b 8d 30 ff ff ff                            	mov    rcx,QWORD PTR [rbp-0xd0]
+    b4ec:	48 39 c8                                        	cmp    rax,rcx
+    b4ef:	0f 82 32 01 00 00                               	jb     b627 <uc_begin+0x31c>
+    b4f5:	48 29 c8                                        	sub    rax,rcx
+    b4f8:	48 8b bd 28 ff ff ff                            	mov    rdi,QWORD PTR [rbp-0xd8]
+    b4ff:	48 39 f8                                        	cmp    rax,rdi
+    b502:	0f 82 1f 01 00 00                               	jb     b627 <uc_begin+0x31c>
+    b508:	48 85 db                                        	test   rbx,rbx
+    b50b:	0f 84 24 01 00 00                               	je     b635 <uc_begin+0x32a>
+    b511:	f6 c3 07                                        	test   bl,0x7
+    b514:	0f 85 1b 01 00 00                               	jne    b635 <uc_begin+0x32a>
+    b51a:	48 8d 93 a4 04 00 00                            	lea    rdx,[rbx+0x4a4]
+    b521:	48 81 fb 5c fb ff ff                            	cmp    rbx,0xfffffffffffffb5c
+    b528:	0f 83 16 01 00 00                               	jae    b644 <uc_begin+0x339>
+    b52e:	48 8d 8b a4 04 00 00                            	lea    rcx,[rbx+0x4a4]
+    b535:	48 89 8d 20 ff ff ff                            	mov    QWORD PTR [rbp-0xe0],rcx
+    b53c:	48 89 c8                                        	mov    rax,rcx
+    b53f:	48 c1 e8 03                                     	shr    rax,0x3
+    b543:	0f b6 90 00 80 ff 7f                            	movzx  edx,BYTE PTR [rax+0x7fff8000]
+    b54a:	48 89 c8                                        	mov    rax,rcx
+    b54d:	83 e0 07                                        	and    eax,0x7
+    b550:	83 c0 03                                        	add    eax,0x3
+    b553:	38 d0                                           	cmp    al,dl
+    b555:	7c 08                                           	jl     b55f <uc_begin+0x254>
+    b557:	84 d2                                           	test   dl,dl
+    b559:	0f 85 f4 00 00 00                               	jne    b653 <uc_begin+0x348>
+    b55f:	8b 93 a4 04 00 00                               	mov    edx,DWORD PTR [rbx+0x4a4]
+    b565:	48 8d bb a0 04 00 00                            	lea    rdi,[rbx+0x4a0]
+    b56c:	48 89 f8                                        	mov    rax,rdi
+    b56f:	48 c1 e8 03                                     	shr    rax,0x3
+    b573:	0f b6 80 00 80 ff 7f                            	movzx  eax,BYTE PTR [rax+0x7fff8000]
+    b57a:	84 c0                                           	test   al,al
+    b57c:	74 08                                           	je     b586 <uc_begin+0x27b>
+    b57e:	3c 03                                           	cmp    al,0x3
+    b580:	0f 8e d5 00 00 00                               	jle    b65b <uc_begin+0x350>
+    b586:	b8 10 02 00 00                                  	mov    eax,0x210
+    b58b:	41 be 00 00 00 00                               	mov    r14d,0x0
+    b591:	3b 93 a0 04 00 00                               	cmp    edx,DWORD PTR [rbx+0x4a0]
+    b597:	0f 82 08 01 00 00                               	jb     b6a5 <uc_begin+0x39a>
+    b59d:	b8 05 00 00 00                                  	mov    eax,0x5
+    b5a2:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    b5a6:	e9 02 02 00 00                                  	jmp    b7ad <uc_begin+0x4a2>
+    b5ab:	bf 60 00 00 00                                  	mov    edi,0x60
+    b5b0:	e8 fb bc ff ff                                  	call   72b0 <__asan_stack_malloc_1@plt>
+    b5b5:	48 85 c0                                        	test   rax,rax
+    b5b8:	4c 0f 45 e0                                     	cmovne r12,rax
+    b5bc:	e9 a0 fd ff ff                                  	jmp    b361 <uc_begin+0x56>
+    b5c1:	4c 89 75 f0                                     	mov    QWORD PTR [rbp-0x10],r14
+    b5c5:	e8 56 bc ff ff                                  	call   7220 <__asan_report_store4@plt>
+    b5ca:	4c 89 75 f0                                     	mov    QWORD PTR [rbp-0x10],r14
+    b5ce:	4c 89 fe                                        	mov    rsi,r15
+    b5d1:	48 8d 3d a8 83 00 00                            	lea    rdi,[rip+0x83a8]        # 13980 <fail_after+0x36a0>
+    b5d8:	e8 53 bc ff ff                                  	call   7230 <__ubsan_handle_type_mismatch_v1_abort@plt>
+    b5dd:	4c 89 75 f0                                     	mov    QWORD PTR [rbp-0x10],r14
+    b5e1:	48 89 c6                                        	mov    rsi,rax
+    b5e4:	48 8d 3d 55 83 00 00                            	lea    rdi,[rip+0x8355]        # 13940 <fail_after+0x3660>
+    b5eb:	e8 10 be ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b5f0:	4c 89 75 f0                                     	mov    QWORD PTR [rbp-0x10],r14
+    b5f4:	e8 a7 bd ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    b5f9:	e8 72 bd ff ff                                  	call   7370 <__asan_report_load1@plt>
+    b5fe:	e8 1d bd ff ff                                  	call   7320 <__asan_handle_no_return@plt>
+    b603:	41 0f b6 f6                                     	movzx  esi,r14b
+    b607:	48 8d 3d 32 8e 00 00                            	lea    rdi,[rip+0x8e32]        # 14440 <fail_after+0x4160>
+    b60e:	e8 9d bd ff ff                                  	call   73b0 <__ubsan_handle_load_invalid_value_abort@plt>
+    b613:	4c 89 fe                                        	mov    rsi,r15
+    b616:	48 8d 3d e3 82 00 00                            	lea    rdi,[rip+0x82e3]        # 13900 <fail_after+0x3620>
+    b61d:	e8 de bd ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b622:	e8 79 bd ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    b627:	b8 04 00 00 00                                  	mov    eax,0x4
+    b62c:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    b630:	e9 78 01 00 00                                  	jmp    b7ad <uc_begin+0x4a2>
+    b635:	48 89 de                                        	mov    rsi,rbx
+    b638:	48 8d 3d 81 82 00 00                            	lea    rdi,[rip+0x8281]        # 138c0 <fail_after+0x35e0>
+    b63f:	e8 ec bb ff ff                                  	call   7230 <__ubsan_handle_type_mismatch_v1_abort@plt>
+    b644:	48 89 de                                        	mov    rsi,rbx
+    b647:	48 8d 3d 32 82 00 00                            	lea    rdi,[rip+0x8232]        # 13880 <fail_after+0x35a0>
+    b64e:	e8 ad bd ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b653:	48 89 cf                                        	mov    rdi,rcx
+    b656:	e8 75 bc ff ff                                  	call   72d0 <__asan_report_load4@plt>
+    b65b:	e8 70 bc ff ff                                  	call   72d0 <__asan_report_load4@plt>
+    b660:	44 89 f6                                        	mov    esi,r14d
+    b663:	48 8d 3d d6 81 00 00                            	lea    rdi,[rip+0x81d6]        # 13840 <fail_after+0x3560>
+    b66a:	e8 61 bd ff ff                                  	call   73d0 <__ubsan_handle_out_of_bounds_abort@plt>
+    b66f:	48 39 d3                                        	cmp    rbx,rdx
+    b672:	72 45                                           	jb     b6b9 <uc_begin+0x3ae>
+    b674:	48 8d 3c 03                                     	lea    rdi,[rbx+rax*1]
+    b678:	48 89 fa                                        	mov    rdx,rdi
+    b67b:	48 c1 ea 03                                     	shr    rdx,0x3
+    b67f:	80 ba 00 80 ff 7f 00                            	cmp    BYTE PTR [rdx+0x7fff8000],0x0
+    b686:	75 40                                           	jne    b6c8 <uc_begin+0x3bd>
+    b688:	48 83 3c 03 00                                  	cmp    QWORD PTR [rbx+rax*1],0x0
+    b68d:	0f 84 89 01 00 00                               	je     b81c <uc_begin+0x511>
+    b693:	41 83 c6 01                                     	add    r14d,0x1
+    b697:	48 83 c0 28                                     	add    rax,0x28
+    b69b:	41 83 fe 10                                     	cmp    r14d,0x10
+    b69f:	0f 84 f8 fe ff ff                               	je     b59d <uc_begin+0x292>
+    b6a5:	41 83 fe 0f                                     	cmp    r14d,0xf
+    b6a9:	77 b5                                           	ja     b660 <uc_begin+0x355>
+    b6ab:	48 8d 14 03                                     	lea    rdx,[rbx+rax*1]
+    b6af:	48 85 c0                                        	test   rax,rax
+    b6b2:	78 bb                                           	js     b66f <uc_begin+0x364>
+    b6b4:	48 39 da                                        	cmp    rdx,rbx
+    b6b7:	73 bb                                           	jae    b674 <uc_begin+0x369>
+    b6b9:	48 89 de                                        	mov    rsi,rbx
+    b6bc:	48 8d 3d 3d 81 00 00                            	lea    rdi,[rip+0x813d]        # 13800 <fail_after+0x3520>
+    b6c3:	e8 38 bd ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b6c8:	e8 d3 bc ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    b6cd:	e8 4e bc ff ff                                  	call   7320 <__asan_handle_no_return@plt>
+    b6d2:	e8 e9 bb ff ff                                  	call   72c0 <abort@plt>
+    b6d7:	44 89 f6                                        	mov    esi,r14d
+    b6da:	48 8d 3d df 80 00 00                            	lea    rdi,[rip+0x80df]        # 137c0 <fail_after+0x34e0>
+    b6e1:	e8 ea bc ff ff                                  	call   73d0 <__ubsan_handle_out_of_bounds_abort@plt>
+    b6e6:	e8 b5 bc ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    b6eb:	e8 e0 bb ff ff                                  	call   72d0 <__asan_report_load4@plt>
+    b6f0:	48 89 f2                                        	mov    rdx,rsi
+    b6f3:	48 89 de                                        	mov    rsi,rbx
+    b6f6:	48 8d 3d 83 80 00 00                            	lea    rdi,[rip+0x8083]        # 13780 <fail_after+0x34a0>
+    b6fd:	e8 fe bc ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b702:	48 89 f7                                        	mov    rdi,rsi
+    b705:	e8 e6 bb ff ff                                  	call   72f0 <__asan_report_store8@plt>
+    b70a:	48 89 f2                                        	mov    rdx,rsi
+    b70d:	48 89 de                                        	mov    rsi,rbx
+    b710:	48 8d 3d 29 80 00 00                            	lea    rdi,[rip+0x8029]        # 13740 <fail_after+0x3460>
+    b717:	e8 e4 bc ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b71c:	48 89 f7                                        	mov    rdi,rsi
+    b71f:	e8 cc bb ff ff                                  	call   72f0 <__asan_report_store8@plt>
+    b724:	48 89 f2                                        	mov    rdx,rsi
+    b727:	48 89 de                                        	mov    rsi,rbx
+    b72a:	48 8d 3d cf 7f 00 00                            	lea    rdi,[rip+0x7fcf]        # 13700 <fail_after+0x3420>
+    b731:	e8 ca bc ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b736:	4c 89 c7                                        	mov    rdi,r8
+    b739:	e8 e2 ba ff ff                                  	call   7220 <__asan_report_store4@plt>
+    b73e:	48 89 f2                                        	mov    rdx,rsi
+    b741:	48 89 de                                        	mov    rsi,rbx
+    b744:	48 8d 3d 75 7f 00 00                            	lea    rdi,[rip+0x7f75]        # 136c0 <fail_after+0x33e0>
+    b74b:	e8 b0 bc ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b750:	e8 9b bb ff ff                                  	call   72f0 <__asan_report_store8@plt>
+    b755:	48 89 de                                        	mov    rsi,rbx
+    b758:	48 8d 3d 21 7f 00 00                            	lea    rdi,[rip+0x7f21]        # 13680 <fail_after+0x33a0>
+    b75f:	e8 9c bc ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b764:	e8 87 bb ff ff                                  	call   72f0 <__asan_report_store8@plt>
+    b769:	4c 89 fe                                        	mov    rsi,r15
+    b76c:	48 8d 3d cd 7e 00 00                            	lea    rdi,[rip+0x7ecd]        # 13640 <fail_after+0x3360>
+    b773:	e8 88 bc ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    b778:	e8 53 bb ff ff                                  	call   72d0 <__asan_report_load4@plt>
+    b77d:	48 8b bd 20 ff ff ff                            	mov    rdi,QWORD PTR [rbp-0xe0]
+    b784:	e8 47 bb ff ff                                  	call   72d0 <__asan_report_load4@plt>
+    b789:	48 8b b5 40 ff ff ff                            	mov    rsi,QWORD PTR [rbp-0xc0]
+    b790:	48 8d 3d 69 7e 00 00                            	lea    rdi,[rip+0x7e69]        # 13600 <fail_after+0x3320>
+    b797:	e8 94 ba ff ff                                  	call   7230 <__ubsan_handle_type_mismatch_v1_abort@plt>
+    b79c:	48 8b bd 40 ff ff ff                            	mov    rdi,QWORD PTR [rbp-0xc0]
+    b7a3:	e8 48 bb ff ff                                  	call   72f0 <__asan_report_store8@plt>
+    b7a8:	b8 01 00 00 00                                  	mov    eax,0x1
+    b7ad:	48 8d b5 50 ff ff ff                            	lea    rsi,[rbp-0xb0]
+    b7b4:	4c 39 e6                                        	cmp    rsi,r12
+    b7b7:	0f 85 5d 03 00 00                               	jne    bb1a <uc_begin+0x80f>
+    b7bd:	49 c7 85 00 80 ff 7f 00 00 00 00                	mov    QWORD PTR [r13+0x7fff8000],0x0
+    b7c8:	41 c7 85 08 80 ff 7f 00 00 00 00                	mov    DWORD PTR [r13+0x7fff8008],0x0
+    b7d3:	48 8b 55 c8                                     	mov    rdx,QWORD PTR [rbp-0x38]
+    b7d7:	64 48 2b 14 25 28 00 00 00                      	sub    rdx,QWORD PTR fs:0x28
+    b7e0:	0f 85 65 03 00 00                               	jne    bb4b <uc_begin+0x840>
+    b7e6:	48 8b 5d d8                                     	mov    rbx,QWORD PTR [rbp-0x28]
+    b7ea:	4c 8b 65 e0                                     	mov    r12,QWORD PTR [rbp-0x20]
+    b7ee:	4c 8b 6d e8                                     	mov    r13,QWORD PTR [rbp-0x18]
+    b7f2:	4c 8b 7d f8                                     	mov    r15,QWORD PTR [rbp-0x8]
+    b7f6:	c9                                              	leave
+    b7f7:	c3                                              	ret
+    b7f8:	b8 03 00 00 00                                  	mov    eax,0x3
+    b7fd:	eb ae                                           	jmp    b7ad <uc_begin+0x4a2>
+    b7ff:	b8 02 00 00 00                                  	mov    eax,0x2
+    b804:	eb a7                                           	jmp    b7ad <uc_begin+0x4a2>
+    b806:	b8 06 00 00 00                                  	mov    eax,0x6
+    b80b:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    b80f:	eb 9c                                           	jmp    b7ad <uc_begin+0x4a2>
+    b811:	b8 07 00 00 00                                  	mov    eax,0x7
+    b816:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    b81a:	eb 91                                           	jmp    b7ad <uc_begin+0x4a2>
+    b81c:	48 8b 85 38 ff ff ff                            	mov    rax,QWORD PTR [rbp-0xc8]
+    b823:	48 8d 78 c0                                     	lea    rdi,[rax-0x40]
+    b827:	48 89 f8                                        	mov    rax,rdi
+    b82a:	48 c1 e8 03                                     	shr    rax,0x3
+    b82e:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    b835:	0f 85 d5 02 00 00                               	jne    bb10 <uc_begin+0x805>
+    b83b:	48 8b 85 38 ff ff ff                            	mov    rax,QWORD PTR [rbp-0xc8]
+    b842:	48 c7 40 c0 00 00 00 00                         	mov    QWORD PTR [rax-0x40],0x0
+    b84a:	48 8d 7b 08                                     	lea    rdi,[rbx+0x8]
+    b84e:	48 89 f8                                        	mov    rax,rdi
+    b851:	48 c1 e8 03                                     	shr    rax,0x3
+    b855:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    b85c:	0f 85 b3 02 00 00                               	jne    bb15 <uc_begin+0x80a>
+    b862:	48 8b 85 38 ff ff ff                            	mov    rax,QWORD PTR [rbp-0xc8]
+    b869:	48 8d 50 c0                                     	lea    rdx,[rax-0x40]
+    b86d:	48 8b 7b 08                                     	mov    rdi,QWORD PTR [rbx+0x8]
+    b871:	be 01 00 00 00                                  	mov    esi,0x1
+    b876:	e8 67 0d 00 00                                  	call   c5e2 <ultra_owner_alloc>
+    b87b:	83 f8 05                                        	cmp    eax,0x5
+    b87e:	74 91                                           	je     b811 <uc_begin+0x506>
+    b880:	83 f8 04                                        	cmp    eax,0x4
+    b883:	0f 84 14 fd ff ff                               	je     b59d <uc_begin+0x292>
+    b889:	85 c0                                           	test   eax,eax
+    b88b:	0f 85 3c fe ff ff                               	jne    b6cd <uc_begin+0x3c2>
+    b891:	41 83 fe 0f                                     	cmp    r14d,0xf
+    b895:	0f 87 3c fe ff ff                               	ja     b6d7 <uc_begin+0x3cc>
+    b89b:	48 8b bd 38 ff ff ff                            	mov    rdi,QWORD PTR [rbp-0xc8]
+    b8a2:	48 83 ef 40                                     	sub    rdi,0x40
+    b8a6:	48 89 fa                                        	mov    rdx,rdi
+    b8a9:	48 c1 ea 03                                     	shr    rdx,0x3
+    b8ad:	80 ba 00 80 ff 7f 00                            	cmp    BYTE PTR [rdx+0x7fff8000],0x0
+    b8b4:	0f 85 2c fe ff ff                               	jne    b6e6 <uc_begin+0x3db>
+    b8ba:	48 8b bd 38 ff ff ff                            	mov    rdi,QWORD PTR [rbp-0xc8]
+    b8c1:	48 8b 4f c0                                     	mov    rcx,QWORD PTR [rdi-0x40]
+    b8c5:	48 83 ef 50                                     	sub    rdi,0x50
+    b8c9:	48 89 fa                                        	mov    rdx,rdi
+    b8cc:	48 c1 ea 03                                     	shr    rdx,0x3
+    b8d0:	0f b6 92 00 80 ff 7f                            	movzx  edx,BYTE PTR [rdx+0x7fff8000]
+    b8d7:	84 d2                                           	test   dl,dl
+    b8d9:	74 09                                           	je     b8e4 <uc_begin+0x5d9>
+    b8db:	80 fa 03                                        	cmp    dl,0x3
+    b8de:	0f 8e 07 fe ff ff                               	jle    b6eb <uc_begin+0x3e0>
+    b8e4:	48 8b b5 38 ff ff ff                            	mov    rsi,QWORD PTR [rbp-0xc8]
+    b8eb:	8b 7e b0                                        	mov    edi,DWORD PTR [rsi-0x50]
+    b8ee:	44 89 f2                                        	mov    edx,r14d
+    b8f1:	48 8d 14 92                                     	lea    rdx,[rdx+rdx*4]
+    b8f5:	48 c1 e2 03                                     	shl    rdx,0x3
+    b8f9:	48 8d b4 13 10 02 00 00                         	lea    rsi,[rbx+rdx*1+0x210]
+    b901:	48 39 de                                        	cmp    rsi,rbx
+    b904:	0f 82 e6 fd ff ff                               	jb     b6f0 <uc_begin+0x3e5>
+    b90a:	44 89 f6                                        	mov    esi,r14d
+    b90d:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    b911:	48 8d b4 f3 10 02 00 00                         	lea    rsi,[rbx+rsi*8+0x210]
+    b919:	49 89 f0                                        	mov    r8,rsi
+    b91c:	49 c1 e8 03                                     	shr    r8,0x3
+    b920:	41 80 b8 00 80 ff 7f 00                         	cmp    BYTE PTR [r8+0x7fff8000],0x0
+    b928:	0f 85 d4 fd ff ff                               	jne    b702 <uc_begin+0x3f7>
+    b92e:	44 89 f6                                        	mov    esi,r14d
+    b931:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    b935:	48 89 8c f3 10 02 00 00                         	mov    QWORD PTR [rbx+rsi*8+0x210],rcx
+    b93d:	48 8d b4 13 18 02 00 00                         	lea    rsi,[rbx+rdx*1+0x218]
+    b945:	48 39 de                                        	cmp    rsi,rbx
+    b948:	0f 82 bc fd ff ff                               	jb     b70a <uc_begin+0x3ff>
+    b94e:	44 89 f6                                        	mov    esi,r14d
+    b951:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    b955:	48 8d b4 f3 18 02 00 00                         	lea    rsi,[rbx+rsi*8+0x218]
+    b95d:	49 89 f0                                        	mov    r8,rsi
+    b960:	49 c1 e8 03                                     	shr    r8,0x3
+    b964:	41 80 b8 00 80 ff 7f 00                         	cmp    BYTE PTR [r8+0x7fff8000],0x0
+    b96c:	0f 85 aa fd ff ff                               	jne    b71c <uc_begin+0x411>
+    b972:	44 89 f6                                        	mov    esi,r14d
+    b975:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    b979:	4c 8b 95 48 ff ff ff                            	mov    r10,QWORD PTR [rbp-0xb8]
+    b980:	4c 89 94 f3 18 02 00 00                         	mov    QWORD PTR [rbx+rsi*8+0x218],r10
+    b988:	48 8d b4 13 20 02 00 00                         	lea    rsi,[rbx+rdx*1+0x220]
+    b990:	48 39 de                                        	cmp    rsi,rbx
+    b993:	0f 82 8b fd ff ff                               	jb     b724 <uc_begin+0x419>
+    b999:	44 89 f6                                        	mov    esi,r14d
+    b99c:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    b9a0:	4c 8d 84 f3 20 02 00 00                         	lea    r8,[rbx+rsi*8+0x220]
+    b9a8:	4c 89 c6                                        	mov    rsi,r8
+    b9ab:	48 c1 ee 03                                     	shr    rsi,0x3
+    b9af:	0f b6 b6 00 80 ff 7f                            	movzx  esi,BYTE PTR [rsi+0x7fff8000]
+    b9b6:	40 84 f6                                        	test   sil,sil
+    b9b9:	74 0a                                           	je     b9c5 <uc_begin+0x6ba>
+    b9bb:	40 80 fe 03                                     	cmp    sil,0x3
+    b9bf:	0f 8e 71 fd ff ff                               	jle    b736 <uc_begin+0x42b>
+    b9c5:	44 89 f6                                        	mov    esi,r14d
+    b9c8:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    b9cc:	89 bc f3 20 02 00 00                            	mov    DWORD PTR [rbx+rsi*8+0x220],edi
+    b9d3:	48 8d b4 13 28 02 00 00                         	lea    rsi,[rbx+rdx*1+0x228]
+    b9db:	48 39 de                                        	cmp    rsi,rbx
+    b9de:	0f 82 5a fd ff ff                               	jb     b73e <uc_begin+0x433>
+    b9e4:	44 89 f6                                        	mov    esi,r14d
+    b9e7:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    b9eb:	48 8d bc f3 28 02 00 00                         	lea    rdi,[rbx+rsi*8+0x228]
+    b9f3:	48 89 fe                                        	mov    rsi,rdi
+    b9f6:	48 c1 ee 03                                     	shr    rsi,0x3
+    b9fa:	80 be 00 80 ff 7f 00                            	cmp    BYTE PTR [rsi+0x7fff8000],0x0
+    ba01:	0f 85 49 fd ff ff                               	jne    b750 <uc_begin+0x445>
+    ba07:	44 89 f6                                        	mov    esi,r14d
+    ba0a:	48 8d 34 b6                                     	lea    rsi,[rsi+rsi*4]
+    ba0e:	48 8b bd 30 ff ff ff                            	mov    rdi,QWORD PTR [rbp-0xd0]
+    ba15:	48 89 bc f3 28 02 00 00                         	mov    QWORD PTR [rbx+rsi*8+0x228],rdi
+    ba1d:	48 8d 94 13 30 02 00 00                         	lea    rdx,[rbx+rdx*1+0x230]
+    ba25:	48 39 da                                        	cmp    rdx,rbx
+    ba28:	0f 82 27 fd ff ff                               	jb     b755 <uc_begin+0x44a>
+    ba2e:	44 89 f2                                        	mov    edx,r14d
+    ba31:	48 8d 14 92                                     	lea    rdx,[rdx+rdx*4]
+    ba35:	48 8d bc d3 30 02 00 00                         	lea    rdi,[rbx+rdx*8+0x230]
+    ba3d:	48 89 fa                                        	mov    rdx,rdi
+    ba40:	48 c1 ea 03                                     	shr    rdx,0x3
+    ba44:	80 ba 00 80 ff 7f 00                            	cmp    BYTE PTR [rdx+0x7fff8000],0x0
+    ba4b:	0f 85 13 fd ff ff                               	jne    b764 <uc_begin+0x459>
+    ba51:	44 89 f2                                        	mov    edx,r14d
+    ba54:	48 8d 14 92                                     	lea    rdx,[rdx+rdx*4]
+    ba58:	48 8b b5 28 ff ff ff                            	mov    rsi,QWORD PTR [rbp-0xd8]
+    ba5f:	48 89 b4 d3 30 02 00 00                         	mov    QWORD PTR [rbx+rdx*8+0x230],rsi
+    ba67:	49 8d 57 18                                     	lea    rdx,[r15+0x18]
+    ba6b:	49 83 ff e8                                     	cmp    r15,0xffffffffffffffe8
+    ba6f:	0f 83 f4 fc ff ff                               	jae    b769 <uc_begin+0x45e>
+    ba75:	49 8d 7f 18                                     	lea    rdi,[r15+0x18]
+    ba79:	48 89 fa                                        	mov    rdx,rdi
+    ba7c:	48 c1 ea 03                                     	shr    rdx,0x3
+    ba80:	0f b6 92 00 80 ff 7f                            	movzx  edx,BYTE PTR [rdx+0x7fff8000]
+    ba87:	84 d2                                           	test   dl,dl
+    ba89:	74 09                                           	je     ba94 <uc_begin+0x789>
+    ba8b:	80 fa 03                                        	cmp    dl,0x3
+    ba8e:	0f 8e e4 fc ff ff                               	jle    b778 <uc_begin+0x46d>
+    ba94:	41 83 47 18 01                                  	add    DWORD PTR [r15+0x18],0x1
+    ba99:	48 8b bd 20 ff ff ff                            	mov    rdi,QWORD PTR [rbp-0xe0]
+    baa0:	48 89 fa                                        	mov    rdx,rdi
+    baa3:	48 c1 ea 03                                     	shr    rdx,0x3
+    baa7:	0f b6 b2 00 80 ff 7f                            	movzx  esi,BYTE PTR [rdx+0x7fff8000]
+    baae:	83 e7 07                                        	and    edi,0x7
+    bab1:	48 89 fa                                        	mov    rdx,rdi
+    bab4:	83 c2 03                                        	add    edx,0x3
+    bab7:	40 38 f2                                        	cmp    dl,sil
+    baba:	7c 09                                           	jl     bac5 <uc_begin+0x7ba>
+    babc:	40 84 f6                                        	test   sil,sil
+    babf:	0f 85 b8 fc ff ff                               	jne    b77d <uc_begin+0x472>
+    bac5:	83 83 a4 04 00 00 01                            	add    DWORD PTR [rbx+0x4a4],0x1
+    bacc:	48 8b 9d 40 ff ff ff                            	mov    rbx,QWORD PTR [rbp-0xc0]
+    bad3:	48 85 db                                        	test   rbx,rbx
+    bad6:	0f 84 ad fc ff ff                               	je     b789 <uc_begin+0x47e>
+    badc:	f6 c3 07                                        	test   bl,0x7
+    badf:	0f 85 a4 fc ff ff                               	jne    b789 <uc_begin+0x47e>
+    bae5:	48 8b 95 40 ff ff ff                            	mov    rdx,QWORD PTR [rbp-0xc0]
+    baec:	48 c1 ea 03                                     	shr    rdx,0x3
+    baf0:	80 ba 00 80 ff 7f 00                            	cmp    BYTE PTR [rdx+0x7fff8000],0x0
+    baf7:	0f 85 9f fc ff ff                               	jne    b79c <uc_begin+0x491>
+    bafd:	48 8b 9d 40 ff ff ff                            	mov    rbx,QWORD PTR [rbp-0xc0]
+    bb04:	48 89 0b                                        	mov    QWORD PTR [rbx],rcx
+    bb07:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    bb0b:	e9 9d fc ff ff                                  	jmp    b7ad <uc_begin+0x4a2>
+    bb10:	e8 db b7 ff ff                                  	call   72f0 <__asan_report_store8@plt>
+    bb15:	e8 86 b8 ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    bb1a:	49 c7 04 24 0e 36 e0 45                         	mov    QWORD PTR [r12],0x45e0360e
+    bb22:	48 bb f5 f5 f5 f5 f5 f5 f5 f5                   	movabs rbx,0xf5f5f5f5f5f5f5f5
+    bb2c:	49 89 9d 00 80 ff 7f                            	mov    QWORD PTR [r13+0x7fff8000],rbx
+    bb33:	41 c7 85 08 80 ff 7f f5 f5 f5 f5                	mov    DWORD PTR [r13+0x7fff8008],0xf5f5f5f5
+    bb3e:	49 8b 54 24 78                                  	mov    rdx,QWORD PTR [r12+0x78]
+    bb43:	c6 02 00                                        	mov    BYTE PTR [rdx],0x0
+    bb46:	e9 88 fc ff ff                                  	jmp    b7d3 <uc_begin+0x4c8>
+    bb4b:	4c 89 75 f0                                     	mov    QWORD PTR [rbp-0x10],r14
+    bb4f:	e8 bc b7 ff ff                                  	call   7310 <__stack_chk_fail@plt>
+
+Disassembly of section .fini:
+
+
+/home/builder/linux-reconstruido/custodia-76f107552ae748529c0ff7c6d6cda321/resultados/custodia-diag-O1:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000000bd51 <uc_complete>:
+    bd51:	f3 0f 1e fa                                     	endbr64
+    bd55:	55                                              	push   rbp
+    bd56:	48 89 e5                                        	mov    rbp,rsp
+    bd59:	48 8d 64 24 d0                                  	lea    rsp,[rsp-0x30]
+    bd5e:	4c 89 6d e8                                     	mov    QWORD PTR [rbp-0x18],r13
+    bd62:	48 85 ff                                        	test   rdi,rdi
+    bd65:	0f 84 b0 01 00 00                               	je     bf1b <uc_complete+0x1ca>
+    bd6b:	4c 89 65 e0                                     	mov    QWORD PTR [rbp-0x20],r12
+    bd6f:	4c 89 75 f0                                     	mov    QWORD PTR [rbp-0x10],r14
+    bd73:	4c 89 7d f8                                     	mov    QWORD PTR [rbp-0x8],r15
+    bd77:	49 89 fc                                        	mov    r12,rdi
+    bd7a:	49 89 f5                                        	mov    r13,rsi
+    bd7d:	49 89 cf                                        	mov    r15,rcx
+    bd80:	4d 89 c6                                        	mov    r14,r8
+    bd83:	48 85 f6                                        	test   rsi,rsi
+    bd86:	0f 84 83 01 00 00                               	je     bf0f <uc_complete+0x1be>
+    bd8c:	48 89 5d d8                                     	mov    QWORD PTR [rbp-0x28],rbx
+    bd90:	48 89 d6                                        	mov    rsi,rdx
+    bd93:	e8 91 e6 ff ff                                  	call   a429 <find_request>
+    bd98:	48 89 c3                                        	mov    rbx,rax
+    bd9b:	48 85 c0                                        	test   rax,rax
+    bd9e:	0f 84 31 02 00 00                               	je     bfd5 <uc_complete+0x284>
+    bda4:	0f 84 80 01 00 00                               	je     bf2a <uc_complete+0x1d9>
+    bdaa:	a8 07                                           	test   al,0x7
+    bdac:	0f 85 78 01 00 00                               	jne    bf2a <uc_complete+0x1d9>
+    bdb2:	48 8d 50 08                                     	lea    rdx,[rax+0x8]
+    bdb6:	48 83 f8 f8                                     	cmp    rax,0xfffffffffffffff8
+    bdba:	0f 83 79 01 00 00                               	jae    bf39 <uc_complete+0x1e8>
+    bdc0:	48 8d 78 08                                     	lea    rdi,[rax+0x8]
+    bdc4:	48 89 f8                                        	mov    rax,rdi
+    bdc7:	48 c1 e8 03                                     	shr    rax,0x3
+    bdcb:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    bdd2:	0f 85 70 01 00 00                               	jne    bf48 <uc_complete+0x1f7>
+    bdd8:	4c 39 6b 08                                     	cmp    QWORD PTR [rbx+0x8],r13
+    bddc:	0f 85 0e 02 00 00                               	jne    bff0 <uc_complete+0x29f>
+    bde2:	48 8d 53 20                                     	lea    rdx,[rbx+0x20]
+    bde6:	48 83 fb e0                                     	cmp    rbx,0xffffffffffffffe0
+    bdea:	0f 83 5d 01 00 00                               	jae    bf4d <uc_complete+0x1fc>
+    bdf0:	48 8d 7b 20                                     	lea    rdi,[rbx+0x20]
+    bdf4:	48 89 f8                                        	mov    rax,rdi
+    bdf7:	48 c1 e8 03                                     	shr    rax,0x3
+    bdfb:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    be02:	0f 85 54 01 00 00                               	jne    bf5c <uc_complete+0x20b>
+    be08:	4c 8b 4b 20                                     	mov    r9,QWORD PTR [rbx+0x20]
+    be0c:	4d 39 ce                                        	cmp    r14,r9
+    be0f:	0f 82 f6 01 00 00                               	jb     c00b <uc_complete+0x2ba>
+    be15:	4d 85 ff                                        	test   r15,r15
+    be18:	0f 84 43 01 00 00                               	je     bf61 <uc_complete+0x210>
+    be1e:	48 8d 7b 10                                     	lea    rdi,[rbx+0x10]
+    be22:	48 89 f8                                        	mov    rax,rdi
+    be25:	48 c1 e8 03                                     	shr    rax,0x3
+    be29:	0f b6 80 00 80 ff 7f                            	movzx  eax,BYTE PTR [rax+0x7fff8000]
+    be30:	84 c0                                           	test   al,al
+    be32:	74 08                                           	je     be3c <uc_complete+0xeb>
+    be34:	3c 03                                           	cmp    al,0x3
+    be36:	0f 8e 40 01 00 00                               	jle    bf7c <uc_complete+0x22b>
+    be3c:	8b 43 10                                        	mov    eax,DWORD PTR [rbx+0x10]
+    be3f:	83 f8 10                                        	cmp    eax,0x10
+    be42:	0f 87 39 01 00 00                               	ja     bf81 <uc_complete+0x230>
+    be48:	4d 85 e4                                        	test   r12,r12
+    be4b:	0f 84 3e 01 00 00                               	je     bf8f <uc_complete+0x23e>
+    be51:	41 f6 c4 07                                     	test   r12b,0x7
+    be55:	0f 85 34 01 00 00                               	jne    bf8f <uc_complete+0x23e>
+    be5b:	89 c6                                           	mov    esi,eax
+    be5d:	48 c1 e6 05                                     	shl    rsi,0x5
+    be61:	48 83 c6 10                                     	add    rsi,0x10
+    be65:	4c 89 e2                                        	mov    rdx,r12
+    be68:	48 01 f2                                        	add    rdx,rsi
+    be6b:	0f 82 2d 01 00 00                               	jb     bf9e <uc_complete+0x24d>
+    be71:	4c 01 e6                                        	add    rsi,r12
+    be74:	48 8d 7b 18                                     	lea    rdi,[rbx+0x18]
+    be78:	48 89 fa                                        	mov    rdx,rdi
+    be7b:	48 c1 ea 03                                     	shr    rdx,0x3
+    be7f:	80 ba 00 80 ff 7f 00                            	cmp    BYTE PTR [rdx+0x7fff8000],0x0
+    be86:	0f 85 21 01 00 00                               	jne    bfad <uc_complete+0x25c>
+    be8c:	48 8b 53 18                                     	mov    rdx,QWORD PTR [rbx+0x18]
+    be90:	40 f6 c6 07                                     	test   sil,0x7
+    be94:	0f 85 18 01 00 00                               	jne    bfb2 <uc_complete+0x261>
+    be9a:	89 c1                                           	mov    ecx,eax
+    be9c:	48 c1 e1 05                                     	shl    rcx,0x5
+    bea0:	49 8d 7c 0c 10                                  	lea    rdi,[r12+rcx*1+0x10]
+    bea5:	48 89 f9                                        	mov    rcx,rdi
+    bea8:	48 c1 e9 03                                     	shr    rcx,0x3
+    beac:	80 b9 00 80 ff 7f 00                            	cmp    BYTE PTR [rcx+0x7fff8000],0x0
+    beb3:	0f 85 05 01 00 00                               	jne    bfbe <uc_complete+0x26d>
+    beb9:	89 c0                                           	mov    eax,eax
+    bebb:	48 c1 e0 05                                     	shl    rax,0x5
+    bebf:	49 8b 74 04 10                                  	mov    rsi,QWORD PTR [r12+rax*1+0x10]
+    bec4:	4c 89 e0                                        	mov    rax,r12
+    bec7:	48 c1 e8 03                                     	shr    rax,0x3
+    becb:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    bed2:	0f 85 eb 00 00 00                               	jne    bfc3 <uc_complete+0x272>
+    bed8:	49 8b 3c 24                                     	mov    rdi,QWORD PTR [r12]
+    bedc:	4d 89 f0                                        	mov    r8,r14
+    bedf:	4c 89 f9                                        	mov    rcx,r15
+    bee2:	e8 ec 0c 00 00                                  	call   cbd3 <ultra_owner_read_bounded>
+    bee7:	41 89 c5                                        	mov    r13d,eax
+    beea:	85 c0                                           	test   eax,eax
+    beec:	0f 85 d9 00 00 00                               	jne    bfcb <uc_complete+0x27a>
+    bef2:	48 89 de                                        	mov    rsi,rbx
+    bef5:	4c 89 e7                                        	mov    rdi,r12
+    bef8:	e8 3b e8 ff ff                                  	call   a738 <retire_request>
+    befd:	48 8b 5d d8                                     	mov    rbx,QWORD PTR [rbp-0x28]
+    bf01:	4c 8b 65 e0                                     	mov    r12,QWORD PTR [rbp-0x20]
+    bf05:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    bf09:	4c 8b 7d f8                                     	mov    r15,QWORD PTR [rbp-0x8]
+    bf0d:	eb 12                                           	jmp    bf21 <uc_complete+0x1d0>
+    bf0f:	4c 8b 65 e0                                     	mov    r12,QWORD PTR [rbp-0x20]
+    bf13:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    bf17:	4c 8b 7d f8                                     	mov    r15,QWORD PTR [rbp-0x8]
+    bf1b:	41 bd 01 00 00 00                               	mov    r13d,0x1
+    bf21:	44 89 e8                                        	mov    eax,r13d
+    bf24:	4c 8b 6d e8                                     	mov    r13,QWORD PTR [rbp-0x18]
+    bf28:	c9                                              	leave
+    bf29:	c3                                              	ret
+    bf2a:	48 89 de                                        	mov    rsi,rbx
+    bf2d:	48 8d 3d cc 75 00 00                            	lea    rdi,[rip+0x75cc]        # 13500 <fail_after+0x3220>
+    bf34:	e8 f7 b2 ff ff                                  	call   7230 <__ubsan_handle_type_mismatch_v1_abort@plt>
+    bf39:	48 89 c6                                        	mov    rsi,rax
+    bf3c:	48 8d 3d 7d 75 00 00                            	lea    rdi,[rip+0x757d]        # 134c0 <fail_after+0x31e0>
+    bf43:	e8 b8 b4 ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    bf48:	e8 53 b4 ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    bf4d:	48 89 de                                        	mov    rsi,rbx
+    bf50:	48 8d 3d 29 75 00 00                            	lea    rdi,[rip+0x7529]        # 13480 <fail_after+0x31a0>
+    bf57:	e8 a4 b4 ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    bf5c:	e8 3f b4 ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    bf61:	4d 85 c9                                        	test   r9,r9
+    bf64:	0f 84 b4 fe ff ff                               	je     be1e <uc_complete+0xcd>
+    bf6a:	48 8b 5d d8                                     	mov    rbx,QWORD PTR [rbp-0x28]
+    bf6e:	4c 8b 65 e0                                     	mov    r12,QWORD PTR [rbp-0x20]
+    bf72:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    bf76:	4c 8b 7d f8                                     	mov    r15,QWORD PTR [rbp-0x8]
+    bf7a:	eb 9f                                           	jmp    bf1b <uc_complete+0x1ca>
+    bf7c:	e8 4f b3 ff ff                                  	call   72d0 <__asan_report_load4@plt>
+    bf81:	89 c6                                           	mov    esi,eax
+    bf83:	48 8d 3d b6 74 00 00                            	lea    rdi,[rip+0x74b6]        # 13440 <fail_after+0x3160>
+    bf8a:	e8 41 b4 ff ff                                  	call   73d0 <__ubsan_handle_out_of_bounds_abort@plt>
+    bf8f:	4c 89 e6                                        	mov    rsi,r12
+    bf92:	48 8d 3d 67 74 00 00                            	lea    rdi,[rip+0x7467]        # 13400 <fail_after+0x3120>
+    bf99:	e8 92 b2 ff ff                                  	call   7230 <__ubsan_handle_type_mismatch_v1_abort@plt>
+    bf9e:	4c 89 e6                                        	mov    rsi,r12
+    bfa1:	48 8d 3d 18 74 00 00                            	lea    rdi,[rip+0x7418]        # 133c0 <fail_after+0x30e0>
+    bfa8:	e8 53 b4 ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    bfad:	e8 ee b3 ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    bfb2:	48 8d 3d c7 73 00 00                            	lea    rdi,[rip+0x73c7]        # 13380 <fail_after+0x30a0>
+    bfb9:	e8 72 b2 ff ff                                  	call   7230 <__ubsan_handle_type_mismatch_v1_abort@plt>
+    bfbe:	e8 dd b3 ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    bfc3:	4c 89 e7                                        	mov    rdi,r12
+    bfc6:	e8 d5 b3 ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    bfcb:	e8 50 b3 ff ff                                  	call   7320 <__asan_handle_no_return@plt>
+    bfd0:	e8 eb b2 ff ff                                  	call   72c0 <abort@plt>
+    bfd5:	41 bd 03 00 00 00                               	mov    r13d,0x3
+    bfdb:	48 8b 5d d8                                     	mov    rbx,QWORD PTR [rbp-0x28]
+    bfdf:	4c 8b 65 e0                                     	mov    r12,QWORD PTR [rbp-0x20]
+    bfe3:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    bfe7:	4c 8b 7d f8                                     	mov    r15,QWORD PTR [rbp-0x8]
+    bfeb:	e9 31 ff ff ff                                  	jmp    bf21 <uc_complete+0x1d0>
+    bff0:	41 bd 02 00 00 00                               	mov    r13d,0x2
+    bff6:	48 8b 5d d8                                     	mov    rbx,QWORD PTR [rbp-0x28]
+    bffa:	4c 8b 65 e0                                     	mov    r12,QWORD PTR [rbp-0x20]
+    bffe:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    c002:	4c 8b 7d f8                                     	mov    r15,QWORD PTR [rbp-0x8]
+    c006:	e9 16 ff ff ff                                  	jmp    bf21 <uc_complete+0x1d0>
+    c00b:	41 bd 04 00 00 00                               	mov    r13d,0x4
+    c011:	48 8b 5d d8                                     	mov    rbx,QWORD PTR [rbp-0x28]
+    c015:	4c 8b 65 e0                                     	mov    r12,QWORD PTR [rbp-0x20]
+    c019:	4c 8b 75 f0                                     	mov    r14,QWORD PTR [rbp-0x10]
+    c01d:	4c 8b 7d f8                                     	mov    r15,QWORD PTR [rbp-0x8]
+    c021:	e9 fb fe ff ff                                  	jmp    bf21 <uc_complete+0x1d0>
+
+Disassembly of section .fini:
+
+
+/home/builder/linux-reconstruido/custodia-76f107552ae748529c0ff7c6d6cda321/resultados/custodia-diag-O1:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000000bb54 <uc_revoke>:
+    bb54:	f3 0f 1e fa                                     	endbr64
+    bb58:	55                                              	push   rbp
+    bb59:	48 89 e5                                        	mov    rbp,rsp
+    bb5c:	41 57                                           	push   r15
+    bb5e:	41 56                                           	push   r14
+    bb60:	41 55                                           	push   r13
+    bb62:	41 54                                           	push   r12
+    bb64:	53                                              	push   rbx
+    bb65:	48 83 ec 68                                     	sub    rsp,0x68
+    bb69:	49 89 fc                                        	mov    r12,rdi
+    bb6c:	49 89 f5                                        	mov    r13,rsi
+    bb6f:	49 89 d7                                        	mov    r15,rdx
+    bb72:	48 8d 9d 70 ff ff ff                            	lea    rbx,[rbp-0x90]
+    bb79:	83 3d e8 b1 00 00 00                            	cmp    DWORD PTR [rip+0xb1e8],0x0        # 16d68 <__asan_option_detect_stack_use_after_return>
+    bb80:	0f 85 1b 01 00 00                               	jne    bca1 <uc_revoke+0x14d>
+    bb86:	48 8d 53 60                                     	lea    rdx,[rbx+0x60]
+    bb8a:	48 c7 03 b3 8a b5 41                            	mov    QWORD PTR [rbx],0x41b58ab3
+    bb91:	48 8d 05 09 1c 00 00                            	lea    rax,[rip+0x1c09]        # d7a1 <_IO_stdin_used+0x7a1>
+    bb98:	48 89 43 08                                     	mov    QWORD PTR [rbx+0x8],rax
+    bb9c:	48 8d 05 b1 ff ff ff                            	lea    rax,[rip+0xffffffffffffffb1]        # bb54 <uc_revoke>
+    bba3:	48 89 43 10                                     	mov    QWORD PTR [rbx+0x10],rax
+    bba7:	49 89 de                                        	mov    r14,rbx
+    bbaa:	49 c1 ee 03                                     	shr    r14,0x3
+    bbae:	41 c7 86 00 80 ff 7f f1 f1 f1 f1                	mov    DWORD PTR [r14+0x7fff8000],0xf1f1f1f1
+    bbb9:	41 c7 86 04 80 ff 7f 04 f3 f3 f3                	mov    DWORD PTR [r14+0x7fff8004],0xf3f3f304
+    bbc4:	64 48 8b 04 25 28 00 00 00                      	mov    rax,QWORD PTR fs:0x28
+    bbcd:	48 89 45 c8                                     	mov    QWORD PTR [rbp-0x38],rax
+    bbd1:	31 c0                                           	xor    eax,eax
+    bbd3:	4d 85 e4                                        	test   r12,r12
+    bbd6:	0f 84 0e 01 00 00                               	je     bcea <uc_revoke+0x196>
+    bbdc:	4d 85 ed                                        	test   r13,r13
+    bbdf:	0f 84 05 01 00 00                               	je     bcea <uc_revoke+0x196>
+    bbe5:	48 8d 7a c0                                     	lea    rdi,[rdx-0x40]
+    bbe9:	48 89 f8                                        	mov    rax,rdi
+    bbec:	48 c1 e8 03                                     	shr    rax,0x3
+    bbf0:	0f b6 80 00 80 ff 7f                            	movzx  eax,BYTE PTR [rax+0x7fff8000]
+    bbf7:	84 c0                                           	test   al,al
+    bbf9:	74 08                                           	je     bc03 <uc_revoke+0xaf>
+    bbfb:	3c 03                                           	cmp    al,0x3
+    bbfd:	0f 8e b4 00 00 00                               	jle    bcb7 <uc_revoke+0x163>
+    bc03:	c7 42 c0 00 00 00 00                            	mov    DWORD PTR [rdx-0x40],0x0
+    bc0a:	48 83 ea 40                                     	sub    rdx,0x40
+    bc0e:	4c 89 fe                                        	mov    rsi,r15
+    bc11:	4c 89 e7                                        	mov    rdi,r12
+    bc14:	e8 c6 e6 ff ff                                  	call   a2df <find_loan>
+    bc19:	48 89 c6                                        	mov    rsi,rax
+    bc1c:	48 85 c0                                        	test   rax,rax
+    bc1f:	0f 84 ff 00 00 00                               	je     bd24 <uc_revoke+0x1d0>
+    bc25:	0f 84 91 00 00 00                               	je     bcbc <uc_revoke+0x168>
+    bc2b:	a8 07                                           	test   al,0x7
+    bc2d:	0f 85 89 00 00 00                               	jne    bcbc <uc_revoke+0x168>
+    bc33:	48 8d 50 08                                     	lea    rdx,[rax+0x8]
+    bc37:	48 83 f8 f8                                     	cmp    rax,0xfffffffffffffff8
+    bc3b:	0f 83 87 00 00 00                               	jae    bcc8 <uc_revoke+0x174>
+    bc41:	48 8d 78 08                                     	lea    rdi,[rax+0x8]
+    bc45:	48 89 f8                                        	mov    rax,rdi
+    bc48:	48 c1 e8 03                                     	shr    rax,0x3
+    bc4c:	80 b8 00 80 ff 7f 00                            	cmp    BYTE PTR [rax+0x7fff8000],0x0
+    bc53:	75 7f                                           	jne    bcd4 <uc_revoke+0x180>
+    bc55:	b8 02 00 00 00                                  	mov    eax,0x2
+    bc5a:	4c 39 6e 08                                     	cmp    QWORD PTR [rsi+0x8],r13
+    bc5e:	0f 85 8b 00 00 00                               	jne    bcef <uc_revoke+0x19b>
+    bc64:	48 8d 56 1c                                     	lea    rdx,[rsi+0x1c]
+    bc68:	48 83 fe e4                                     	cmp    rsi,0xffffffffffffffe4
+    bc6c:	73 6b                                           	jae    bcd9 <uc_revoke+0x185>
+    bc6e:	48 8d 7e 1c                                     	lea    rdi,[rsi+0x1c]
+    bc72:	48 89 f8                                        	mov    rax,rdi
+    bc75:	48 c1 e8 03                                     	shr    rax,0x3
+    bc79:	0f b6 80 00 80 ff 7f                            	movzx  eax,BYTE PTR [rax+0x7fff8000]
+    bc80:	48 89 fa                                        	mov    rdx,rdi
+    bc83:	83 e2 07                                        	and    edx,0x7
+    bc86:	38 d0                                           	cmp    al,dl
+    bc88:	7f 04                                           	jg     bc8e <uc_revoke+0x13a>
+    bc8a:	84 c0                                           	test   al,al
+    bc8c:	75 57                                           	jne    bce5 <uc_revoke+0x191>
+    bc8e:	c6 46 1c 01                                     	mov    BYTE PTR [rsi+0x1c],0x1
+    bc92:	4c 89 e7                                        	mov    rdi,r12
+    bc95:	e8 93 e8 ff ff                                  	call   a52d <reap>
+    bc9a:	b8 00 00 00 00                                  	mov    eax,0x0
+    bc9f:	eb 4e                                           	jmp    bcef <uc_revoke+0x19b>
+    bca1:	bf 40 00 00 00                                  	mov    edi,0x40
+    bca6:	e8 c5 b5 ff ff                                  	call   7270 <__asan_stack_malloc_0@plt>
+    bcab:	48 85 c0                                        	test   rax,rax
+    bcae:	48 0f 45 d8                                     	cmovne rbx,rax
+    bcb2:	e9 cf fe ff ff                                  	jmp    bb86 <uc_revoke+0x32>
+    bcb7:	e8 64 b5 ff ff                                  	call   7220 <__asan_report_store4@plt>
+    bcbc:	48 8d 3d fd 78 00 00                            	lea    rdi,[rip+0x78fd]        # 135c0 <fail_after+0x32e0>
+    bcc3:	e8 68 b5 ff ff                                  	call   7230 <__ubsan_handle_type_mismatch_v1_abort@plt>
+    bcc8:	48 8d 3d b1 78 00 00                            	lea    rdi,[rip+0x78b1]        # 13580 <fail_after+0x32a0>
+    bccf:	e8 2c b7 ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    bcd4:	e8 c7 b6 ff ff                                  	call   73a0 <__asan_report_load8@plt>
+    bcd9:	48 8d 3d 60 78 00 00                            	lea    rdi,[rip+0x7860]        # 13540 <fail_after+0x3260>
+    bce0:	e8 1b b7 ff ff                                  	call   7400 <__ubsan_handle_pointer_overflow_abort@plt>
+    bce5:	e8 96 b6 ff ff                                  	call   7380 <__asan_report_store1@plt>
+    bcea:	b8 01 00 00 00                                  	mov    eax,0x1
+    bcef:	48 8d 8d 70 ff ff ff                            	lea    rcx,[rbp-0x90]
+    bcf6:	48 39 d9                                        	cmp    rcx,rbx
+    bcf9:	75 30                                           	jne    bd2b <uc_revoke+0x1d7>
+    bcfb:	49 c7 86 00 80 ff 7f 00 00 00 00                	mov    QWORD PTR [r14+0x7fff8000],0x0
+    bd06:	48 8b 55 c8                                     	mov    rdx,QWORD PTR [rbp-0x38]
+    bd0a:	64 48 2b 14 25 28 00 00 00                      	sub    rdx,QWORD PTR fs:0x28
+    bd13:	75 37                                           	jne    bd4c <uc_revoke+0x1f8>
+    bd15:	48 83 c4 68                                     	add    rsp,0x68
+    bd19:	5b                                              	pop    rbx
+    bd1a:	41 5c                                           	pop    r12
+    bd1c:	41 5d                                           	pop    r13
+    bd1e:	41 5e                                           	pop    r14
+    bd20:	41 5f                                           	pop    r15
+    bd22:	5d                                              	pop    rbp
+    bd23:	c3                                              	ret
+    bd24:	b8 03 00 00 00                                  	mov    eax,0x3
+    bd29:	eb c4                                           	jmp    bcef <uc_revoke+0x19b>
+    bd2b:	48 c7 03 0e 36 e0 45                            	mov    QWORD PTR [rbx],0x45e0360e
+    bd32:	48 b9 f5 f5 f5 f5 f5 f5 f5 f5                   	movabs rcx,0xf5f5f5f5f5f5f5f5
+    bd3c:	49 89 8e 00 80 ff 7f                            	mov    QWORD PTR [r14+0x7fff8000],rcx
+    bd43:	48 8b 53 38                                     	mov    rdx,QWORD PTR [rbx+0x38]
+    bd47:	c6 02 00                                        	mov    BYTE PTR [rdx],0x0
+    bd4a:	eb ba                                           	jmp    bd06 <uc_revoke+0x1b2>
+    bd4c:	e8 bf b5 ff ff                                  	call   7310 <__stack_chk_fail@plt>
+
+Disassembly of section .fini:

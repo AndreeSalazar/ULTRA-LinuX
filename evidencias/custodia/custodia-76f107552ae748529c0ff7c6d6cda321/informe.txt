@@ -1,0 +1,17 @@
+gcc (GCC) 16.2.1 20260810
+Linux 7.2.11-arch1-1 x86_64 GNU/Linux
+HEX-SELFTEST-OK: valid bytes, four mutations, extraction and missing symbol
+PERFIL prod-O2
+CUSTODIA-OK: comprobaciones=49076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+PERFIL prod-O3
+CUSTODIA-OK: comprobaciones=49076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+PERFIL diag-O1
+CUSTODIA-OK: comprobaciones=49076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+PERFIL diag-O2
+CUSTODIA-OK: comprobaciones=49076 ciclos=1000; copia, titular, cuotas, retirada, drenaje, replay y fallos de asignacion
+CUSTODIA-HEX-OK: tres simbolos C; bytes, desensamblado y hashes; sin contrato semantico automatico
+CUSTODIA-HEX-NEGATIVOS-OK: formato y simbolo rechazados sin publicar salida
+ALCANCE: modelo C serializado y copia de lectura; identidad suministrada confiable; sin IPC, kernel, prioridad ni medicion de velocidad

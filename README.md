@@ -248,6 +248,7 @@ después, conservando compatibilidad y aislamiento.
 - [Vida util con handles y primer banco ASM: ronda 11](docs/VIDA-UTIL-Y-ASM.md)
 - [Prioridades C/C++/ASM/API y auditoria de choques de punteros](docs/PLAN-C-CXX-ASM-API.md)
 - [Categorias de guardianes: Escritura, Caza UB, Fluidez y Custodia](docs/CATEGORIAS-GUARDIANES.md)
+- [Primer prototipo C de Custodia y su inspeccion HEX](docs/CUSTODIA-PROTOTIPO.md)
 - [CPU, RAM y SSD: investigacion y observador de recursos](docs/CPU-RAM-SSD.md)
 - [Contratos HEX/ELF obligatorios en la construccion e instalacion](docs/ELF-PRODUCCION.md)
 - [Reloj de Peru, formato regional y sincronizacion por internet](docs/HORA-PERU.md)
