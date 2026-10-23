@@ -1,7 +1,7 @@
 # Produccion y banco de investigacion C
 
-Actualizacion 2026-10-23: [tres responsabilidades de los guardianes](CATEGORIAS-GUARDIANES.md):
-Escritura, Caza UB y Fluidez. Se aplican sobre las carpetas existentes, con
+Actualizacion 2026-10-23: [cuatro responsabilidades de los guardianes](CATEGORIAS-GUARDIANES.md):
+Escritura, Caza UB, Fluidez y Custodia. Se aplican sobre las carpetas existentes, con
 contratos, evidencias y estados separados; no crean protecciones globales.
 
 Ronda 8, 2026-10-19. La reorganizacion no incorpora automaticamente las

@@ -1,4 +1,4 @@
-# Guardianes: escritura, caza de UB y rendimiento
+# Guardianes: escritura, caza de UB, rendimiento y custodia
 
 2026-10-23, America/Lima. ANTI3M es el nombre personal del enfoque del autor;
 no se le atribuye aqui una expansion ni una garantia tecnica universal.
@@ -6,13 +6,14 @@ Objetivo compartido: conservar resultados correctos, contener fallos y mejorar
 la fluidez con evidencia reproducible. Prevenir sorpresas requiere declarar
 tambien lo no comprobado.
 
-## Tres responsabilidades
+## Cuatro responsabilidades
 
 | Categoria | Nombre corto | Responsabilidad | Evidencia para aceptar | Limite |
 | --- | --- | --- | --- | --- |
 | Guardian de escritura | Escritura | Revisar al desarrollar y construir: tipos, limites, propiedad, errores, liberaciones y contratos de API/ABI; comprobar las operaciones integradas | Revision y compilacion relevantes; entradas validas e invalidas; rechazo sin cambios parciales donde el contrato lo prometa | No intercepta toda escritura de memoria del sistema. Solo las rutas que integran sus controles |
 | Guardian de caza de UB | Caza UB | Buscar, reproducir y clasificar defectos o limites de cobertura en el laboratorio; conservar el caso minimo | Fuente y revision, compilador, perfil, salida esperada/real, aislamiento y repeticion; regresion que falla antes y pasa despues cuando corresponda | Un diagnostico ausente no prueba ausencia de UB. Un control invalido esperado no es un fallo inesperado |
 | Guardian de rendimiento | Fluidez | Medir coste, latencia y consumo; localizar cuellos de botella y comparar cambios manteniendo el resultado | Datos crudos antes/despues, carga y entorno comparables, repeticiones, p95/p99 y picos; variabilidad y coste de la proteccion | No promete cero tirones ni elimina controles para obtener un resultado favorable. Una prueba funcional no acredita una mejora de velocidad |
+| Guardian de recursos y prestamos | Custodia | Autorizar titular, derechos, presupuesto y vida util; retirar nuevas operaciones y cerrar prestamos de forma controlada | Pruebas de referencia ajena/caducada, cuotas, cierre y trabajo en vuelo; aislamiento y coste medidos | Categoria definida, gestor pendiente. Un handle no crea autoridad del kernel ni permite recuperar corrupcion arbitraria |
 
 Escritura incluye tanto las reglas al escribir codigo como los controles de
 escritura ejecutados por una API integrada. Debe distinguirse cual de las dos
@@ -22,7 +23,7 @@ No se fuerza la etiqueta UB sobre todo fallo de propiedad o de API.
 
 ## Dominios compartidos, sin duplicar implementaciones
 
-Las tres responsabilidades se aplican por dominio; no exigen tres copias del
+Las cuatro responsabilidades se aplican por dominio; no exigen cuatro copias del
 codigo ni cambian la separacion fisica entre produccion y laboratorio.
 
 | Dominio | Escritura | Caza UB / defectos | Fluidez |
@@ -38,6 +39,12 @@ Una copia de driver o biblioteca externa tampoco queda cubierta solo por usar
 un perfil GCC en los programas propios. Kernel y terceros conservan sus
 contratos y procesos de compilacion especificos.
 
+Custodia cruza esos dominios: regiones y prestamos en C/C++, recursos de
+contexto en graficos, archivos/colas en E/S y limites del intercambio con ASM.
+No declara integracion universal. El [contrato de Custodia](GUARDIAN-CUSTODIA.md)
+define estados, prioridades, revocacion y diferencia entre expulsar una caja
+y responder a un fallo del propio kernel.
+
 ## Como colaboran y deciden
 
 1. Escritura fija el contrato y el resultado esperado antes del cambio.
@@ -47,6 +54,8 @@ contratos y procesos de compilacion especificos.
    diagnostico se identifica por separado del usado para medir el juego.
 5. Se revisan correccion y coste antes de integrar un consumidor, reconstruir
    la imagen y validar el arranque o uso nativo cuando corresponda.
+6. Cuando haya prestamos, Custodia exige titular y presupuesto comprobados,
+   rechazo de pedidos nuevos tras retirar y cierre seguro del trabajo en vuelo.
 
 Si falla una comprobacion requerida, el cambio no se promueve. Si faltan datos
 de rendimiento, se puede registrar una correccion como tal, con rendimiento
@@ -75,6 +84,7 @@ asigna un porcentaje global de seguridad o fluidez sumando pruebas repetidas.
 | Escritura | `src/guardian/produccion/perfil-gcc.sh`, ultra_string, ultra_buffer y ultra_owner | Revision GCC y APIs con contratos. Owner probado como candidato, aun sin consumidor desplegado |
 | Caza UB | `src/guardian/laboratorio/`, `scripts/campo-punteros.sh` y banco ASM | Casos y evidencias existentes; ampliar cobertura por contrato, sin declarar todos los huecos cerrados |
 | Fluidez | Informes existentes y protocolo del plan C/C++/ASM/API | Hay observaciones del sistema; falta la comparacion controlada del coste de owner y su consumidor. Este documento no instala un servicio de medicion |
+| Custodia | Contrato de recursos y prestamos; owner como referencia limitada de vida util | Definicion, sin gestor desplegado ni autoridad nueva del kernel. Primer consumidor acotado pendiente |
 
 Ejemplo owner: Escritura rechaza capacidad insuficiente y handle de otro pool;
 Caza UB conserva las regresiones y demuestra que un buffer externo liberado

@@ -137,7 +137,7 @@ nombre Ryzen no convierte sus cuatro CPUs virtuales en la topologia fisica del
 host. Cero indices de cache mostrados significa que no se recogieron indices,
 no demuestra que el procesador carezca de cache.
 
-## Orden para optimizar con los tres guardianes
+## Orden para optimizar con los guardianes
 
 1. **CPU:** confirmar driver/EPP reales y temperatura; medir espera del
    planificador y tiempos por fotograma. Comparar politicas compatibles una a
