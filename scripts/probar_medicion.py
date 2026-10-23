@@ -27,12 +27,23 @@ with tempfile.TemporaryDirectory() as directory:
     text = text.replace('/proc/', f'{proc}/')
     text = text.replace('/run/ultra-escritorio/medicion.stop', str(root / 'stop'))
     text = text.replace('/dev/nvidia', str(root / 'missing-nvidia'))
+    if len(sys.argv) > 2:
+        resource = root / 'resources'
+        resource.write_text(pathlib.Path(sys.argv[2]).read_text().replace('/proc/', f'{proc}/').replace('/sys/', str(root / 'sys')+'/'))
+        # Exercise the snapshot inside the session with the same proc fixture.
+        # Privilege dropping is checked separately in the real workshop.
+        text = text.replace('user_query /usr/local/libexec/ultra-medir-recursos', f'bash "{resource}"')
     script.write_text(text)
     def run(mode='software'):
         result = subprocess.run(['bash', str(script), mode, '--once'], capture_output=True, text=True, timeout=5)
         assert result.returncode == 0, result.stderr
         return result.stdout
     output = run()
+    if len(sys.argv) > 2:
+        assert 'ULTRA RECURSOS v1 solo_lectura=1' in output
+        assert 'MEM MemAvailable: 6144 kB' in output
+        assert 'PSI recurso=memory NA' in output
+        print('VERDE: snapshot de recursos integrado en sesion con el mismo procfs de prueba')
     assert 'usada_estimada_kB=2048' in output
     assert 'procesos=3 medidos=2 truncado=0 rss_suma_parcial_kB=220 pss_suma_parcial_kB=120' in output
     assert 'pid=13 ' not in output

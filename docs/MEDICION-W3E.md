@@ -1,5 +1,9 @@
 # W3e: escritorio real y consumo por perfil
 
+Ampliacion 2026-10-23: [CPU, RAM y SSD](CPU-RAM-SSD.md). La proxima build
+incluye un snapshot de presion, memoria, cpufreq y bloque por muestra; estas
+metricas no se atribuyen retroactivamente a los informes fisicos anteriores.
+
 La foto del propietario muestra Hyprland con dos ventanas y el tema ULTRA.
 El informe fisico registra modo=nvidia, compositor=hyprland, salida=0,
 RTX 3060 y los tres nodos NVIDIA correctos. Se conserva el original en

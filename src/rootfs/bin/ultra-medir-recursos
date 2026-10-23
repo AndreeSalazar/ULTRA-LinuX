@@ -1,0 +1,77 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# One bounded, read-only snapshot. No device opens, tuning or privileged tools.
+set -uo pipefail
+[[ $# == 0 ]] || exit 2
+shopt -s nullglob
+printf 'ULTRA RECURSOS v1 solo_lectura=1 contadores=acumulados\n'
+emit() {
+    local group=$1 key=$2 path=$3 value=
+    if [[ -r $path ]] && { IFS= read -r value < "$path" 2>/dev/null || [[ -n $value ]]; }; then
+        printf '%s %s=%s\n' "$group" "$key" "$value"
+    else
+        printf '%s %s=NA\n' "$group" "$key"
+    fi
+}
+emit RELOJ uptime_idle_s /proc/uptime
+emit CPU loadavg /proc/loadavg
+for resource in cpu memory io; do
+    file=/proc/pressure/$resource
+    if [[ -r $file ]]; then
+        lines=0
+        while IFS= read -r row; do
+            printf 'PSI recurso=%s %s\n' "$resource" "$row"
+            ((lines+=1)); ((lines < 2)) || break
+        done < "$file" 2>/dev/null
+        ((lines > 0)) || printf 'PSI recurso=%s NA\n' "$resource"
+    else printf 'PSI recurso=%s NA\n' "$resource"; fi
+done
+if [[ -r /proc/meminfo ]]; then
+    while read -r key value unit rest; do
+        [[ $value =~ ^[0-9]+$ ]] || continue
+        case "$key" in
+            MemTotal:|MemAvailable:|AnonPages:|Cached:|Buffers:|Shmem:|Slab:|SReclaimable:|SUnreclaim:|Dirty:|Writeback:|PageTables:|KernelStack:|Unevictable:|Mlocked:|SwapTotal:|SwapFree:|SwapCached:|AnonHugePages:|HugePages_Total:|HugePages_Free:|Hugepagesize:)
+                printf 'MEM %s %s %s\n' "$key" "$value" "$unit";;
+        esac
+    done < /proc/meminfo
+else printf 'MEM NA\n'; fi
+if [[ -r /proc/vmstat ]]; then
+    while read -r key value rest; do
+        [[ $value =~ ^[0-9]+$ ]] || continue
+        case "$key" in
+            pgfault|pgmajfault|pswpin|pswpout|pgscan_*|pgsteal_*|allocstall*|compact_stall|compact_fail|compact_success|oom_kill|workingset_refault_*|thp_fault_alloc|thp_fault_fallback)
+                printf 'VM %s=%s\n' "$key" "$value";;
+        esac
+    done < /proc/vmstat
+else printf 'VM NA\n'; fi
+for key in swappiness dirty_background_bytes dirty_bytes dirty_background_ratio dirty_ratio; do
+    emit POLITICA "$key" "/proc/sys/vm/$key"
+done
+emit POLITICA thp /sys/kernel/mm/transparent_hugepage/enabled
+emit POLITICA thp_defrag /sys/kernel/mm/transparent_hugepage/defrag
+emit POLITICA zswap /sys/module/zswap/parameters/enabled
+policies=0
+for policy in /sys/devices/system/cpu/cpufreq/policy*; do
+    [[ -d $policy ]] || continue
+    ((policies < 16)) || break
+    ((policies+=1))
+    for key in scaling_driver scaling_governor energy_performance_preference scaling_cur_freq scaling_min_freq scaling_max_freq; do
+        emit "CPU politica=${policy##*/}" "$key" "$policy/$key"
+    done
+done
+printf 'CPU politicas_mostradas=%s limite=16 frecuencia_unidad=kHz puede_ser_solicitada\n' "$policies"
+disks=0
+for disk in /sys/block/*; do
+    [[ -d $disk ]] || continue
+    ((disks < 32)) || break
+    ((disks+=1))
+    for key in rotational scheduler read_ahead_kb logical_block_size physical_block_size discard_max_bytes; do
+        emit "BLOQUE dispositivo=${disk##*/}" "$key" "$disk/queue/$key"
+    done
+    emit "BLOQUE dispositivo=${disk##*/}" stat "$disk/stat"
+    case ${disk##*/} in
+        zram*) for key in mm_stat io_stat; do emit "ZRAM dispositivo=${disk##*/}" "$key" "$disk/$key"; done;;
+    esac
+done
+printf 'BLOQUE dispositivos_mostrados=%s limite=32 no_sumar_capas=1\n' "$disks"
+printf 'fin_recursos snapshot_no_atomico=1 faltante_no_es_cero=1\n'

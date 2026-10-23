@@ -1,0 +1,31 @@
+{
+  "consulta_utc": "2026-10-23T08:34:49.7839159Z",
+  "fuente": "WMI; datos reportados, no benchmark",
+  "memoria": [
+    {
+      "Capacity": 8589934592,
+      "Speed": 3200,
+      "ConfiguredClockSpeed": 3200,
+      "SMBIOSMemoryType": 26,
+      "DataWidth": 64,
+      "TotalWidth": 64
+    },
+    {
+      "Capacity": 8589934592,
+      "Speed": 3200,
+      "ConfiguredClockSpeed": 3200,
+      "SMBIOSMemoryType": 26,
+      "DataWidth": 64,
+      "TotalWidth": 64
+    }
+  ],
+  "cpu": [
+    {
+      "Name": "AMD Ryzen 5 5600X 6-Core Processor             ",
+      "NumberOfCores": 6,
+      "NumberOfLogicalProcessors": 12,
+      "L2CacheSize": 3072,
+      "L3CacheSize": 32768
+    }
+  ]
+}

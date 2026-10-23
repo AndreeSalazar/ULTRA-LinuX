@@ -1,0 +1,2 @@
+VERDE: PSI, ausencia vs cero, contadores, politicas, limites 16/32 y fuentes intactas
+VERDE: rechaza argumentos; no modo de aplicar ajustes
