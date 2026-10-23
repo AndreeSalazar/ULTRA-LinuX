@@ -18,6 +18,10 @@ elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.
 Consulta [evidencia, límites y uso](docs/BIBLIOTECAS-AUDIO-2026-10-23.md).
 
+[Juegos en vivo](docs/JUEGOS-EN-VIVO.md): Super+F10 muestra juegos detectados y
+consumo CPU/RAM/GPU. MangoHud presenta FPS y tiempos de cuadro dentro del juego,
+con registros CSV locales. El catálogo Steam/GOG se revisa durante toda la sesión.
+
 ## ¿Es una distro?
 
 **Sí: una distribución Linux personal y experimental.** Integra un kernel Linux

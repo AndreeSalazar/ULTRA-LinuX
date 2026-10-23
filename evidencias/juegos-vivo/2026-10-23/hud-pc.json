@@ -1,0 +1,18 @@
+{
+  "perfil": "pc",
+  "pruebas": [
+    "NTFS identificado y ext4 montado sin formatear",
+    "UID1000 escribe en ext4 y no puede recorrer D:",
+    "carpetas de estado y juegos pertenecen al usuario",
+    "escritura overlay no modifica el juego original NTFS",
+    "escritorio usa home persistente",
+    "MangoHud 32/64 bits presente; configuracion real con registro corto en el banco",
+    "glxgears inicia como proceso del usuario con el envoltorio HUD",
+    "glxgears genera CSV con FPS medidos y positivos",
+    "vigilancia sigue activa despues del primer minuto"
+  ],
+  "imagen_sha256": "0496130f364733e83133cbea6880dd0e113ef33152ba772d1463b65fd66ca68d",
+  "juegos_reales": false,
+  "cuentas": false,
+  "GPU_fisica": false
+}

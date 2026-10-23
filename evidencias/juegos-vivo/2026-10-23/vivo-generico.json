@@ -1,0 +1,28 @@
+{
+  "perfil": "generico",
+  "pruebas": [
+    "NTFS identificado y ext4 montado sin formatear",
+    "UID1000 escribe en ext4 y no puede recorrer D:",
+    "carpetas de estado y juegos pertenecen al usuario",
+    "escritura overlay no modifica el juego original NTFS",
+    "escritorio usa home persistente",
+    "observador de juegos inicia sin root durante el escritorio",
+    "observador residente UID1000 sin capacidades y NoNewPrivs",
+    "metadatos sinteticos Steam y GOG creados sin cuenta",
+    "Steam y GOG aparecen sin reiniciar ni abrir clientes",
+    "identifica proceso sintetico y CPU medida sin inventar FPS",
+    "Super+F10 abre panel en vivo",
+    "fixture de juegos retirada sin tocar originales",
+    "catalogo refleja juegos retirados durante la misma sesion",
+    "MangoHud 32/64 bits presente; configuracion real con registro corto en el banco",
+    "vkcube inicia como proceso del usuario con el envoltorio HUD",
+    "vkcube genera CSV con FPS medidos y positivos",
+    "glxgears inicia como proceso del usuario con el envoltorio HUD",
+    "glxgears genera CSV con FPS medidos y positivos",
+    "vigilancia sigue activa despues del primer minuto"
+  ],
+  "imagen_sha256": "ccbb8adfd7dc2d9bb16ec4711389f536ec92faa97aedc6bb850f2ff5df16d8b0",
+  "juegos_reales": false,
+  "cuentas": false,
+  "GPU_fisica": false
+}

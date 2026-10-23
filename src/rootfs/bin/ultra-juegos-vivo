@@ -1,0 +1,411 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""UID1000 observer: local library inventory and bounded resource samples.
+
+No root IPC, mounts, downloads, arbitrary commands, credentials export or FPS
+guesses. MangoHud measures frames in the application; /proc cannot supply FPS.
+"""
+import csv
+import importlib.machinery
+import importlib.util
+import io
+import json
+import math
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import time
+
+PROC = Path('/proc')
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+MAX_GAMES = 512
+
+
+def load(name, path):
+    loader = importlib.machinery.SourceFileLoader(name, str(path))
+    spec = importlib.util.spec_from_loader(name, loader)
+    module = importlib.util.module_from_spec(spec)
+    loader.exec_module(module)
+    return module
+
+
+def text(value, limit=160):
+    return ''.join(c if c.isprintable() else ' ' for c in str(value))[:limit]
+
+
+def read(path, limit=65536):
+    with path.open('rb') as stream:
+        raw = stream.read(limit+1)
+    if len(raw) > limit:
+        raise ValueError('entrada demasiado grande')
+    return raw
+
+
+def number(value):
+    if not isinstance(value, (str, int)) or not re.fullmatch(r'[0-9]{1,20}', str(value)):
+        return None
+    return int(value)
+
+
+def catalogue(lib):
+    """Read installed manifests only. No Galaxy/auth/config/session stores."""
+    games, errors, roots = {}, [], [HOME/'.local/share/Steam', HOME/'Juegos/SteamLibrary']
+    try:
+        folders = lib.read_json(lib.CATALOG).get('folders', [])
+    except (OSError, ValueError):
+        folders = []
+    for item in folders[:128]:
+        if item.get('status') == 'activa' and item.get('kind') == 'steam':
+            expected = lib.TARGETS/lib.selection(item)['id']
+            if item.get('path') == str(expected):
+                roots.append(expected)
+    for root in dict.fromkeys(roots):
+        try:
+            manifests = sorted((root/'steamapps').glob('appmanifest_*.acf'))[:MAX_GAMES]
+            for path in manifests:
+                if len(games) >= MAX_GAMES:
+                    break
+                try:
+                    if path.is_symlink():
+                        continue
+                    app = lib.read_vdf(path).get('AppState', {})
+                    appid, directory = app.get('appid'), app.get('installdir')
+                    if (not isinstance(appid, str) or not re.fullmatch(r'[0-9]{1,10}', appid)
+                            or path.name != f'appmanifest_{appid}.acf' or not isinstance(directory, str)
+                            or not directory or '/' in directory or '\\' in directory or directory in ('.', '..')):
+                        continue
+                    flags = number(app.get('StateFlags'))
+                    present = (root/'steamapps/common'/directory).is_dir()
+                    games['steam:'+appid] = dict(id='steam:'+appid, name=text(app.get('name', directory)),
+                        store='Steam', path=str(root/'steamapps/common'/directory),
+                        state='instalado' if present and flags is not None and flags & 4 else 'pendiente/verificar',
+                        bytes_metadata=number(app.get('SizeOnDisk')))
+                except (OSError, ValueError, TypeError, AttributeError):
+                    errors.append('Manifiesto Steam ilegible: '+text(path.name))
+        except OSError:
+            errors.append('Biblioteca Steam no disponible')
+    try:
+        installed = json.loads(read(HOME/'.config/heroic/gog_store/installed.json', 2097152))
+        if not isinstance(installed, dict) or not isinstance(installed.get('installed'), list):
+            raise ValueError('formato instalado GOG desconocido')
+        for app in installed['installed'][:MAX_GAMES]:
+            if len(games) >= MAX_GAMES:
+                break
+            if not isinstance(app, dict):
+                continue
+            appid, path = app.get('appName'), app.get('install_path')
+            if not isinstance(appid, str) or not re.fullmatch(r'[0-9]{1,20}', appid) or not isinstance(path, str) or not Path(path).is_absolute():
+                continue
+            games['gog:'+appid] = dict(id='gog:'+appid, name=text(app.get('title', appid)), store='GOG / Heroic',
+                path=text(path, 4096), state='importado' if Path(path).is_dir() else 'carpeta ausente', bytes_metadata=None)
+    except FileNotFoundError:
+        pass
+    except (OSError, ValueError, TypeError):
+        errors.append('Registro instalado GOG incompleto; se revisara de nuevo')
+    # GOG metadata inside selected, prepared folders is discovery, not import.
+    visited = 0
+    for item in folders[:128]:
+        if item.get('status') != 'activa' or item.get('kind') != 'folder':
+            continue
+        expected = lib.TARGETS/lib.selection(item)['id']
+        if item.get('path') != str(expected):
+            continue
+        pending = [(expected, 0)]
+        while pending and visited < 1024 and len(games) < MAX_GAMES:
+            folder, depth = pending.pop()
+            visited += 1
+            try:
+                with os.scandir(folder) as entries:
+                    for index, entry in enumerate(entries):
+                        if index >= 512:
+                            break
+                        if entry.is_symlink():
+                            continue
+                        if entry.is_file() and re.fullmatch(r'goggame-[0-9]{1,20}\.info', entry.name):
+                            try:
+                                app = json.loads(read(Path(entry.path), 262144))
+                                appid = str(app.get('gameId', ''))
+                                if re.fullmatch(r'[0-9]{1,20}', appid):
+                                    games.setdefault('gog:'+appid, dict(id='gog:'+appid, name=text(app.get('name', appid)),
+                                        store='GOG / archivos', path=str(folder), state='importar en Heroic', bytes_metadata=None))
+                            except (OSError, ValueError, AttributeError):
+                                errors.append('Metadatos GOG ilegibles: '+text(entry.name))
+                        elif depth < 3 and len(pending) < 1024 and entry.is_dir(follow_symlinks=False) and not entry.name.startswith('.'):
+                            pending.append((Path(entry.path), depth+1))
+            except OSError:
+                continue
+    return dict(updated=time.time(), games=sorted(games.values(), key=lambda g:g['name'].casefold()),
+                errors=errors[:32], limited=len(games) >= MAX_GAMES or visited >= 1024)
+
+
+def parse_stat(raw):
+    end = raw.rfind(')')
+    if end < 0:
+        raise ValueError('stat incompleto')
+    fields = raw[end+2:].split()
+    return dict(name=text(raw[raw.index('(')+1:end], 64), ticks=int(fields[11])+int(fields[12]),
+                start=int(fields[19]), rss=max(0, int(fields[21]))*os.sysconf('SC_PAGE_SIZE'))
+
+
+def game_identity(raw):
+    # Keep only the small identity allowlist; never serialize the environment.
+    allowed = {b'SteamAppId', b'SteamGameId', b'HEROIC_APP_NAME', b'HEROIC_APP_RUNNER', b'ULTRA_GAME_ID', b'ULTRA_GAME_NAME'}
+    values = {}
+    for entry in raw.split(b'\0'):
+        key, _, value = entry.partition(b'=')
+        if key in allowed:
+            values[key] = value.decode('utf-8', 'replace')[:160]
+    for key in (b'SteamAppId', b'SteamGameId'):
+        value = values.get(key, '')
+        if re.fullmatch(r'[0-9]{1,10}', value) and int(value) > 0:
+            return 'steam:'+value, ''
+    value = values.get(b'HEROIC_APP_NAME', '')
+    if values.get(b'HEROIC_APP_RUNNER', '').lower() == 'gog' and re.fullmatch(r'[0-9]{1,20}', value):
+        return 'gog:'+value, ''
+    value = values.get(b'ULTRA_GAME_ID', '')
+    if value and re.fullmatch(r'[A-Za-z0-9:_-]{1,80}', value):
+        return value, text(values.get(b'ULTRA_GAME_NAME', value))
+    return None, ''
+
+
+def sample(previous=None, now=None):
+    now = time.monotonic() if now is None else now
+    elapsed = now-previous['monotonic'] if previous else 0
+    state = dict(monotonic=now, updated=time.time(), cpu_system_pct=None, ram_used_MiB=None,
+                 processes=[], games=[], limited=False, fps=None, fps_source='MangoHud dentro del juego')
+    try:
+        fields = read(PROC/'stat').decode().splitlines()[0].split()[1:9]
+        ticks = [int(v) for v in fields]
+        state['cpu_ticks'] = [sum(ticks), ticks[3]+ticks[4]]
+        if previous and 'cpu_ticks' in previous:
+            total = state['cpu_ticks'][0]-previous['cpu_ticks'][0]
+            idle = state['cpu_ticks'][1]-previous['cpu_ticks'][1]
+            if 0 <= idle <= total and total > 0:
+                state['cpu_system_pct'] = round(100*(total-idle)/total, 2)
+        memory = dict((key, int(value)) for key,value in re.findall(r'^(MemTotal|MemAvailable):\s+(\d+) kB$', read(PROC/'meminfo').decode(), re.M))
+        if 0 <= memory['MemAvailable'] <= memory['MemTotal']:
+            state['ram_used_MiB'] = round((memory['MemTotal']-memory['MemAvailable'])/1024, 1)
+    except (OSError, ValueError, KeyError, IndexError):
+        pass
+    old = {(p['pid'],p['start']):p for p in previous.get('processes', [])} if previous else {}
+    groups = {}
+    with os.scandir(PROC) as entries:
+        for visited, entry in enumerate(entries):
+            if visited >= 8192 or len(state['processes']) >= 1024:
+                state['limited'] = True
+                break
+            if not entry.name.isdecimal():
+                continue
+            try:
+                path = Path(entry.path)
+                if path.stat().st_uid != 1000:
+                    continue
+                item = parse_stat(read(path/'stat', 8192).decode())
+                item.update(pid=int(entry.name), cpu_pct=None, game_id=None, pss_bytes=None, io_read_Bps=None, io_write_Bps=None)
+                before = old.get((item['pid'], item['start']))
+                if before and elapsed > 0 and item['ticks'] >= before['ticks']:
+                    item['cpu_pct'] = round(100*(item['ticks']-before['ticks'])/os.sysconf('SC_CLK_TCK')/elapsed, 2)
+                try:
+                    counters = dict((k,int(v)) for k,v in re.findall(r'^(read_bytes|write_bytes):\s+([0-9]+)$', read(path/'io',8192).decode(), re.M))
+                    item['io_counters'] = counters
+                    for counter, field in [('read_bytes','io_read_Bps'),('write_bytes','io_write_Bps')]:
+                        last = before.get('io_counters', {}).get(counter) if before else None
+                        if last is not None and elapsed > 0 and counters.get(counter, -1) >= last:
+                            item[field] = round((counters[counter]-last)/elapsed, 1)
+                except (OSError, ValueError):
+                    pass
+                try:
+                    item['game_id'], title = game_identity(read(path/'environ'))
+                except (OSError, ValueError):
+                    title = ''
+                # Recheck identity after sampling a process which may have exited.
+                if parse_stat(read(path/'stat', 8192).decode())['start'] != item['start']:
+                    continue
+                state['processes'].append(item)
+                if item['game_id']:
+                    group = groups.setdefault(item['game_id'], dict(id=item['game_id'], name=title or item['game_id'],
+                        pids=[], cpu_pct=0, cpu_complete=True, rss_bytes=0, pss_bytes=0, pss_complete=True, fps=None))
+                    group['pids'].append(item['pid'])
+                    group['rss_bytes'] += item['rss']
+                    if item['cpu_pct'] is None:
+                        group['cpu_complete'] = False
+                    else:
+                        group['cpu_pct'] += item['cpu_pct']
+                    try:
+                        raw = read(path/'smaps_rollup', 16384).decode()
+                        match = re.search(r'^Pss:\s+(\d+) kB$', raw, re.M)
+                        if not match:
+                            raise ValueError('PSS ausente')
+                        item['pss_bytes'] = int(match[1])*1024
+                        group['pss_bytes'] += item['pss_bytes']
+                    except (OSError, ValueError):
+                        group['pss_complete'] = False
+            except (OSError, ValueError, IndexError):
+                continue
+    for group in groups.values():
+        if not group.pop('cpu_complete'):
+            group['cpu_pct'] = None
+        if not group.pop('pss_complete'):
+            group['pss_bytes'] = None
+        state['games'].append(group)
+    return state
+
+
+def gpu_sample():
+    if not Path('/dev/nvidiactl').exists() or not shutil.which('nvidia-smi'):
+        return None
+    try:
+        result = subprocess.run(['nvidia-smi', '--query-gpu=name,memory.used,memory.total,utilization.gpu,temperature.gpu,power.draw',
+            '--format=csv,noheader,nounits'], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=2, check=True, text=True)
+        gpus = []
+        for row in list(csv.reader(io.StringIO(result.stdout)))[:8]:
+            if len(row) != 6:
+                continue
+            values = []
+            for value in row[1:]:
+                try:
+                    parsed = float(value)
+                    values.append(parsed if math.isfinite(parsed) and parsed >= 0 else None)
+                except ValueError:
+                    values.append(None)
+            gpus.append(dict(name=text(row[0]), vram_MiB=values[0], total_MiB=values[1],
+                             use_pct=values[2], temp_C=values[3], power_W=values[4]))
+        return gpus
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+def watch(lib, disks):
+    import fcntl
+    lib.user_config()
+    cache, disk_status = disks.paths(lib)
+    output = cache.parent/'juegos-vivo.json'
+    with (cache/'automatico.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            # A manual minute may already be running. Retry after it finishes.
+            while True:
+                time.sleep(5)
+                try:
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    break
+                except BlockingIOError:
+                    pass
+        previous, signature, refreshed, inventory, gpu = None, None, -30, {}, None
+        while True:
+            begin = time.monotonic()
+            if begin-refreshed >= 30:
+                try:
+                    status, signature = disks.tick(lib, signature)
+                    status.update(updated=time.time(), running=True, remaining=None, continuous=True)
+                    lib.atomic_json(disk_status, status)
+                    inventory = catalogue(lib)
+                except (OSError, ValueError, subprocess.SubprocessError) as error:
+                    inventory = dict(updated=time.time(), games=[], errors=[text(error)], limited=False)
+                gpu = gpu_sample()
+                refreshed = begin
+            current = sample(previous)
+            names = {g['id']:g['name'] for g in inventory.get('games', [])}
+            for game in current['games']:
+                game['name'] = names.get(game['id'], game['name'])
+            current.update(catalogue=inventory, gpu=gpu, gpu_sample_age_s=round(begin-refreshed, 1),
+                           free_GiB=round(shutil.disk_usage(HOME).free/2**30, 1))
+            lib.atomic_json(output, current)
+            previous = current
+            time.sleep(max(1, 5-(time.monotonic()-begin)))
+
+
+def display(state):
+    def fmt(value, suffix=''):
+        return 'NA' if value is None else str(round(value, 1))+suffix
+    age = max(0, time.time()-state.get('updated', 0))
+    rows = ['ULTRA / JUEGOS Y CONSUMO EN VIVO',
+        f'Lectura hace {age:.0f} s | recursos cada 5 s | bibliotecas y GPU cada 30 s',
+        'CPU sistema: '+fmt(state.get('cpu_system_pct'), '%')+' | RAM sistema: '+fmt(state.get('ram_used_MiB'), ' MiB')+
+        ' | libre Linux: '+fmt(state.get('free_GiB'), ' GiB'),
+        'FPS/frametime: dentro del juego con MangoHud. Shift derecho+F12: mostrar/ocultar.',
+        'Shift izquierdo+F2: grabar CSV local hasta 10 min. No se sube a Internet.',
+        'CPU por juego: 100% = un nucleo. PSS reparte memoria compartida; RSS puede contarla varias veces.', '']
+    for gpu in state.get('gpu') or []:
+        rows.append(text(gpu['name'])+' | GPU '+fmt(gpu.get('use_pct'), '%')+' | VRAM '+fmt(gpu.get('vram_MiB'), ' MiB')+
+                    ' | '+fmt(gpu.get('temp_C'), ' C')+' | '+fmt(gpu.get('power_W'), ' W'))
+    if not state.get('gpu'):
+        rows.append('GPU global: NA (sin consulta NVIDIA disponible; el HUD depende del driver).')
+    rows.extend(['', 'JUEGOS EN EJECUCION (identidad Steam/Heroic/ULTRA):'])
+    for game in state.get('games', []):
+        rows.append(text(game['name'])+' | CPU '+fmt(game.get('cpu_pct'), '%')+
+            ' | PSS '+fmt(game['pss_bytes']/2**20 if game.get('pss_bytes') is not None else None, ' MiB')+
+            ' | RSS '+fmt(game['rss_bytes']/2**20, ' MiB')+' | procesos '+str(len(game['pids'])))
+    if not state.get('games'):
+        rows.append('Ninguno identificado. Un proceso sin identidad puede aparecer en la lista general.')
+    rows.extend(['', 'PROCESOS DEL USUARIO (mayor CPU, maximo 10):'])
+    for process in sorted(state.get('processes', []), key=lambda p:p.get('cpu_pct') or 0, reverse=True)[:10]:
+        rows.append(f"{process['pid']} {text(process['name'],32)} | CPU {fmt(process.get('cpu_pct'),'%')} | RSS {fmt(process['rss']/2**20,' MiB')} | disco R/W {fmt(process.get('io_read_Bps'),' B/s')}/{fmt(process.get('io_write_Bps'),' B/s')}")
+    inventory = state.get('catalogue', {})
+    rows.extend(['', 'CATALOGO LOCAL / '+str(len(inventory.get('games', [])))+' juegos detectados:'])
+    for game in inventory.get('games', []):
+        rows.append(text(game['name'])+' ['+game['store']+'] '+game['state'])
+    rows.extend('AVISO: '+text(error) for error in inventory.get('errors', []))
+    if inventory.get('limited') or state.get('limited'):
+        rows.append('AVISO: inventario limitado; los totales de procesos pueden ser parciales.')
+    rows.append('Flechas/PgUp/PgDn: recorrer | Esc: cerrar | GOG pendiente: Juegos > Importar juegos GOG')
+    return rows
+
+
+def panel():
+    import curses
+    import textwrap
+    path = HOME/'.cache/ultra/juegos-vivo.json'
+    def screen(window):
+        offset = 0
+        window.timeout(1000)
+        while True:
+            try:
+                state = json.loads(read(path, 2097152))
+                rows = display(state)
+            except (OSError, ValueError):
+                rows = ['ULTRA / Esperando al observador de juegos.', 'Requiere el escritorio con almacenamiento persistente.', 'Esc: cerrar']
+            height, width = window.getmaxyx()
+            rows = [part for row in rows for part in (textwrap.wrap(row, max(1,width-2)) or [''])]
+            offset = min(offset, max(0, len(rows)-max(1,height-1)))
+            window.erase()
+            for y, row in enumerate(rows[offset:offset+max(1,height-1)]):
+                try:
+                    window.addnstr(y, 0, row, max(1,width-1))
+                except curses.error:
+                    pass
+            window.refresh()
+            key = window.getch()
+            if key in (27, ord('q')):
+                return
+            if key == curses.KEY_DOWN: offset += 1
+            elif key == curses.KEY_UP: offset = max(0,offset-1)
+            elif key == curses.KEY_NPAGE: offset += max(1,height-2)
+            elif key == curses.KEY_PPAGE: offset = max(0,offset-max(1,height-2))
+    curses.wrapper(screen)
+
+
+def main():
+    if os.geteuid() != 1000:
+        raise ValueError('Abrir como usuario del escritorio')
+    action = sys.argv[1] if len(sys.argv) > 1 else 'panel'
+    if action == 'panel':
+        panel()
+    elif action == 'vigilar':
+        lib = load('bibliotecas', '/usr/local/libexec/ultra-bibliotecas.py')
+        disks = load('discos', '/usr/local/bin/ultra-discos')
+        watch(lib, disks)
+    else:
+        raise ValueError('Uso: ultra-juegos-vivo panel|vigilar')
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('JUEGOS-VIVO:', text(error), file=sys.stderr)
+        sys.exit(1)

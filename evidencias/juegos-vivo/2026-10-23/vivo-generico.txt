@@ -1,0 +1,19 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE carpetas de estado y juegos pertenecen al usuario
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE observador de juegos inicia sin root durante el escritorio
+VERDE observador residente UID1000 sin capacidades y NoNewPrivs
+VERDE metadatos sinteticos Steam y GOG creados sin cuenta
+VERDE Steam y GOG aparecen sin reiniciar ni abrir clientes
+VERDE identifica proceso sintetico y CPU medida sin inventar FPS
+VERDE Super+F10 abre panel en vivo
+VERDE fixture de juegos retirada sin tocar originales
+VERDE catalogo refleja juegos retirados durante la misma sesion
+VERDE MangoHud 32/64 bits presente; configuracion real con registro corto en el banco
+VERDE vkcube inicia como proceso del usuario con el envoltorio HUD
+VERDE vkcube genera CSV con FPS medidos y positivos
+VERDE glxgears inicia como proceso del usuario con el envoltorio HUD
+VERDE glxgears genera CSV con FPS medidos y positivos
+VERDE vigilancia sigue activa despues del primer minuto

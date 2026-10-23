@@ -29,7 +29,7 @@ class Discovery(unittest.TestCase):
                 lib.import_gog()
                 self.assertEqual(launch.call_args_list[0].args[0], ['thunar', str(folder)])
                 self.assertEqual(launch.call_args_list[1].args[0],
-                                 ['/opt/heroic/heroic', '--ozone-platform=wayland'])
+                                 ['/usr/local/bin/ultra-hud', 'ejecutar', '/opt/heroic/heroic', '--ozone-platform=wayland'])
                 record['path'] = '/etc'
                 with self.assertRaises(ValueError):
                     lib.import_gog()

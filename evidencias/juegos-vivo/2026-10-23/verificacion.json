@@ -1,0 +1,47 @@
+{
+  "pc": {
+    "arranque_verdes": 157,
+    "arranque_rojos": 0,
+    "pruebas_hud": 9,
+    "alcance": "HUD OpenGL",
+    "GPU_fisica": false,
+    "juegos_reales": false,
+    "cuentas": false,
+    "archivos": [
+      {
+        "destino": "A:\\EFI\\ULTRA\\ULTRA-PC.EFI",
+        "sha256": "d6dab3a7aa1388577f02350af25fa3ef9d848d8a17de9f02590166af86ff3705"
+      },
+      {
+        "destino": "A:\\ULTRA\\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+        "sha256": "e0e53c0b2046ba6c62fa6960ad30382f528e69e0d12bc46d8ef668b931dc48fc"
+      }
+    ]
+  },
+  "generico": {
+    "arranque_verdes": 156,
+    "arranque_rojos": 0,
+    "pruebas_hud": 19,
+    "alcance": "Catalogo continuo + CPU + Vulkan/OpenGL",
+    "GPU_fisica": false,
+    "juegos_reales": false,
+    "cuentas": false,
+    "archivos": [
+      {
+        "destino": "A:\\EFI\\ULTRA\\ULTRA.EFI",
+        "sha256": "24e613f1cfe12d9402f381240883cba342433d7184d9a1ae6dd5b0be0bb2418e"
+      },
+      {
+        "destino": "A:\\ULTRA\\sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+        "sha256": "0d5b373b48db1d8304c04d13bd8e2b7a8584c814eca673bd37877fd4cab577fc"
+      }
+    ]
+  },
+  "datos_ext4_sha256_antes_despues": "3df75509666d5e160964e2643f4e6f9cc3d0611605178b95b6a73a9c7b7da24a",
+  "limites": [
+    "Vulkan PC requiere NVIDIA fisica; no se prueba en QEMU.",
+    "Steam y Heroic controlan descargas; el observador refresca el catalogo local.",
+    "Nuevos montajes se aplican al volver al escritorio.",
+    "Correcciones del banco: envio fragmentado por serie, dedent y reconocimiento del proceso grafico en vez del nombre de ventana."
+  ]
+}

@@ -19,7 +19,9 @@ import struct
 
 def main():
     profile = sys.argv[1]
-    audio_only = '--solo-audio' in sys.argv
+    hud_only = '--solo-hud' in sys.argv
+    live_test = '--juegos-vivo' in sys.argv or hud_only
+    audio_only = '--solo-audio' in sys.argv or live_test
     preflight = '--prevalidar' in sys.argv
     storage_c = '--almacen-c' in sys.argv
     dependencies = '--deps-steam' in sys.argv
@@ -471,6 +473,134 @@ def main():
         check('ULTRA-LAB-GAME-ORIGINAL' in out, 'escritura overlay no modifica el juego original NTFS')
         command('ultra-escritorio --hyprland --software > /tmp/audio-juegos-sesion.log 2>&1 &')
         check(wait_app('foot', 60), 'escritorio usa home persistente')
+        if live_test:
+            sent_scripts=set()
+            def user_python(code):
+                from inspect import cleandoc
+                code=cleandoc(code)
+                encoded=base64.b64encode(code.encode()).decode()
+                digest=hashlib.sha256(code.encode()).hexdigest()[:16]
+                path='/tmp/ultra-vivo-'+digest+'.b64'
+                if digest not in sent_scripts:
+                    command(user+"/usr/bin/bash -c ': > "+path+"'")
+                    for index in range(0,len(encoded),192):
+                        command(user+"/usr/bin/bash -c 'printf %s "+encoded[index:index+192]+" >> "+path+"'")
+                    sent_scripts.add(digest)
+                return command(user+"/usr/bin/python -I -c 'from pathlib import Path;import base64;exec(base64.b64decode(Path(\""+path+"\").read_bytes()))'")
+            def wait_code(code, marker, seconds=45):
+                deadline=time.monotonic()+seconds
+                while time.monotonic()<deadline:
+                    output=user_python(code)
+                    if marker in output: return True
+                    time.sleep(2)
+                return False
+            if not hud_only:
+                code='from pathlib import Path;import json;p=Path.home()/".cache/ultra/juegos-vivo.json";d=json.loads(p.read_text());assert "cpu_system_pct" in d;print("VIVO-ESTADO-42")'
+                check(wait_code(code,'VIVO-ESTADO-42'), 'observador de juegos inicia sin root durante el escritorio')
+                credentials='''from pathlib import Path
+    found=False
+    for p in Path('/proc').iterdir():
+     if not p.name.isdecimal(): continue
+     try:
+      args=(p/'cmdline').read_bytes().split(b'\\0')
+      if b'/usr/local/bin/ultra-juegos-vivo' not in args or b'vigilar' not in args: continue
+      status=dict(line.split(':',1) for line in (p/'status').read_text().splitlines() if ':' in line)
+      assert status['Uid'].split()==['1000']*4 and status['NoNewPrivs'].strip()=='1'
+      assert all(int(status[k],16)==0 for k in ('CapEff','CapBnd','CapPrm','CapAmb','CapInh'))
+      found=True
+     except (FileNotFoundError,PermissionError): pass
+    assert found
+    print('VIVO-CREDENCIALES-42')
+    '''
+                check('VIVO-CREDENCIALES-42' in user_python(credentials),'observador residente UID1000 sin capacidades y NoNewPrivs')
+                setup_code='''from pathlib import Path
+    import json
+    h=Path.home();s=h/'.local/share/Steam/steamapps'
+    (s/'common/ULTRAFixture').mkdir(parents=True,exist_ok=True)
+    (s/'appmanifest_424242.acf').write_text('"AppState" { "appid" "424242" "name" "ULTRA fixture" "installdir" "ULTRAFixture" "StateFlags" "4" "SizeOnDisk" "0" }')
+    g=h/'.config/heroic/gog_store';g.mkdir(parents=True,exist_ok=True)
+    (h/'Juegos/GOG-test').mkdir(parents=True,exist_ok=True)
+    (g/'installed.json').write_text(json.dumps({'installed':[{'appName':'123','title':'ULTRA GOG fixture','install_path':str(h/'Juegos/GOG-test')}]}))
+    print('VIVO-FIXTURE-42')
+    '''
+                check('VIVO-FIXTURE-42' in user_python(setup_code),'metadatos sinteticos Steam y GOG creados sin cuenta')
+                code='from pathlib import Path;import json;d=json.loads((Path.home()/".cache/ultra/juegos-vivo.json").read_text());ids={g["id"] for g in d["catalogue"]["games"]};assert {"steam:424242","gog:123"}<=ids;print("VIVO-CATALOGO-42")'
+                check(wait_code(code,'VIVO-CATALOGO-42'),'Steam y GOG aparecen sin reiniciar ni abrir clientes')
+                command(user+"/usr/bin/env SteamAppId=424242 /usr/bin/timeout -k 1 25 /usr/bin/bash -c 'while :; do :; done' >/tmp/vivo-cpu.log 2>&1 &")
+                code='from pathlib import Path;import json;d=json.loads((Path.home()/".cache/ultra/juegos-vivo.json").read_text());g=next(g for g in d["games"] if g["id"]=="steam:424242");assert g["name"]=="ULTRA fixture" and g["cpu_pct"] is not None and g["cpu_pct"]>0;assert g["fps"] is None;print("VIVO-PROCESO-42")'
+                check(wait_code(code,'VIVO-PROCESO-42',20),'identifica proceso sintetico y CPU medida sin inventar FPS')
+                monitor.sendall(b'sendkey meta_l-f10\n')
+                deadline=time.monotonic()+25
+                while time.monotonic()<deadline:
+                    if any(a.get('title')=='ULTRA / Juegos en vivo' for a in clients()): break
+                    time.sleep(1)
+                check(any(a.get('title')=='ULTRA / Juegos en vivo' for a in clients()),'Super+F10 abre panel en vivo')
+                snapshot('juegos-vivo-panel.png')
+                monitor.sendall(b'sendkey esc\n');time.sleep(.5)
+                code='from pathlib import Path;h=Path.home();(h/".local/share/Steam/steamapps/appmanifest_424242.acf").unlink();(h/".config/heroic/gog_store/installed.json").write_text("{\\"installed\\":[]}");print("VIVO-QUITADO-42")'
+                check('VIVO-QUITADO-42' in user_python(code),'fixture de juegos retirada sin tocar originales')
+                code='from pathlib import Path;import json;d=json.loads((Path.home()/".cache/ultra/juegos-vivo.json").read_text());ids={g["id"] for g in d["catalogue"]["games"]};assert not ({"steam:424242","gog:123"}&ids);print("VIVO-REFRESCO-42")'
+                check(wait_code(code,'VIVO-REFRESCO-42'),'catalogo refleja juegos retirados durante la misma sesion')
+            hud_setup='''from pathlib import Path
+h=Path.home();p=h/'.config/ultra/MangoHud.conf';p.parent.mkdir(parents=True,exist_ok=True)
+out=h/'.cache/ultra/rendimiento';out.mkdir(parents=True,exist_ok=True)
+p.write_text(Path('/etc/ultra/MangoHud.conf').read_text()+'\\nautostart_log=1\\nlog_duration=4\\noutput_folder='+str(out)+'\\n')
+for directory,arch in [('/usr/lib/mangohud',2),('/usr/lib32/mangohud',1)]:
+ assert any(p.read_bytes()[:5]==b'\\x7fELF'+bytes([arch]) for p in Path(directory).glob('*.so'))
+print('HUD-CONFIG-32-64-42')
+'''
+            check('HUD-CONFIG-32-64-42' in user_python(hud_setup),'MangoHud 32/64 bits presente; configuracion real con registro corto en el banco')
+            render_cases=[('glxgears','ultra-hud opengl timeout -k 2 40 glxgears')]
+            if profile=='generico':
+                render_cases.insert(0,('vkcube','ultra-hud ejecutar timeout -k 2 40 vkcube --wsi wayland'))
+            else:
+                print('NA Vulkan PC en QEMU: perfil NVIDIA sin GPU fisica; Vulkan se verifica en generico con lavapipe.',flush=True)
+            for name, launch in render_cases:
+                launch += ' > /juegos/usuarios/ultra/.cache/ultra/hud-'+name+'.log 2>&1'
+                code='hl.exec_cmd('+json.dumps(launch)+')'
+                command(ipc+'eval '+"'"+code+"'")
+                deadline=time.monotonic()+25
+                opened=False
+                while time.monotonic()<deadline:
+                    process_ids=command(user+'/usr/bin/pgrep -x '+name+' || true')
+                    if re.search(r'(?m)^\d+(?: \d+)*\r?$',process_ids):
+                        opened=True
+                        break
+                    time.sleep(1)
+                if not opened:
+                    print(command('ultra-entrar /usr/bin/tail -n 60 /juegos/usuarios/ultra/.cache/ultra/hud-'+name+'.log'),flush=True)
+                check(opened,name+' inicia como proceso del usuario con el envoltorio HUD')
+                snapshot('hud-'+name+'.png')
+                csv_code='''from pathlib import Path
+import csv
+folder=Path.home()/'.cache/ultra/rendimiento'
+found=False
+for p in list(folder.glob('''+repr(name+'*.csv')+'''))[:16]:
+ rows=list(csv.reader(p.read_text().splitlines()))
+ for i,row in enumerate(rows):
+  keys=[x.strip().lower() for x in row]
+  if 'fps' not in keys: continue
+  index=keys.index('fps')
+  for sample in rows[i+1:]:
+   try: found |= float(sample[index])>0
+   except (ValueError,IndexError): pass
+assert found
+print('HUD-CSV-42')
+'''
+                check(wait_code(csv_code,'HUD-CSV-42',35),name+' genera CSV con FPS medidos y positivos')
+                snapshot('hud-'+name+'.png')
+                command(user+'/usr/bin/pkill -TERM -u 1000 -x '+name+' || true')
+                time.sleep(1)
+            code='from pathlib import Path;import json;d=json.loads((Path.home()/".cache/ultra/discos/automatico.json").read_text());assert d["continuous"] and d["running"];print("VIVO-CONTINUO-42")'
+            check('VIVO-CONTINUO-42' in user_python(code),'observador informa revision continua sin caducidad de un minuto')
+            code='import json;from pathlib import Path;d=json.loads((Path.home()/".cache/ultra/juegos-vivo.json").read_text());print("VIVO-JSON "+json.dumps(d))'
+            output=user_python(code)
+            match=re.search(r'(?m)^VIVO-JSON (\{.*\})\r?$',output)
+            if match:(base.BUILD/'juegos-vivo-estado.json').write_text(match[1]+'\n',encoding='utf-8')
+            console.sendall(b'poweroff\n');transcript+=base.read_until(console,'APAGADO',40);process.wait(timeout=20)
+            verified={Path(line.split()[1]).name:line.split()[0] for line in (base.BUILD/'SHA256SUMS').read_text().splitlines() if line.strip()}
+            (base.BUILD/'juegos-vivo-resultados.json').write_text(json.dumps(dict(perfil=profile,pruebas=results,imagen_sha256=verified[base.IMG.name],juegos_reales=False,cuentas=False,GPU_fisica=False,solo_hud=hud_only,renderers=[case[0] for case in render_cases]),ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+            return
         if windows_test:
             monitor.sendall(b'sendkey meta_l-shift-e\n')
             check(wait_app('thunar', 25), 'Windows abre desde el teclado en el explorador de archivos')

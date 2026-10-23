@@ -1,0 +1,10 @@
+VERDE NTFS identificado y ext4 montado sin formatear
+VERDE UID1000 escribe en ext4 y no puede recorrer D:
+VERDE carpetas de estado y juegos pertenecen al usuario
+VERDE escritura overlay no modifica el juego original NTFS
+VERDE escritorio usa home persistente
+VERDE MangoHud 32/64 bits presente; configuracion real con registro corto en el banco
+NA Vulkan PC en QEMU: perfil NVIDIA sin GPU fisica; Vulkan se verifica en generico con lavapipe.
+VERDE glxgears inicia como proceso del usuario con el envoltorio HUD
+VERDE glxgears genera CSV con FPS medidos y positivos
+VERDE vigilancia sigue activa despues del primer minuto

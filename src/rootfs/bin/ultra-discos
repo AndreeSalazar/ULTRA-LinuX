@@ -62,7 +62,16 @@ def steam_running():
 def tick(lib, previous=None):
     state = snapshot(lib)
     ready = [r for r in state['folders'] if r['status']=='activa' and r['kind']=='steam']
-    signature = tuple(sorted(r['id'] for r in ready))
+    # Manifests can change without changing the selected folder (install/update).
+    fingerprints = []
+    for row in ready:
+        manifests = []
+        for path in sorted((Path(row['path'])/'steamapps').glob('appmanifest_*.acf'))[:512]:
+            if not path.is_symlink():
+                value = path.stat()
+                manifests.append((path.name, value.st_size, value.st_mtime_ns))
+        fingerprints.append((row['id'], tuple(manifests)))
+    signature = tuple(sorted(fingerprints))
     if not ready:
         state['steam'] = 'No hay bibliotecas Steam activas que registrar.'
     elif steam_running():
@@ -120,10 +129,12 @@ def lines(lib):
         job = lib.read_json(status)
     except (FileNotFoundError, ValueError):
         job = {}
-    fresh = time.time()-job.get('updated', 0) < 8
+    fresh = time.time()-job.get('updated', 0) < (45 if job.get('continuous') else 8)
     running = job.get('running') and fresh
     job_state = ('revisando: '+str(job.get('remaining', 0))+' s restantes') if running else (
         'revision terminada' if job and not job.get('running') else 'sin revision activa')
+    if job.get('continuous') and fresh:
+        job_state = 'revision continua cada 30 s durante el escritorio'
     result = ['DISCOS Y BIBLIOTECAS / '+job_state,
               'Discos visibles: '+str(state['volumes'])+' | Espacio libre del almacenamiento Linux: '+str(state['free_gib'])+' GiB',
               '1. Elegir / quitar carpetas     2. Revisar otro minuto     3. Abrir carpeta',

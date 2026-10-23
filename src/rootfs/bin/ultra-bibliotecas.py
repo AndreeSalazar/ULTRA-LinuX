@@ -730,9 +730,10 @@ def play(item):
         cache = HOME/'.cache/ultra'
         cache.mkdir(mode=0o700, parents=True, exist_ok=True)
         prefix = HOME/'Juegos/prefijos'/('carpeta-'+item['id'])
-        env = dict(os.environ, WINEPREFIX=str(prefix), GAMEID='umu-0', PROTONPATH='GE-Proton')
+        env = dict(os.environ, WINEPREFIX=str(prefix), GAMEID='umu-0', PROTONPATH='GE-Proton',
+                   ULTRA_GAME_ID='carpeta:'+item['id'], ULTRA_GAME_NAME=item['relative'])
         with (cache/('carpeta-'+item['id']+'.log')).open('a') as log:
-            subprocess.Popen(['umu-run', str(value)], cwd=value.parent, env=env,
+            subprocess.Popen(['/usr/local/bin/ultra-hud', 'opengl', 'umu-run', str(value)], cwd=value.parent, env=env,
                              stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         return
 
@@ -753,7 +754,7 @@ def import_gog():
     subprocess.Popen(['thunar', str(expected)])
     subprocess.run(['notify-send', 'GOG / importar archivos existentes',
                     'En Heroic: selecciona el juego de tu cuenta > Importar juego. Usa la carpeta abierta: '+str(expected)], check=False)
-    subprocess.Popen(['/opt/heroic/heroic', '--ozone-platform=wayland'],
+    subprocess.Popen(['/usr/local/bin/ultra-hud', 'ejecutar', '/opt/heroic/heroic', '--ozone-platform=wayland'],
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 

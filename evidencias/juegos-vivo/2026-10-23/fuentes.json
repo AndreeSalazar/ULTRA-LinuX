@@ -1,0 +1,15 @@
+{
+  "scripts/build-baseline.sh": "6f638174e51b53598bf96bccfde292aa14a5ed40947080cffad58241a2faddb0",
+  "scripts/probar_audio_juegos.py": "8230a270a6d977342b07be642e17619ae46c6e40d4bedcababa7c18032963199",
+  "scripts/probar_juegos_vivo.py": "ef7859db3b3da3f33743596854aa6bb6f04026221b62702489861cf6700753b4",
+  "src/rootfs/bin/ultra-hud": "9d3f0a13f134529843ab01c872a1e1ba242eef7312bb518f584ccac8de70d8b6",
+  "src/rootfs/bin/ultra-juegos-vivo": "6c92a6c6a8ac9d614b0ad757ed0d3ecf2a7679a523096b7b8e6108ca1ad5a41e",
+  "src/rootfs/bin/ultra-juegos": "433f0b3d21d16817aee569d2acf83ef881478e6075ad1876e4a57c45c4088f15",
+  "src/rootfs/bin/ultra-bibliotecas.py": "85f23a5a7b3804d14db1eba3381a5cbb8327afe0bf5d77ec4dda47d6b0fcc883",
+  "src/rootfs/bin/ultra-discos": "b6c4cc7c1d66c41b41db4562ffe9b5cd49f5477aaa02f915b1ae0176acd88ac3",
+  "src/rootfs/bin/ultra-desktop-session": "d500fc2e1b6f2f918782bc6f2aeefa336128c896b4381e9cc11ebd1306644dd7",
+  "src/rootfs/bin/ultra-ambiente": "69582972558952e8b38e64d481d686f118d31ad1cc47dd02b53dc94e276d70c3",
+  "src/rootfs/desktop/MangoHud.conf": "aefa43c8b544d16b73da7bc7c5a99a2360b69c5d2d125670a1f73a9d38feb101",
+  "src/rootfs/desktop/hyprland.lua": "f33e97deb3385afc44552d311f93cf0d9890d391f2e0b4391edd6bc194d0d836",
+  "src/rootfs/desktop/AYUDA.txt": "bfaaa5831ee4727ab13ac4f495f6ba5d6be0ce1127355260f0eda169cde4276f"
+}

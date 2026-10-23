@@ -4,8 +4,8 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 action=${1:-menu}
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Steam' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'GOG / Heroic' 'Importar juegos GOG' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' |
-        fuzzel --dmenu --prompt='Juegos /' --lines=10) || exit 0
+    choice=$(printf '%s\n' 'Steam' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'GOG / Heroic' 'Importar juegos GOG' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' |
+        fuzzel --dmenu --prompt='Juegos /' --lines=12) || exit 0
     case $choice in
         Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
         'Importar juegos GOG') exec ultra-bibliotecas importar-gog;;
@@ -15,6 +15,8 @@ if [[ $action == menu ]]; then
         'Revisar bibliotecas de juegos') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Estado y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;;
         'Registros de juegos') exec foot --hold /usr/local/bin/ultra-juegos registros;;
+        'Juegos y consumo en vivo') exec foot --title='ULTRA / Juegos en vivo' ultra-juegos-vivo panel;;
+        'FPS y HUD') exec ultra-hud menu;;
         *) exit 0;;
     esac
 fi
@@ -72,20 +74,21 @@ if [[ $action == steam || $action == warframe ]]; then
 fi
 case $action in
     steam)
-        exec steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
+        exec ultra-hud ejecutar steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     warframe)
         if ! ultra-bibliotecas buscar-steam 230410; then
             notify-send 'Warframe: biblioteca no encontrada' 'Selecciona su carpeta Steam desde Discos y carpetas; cierra Steam y vuelve a abrirlo.' || true
             exit 1
         fi
-        exec steam steam://rungameid/230410 >> "$HOME/.cache/ultra/steam.log" 2>&1;;
-    gog) exec /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
+        exec ultra-hud ejecutar steam steam://rungameid/230410 >> "$HOME/.cache/ultra/steam.log" 2>&1;;
+    gog) exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
     cyberpunk)
         game=/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe
         [[ -f $game ]] || { notify-send 'Cyberpunk no encontrado' 'No se encontró el ejecutable GOG en D:.'; exit 1; }
         cd /juegos/Cyberpunk2077/bin/x64
         export WINEPREFIX="$HOME/Juegos/prefijos/cyberpunk2077" GAMEID=umu-0 PROTONPATH=GE-Proton
+        export ULTRA_GAME_ID=ultra:cyberpunk2077 ULTRA_GAME_NAME='Cyberpunk 2077'
         notify-send 'Cyberpunk / Proton' 'El primer inicio puede descargar Proton y su runtime. El juego original de D: se conserva.' || true
-        exec umu-run "$game" --launcher-skip >> "$HOME/.cache/ultra/cyberpunk.log" 2>&1;;
+        exec ultra-hud opengl umu-run "$game" --launcher-skip >> "$HOME/.cache/ultra/cyberpunk.log" 2>&1;;
     *) exit 2;;
 esac

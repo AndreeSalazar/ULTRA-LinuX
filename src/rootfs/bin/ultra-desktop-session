@@ -21,5 +21,8 @@ gnome-keyring-daemon --start --foreground --components=secrets \
 pipewire > "$HOME/.cache/ultra/pipewire.log" 2>&1 & children+=("$!")
 pipewire-pulse > "$HOME/.cache/ultra/pipewire-pulse.log" 2>&1 & children+=("$!")
 wireplumber > "$HOME/.cache/ultra/wireplumber.log" 2>&1 & children+=("$!")
+if [[ $HOME == /juegos/usuarios/ultra ]]; then
+    ultra-juegos-vivo vigilar > "$HOME/.cache/ultra/juegos-vivo.log" 2>&1 & children+=("$!")
+fi
 start-hyprland -- --config /etc/ultra/hyprland.lua
 exit $?

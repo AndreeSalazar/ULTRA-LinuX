@@ -1,0 +1,44 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -euo pipefail
+[[ $(id -u) == 1000 ]] || exit 1
+state="$HOME/.config/ultra/hud-desactivado"
+action=${1:-menu}; shift || true
+if [[ $action == menu ]]; then
+    choice=$(printf '%s\n' 'Ver juegos y consumo en vivo' 'Activar HUD para nuevos lanzamientos' 'Desactivar HUD para nuevos lanzamientos' 'Abrir registros de FPS' |
+        fuzzel --dmenu --only-match --prompt='FPS / Rendimiento / ' --lines=4) || exit 0
+    case $choice in
+        'Ver juegos y consumo en vivo') exec foot --title='ULTRA / Juegos en vivo' ultra-juegos-vivo panel;;
+        'Activar HUD para nuevos lanzamientos') action=activar;;
+        'Desactivar HUD para nuevos lanzamientos') action=desactivar;;
+        'Abrir registros de FPS') mkdir -p "$HOME/.cache/ultra/rendimiento"; exec thunar "$HOME/.cache/ultra/rendimiento";;
+        *) exit 0;;
+    esac
+fi
+umask 077
+case $action in
+    activar|desactivar)
+        mkdir -p "${state%/*}"
+        if [[ $action == activar ]]; then rm -f -- "$state"; else : > "$state"; fi
+        notify-send 'HUD de juegos' 'Cambio guardado. Cierra y abre Steam/Heroic para los proximos juegos. En un juego con HUD: Shift derecho + F12 para mostrar/ocultar.' || true
+        exit 0;;
+    ejecutar|opengl) (( $# )) || exit 2;;
+    *) exit 2;;
+esac
+if [[ -e $state ]]; then
+    export MANGOHUD=0
+    exec "$@"
+fi
+mkdir -p "$HOME/.config/ultra" "$HOME/.cache/ultra/rendimiento"
+config="$HOME/.config/ultra/MangoHud.conf"
+if [[ ! -e $config ]]; then
+    temp=$(mktemp "$HOME/.config/ultra/.hud-XXXXXX")
+    trap 'rm -f -- "$temp"' EXIT
+    cat /etc/ultra/MangoHud.conf > "$temp"
+    printf '\noutput_folder=%s/.cache/ultra/rendimiento\n' "$HOME" >> "$temp"
+    mv -- "$temp" "$config"
+    trap - EXIT
+fi
+export MANGOHUD=1 MANGOHUD_CONFIGFILE="$config"
+if [[ $action == opengl ]]; then exec mangohud "$@"; fi
+exec "$@"

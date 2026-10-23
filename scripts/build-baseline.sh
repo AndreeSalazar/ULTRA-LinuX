@@ -229,7 +229,8 @@ if [[ -n $cmdline ]]; then
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
         pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
         steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk procps-ng vulkan-tools e2fsprogs
-        mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret)
+        mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
+        mangohud=0.8.4-1 lib32-mangohud=0.8.4-1)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -267,7 +268,7 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
     sudo install -d -m 0755 "$sistema/usr/lib/locale"
