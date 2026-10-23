@@ -86,4 +86,5 @@ banderas globales, nuevas politicas de kernel ni cambios en A:.
 
 Referencias internas: [produccion y laboratorio](ORGANIZACION-GUARDIANES.md),
 [prioridades y evidencias de punteros](PLAN-C-CXX-ASM-API.md),
-[cobertura y limites](COBERTURA-UB.md).
+[cobertura y limites](COBERTURA-UB.md),
+[diseno del guardian de fallos del kernel](GUARDIAN-FALLOS-KERNEL.md).
