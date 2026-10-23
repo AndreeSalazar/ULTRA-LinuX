@@ -1,0 +1,1 @@
+VERDE: escritorio pc actualizado; kernel conservado; hashes verificados; arranque pendiente

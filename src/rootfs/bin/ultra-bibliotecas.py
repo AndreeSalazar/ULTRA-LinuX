@@ -432,11 +432,20 @@ def find_steam_app(appid):
 
 
 def register_steam():
+    import fcntl
     user_config()
+    lockdir = HOME / '.cache/ultra'
+    lockdir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with (lockdir/'registro-steam.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        return _register_steam()
+
+
+def _register_steam():
     active = subprocess.run(['pgrep', '-u', '1000', '-x', 'steam'], stdout=subprocess.DEVNULL)
     if active.returncode == 0:
         print('STEAM: ya abierto; cierra Steam completamente para registrar nuevas bibliotecas')
-        return
+        return False
     if active.returncode != 1:
         raise ValueError('no se pudo comprobar si Steam esta cerrado')
     catalog = read_json(CATALOG)
@@ -448,6 +457,7 @@ def register_steam():
     for path, fallback in ((canonical, legacy), (legacy, canonical)):
         path.parent.mkdir(exist_ok=True)
         register_steam_file(path, fallback, root, catalog)
+    return True
 
 
 def register_steam_file(path, fallback, root, catalog):
@@ -547,12 +557,24 @@ def choose(title, rows):
 
 def pick_folder(catalog):
     rows = [(v['label']+' ['+v['uuid']+']', v) for v in catalog.get('volumes', []) if v['status'] == 'lectura']
+    cursor = CONFIG.with_name('navegacion.json')
+    try:
+        saved = selection(read_json(cursor))
+    except (OSError, ValueError, TypeError):
+        saved = None
+    resume = next((v for _, v in rows if saved and v['uuid']==saved['uuid']
+                   and (Path(v['path'])/saved['relative']).is_dir()), None)
+    if resume:
+        rows.insert(0, ('Continuar en '+saved['relative'], dict(resume, resume=saved['relative'])))
     volume = choose('Disco', rows)
     if volume is None:
         return None
-    relative = Path()
+    relative = Path(volume.get('resume', ''))
     while True:
         folder = Path(volume['path'])/relative
+        if relative != Path():
+            CONFIG.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            atomic_json(cursor, selection(dict(uuid=volume['uuid'], relative=relative.as_posix(), kind='folder')))
         children = sorted((p for p in folder.iterdir() if not p.is_symlink() and p.is_dir()
                            and not any(ord(c) < 32 for c in p.name)), key=lambda p: p.name.casefold())[:500]
         rows = []
@@ -605,7 +627,7 @@ def ui():
             raise ValueError('limite de 32 carpetas alcanzado')
         CONFIG.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
         atomic_json(CONFIG, config+[item])
-        run('/usr/bin/notify-send', 'Carpeta registrada', 'Cierra el escritorio y vuelve a abrirlo desde e. Despues abre Steam desde Super+J: las bibliotecas Steam activas se registran automaticamente.')
+        run('/usr/bin/notify-send', 'Seleccion guardada / pendiente de activar', 'Tu carpeta ya se recuerda. Guarda tu trabajo, cierra el escritorio y vuelve a entrar desde e. Al regresar se preparan los montajes y se revisa Steam automaticamente. Consulta Super+Espacio > Discos y bibliotecas.')
     elif action == 'status':
         subprocess.Popen(['foot', '--hold', '/usr/local/bin/ultra-bibliotecas', 'estado'])
     elif action in ('open', 'play'):

@@ -1,0 +1,30 @@
+ecb5383f04ebbdd55b856a8540f6b1b116c677015c7d629ee95b36c4548e76b2  rootfs/bin/ultra-discos
+46274139d4271c412032c57d7d1b8f1afab72eee2f6e31ec6f8b45a79915737e  rootfs/bin/ultra-bibliotecas.py
+d713c83b32277da938dd7c446d423859b765133c77abd17038b2e926f6505fda  probar-discos.py
+test_automatic_final_state_private (__main__.Discos.test_automatic_final_state_private) ... ok
+test_missing_storage_has_no_write (__main__.Discos.test_missing_storage_has_no_write) ... ok
+test_navigation_remembers_folder_after_cancel (__main__.Discos.test_navigation_remembers_folder_after_cancel) ... ok
+test_pending_is_not_reported_ready (__main__.Discos.test_pending_is_not_reported_ready) ... ok
+test_registration_failure_visible (__main__.Discos.test_registration_failure_visible) ... ok
+test_removed_folder_is_not_registered (__main__.Discos.test_removed_folder_is_not_registered) ... ok
+test_sixty_second_progress (__main__.Discos.test_sixty_second_progress) ... ok
+test_steam_launch_race_not_reported_ready (__main__.Discos.test_steam_launch_race_not_reported_ready) ... ok
+test_steam_open_waits_then_registers_once (__main__.Discos.test_steam_open_waits_then_registers_once) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.009s
+
+OK
+PASS 1 FD fijado y alias permiten espacio, coma y Unicode sin inyectar opciones
+PASS 2 prefijos y caches Windows ocultos por directorios opacos Linux
+PASS 3 UID1000 escribe la capa ext4 sin modificar origen protegido
+PASS 4 Steam puede crear metadatos y prefijos sobre ext4
+PASS 5 remontar conserva cambios y reconoce el origen
+PASS 6 rechaza componente simbolico antes del bind privilegiado
+PASS 7 cambio Windows bloquea la capa antigua sin borrarla
+PASS 8 fallo conserva las escrituras existentes
+PASS 9 respeta permisos de lectura Unix en privado-root
+PASS 10 respeta permisos de lectura Unix en privado-root/hijo-publico
+PASS 11 biblioteca publica no revela steamapps privado
+RESULTADO 11 sin discos fisicos; descubrimiento se prueba en arranque nativo
+Banco conservado: /var/tmp/ultra-bibliotecas-f3aldnu0

@@ -1,0 +1,12 @@
+test_automatic_final_state_private (__main__.Discos.test_automatic_final_state_private) ... ok
+test_missing_storage_has_no_write (__main__.Discos.test_missing_storage_has_no_write) ... ok
+test_navigation_remembers_folder_after_cancel (__main__.Discos.test_navigation_remembers_folder_after_cancel) ... ok
+test_pending_is_not_reported_ready (__main__.Discos.test_pending_is_not_reported_ready) ... ok
+test_registration_failure_visible (__main__.Discos.test_registration_failure_visible) ... ok
+test_removed_folder_is_not_registered (__main__.Discos.test_removed_folder_is_not_registered) ... ok
+test_steam_open_waits_then_registers_once (__main__.Discos.test_steam_open_waits_then_registers_once) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.006s
+
+OK

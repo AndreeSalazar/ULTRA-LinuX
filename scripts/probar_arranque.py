@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Boot the downloaded kernel headless, drive its shell over serial and check the answers."""
-import base64, hashlib, json, pathlib, re, secrets, shutil, socket, subprocess, sys, tempfile, time
+import base64, hashlib, json, pathlib, re, secrets, shlex, shutil, socket, subprocess, sys, tempfile, time
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PERFIL = sys.argv[1] if len(sys.argv) > 1 else 'produccion'
@@ -605,6 +605,36 @@ def check_hyprland(conn, failures):
         mon.sendall(b'sendkey esc\n')
         time.sleep(.4)
         transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo JUEGOS-CERRADO-$((10+8))', 'JUEGOS-CERRADO-18')], failures)
+        # Drive the actual Super+Space menu. A fresh VM has no personal storage;
+        # its first panel must explain the temporary HOME instead of closing.
+        mon.sendall(b'sendkey meta_l-spc\n')
+        time.sleep(.7)
+        for key in ('d','i','s','c','o','s','ret'):
+            mon.sendall(('sendkey '+key+'\n').encode()); time.sleep(.12)
+        disk_apps = wait_apps(lambda apps: any(a.get('title')=='ULTRA / Discos y bibliotecas' for a in apps))
+        expect(bool(disk_apps), 'Discos: Super+Space abre el panel')
+        mon.sendall(b'sendkey esc\n'); time.sleep(.5)
+        # Only this disposable VM's RAM tree: no host or personal disk attached.
+        transcript += run(conn, [('mkdir -p /arch/juegos/usuarios/ultra; chown 1000:1000 /arch/juegos/usuarios/ultra; echo DISCOS-HOME-$((9+1))', 'DISCOS-HOME-10')], failures)
+        code = 'hl.exec_cmd("foot --title=ULTRA-Discos-Prueba env HOME=/juegos/usuarios/ultra ultra-discos panel")'
+        conn.sendall(('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code)+'; echo DISCOS-LANZADO-$((9+2))\n').encode())
+        transcript += response('DISCOS-LANZADO-11')
+        disk_apps = wait_apps(lambda apps: any(a.get('title')=='ULTRA-Discos-Prueba' for a in apps))
+        expect(bool(disk_apps), 'Discos: panel con home persistente simulado')
+        time.sleep(3)
+        transcript += run(conn, [('test -s /arch/juegos/usuarios/ultra/.cache/ultra/discos/automatico.json && echo DISCOS-AUTO-$((9+3))', 'DISCOS-AUTO-12')], failures)
+        disk_capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-discos.png'
+        disk_capture.unlink(missing_ok=True)
+        mon.sendall(f'screendump {disk_capture} -f png\n'.encode())
+        for _ in range(50):
+            try:
+                from PIL import Image
+                with Image.open(disk_capture) as shot: shot.verify()
+                break
+            except (OSError, SyntaxError): time.sleep(.1)
+        else: raise ValueError('captura de discos incompleta')
+        shutil.copyfile(disk_capture, LOG.with_name(LOG.stem + '-discos.png'))
+        mon.sendall(b'sendkey esc\n'); time.sleep(.5)
         capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-hyprland.png'
         capture.unlink(missing_ok=True)
         mon.sendall(f'screendump {capture} -f png\n'.encode())
@@ -714,6 +744,15 @@ def check_hyprland(conn, failures):
             except (OSError, SyntaxError): time.sleep(.1)
         else: raise ValueError('captura del fondo incompleta')
         shutil.copyfile(background, LOG.with_name(LOG.stem + '-fondo.png'))
+        finished_auto = False
+        for _ in range(65):
+            conn.sendall(b'grep -q \'"running": false\' /arch/juegos/usuarios/ultra/.cache/ultra/discos/automatico.json && echo DISCOS-FIN-$((9+4)); echo DISCOS-QUERY-$((9+5))\n')
+            out = response('DISCOS-QUERY-14')
+            transcript += out
+            if 'DISCOS-FIN-13' in out:
+                finished_auto = True; break
+            time.sleep(1)
+        expect(finished_auto, 'Discos: revision automatica de 60 s termina sin bloquear el escritorio')
         mon.sendall(b'sendkey meta_l-shift-m\n')
         time.sleep(4)
         conn.sendall(b'echo HYPR-SINC-$((3+4))\n')

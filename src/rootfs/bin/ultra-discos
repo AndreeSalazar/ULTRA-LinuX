@@ -1,0 +1,205 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Unprivileged disk dashboard. Observe prepared mounts; never mount or format."""
+import contextlib
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import time
+
+
+def backend():
+    spec = importlib.util.spec_from_file_location('bibliotecas', '/usr/local/libexec/ultra-bibliotecas.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if os.geteuid() != 1000:
+        raise ValueError('Abrir como usuario del escritorio')
+    return module
+
+
+def paths(lib):
+    lib.user_config()  # Validate UID and persistent HOME before every cache write.
+    cache = lib.HOME / '.cache/ultra/discos'
+    cache.mkdir(mode=0o700, parents=True, exist_ok=True)
+    return cache, cache / 'automatico.json'
+
+
+def snapshot(lib):
+    selected = lib.user_config()
+    try:
+        catalog = lib.read_json(lib.CATALOG)
+    except FileNotFoundError:
+        catalog = {'error': 'No hay catalogo: vuelve a entrar al escritorio.', 'folders': [], 'volumes': []}
+    active = {item['id']: item for item in catalog.get('folders', [])}
+    rows = []
+    for item in selected:
+        mounted = active.get(item['id'], {})
+        state = mounted.get('status', 'pendiente de entrar al escritorio')
+        rows.append(dict(item, status=state, path=mounted.get('path', '')))
+    space = shutil.disk_usage(lib.HOME)
+    return dict(folders=rows, volumes=len([v for v in catalog.get('volumes', []) if v['status']=='lectura']),
+                free_gib=round(space.free / 2**30, 1), error=catalog.get('error', ''))
+
+
+def steam_running():
+    result = subprocess.run(['pgrep', '-u', '1000', '-x', 'steam'], stdout=subprocess.DEVNULL)
+    if result.returncode not in (0, 1):
+        raise ValueError('No se pudo consultar Steam')
+    return result.returncode == 0
+
+
+def tick(lib, previous=None):
+    state = snapshot(lib)
+    ready = [r for r in state['folders'] if r['status']=='activa' and r['kind']=='steam']
+    signature = tuple(sorted(r['id'] for r in ready))
+    if not ready:
+        state['steam'] = 'No hay bibliotecas Steam activas que registrar.'
+    elif steam_running():
+        state['steam'] = 'Esperando: cierra Steam por completo para registrar las bibliotecas.'
+        return state, None
+    else:
+        if signature != previous:
+            with contextlib.redirect_stdout(io.StringIO()):
+                registered = lib.register_steam()
+            if registered is False:
+                state['steam'] = 'Steam se abrio durante la revision. Cierra Steam para continuar.'
+                return state, None
+        state['steam'] = 'Bibliotecas registradas. Puedes abrir Steam desde Juegos.'
+    return state, signature
+
+
+def automatic(lib, duration=60):
+    import fcntl
+    cache, status = paths(lib)
+    with (cache/'automatico.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        start, previous = time.monotonic(), None
+        while True:
+            try:
+                state, previous = tick(lib, previous)
+            except (OSError, ValueError, subprocess.SubprocessError) as error:
+                state = dict(error=str(error), folders=[], steam='Revision pendiente; consulta el aviso.')
+            elapsed = time.monotonic() - start
+            state.update(updated=time.time(), remaining=max(0, int(duration-elapsed)), running=elapsed < duration)
+            lib.atomic_json(status, state)
+            if elapsed >= duration:
+                return
+            time.sleep(min(2, duration-elapsed))
+
+
+def start_auto(lib):
+    cache, _ = paths(lib)
+    with (cache/'automatico.log').open('a') as log:
+        subprocess.Popen(['/usr/local/bin/ultra-discos', 'auto'], stdin=subprocess.DEVNULL,
+                         stdout=log, stderr=log, start_new_session=True)
+
+
+def lines(lib):
+    if Path(os.environ.get('HOME', '')) != lib.HOME:
+        return ['DISCOS Y BIBLIOTECAS / almacenamiento no disponible',
+                'Esta sesion usa un home temporal. No se registra Steam ni se descargan juegos.',
+                'Esc: volver',
+                'Revisa Estado y espacio en Juegos y vuelve a entrar con el almacenamiento persistente.']
+    state = snapshot(lib)
+    _, status = paths(lib)
+    try:
+        job = lib.read_json(status)
+    except (FileNotFoundError, ValueError):
+        job = {}
+    fresh = time.time()-job.get('updated', 0) < 8
+    running = job.get('running') and fresh
+    job_state = ('revisando: '+str(job.get('remaining', 0))+' s restantes') if running else (
+        'revision terminada' if job and not job.get('running') else 'sin revision activa')
+    result = ['DISCOS Y BIBLIOTECAS / '+job_state,
+              'Discos visibles: '+str(state['volumes'])+' | Espacio libre del almacenamiento Linux: '+str(state['free_gib'])+' GiB',
+              '1. Elegir / quitar carpetas     2. Revisar otro minuto     3. Abrir carpeta',
+              'Flechas: recorrer | Enter: abrir seleccion | Esc: volver | R: revisar de nuevo',
+              '',
+              'Se recuerdan tus carpetas. Las nuevas se activan al salir y volver al escritorio.',
+              'Los discos originales siguen en solo lectura. No se formatea ni se descarga un juego.',
+              '', 'CARPETAS GUARDADAS:']
+    for item in state['folders']:
+        result.extend([item['relative']+' ['+item['kind']+']', '  '+item['status']])
+    if not state['folders']:
+        result.append('Ninguna. Pulsa 1 para elegir una carpeta con juegos o steamapps.')
+    result.extend(['', job.get('steam', 'La revision automatica aparece aqui sin cerrar esta ventana.')])
+    if state['error'] or job.get('error'):
+        result.extend(['AVISO: '+str(state['error'] or job.get('error'))])
+    if any(r['status']!='activa' for r in state['folders']):
+        result.extend(['PENDIENTE: guarda tu trabajo, cierra el escritorio y vuelve a entrar desde e.',
+                       'Al volver se preparan los montajes y se revisa Steam automaticamente.'])
+    return result
+
+
+def dashboard(lib):
+    import curses
+    import textwrap
+    persistent = Path(os.environ.get('HOME', '')) == lib.HOME
+    if persistent: start_auto(lib)
+    def screen(window):
+        selected, offset, last_error = 0, 0, ''
+        window.timeout(1000)
+        while True:
+            window.erase()
+            height, width = window.getmaxyx()
+            options = ['Elegir / quitar carpetas', 'Revisar otro minuto', 'Abrir carpeta preparada']
+            content = lines(lib)
+            if last_error: content.append('AVISO: '+last_error)
+            if persistent:
+                content[2:3] = [('> ' if i==selected else '  ')+str(i+1)+'. '+label for i,label in enumerate(options)]
+            content = [part for text in content for part in
+                       (textwrap.wrap(text, width=max(1,width-2), replace_whitespace=False) or [''])]
+            offset = min(offset, max(0, len(content)-max(1,height-1)))
+            for y, text in enumerate(content[offset:offset+max(1,height-1)]):
+                with contextlib.suppress(curses.error):
+                    window.addnstr(y, 0, text, max(1,width-1))
+            window.refresh()
+            key = window.getch()
+            if key in (27, ord('q')): return
+            if not persistent: continue
+            if key == curses.KEY_LEFT: selected = (selected-1)%3
+            elif key == curses.KEY_RIGHT: selected = (selected+1)%3
+            elif key == curses.KEY_UP: offset = max(0,offset-1)
+            elif key == curses.KEY_DOWN: offset += 1
+            elif key == curses.KEY_NPAGE: offset += max(1,height-2)
+            elif key == curses.KEY_PPAGE: offset = max(0,offset-max(1,height-2))
+            elif key in (ord('1'),ord('2'),ord('3'),10,13,ord('r'),ord('R')):
+                action = (key-ord('1')) if key in (ord('1'),ord('2'),ord('3')) else (1 if key in (ord('r'),ord('R')) else selected)
+                if action == 1: start_auto(lib)
+                else:
+                    curses.def_prog_mode(); curses.endwin()
+                    try:
+                        if action == 0: lib.ui()
+                        else:
+                            state = snapshot(lib)
+                            active = [r for r in state['folders'] if r['status']=='activa']
+                            item = lib.choose('Abrir carpeta', [(r['relative'],r) for r in active])
+                            if item: subprocess.Popen(['thunar',item['path']])
+                    except (OSError, ValueError, subprocess.SubprocessError) as error:
+                        last_error = str(error)
+                    finally:
+                        curses.reset_prog_mode(); window.timeout(1000)
+    curses.wrapper(screen)
+
+
+def main():
+    lib = backend()
+    action = sys.argv[1] if len(sys.argv)>1 else 'panel'
+    if action == 'auto': automatic(lib)
+    elif action == 'panel': dashboard(lib)
+    else: raise ValueError('Uso: ultra-discos panel|auto')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('DISCOS: '+str(error), file=sys.stderr)
+        sys.exit(1)

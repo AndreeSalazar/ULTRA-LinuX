@@ -9,7 +9,7 @@ if [[ $action == menu ]]; then
     case $choice in
         Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
         'Warframe / Steam') action=warframe;;
-        'Elegir carpetas y discos') exec ultra-bibliotecas;;
+        'Elegir carpetas y discos') exec foot --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Mis carpetas y bibliotecas') exec foot --hold /usr/local/bin/ultra-bibliotecas estado;;
         'Preparar Warframe de Windows') exec foot --hold /usr/local/bin/ultra-steam-warframe;;
         'Estado y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;;

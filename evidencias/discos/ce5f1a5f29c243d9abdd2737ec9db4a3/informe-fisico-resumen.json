@@ -1,0 +1,12 @@
+{
+  "sha256": "e5364b8808f67841e05e7362413772cc3bdc1cde757360781c8834e2c7addd89",
+  "ram_muestras": 39,
+  "ram_gib_min": 0.6774559020996094,
+  "ram_gib_max": 2.6562957763671875,
+  "ram_gib_final": 2.5195541381835938,
+  "gpu_muestras": 39,
+  "vram_mib_max": 489.0,
+  "vram_mib_final": 465.0,
+  "gpu_util_pct_max": 45.0,
+  "temperatura_max": 48.0
+}
