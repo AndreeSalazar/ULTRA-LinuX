@@ -26,4 +26,10 @@ foreach($binary in @('init','caja','ultra-raiz','ultra-red-contadores','ultra-re
         if($report.Rules -notcontains $rule){throw "ROJO [ELF]: falta la regla $rule en $binary"}
     }
 }
-Write-Output 'VERDE [ELF]: seis ejecutables de produccion auditados y ligados al manifiesto.'
+$hexText=& tar.exe -xOf $archive './hex-recursos/informe.json'
+if($LASTEXITCODE -ne 0){throw 'ROJO [HEX]: falta el informe del lector de recursos'}
+$hex=($hexText -join "`n") | ConvertFrom-Json
+if($hex.Schema -ne 1 -or $hex.BinarySHA256 -ine (Get-ElfHash 'ultra-recursos-contadores') -or
+   @($hex.Symbols).Count -ne 1 -or $hex.Symbols[0].Symbol -ne 'main' -or
+   $hex.Symbols[0].ELFBytesMatch -ne $true){throw 'ROJO [HEX]: informe incompatible con el lector de recursos'}
+Write-Output 'VERDE [ELF]: seis ejecutables auditados y HEX del lector ligados al manifiesto.'

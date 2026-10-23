@@ -30,5 +30,11 @@ set +e
 status=$?
 set -e
 [[ $status == 2 ]]
+set +e
+"$out/lector-prod-O2" > /dev/full 2> "$out/salida-fallida.txt"
+status=$?
+set -e
+[[ $status == 1 ]]
+echo 'VERDE: error de escritura diferida no devuelve exito'
 sha256sum "${units[@]}" "$scripts/probar-recursos-c.c" "$scripts/verificar-recursos-c.sh" "$out"/lector-* "$out"/test-* > "$out/artefactos.sha256"
 echo 'RECURSOS-OK: lector local sin privilegios, no ajusta RAM ni discos; QEMU no es medida de SSD fisico'

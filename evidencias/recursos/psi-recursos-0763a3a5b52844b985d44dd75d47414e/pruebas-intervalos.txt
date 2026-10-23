@@ -1,0 +1,4 @@
+VERDE: deltas conocidos, sectores de 512 bytes, esperas medias, PSI y gauge decreciente
+VERDE: reinicios, cero real, reloj detenido/inverso, captura incompleta y sesiones separadas
+VERDE: campos ausentes/duplicados, formatos 11/15/17, PSI fuera de intervalo, sin falsa espera cero
+VERDE: lineas excesivas y limite de muestras; analisis no modifica archivos ni parametros

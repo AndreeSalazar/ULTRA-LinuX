@@ -114,6 +114,25 @@ if PERFIL in ('pc', 'generico'):
               ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/local/libexec/ultra-red-contadores', 'RED '),
               ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/local/libexec/ultra-recursos-contadores', 'MEM MemTotal:'),
               ('ultra-entrar /usr/local/libexec/ultra-medir-recursos --inventario', 'fin_recursos snapshot_no_atomico=1')]
+    BOOT1 += [('cat /proc/pressure/cpu /proc/pressure/memory /proc/pressure/io', 'some avg10='),
+              ('test -r /proc/pressure/cpu && test -r /proc/pressure/memory && test -r /proc/pressure/io && echo PSI-TRES-$((4+5))', 'PSI-TRES-9'),
+              ("ultra-entrar /usr/local/libexec/ultra-medir-recursos | grep '^PSI recurso=memory some'", 'total=')]
+    # Disposable single-vCPU guest only: a bounded, unprivileged CPU load must
+    # increase the real stall counter, not merely find a pressure file.
+    psi_load = r'''read -r before < /proc/pressure/cpu
+before=${before##*total=}
+pids=()
+for i in 1 2 3 4; do
+    timeout -k 1 3 bash -c 'while :; do :; done' & pids+=("$!")
+done
+for pid in "${pids[@]}"; do wait "$pid" || :; done
+read -r after < /proc/pressure/cpu
+after=${after##*total=}
+[[ $before =~ ^[0-9]+$ && $after =~ ^[0-9]+$ ]] || exit 2
+((after > before)) || exit 1
+printf 'PSI-CRECIO-%s\n' "$((4+5))"
+'''
+    BOOT1 += [('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/bin/timeout -k 1 8 /usr/bin/bash -c '+shlex.quote(psi_load), 'PSI-CRECIO-9')]
     # QEMU has no NVIDIA: explicit acceleration must reject, never pretend software is GPU.
     BOOT1 += [('ultra-escritorio --nvidia 2>&1', 'ROJO [GPU]: se requiere exactamente un dispositivo DRM NVIDIA'),
               ('ultra-escritorio --nvidia >/tmp/gpu-rechazo.log 2>&1; echo GPU-ESTADO-$?', 'GPU-ESTADO-1')]

@@ -1,5 +1,9 @@
 # Lector C de recursos, Custodia y verificacion HEX
 
+Continuacion: [PSI real, analisis por intervalos y errores de salida](ANALISIS-RECURSOS.md).
+Las mediciones y el despliegue #51/#37 descritos abajo corresponden a la
+primera ronda del lector, anterior a habilitar PSI.
+
 2026-10-23, America/Lima. Primer consumidor local de Custodia:
 `ultra-recursos-contadores`, invocado por `ultra-medir-recursos`. Observa RAM y
 recuperacion de memoria sin privilegios; no intercepta punteros de juegos,

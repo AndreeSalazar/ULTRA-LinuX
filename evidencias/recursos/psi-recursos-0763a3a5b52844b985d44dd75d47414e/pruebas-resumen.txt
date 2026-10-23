@@ -1,0 +1,3 @@
+VERDE: unidades RAM/VRAM, sumas parciales excluidas, NA y registros antiguos
+VERDE: recursos integrados, CRLF y rechazo de informe mayor que 32 MiB
+VERDE: CLI acepta archivo individual y rechaza lotes excesivos

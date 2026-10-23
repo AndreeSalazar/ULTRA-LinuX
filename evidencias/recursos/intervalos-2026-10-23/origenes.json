@@ -1,0 +1,29 @@
+{
+  "qemu-generico": {
+    "source": "gpu-qemu-software-hyprland.txt",
+    "sha256": "6de3e217021e331b5612ed717e6ced180224cb29fde6c093eb752b61ff1ad91a",
+    "muestras": 26,
+    "capturas_completas": 26,
+    "estados": {
+      "calculado": 25
+    }
+  },
+  "qemu-pc": {
+    "source": "gpu-qemu-software-hyprland.txt",
+    "sha256": "84501e63e36a2a8c5b4fba7797fdba500c18faf2d4f7ffc3dd4df21ea3bd1b1d",
+    "muestras": 26,
+    "capturas_completas": 26,
+    "estados": {
+      "calculado": 25
+    }
+  },
+  "fisico-anterior": {
+    "source": "gpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-hyprland.txt",
+    "sha256": "e5364b8808f67841e05e7362413772cc3bdc1cde757360781c8834e2c7addd89",
+    "muestras": 39,
+    "capturas_completas": 0,
+    "estados": {
+      "captura_incompleta_o_ambigua": 38
+    }
+  }
+}

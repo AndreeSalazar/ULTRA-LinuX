@@ -1,0 +1,21 @@
+{
+  "profile": "pc",
+  "green": 157,
+  "red": 0,
+  "image_checks": [
+    {
+      "source": "build/pc/bzImage-tiny64",
+      "destination": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "sha256": "307a0c96ea40d565beb631ef1714e61c465fe16d272305ac53212871a5e71144"
+    },
+    {
+      "source": "build/pc/sistema-a.erofs",
+      "destination": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "sha256": "92f5a2bee9e3ebd226977eee700d95aa8fb2019330e53d461302452061eeafa4"
+    }
+  ],
+  "datos_sha256_before": "e0b263e1d1b953d6e1677fac5b26add145c899d7f10455529cf8ebfb81b42d2f",
+  "datos_sha256_after": "e0b263e1d1b953d6e1677fac5b26add145c899d7f10455529cf8ebfb81b42d2f",
+  "resource_intervals": 25,
+  "pressure_available": true
+}

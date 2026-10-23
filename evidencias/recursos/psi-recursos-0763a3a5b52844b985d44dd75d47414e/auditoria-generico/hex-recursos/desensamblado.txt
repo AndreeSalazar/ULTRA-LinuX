@@ -1,0 +1,94 @@
+
+/home/builder/linux-reconstruido/build/init-c-generico/ultra-recursos-contadores:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000000a200 <main>:
+    a200:	f3 0f 1e fa                                     	endbr64
+    a204:	83 ff 01                                        	cmp    edi,0x1
+    a207:	0f 85 f7 00 00 00                               	jne    a304 <main+0x104>
+    a20d:	41 55                                           	push   r13
+    a20f:	41 54                                           	push   r12
+    a211:	4c 8d 25 18 ad 0b 00                            	lea    r12,[rip+0xbad18]        # c4f30 <paths.3>
+    a218:	55                                              	push   rbp
+    a219:	4d 89 e5                                        	mov    r13,r12
+    a21c:	53                                              	push   rbx
+    a21d:	31 db                                           	xor    ebx,ebx
+    a21f:	48 83 ec 08                                     	sub    rsp,0x8
+    a223:	48 8d 04 dd 00 00 00 00                         	lea    rax,[rbx*8+0x0]
+    a22b:	48 8d 50 08                                     	lea    rdx,[rax+0x8]
+    a22f:	48 83 fa 10                                     	cmp    rdx,0x10
+    a233:	0f 87 d8 00 00 00                               	ja     a311 <main+0x111>
+    a239:	4c 01 e0                                        	add    rax,r12
+    a23c:	0f 82 da 00 00 00                               	jb     a31c <main+0x11c>
+    a242:	49 8b 7d 00                                     	mov    rdi,QWORD PTR [r13+0x0]
+    a246:	48 8d 35 2c 24 08 00                            	lea    rsi,[rip+0x8242c]        # 8c679 <__PRETTY_FUNCTION__.18+0x3e>
+    a24d:	e8 7e 6b 00 00                                  	call   10dd0 <_IO_new_fopen>
+    a252:	89 da                                           	mov    edx,ebx
+    a254:	48 8b 35 b5 f3 0b 00                            	mov    rsi,QWORD PTR [rip+0xbf3b5]        # c9610 <stdout>
+    a25b:	83 f2 01                                        	xor    edx,0x1
+    a25e:	48 89 c7                                        	mov    rdi,rax
+    a261:	48 89 c5                                        	mov    rbp,rax
+    a264:	0f b6 d2                                        	movzx  edx,dl
+    a267:	e8 24 06 00 00                                  	call   a890 <snapshot>
+    a26c:	84 c0                                           	test   al,al
+    a26e:	75 54                                           	jne    a2c4 <main+0xc4>
+    a270:	48 85 db                                        	test   rbx,rbx
+    a273:	74 70                                           	je     a2e5 <main+0xe5>
+    a275:	48 8d 3d b0 1d 08 00                            	lea    rdi,[rip+0x81db0]        # 8c02c <__rseq_flags+0x28>
+    a27c:	e8 5f 6b 00 00                                  	call   10de0 <_IO_puts>
+    a281:	48 85 ed                                        	test   rbp,rbp
+    a284:	74 08                                           	je     a28e <main+0x8e>
+    a286:	48 89 ef                                        	mov    rdi,rbp
+    a289:	e8 82 65 00 00                                  	call   10810 <_IO_new_fclose>
+    a28e:	48 8b 3d 7b f3 0b 00                            	mov    rdi,QWORD PTR [rip+0xbf37b]        # c9610 <stdout>
+    a295:	e8 26 68 00 00                                  	call   10ac0 <_IO_fflush>
+    a29a:	83 c0 01                                        	add    eax,0x1
+    a29d:	74 6b                                           	je     a30a <main+0x10a>
+    a29f:	48 8b 3d 6a f3 0b 00                            	mov    rdi,QWORD PTR [rip+0xbf36a]        # c9610 <stdout>
+    a2a6:	48 85 ff                                        	test   rdi,rdi
+    a2a9:	0f 84 18 e0 ff ff                               	je     82c7 <main.cold>
+    a2af:	e8 9c 85 00 00                                  	call   12850 <_IO_ferror>
+    a2b4:	85 c0                                           	test   eax,eax
+    a2b6:	0f 95 c0                                        	setne  al
+    a2b9:	0f b6 c0                                        	movzx  eax,al
+    a2bc:	5a                                              	pop    rdx
+    a2bd:	5b                                              	pop    rbx
+    a2be:	5d                                              	pop    rbp
+    a2bf:	41 5c                                           	pop    r12
+    a2c1:	41 5d                                           	pop    r13
+    a2c3:	c3                                              	ret
+    a2c4:	48 85 ed                                        	test   rbp,rbp
+    a2c7:	74 08                                           	je     a2d1 <main+0xd1>
+    a2c9:	48 89 ef                                        	mov    rdi,rbp
+    a2cc:	e8 3f 65 00 00                                  	call   10810 <_IO_new_fclose>
+    a2d1:	48 83 eb 01                                     	sub    rbx,0x1
+    a2d5:	74 b7                                           	je     a28e <main+0x8e>
+    a2d7:	49 83 c5 08                                     	add    r13,0x8
+    a2db:	bb 01 00 00 00                                  	mov    ebx,0x1
+    a2e0:	e9 3e ff ff ff                                  	jmp    a223 <main+0x23>
+    a2e5:	48 8d 3d 46 1d 08 00                            	lea    rdi,[rip+0x81d46]        # 8c032 <__rseq_flags+0x2e>
+    a2ec:	e8 ef 6a 00 00                                  	call   10de0 <_IO_puts>
+    a2f1:	48 85 ed                                        	test   rbp,rbp
+    a2f4:	74 e1                                           	je     a2d7 <main+0xd7>
+    a2f6:	48 89 ef                                        	mov    rdi,rbp
+    a2f9:	49 83 c5 08                                     	add    r13,0x8
+    a2fd:	e8 0e 65 00 00                                  	call   10810 <_IO_new_fclose>
+    a302:	eb d7                                           	jmp    a2db <main+0xdb>
+    a304:	b8 02 00 00 00                                  	mov    eax,0x2
+    a309:	c3                                              	ret
+    a30a:	b8 01 00 00 00                                  	mov    eax,0x1
+    a30f:	eb ab                                           	jmp    a2bc <main+0xbc>
+    a311:	4c 01 ea                                        	add    rdx,r13
+    a314:	0f 82 1f ff ff ff                               	jb     a239 <main+0x39>
+    a31a:	0f 0b                                           	ud2
+    a31c:	0f 0b                                           	ud2
+
+Disassembly of section .fini:

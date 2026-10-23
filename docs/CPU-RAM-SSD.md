@@ -141,6 +141,10 @@ Actualizacion: [lector C de recursos y verificacion HEX](RECURSOS-C-PRODUCCION.m
 Reduce el coste del observador frente a Bash; no demuestra aun aceleracion
 de la memoria o SSD fisicos. Incluye resumen del ultimo informe del PC.
 
+Siguiente ronda: [analisis por intervalos y PSI](ANALISIS-RECURSOS.md).
+Identifica la falta de CONFIG_PSI en las imagenes anteriores y separa
+las tasas calculables de las mediciones fisicas todavia ausentes.
+
 ## Orden para optimizar con los guardianes
 
 1. **CPU:** confirmar driver/EPP reales y temperatura; medir espera del

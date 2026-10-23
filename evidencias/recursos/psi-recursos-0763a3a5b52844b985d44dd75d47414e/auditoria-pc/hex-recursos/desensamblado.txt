@@ -1,0 +1,71 @@
+
+/home/builder/linux-reconstruido/build/init-c-pc/ultra-recursos-contadores:     file format elf64-x86-64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .plt.sec:
+
+Disassembly of section .text:
+
+000000000000a200 <main>:
+    a200:	f3 0f 1e fa                                     	endbr64
+    a204:	83 ff 01                                        	cmp    edi,0x1
+    a207:	0f 85 bc 00 00 00                               	jne    a2c9 <main+0xc9>
+    a20d:	53                                              	push   rbx
+    a20e:	48 8d 35 63 60 08 00                            	lea    rsi,[rip+0x86063]        # 90278 <__PRETTY_FUNCTION__.18+0x3e>
+    a215:	48 8d 3d 6a 60 08 00                            	lea    rdi,[rip+0x8606a]        # 90286 <__PRETTY_FUNCTION__.18+0x4c>
+    a21c:	e8 2f 71 00 00                                  	call   11350 <_IO_new_fopen>
+    a221:	48 8b 35 e8 f3 0b 00                            	mov    rsi,QWORD PTR [rip+0xbf3e8]        # c9610 <stdout>
+    a228:	ba 01 00 00 00                                  	mov    edx,0x1
+    a22d:	48 89 c7                                        	mov    rdi,rax
+    a230:	48 89 c3                                        	mov    rbx,rax
+    a233:	e8 08 15 00 00                                  	call   b740 <snapshot>
+    a238:	84 c0                                           	test   al,al
+    a23a:	74 7c                                           	je     a2b8 <main+0xb8>
+    a23c:	48 85 db                                        	test   rbx,rbx
+    a23f:	74 08                                           	je     a249 <main+0x49>
+    a241:	48 89 df                                        	mov    rdi,rbx
+    a244:	e8 47 6b 00 00                                  	call   10d90 <_IO_new_fclose>
+    a249:	48 8d 35 28 60 08 00                            	lea    rsi,[rip+0x86028]        # 90278 <__PRETTY_FUNCTION__.18+0x3e>
+    a250:	48 8d 3d 1b 7f 08 00                            	lea    rdi,[rip+0x87f1b]        # 92172 <_libc_intl_domainname+0xf8c>
+    a257:	e8 f4 70 00 00                                  	call   11350 <_IO_new_fopen>
+    a25c:	48 8b 35 ad f3 0b 00                            	mov    rsi,QWORD PTR [rip+0xbf3ad]        # c9610 <stdout>
+    a263:	31 d2                                           	xor    edx,edx
+    a265:	48 89 c7                                        	mov    rdi,rax
+    a268:	48 89 c3                                        	mov    rbx,rax
+    a26b:	e8 d0 14 00 00                                  	call   b740 <snapshot>
+    a270:	84 c0                                           	test   al,al
+    a272:	75 0c                                           	jne    a280 <main+0x80>
+    a274:	48 8d 3d 04 7f 08 00                            	lea    rdi,[rip+0x87f04]        # 9217f <_libc_intl_domainname+0xf99>
+    a27b:	e8 b0 7b 07 00                                  	call   81e30 <_IO_puts>
+    a280:	48 85 db                                        	test   rbx,rbx
+    a283:	74 08                                           	je     a28d <main+0x8d>
+    a285:	48 89 df                                        	mov    rdi,rbx
+    a288:	e8 03 6b 00 00                                  	call   10d90 <_IO_new_fclose>
+    a28d:	48 8b 3d 7c f3 0b 00                            	mov    rdi,QWORD PTR [rip+0xbf37c]        # c9610 <stdout>
+    a294:	e8 a7 6d 00 00                                  	call   11040 <_IO_fflush>
+    a299:	ff c0                                           	inc    eax
+    a29b:	74 32                                           	je     a2cf <main+0xcf>
+    a29d:	48 8b 3d 6c f3 0b 00                            	mov    rdi,QWORD PTR [rip+0xbf36c]        # c9610 <stdout>
+    a2a4:	48 85 ff                                        	test   rdi,rdi
+    a2a7:	74 2d                                           	je     a2d6 <main+0xd6>
+    a2a9:	e8 a2 8a 00 00                                  	call   12d50 <_IO_ferror>
+    a2ae:	5b                                              	pop    rbx
+    a2af:	85 c0                                           	test   eax,eax
+    a2b1:	0f 95 c0                                        	setne  al
+    a2b4:	0f b6 c0                                        	movzx  eax,al
+    a2b7:	c3                                              	ret
+    a2b8:	48 8d 3d ac 7e 08 00                            	lea    rdi,[rip+0x87eac]        # 9216b <_libc_intl_domainname+0xf85>
+    a2bf:	e8 6c 7b 07 00                                  	call   81e30 <_IO_puts>
+    a2c4:	e9 73 ff ff ff                                  	jmp    a23c <main+0x3c>
+    a2c9:	b8 02 00 00 00                                  	mov    eax,0x2
+    a2ce:	c3                                              	ret
+    a2cf:	b8 01 00 00 00                                  	mov    eax,0x1
+    a2d4:	5b                                              	pop    rbx
+    a2d5:	c3                                              	ret
+    a2d6:	0f 0b                                           	ud2
+
+Disassembly of section .fini:

@@ -1,0 +1,7 @@
+{
+  "baseline_commit": "9dd71f3",
+  "path": "build/respaldo-antes-psi-9dd71f3/disco-bmo-doble.img",
+  "sha256": "ffd178521a0d17ed07012c86067c6042e4e267b4449bf707b2fb10cefc3e9e51",
+  "bytes": 3231711232,
+  "contains": "Disposable dual boot image: generic #51 and PC #37 before PSI; no physical drives attached"
+}

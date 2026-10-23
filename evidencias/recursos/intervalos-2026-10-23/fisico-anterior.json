@@ -1,0 +1,246 @@
+{
+  "archivo": "gpu-7.3.0-rc7-pc-g32c52ec87d62-nvidia-hyprland.txt",
+  "kernel": "7.3.0-rc7-pc-g32c52ec87d62",
+  "modo": "nvidia",
+  "compositor": "hyprland",
+  "fecha_utc": "2026-10-23T00:47:14Z",
+  "ram_sistema_estimada_MiB": {
+    "min": 693.71484375,
+    "max_muestreado": 2720.046875,
+    "muestras": 39
+  },
+  "pss_UID1000_MiB": {
+    "min": 0.326171875,
+    "max_muestreado": 2763.1806640625,
+    "muestras": 39
+  },
+  "cpu_sistema_ocupada_pct": {
+    "min": 0.4613426662424435,
+    "max_muestreado": 14.562706270627062,
+    "muestras": 38
+  },
+  "gpu": {
+    "GPU-d22be6d0-d396-57d2-54c9-7d9c78acecb3": {
+      "pci": "00000000:29:00.0",
+      "vram_MiB": {
+        "min": 1.0,
+        "max_muestreado": 489.0,
+        "muestras": 39
+      },
+      "uso_pct": {
+        "min": 0.0,
+        "max_muestreado": 45.0,
+        "muestras": 39
+      },
+      "temperatura_C": {
+        "min": 43.0,
+        "max_muestreado": 48.0,
+        "muestras": 39
+      },
+      "potencia_W": {
+        "min": 13.39,
+        "max_muestreado": 43.12,
+        "muestras": 39
+      }
+    }
+  },
+  "recursos": {
+    "schema": 1,
+    "muestras": 39,
+    "capturas_completas": 0,
+    "intervalos": [
+      {
+        "desde_utc": "2026-10-23T00:43:34Z",
+        "hasta_utc": "2026-10-23T00:43:39Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:43:39Z",
+        "hasta_utc": "2026-10-23T00:43:44Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:43:44Z",
+        "hasta_utc": "2026-10-23T00:43:50Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:43:50Z",
+        "hasta_utc": "2026-10-23T00:43:55Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:43:55Z",
+        "hasta_utc": "2026-10-23T00:44:00Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:00Z",
+        "hasta_utc": "2026-10-23T00:44:05Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:05Z",
+        "hasta_utc": "2026-10-23T00:44:11Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:11Z",
+        "hasta_utc": "2026-10-23T00:44:16Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:16Z",
+        "hasta_utc": "2026-10-23T00:44:21Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:21Z",
+        "hasta_utc": "2026-10-23T00:44:26Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:26Z",
+        "hasta_utc": "2026-10-23T00:44:32Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:32Z",
+        "hasta_utc": "2026-10-23T00:44:38Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:38Z",
+        "hasta_utc": "2026-10-23T00:44:44Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:44Z",
+        "hasta_utc": "2026-10-23T00:44:50Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:50Z",
+        "hasta_utc": "2026-10-23T00:44:56Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:44:56Z",
+        "hasta_utc": "2026-10-23T00:45:02Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:02Z",
+        "hasta_utc": "2026-10-23T00:45:07Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:07Z",
+        "hasta_utc": "2026-10-23T00:45:13Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:13Z",
+        "hasta_utc": "2026-10-23T00:45:19Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:19Z",
+        "hasta_utc": "2026-10-23T00:45:25Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:25Z",
+        "hasta_utc": "2026-10-23T00:45:31Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:31Z",
+        "hasta_utc": "2026-10-23T00:45:37Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:37Z",
+        "hasta_utc": "2026-10-23T00:45:43Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:43Z",
+        "hasta_utc": "2026-10-23T00:45:49Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:49Z",
+        "hasta_utc": "2026-10-23T00:45:55Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:45:55Z",
+        "hasta_utc": "2026-10-23T00:46:01Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:01Z",
+        "hasta_utc": "2026-10-23T00:46:07Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:07Z",
+        "hasta_utc": "2026-10-23T00:46:13Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:13Z",
+        "hasta_utc": "2026-10-23T00:46:19Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:19Z",
+        "hasta_utc": "2026-10-23T00:46:25Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:25Z",
+        "hasta_utc": "2026-10-23T00:46:30Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:30Z",
+        "hasta_utc": "2026-10-23T00:46:36Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:36Z",
+        "hasta_utc": "2026-10-23T00:46:42Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:42Z",
+        "hasta_utc": "2026-10-23T00:46:48Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:48Z",
+        "hasta_utc": "2026-10-23T00:46:54Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:46:54Z",
+        "hasta_utc": "2026-10-23T00:47:00Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:47:00Z",
+        "hasta_utc": "2026-10-23T00:47:06Z",
+        "estado": "captura_incompleta_o_ambigua"
+      },
+      {
+        "desde_utc": "2026-10-23T00:47:06Z",
+        "hasta_utc": "2026-10-23T00:47:12Z",
+        "estado": "captura_incompleta_o_ambigua"
+      }
+    ],
+    "alcance": "Contadores de sistema entre capturas no atomicas; no sumar capas de disco. Sin atribucion a juegos, latencia por peticion, p99 ni prueba de saturacion. Faults no equivalen a UB. Ausente/reinicio es null, no cero."
+  },
+  "alcance": "Maximos muestreados; no picos absolutos ni memoria exclusiva de Hyprland. VRAM total del dispositivo."
+}

@@ -1,0 +1,8 @@
+{
+  "profile": "generico",
+  "psi": true,
+  "default_disabled": false,
+  "config_sha256": "6dab00809a1057a0feffa52ab1dddfc8e52624bf02d7ba141a73ae19022e21a6",
+  "source_bytes_match": true,
+  "reader_sha256": "65f4a5bdd563ed2a1bd957703102474ac721c1dc34a8ee089522471a1f207643"
+}

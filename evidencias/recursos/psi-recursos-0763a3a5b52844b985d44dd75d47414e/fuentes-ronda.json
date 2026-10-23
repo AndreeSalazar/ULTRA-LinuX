@@ -1,0 +1,42 @@
+{
+  "baseline": "9dd71f3",
+  "files": [
+    {
+      "path": "src/recursos.c",
+      "sha256": "a05b9cc4c216cb2ba4d31013946a883781125b50527767ba617cb85c4cfae3db"
+    },
+    {
+      "path": "scripts/build-baseline.sh",
+      "sha256": "06ae46bea79f3890e22e04ff8b3a41583c07a3f4c73747768f6449352e113fee"
+    },
+    {
+      "path": "scripts/resumir_medicion.py",
+      "sha256": "16ab9d262fb6868a1b0f2f09cd76f15d3e33404d64e0f6568ccb578d27cf3a49"
+    },
+    {
+      "path": "scripts/recursos_intervalos.py",
+      "sha256": "a08938b8a510ee2fb1d2a2f7a2efcbb03c7dc779275b474bd4f1088753a00c16"
+    },
+    {
+      "path": "scripts/probar_recursos_intervalos.py",
+      "sha256": "b761738d335cd717fdb10783d949ba1ad673f600857ced4793dcde49860ba4f6"
+    },
+    {
+      "path": "scripts/probar_resumen_medicion.py",
+      "sha256": "8da6652f4e6eb51185297e8efb13c01efb3164079d4ed691de242a74ea6eb250"
+    },
+    {
+      "path": "scripts/probar_arranque.py",
+      "sha256": "9c87775ca149d78bb4e1689efb76681a2fe8df634a3de8bf18eb42dc4f2e8aca"
+    },
+    {
+      "path": "scripts/validar-elf-produccion.ps1",
+      "sha256": "71e0076732c966965074b0dd6cbf39d2ada7c70f4d0759879ca6531151b13c48"
+    },
+    {
+      "path": "scripts/probar-validacion-elf.ps1",
+      "sha256": "d2fcf48051896bb84f2a1e58e301888deb252c58b5d89633f362dab8e073662f"
+    }
+  ],
+  "note": "Actual source bytes; Git may normalize source line endings."
+}

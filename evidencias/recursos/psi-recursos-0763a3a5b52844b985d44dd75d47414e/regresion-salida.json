@@ -1,0 +1,7 @@
+{
+  "before_commit": "9dd71f3",
+  "before_exit": 0,
+  "after_exit": 1,
+  "test": "reader stdout redirected to synthetic /dev/full in isolated QEMU workshop",
+  "scope": "Deferred stdio error; no personal disk writes"
+}

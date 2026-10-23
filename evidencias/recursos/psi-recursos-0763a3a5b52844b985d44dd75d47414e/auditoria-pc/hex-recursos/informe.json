@@ -1,0 +1,17 @@
+{
+  "Schema": 1,
+  "BinarySHA256": "a7e349f6537c9f8cdef97c89cd6e020432f889af442236cb2b4572a762d06da9",
+  "InspectorSHA256": "3fc4150e5731e90a8a936b1f6406a65b30782417b2a3da3bbb31aa93ea5cb3c8",
+  "ExtractorSHA256": "8e68379412d6431b053f19de32f2638f874f1a72e6f02a8cb514a738e5505a32",
+  "Tool": "GNU objdump (GNU Binutils) 2.47",
+  "Symbols": [
+    {
+      "Symbol": "main",
+      "Bytes": 216,
+      "Hex": "F3 0F 1E FA 83 FF 01 0F 85 BC 00 00 00 53 48 8D 35 63 60 08 00 48 8D 3D 6A 60 08 00 E8 2F 71 00 00 48 8B 35 E8 F3 0B 00 BA 01 00 00 00 48 89 C7 48 89 C3 E8 08 15 00 00 84 C0 74 7C 48 85 DB 74 08 48 89 DF E8 47 6B 00 00 48 8D 35 28 60 08 00 48 8D 3D 1B 7F 08 00 E8 F4 70 00 00 48 8B 35 AD F3 0B 00 31 D2 48 89 C7 48 89 C3 E8 D0 14 00 00 84 C0 75 0C 48 8D 3D 04 7F 08 00 E8 B0 7B 07 00 48 85 DB 74 08 48 89 DF E8 03 6B 00 00 48 8B 3D 7C F3 0B 00 E8 A7 6D 00 00 FF C0 74 32 48 8B 3D 6C F3 0B 00 48 85 FF 74 2D E8 A2 8A 00 00 5B 85 C0 0F 95 C0 0F B6 C0 C3 48 8D 3D AC 7E 08 00 E8 6C 7B 07 00 E9 73 FF FF FF B8 02 00 00 00 C3 B8 01 00 00 00 5B C3 0F 0B",
+      "SHA256": "07bf3e7be5884ddf9fd2f92b7e8f4a0b6305c710046cda25deddd33535aec8f8",
+      "ELFBytesMatch": true
+    }
+  ],
+  "Scope": "Passive inventory, not an exact byte/semantic contract, no execution or speed claim."
+}

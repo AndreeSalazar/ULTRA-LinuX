@@ -12,7 +12,7 @@ case $perfil in
     generico|pc) dir=x86_64-generico start=defconfig modules=yes
         # Boots any modern x86-64 PC: storage, USB, EFI, a firmware framebuffer and
         # the AMD pieces of the target board. Module-capable for nvidia-open later.
-        extra=(KFENCE MODULES MODULE_UNLOAD BLK_DEV_NVME ATA SATA_AHCI VIRTIO_PCI VIRTIO_BLK VIRTIO_NET
+        extra=(KFENCE PSI MODULES MODULE_UNLOAD BLK_DEV_NVME ATA SATA_AHCI VIRTIO_PCI VIRTIO_BLK VIRTIO_NET
                USB_XHCI_HCD USB_STORAGE USB_HID HID_GENERIC EXT4_FS VFAT_FS EFI EFI_STUB DRM DRM_SIMPLEDRM
                SYSFB_SIMPLEFB CPU_SUP_AMD MICROCODE_AMD X86_AMD_PSTATE AMD_IOMMU EROFS_FS EFI_PARTITION
                BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 NTFS3_FS
@@ -32,7 +32,7 @@ case $perfil in
         # by one and init waited ~1.6 s for it (evidencias/pc-real/dmesg-*). That protects spinning
         # disks from a power surge; this PC has only SSDs, so the ports are scanned in parallel.
         cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
-        required=(KFENCE MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS FB_DEVICE OVERLAY_FS EROFS_FS_ZIP VIRTIO_BLK USER_NS) ;;
+        required=(KFENCE PSI MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS FB_DEVICE OVERLAY_FS EROFS_FS_ZIP VIRTIO_BLK USER_NS) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
                UBSAN_BOOL PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR DEBUG_ATOMIC_SLEEP)
@@ -87,10 +87,11 @@ audit=$(mktemp -d "$user/elf-produccion.XXXXXXXX")
 for name in init caja ultra-raiz ultra-red-contadores ultra-recursos-contadores minas; do
     python "$lab/auditar-elf-produccion.py" "$user/$name" --out "$audit/$name"
 done
+python "$lab/inspeccionar-custodia-hex.py" "$user/ultra-recursos-contadores" "$audit/hex-recursos" main
 sha256sum "${init_src[@]}" "$lab/raiz.c" "$lab/red.c" "$lab/recursos.c" "$lab/guardian/produccion/ultra_custodia.c" "$lab/guardian/produccion/ultra_owner.c" "$lab/caja/caja.c" \
     "$lab/guardian/produccion/ultra_guard.c" "$lab/guardian/produccion/ultra_guard.h" \
     "$lab/guardian/produccion/ultra_custodia.h" "$lab/guardian/produccion/ultra_owner.h" "$lab/guardian/produccion/ultra_string.h" "$lab/guardian/produccion/perfil-gcc.sh" \
-    "$lab/auditar-elf-produccion.py" "$lab/build-baseline.sh" > "$audit/fuentes.sha256"
+    "$lab/auditar-elf-produccion.py" "$lab/inspeccionar-custodia-hex.py" "$lab/inspeccionar-asm-hex.py" "$lab/build-baseline.sh" > "$audit/fuentes.sha256"
 tar -C "$audit" -czf "$user/elf-produccion.tar.gz" .
 printf '%s
 ' "$(gcc --version | head -n 1)" "revision: ${ULTRA_WARN[*]} -O0 -fanalyzer / -O2"     "produccion: ${ULTRA_WARN[*]} ${ULTRA_PROD[*]} ${userflags[*]} -static-pie" "$GLIBC_TUNABLES" > "$user/guardianes.txt"
@@ -127,6 +128,10 @@ for option in 64BIT PRINTK TTY VT VT_CONSOLE VGA_CONSOLE FONT_8x16 INPUT INPUT_K
     "$src/scripts/config" --file "$out/.config" --enable "$option"
 done
 "$src/scripts/config" --file "$out/.config" --set-str INITRAMFS_SOURCE "$out/initramfs.list" --set-str LSM landlock --enable INITRAMFS_COMPRESSION_NONE --disable SLUB_TINY --disable DEBUG_INFO --disable DEBUG_INFO_BTF --disable WERROR
+if [[ $perfil == generico || $perfil == pc ]]; then
+    # The resource observer requires real system PSI, not missing files/NA.
+    "$src/scripts/config" --file "$out/.config" --disable PSI_DEFAULT_DISABLED
+fi
 [[ $modules = yes ]] || "$src/scripts/config" --file "$out/.config" --disable MODULES
 # CMDLINE_OVERRIDE: only the built-in line. Without it, the EFI stub appends the firmware's load
 # options: an F11 entry copied from Windows Boot Manager passed "WINDOWS" to the kernel.
@@ -139,6 +144,10 @@ for option in 64BIT SERIAL_8250_CONSOLE BINFMT_ELF BLK_DEV_INITRD VT_CONSOLE POS
     grep -qx "CONFIG_${option}=y" "$out/.config" || { echo "ROJO: falta CONFIG_$option"; exit 1; }
 done
 grep -qx 'CONFIG_LSM="landlock"' "$out/.config" || { echo 'ROJO: Landlock no esta en la lista de LSM activos'; exit 1; }
+if [[ $perfil == generico || $perfil == pc ]]; then
+    ! grep -qx 'CONFIG_PSI_DEFAULT_DISABLED=y' "$out/.config" || { echo 'ROJO: PSI desactivado al arrancar'; exit 1; }
+    [[ $cmdline != *psi=0* ]] || { echo 'ROJO: linea de comandos desactiva PSI'; exit 1; }
+fi
 targets=(bzImage); [[ $modules = yes ]] && targets+=(modules)
 make -C "$src" O="$out" ARCH=x86_64 CC=gcc HOSTCC=gcc -j"$(nproc)" "${targets[@]}"
 if [[ $modules = yes ]]; then

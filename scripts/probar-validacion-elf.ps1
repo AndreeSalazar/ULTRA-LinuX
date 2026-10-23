@@ -42,15 +42,18 @@ foreach($mode in @('recursos-ausente','recursos-distinto')){
     $lines | Set-Content -LiteralPath $manifest -Encoding ascii
     Reject $case 'ausente|incompatible'
 }
-foreach($mode in @('estado-fallido','regla-ausente')){
+foreach($mode in @('estado-fallido','regla-ausente','hex-distinto','hex-sin-contraste')){
     $case=Fixture $mode
     $unpack=Join-Path $case 'contenido'
     New-Item -ItemType Directory -Path $unpack | Out-Null
     & tar.exe -xf (Join-Path $case 'elf-produccion.tar.gz') -C $unpack
     if($LASTEXITCODE){throw 'No se pudo preparar fixture'}
-    $reportPath=Join-Path $unpack 'init/informe.json'
+    $reportPath=Join-Path $unpack $(if($mode -like 'hex-*'){'hex-recursos/informe.json'}else{'init/informe.json'})
     $report=Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
-    if($mode -eq 'estado-fallido'){$report.Status='FAIL'}else{$report.Rules=@($report.Rules | Where-Object {$_ -ne 'NO-WX-LOAD'})}
+    if($mode -eq 'estado-fallido'){$report.Status='FAIL'}
+    elseif($mode -eq 'regla-ausente'){$report.Rules=@($report.Rules | Where-Object {$_ -ne 'NO-WX-LOAD'})}
+    elseif($mode -eq 'hex-distinto'){$report.BinarySHA256='0'*64}
+    else{$report.Symbols[0].ELFBytesMatch=$false}
     $report | ConvertTo-Json -Depth 9 | Set-Content -LiteralPath $reportPath -Encoding utf8
     & tar.exe -czf (Join-Path $case 'elf-produccion.tar.gz') -C $unpack .
     if($LASTEXITCODE){throw 'No se pudo empaquetar fixture'}
@@ -60,4 +63,4 @@ foreach($mode in @('estado-fallido','regla-ausente')){
     $lines | Set-Content -LiteralPath $manifest -Encoding ascii
     Reject $case 'incompatible|falta la regla'
 }
-Write-Output 'VALIDACION-ELF-OK: control valido y siete rechazos; sin escribir A: ni ejecutar binarios Linux.'
+Write-Output 'VALIDACION-ELF-OK: control valido y nueve rechazos; sin escribir A: ni ejecutar binarios Linux.'

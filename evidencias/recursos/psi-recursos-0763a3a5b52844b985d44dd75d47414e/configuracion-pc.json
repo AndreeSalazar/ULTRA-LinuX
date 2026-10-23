@@ -1,0 +1,8 @@
+{
+  "profile": "pc",
+  "psi": true,
+  "default_disabled": false,
+  "config_sha256": "45f784e6a79bbb88c808d8851c89fd2b43bc3fc0030f990c5e6d40e2ed33d9da",
+  "source_bytes_match": true,
+  "reader_sha256": "a7e349f6537c9f8cdef97c89cd6e020432f889af442236cb2b4572a762d06da9"
+}

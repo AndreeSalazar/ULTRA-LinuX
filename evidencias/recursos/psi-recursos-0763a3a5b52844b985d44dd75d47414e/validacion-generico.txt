@@ -1,0 +1,11 @@
+VERDE [ELF]: seis ejecutables auditados y HEX del lector ligados al manifiesto.
+RECHAZO-OK: archivo-alterado
+RECHAZO-OK: hash-init-distinto
+RECHAZO-OK: hash-ambiguo
+RECHAZO-OK: recursos-ausente
+RECHAZO-OK: recursos-distinto
+RECHAZO-OK: estado-fallido
+RECHAZO-OK: regla-ausente
+RECHAZO-OK: hex-distinto
+RECHAZO-OK: hex-sin-contraste
+VALIDACION-ELF-OK: control valido y nueve rechazos; sin escribir A: ni ejecutar binarios Linux.

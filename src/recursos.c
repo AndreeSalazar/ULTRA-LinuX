@@ -105,6 +105,7 @@ int main(int argc, char **argv) {
         if (!snapshot(input, stdout, i==0)) puts(i==0 ? "MEM NA" : "VM NA");
         if (input) fclose(input);
     }
+    if (fflush(stdout) == EOF) return 1;
     return ferror(stdout) ? 1 : 0;
 }
 #endif

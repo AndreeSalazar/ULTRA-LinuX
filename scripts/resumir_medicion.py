@@ -4,10 +4,16 @@ import csv
 import json
 import pathlib
 import re
-import sys
+import argparse
+from recursos_intervalos import summarize_resources
 
 def summarize(path):
-    text = path.read_text(errors='replace')
+    # Reports contain counters, not an unlimited log ingestion interface.
+    with path.open('rb') as stream:
+        raw = stream.read(32*1024*1024+1)
+    if len(raw) > 32*1024*1024:
+        raise ValueError('informe mayor que el limite de 32 MiB')
+    text = raw.decode('utf-8', errors='replace').replace('\r\n', '\n').replace('\r', '\n')
     def field(name):
         match = re.search(rf'^{name}=(.+)$', text, re.M)
         return match.group(1).strip() if match else None
@@ -54,11 +60,18 @@ def summarize(path):
             'ram_sistema_estimada_MiB': bounds(ram), 'pss_UID1000_MiB': bounds(pss),
             'cpu_sistema_ocupada_pct': bounds(cpu),
             'gpu': gpus or None,
+            'recursos': summarize_resources(text),
             'alcance': 'Maximos muestreados; no picos absolutos ni memoria exclusiva de Hyprland. VRAM total del dispositivo.'}
 
 if __name__ == '__main__':
-    folder = pathlib.Path(sys.argv[1])
+    parser = argparse.ArgumentParser(description='Resume informes ULTRA sin modificarlos ni ajustar el sistema.')
+    parser.add_argument('origen', type=pathlib.Path, help='Archivo de informe o carpeta de informes')
+    folder = parser.parse_args().origen
+    if not folder.exists():
+        parser.error('el archivo o carpeta no existe')
     # Prefer mode-specific copies to avoid counting the legacy alias twice.
     variants = sorted(folder.glob('gpu-*-*-hyprland.txt')) + sorted(folder.glob('gpu-*-*-cage.txt'))
-    files = variants or sorted(p for p in folder.glob('gpu-*.txt') if not p.name.startswith('gpu-fallo-'))
+    files = [folder] if folder.is_file() else (variants or sorted(p for p in folder.glob('gpu-*.txt') if not p.name.startswith('gpu-fallo-')))
+    if len(files) > 64:
+        raise SystemExit('limite de 64 informes por consulta; seleccionar una carpeta menor')
     print(json.dumps([summarize(path) for path in files], ensure_ascii=False, indent=2))
