@@ -1,5 +1,7 @@
 # Custodia: secuencias adversas, paginas protegidas y mutaciones
 
+Siguiente frontera: [reglas para medir y demostrar rendimiento](REGLAS-RENDIMIENTO.md).
+
 2026-10-23, America/Lima. Ampliacion del [prototipo C](CUSTODIA-PROTOTIPO.md),
 sin modificar su implementacion ni el kernel. Las nuevas pruebas estan en
 `src/guardian/laboratorio/custodia/`; se ejecutan desde campo-custodia.sh.

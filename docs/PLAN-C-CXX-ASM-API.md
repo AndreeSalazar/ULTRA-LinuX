@@ -1,7 +1,8 @@
 # Metas de C, C++, ASM y APIs
 
-Marco de trabajo: [Escritura, Caza UB y Fluidez](CATEGORIAS-GUARDIANES.md).
+Marco de trabajo: [Escritura, Caza UB, Fluidez y Custodia](CATEGORIAS-GUARDIANES.md).
 Cada entrega distingue correccion, coste e integracion en un consumidor.
+Reglas y estado para medir/optimizar: [rendimiento](REGLAS-RENDIMIENTO.md).
 
 2026-10-23, America/Lima. El trabajo combina correccion, endurecimiento,
 aislamiento y medicion. Los guardianes ejecutan reglas definidas; las pruebas
