@@ -2,7 +2,7 @@
 
 Fecha de revision: 2026-10-22, America/Lima.
 
-- [Tareas](tareas-graficas.csv): 19 registros con prioridad, dependencia,
+- [Tareas](tareas-graficas.csv): 20 registros con prioridad, dependencia,
   criterio de cierre, evidencia, siguiente accion y limites. Prioridad 1 es
   trabajo previo o importante; prioridad 2 es ampliacion posterior. El estado
   describe el alcance probado, no un nivel universal de seguridad.

@@ -8,6 +8,7 @@ dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSI
 swaybg -i /etc/ultra/wallpaper.svg -m fill &
 waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/waybar.css &
 mako --config /etc/ultra/mako.conf &
+ultra-pantallas restaurar >> "$XDG_RUNTIME_DIR/ultra-pantallas-inicio.log" 2>&1 &
 foot --title=ULTRA-Bienvenida /usr/bin/less /etc/ultra/AYUDA.txt &
 foot --title=ULTRA-Terminal &
 wait

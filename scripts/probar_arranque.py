@@ -433,12 +433,15 @@ def check_hyprland(conn, failures):
             transcript += response('VULKAN-CUBO-45')
             cube = wait_apps(lambda apps: any('vkcube' in (a.get('class', '') + ' ' + a.get('title', '')).lower() for a in apps))
             expect(bool(cube), 'Vulkan: cubo Wayland mapeado con validacion por proceso')
-            time.sleep(13)
-            conn.sendall(b'ultra-entrar /usr/bin/cat /home/ultra/.cache/ultra/vulkan-cubo.log; echo VULKAN-CUBO-FIN-$((40+6))\n')
-            cube_log = response('VULKAN-CUBO-FIN-46')
-            transcript += cube_log
-            expect('llvmpipe' in cube_log.lower() and 'Validation Error' not in cube_log,
-                   'Vulkan: cubo CPU sin errores de validacion reportados')
+            for _ in range(35):
+                conn.sendall(b'ultra-entrar /usr/bin/cat /home/ultra/.cache/ultra/vulkan-cubo.log; echo VULKAN-CUBO-FIN-$((40+6))\n')
+                cube_log = response('VULKAN-CUBO-FIN-46')
+                transcript += cube_log
+                if 'ULTRA_CUBO codigo_salida=' in cube_log: break
+                time.sleep(1)
+            expect('llvmpipe' in cube_log.lower() and 'Validation Error' not in cube_log and
+                   'ULTRA_CUBO codigo_salida=0' in cube_log,
+                   'Vulkan: cubo CPU cierra normalmente y sin errores de validacion')
         transcript += run(conn, [('test -n "$(pidof mako)" && test -f /arch/usr/share/icons/Papirus-Dark/index.theme && ultra-entrar /usr/bin/fc-match "Font Awesome 7 Free:charset=f120" | grep -q "[.]otf" && echo BMO-ICONOS-$((10+2))', 'BMO-ICONOS-12')], failures)
         for wanted in (1, 0):
             mon.sendall(b'sendkey meta_l-shift-a\n')
@@ -649,6 +652,55 @@ def check_hyprland(conn, failures):
         bg = response('FONDO-FIN-7')
         transcript += bg
         expect('FONDO-4' in bg, 'Hyprland: fondo vectorial activo')
+        # Transfer only test code to this fresh VM. No personal storage is attached.
+        encoded = base64.b64encode((ROOT / 'scripts/pantallas-nativo.py').read_bytes()).decode()
+        conn.sendall(b': > /arch/tmp/pantallas-nativo.b64; echo PANTALLAS-PREP-$((6+1))\n')
+        transcript += response('PANTALLAS-PREP-7')
+        # BusyBox's serial input line is bounded; keep transfer commands short.
+        for offset in range(0, len(encoded), 200):
+            conn.sendall(("printf '%s' '" + encoded[offset:offset+200] +
+                          "' >> /arch/tmp/pantallas-nativo.b64; echo PANTALLAS-COPIA-$((6+1))\n").encode())
+            transcript += response('PANTALLAS-COPIA-7')
+        conn.sendall(b'base64 -d /arch/tmp/pantallas-nativo.b64 > /arch/tmp/pantallas-nativo.py; chmod 644 /arch/tmp/pantallas-nativo.py; echo PANTALLAS-ARCHIVO-$((6+1))\n')
+        transcript += response('PANTALLAS-ARCHIVO-7')
+        code = 'hl.exec_cmd("python /tmp/pantallas-nativo.py > /run/user/1000/pantallas-prueba.log 2>&1")'
+        conn.sendall(('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval ' +
+                      "'"+code+"'; echo PANTALLAS-INICIO-$((6+1))\n").encode())
+        transcript += response('PANTALLAS-INICIO-7')
+        for _ in range(35):
+            conn.sendall(b'ultra-entrar /usr/bin/cat /run/user/1000/pantallas-prueba.log; echo PANTALLAS-RESULTADO-$((6+1))\n')
+            result = response('PANTALLAS-RESULTADO-7')
+            transcript += result
+            if 'PANTALLAS_PRUEBA_OK' in result or 'Traceback' in result: break
+            time.sleep(1)
+        for marker, label in [('PANTALLAS_CANCEL_OK', 'cancelar restaura el modo real'),
+                              ('PANTALLAS_CONFIRM_OK', 'confirmar aplica y guarda el modo real'),
+                              ('PANTALLAS_ESCALA_OK', 'escala 1.25 verificada por IPC real'),
+                              ('PANTALLAS_RESTORE_OK', 'perfil guardado reaplicado con el comando restaurar'),
+                              ('PANTALLAS_PRUEBA_OK', 'configuracion original restaurada')]:
+            expect(marker in result, 'Pantallas: ' + label)
+        mon.sendall(b'sendkey meta_l-p\n')
+        time.sleep(1)
+        transcript += run(conn, [('test -n "$(pidof fuzzel)" && echo PANTALLAS-MENU-$((6+1))', 'PANTALLAS-MENU-7')], failures)
+        panel_capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-pantallas.png'
+        panel_capture.unlink(missing_ok=True)
+        mon.sendall(f'screendump {panel_capture} -f png\n'.encode())
+        for _ in range(50):
+            try:
+                from PIL import Image
+                with Image.open(panel_capture) as shot: shot.verify()
+                break
+            except (OSError, SyntaxError): time.sleep(.1)
+        else: raise ValueError('captura de pantallas incompleta')
+        shutil.copyfile(panel_capture, LOG.with_name(LOG.stem + '-pantallas.png'))
+        with Image.open(panel_capture).convert('RGB') as shot:
+            # QEMU can return a valid PNG containing only its inactive-output
+            # message. IPC state and PNG validity do not prove visible desktop.
+            vivid = sum(1 for r, g, b in shot.resize((160, 100)).getdata()
+                        if max(r, g, b) - min(r, g, b) > 25)
+        expect(vivid > 100, 'Pantallas: selector visible tras restaurar el modo')
+        mon.sendall(b'sendkey esc\n')
+        time.sleep(.5)
         mon.sendall(b'sendkey meta_l-3\n')
         time.sleep(2)
         background = pathlib.Path(tempfile.gettempdir()) / 'ultra-neon-fondo.png'

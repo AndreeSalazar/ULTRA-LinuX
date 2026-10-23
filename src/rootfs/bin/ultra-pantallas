@@ -1,0 +1,279 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Per-output Hyprland controls, with an independent confirmation watchdog."""
+import fcntl
+import json
+import math
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import time
+import uuid
+
+DEADLINE = 20
+NAME = re.compile(r'[A-Za-z0-9_.:-]{1,64}\Z')
+MODE = re.compile(r'([1-9][0-9]{0,4})x([1-9][0-9]{0,4})@([0-9]+(?:\.[0-9]+)?)\Z')
+
+
+def invoke(arguments, timeout=4, **kwargs):
+    return subprocess.run(arguments, text=True, capture_output=True, timeout=timeout, **kwargs)
+
+
+def monitors():
+    result = invoke(['hyprctl', '-j', 'monitors'])
+    if result.returncode or len(result.stdout) > 262144:
+        raise ValueError('No se pudo consultar Hyprland')
+    outputs = json.loads(result.stdout)
+    if not isinstance(outputs, list) or not outputs:
+        raise ValueError('No hay pantallas activas')
+    return outputs
+
+
+def valid(setting):
+    if not isinstance(setting, dict) or not NAME.fullmatch(str(setting.get('output', ''))):
+        raise ValueError('Nombre de pantalla no valido')
+    mode = setting.get('mode', '')
+    match = MODE.fullmatch(mode) if isinstance(mode, str) else None
+    if mode != 'preferred' and (not match or not 1 <= float(match[3]) <= 1000):
+        raise ValueError('Modo de pantalla no valido')
+    scale = setting.get('scale')
+    if type(scale) not in (int, float) or not math.isfinite(scale) or not .5 <= scale <= 3:
+        raise ValueError('Escala fuera de rango')
+    if not re.fullmatch(r'-?[0-9]{1,6}x-?[0-9]{1,6}', str(setting.get('position', ''))):
+        raise ValueError('Posicion no valida')
+    if type(setting.get('transform')) is not int or not 0 <= setting['transform'] <= 7:
+        raise ValueError('Transformacion no valida')
+    return {key: setting[key] for key in ('output', 'mode', 'position', 'scale', 'transform')}
+
+
+def snapshot(output):
+    return valid(dict(output=output['name'],
+        mode=f"{output['width']}x{output['height']}@{float(output['refreshRate']):.5f}",
+        position=f"{int(output['x'])}x{int(output['y'])}", scale=output['scale'],
+        transform=output.get('transform', 0)))
+
+
+def supported(output):
+    modes = []
+    for raw in output.get('availableModes', []):
+        mode = raw.removesuffix('Hz') if isinstance(raw, str) else ''
+        match = MODE.fullmatch(mode)
+        if match:
+            mode = f'{match[1]}x{match[2]}@{float(match[3]):.5f}'
+        if match and mode not in modes:
+            modes.append(mode)
+    current = snapshot(output)['mode']
+    if not modes:
+        modes.append(current)  # Headless outputs may report no mode list.
+    return modes
+
+
+def apply(setting):
+    setting = valid(setting)
+    fields = ','.join(key + '=' + (json.dumps(value) if isinstance(value, str) else str(value))
+                      for key, value in setting.items())
+    result = invoke(['hyprctl', 'eval', 'hl.monitor({' + fields + '})'])
+    if result.returncode or 'error' in result.stdout.lower():
+        raise ValueError('Hyprland rechazo el ajuste: ' + result.stdout[:200])
+
+
+def matches(setting, output):
+    if setting['output'] != output['name'] or abs(float(output['scale']) - setting['scale']) > .01:
+        return False
+    if output.get('transform', 0) != setting['transform']:
+        return False
+    if setting['mode'] == 'preferred':
+        return True
+    match = MODE.fullmatch(setting['mode'])
+    return (int(match[1]) == output['width'] and int(match[2]) == output['height'] and
+            abs(float(match[3]) - float(output['refreshRate'])) < .7)
+
+
+def choose(options, prompt, timeout=None):
+    try:
+        result = invoke(['fuzzel', '--dmenu', '--prompt=' + prompt,
+                         '--lines=' + str(min(12, len(options)))],
+                        timeout=timeout, input='\n'.join(options) + '\n')
+    except subprocess.TimeoutExpired:
+        return None
+    if result.returncode:
+        return None
+    try:
+        index = options.index(result.stdout.strip())
+    except ValueError:
+        return None
+    return index if 0 <= index < len(options) else None
+
+
+def atomic_json(path, value):
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    temporary = path.with_name('.' + path.name + '-' + uuid.uuid4().hex)
+    try:
+        with temporary.open('x', encoding='utf-8') as stream:
+            os.chmod(temporary, 0o600)
+            json.dump(value, stream)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def profiles(path):
+    if not path.exists():
+        return {}
+    if path.stat().st_size > 65536:
+        raise ValueError('Perfil demasiado grande')
+    data = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(data, dict) or data.get('version') != 1 or not isinstance(data.get('outputs'), dict) or len(data['outputs']) > 32:
+        raise ValueError('Perfil no compatible')
+    result = {}
+    for name, setting in data['outputs'].items():
+        checked = valid(setting)
+        if name != checked['output']:
+            raise ValueError('Perfil con nombres inconsistentes')
+        result[name] = checked
+    return result
+
+
+def rollback(pending):
+    with pending.with_suffix('.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if not pending.exists():
+            return
+        state = json.loads(pending.read_text(encoding='utf-8'))
+        apply(state['old'])
+        pending.unlink()
+        print('Ajuste anterior recuperado', flush=True)
+
+
+def watchdog(pending, runtime):
+    if pending.parent != runtime or not re.fullmatch(r'cambio-[a-f0-9]{32}\.json', pending.name):
+        raise ValueError('Transaccion no valida')
+    if not pending.exists():
+        return
+    state = json.loads(pending.read_text(encoding='utf-8'))
+    delay = float(state['deadline']) - time.monotonic()
+    if not 0 <= delay <= DEADLINE + 1:
+        rollback(pending)
+        return
+    time.sleep(delay)
+    rollback(pending)
+
+
+def change(old, new, runtime, profile):
+    old, new = valid(old), valid(new)
+    pending = runtime / ('cambio-' + uuid.uuid4().hex + '.json')
+    deadline = time.monotonic() + DEADLINE
+    atomic_json(pending, dict(old=old, deadline=deadline))
+    watcher = None
+    try:
+        with (runtime / 'recuperacion.log').open('a') as log:
+            watcher = subprocess.Popen([sys.executable, str(Path(__file__).resolve()), '--vigilar', str(pending)],
+                             stdin=subprocess.DEVNULL, stdout=log, stderr=log,
+                             start_new_session=True, close_fds=True)
+        apply(new)
+        # Read back actual compositor state; accepting an IPC command is insufficient.
+        applied = False
+        for _ in range(8):
+            if any(matches(new, output) for output in monitors()):
+                applied = True
+                break
+            time.sleep(.25)
+        if not applied:
+            raise ValueError('El modo solicitado no quedo activo')
+        remaining = max(1, deadline - time.monotonic() - 1)
+        selected = choose(['Conservar y guardar', 'Volver al ajuste anterior'],
+                          '¿Se ve bien? / ', timeout=remaining)
+        with pending.with_suffix('.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            if (selected == 0 and pending.exists() and time.monotonic() < deadline and
+                    any(matches(new, o) for o in monitors())):
+                saved = profiles(profile)
+                saved[new['output']] = new
+                atomic_json(profile, dict(version=1, outputs=saved))
+                pending.unlink()
+                print('Ajuste confirmado y guardado')
+                return True
+        rollback(pending)
+        return False
+    finally:
+        # Also recover on exceptions. The detached watcher covers process termination.
+        rollback(pending)
+        if not pending.exists():
+            if watcher is not None and watcher.poll() is None:
+                watcher.terminate()
+                watcher.wait(timeout=2)
+            pending.with_suffix('.lock').unlink(missing_ok=True)
+
+
+def main():
+    if os.getuid() != 1000 or not os.environ.get('HYPRLAND_INSTANCE_SIGNATURE'):
+        raise ValueError('Abrir dentro de la sesion Hyprland de ultra')
+    runtime = Path(os.environ['XDG_RUNTIME_DIR']) / 'ultra-pantallas'
+    runtime.mkdir(mode=0o700, exist_ok=True)
+    os.chmod(runtime, 0o700)
+    profile = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config'))) / 'ultra/pantalla.json'
+    action = sys.argv[1] if len(sys.argv) > 1 else 'menu'
+    if action == '--vigilar' and len(sys.argv) == 3:
+        watchdog(Path(sys.argv[2]), runtime)
+        return
+    if action not in ('menu', 'restaurar', 'listar'):
+        raise ValueError('Uso: ultra-pantallas [menu|restaurar|listar]')
+    with (runtime / 'seleccion.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise ValueError('Ya hay un cambio de pantalla en curso')
+        for stale in runtime.glob('cambio-*.json'):
+            rollback(stale)
+        outputs = monitors()
+        if action == 'listar':
+            print(json.dumps(outputs, indent=2))
+            return
+        if action == 'menu':
+            selected = choose(['Cambiar resolucion y escala', 'Recuperar ajustes guardados'], 'Pantallas / ')
+            if selected is None:
+                return
+            if selected == 1:
+                action = 'restaurar'
+        if action == 'restaurar':
+            if not profile.exists():
+                return
+            saved = profiles(profile)
+            for output in outputs:
+                new = saved.get(output['name'])
+                if new is None:
+                    continue
+                if new['mode'] != 'preferred' and new['mode'] not in supported(output):
+                    print('Modo guardado no disponible: ' + output['name'])
+                    continue
+                change(snapshot(output), new, runtime, profile)
+            return
+        else:
+            selected = choose([o['name'] + ' / ' + str(o['width']) + 'x' + str(o['height']) for o in outputs], 'Pantalla / ')
+            if selected is None:
+                return
+            output = outputs[selected]
+            modes = ['preferred'] + supported(output)
+            selected = choose(['Nativa recomendada'] + modes[1:], 'Resolucion y Hz / ')
+            if selected is None:
+                return
+            new = snapshot(output)
+            new['mode'] = modes[selected]
+            scales = [1, 1.25, 1.5, 1.75, 2, 2.5, 3]
+            selected = choose([str(s) + 'x' for s in scales], 'Tamano de interfaz / ')
+            if selected is None:
+                return
+            new['scale'] = scales[selected]
+        change(snapshot(output), new, runtime, profile)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError) as error:
+        print('No se pudo cambiar la pantalla: ' + str(error), file=sys.stderr)
+        sys.exit(1)

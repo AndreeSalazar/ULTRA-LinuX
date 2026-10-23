@@ -129,6 +129,7 @@ Super es la tecla Windows. En la consola, `e` abre el menú con flechas y Enter.
 | Super + E / N | Archivos / editor |
 | Super + B / G | Brave / diagnóstico GPU del navegador |
 | Super + Shift + G | Informe OpenGL/Vulkan y cubo con validación opcional |
+| Super + P | [Pantallas](docs/PANTALLAS.md): resolución, Hz, escala y recuperación del ajuste anterior |
 | Super + Shift + E | Archivos de Windows en el NVMe, solo lectura |
 | Super + A | Audio maestro, salida, silencio y boost opcional hasta 150 % |
 | Super + J | Steam, Heroic, Cyberpunk y espacio |

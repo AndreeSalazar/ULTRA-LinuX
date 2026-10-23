@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=ULTRA Pantallas y resolucion
+Exec=ultra-pantallas menu
+Icon=preferences-desktop-display
+Categories=Settings;HardwareSettings;

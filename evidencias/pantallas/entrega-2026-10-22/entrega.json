@@ -1,0 +1,33 @@
+{
+  "qemu_pc_verde": 132,
+  "zona": "America/Lima",
+  "perfiles": [
+    {
+      "destino": "A:/EFI/ULTRA/ULTRA.EFI",
+      "sha256": "1e4f4121ee8d6de8268480c45568aa9b26d6ea663000dcb87591817be4b73af5",
+      "origen": "build/generico/bzImage-tiny64"
+    },
+    {
+      "destino": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+      "sha256": "276a5706cbe5f9346bd6328d9e319dffa4d5baf9a1040cb3161b94499c280a00",
+      "origen": "build/pc/bzImage-tiny64"
+    },
+    {
+      "destino": "A:/ULTRA/sistema-7.3.0-rc7-g32c52ec87d62.erofs",
+      "sha256": "f142d65fd4dff12676b00c34e0c0d22221c4cfc0164cae08737b0bf0a20e172d",
+      "origen": "build/generico/sistema-a.erofs"
+    },
+    {
+      "destino": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+      "sha256": "39f27658c63f3630ab45ba600a7268d4b286bc08b82025828a757b35d4cac0bc",
+      "origen": "build/pc/sistema-a.erofs"
+    }
+  ],
+  "fecha": "2026-10-22",
+  "qemu_generico_verde": 131,
+  "qemu_rojo": 0,
+  "kernel_conservado": true,
+  "datos_sha256_despues": "9d15db669eee41d495aa514697ea324ca7dc3bd1357a0cbf8f3ae94c5ffb9a74",
+  "datos_sha256_antes": "9d15db669eee41d495aa514697ea324ca7dc3bd1357a0cbf8f3ae94c5ffb9a74",
+  "pruebas_unitarias": 6
+}

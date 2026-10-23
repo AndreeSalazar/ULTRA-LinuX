@@ -1,0 +1,27 @@
+0d22bab080d4ccc4abef41030f79120e7f71cb48c08540db4894d0dc6ae967aa  ultra-pantallas
+f8bce6c9053b56504d7feb58ad77946be4ed83364343184d04e4b7f591f1ba6f  probar-pantallas.py
+Python 3.14.8
+Ajuste confirmado y guardado
+Ajuste anterior recuperado
+Ajuste anterior recuperado
+test_confirm_cancel_and_failed_readback (__main__.Screens.test_confirm_cancel_and_failed_readback) ... ok
+test_modes_and_injection (__main__.Screens.test_modes_and_injection) ... ok
+test_profiles (__main__.Screens.test_profiles) ... ok
+test_readback (__main__.Screens.test_readback) ... ok
+test_save_preserves_other_monitor (__main__.Screens.test_save_preserves_other_monitor) ... ok
+test_watchdog_survives_killed_parent (__main__.Screens.test_watchdog_survives_killed_parent) ... FAIL
+
+======================================================================
+FAIL: test_watchdog_survives_killed_parent (__main__.Screens.test_watchdog_survives_killed_parent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/builder/linux-reconstruido/pantallas-85724ef694ae437ab2f339c0753838b6/probar-pantallas.py", line 137, in test_watchdog_survives_killed_parent
+    self.assertFalse(list((root/'runtime/ultra-pantallas').glob('cambio-*.json')))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: [PosixPath('/tmp/tmpad998o82/runtime/ultra-pantallas/cambio-329df8e95e674dd6bf05fb6b77e69fed.json')] is not false
+
+----------------------------------------------------------------------
+Ran 6 tests in 20.162s
+
+FAILED (failures=1)
+Ajuste confirmado y guardado

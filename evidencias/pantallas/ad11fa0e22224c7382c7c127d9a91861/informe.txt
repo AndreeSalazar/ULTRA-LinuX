@@ -1,0 +1,16 @@
+0d22bab080d4ccc4abef41030f79120e7f71cb48c08540db4894d0dc6ae967aa  ultra-pantallas
+0d2012e7319dc19185d078862923d17837c64bd39dd4b35c5424218d0e0b3e75  probar-pantallas.py
+Python 3.14.8
+Ajuste confirmado y guardado
+Ajuste anterior recuperado
+Ajuste anterior recuperado
+test_confirm_cancel_and_failed_readback (__main__.Screens.test_confirm_cancel_and_failed_readback) ... ok
+test_modes_and_injection (__main__.Screens.test_modes_and_injection) ... ok
+test_profiles (__main__.Screens.test_profiles) ... ok
+test_readback (__main__.Screens.test_readback) ... ok
+test_watchdog_survives_killed_parent (__main__.Screens.test_watchdog_survives_killed_parent) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 20.257s
+
+OK

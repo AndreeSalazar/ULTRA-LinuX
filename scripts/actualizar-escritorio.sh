@@ -4,6 +4,8 @@
 set -euo pipefail
 perfil=${1:?generico o pc}
 [[ $perfil == generico || $perfil == pc ]] || exit 2
+modo=${2:-completo}
+[[ $modo == completo || $modo == fuentes ]] || exit 2
 base="$HOME/linux-reconstruido"
 art="$base/artifacts/$perfil"
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
@@ -19,18 +21,23 @@ release=$(cat kernelrelease.txt)
 [[ $release =~ ^[0-9A-Za-z.+_-]+$ ]] || exit 2
 kernel_before=$(sha256sum bzImage-tiny64)
 rm -f build-complete
+if [[ $modo == completo ]]; then
 sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
     -S --needed --noconfirm papirus-icon-theme otf-font-awesome mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
 if sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -Q woff2-font-awesome >/dev/null 2>&1; then
     sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -R --noconfirm woff2-font-awesome
 fi
+fi
+{ find "$lab/rootfs/bin" "$lab/rootfs/desktop" -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum;
+  sha256sum "$lab/actualizar-escritorio.sh"; } > fuentes-escritorio.sha256
 sudo install -m 0644 "$lab/rootfs/desktop/"* "$art/sistema-a/etc/ultra/"
+sudo install -m 0644 fuentes-escritorio.sha256 "$art/sistema-a/etc/ultra/escritorio-fuentes.sha256"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$art/sistema-a/usr/local/bin/ultra-ambiente"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-hyprland" "$art/sistema-a/usr/local/libexec/ultra-hyprland"
 for helper in ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/libexec/$helper"
 done
-for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas; do
+for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas ultra-pantallas; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/bin/$helper"
 done
 for helper in "$lab/rootfs/bin/"*; do
@@ -82,6 +89,7 @@ done
 mv -f sistema-nuevo.erofs sistema-a.erofs
 [[ $(sha256sum bzImage-tiny64) == "$kernel_before" ]]
 mapfile -t paths < <(awk '{print $2}' SHA256SUMS)
+if ! printf '%s\n' "${paths[@]}" | grep -qx fuentes-escritorio.sha256; then paths+=(fuentes-escritorio.sha256); fi
 sha256sum "${paths[@]}" > SHA256SUMS.nuevo
 mv -f SHA256SUMS.nuevo SHA256SUMS
 sha256sum --check --status SHA256SUMS

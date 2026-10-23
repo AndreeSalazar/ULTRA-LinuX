@@ -9,6 +9,7 @@ SUPER + N           Editor de texto (Mousepad)
 SUPER + B           Brave y pagina local de pruebas
 SUPER + G           Diagnostico GPU de Brave
 SUPER + Shift + G   Graficos: informe Vulkan/OpenGL, cubo y validacion
+SUPER + P           Pantallas: resolucion, Hz y escala por monitor
 SUPER + Shift + E   Abrir Windows NVMe en solo lectura (/windows)
 SUPER + H           Esta ayuda
 SUPER + Space       Centro BMO-X: aplicaciones y ambiente
@@ -30,6 +31,10 @@ El dock inferior abre Brave, archivos, terminal y editor con el raton.
 El boton BMO-X abre el centro con teclado; Escape lo cierra.
 En NVIDIA se activan animaciones breves, sombras y desenfoque ligero.
 El modo software inicia con efectos reducidos. Se pueden cambiar en el centro.
+Pantallas ofrece modos anunciados por el monitor y pide confirmar cada cambio.
+Si no confirmas, intenta volver al ajuste anterior en 20 segundos.
+Los ajustes confirmados se guardan en el home; al iniciar se prueban de nuevo
+con confirmacion. Sin home persistente se pierden al apagar.
 Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 
 Si D: y ULTRA-juegos.ext4 estan disponibles, el home es persistente en ext4.
