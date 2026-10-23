@@ -605,12 +605,37 @@ def check_hyprland(conn, failures):
         mon.sendall(b'sendkey esc\n')
         time.sleep(.4)
         transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo JUEGOS-CERRADO-$((10+8))', 'JUEGOS-CERRADO-18')], failures)
+        for number, color in enumerate(['00d4e8','2de2b8','76ff58','5298ff','ffc857','c49aff','ff657a'], 1):
+            mon.sendall(b'sendkey meta_l-spc\n'); time.sleep(.7)
+            mon.sendall(f'sendkey {number}\n'.encode()); time.sleep(.15)
+            mon.sendall(b'sendkey ret\n'); time.sleep(1)
+            category_capture = pathlib.Path(tempfile.gettempdir()) / f'ultra-categoria-{number}.png'
+            category_capture.unlink(missing_ok=True)
+            mon.sendall(f'screendump {category_capture} -f png\n'.encode())
+            for _ in range(50):
+                try:
+                    from PIL import Image
+                    with Image.open(category_capture) as shot: shot.verify()
+                    break
+                except (OSError, SyntaxError): time.sleep(.1)
+            else: raise ValueError('captura de categoria incompleta')
+            with Image.open(category_capture).convert('RGB') as shot:
+                target = tuple(int(color[i:i+2],16) for i in (0,2,4))
+                pixels = sum(count for count, rgb in shot.getcolors(shot.width*shot.height)
+                             if max(abs(a-b) for a,b in zip(rgb,target)) < 7)
+            expect(pixels > 40, f'Categoria {number}: color propio visible')
+            shutil.copyfile(category_capture,LOG.with_name(LOG.stem+f'-categoria-{number}.png'))
+            mon.sendall(b'sendkey esc\n'); time.sleep(.7)  # Submenu -> root.
+            transcript += run(conn, [('test -n "$(pidof fuzzel)" && echo CATEGORIA-RAIZ-$((1+1))', 'CATEGORIA-RAIZ-2')], failures)
+            mon.sendall(b'sendkey esc\n'); time.sleep(.5)
         # Drive the actual Super+Space menu. A fresh VM has no personal storage;
         # its first panel must explain the temporary HOME instead of closing.
         mon.sendall(b'sendkey meta_l-spc\n')
         time.sleep(.7)
         for key in ('d','i','s','c','o','s','ret'):
             mon.sendall(('sendkey '+key+'\n').encode()); time.sleep(.12)
+        time.sleep(.6)
+        mon.sendall(b'sendkey ret\n')  # First action in the Discos category.
         disk_apps = wait_apps(lambda apps: any(a.get('title')=='ULTRA / Discos y bibliotecas' for a in apps))
         expect(bool(disk_apps), 'Discos: Super+Space abre el panel')
         mon.sendall(b'sendkey esc\n'); time.sleep(.5)

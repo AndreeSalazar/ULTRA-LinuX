@@ -4,7 +4,7 @@ Super+J > **Elegir carpetas y discos** abre el gestor general. No esta limitado
 a Warframe ni a una ruta fija de Windows. Admite hasta 32 carpetas elegidas,
 identificadas por UUID del volumen y ruta relativa, no por letras C:/D:.
 
-El [panel de discos](DISCOS-PANEL.md), tambien disponible desde Super+Espacio,
+El [panel de discos](DISCOS-PANEL.md), tambien disponible desde Super+Espacio > Discos y bibliotecas > Panel,
 muestra estado y espacio en tiempo real y una revision automatica de un minuto.
 Pulsa 1 para abrir el selector de carpetas. Recuerda la ultima ruta visitada.
 

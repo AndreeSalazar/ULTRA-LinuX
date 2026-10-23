@@ -1,0 +1,14 @@
+PASS color y ruta: 1 Aplicaciones
+PASS color y ruta: 2 Discos y bibliotecas
+PASS color y ruta: 3 Juegos
+PASS color y ruta: 4 Pantalla y graficos
+PASS color y ruta: 5 Audio
+PASS color y ruta: 6 Ambiente
+PASS color y ruta: 7 Sistema y ayuda
+PASS Escape vuelve a raiz y conserva categoria
+PASS Volver no ejecuta acciones
+PASS entrada libre no se ejecuta
+PASS root rechazado
+RESULTADO: 11 controles
+49984569f8ed0ae345ff878128ecc6b3732e5a3ed8af398e38626d22c1229283  rootfs/bin/ultra-ambiente
+1a9032608ba264d179429588e5c67d710a70dbcb4c2f2fc3e0d379b5be8930da  rootfs/bin/ultra-juegos

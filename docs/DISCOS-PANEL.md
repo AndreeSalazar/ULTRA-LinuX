@@ -2,7 +2,7 @@
 
 2026-10-22, America/Lima.
 
-Super+Espacio > **Discos y bibliotecas** abre un panel que permanece visible y
+Super+Espacio > **Discos y bibliotecas > Panel de discos y preparacion** abre un panel que permanece visible y
 actualiza el estado cada segundo. Super+J > **Elegir carpetas y discos** abre
 el mismo panel. Usa 1 para elegir/quitar carpetas, 2 o R para revisar otro
 minuto, 3 para abrir una carpeta activa y Escape para volver. Flechas izquierda

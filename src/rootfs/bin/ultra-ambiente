@@ -5,24 +5,89 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 mode=${1:-menu}
 if [[ $mode == menu ]]; then
-    choice=$(printf '%s\n' 'Aplicaciones' 'Navegador Brave' 'Archivos' 'Discos y bibliotecas' 'Windows NVMe' 'Graficos Vulkan y OpenGL' 'Pantallas y resolucion' 'Terminal' 'Editor' 'Audio maestro' 'Juegos' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Ayuda' |
-        fuzzel --dmenu --prompt='BMO-X / ' --lines=15) || exit 0
+    category=raiz
+    remembered="${XDG_RUNTIME_DIR:?}/ultra-categoria"
+    previous=apps
+    [[ ! -f $remembered ]] || read -r previous < "$remembered" || true
+    pick() {
+        printf '%s\n' "$@" | fuzzel --dmenu --only-match --no-sort --width=48 \
+            --lines="$#" --prompt="$title / " --select-index="$index" \
+            --background-color=07101af5 --text-color=d9e8f0ff \
+            --selection-color=153141ff --selection-text-color=f0ffffff \
+            --border-color="$accent" --prompt-color="$accent" \
+            --match-color="$accent" --selection-match-color="$accent"
+    }
+    while true; do
+        index=0
+        case $category in
+            raiz)
+                title='BMO-X / Categorias'; accent=00d4e8ff
+                case $previous in apps) index=0;; discos) index=1;; juegos) index=2;; pantalla) index=3;; audio) index=4;; ambiente) index=5;; sistema) index=6;; esac
+                rows=('1 Aplicaciones' '2 Discos y bibliotecas' '3 Juegos' '4 Pantalla y graficos' '5 Audio' '6 Ambiente' '7 Sistema y ayuda');;
+            apps) title='Aplicaciones / CYAN'; accent=00d4e8ff
+                rows=('Buscar aplicaciones' 'Navegador Brave' 'Archivos' 'Terminal' 'Editor' 'Volver a categorias');;
+            discos) title='Discos / TURQUESA'; accent=2de2b8ff
+                rows=('Panel de discos y preparacion' 'Carpetas guardadas' 'Windows NVMe (solo lectura)' 'Explorar discos (solo lectura)' 'Volver a categorias');;
+            juegos) title='Juegos / VERDE'; accent=76ff58ff
+                rows=('Steam' 'GOG / Heroic' 'Warframe / Steam' 'Cyberpunk 2077' 'Preparar Warframe de Windows' 'Espacio y estado de juegos' 'Volver a categorias');;
+            pantalla) title='Pantalla / AZUL'; accent=5298ffff
+                rows=('Resolucion, Hz y escala' 'Informe Vulkan y OpenGL' 'Cubo Vulkan' 'Cubo Vulkan con validacion' 'Volver a categorias');;
+            audio) title='Audio / AMBAR'; accent=ffc857ff
+                rows=('Salidas y volumen por aplicacion' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Volver a categorias');;
+            ambiente) title='Ambiente / VIOLETA'; accent=c49affff
+                rows=('Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Volver a categorias');;
+            sistema) title='Sistema / ROJO'; accent=ff657aff
+                rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Volver a categorias');;
+            *) exit 2;;
+        esac
+        if ! choice=$(pick "${rows[@]}"); then
+            [[ $category != raiz ]] || exit 0
+            category=raiz; continue
+        fi
+        if [[ $category == raiz ]]; then
+            case $choice in
+                '1 Aplicaciones') category=apps;; '2 Discos y bibliotecas') category=discos;;
+                '3 Juegos') category=juegos;; '4 Pantalla y graficos') category=pantalla;;
+                '5 Audio') category=audio;; '6 Ambiente') category=ambiente;;
+                '7 Sistema y ayuda') category=sistema;; *) exit 0;;
+            esac
+            previous=$category
+            (umask 077; printf '%s\n' "$category" > "$remembered")
+            continue
+        fi
+        [[ $choice != 'Volver a categorias' ]] || { category=raiz; continue; }
+        break
+    done
     case $choice in
-        Aplicaciones) exec fuzzel;;
+        'Buscar aplicaciones') exec fuzzel --border-color=00d4e8ff;;
         'Navegador Brave') exec ultra-brave;;
         Archivos) exec thunar;;
-        'Discos y bibliotecas') exec foot --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
-        'Windows NVMe') exec ultra-windows;;
-        'Graficos Vulkan y OpenGL') exec ultra-graficos menu;;
-        'Pantallas y resolucion') exec ultra-pantallas menu;;
+        'Panel de discos y preparacion') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
+        'Carpetas guardadas') exec foot --hold /usr/local/bin/ultra-bibliotecas estado;;
+        'Windows NVMe (solo lectura)') exec ultra-windows;;
+        'Explorar discos (solo lectura)') exec thunar /discos;;
+        'Resolucion, Hz y escala') exec ultra-pantallas menu;;
+        'Informe Vulkan y OpenGL') exec foot --hold /usr/local/bin/ultra-graficos informe;;
+        'Cubo Vulkan') exec ultra-graficos cubo;;
+        'Cubo Vulkan con validacion') exec ultra-graficos validar;;
         Terminal) exec foot;;
         Editor) exec mousepad;;
-        'Audio maestro') exec ultra-audio menu;;
-        Juegos) exec ultra-juegos menu;;
+        Steam) exec ultra-juegos steam;;
+        'GOG / Heroic') exec ultra-juegos gog;;
+        'Warframe / Steam') exec ultra-juegos warframe;;
+        'Cyberpunk 2077') exec ultra-juegos cyberpunk;;
+        'Preparar Warframe de Windows') exec foot --hold /usr/local/bin/ultra-steam-warframe;;
+        'Espacio y estado de juegos'|'RAM, GPU y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;;
+        'Registros de juegos') exec foot --hold /usr/local/bin/ultra-juegos registros;;
+        'Salidas y volumen por aplicacion') exec pavucontrol;;
+        'Subir volumen') exec ultra-audio subir;; 'Bajar volumen') exec ultra-audio bajar;;
+        Silencio) exec ultra-audio silencio;; 'Volumen 100%') exec ultra-audio normal;;
+        'Amplificar 125%') exec ultra-audio boost125;; 'Amplificar 150%') exec ultra-audio boost150;;
+        'Estado del audio') exec foot --hold /usr/local/bin/ultra-audio estado;;
         'Efectos vivos') mode=vivo;;
         'Efectos reducidos') mode=sobrio;;
         'Limpiar notificaciones') exec makoctl dismiss -a;;
-        Ayuda) exec foot /usr/bin/less /etc/ultra/AYUDA.txt;;
+        'Ayuda y atajos') exec foot /usr/bin/less /etc/ultra/AYUDA.txt;;
         *) exit 0;;
     esac
 fi

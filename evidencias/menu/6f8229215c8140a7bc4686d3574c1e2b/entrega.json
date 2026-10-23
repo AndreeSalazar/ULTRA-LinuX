@@ -1,0 +1,24 @@
+{
+  "fecha": "2026-10-23",
+  "zona": "America/Lima",
+  "perfiles": [
+    {
+      "perfil": "generico",
+      "kernel_sha256": "1e4f4121ee8d6de8268480c45568aa9b26d6ea663000dcb87591817be4b73af5",
+      "sistema_sha256": "0b2453fdd303aa5ca0a681b7909d33da0e36633a1cb5f746fad477db8d6673ae",
+      "qemu_verde": 150,
+      "qemu_rojo": 0
+    },
+    {
+      "perfil": "pc",
+      "kernel_sha256": "276a5706cbe5f9346bd6328d9e319dffa4d5baf9a1040cb3161b94499c280a00",
+      "sistema_sha256": "ca5e6a228a631fb8b68b384dd7c3f057da9db322476ca2a49c3fdcfac5e9f8e0",
+      "qemu_verde": 151,
+      "qemu_rojo": 0
+    }
+  ],
+  "datos_sha256_antes": "e0b263e1d1b953d6e1677fac5b26add145c899d7f10455529cf8ebfb81b42d2f",
+  "datos_sha256_despues": "e0b263e1d1b953d6e1677fac5b26add145c899d7f10455529cf8ebfb81b42d2f",
+  "pruebas_menu": 11,
+  "colores_qemu": 7
+}
