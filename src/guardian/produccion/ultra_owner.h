@@ -14,4 +14,9 @@ enum ultra_owner_status ultra_owner_alloc(struct ultra_owner *pool, size_t size,
 enum ultra_owner_status ultra_owner_free(struct ultra_owner *pool, ultra_handle handle) __attribute__((warn_unused_result));
 enum ultra_owner_status ultra_owner_read(struct ultra_owner *pool, ultra_handle handle, size_t offset, void *out, size_t size) __attribute__((warn_unused_result));
 enum ultra_owner_status ultra_owner_write(struct ultra_owner *pool, ultra_handle handle, size_t offset, const void *src, size_t size) __attribute__((warn_unused_result));
+/* Check both internal bounds and the supplied external capacity. Capacity must
+ * describe a real, live object; these calls cannot validate arbitrary pointers.
+ * RANGE/ARGUMENT/STALE failures leave the destination unchanged. */
+enum ultra_owner_status ultra_owner_read_bounded(struct ultra_owner *pool, ultra_handle handle, size_t offset, void *out, size_t capacity, size_t size) __attribute__((warn_unused_result));
+enum ultra_owner_status ultra_owner_write_bounded(struct ultra_owner *pool, ultra_handle handle, size_t offset, const void *src, size_t capacity, size_t size) __attribute__((warn_unused_result));
 #endif

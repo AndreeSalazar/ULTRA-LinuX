@@ -1,0 +1,59 @@
+=================================================================
+==2==ERROR: AddressSanitizer: heap-use-after-free on address 0x7b844d7e0050 at pc 0x7f644f729a22 bp 0x7ffe57c1e230 sp 0x7ffe57c1d9d8
+READ of size 8 at 0x7b844d7e0050 thread T0
+    #0 0x7f644f729a21 in memcpy (/usr/lib/libasan.so.8+0x129a21) (BuildId: b8a4241051a1621937fdc46e867ba7ecb56d96ea)
+    #1 0x55b97b8e774c in ultra_owner_write /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/produccion/ultra_owner.c:59
+    #2 0x55b97b8e77ab in ultra_owner_write_bounded /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/produccion/ultra_owner.c:70
+    #3 0x55b97b8e6a61 in main /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/laboratorio/punteros-limites.c:31
+    #4 0x7f644ea27780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #5 0x7f644ea278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #6 0x55b97b8e61c4 in _start (/minas/limites+0x31c4) (BuildId: 0ed37c3a9780b02d9ee48a56378ba0ae364be9bb)
+
+0x7b844d7e0050 is located 0 bytes inside of 8-byte region [0x7b844d7e0050,0x7b844d7e0058)
+freed by thread T0 here:
+    #0 0x7f644f72ae91  (/usr/lib/libasan.so.8+0x12ae91) (BuildId: b8a4241051a1621937fdc46e867ba7ecb56d96ea)
+    #1 0x55b97b8e6a27 in main /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/laboratorio/punteros-limites.c:30
+    #2 0x7f644ea27780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x7f644ea278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #4 0x55b97b8e61c4 in _start (/minas/limites+0x31c4) (BuildId: 0ed37c3a9780b02d9ee48a56378ba0ae364be9bb)
+
+previously allocated by thread T0 here:
+    #0 0x7f644f72c0c1 in malloc (/usr/lib/libasan.so.8+0x12c0c1) (BuildId: b8a4241051a1621937fdc46e867ba7ecb56d96ea)
+    #1 0x55b97b8e6a17 in main /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/laboratorio/punteros-limites.c:28
+    #2 0x7f644ea27780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x7f644ea278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #4 0x55b97b8e61c4 in _start (/minas/limites+0x31c4) (BuildId: 0ed37c3a9780b02d9ee48a56378ba0ae364be9bb)
+
+SUMMARY: AddressSanitizer: heap-use-after-free /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/produccion/ultra_owner.c:59 in ultra_owner_write
+Shadow bytes around the buggy address:
+  0x7b844d7dfd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b844d7dfe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b844d7dfe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b844d7dff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b844d7dff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7b844d7e0000: fa fa 00 fa fa fa 00 fa fa fa[fd]fa fa fa fa fa
+  0x7b844d7e0080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b844d7e0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b844d7e0180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b844d7e0200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b844d7e0280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==2==ABORTING

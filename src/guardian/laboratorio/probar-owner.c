@@ -30,6 +30,18 @@ int main(void) {
         CHECK(h != old);
         CHECK(ultra_owner_read(p, old, 0, out, 8) == UO_STALE);
         CHECK(ultra_owner_write(p, h, 0, data, 8) == UO_OK);
+        unsigned char tiny[3] = {0xa5, 0xa5, 0xa5};
+        CHECK(ultra_owner_read_bounded(p, h, 0, tiny, sizeof(tiny), 8) == UO_RANGE);
+        CHECK(tiny[0] == 0xa5 && tiny[1] == 0xa5 && tiny[2] == 0xa5);
+        CHECK(ultra_owner_write_bounded(p, h, 0, tiny, sizeof(tiny), 8) == UO_RANGE);
+        CHECK(ultra_owner_read(p, h, 0, out, 8) == UO_OK && memcmp(out, data, 8) == 0);
+        CHECK(ultra_owner_read_bounded(p, h, SIZE_MAX, out, sizeof(out), 1) == UO_RANGE);
+        CHECK(ultra_owner_read_bounded(p, h, 0, out, sizeof(out), SIZE_MAX) == UO_RANGE);
+        CHECK(ultra_owner_read_bounded(p, h, 8, NULL, 0, 0) == UO_OK);
+        CHECK(ultra_owner_write_bounded(p, h, 8, NULL, 0, 0) == UO_OK);
+        CHECK(ultra_owner_read_bounded(p, h, 0, NULL, 1, 1) == UO_ARGUMENT);
+        CHECK(ultra_owner_write_bounded(p, h, 0, data, sizeof(data), 8) == UO_OK);
+        CHECK(ultra_owner_read_bounded(p, h, 0, out, sizeof(out), 8) == UO_OK && memcmp(out, data, 8) == 0);
         for (size_t off = 0; off <= 9; ++off) for (size_t n = 0; n <= 9; ++n) {
             memset(out, 0xa5, sizeof(out));
             enum ultra_owner_status want = off <= 8 && n <= 8 - off ? UO_OK : UO_RANGE;
@@ -56,6 +68,7 @@ int main(void) {
         memset(out, 0xa5, sizeof(out));
         CHECK(ultra_owner_read(p, h, 0, out, 8) == UO_STALE && out[0] == 0xa5);
         CHECK(ultra_owner_write(p, h, 0, data, 8) == UO_STALE);
+        CHECK(ultra_owner_read_bounded(p, h, 0, out, sizeof(out), 8) == UO_STALE);
         CHECK(ultra_owner_free(p, h) == UO_STALE);
         CHECK(ultra_owner_read(p, old, 0, out, 8) == UO_STALE);
         old = h;

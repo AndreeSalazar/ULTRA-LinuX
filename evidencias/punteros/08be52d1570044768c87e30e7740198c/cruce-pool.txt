@@ -1,0 +1,1 @@
+LIMITACION_CONFIRMADA: handle ajeno coincide; falta identidad del pool

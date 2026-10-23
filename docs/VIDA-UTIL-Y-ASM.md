@@ -83,3 +83,8 @@ Siguiente: escoger un consumidor con propiedad real de objetos, medir su coste
 y migrarlo con pruebas; ampliar agotamiento de generaciones, contratos entre
 pools e hilos; despues verificar desenrollado/CET e inline ASM por separado.
 Antes de desplegar, reconstruir imagen y validar arranque nativo.
+
+Ampliacion 2026-10-23: [plan y auditoria de punteros](PLAN-C-CXX-ASM-API.md).
+Agrega read/write bounded con capacidad externa y pruebas de sus rechazos.
+El cruce entre pools y el acceso a buffers/pools destruidos siguen sin quedar
+protegidos automaticamente. La biblioteca sigue sin consumidor de produccion.

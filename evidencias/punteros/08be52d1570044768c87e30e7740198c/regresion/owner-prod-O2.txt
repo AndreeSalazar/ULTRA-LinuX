@@ -1,0 +1,2 @@
+OWNER-OK: 1000 ciclos, matriz de limites, handles caducados, doble liberacion, agotamiento y fallo de asignacion
+COMPROBACIONES: 656023

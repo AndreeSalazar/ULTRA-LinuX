@@ -59,3 +59,13 @@ enum ultra_owner_status ultra_owner_write(struct ultra_owner *p, ultra_handle h,
     if (n) memcpy(s->data + off, src, n);
     return UO_OK;
 }
+
+enum ultra_owner_status ultra_owner_read_bounded(struct ultra_owner *p, ultra_handle h, size_t off, void *out, size_t capacity, size_t n) {
+    if (n > capacity) return UO_RANGE;
+    return ultra_owner_read(p, h, off, out, n);
+}
+
+enum ultra_owner_status ultra_owner_write_bounded(struct ultra_owner *p, ultra_handle h, size_t off, const void *src, size_t capacity, size_t n) {
+    if (n > capacity) return UO_RANGE;
+    return ultra_owner_write(p, h, off, src, n);
+}

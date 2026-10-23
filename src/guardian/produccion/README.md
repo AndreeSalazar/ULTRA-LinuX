@@ -45,3 +45,8 @@ El kernel tiene reglas distintas de compilacion:
 Promocion desde laboratorio: regla concreta, fixture invalido, control valido,
 pruebas en los perfiles relevantes y evidencia revisada. Las banderas o
 concesiones de syscalls no se aprenden ni cambian automaticamente.
+
+`ultra_owner_read_bounded` y `ultra_owner_write_bounded` comprueban tambien la
+capacidad externa declarada. Son API candidatas sin consumidor desplegado;
+no validan direcciones arbitrarias, pools destruidos ni handles de otro pool.
+Plan y evidencia: [punteros, C++, ASM y APIs](../../../docs/PLAN-C-CXX-ASM-API.md).

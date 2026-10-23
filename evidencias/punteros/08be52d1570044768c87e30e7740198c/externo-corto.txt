@@ -1,0 +1,55 @@
+=================================================================
+==2==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7b0c4aaf0073 at pc 0x7f0c4dd29714 bp 0x7fff730678d0 sp 0x7fff73067078
+WRITE of size 8 at 0x7b0c4aaf0073 thread T0
+    #0 0x7f0c4dd29713 in memcpy (/usr/lib/libasan.so.8+0x129713) (BuildId: b8a4241051a1621937fdc46e867ba7ecb56d96ea)
+    #1 0x55fdf0650589 in ultra_owner_read /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/produccion/ultra_owner.c:51
+    #2 0x55fdf064f996 in main /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/laboratorio/punteros-limites.c:26
+    #3 0x7f0c4d027780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #4 0x7f0c4d0278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #5 0x55fdf064f1c4 in _start (/minas/limites+0x31c4) (BuildId: 0ed37c3a9780b02d9ee48a56378ba0ae364be9bb)
+
+Address 0x7b0c4aaf0073 is located in stack of thread T0 at offset 115 in frame
+    #0 0x55fdf064f2a8 in main /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/laboratorio/punteros-limites.c:9
+
+  This frame has 6 object(s):
+    [48, 56) 'ha' (line 13)
+    [80, 88) 'hb' (line 13)
+    [112, 115) 'tiny' (line 25) <== Memory access at offset 115 overflows this variable
+    [128, 136) 'data' (line 16)
+    [160, 168) 'out' (line 19)
+    [192, 200) 'out' (line 33)
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism, swapcontext or vfork
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow /home/builder/linux-reconstruido/punteros-08be52d1570044768c87e30e7740198c/guardian/produccion/ultra_owner.c:51 in ultra_owner_read
+Shadow bytes around the buggy address:
+  0x7b0c4aaefd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b0c4aaefe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b0c4aaefe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b0c4aaeff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b0c4aaeff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7b0c4aaf0000: f1 f1 f1 f1 f1 f1 00 f2 f2 f2 00 f2 f2 f2[03]f2
+  0x7b0c4aaf0080: 00 f2 f2 f2 00 f2 f2 f2 00 f3 f3 f3 f3 f3 f3 f3
+  0x7b0c4aaf0100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b0c4aaf0180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b0c4aaf0200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b0c4aaf0280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07 
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==2==ABORTING

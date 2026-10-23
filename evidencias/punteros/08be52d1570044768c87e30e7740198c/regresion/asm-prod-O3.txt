@@ -1,0 +1,1 @@
+ASM-OK: 1000 ciclos; ABI correcta, seis registros alterados, alineacion incorrecta y recuperacion

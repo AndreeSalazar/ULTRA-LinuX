@@ -1,5 +1,9 @@
 # Plan de mejoras: C, ASM, C++, graficos y juegos
 
+Actualizacion 2026-10-23: [prioridades actuales y primera auditoria de punteros](PLAN-C-CXX-ASM-API.md).
+La tabla de etapas conserva el plan inicial; la ampliacion enlazada registra
+capacidades externas probadas y limites reproducidos, sin consumidor nuevo en A:.
+
 Fecha: 2026-10-22. Estado: **cadenas, handles C y primer banco ASM verificados en el taller;
 integracion de propiedad y las siguientes etapas pendientes**. Ver [resultado y limites](CADENAS-ACOTADAS.md).
 La [puerta ELF](ELF-PRODUCCION.md) ya forma parte de build/instalacion;

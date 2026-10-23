@@ -246,6 +246,7 @@ después, conservando compatibilidad y aislamiento.
 - [Primera entrega C: cadenas acotadas y controles QEMU](docs/CADENAS-ACOTADAS.md)
 - [Instalacion del guardian y auditoria completa de ronda 10](docs/GUARDIAN-INSTALACION.md)
 - [Vida util con handles y primer banco ASM: ronda 11](docs/VIDA-UTIL-Y-ASM.md)
+- [Prioridades C/C++/ASM/API y auditoria de choques de punteros](docs/PLAN-C-CXX-ASM-API.md)
 - [Contratos HEX/ELF obligatorios en la construccion e instalacion](docs/ELF-PRODUCCION.md)
 - [Reloj de Peru, formato regional y sincronizacion por internet](docs/HORA-PERU.md)
 - [Plan de mejoras: C, ASM, C++, OpenGL, Vulkan, Proton y recuperacion](docs/PLAN-MEJORAS-SISTEMAS.md)

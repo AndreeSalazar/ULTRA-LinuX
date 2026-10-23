@@ -88,3 +88,9 @@ Referencia: [instrumentación oficial de GCC](https://gcc.gnu.org/onlinedocs/gcc
 Ronda 11: [handles con propietario y banco ASM](VIDA-UTIL-Y-ASM.md) agregan
 rechazo de handles caducados dentro de un pool vivo y controles de ABI. No cierran
 los huecos globales de UAF, concurrencia ni punteros crudos del catalogo anterior.
+
+2026-10-23: [auditoria de punteros y metas](PLAN-C-CXX-ASM-API.md). Las variantes
+bounded del owner rechazan copias mayores que la capacidad externa declarada.
+Tres controles ASan y un cruce-pool reproducen limites que siguen abiertos;
+no se reclasifican como protegidas las minas historicas. API candidata sin
+consumidor desplegado en esta ronda.
