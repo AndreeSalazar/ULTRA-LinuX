@@ -1,5 +1,7 @@
 # CPU, RAM y SSD: diagnostico dirigido y fluidez
 
+Investigacion complementaria: [ruta rapida de operaciones y syscalls](RUTA-RAPIDA-SYSCALLS.md).
+
 2026-10-23, America/Lima. Alcance de esta ronda: investigar, exponer metricas y
 preparar comparaciones. No altera GPU, frecuencias, voltajes, swap, colas de
 disco ni parametros de memoria. No es una nueva build instalada en A:.
