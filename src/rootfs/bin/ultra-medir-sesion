@@ -19,6 +19,9 @@ user_query() {
         /usr/bin/env -i HOME=/home/ultra XDG_RUNTIME_DIR=/run/user/1000 PATH=/usr/bin LANG=C \
         timeout -k 1 2 "$@"
 }
+if [[ ! -e $stop ]]; then
+    user_query /usr/local/libexec/ultra-medir-recursos --inventario || printf 'INVENTARIO NA consulta_fallida_o_timeout\n'
+fi
 completed=0
 for ((sample=0;sample<120;sample++)); do
     [[ ! -e $stop ]] || break

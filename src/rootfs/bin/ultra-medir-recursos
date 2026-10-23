@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # One bounded, read-only snapshot. No device opens, tuning or privileged tools.
 set -uo pipefail
-[[ $# == 0 ]] || exit 2
+mode=snapshot
+if [[ $# == 1 && $1 == --inventario ]]; then mode=inventario
+elif [[ $# != 0 ]]; then exit 2; fi
 shopt -s nullglob
 printf 'ULTRA RECURSOS v1 solo_lectura=1 contadores=acumulados\n'
 emit() {
@@ -13,6 +15,39 @@ emit() {
         printf '%s %s=NA\n' "$group" "$key"
     fi
 }
+if [[ $mode == inventario ]]; then
+    printf 'INVENTARIO RECURSOS v1 deteccion_actual=1 ajustes_automaticos=0\n'
+    emit EQUIPO kernel /proc/sys/kernel/osrelease
+    # Only the first logical CPU; no serials, hostnames or firmware UUIDs.
+    if [[ -r /proc/cpuinfo ]]; then
+        while IFS=: read -r key value; do
+            [[ -n $key ]] || break
+            key=${key//[$' \t']/}
+            case "$key" in
+                vendor_id|modelname|cpufamily|model|stepping|siblings|cpucores)
+                    printf 'IDENTIDAD_CPU %s=%s\n' "$key" "$value";;
+            esac
+        done < /proc/cpuinfo
+    else printf 'IDENTIDAD_CPU NA\n'; fi
+    emit TOPOLOGIA cpu_online /sys/devices/system/cpu/online
+    emit TOPOLOGIA numa_online /sys/devices/system/node/online
+    caches=0
+    for cache in /sys/devices/system/cpu/cpu0/cache/index*; do
+        [[ -d $cache ]] || continue
+        ((caches < 8)) || break
+        ((caches+=1))
+        for key in level type size coherency_line_size shared_cpu_list; do
+            emit "CACHE indice=${cache##*/}" "$key" "$cache/$key"
+        done
+    done
+    printf 'CACHE indices_mostrados=%s limite=8 cpu_referencia=0\n' "$caches"
+    printf 'CAPACIDAD ram_tipo_fisico=NA\n'
+    printf 'CAPACIDAD ram_tipo_nota=no_inferir_DDR_ECC_o_canales_desde_meminfo\n'
+    emit CAPACIDAD psi_cpu /proc/pressure/cpu
+    emit CAPACIDAD psi_memoria /proc/pressure/memory
+    emit CAPACIDAD psi_io /proc/pressure/io
+    # Fall through to the bounded snapshot: contains RAM size and block devices.
+fi
 emit RELOJ uptime_idle_s /proc/uptime
 emit CPU loadavg /proc/loadavg
 for resource in cpu memory io; do
@@ -65,6 +100,24 @@ for disk in /sys/block/*; do
     [[ -d $disk ]] || continue
     ((disks < 32)) || break
     ((disks+=1))
+    if [[ $mode == inventario ]]; then
+        for key in vendor model; do
+            emit "IDENTIDAD_BLOQUE dispositivo=${disk##*/}" "$key" "$disk/device/$key"
+        done
+        emit "IDENTIDAD_BLOQUE dispositivo=${disk##*/}" sectores_512 "$disk/size"
+        emit "IDENTIDAD_BLOQUE dispositivo=${disk##*/}" solo_lectura "$disk/ro"
+        case ${disk##*/} in
+            nvme*) family=nvme;; loop*) family=loop;; zram*) family=zram;; dm-*) family=device_mapper;; *) family=otro;;
+        esac
+        printf 'IDENTIDAD_BLOQUE dispositivo=%s familia_nombre=%s tipo_fisico_no_inferido=1\n' "${disk##*/}" "$family"
+        links=0
+        for slave in "$disk"/slaves/*; do
+            ((links < 16)) || break
+            ((links+=1))
+            printf 'CAPA dispositivo=%s inferior=%s\n' "${disk##*/}" "${slave##*/}"
+        done
+        printf 'CAPA dispositivo=%s inferiores_mostrados=%s limite=16\n' "${disk##*/}" "$links"
+    fi
     for key in rotational scheduler read_ahead_kb logical_block_size physical_block_size discard_max_bytes; do
         emit "BLOQUE dispositivo=${disk##*/}" "$key" "$disk/queue/$key"
     done

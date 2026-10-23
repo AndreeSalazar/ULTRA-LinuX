@@ -43,6 +43,7 @@ with tempfile.TemporaryDirectory() as directory:
         assert 'ULTRA RECURSOS v1 solo_lectura=1' in output
         assert 'MEM MemAvailable: 6144 kB' in output
         assert 'PSI recurso=memory NA' in output
+        assert output.count('INVENTARIO RECURSOS v1') == 1
         print('VERDE: snapshot de recursos integrado en sesion con el mismo procfs de prueba')
     assert 'usada_estimada_kB=2048' in output
     assert 'procesos=3 medidos=2 truncado=0 rss_suma_parcial_kB=220 pss_suma_parcial_kB=120' in output
@@ -61,5 +62,7 @@ with tempfile.TemporaryDirectory() as directory:
     assert 'procesos=128 medidos=' in run() and 'truncado=1' in run()
     print('VERDE: limite 128 procesos')
     (root / 'stop').touch()
-    assert 'fin_medicion muestras=0' in run()
+    stopped = run()
+    assert 'fin_medicion muestras=0' in stopped
+    assert 'INVENTARIO RECURSOS v1' not in stopped
     print('VERDE: parada previa sin atribuir una muestra inexistente')

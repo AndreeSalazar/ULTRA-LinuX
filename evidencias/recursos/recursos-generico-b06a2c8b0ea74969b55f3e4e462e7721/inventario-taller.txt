@@ -1,0 +1,141 @@
+ULTRA RECURSOS v1 solo_lectura=1 contadores=acumulados
+INVENTARIO RECURSOS v1 deteccion_actual=1 ajustes_automaticos=0
+EQUIPO kernel=7.2.11-arch1-1
+IDENTIDAD_CPU vendor_id= AuthenticAMD
+IDENTIDAD_CPU cpufamily= 25
+IDENTIDAD_CPU model= 33
+IDENTIDAD_CPU modelname= AMD Ryzen 5 5600X 6-Core Processor
+IDENTIDAD_CPU stepping= 2
+IDENTIDAD_CPU siblings= 4
+IDENTIDAD_CPU cpucores= 4
+TOPOLOGIA cpu_online=0-3
+TOPOLOGIA numa_online=0
+CACHE indices_mostrados=0 limite=8 cpu_referencia=0
+CAPACIDAD ram_tipo_fisico=NA
+CAPACIDAD ram_tipo_nota=no_inferir_DDR_ECC_o_canales_desde_meminfo
+CAPACIDAD psi_cpu=some avg10=0.00 avg60=0.11 avg300=0.05 total=309125
+CAPACIDAD psi_memoria=some avg10=0.00 avg60=0.00 avg300=0.00 total=0
+CAPACIDAD psi_io=some avg10=0.37 avg60=0.39 avg300=0.17 total=788555
+RELOJ uptime_idle_s=72.76 280.51
+CPU loadavg=0.02 0.01 0.00 1/154 571
+PSI recurso=cpu some avg10=0.00 avg60=0.11 avg300=0.05 total=309125
+PSI recurso=cpu full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+PSI recurso=memory some avg10=0.00 avg60=0.00 avg300=0.00 total=0
+PSI recurso=memory full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+PSI recurso=io some avg10=0.37 avg60=0.39 avg300=0.17 total=788555
+PSI recurso=io full avg10=0.36 avg60=0.35 avg300=0.14 total=695941
+MEM MemTotal: 4000240 kB
+MEM MemAvailable: 3589284 kB
+MEM Buffers: 1744 kB
+MEM Cached: 242904 kB
+MEM SwapCached: 0 kB
+MEM Unevictable: 48608 kB
+MEM Mlocked: 0 kB
+MEM SwapTotal: 524284 kB
+MEM SwapFree: 524284 kB
+MEM Dirty: 2716 kB
+MEM Writeback: 48 kB
+MEM AnonPages: 33168 kB
+MEM Shmem: 4692 kB
+MEM Slab: 54400 kB
+MEM SReclaimable: 11976 kB
+MEM SUnreclaim: 42424 kB
+MEM KernelStack: 2496 kB
+MEM PageTables: 3172 kB
+MEM AnonHugePages: 0 kB
+MEM HugePages_Total: 0 
+MEM HugePages_Free: 0 
+MEM Hugepagesize: 2048 kB
+VM workingset_refault_anon=0
+VM workingset_refault_file=0
+VM pgsteal_kswapd=0
+VM pgsteal_direct=0
+VM pgsteal_khugepaged=0
+VM pgsteal_proactive=0
+VM pgsteal_anon=0
+VM pgsteal_file=0
+VM pgscan_kswapd=0
+VM pgscan_direct=0
+VM pgscan_khugepaged=0
+VM pgscan_proactive=0
+VM pgscan_anon=0
+VM pgscan_file=0
+VM pswpin=0
+VM pswpout=0
+VM allocstall_dma=0
+VM allocstall_dma32=0
+VM allocstall_normal=0
+VM allocstall_movable=0
+VM allocstall_device=0
+VM pgfault=171864
+VM pgmajfault=134
+VM pgscan_direct_throttle=0
+VM oom_kill=0
+VM compact_stall=0
+VM compact_fail=0
+VM compact_success=0
+VM thp_fault_alloc=0
+VM thp_fault_fallback=0
+POLITICA swappiness=60
+POLITICA dirty_background_bytes=0
+POLITICA dirty_bytes=0
+POLITICA dirty_background_ratio=10
+POLITICA dirty_ratio=20
+POLITICA thp=[always] madvise never
+POLITICA thp_defrag=always defer defer+madvise [madvise] never
+POLITICA zswap=Y
+CPU politicas_mostradas=0 limite=16 frecuencia_unidad=kHz puede_ser_solicitada
+IDENTIDAD_BLOQUE dispositivo=fd0 vendor=NA
+IDENTIDAD_BLOQUE dispositivo=fd0 model=NA
+IDENTIDAD_BLOQUE dispositivo=fd0 sectores_512=8
+IDENTIDAD_BLOQUE dispositivo=fd0 solo_lectura=0
+IDENTIDAD_BLOQUE dispositivo=fd0 familia_nombre=otro tipo_fisico_no_inferido=1
+CAPA dispositivo=fd0 inferiores_mostrados=0 limite=16
+BLOQUE dispositivo=fd0 rotational=1
+BLOQUE dispositivo=fd0 scheduler=none [mq-deadline] kyber bfq 
+BLOQUE dispositivo=fd0 read_ahead_kb=128
+BLOQUE dispositivo=fd0 logical_block_size=512
+BLOQUE dispositivo=fd0 physical_block_size=512
+BLOQUE dispositivo=fd0 discard_max_bytes=0
+BLOQUE dispositivo=fd0 stat=       6        0       48      215        0        0        0        0        0      215      215        0        0        0        0        0        0
+IDENTIDAD_BLOQUE dispositivo=sr0 vendor=QEMU    
+IDENTIDAD_BLOQUE dispositivo=sr0 model=QEMU DVD-ROM    
+IDENTIDAD_BLOQUE dispositivo=sr0 sectores_512=132
+IDENTIDAD_BLOQUE dispositivo=sr0 solo_lectura=1
+IDENTIDAD_BLOQUE dispositivo=sr0 familia_nombre=otro tipo_fisico_no_inferido=1
+CAPA dispositivo=sr0 inferiores_mostrados=0 limite=16
+BLOQUE dispositivo=sr0 rotational=1
+BLOQUE dispositivo=sr0 scheduler=none [mq-deadline] kyber bfq 
+BLOQUE dispositivo=sr0 read_ahead_kb=256
+BLOQUE dispositivo=sr0 logical_block_size=2048
+BLOQUE dispositivo=sr0 physical_block_size=2048
+BLOQUE dispositivo=sr0 discard_max_bytes=0
+BLOQUE dispositivo=sr0 stat=      30        0      272        8        0        0        0        0        0        8        8        0        0        0        0        0        0
+IDENTIDAD_BLOQUE dispositivo=sr1 vendor=QEMU    
+IDENTIDAD_BLOQUE dispositivo=sr1 model=QEMU DVD-ROM    
+IDENTIDAD_BLOQUE dispositivo=sr1 sectores_512=2097151
+IDENTIDAD_BLOQUE dispositivo=sr1 solo_lectura=1
+IDENTIDAD_BLOQUE dispositivo=sr1 familia_nombre=otro tipo_fisico_no_inferido=1
+CAPA dispositivo=sr1 inferiores_mostrados=0 limite=16
+BLOQUE dispositivo=sr1 rotational=0
+BLOQUE dispositivo=sr1 scheduler=none [mq-deadline] kyber bfq 
+BLOQUE dispositivo=sr1 read_ahead_kb=128
+BLOQUE dispositivo=sr1 logical_block_size=512
+BLOQUE dispositivo=sr1 physical_block_size=512
+BLOQUE dispositivo=sr1 discard_max_bytes=0
+BLOQUE dispositivo=sr1 stat=       0        0        0        0        0        0        0        0        0        0        0        0        0        0        0        0        0
+IDENTIDAD_BLOQUE dispositivo=vda vendor=0x1af4
+IDENTIDAD_BLOQUE dispositivo=vda model=NA
+IDENTIDAD_BLOQUE dispositivo=vda sectores_512=134217728
+IDENTIDAD_BLOQUE dispositivo=vda solo_lectura=0
+IDENTIDAD_BLOQUE dispositivo=vda familia_nombre=otro tipo_fisico_no_inferido=1
+CAPA dispositivo=vda inferiores_mostrados=0 limite=16
+BLOQUE dispositivo=vda rotational=1
+BLOQUE dispositivo=vda scheduler=[none] mq-deadline kyber bfq 
+BLOQUE dispositivo=vda read_ahead_kb=8192
+BLOQUE dispositivo=vda logical_block_size=512
+BLOQUE dispositivo=vda physical_block_size=512
+BLOQUE dispositivo=vda discard_max_bytes=2147483136
+BLOQUE dispositivo=vda stat=    2536      337   286087     4119     1502       12    27552     1844        0     1162     6005        0        0        0        0       24       41
+BLOQUE dispositivos_mostrados=4 limite=32 no_sumar_capas=1
+fin_recursos snapshot_no_atomico=1 faltante_no_es_cero=1

@@ -48,3 +48,28 @@ with tempfile.TemporaryDirectory() as directory:
     print('VERDE: PSI, ausencia vs cero, contadores, politicas, limites 16/32 y fuentes intactas')
     assert subprocess.run(['bash', str(script), '--apply'], capture_output=True, timeout=5).returncode == 2
     print('VERDE: rechaza argumentos; no modo de aplicar ajustes')
+    put('sys/devices/system/cpu/online', '0-11\n')
+    put('sys/devices/system/node/online', '0\n')
+    put('sys/devices/system/cpu/cpu0/cache/index0/type', 'Data\n')
+    put('sys/devices/system/cpu/cpu0/cache/index0/size', '32K\n')
+    put('sys/block/fake0/device/model', 'Virtual Disk\n')
+    put('sys/block/fake0/size', '2097152\n')
+    put('sys/block/fake0/ro', '1\n')
+    for i in range(18):
+        put(f'sys/block/fake0/slaves/lower{i}', '')
+    for vendor, model in [('AuthenticAMD', 'AMD test'), ('GenuineIntel', 'Intel test')]:
+        put('proc/cpuinfo', f'processor\t: 0\nvendor_id\t: {vendor}\nmodel name\t: {model}\ncpu cores\t: 6\n\nprocessor : 1\nmodel name : SECOND_CPU_NOT_COLLECTED\n')
+        before = hashes()
+        result = subprocess.run(['bash', str(script), '--inventario'], capture_output=True, text=True, timeout=5)
+        assert result.returncode == 0, result.stderr
+        out = result.stdout
+        assert f'IDENTIDAD_CPU vendor_id= {vendor}' in out
+        assert f'IDENTIDAD_CPU modelname= {model}' in out
+        assert 'SECOND_CPU_NOT_COLLECTED' not in out
+        assert 'TOPOLOGIA cpu_online=0-11' in out
+        assert 'CAPACIDAD ram_tipo_fisico=NA' in out
+        assert 'IDENTIDAD_BLOQUE dispositivo=fake0 model=Virtual Disk' in out
+        assert 'IDENTIDAD_BLOQUE dispositivo=fake0 solo_lectura=1' in out
+        assert 'CAPA dispositivo=fake0 inferiores_mostrados=16 limite=16' in out
+        assert before == hashes()
+    print('VERDE: inventario AMD/Intel actual, cache, disco, capas acotadas y ausencia sin inventar DDR/ECC')

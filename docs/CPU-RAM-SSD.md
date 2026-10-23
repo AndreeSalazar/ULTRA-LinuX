@@ -55,7 +55,8 @@ que nunca vaya a existir. No se crean nuevas reservas en discos de Windows.
 ## Observador implementado
 
 `src/rootfs/bin/ultra-medir-recursos` obtiene una instantanea de solo lectura,
-sin argumentos ni herramientas privilegiadas. `ultra-medir-sesion` lo consulta
+sin argumentos para contadores, o con `--inventario` para identificacion;
+no usa herramientas privilegiadas. `ultra-medir-sesion` lo consulta
 como usuario ultra con su timeout existente de dos segundos por llamada; el
 constructor lo incluye en la proxima imagen. Se mantiene el limite de 120
 muestras y pausa minima de cinco segundos del observador de sesion.
@@ -94,6 +95,45 @@ Esto no es una prueba completa de reconstruccion o arranque de ULTRA.
 No aparece en una imagen anterior hasta reconstruirla y desplegarla. Aun debe
 medirse su coste y validarse el informe integrado en arranque nativo; no se
 declara monitorizacion permanente ni ganancia de FPS por agregar lecturas.
+
+## Deteccion adaptable en el perfil generico
+
+El constructor instala el mismo observador en generico y pc. El generico no
+usa las banderas znver3 del perfil pc; la identificacion lee el hardware donde
+se ejecuta, no reutiliza la consulta Windows ni presume Ryzen. Esta ronda no
+modifica el kernel ni su seleccion de drivers.
+
+La sesion obtiene un inventario una sola vez antes de muestrear. Incluye
+release del kernel, vendor/modelo/familia de la primera CPU logica, CPUs online,
+nodos NUMA online y hasta ocho indices de cache de cpu0. Publica hasta 32
+dispositivos de bloque con vendor/modelo si son legibles, capacidad en sectores
+de 512 bytes, estado de solo lectura y hasta 16 dispositivos inferiores por
+capa. Los campos de serie, UUID de firmware y hostname no se recogen.
+
+Las familias derivadas del nombre de dispositivo son solo orientativas. Un
+loop, zram o dispositivo virtual no se convierte en SSD porque rotational=0.
+El tipo DDR, ECC y canales no se deducen de meminfo: quedan desconocidos en
+este inventario sin una fuente adicional fiable. Los limites publicados pueden
+omitir hardware en equipos mayores o topologias heterogeneas.
+
+Al terminar, el informe conserva las capacidades y politicas observadas, no
+activa un ajuste al reconocer una marca. La deteccion es la entrada de Fluidez:
+primero medir presion y deltas bajo la carga real, despues comparar un ajuste
+compatible. No se afirma un cuello de botella ni una ganancia a partir del
+modelo de un componente.
+
+La deteccion se integra en el codigo de la proxima imagen generica; falta
+reconstruir/desplegar esa imagen y validarla en el PC. El taller verifica los
+casos de inventario y su integracion, no reemplaza ese arranque.
+
+[Evidencia de deteccion generica](../evidencias/recursos/recursos-generico-b06a2c8b0ea74969b55f3e4e462e7721/SHA256SUMS):
+pasan fixtures AMD e Intel, identidad de disco, capas acotadas, fuentes intactas,
+inventario unico por sesion y parada previa sin inventario. Tambien pasan la
+regresion de sesion, sintaxis y una consulta real en el taller dentro del timeout.
+Los datos de QEMU describen la CPU y dispositivos expuestos al invitado: un
+nombre Ryzen no convierte sus cuatro CPUs virtuales en la topologia fisica del
+host. Cero indices de cache mostrados significa que no se recogieron indices,
+no demuestra que el procesador carezca de cache.
 
 ## Orden para optimizar con los tres guardianes
 

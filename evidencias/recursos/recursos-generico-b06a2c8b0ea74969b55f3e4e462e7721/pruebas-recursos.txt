@@ -1,0 +1,3 @@
+VERDE: PSI, ausencia vs cero, contadores, politicas, limites 16/32 y fuentes intactas
+VERDE: rechaza argumentos; no modo de aplicar ajustes
+VERDE: inventario AMD/Intel actual, cache, disco, capas acotadas y ausencia sin inventar DDR/ECC
