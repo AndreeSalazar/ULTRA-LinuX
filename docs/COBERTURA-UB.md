@@ -94,3 +94,9 @@ bounded del owner rechazan copias mayores que la capacidad externa declarada.
 Tres controles ASan y un cruce-pool reproducen limites que siguen abiertos;
 no se reclasifican como protegidas las minas historicas. API candidata sin
 consumidor desplegado en esta ronda.
+# Identidad de pools, 2026-10-23
+
+La segunda ronda de punteros agrega rechazo de handles ajenos por identidad
+de pool y agotamiento sin reciclaje. API candidata, sin consumidor desplegado;
+no cierra globalmente la vida util ni las carreras de hilos. Detalles y evidencia
+en [plan de C/C++/ASM/API](PLAN-C-CXX-ASM-API.md).

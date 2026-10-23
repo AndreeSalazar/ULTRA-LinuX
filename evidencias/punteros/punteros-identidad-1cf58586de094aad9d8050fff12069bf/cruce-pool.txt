@@ -1,0 +1,1 @@
+CRUCE_RECHAZADO: handle ajeno no pertenece al pool

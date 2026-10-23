@@ -3,11 +3,16 @@
 #define ULTRA_OWNER_H
 #include <stddef.h>
 #include <stdint.h>
-/* Single-threaded pool. Pool must remain alive; do not mix handles between pools.
+/* Single-threaded access to each pool; the pool must remain alive.
+ * Foreign/stale handles are rejected. Tokens are opaque, process-local and
+ * not security capabilities. Do not serialize them or use them across fork.
+ * One linked implementation owns the ID namespace (not independent DSO copies).
  * No raw aliases escape. External buffers must be real, live spans. */
 struct ultra_owner;
 typedef uint64_t ultra_handle;
 enum ultra_owner_status { UO_OK, UO_ARGUMENT, UO_STALE, UO_RANGE, UO_FULL, UO_NOMEM };
+/* NULL on allocation failure or exhaustion of 268435455 lifetime pool IDs.
+ * IDs are never recycled, even after destroy. Existing pools remain usable. */
 struct ultra_owner *ultra_owner_create(void);
 void ultra_owner_destroy(struct ultra_owner *pool);
 enum ultra_owner_status ultra_owner_alloc(struct ultra_owner *pool, size_t size, ultra_handle *out) __attribute__((warn_unused_result));

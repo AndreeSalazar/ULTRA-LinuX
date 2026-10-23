@@ -1,0 +1,1 @@
+AGOTAMIENTO-OK: IDs sin reciclaje ni vuelta a cero; slot retirado; pools vivos utilizables

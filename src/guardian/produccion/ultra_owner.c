@@ -2,12 +2,23 @@
 #include "ultra_owner.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdatomic.h>
 #define SLOTS 16u
+#define POOL_ID_MAX (UINT32_MAX >> 4)
+/* Process-local IDs are never recycled. Exhaustion fails closed. */
+static _Atomic uint32_t last_pool_id;
 struct slot { unsigned char *data; size_t size; uint32_t generation; };
-struct ultra_owner { struct slot slots[SLOTS]; };
+struct ultra_owner { struct slot slots[SLOTS]; uint32_t id; };
 struct ultra_owner *ultra_owner_create(void) {
     struct ultra_owner *p = calloc(1, sizeof(*p));
-    if (p) for (size_t i = 0; i < SLOTS; ++i) p->slots[i].generation = 1;
+    if (!p) return NULL;
+    uint32_t previous = atomic_load_explicit(&last_pool_id, memory_order_relaxed);
+    do {
+        if (previous == POOL_ID_MAX) { free(p); return NULL; }
+    } while (!atomic_compare_exchange_weak_explicit(&last_pool_id, &previous,
+                 previous + 1, memory_order_relaxed, memory_order_relaxed));
+    p->id = previous + 1;
+    for (size_t i = 0; i < SLOTS; ++i) p->slots[i].generation = 1;
     return p;
 }
 void ultra_owner_destroy(struct ultra_owner *p) {
@@ -16,9 +27,10 @@ void ultra_owner_destroy(struct ultra_owner *p) {
     free(p);
 }
 static struct slot *lookup(struct ultra_owner *p, ultra_handle h) {
-    uint32_t index = (uint32_t)h;
+    uint32_t index = (uint32_t)h & (SLOTS - 1);
+    uint32_t pool_id = (uint32_t)h >> 4;
     uint32_t generation = (uint32_t)(h >> 32);
-    if (!p || index >= SLOTS || !generation) return NULL;
+    if (!p || pool_id != p->id || !generation) return NULL;
     struct slot *s = &p->slots[index];
     return s->data && s->generation == generation ? s : NULL;
 }
@@ -30,7 +42,7 @@ enum ultra_owner_status ultra_owner_alloc(struct ultra_owner *p, size_t n, ultra
         unsigned char *data = calloc(n, 1);
         if (!data) return UO_NOMEM;
         s->data = data; s->size = n;
-        *out = ((uint64_t)s->generation << 32) | i;
+        *out = ((uint64_t)s->generation << 32) | (p->id << 4) | i;
         return UO_OK;
     }
     return UO_FULL;

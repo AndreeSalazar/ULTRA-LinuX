@@ -16,7 +16,7 @@ owner=$ULTRA_GUARD_ROOT/produccion/ultra_owner.c
 gcc -std=c17 -O1 -g -Wall -Wextra -fsanitize=address,undefined -fno-omit-frame-pointer \
     "$fixture" "$owner" -o "$out/limites" > "$out/compilacion-negativos.txt" 2>&1
 bash "$lab/aislar-mina.sh" "$out/limites" cruce-pool > "$out/cruce-pool.txt" 2>&1
-grep -q '^LIMITACION_CONFIRMADA:' "$out/cruce-pool.txt"
+grep -q '^CRUCE_RECHAZADO:' "$out/cruce-pool.txt"
 cat "$out/cruce-pool.txt"
 for pair in 'externo-corto:stack-buffer-overflow' 'externo-caducado:heap-use-after-free' 'pool-caducado:heap-use-after-free'; do
     name=${pair%%:*}; diagnostic=${pair#*:}
@@ -29,4 +29,4 @@ for pair in 'externo-corto:stack-buffer-overflow' 'externo-caducado:heap-use-aft
     printf 'LIMITACION_DIAGNOSTICADA: %s / %s / salida=%s\n' "$name" "$diagnostic" "$status"
 done
 sha256sum "$fixture" "$owner" "$ULTRA_GUARD_ROOT/produccion/ultra_owner.h" > "$out/fuentes.sha256"
-echo 'ALCANCE: capacidades externas explicitas; no valida vida util de punteros crudos ni identidad entre pools; no despliegue en A:'
+echo 'ALCANCE: capacidades externas e identidad entre pools; no valida vida util de punteros crudos ni pools destruidos; no despliegue en A:'

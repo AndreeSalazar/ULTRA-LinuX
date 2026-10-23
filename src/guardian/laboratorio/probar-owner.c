@@ -20,6 +20,34 @@ int main(void) {
     CHECK(p != NULL);
     ultra_handle h = 0, old = 0;
     unsigned char data[8] = {1,2,3,4,5,6,7,8}, out[8] = {0}, expected[8] = {0};
+    /* Same slot/generation, distinct owners; every operation must reject. */
+    struct ultra_owner *other = ultra_owner_create();
+    CHECK(other != NULL);
+    ultra_handle foreign = 0, local = 0;
+    CHECK(ultra_owner_alloc(other, 8, &foreign) == UO_OK);
+    CHECK(ultra_owner_alloc(p, 8, &local) == UO_OK && local != foreign);
+    CHECK(ultra_owner_write(p, local, 0, data, 8) == UO_OK);
+    memset(out, 0xa5, sizeof(out));
+    memset(expected, 0xa5, sizeof(expected));
+    CHECK(ultra_owner_read(p, foreign, 0, out, 8) == UO_STALE);
+    CHECK(ultra_owner_read_bounded(p, foreign, 0, out, 8, 8) == UO_STALE);
+    CHECK(memcmp(out, expected, 8) == 0);
+    CHECK(ultra_owner_write(p, foreign, 0, expected, 8) == UO_STALE);
+    CHECK(ultra_owner_write_bounded(p, foreign, 0, expected, 8, 8) == UO_STALE);
+    CHECK(ultra_owner_free(p, foreign) == UO_STALE);
+    CHECK(ultra_owner_read(p, local, 0, out, 8) == UO_OK && memcmp(out, data, 8) == 0);
+    CHECK(ultra_owner_read(other, foreign, 0, out, 8) == UO_OK && out[0] == 0);
+    CHECK(ultra_owner_free(p, local) == UO_OK);
+    ultra_owner_destroy(other);
+    for (unsigned i = 0; i < 1000; ++i) {
+        other = ultra_owner_create();
+        CHECK(other != NULL);
+        CHECK(ultra_owner_alloc(other, 8, &local) == UO_OK && local != foreign);
+        CHECK(ultra_owner_read(other, foreign, 0, out, 8) == UO_STALE);
+        CHECK(ultra_owner_write(other, foreign, 0, data, 8) == UO_STALE);
+        CHECK(ultra_owner_free(other, foreign) == UO_STALE);
+        ultra_owner_destroy(other);
+    }
     CHECK(ultra_owner_alloc(p, 0, &h) == UO_ARGUMENT && h == 0);
     CHECK(ultra_owner_alloc(NULL, 8, &h) == UO_ARGUMENT);
     fail_alloc = 1;

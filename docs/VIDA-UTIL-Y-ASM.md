@@ -86,5 +86,7 @@ Antes de desplegar, reconstruir imagen y validar arranque nativo.
 
 Ampliacion 2026-10-23: [plan y auditoria de punteros](PLAN-C-CXX-ASM-API.md).
 Agrega read/write bounded con capacidad externa y pruebas de sus rechazos.
-El cruce entre pools y el acceso a buffers/pools destruidos siguen sin quedar
-protegidos automaticamente. La biblioteca sigue sin consumidor de produccion.
+La primera ronda dejo abiertos el cruce entre pools y el acceso a buffers/pools
+destruidos. La segunda agrega identidad de pool y prueba su agotamiento sin
+reciclaje: los handles ajenos se rechazan. Los buffers/pools destruidos siguen
+fuera del contrato. La biblioteca sigue sin consumidor de produccion.

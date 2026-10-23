@@ -17,10 +17,10 @@ int main(int argc, char **argv) {
     assert(ultra_owner_write_bounded(a, ha, 0, data, sizeof(data), 8) == UO_OK);
     if (strcmp(argv[1], "cruce-pool") == 0) {
         unsigned char out[8] = {0};
-        assert(ha == hb);
-        assert(ultra_owner_read_bounded(b, ha, 0, out, sizeof(out), 8) == UO_OK);
-        assert(out[0] == 0); /* Reads b, not a: identity of pool is absent. */
-        puts("LIMITACION_CONFIRMADA: handle ajeno coincide; falta identidad del pool");
+        assert(ha != hb);
+        assert(ultra_owner_read_bounded(b, ha, 0, out, sizeof(out), 8) == UO_STALE);
+        assert(out[0] == 0);
+        puts("CRUCE_RECHAZADO: handle ajeno no pertenece al pool");
     } else if (strcmp(argv[1], "externo-corto") == 0) {
         unsigned char tiny[3] = {0};
         assert(ultra_owner_read(a, ha, 0, tiny, 8) == UO_OK);

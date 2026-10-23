@@ -12,8 +12,10 @@ uname -srmo
 src=$ULTRA_GUARD_ROOT/laboratorio/probar-owner.c
 owner=$ULTRA_GUARD_ROOT/produccion/ultra_owner.c
 asm=$ULTRA_GUARD_ROOT/../ASM/laboratorio
+exhaustion=$ULTRA_GUARD_ROOT/laboratorio/probar-owner-agotamiento.c
 ultra_revisar "$src"
 ultra_revisar "$owner"
+ultra_revisar "$exhaustion"
 ultra_revisar "$asm/probar-abi.c"
 for mode in prod-O2 prod-O3 diag-O1 diag-O2; do
     case $mode in
@@ -25,10 +27,14 @@ for mode in prod-O2 prod-O3 diag-O1 diag-O2; do
     bash "$lab/aislar-mina.sh" "$out/owner-$mode" > "$out/owner-$mode.txt" 2>&1
     grep -q '^OWNER-OK:' "$out/owner-$mode.txt"
     cat "$out/owner-$mode.txt"
+    gcc "${ULTRA_WARN[@]}" "${flags[@]}" "$exhaustion" -o "$out/agotamiento-$mode"
+    bash "$lab/aislar-mina.sh" "$out/agotamiento-$mode" > "$out/agotamiento-$mode.txt" 2>&1
+    grep -q '^AGOTAMIENTO-OK:' "$out/agotamiento-$mode.txt"
+    cat "$out/agotamiento-$mode.txt"
     gcc "${ULTRA_WARN[@]}" "${flags[@]}" "$asm/probar-abi.c" "$asm/abi.S" -o "$out/asm-$mode"
     bash "$lab/aislar-mina.sh" "$out/asm-$mode" > "$out/asm-$mode.txt" 2>&1
     grep -q '^ASM-OK:' "$out/asm-$mode.txt"
     cat "$out/asm-$mode.txt"
 done
-sha256sum "$src" "$owner" "$ULTRA_GUARD_ROOT/produccion/ultra_owner.h" "$asm/probar-abi.c" "$asm/abi.S" "$out"/owner-* "$out"/asm-* > "$out/SHA256SUMS"
+sha256sum "$src" "$owner" "$exhaustion" "$ULTRA_GUARD_ROOT/produccion/ultra_owner.h" "$asm/probar-abi.c" "$asm/abi.S" "$out"/owner-* "$out"/asm-* "$out"/agotamiento-* > "$out/SHA256SUMS"
 echo 'ALCANCE: handles de un pool vivo sin concurrencia; ABI SysV x86-64 controlada; no proteccion global ni instrumentacion de interiores ASM'

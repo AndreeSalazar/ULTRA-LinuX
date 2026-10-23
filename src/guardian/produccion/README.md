@@ -48,5 +48,8 @@ concesiones de syscalls no se aprenden ni cambian automaticamente.
 
 `ultra_owner_read_bounded` y `ultra_owner_write_bounded` comprueban tambien la
 capacidad externa declarada. Son API candidatas sin consumidor desplegado;
-no validan direcciones arbitrarias, pools destruidos ni handles de otro pool.
+no validan direcciones arbitrarias ni pools destruidos. La segunda ronda agrega
+identidad de pool: rechaza handles ajenos con UO_STALE y no recicla identidades.
+Requiere una unica implementacion enlazada por proceso; tokens no serializables,
+sin intercambio entre fork o copias independientes de bibliotecas dinamicas.
 Plan y evidencia: [punteros, C++, ASM y APIs](../../../docs/PLAN-C-CXX-ASM-API.md).
