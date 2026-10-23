@@ -7,6 +7,7 @@ Complementa [las categorias de guardianes](CATEGORIAS-GUARDIANES.md) y
 
 Primer avance: [modelo C ejecutable y HEX](CUSTODIA-PROTOTIPO.md), serializado
 y con copia en RAM. Todavia sin identidad autenticada ni autoridad del kernel.
+Ampliacion comprobada: [secuencias adversas y fronteras de memoria](CUSTODIA-ESTRES.md).
 
 ## Objetivo
 
