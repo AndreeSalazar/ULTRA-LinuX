@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon portapapeles</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  body { background: url("../png/neon/base-escritorio.png") 0 0 / 1920px 1080px; }
+  .velo { position: absolute; inset: 0; background: rgba(4, 3, 8, .6); z-index: 15; }
+  .rapida { left: 140px; top: 40px; width: 940px; height: 430px; z-index: 30; }
+  .rapida .tira { height: 26px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: var(--amarillo); color: #000; font: 700 12px var(--titulo); letter-spacing: 3px; }
+  .menu { left: 1140px; top: 290px; width: 640px; }
+  .fila .tipo { font: 700 10px var(--mono); letter-spacing: 1px; width: 62px; text-align: center; padding: 3px 0; border: 1px solid var(--linea-2); color: var(--cyan); flex: none; }
+  .fila.sel .tipo { border-color: #000; color: #000; }
+  .fila .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .img { width: 72px; height: 40px; border: 1px solid var(--linea-2); background: url("../png/neon/03-equipo.png") 50% 30% / 400%; flex: none; }
+  .nota { position: absolute; z-index: 41; left: 1140px; top: 760px; width: 640px; display: flex; gap: 22px; font: 12px var(--mono); color: var(--texto-2); background: rgba(6, 5, 10, .95); padding: 8px 12px; border: 1px solid var(--linea); }
+  .nota span::before { content: "// "; color: var(--rojo); }
+</style></head>
+<body>
+<div class="velo"></div>
+<script>document.write(sello('terminal rápida y portapapeles'));</script>
+<div class="ventana activa rapida"><div class="dentro">
+  <div class="tira"><span>TERMINAL RÁPIDA // SPECIAL:RAPIDA</span><span>SUPER+S OCULTA</span></div>
+<div class="term"><span class="c-am">ultra</span><span class="c-gr">@</span><span class="c-cy">bmo-x</span> <span class="c-gr">::</span> <span class="c-bl">~</span>
+<span class="c-am">▶</span> ultra-juegos estado
+<span class="c-ve">VERDE   </span> [ESPACIO] /juegos: 80.6 GiB libres de 96 GiB
+<span class="c-ve">VERDE   </span> [STEAM]   2 bibliotecas registradas
+<span class="c-am">AMARILLO</span> [GOG]     Cyberpunk sin validar en este equipo
+
+<span class="c-am">ultra</span><span class="c-gr">@</span><span class="c-cy">bmo-x</span> <span class="c-gr">::</span> <span class="c-bl">~</span>
+<span class="c-am">▶</span> <span style="background:#fcee0a;color:#000"> </span></div>
+</div></div>
+<div class="etiqueta" style="left:140px;top:486px"><b>SUPER+S</b>baja desde arriba y se oculta</div>
+
+<div class="etiqueta" style="left:1140px;top:258px"><b style="background:var(--cyan)">SUPER+SHIFT+V</b>historial del portapapeles</div>
+<div class="menu" style="--acento:var(--cyan)">
+  <div class="prompt">PORTAPAPELES // <span></span><i></i></div>
+  <div class="fila sel"><span class="tipo">TEXTO</span><span class="txt">ultra-juegos estado</span></div>
+  <div class="fila"><span class="tipo">IMAGEN</span><span class="img"></span><span class="txt">captura 760×470</span></div>
+  <div class="fila"><span class="tipo">RUTA</span><span class="txt">/juegos/Steam/steamapps/common/Warframe</span></div>
+  <div class="fila"><span class="tipo">TEXTO</span><span class="txt">#fcee0a</span></div>
+  <div class="fila"><span class="tipo">ENLACE</span><span class="txt">https://wiki.hypr.land/0.56.0/</span></div>
+  <div class="fila" style="color:var(--rojo)"><span class="tipo" style="color:var(--rojo);border-color:#7a1426">BORRAR</span><span class="txt">Vaciar historial</span></div>
+</div>
+<div class="nota"><span>Solo en RAM, se borra al apagar</span><span>Claves del llavero excluidas</span></div>
+</body></html>

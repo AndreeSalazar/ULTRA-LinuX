@@ -1,10 +1,13 @@
-# Propuesta de escritorio BMO-X / Núcleo 2
+# Propuesta de escritorio BMO-X: Neón y Núcleo 2
 
 2026-10-24, America/Lima. **Estado: propuesta con maquetas. No hay nada
 instalado en ninguna imagen ni probado en QEMU ni en el PC.**
 
 Esta página reúne la revisión del escritorio Núcleo y las ideas para mejorar su
-apariencia y su uso diario. Cada idea lleva casilla para marcarla cuando se
+apariencia y su uso diario. Hay dos estilos con las mismas funciones:
+
+- **Neón** (propuesta principal): estética cyberpunk, en negro, amarillo, rojo y cyan.
+- **Núcleo 2**: el tema actual pulido, en cyan, morado y verde metálico. Cada idea lleva casilla para marcarla cuando se
 implemente y se verifique con la evidencia habitual.
 
 ## Reparto del trabajo
@@ -44,7 +47,64 @@ Lo que se ve flojo o incoherente:
 - La barra muestra 4 escritorios, pero los atajos llegan a 9.
 - El fondo es un SVG de 1920×1080 con `fill`, que se recorta en 16:10 y 21:9.
 
-## Maquetas
+## Estilo Neón (cyberpunk)
+
+Inspirado en la estética de Cyberpunk 2077: negro profundo, amarillo neón
+para el foco, cyan para los datos y rojo para alertas. Esquinas rectas o
+cortadas en diagonal, bandas de peligro, títulos condensados y un leve
+desdoble rojo/cyan en los números grandes.
+
+Todo es original: no usa logos, fuentes, nombres de facciones ni recursos del
+juego. El fondo es una ciudad nocturna dibujada por
+[`crear-fondo.py`](maquetas/neon/crear-fondo.py) con semilla fija; sus letreros
+dicen ULTRA, BMO-X y 24H.
+
+| Pieza | Neón |
+| --- | --- |
+| Colores | `#06050a` fondo, `#fcee0a` amarillo (foco), `#00f0ff` cyan (datos), `#ff2a4f` rojo (alertas) |
+| Fuentes | Rajdhani (títulos y barra), Chakra Petch (interfaz), JetBrains Mono (terminal). Todas OFL |
+| Ventanas | `rounding = 0`, borde amarillo → rojo → cyan y brillo amarillo en la activa |
+| Barra | Franja negra con línea amarilla, bloque BMO-X inclinado, escritorios `01`–`05`, apagar en rojo |
+| Menús | fuzzel negro, borde amarillo y fila elegida en amarillo con texto negro. Cada submenú usa su acento |
+| Avisos | mako negro con borde amarillo; críticos en rojo |
+
+Qué puede dibujar cada programa (las maquetas respetan estos límites):
+
+- Hyprland, Waybar, fuzzel, mako, hyprlock y MangoHud admiten todo lo que se
+  ve en sus maquetas.
+- Waybar no tiene `clip-path`: los bloques inclinados se hacen con degradados
+  y las esquinas cortadas con fondos SVG.
+- fuzzel y mako solo dibujan rectángulos con borde: no hay franjas de peligro
+  dentro del menú.
+- Equipo en vivo con tarjetas necesita eww (o un programa GTK pequeño). En
+  terminal se puede hacer una versión simplificada con los mismos colores.
+- Scanlines o glitch en toda la pantalla serían un shader de Hyprland y gastan
+  GPU: decisión de RING 0.
+
+### Maquetas Neón
+
+![Neón: escritorio](maquetas/png/neon/01-escritorio.png)
+
+![Neón: centro BMO-X en fuzzel](maquetas/png/neon/02-menu.png)
+
+![Neón: equipo en vivo](maquetas/png/neon/03-equipo.png)
+
+![Neón: modo juego con MangoHud](maquetas/png/neon/04-juego.png)
+
+![Neón: bloqueo hyprlock](maquetas/png/neon/05-bloqueo.png)
+
+![Neón: captura de pantalla](maquetas/png/neon/06-captura.png)
+
+![Neón: terminal rápida y portapapeles](maquetas/png/neon/07-portapapeles.png)
+
+![Neón: Alt+Tab y escritorios](maquetas/png/neon/08-ventanas.png)
+
+![Neón: hoja de estilo](maquetas/png/neon/09-paleta.png)
+
+Las funciones de cada maqueta son las mismas que se describen abajo para
+Núcleo 2; solo cambia el estilo.
+
+## Maquetas Núcleo 2
 
 Las maquetas son HTML renderizado con Chromium a 1920×1080, en
 [`docs/maquetas/`](maquetas/). Usan el fondo y los iconos reales de Núcleo.
@@ -54,8 +114,10 @@ ejemplo». No son capturas del sistema.
 Para regenerarlas:
 
 ```text
-node docs/maquetas/renderizar.js            # todas
+node docs/maquetas/renderizar.js            # Núcleo 2 y Neón
+node docs/maquetas/renderizar.js neon/      # solo Neón
 node docs/maquetas/renderizar.js 03 05      # solo algunas
+python3 docs/maquetas/neon/crear-fondo.py 2560 1440 > fondo.svg   # fondo a otra resolución
 ```
 
 ### 1. Escritorio
@@ -153,6 +215,7 @@ Es la referencia para generar todos los archivos de tema desde un solo
 
 ### A. Coherencia visual
 
+- [ ] Elegir el estilo: Neón (propuesta principal) o Núcleo 2.
 - [ ] `paleta.json` como fuente única. Un script generaría `hyprland.lua`
       (colores), `waybar.css`, `gtk.css`, `mako.conf`, `fuzzel.ini`,
       `foot.ini`, `MangoHud.conf`, hyprlock y el SVG del fondo. Ver la maqueta 9.

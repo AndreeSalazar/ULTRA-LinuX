@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon equipo</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  body { background: url("../png/neon/base-escritorio.png") 0 0 / 1920px 1080px; }
+  .velo { position: absolute; inset: 0; background: rgba(4, 3, 8, .65); z-index: 15; }
+  .panel { position: absolute; left: 390px; top: 58px; width: 1140px; height: 930px; z-index: 30; background: rgba(6, 5, 10, .98);
+    border: 1px solid var(--linea-2); clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 28px 100%, 0 calc(100% - 28px)); }
+  .panel::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, .018) 0 1px, transparent 1px 3px); }
+  .cabecera { height: 64px; display: flex; align-items: center; gap: 18px; padding: 0 26px; background: linear-gradient(100deg, var(--amarillo) 0 330px, transparent 330px); position: relative; }
+  .cabecera h1 { font: 700 26px/1 var(--titulo); letter-spacing: 4px; color: #000; }
+  .cabecera .cod { font: 600 12px var(--mono); color: var(--texto-3); margin-left: 90px; letter-spacing: 2px; }
+  .cabecera .der { margin-left: auto; display: flex; gap: 10px; font: 600 12px var(--mono); letter-spacing: 1px; }
+  .cabecera .der span { padding: 5px 9px; border: 1px solid var(--linea-2); color: var(--texto-2); }
+  .cabecera .der .vivo { color: var(--verde); border-color: #1d7a4c; }
+  .cabecera .der .vivo::before { content: "● "; }
+  .peligro { height: 6px; background: repeating-linear-gradient(-45deg, var(--amarillo) 0 10px, transparent 10px 20px); opacity: .85; }
+  .cuerpo { padding: 22px 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .t { position: relative; padding: 16px 20px 18px; background: var(--panel); border: 1px solid var(--linea); clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); }
+  .t::after { content: ""; position: absolute; left: -1px; top: -1px; width: 22px; height: 22px; border-left: 2px solid var(--c, var(--amarillo)); border-top: 2px solid var(--c, var(--amarillo)); }
+  .t.ancha { grid-column: span 2; }
+  .t h3 { display: flex; align-items: baseline; gap: 10px; font: 700 15px var(--titulo); letter-spacing: 3px; color: var(--c, var(--amarillo)); margin-bottom: 10px; }
+  .t h3 small { font: 500 12px var(--mono); letter-spacing: 0; color: var(--texto-3); }
+  .t h3 .der { margin-left: auto; font: 500 13px var(--ui); letter-spacing: .5px; color: var(--texto-2); }
+  .gran { display: flex; align-items: baseline; gap: 14px; }
+  .gran b { font: 700 54px/1 var(--titulo); color: var(--texto); font-variant-numeric: tabular-nums; text-shadow: -2px 0 rgba(255, 42, 79, .55), 2px 0 rgba(0, 240, 255, .45); }
+  .gran span { font: 500 15px var(--ui); color: var(--texto-2); }
+  .seg { display: grid; grid-template-columns: repeat(40, 1fr); gap: 3px; height: 12px; margin: 12px 0 8px; }
+  .seg i { background: #1d1b27; transform: skewX(-20deg); }
+  .seg i.on { background: var(--c, var(--amarillo)); box-shadow: 0 0 6px var(--c, var(--amarillo)); }
+  .seg i.al { background: var(--rojo); box-shadow: 0 0 6px var(--rojo); }
+  .hilos { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; height: 42px; align-items: end; }
+  .hilos i { background: var(--c); opacity: .85; }
+  .hilos-n { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; font: 10px var(--mono); color: var(--texto-3); text-align: center; margin-top: 3px; }
+  .datos { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font: 14px var(--mono); color: var(--texto-3); }
+  .datos b { color: var(--texto); font-weight: 500; }
+  .disco { display: grid; grid-template-columns: 300px 1fr 150px; gap: 16px; align-items: center; padding: 5px 0; }
+  .disco .n { font: 600 16px var(--ui); }
+  .disco .n small { display: block; font: 12px var(--mono); color: var(--texto-3); }
+  .disco .seg { margin: 0; }
+  .disco .v { text-align: right; font: 600 15px var(--mono); }
+  .tag { font: 700 10px var(--mono); padding: 2px 5px; margin-left: 8px; vertical-align: 2px; color: #000; }
+  .sens { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; font: 14px var(--mono); color: var(--texto-2); }
+  .sens b { color: var(--texto); }
+  .sens .na { color: var(--texto-3); }
+  .pie { grid-column: span 2; display: flex; gap: 28px; font: 12px var(--mono); color: var(--texto-3); padding: 2px; }
+  .pie span::before { content: "// "; color: var(--rojo); }
+</style></head>
+<body>
+<div class="velo"></div>
+<script>
+document.write(sello('equipo en vivo · Super+F9'));
+function seg(p, alerta) {
+  let s = '';
+  for (let k = 0; k < 40; k++) s += `<i class="${k < Math.round(p * 40) ? (alerta && k >= 32 ? 'al' : 'on') : ''}"></i>`;
+  return `<div class="seg">${s}</div>`;
+}
+</script>
+<div class="panel">
+  <div class="cabecera"><h1>EQUIPO EN VIVO</h1><span class="cod">SYS.MONITOR // BMO-X</span>
+    <div class="der"><span class="vivo">CADA 2 S</span><span>SOLO LECTURA</span><span>SUPER+F9</span><span style="color:var(--rojo);border-color:#7a1426">ESC</span></div></div>
+  <div class="peligro"></div>
+  <div class="cuerpo">
+    <div class="t" style="--c:var(--amarillo)">
+      <h3>CPU<small>//01</small><span class="der">Ryzen 5 5600X · 12 hilos</span></h3>
+      <div class="gran"><b>08%</b><span>46 °C · Tctl</span></div>
+      <script>document.write(seg(.08))</script>
+      <div class="hilos"><script>[22,9,14,5,31,8,4,12,6,18,3,7].forEach(v => document.write(`<i style="height:${Math.max(v * 1.3, 3)}px"></i>`));</script></div>
+      <div class="hilos-n"><script>for (let k = 0; k < 12; k++) document.write(`<span>${String(k).padStart(2, '0')}</span>`);</script></div>
+    </div>
+    <div class="t" style="--c:var(--cyan)">
+      <h3>GPU<small>//02</small><span class="der">GeForce RTX 3060</span></h3>
+      <div class="gran"><b>12%</b><span>41 °C · 38 W</span></div>
+      <script>document.write(seg(.12))</script>
+      <div class="datos"><span>VRAM</span><b>1.4 / 12.0 GiB</b><span>RELOJ</span><b>1320 MHz</b></div>
+    </div>
+    <div class="t" style="--c:var(--verde)">
+      <h3>RAM<small>//03</small><span class="der">disponible según el kernel</span></h3>
+      <div class="gran"><b>5.8</b><span>de 31.3 GiB · 19 %</span></div>
+      <script>document.write(seg(.19))</script>
+      <div class="datos"><span>CACHÉ</span><b>3.1 GiB</b><span>ZRAM</span><b>0 B</b></div>
+    </div>
+    <div class="t" style="--c:var(--rojo)">
+      <h3>SENSORES<small>//04</small><span class="der">expuestos por el kernel</span></h3>
+      <div class="sens">
+        <span>k10temp / Tctl</span><b>46.0 °C</b>
+        <span>nvme / Composite</span><b>38.9 °C</b>
+        <span>nvidia / GPU</span><b>41 °C</b>
+        <span>ventiladores</span><span class="na">SIN LECTURA</span>
+      </div>
+    </div>
+    <div class="t ancha" style="--c:var(--cyan)">
+      <h3>DISCOS<small>//05</small><span class="der">físicos y montajes ULTRA</span></h3>
+      <div class="disco"><span class="n">NVMe Windows C:<span class="tag" style="background:var(--cyan)">RO</span><small>nvme0n1 · 931.5 GiB</small></span><script>document.write(seg(.72))</script><span class="v">72%</span></div>
+      <div class="disco" style="--c:var(--verde)"><span class="n">ULTRA-juegos.ext4<span class="tag" style="background:var(--verde)">/juegos</span><small>C:\Espacio para Linux · 96 GiB</small></span><script>document.write(seg(.16))</script><span class="v">80.6 GiB libres</span></div>
+      <div class="disco" style="--c:var(--amarillo)"><span class="n">Disco Personal D:<small>sda · 1.8 TiB</small></span><script>document.write(seg(.91, true))</script><span class="v" style="color:var(--rojo)">91% ▲</span></div>
+    </div>
+    <div class="t ancha" style="--c:var(--amarillo)">
+      <h3>RED / USB<small>//06</small></h3>
+      <div class="datos"><span>ENP5S0</span><b>enlace 100 Mb/s · ↓ 2.1 MB/s · ↑ 40 kB/s</b><span>USB</span><b>Teclado · Ratón · Interfaz de audio USB</b></div>
+    </div>
+    <div class="pie"><span>Sin lectura = falta de datos, no 0 °C</span><span>No cambia frecuencias, voltajes ni permisos</span></div>
+  </div>
+</div>
+</body></html>

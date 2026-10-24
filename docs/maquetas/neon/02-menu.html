@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon centro</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  body { background: url("../png/neon/base-escritorio.png") 0 0 / 1920px 1080px; }
+  .velo { position: absolute; inset: 0; background: rgba(4, 3, 8, .72); z-index: 15; }
+  .fila .num { color: var(--texto-3); width: 16px; }
+  .fila.sel .num { color: #000; }
+  .flecha { position: absolute; z-index: 41; left: 862px; top: 470px; width: 150px; height: 2px; background: var(--amarillo); }
+  .flecha::after { content: ""; position: absolute; right: -2px; top: -6px; border: 7px solid transparent; border-left-color: var(--amarillo); }
+  .flecha::before { content: "ENTER"; position: absolute; left: 44px; top: -22px; font: 700 12px var(--titulo); letter-spacing: 3px; color: var(--amarillo); }
+</style></head>
+<body>
+<div class="velo"></div>
+<script>
+document.write(sello('centro BMO-X en fuzzel'));
+const raiz = [
+  ['Aplicaciones', 'navegador', AM], ['Discos y bibliotecas', 'discos', CY], ['Juegos', 'juegos', RO],
+  ['Pantalla y gráficos', 'pantalla', '#3dff9a'], ['Audio', 'audio', '#c03bff'], ['Ambiente', 'ambiente', CY], ['Sistema y ayuda', 'ajustes', AM],
+];
+const juegos = [
+  ['Steam', 'juegos'], ['GOG / Heroic', 'juegos'], ['Importar juegos GOG', 'archivos'], ['Warframe / Steam', 'juegos'],
+  ['Cyberpunk 2077', 'juegos'], ['Revisar bibliotecas', 'discos'], ['Juegos y consumo en vivo', 'equipo'],
+  ['FPS y HUD', 'pantalla'], ['Espacio y estado', 'discos'], ['← Volver a categorías', 'ayuda'],
+];
+let h = '<div class="etiqueta" style="left:250px;top:250px"><b>SUPER+ESPACIO</b>Categorías</div>';
+h += '<div class="menu" style="left:250px;top:280px">';
+h += '<div class="prompt">BMO-X // <span></span><i></i></div>';
+raiz.forEach(([n, ic, c], k) => h += `<div class="fila ${k === 2 ? 'sel' : ''}"><span class="num">${k + 1}</span>${app(ic, c)}${n}</div>`);
+h += '</div><div class="flecha"></div>';
+h += '<div class="etiqueta" style="left:1030px;top:170px"><b style="background:var(--rojo)">JUEGOS</b>Submenú con su acento</div>';
+h += '<div class="menu" style="left:1030px;top:200px;--acento:var(--rojo)">';
+h += '<div class="prompt">JUEGOS // <span></span><i></i></div>';
+juegos.forEach(([n, ic], k) => h += `<div class="fila ${k === 4 ? 'sel' : ''}" style="${k === 9 ? 'color:var(--texto-3)' : ''}">${app(ic, k === 9 ? '#625f70' : RO)}${n}</div>`);
+h += '</div>';
+document.write(h);
+</script>
+</body></html>
