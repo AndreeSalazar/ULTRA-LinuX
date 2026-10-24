@@ -4,12 +4,14 @@
 set -euo pipefail
 perfil=${1:?pc o generico}
 [[ $perfil == pc || $perfil == generico ]] || exit 2
+revision=${2:-nativo}
+[[ $revision =~ ^[a-z0-9][a-z0-9-]{0,31}$ ]] || exit 2
 base="$HOME/linux-reconstruido"
 art="$base/artifacts/$perfil"
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
 stage="$art/sistema-nativo"
 [[ -f $stage/ULTRA-SISTEMA && -f $art/sistema-a.erofs && -f $art/datos.ext4 ]]
-[[ ! -e $art/sistema-antes-nativo.erofs && ! -e $art/disco-bmo-antes-nativo.img ]] || {
+[[ ! -e $art/sistema-antes-$revision.erofs && ! -e $art/disco-bmo-antes-$revision.img ]] || {
     echo 'ROJO: existe una entrega anterior conservada; revisar sin sobrescribirla'
     exit 1
 }
@@ -49,9 +51,9 @@ mcopy -i "$bmo@@$a" sistema-nativo.erofs "::/ULTRA/sistema-$release.erofs"
 mcopy -i "$bmo@@$a" datos.ext4 ::/ULTRA/datos.ext4
 [[ $(mtype -i "$bmo@@$a" "::/ULTRA/sistema-$release.erofs" | sha256sum | cut -d' ' -f1) == $(sha256sum sistema-nativo.erofs | cut -d' ' -f1) ]]
 [[ $(sha256sum bzImage-tiny64) == "$kernel_before" ]]
-mv sistema-a.erofs sistema-antes-nativo.erofs
+mv sistema-a.erofs "sistema-antes-$revision.erofs"
 mv sistema-nativo.erofs sistema-a.erofs
-[[ ! -e disco-bmo.img ]] || mv disco-bmo.img disco-bmo-antes-nativo.img
+[[ ! -e disco-bmo.img ]] || mv disco-bmo.img "disco-bmo-antes-$revision.img"
 mv disco-bmo-nativo.img disco-bmo.img
 python - <<'PY'
 from pathlib import Path

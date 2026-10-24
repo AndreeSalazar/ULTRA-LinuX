@@ -69,6 +69,46 @@ setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
         mkdir -p "$home/.config" "$home/.local/share" "$home/.local/state" "$home/.cache" "$home/Juegos/prefijos"
         cp -an /home/ultra/.config/. "$home/.config/"
     ' ultra-seed "$home"
+native_game=/juegos/.ultra-cyberpunk-original/Cyberpunk2077
+native_game_ready() {
+    /usr/bin/python -I - "$storage_uuid" <<'PY'
+import json,os,re,stat,sys
+from pathlib import Path
+parent=Path('/juegos/.ultra-cyberpunk-original');base=parent/'Cyberpunk2077'
+def read(path,limit):
+    if path.resolve()!=path:raise ValueError('enlace')
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    with os.fdopen(fd,'rb') as f:
+        if not stat.S_ISREG(os.fstat(f.fileno()).st_mode):raise ValueError('archivo no regular')
+        data=f.read(limit+1)
+    if len(data)>limit:raise ValueError('archivo grande')
+    return data
+try:
+    p=parent.stat()
+    if parent.resolve()!=parent or p.st_uid!=0 or p.st_mode&0o077:raise ValueError('padre no privado')
+    receipt=parent/'verificado.json';s=receipt.stat()
+    if s.st_uid!=0 or s.st_mode&0o022:raise ValueError('recibo no protegido')
+    data=json.loads(read(receipt,16384))
+    if data.get('schema')!=1 or data.get('app')!='1423049311' or data.get('verified') is not True or data.get('storage_uuid')!=sys.argv[1]:raise ValueError('recibo distinto')
+    if not re.fullmatch('[0-9a-f]{64}',str(data.get('sha256_manifest',''))):raise ValueError('sin huella')
+    for directory in (base,base/'bin',base/'bin/x64'):
+        s=directory.stat()
+        if directory.resolve()!=directory or not stat.S_ISDIR(s.st_mode) or s.st_uid!=1000 or s.st_mode&0o022:raise ValueError('directorio no valido')
+    exe=base/'bin/x64/Cyberpunk2077.exe'
+    if exe.resolve()!=exe:raise ValueError('ejecutable redirigido')
+    fd=os.open(exe,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    with os.fdopen(fd,'rb') as f:
+        if not stat.S_ISREG(os.fstat(f.fileno()).st_mode) or f.read(2)!=b'MZ':raise ValueError('PE invalido')
+    info=json.loads(read(base/'goggame-1423049311.info',262144))
+    if str(info.get('gameId'))!='1423049311' or str(info.get('rootGameId'))!='1423049311' or str(info.get('buildId'))!=data.get('build_id'):raise ValueError('producto distinto')
+except (OSError,ValueError,TypeError,AttributeError):
+    sys.exit(1)
+PY
+}
+if native_game_ready; then
+    game=$native_game
+    echo 'VERDE [CYBERPUNK]: copia Linux verificada; no depende del disco Personal'
+else
 game_volume=$volume
 if [[ -n $partition_uuid || ${game_uuid^^} != ${uuid^^} ]]; then
     game_devices=()
@@ -82,6 +122,7 @@ if [[ -n $partition_uuid || ${game_uuid^^} != ${uuid^^} ]]; then
     fi
 fi
 game="$game_volume/Cyberpunk 2077"
+fi
 if [[ -f $game/bin/x64/Cyberpunk2077.exe && ! -L $game ]]; then
     install -d -m 0755 /juegos/Cyberpunk2077 /juegos/overlay
     install -d -m 0755 -o 1000 -g 1000 /juegos/overlay/upper /juegos/overlay/work

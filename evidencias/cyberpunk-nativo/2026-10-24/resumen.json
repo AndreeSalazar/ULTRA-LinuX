@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "58b2421",
+  "game": "Cyberpunk 2077",
+  "game_id": "1423049311",
+  "copy": {
+    "files": 4991,
+    "bytes": 91350992227,
+    "sha256_manifest": "907bf1914808128582ae2b5403eeeb58f96e7d38a0eb26352b022f9296c37c30",
+    "verified": true,
+    "windows_source_matches": true,
+    "overlay_valid": true,
+    "source_retained": false,
+    "storage_uuid": "19a78f63-4252-45e8-b032-5b6e53f67af5",
+    "private_base_ready": true,
+    "uid1000_updates_verified": true,
+    "source_removed": true,
+    "freed_d_bytes": 91360669696
+  },
+  "visible_path": "/juegos/Cyberpunk2077",
+  "private_base": "/juegos/.ultra-cyberpunk-original/Cyberpunk2077",
+  "upper_preserved": "/juegos/overlay/upper",
+  "saves_and_prefixes_preserved": true,
+  "source_removal_explicitly_authorized": true,
+  "available_linux_bytes": 247324700672,
+  "available_linux_GiB": 230.34,
+  "qemu_checks_passed": 186,
+  "native_scenarios_passed": 9,
+  "installation": {
+    "files": [
+      {
+        "file": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+        "sha256": "E2242E375F3F508C535F18CF684A573D1D5664350A6199742EE9F0AB1891C8F7",
+        "matches": true
+      },
+      {
+        "file": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+        "sha256": "CFAC1165BE5ABAEA4CFF68194018C7E4CD46A5C973D191352CB93B3CF4E0B705",
+        "matches": true
+      }
+    ],
+    "datos_ext4_sha256": "C93622F05B8447E06C83C44455206BC92D0955C397594C724025D03294B9DF8D",
+    "datos_unchanged": true
+  },
+  "physical_gameplay_pending": true,
+  "kernel_unchanged": true,
+  "personal_c_container_preserved": true
+}

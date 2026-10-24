@@ -22,8 +22,36 @@ echo VERDE-NATIVA-IDEMPOTENTE
 umount /juegos
 mount "$loop" /juegos
 [[ $(cat /juegos/usuarios/ultra/prueba) == persistente ]]
+python - <<'FIXTURE'
+import json,os
+from pathlib import Path
+parent=Path('/juegos/.ultra-cyberpunk-original');parent.mkdir(mode=0o700)
+base=parent/'Cyberpunk2077';(base/'bin/x64').mkdir(parents=True)
+(base/'bin/x64/Cyberpunk2077.exe').write_bytes(b'MZ-fixture')
+(base/'bin/x64/fixture.dat').write_text('original')
+(base/'goggame-1423049311.info').write_text(json.dumps(dict(gameId='1423049311',rootGameId='1423049311',buildId='777')))
+for directory,dirs,files in os.walk(base):
+    os.chown(directory,1000,1000)
+    for name in files:os.chown(Path(directory)/name,1000,1000)
+receipt=parent/'verificado.json';receipt.write_text(json.dumps(dict(schema=1,app='1423049311',verified=True,storage_uuid='19a78f63-4252-45e8-b032-5b6e53f67af5',build_id='777',sha256_manifest='a'*64)))
+receipt.chmod(0o600)
+FIXTURE
 umount /juegos
 echo VERDE-NATIVA-PERSISTENCIA
+bash /tmp/native-helper
+[[ $(findmnt -n -o FSTYPE --mountpoint /juegos/Cyberpunk2077) == overlay ]]
+echo VERDE-CYBERPUNK-SIN-DISCO-PERSONAL
+setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all bash -c 'printf cambiado > /juegos/Cyberpunk2077/bin/x64/fixture.dat; test ! -r /juegos/.ultra-cyberpunk-original/verificado.json'
+[[ $(cat /juegos/.ultra-cyberpunk-original/Cyberpunk2077/bin/x64/fixture.dat) == original ]]
+[[ $(cat /juegos/Cyberpunk2077/bin/x64/fixture.dat) == cambiado ]]
+echo VERDE-CYBERPUNK-ESCRITURAS-SEPARADAS
+umount /juegos/Cyberpunk2077
+chmod 0666 /juegos/.ultra-cyberpunk-original/verificado.json
+umount /juegos
+bash /tmp/native-helper
+! mountpoint -q /juegos/Cyberpunk2077
+echo VERDE-CYBERPUNK-RECIBO-NO-PROTEGIDO-RECHAZADO
+umount /juegos
 cp /tmp/native.ext4 /tmp/duplicada.ext4
 other=$(losetup --find --show /tmp/duplicada.ext4)
 if bash /tmp/native-helper; then exit 11; fi

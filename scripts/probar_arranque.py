@@ -17,6 +17,16 @@ BRAVE = '--brave' in sys.argv[2:]
 DISCO = BMO or '--disco' in sys.argv[2:]
 QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
 BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico', 'pc': 'pc'}[PERFIL]
+# Test a new delivery without replacing a disk image in use by another VM.
+if '--artefactos' in sys.argv[2:]:
+    index=sys.argv.index('--artefactos')
+    if index+1>=len(sys.argv):raise SystemExit('Falta el directorio de artefactos')
+    candidate=pathlib.Path(sys.argv[index+1])
+    if not candidate.is_absolute():candidate=ROOT/candidate
+    resolved=candidate.resolve()
+    if resolved!=candidate.absolute() or not resolved.is_relative_to(ROOT/'build') or not resolved.is_dir():
+        raise SystemExit('Artefactos fuera de build, redirigidos o ausentes')
+    BUILD=resolved
 KERNEL = BUILD / 'bzImage-tiny64'
 IMG = BUILD / ('disco-bmo-doble.img' if AUTO else 'disco-bmo.img' if BMO else 'ultra-esp.img')
 # The disk test writes to /datos, so it boots a fresh copy and never the verified image.

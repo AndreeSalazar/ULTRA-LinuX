@@ -1,0 +1,6 @@
+VERDE [ELF]: seis ejecutables auditados y HEX del lector ligados al manifiesto.
+VERDE [RESPALDO]: informes guardados en C:\Users\Salazar\Documents\Linux Reconstruido\build\respaldo-informes\20261024-165416-ba0ad116d0d1466e89611b6b926f3d02
+VERDE [COPIA]: A:\EFI\ULTRA\ULTRA-PC.EFI
+VERDE [COPIA]: A:\ULTRA\sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs
+AMARILLO [DATOS]: se conserva A:\ULTRA\datos.ext4 (usar -NuevosDatos para empezar de cero)
+VERDE: ULTRA LinuX PC (Zen 3) (7.3.0-rc7-pc-g32c52ec87d62) instalado en A:\ (disco 0, particion 2). Siguiente: elegir ULTRA LinuX PC (Zen 3) en F11

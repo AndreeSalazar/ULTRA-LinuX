@@ -64,6 +64,10 @@ se convirtió en ext4 y recibió el home y los juegos, con 121.866 entradas
 verificadas y unos 315 GiB disponibles. El perfil PC de A: ya la monta por UUID;
 el contenedor anterior de C: se conserva para recuperación.
 
+[Cyberpunk en Linux](docs/CYBERPUNK-NATIVO-2026-10-24.md): 4.991 archivos de
+Personal trasladados al ext4 y verificados por SHA-256. Heroic mantiene su ruta,
+sus cambios y sus partidas; el original de D: se retiró con autorización del autor.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.

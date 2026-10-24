@@ -1,0 +1,19 @@
+
+ultra-entrar /usr/bin/bash /tmp/private-base.sh; echo RESULTADO-$?; echo POST-$((40+2))
+ultra:~# ultra-entrar /usr/bin/bash /tmp/private-base.sh; echo RESULTADO-$?; ech
+
+o POST-$((40+2))
+BASE-PRIVADA-LISTA
+ESCRITURA-UID1000-OK
+CYBERPUNK-LOCAL-OK
+ESPACIO-FINAL 106683740 60382007 4096
+e2fsck 1.47.4 (6-Mar-2025)
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+ULTRA-DATOS: 99789/27172864 files (0.2% non-contiguous), 47197403/108670208 blocks
+BASE-PRIVADA-FIN-42
+RESULTADO-0
+POST-42
