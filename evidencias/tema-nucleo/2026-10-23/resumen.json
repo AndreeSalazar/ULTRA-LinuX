@@ -1,0 +1,61 @@
+{
+  "date": "2026-10-23",
+  "timezone": "America/Lima",
+  "profile": "pc",
+  "kernel_build": 45,
+  "checks": {
+    "boot_green": 180,
+    "boot_red": 0
+  },
+  "installed": {
+    "datos_intactos": true,
+    "kernel_coincide": true,
+    "sistema_coincide": true,
+    "datos_sha256": "476979CB599CE1C7100D7ECE5A15230FBC8972CA965338E530231F9DFED72ADD",
+    "kernel_sha256": "EBAD2A1B382EE17F17297A46AA7F4AA395542B0281712A5A9585FF7FB6368708",
+    "sistema_sha256": "C4389D0B13B79DF47B1288816F9DDB28C9662767F65E3A5E1E7A81075FB95196"
+  },
+  "visual": "Capturas reales QEMU 1280x800; sin GPU NVIDIA fisica",
+  "theme": {
+    "name": "ULTRA-Nucleo",
+    "cursors": 11,
+    "cursor_sizes": [
+      24,
+      28,
+      32,
+      48,
+      64
+    ],
+    "original_icons": 10,
+    "icon_fallback": "Papirus-Dark,Adwaita",
+    "hardware_poll_seconds": 10,
+    "panel_poll_seconds": 2
+  },
+  "notes": [
+    "Perfil generico no reconstruido",
+    "No mide el rendimiento nativo de la RTX ni de Warframe",
+    "NVIDIA conserva los 11674 avisos SRSO previos; esta revision es de escritorio",
+    "No cambia cuentas ni archivos de juegos; respaldo visual local y migracion unica"
+  ],
+  "sources_lf_sha256": {
+    "src/rootfs/crear-tema.py": "8e69a6adb0796bd65e4c5aba31dc82e3e6c6a9b838705340c748a1a3f1d50d35",
+    "src/rootfs/bin/ultra-equipo": "b9bfdf6e69bdb9ba0066cb3ae5b3a67e008b6f56ff1de004bd374820851656f3",
+    "src/rootfs/bin/ultra-tema": "9a33a0de0fdb2188b0102f9f44925b9c676a90567b73add6909dd83d29f90b4d",
+    "src/rootfs/bin/ultra-hyprland": "d2f32fc907bc2218da850b063d5d4ab70d37197741bc0a5d121f8d84ead82544",
+    "src/rootfs/bin/ultra-iniciar-escritorio": "ded75a339d1e04d95857d55eec81f4431be8c95811427d802097f579b9edc371",
+    "src/rootfs/bin/ultra-ambiente": "82fc07f19d7e8cbe614cb2ed58378c890b7b40b17188a5508ba6495126bcd74c",
+    "scripts/build-baseline.sh": "a379c2bd56b9a748f8996026497297a41e0562d5d91e4734ae03ece841201d89",
+    "scripts/probar_arranque.py": "1b856df1f5165eab6714c4f7a7b74e7209896d1ab1cb22620c954232bc4b3282",
+    "scripts/banco_tema_nucleo.py": "d8899e864fa4b6856916ab1b402292140bdcdba809c8e185b1f06c5327dc13b8",
+    "src/rootfs/desktop/AYUDA.txt": "8c9ab77ef6888a354863b51655417715e82e078237dae228305196c959dcb76f",
+    "src/rootfs/desktop/foot.ini": "3a6a738d217eb8a3f42153b74245874b393bb9e0caeb1a8b301b9c66f0d6ad05",
+    "src/rootfs/desktop/fuzzel.ini": "aac8b514214c4d9054d4b0e0721aabf8a319a65a7d7c8783fd1e7c006c106155",
+    "src/rootfs/desktop/gtk-settings.ini": "ba3155f9b3a6e3a11944466b56cadb3a9e7e688923b2fddc0809c399ab7e7551",
+    "src/rootfs/desktop/gtk.css": "0b0fc5a2a220c217d4676b06b54639777c82f085cbb01d72f7b3619d2e3b47d5",
+    "src/rootfs/desktop/hyprland.lua": "156e4823f5cadffbb00f0661e1a880ab97cc68cb1e32323190d295ca459031c6",
+    "src/rootfs/desktop/mako.conf": "c17758a42e2ddf0961be58d40fb7f14126c48003d7b6e11baeaee0b666df9ac0",
+    "src/rootfs/desktop/wallpaper.svg": "85613f96f222c13f527642fcecced1c0c79a4dcbaca1201f54714cdbe96c35cf",
+    "src/rootfs/desktop/waybar.css": "b39d09547272a61ef3daf16030a398b081e3c34a59e1e50f332e896dc165a558",
+    "src/rootfs/desktop/waybar.jsonc": "4d76d896ba2b4c1167bdea90d892f61dad804774f725a2d1edc7163ec3aec8e1"
+  }
+}

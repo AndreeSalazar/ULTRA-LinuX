@@ -17,6 +17,7 @@
       "clock"
     ],
     "modules-right": [
+      "custom/equipo",
       "cpu",
       "memory",
       "network",
@@ -44,7 +45,7 @@
     },
     "hyprland/window": {
       "format": "{title}",
-      "max-length": 24,
+      "max-length": 18,
       "separate-outputs": true
     },
     "clock": {
@@ -92,6 +93,13 @@
       "on-scroll-up": "ultra-audio subir",
       "on-scroll-down": "ultra-audio bajar",
       "tooltip-format": "Audio maestro: {desc}\nClick: control · derecho: salidas y aplicaciones"
+    },
+    "custom/equipo": {
+      "exec": "ultra-equipo barra",
+      "return-type": "json",
+      "interval": 10,
+      "on-click": "foot --title='ULTRA / Equipo en vivo' watch -n 2 ultra-equipo texto",
+      "tooltip": true
     }
   },
   {

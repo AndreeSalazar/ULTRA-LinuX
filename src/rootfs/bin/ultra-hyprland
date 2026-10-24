@@ -10,11 +10,12 @@ if [[ ${1:-direct} == software ]]; then
     export ULTRA_EFECTOS=sobrio
     echo 'AMARILLO [HYPRLAND]: laboratorio GLES por software; requiere DRM/GBM compatible'
 fi
-export XCURSOR_THEME=Adwaita XCURSOR_SIZE=24 GTK_THEME=Adwaita:dark
+export XCURSOR_THEME=ULTRA-Nucleo XCURSOR_SIZE=28 GTK_THEME=Adwaita:dark
 export XDG_CURRENT_DESKTOP=Hyprland XDG_SESSION_DESKTOP=Hyprland XDG_SESSION_TYPE=wayland
 export XDG_CONFIG_HOME="$HOME/.config" XDG_CACHE_HOME="$HOME/.cache"
 export XDG_DATA_HOME="$HOME/.local/share" HYPRLAND_NO_RT=1
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME"
+ultra-tema || echo 'AMARILLO [TEMA]: se conserva la configuracion visual disponible'
 rm -f "${XDG_RUNTIME_DIR:?}/ultra-efectos"
 cd "$HOME"
 exec dbus-run-session -- /usr/bin/bash /usr/local/libexec/ultra-desktop-session

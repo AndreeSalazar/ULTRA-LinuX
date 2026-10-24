@@ -17,6 +17,10 @@ SUPER + Shift + A   Alternar efectos vivos / reducidos
 SUPER + C           Limpiar notificaciones
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo
+SUPER + F9          Equipo en vivo: CPU, RAM, discos, USB y sensores disponibles
+SUPER + F11         Captura de recursos Warframe (2 min)
+SUPER + Ctrl + F11  Panel de diagnostico Warframe
+SUPER + Shift + F11 Marcar el momento del tiron en la captura
 Shift derecho+F12   Mostrar/ocultar MangoHud dentro de juegos compatibles
 Shift izquierdo+F2  Grabar FPS/frametime a CSV local (hasta 10 min)
 SUPER + J           Juegos: Steam, GOG/Heroic, Cyberpunk y espacio disponible

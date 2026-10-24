@@ -264,11 +264,13 @@ if [[ -n $cmdline ]]; then
         { echo 'ROJO: falta firmware Ethernet RTL8168h'; exit 1; }
     sudo install -d -m 0755 "$sistema/etc/ultra"
     sudo install -m 0644 "$lab/rootfs/desktop/"* "$sistema/etc/ultra/"
+    sudo pacman -S --noconfirm --needed librsvg xorg-xcursorgen > "$art/tema-herramientas.log" 2>&1
+    sudo python "$lab/rootfs/crear-tema.py" "$sistema"
     sudo install -m 0644 "$art/sistema-paquetes.txt" "$sistema/etc/ultra/sistema-paquetes.txt"
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
     sudo install -d -m 0755 "$sistema/usr/lib/locale"

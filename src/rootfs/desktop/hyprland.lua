@@ -12,6 +12,7 @@ hl.config({
     },
     animations = { enabled = vivo },
     input = { kb_layout = "us", follow_mouse = 1 },
+    cursor = { enable_hyprcursor = false },
     misc = { disable_hyprland_logo = true, force_default_wallpaper = 0 },
 })
 hl.curve("ultraEase", { type = "bezier", points = { {0.16, 1}, {0.3, 1} } })
@@ -19,8 +20,8 @@ hl.animation({ leaf = "windows", enabled = true, speed = 3, bezier = "ultraEase"
 hl.animation({ leaf = "fade", enabled = true, speed = 2, bezier = "ultraEase" })
 hl.animation({ leaf = "workspaces", enabled = true, speed = 3, bezier = "ultraEase", style = "slide" })
 hl.config({ general = { col = {
-    active_border = { colors = {"rgba(00e5ffff)", "rgba(48ffb4ff)"}, angle = 35 },
-    inactive_border = "rgba(23364dff)",
+    active_border = { colors = {"rgba(43deebff)", "rgba(a987e6ff)", "rgba(68bd9dff)"}, angle = 35 },
+    inactive_border = "rgba(29473eff)",
 } } })
 hl.on("hyprland.start", function()
     hl.exec_cmd("/usr/local/libexec/ultra-iniciar-escritorio")
@@ -38,6 +39,7 @@ hl.bind("SUPER + C", hl.dsp.exec_cmd("makoctl dismiss -a"))
 hl.bind("SUPER + A", hl.dsp.exec_cmd("ultra-audio menu"))
 hl.bind("SUPER + J", hl.dsp.exec_cmd("ultra-juegos menu"))
 hl.bind("SUPER + F10", hl.dsp.exec_cmd("foot --title='ULTRA / Juegos en vivo' ultra-juegos-vivo panel"))
+hl.bind("SUPER + F9", hl.dsp.exec_cmd("foot --title='ULTRA / Equipo en vivo' watch -n 2 ultra-equipo texto"))
 hl.bind("SUPER + F11", hl.dsp.exec_cmd("ultra-diagnostico-juego iniciar"))
 hl.bind("SUPER + SHIFT + F11", hl.dsp.exec_cmd("ultra-diagnostico-juego marcar"))
 hl.bind("SUPER + CTRL + F11", hl.dsp.exec_cmd("foot --title='ULTRA / Warframe diagnostico' ultra-diagnostico-juego panel"))

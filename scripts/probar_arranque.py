@@ -844,6 +844,41 @@ def check_hyprland(conn, failures):
                     except (OSError,SyntaxError): time.sleep(.1)
                 else: raise ValueError('captura del diagnostico incompleta')
                 shutil.copyfile(target,LOG.with_name(LOG.stem+'-diagnostico.png'))
+        if '--tema-nucleo' in sys.argv:
+            source=(ROOT/'scripts/banco_tema_nucleo.py').read_bytes()
+            encoded=base64.b64encode(source).decode()
+            conn.sendall(b': > /arch/tmp/nucleo-probe.b64; echo NUCLEO-CARGA-$((40+4))\n')
+            transcript+=response('NUCLEO-CARGA-44')
+            for offset in range(0,len(encoded),192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/nucleo-probe.b64; echo NUCLEO-CARGA-$((40+4))\n").encode())
+                transcript+=response('NUCLEO-CARGA-44')
+            conn.sendall(b'busybox base64 -d /arch/tmp/nucleo-probe.b64 > /arch/tmp/nucleo-probe.py; echo NUCLEO-CARGA-$((40+4))\n')
+            transcript+=response('NUCLEO-CARGA-44')
+            command='ultra-entrar /usr/bin/nsenter --target $(pidof Hyprland) --mount --root --wd -- /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all --inh-caps=-all --ambient-caps=-all /usr/bin/env HOME=/home/ultra /usr/bin/python /tmp/nucleo-probe.py; echo NUCLEO-RC-$?; echo NUCLEO-FIN-$((40+4))\n'
+            conn.sendall(command.encode()); result=response('NUCLEO-FIN-44',timeout=20); transcript+=result
+            for marker,label in [('NUCLEO-CURSORES-OK','11 cursores XCursor con 5 tamanos y hotspots validos'),
+                                 ('NUCLEO-ICONOS-OK','iconos vectoriales y herencia Papirus'),
+                                 ('NUCLEO-EQUIPO-OK','hardware real y JSON de barra sin root'),
+                                 ('NUCLEO-SESION-OK','GTK usa el tema y cursor nuevos'),
+                                 ('NUCLEO-CURSOR-APLICADO','Hyprland acepta aplicar el cursor propio'),
+                                 ('NUCLEO-RESPALDO-OK','migracion conserva respaldo y cambios posteriores'),
+                                 ('NUCLEO-RC-0','banco visual termina sin errores')]:
+                expect(marker in result,'Nucleo: '+label)
+            if '--diagnostico-warframe' in sys.argv:
+                mon.sendall(b'sendkey meta_l-q\n'); time.sleep(.5)
+            mon.sendall(b'sendkey meta_l-f9\n'); time.sleep(1)
+            equipment=wait_apps(lambda apps:any(a.get('title')=='ULTRA / Equipo en vivo' for a in apps))
+            expect(bool(equipment),'Nucleo: Super+F9 abre equipo en vivo')
+            if equipment:
+                target=pathlib.Path(tempfile.gettempdir())/'ultra-equipo-panel.png'; target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot: shot.verify()
+                        break
+                    except (OSError,SyntaxError): time.sleep(.1)
+                else: raise ValueError('captura de equipo incompleta')
+                shutil.copyfile(target,LOG.with_name(LOG.stem+'-equipo.png'))
         finished_auto = False
         for _ in range(65):
             conn.sendall(b'grep -q \'"running": false\' /arch/juegos/usuarios/ultra/.cache/ultra/discos/automatico.json && echo DISCOS-FIN-$((9+4)); echo DISCOS-QUERY-$((9+5))\n')

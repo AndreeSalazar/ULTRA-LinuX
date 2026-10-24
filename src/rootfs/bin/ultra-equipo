@@ -1,0 +1,68 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Read-only, bounded hardware snapshot; no serial numbers, MACs or root."""
+import html
+import json
+import os
+from pathlib import Path
+import sys
+
+def read(path,limit=65536):
+    try:
+        with Path(path).open() as f: return f.read(limit).strip()
+    except (OSError,ValueError): return ''
+
+def clean(value): return ''.join(c for c in value if c.isprintable())[:120]
+
+def snapshot():
+    model=next((v.partition(':')[2].strip() for v in read('/proc/cpuinfo').splitlines() if v.startswith('model name')),'CPU no identificada')
+    mem={}
+    for line in read('/proc/meminfo').splitlines():
+        fields=line.replace(':','').split()
+        if len(fields)>=2 and fields[1].isdecimal(): mem[fields[0]]=int(fields[1])
+    total=mem.get('MemTotal'); avail=mem.get('MemAvailable')
+    usb=[]
+    for p in sorted(Path('/sys/bus/usb/devices').glob('*'))[:128]:
+        product=clean(read(p/'product',512))
+        if product and not product.lower().endswith('root hub'): usb.append(product)
+    disks=[]
+    for p in sorted(Path('/sys/class/block').glob('*'))[:128]:
+        if p.name.startswith(('loop','ram','zram','dm-')) or (p/'partition').exists(): continue
+        size=read(p/'size',64)
+        if size.isdecimal() and int(size)>0:
+            label=clean(read(p/'device/model',256)) or p.name
+            disks.append(f'{label} / {p.name}: {int(size)*512/2**30:.1f} GiB')
+    sensors=[]
+    for chip in sorted(Path('/sys/class/hwmon').glob('hwmon*'))[:32]:
+        name=clean(read(chip/'name',128))
+        for p in sorted(chip.glob('temp*_input'))[:8]:
+            raw=read(p,64)
+            try: temp=int(raw)/1000
+            except ValueError: continue
+            if -20<=temp<=150:
+                label=clean(read(p.with_name(p.name.replace('_input','_label')),128)) or p.stem
+                sensors.append(f'{name} / {label}: {temp:.1f} °C')
+    gpu=[]
+    for p in sorted(Path('/proc/driver/nvidia/gpus').glob('*/information'))[:8]:
+        for line in read(p).splitlines():
+            if line.startswith('Model:'): gpu.append(clean(line.partition(':')[2].strip()))
+    free=None
+    if os.path.ismount('/juegos'):
+        try:
+            usage=os.statvfs('/juegos'); free=round(usage.f_bavail*usage.f_frsize/2**30,1)
+        except OSError: pass
+    return dict(cpu=clean(model),threads=os.cpu_count(),ram_total_GiB=round(total/2**20,2) if total else None,
+                ram_used_GiB=round((total-avail)/2**20,2) if total and avail is not None else None,
+                usb=usb[:16],disks=disks[:16],sensors=sensors[:16],nvidia=gpu,linux_free_GiB=free)
+
+def lines(data):
+    return ['BMO-X / EQUIPO EN VIVO',data['cpu']+' / '+str(data['threads'])+' hilos logicos',
+            f"RAM: {data['ram_used_GiB']} / {data['ram_total_GiB']} GiB",'GPU NVIDIA: '+(', '.join(data['nvidia']) or 'no disponible'),
+            'Linux libre: '+(str(data['linux_free_GiB'])+' GiB' if data['linux_free_GiB'] is not None else 'almacen persistente no montado'),
+            '', 'DISCOS FISICOS / VIRTUALES:']+data['disks']+['','USB CONECTADOS:']+(data['usb'] or ['Sin dispositivos identificados'])+['','SENSORES EXPUESTOS POR EL KERNEL:']+(data['sensors'] or ['Sin lecturas disponibles'])
+
+if __name__=='__main__':
+    data=snapshot(); action=sys.argv[1] if len(sys.argv)>1 else 'barra'
+    if action=='json': print(json.dumps(data))
+    elif action=='texto': print('\n'.join(lines(data)))
+    else: print(json.dumps(dict(text='  PC',tooltip=html.escape('\n'.join(lines(data))),class_='equipo')).replace('"class_":','"class":'))

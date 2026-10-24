@@ -1,0 +1,45 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""One-time, bounded theme migration with a local backup. No accounts touched."""
+import json
+import os
+from pathlib import Path
+import tempfile
+
+HOME=Path(os.environ['HOME'])
+VERSION='nucleo-1'
+FILES={'foot/foot.ini':'foot.ini','fuzzel/fuzzel.ini':'fuzzel.ini',
+       'gtk-3.0/gtk.css':'gtk.css','gtk-3.0/settings.ini':'gtk-settings.ini',
+       'gtk-4.0/gtk.css':'gtk.css','gtk-4.0/settings.ini':'gtk-settings.ini'}
+
+def atomic(path,raw):
+    fd,name=tempfile.mkstemp(prefix='.tema-',dir=path.parent)
+    try:
+        with os.fdopen(fd,'wb') as f: f.write(raw)
+        os.replace(name,path)
+    finally:
+        if os.path.exists(name): os.unlink(name)
+
+def apply():
+    if os.geteuid()!=1000: raise ValueError('se requiere usuario ultra')
+    config=HOME/'.config'; backup=config/'ultra'/('tema-respaldo-'+VERSION)
+    if config.resolve()!=config or backup.resolve()!=backup: raise ValueError('configuracion redirigida')
+    backup.mkdir(parents=True,exist_ok=True,mode=0o700)
+    marker=backup/'aplicado.json'
+    if marker.exists(): return
+    saved=[]
+    for relative,source in FILES.items():
+        target=config/relative
+        if target.resolve()!=target: raise ValueError('archivo de tema redirigido')
+        target.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+        old=backup/(relative.replace('/','--')+'.bak')
+        if target.exists() and not old.exists():
+            with target.open('rb') as f: raw=f.read(1048577)
+            if len(raw)>1048576: raise ValueError('configuracion visual demasiado grande')
+            atomic(old,raw)
+        atomic(target,(Path('/etc/ultra')/source).read_bytes()); saved.append(relative)
+    atomic(marker,(json.dumps(dict(version=VERSION,files=saved))+'\n').encode())
+
+if __name__=='__main__':
+    try: apply()
+    except (OSError,ValueError) as error: print('AMARILLO [TEMA]: '+str(error)); raise SystemExit(1)

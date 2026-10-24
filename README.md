@@ -6,12 +6,15 @@
 
 <p align="center">Distribución personal y experimental para x86-64, creada e integrada por Eddi Salazar.<br>Linux + entorno Arch + init propio en C + escritorio Wayland con Hyprland.</p>
 
-![Escritorio BMO-X con terminal, ayuda, archivos y editor](evidencias/grafica-nvme-2026-10-21/generico/escritorio.png)
+![Escritorio BMO-X Nucleo en QEMU: cyan, morado y verde metalico oscuro](evidencias/tema-nucleo/2026-10-23/escritorio.png)
 
-BMO-X / Night Circuit combina negro, azul oscuro, cyan y verde neón con acentos
-rojo metálico. Incluye barra de estado, dock con iconos, lanzador con teclado,
+BMO-X / Núcleo combina cyan, morado y verde metálico oscuro. Incluye
+cursores propios, iconos vectoriales, panel del equipo en vivo (Super+F9),
+barra de estado, dock con iconos, lanzador con teclado,
 notificaciones, efectos regulables y aplicaciones con ventanas. La captura es
 real del banco QEMU; no es una maqueta ni una medición de la RTX física.
+
+[Tema Núcleo: uso, respaldo y alcance](docs/TEMA-NUCLEO.md).
 
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza

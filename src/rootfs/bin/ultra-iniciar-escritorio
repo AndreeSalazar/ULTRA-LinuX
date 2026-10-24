@@ -5,6 +5,7 @@ set -euo pipefail
 # PID 1 is our C init, not systemd. Update this session bus without --systemd.
 dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_RUNTIME_DIR HYPRLAND_INSTANCE_SIGNATURE
 [[ -z ${DISPLAY:-} ]] || dbus-update-activation-environment DISPLAY
+hyprctl setcursor ULTRA-Nucleo 28 || echo 'AMARILLO [CURSOR]: se conserva el cursor disponible'
 swaybg -i /etc/ultra/wallpaper.svg -m fill &
 waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/waybar.css &
 mako --config /etc/ultra/mako.conf &

@@ -1,28 +1,28 @@
-@define-color theme_bg_color #09111d;
-@define-color theme_fg_color #c2dce8;
-@define-color theme_base_color #050a12;
-@define-color theme_text_color #c2dce8;
-@define-color theme_selected_bg_color #123e50;
+@define-color theme_bg_color #0a1615;
+@define-color theme_fg_color #cee1dc;
+@define-color theme_base_color #050c10;
+@define-color theme_text_color #cee1dc;
+@define-color theme_selected_bg_color #203c32;
 @define-color theme_selected_fg_color #63f4ff;
-window, .background { background-color: #09111d; color: #c2dce8; }
-headerbar, toolbar, menubar { background-image: linear-gradient(to bottom, #122036, #09111d); color: #9fdce8; border-color: #21394c; }
-textview text, treeview.view, iconview.view, .view { background-color: #050a12; color: #c2dce8; }
-button { background-image: linear-gradient(to bottom, #14243a, #0a1423); color: #addce8; border-color: #284252; border-radius: 3px; }
-button:hover { background-image: none; background-color: #123343; color: #63f4ff; border-color: #00b6cc; }
-entry { background-color: #050a12; color: #c2dce8; border-color: #234455; }
-entry:focus { border-color: #00d4e8; }
-*:selected, selection { background-color: #123e50; color: #63f4ff; }
+window, .background { background-color: #0a1615; color: #cee1dc; }
+headerbar, toolbar, menubar { background-image: linear-gradient(to bottom, #19302a, #0a1615); color: #9fdce8; border-color: #304a40; }
+textview text, treeview.view, iconview.view, .view { background-color: #050c10; color: #cee1dc; }
+button { background-image: linear-gradient(to bottom, #1c342c, #0a1815); color: #addce8; border-color: #3a564b; border-radius: 3px; }
+button:hover { background-image: none; background-color: #1d3c31; color: #63f4ff; border-color: #43deeb; }
+entry { background-color: #050c10; color: #cee1dc; border-color: #234455; }
+entry:focus { border-color: #43deeb; }
+*:selected, selection { background-color: #203c32; color: #63f4ff; }
 .destructive-action { color: #ff7185; border-color: #743246; }
 
 /* Night Circuit: focused controls and tactile dark metal. */
 headerbar { border-bottom: 1px solid #167587; padding: 6px; }
 button, entry, scrollbar slider { transition: background-color 150ms ease, border-color 150ms ease; }
-button:checked, button:active { background-image: linear-gradient(to bottom, #155166, #103242); border-color: #2cd6d6; color: #b8fff0; }
-notebook header { background-color: #07101c; border-color: #21394c; }
+button:checked, button:active { background-image: linear-gradient(to bottom, #315545, #173a2c); border-color: #a987e6; color: #b8fff0; }
+notebook header { background-color: #091813; border-color: #304a40; }
 notebook tab { padding: 8px 14px; border-bottom: 2px solid transparent; }
-notebook tab:checked { background-color: #10303e; border-bottom-color: #42e6b4; color: #9dffdd; }
+notebook tab:checked { background-color: #1d3329; border-bottom-color: #a987e6; color: #9dffdd; }
 scrollbar { background-color: #07101a; }
-scrollbar slider { min-width: 6px; min-height: 6px; border-radius: 6px; background-color: #245269; }
-scrollbar slider:hover { background-color: #2bbcc7; }
+scrollbar slider { min-width: 6px; min-height: 6px; border-radius: 6px; background-color: #3c6152; }
+scrollbar slider:hover { background-color: #73d7c5; }
 progressbar progress { background-image: linear-gradient(to right, #00b8d0, #48e9aa); border-color: #1a958d; }
-menu, popover { background-color: #091725; color: #c2dce8; border: 1px solid #245268; }
+menu, popover { background-color: #091725; color: #cee1dc; border: 1px solid #47634e; }

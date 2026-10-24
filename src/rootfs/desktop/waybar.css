@@ -1,37 +1,44 @@
 /* BMO-X / Night Circuit. GTK CSS. */
 * { font-family: "DejaVu Sans", "Font Awesome 7 Free", "Font Awesome 7 Brands"; font-size: 12px; font-weight: bold; min-height: 0; }
 window#waybar { background: transparent; color: #b9d5e3; }
-window#waybar.hud > box { background: linear-gradient(115deg, #050a12, #0c1b2e, #07101c); border: 1px solid #214356; border-bottom: 2px solid #128a9a; border-radius: 9px; box-shadow: 0 4px 12px rgba(0, 5, 12, .65); }
-window#waybar.dock > box { background: linear-gradient(120deg, #0c1c2d, #050a12); border: 1px solid #245365; border-top: 2px solid #22b7c7; border-radius: 12px; padding: 5px 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .6); }
-tooltip { background: #091725; border: 1px solid #128a9a; border-radius: 7px; }
+window#waybar.hud > box { background: linear-gradient(115deg, #050c10, #10221f, #091813); border: 1px solid #294a41; border-bottom: 2px solid #329eaa; border-radius: 9px; box-shadow: 0 4px 12px rgba(0, 5, 12, .65); }
+window#waybar.dock > box { background: linear-gradient(120deg, #10261f, #050c10); border: 1px solid #385344; border-top: 2px solid #43deeb; border-radius: 12px; padding: 5px 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .6); }
+tooltip { background: #091725; border: 1px solid #329eaa; border-radius: 7px; }
 tooltip label { color: #d3edf3; padding: 6px; }
-#custom-apps { color: #61f4ff; background: linear-gradient(115deg, #103b4b, #0a1a2a); border-right: 1px solid #236174; border-radius: 8px 0 0 8px; padding: 0 18px; letter-spacing: 2px; }
+#custom-apps { color: #61f4ff; background: linear-gradient(115deg, #153c39, #0b171a); border-right: 1px solid #38645c; border-radius: 8px 0 0 8px; padding: 0 18px; letter-spacing: 2px; }
 #workspaces { margin: 4px 6px; }
 #workspaces button { color: #6a859b; min-width: 18px; padding: 0 8px; margin: 1px 2px; border: 1px solid transparent; border-radius: 5px; transition: background-color .16s, color .16s; }
-#workspaces button.active { background: #103a49; color: #70ffd2; border: 1px solid #279790; }
+#workspaces button.active { background: #213227; color: #9be5c4; border: 1px solid #547d68; }
 #workspaces button.urgent { color: #ff6b83; border-color: #a83850; }
 #workspaces button:hover { background: #18374c; color: #ddfbff; box-shadow: none; }
 #window { color: #7e9bb2; font-weight: normal; margin-left: 6px; }
 #clock { color: #d6faff; font-size: 15px; letter-spacing: 2px; padding: 0 16px; }
 #cpu, #memory, #network { padding: 0 10px; font-size: 11px; }
-#cpu { color: #7cc8f1; }
-#memory { color: #7bdbb7; }
-#network { color: #70dccb; }
+#cpu { color: #65e1ec; }
+#memory { color: #8acbaa; }
+#network { color: #b69be8; }
 #network.disconnected, #network.linked { color: #ffad78; }
 #custom-ambiente, #custom-logout { padding: 0 14px; font-size: 16px; }
 #custom-ambiente { color: #6de8e9; border-left: 1px solid #1b3e50; }
-#custom-logout { color: #ff8295; border-radius: 0 8px 8px 0; background: linear-gradient(125deg, #441b2a, #180f1c); border-left: 1px solid #7c344b; }
+#custom-logout { color: #ff8295; border-radius: 0 8px 8px 0; background: linear-gradient(125deg, #30223e, #14121e); border-left: 1px solid #574469; }
 #custom-apps:hover, #custom-ambiente:hover { background: #164054; color: #e8fdff; }
-#custom-logout:hover { background: #7d263f; color: #fff2f4; }
+#custom-logout:hover { background: #4a345e; color: #fff2f4; }
 .dock #custom-browser, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help { font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 2px; border-radius: 7px; border-bottom: 2px solid transparent; transition: background-color .16s, color .16s; }
-#custom-browser { color: #ff8896; }
-#custom-files { color: #70cfff; }
-#custom-terminal { color: #60edbe; }
-#custom-editor { color: #a9b9fa; }
+#custom-browser { color: #ac8cde; }
+#custom-files { color: #66e1eb; }
+#custom-terminal { color: #8dcdaa; }
+#custom-editor { color: #ba9bea; }
 #custom-help { color: #809db6; }
-.dock #custom-browser:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover { color: #e6ffff; background: #173b4d; border-bottom-color: #44f4cc; }
+.dock #custom-browser:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover { color: #e6ffff; background: #253c35; border-bottom-color: #a987e6; }
 
 #pulseaudio { color: #86dfdf; padding: 0 10px; font-size: 11px; }
 #pulseaudio.muted { color: #ffad78; }
-.dock #custom-games { font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 2px; border-radius: 7px; border-bottom: 2px solid transparent; color: #59efbc; }
-.dock #custom-games:hover { background: #173b4d; color: #e6ffff; border-bottom-color: #44f4cc; }
+.dock #custom-games { font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 2px; border-radius: 7px; border-bottom: 2px solid transparent; color: #8dcdaa; }
+.dock #custom-games:hover { background: #253c35; color: #e6ffff; border-bottom-color: #a987e6; }
+
+/* Nucleo: restrained cyan / violet / dark green metal. */
+#custom-equipo { color: #a987e6; padding: 0 9px; border-left: 1px solid #314a42; font-size: 11px; }
+#custom-equipo:hover { background: #25332e; color: #e4d4ff; }
+window#waybar.dock > box { border-top-color: #43deeb; border-bottom: 1px solid #695184; }
+.dock #custom-browser, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help, .dock #custom-games { border: 1px solid #304a40; border-bottom: 2px solid #3f6351; background: linear-gradient(135deg, #182b25, #091410); }
+.dock #custom-browser:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover, .dock #custom-games:hover { border-color: #6c568b; border-bottom-color: #43deeb; }
