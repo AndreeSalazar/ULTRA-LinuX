@@ -40,6 +40,77 @@ BUCKETS = {
     'capa_Cyberpunk': 'overlay',
 }
 
+GOG_QUERY = r'''
+from pathlib import Path
+import json,os,stat,re
+root=Path('/mnt/inspeccion');home=root/'usuarios/ultra';app='1423049311'
+def bounded(path,limit=2097152):
+    try:
+        path=path.resolve()
+        if not path.is_relative_to(root):return None
+        fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+        with os.fdopen(fd,'rb') as f:
+            if not stat.S_ISREG(os.fstat(f.fileno()).st_mode):return None
+            size=os.fstat(f.fileno()).st_size
+            if size>limit:f.seek(-limit,2)
+            return f.read(limit).decode('utf-8',errors='replace')
+    except OSError:return None
+out={'logs':{},'installed':[]}
+raw=bounded(home/'.config/heroic/gog_store/installed.json')
+if raw:
+    try:
+        data=json.loads(raw)
+        out['installed_schema']=isinstance(data,dict) and isinstance(data.get('installed'),list)
+        if out['installed_schema']:
+            for row in data['installed']:
+                if isinstance(row,dict) and str(row.get('appName'))==app:
+                    out['installed'].append({k:row.get(k) for k in ('appName','install_path','executable','platform','buildId','language','installedDLCs')})
+    except ValueError:out['installed_json_invalid']=True
+log_paths=[(name,home/f'.cache/ultra/{name}.log') for name in ('gog-cyberpunk','heroic','cyberpunk')]
+state=home/'.local/state/Heroic/logs'
+log_paths += [('gog-runner',state/'runners/gog.log')]
+log_paths += [('cyberpunk-'+kind,state/f'games/{app}_gog/{kind}.log') for kind in ('update','install','launch','import','repair')]
+for name,log_path in log_paths:
+    raw=bounded(log_path)
+    if raw is None:continue
+    low=raw.lower()
+    patterns={'no_space':r'no space left|enospc|not enough (?:free )?(?:disk )?space|insufficient (?:disk )?space',
+      'registration_success':r'cyberpunk gog (?:ya reconocido|registrado)',
+      'registration_running':r'cierra heroic|heroic se abrio',
+      'registration_mount':r'montaje persistente|carpeta de juego no disponible',
+      'registration_metadata':r'falta el identificador|no corresponde a cyberpunk|idioma gog invalido|version heroic no compatible',
+      'permission':r'permission denied|eacces', 'not_found':r'file not found|no such file|enoent',
+      'download_failed':r'download.{0,50}(?:failed|error)|(?:failed|error).{0,50}download',
+      'vulkan_failure':r'vk_error_device_lost|dxgi_error_device_(?:removed|hung|reset)',
+      'import_failure':r'import.{0,60}(?:failed|error)|(?:failed|error).{0,60}import'}
+    errors=[]
+    for line in raw.splitlines():
+        if not re.search(r'error|errno|enoent|failed|not found|no such file',line,re.I):continue
+        # Export only software exception names/codes and allowlisted paths.
+        types=sorted(set(re.findall(r'\b(?:[A-Za-z]{1,32}Error|ENOENT|EACCES|ENOSPC|ETIMEDOUT|ECONNREFUSED)\b',line)))
+        paths=re.findall(r'(?:/opt/heroic/[a-zA-Z0-9_./-]+|/juegos/usuarios/ultra/\.config/(?:heroic|gogdl)/[a-zA-Z0-9_./-]+|/juegos/Cyberpunk2077/[a-zA-Z0-9_./-]+)',line)
+        row={'types':types,'software_paths':paths[:8]}
+        if (types or paths) and row not in errors:errors.append(row)
+    known_messages=sorted(set(re.findall(r'Request failed with status code [0-9]{3}|(?:Failed|failed) to load Python shared library|error while loading shared libraries|Unable to get current build|Unable to get data of 1423049311|Unexpected end of JSON input|Unexpected token|ECONNREFUSED|ENOTFOUND|ETIMEDOUT',raw)))
+    space_numbers=[re.findall(r'\d+(?:\.\d+)?',line) for line in raw.splitlines() if re.search(patterns['no_space'],line,re.I)]
+    refused=[]
+    for address,port in re.findall(r'connect ECONNREFUSED ([0-9a-fA-F:.]+):([0-9]+)',raw):
+        row={'family':'ipv6' if ':' in address else 'ipv4','port':port,'loopback':address in ('127.0.0.1','::1')}
+        if row not in refused:refused.append(row)
+    contexts=[];lines=raw.splitlines()
+    for i,line in enumerate(lines):
+        if not re.search(r'ECONNREFUSED|status code 403|Unexpected end of JSON input',line):continue
+        section='\n'.join(lines[max(0,i-12):i+3]).lower()
+        tags=[tag for tag in ('gog','gogdl','github','wine','proton','legendary','nile','import','manifest','download') if tag in section]
+        if tags not in contexts:contexts.append(tags)
+    out['logs'][name]={'present':True,'flags':{k:bool(re.search(v,low)) for k,v in patterns.items()},'errors':errors[:24],'known_messages':known_messages,'refused_connections':refused,'space_error_numbers':space_numbers[-8:],'error_context_tags':contexts[:16],'tail_limit_bytes':2097152}
+upper=root/'overlay/upper'
+out['upper_exe_exists']=(upper/'bin/x64/Cyberpunk2077.exe').is_file()
+out['upper_gog_info_exists']=(upper/f'goggame-{app}.info').is_file()
+out['raw_logs_exported']=False
+print('GOG_DIAG '+json.dumps(out))
+'''
+
 WARFRAME_QUERY = r'''
 from pathlib import Path
 import json,os,re,stat
@@ -123,6 +194,7 @@ def main():
     parser.add_argument('--imagen', type=Path, default=IMAGE,
                         choices=[IMAGE, Path('D:/ULTRA-juegos.ext4')])
     parser.add_argument('--warframe', action='store_true', help='Solo inventario CSV y categorias sanitizadas de EE.log')
+    parser.add_argument('--gog', action='store_true', help='Solo registro Cyberpunk y categorias de errores, sin cuentas ni tokens')
     options = parser.parse_args()
     IMAGE = options.imagen
     assert IMAGE.is_file() and not IMAGE.is_symlink()
@@ -178,15 +250,16 @@ def main():
             match = re.search(r'ESPACIO (\d+) (\d+) (\d+) (\d+)', space)
             assert match, space
             blocks, free, available, unit = map(int, match.groups())
-            if options.warframe:
+            if options.warframe or options.gog:
                 command(': > /arch/tmp/warframe-query.b64; echo CARGA-$((40+2))','CARGA-42')
-                encoded=base64.b64encode(WARFRAME_QUERY.encode()).decode()
+                encoded=base64.b64encode((GOG_QUERY if options.gog else WARFRAME_QUERY).encode()).decode()
                 for offset in range(0,len(encoded),192):
                     command(f"printf '%s' '{encoded[offset:offset+192]}' >> /arch/tmp/warframe-query.b64; echo CARGA-$((40+2))",'CARGA-42')
                 command('busybox base64 -d /arch/tmp/warframe-query.b64 > /arch/tmp/warframe-query.py; echo CARGA-$((40+2))','CARGA-42')
                 output=command('ultra-entrar /usr/bin/python /tmp/warframe-query.py; echo RESULTADO-$?; echo FINAL-$((40+2))','FINAL-42')
                 assert re.search(r'(?m)^RESULTADO-0\r?$',output),output
-                result=json.loads(re.search(r'(?m)^WARFRAME_DIAG (.+)\r?$',output)[1])
+                marker='GOG_DIAG' if options.gog else 'WARFRAME_DIAG'
+                result=json.loads(re.search(r'(?m)^'+marker+r' (.+)\r?$',output)[1])
                 command('ultra-entrar /usr/bin/umount /mnt/inspeccion; echo SALIDA-$?','SALIDA-0')
                 connection.sendall(b'poweroff\n'); log+=base.read_until(connection,'APAGADO',40)
                 process.wait(timeout=20)
@@ -194,7 +267,7 @@ def main():
                 assert (before.st_size,before.st_mtime_ns)==(after.st_size,after.st_mtime_ns)
                 result.update(solo_lectura=True,red=False,imagen_conservada=True,
                               disponible_usuario_bytes=available*unit)
-                (work/'warframe.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
+                (work/('gog.json' if options.gog else 'warframe.json')).write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
                 print(json.dumps(result,indent=2),flush=True)
                 return
             sizes = {}

@@ -59,6 +59,11 @@ administrador para cerrar procesos y limitar CPU/RAM. El sistema distingue
 cache recuperable, espacio ext4 y tamaño del contenedor de Windows, y evita
 acumular generaciones antiguas de bibliotecas sin revision.
 
+[Almacenamiento Linux nativo](docs/ALMACEN-NATIVO-2026-10-24.md): la antigua F:
+se convirtió en ext4 y recibió el home y los juegos, con 121.866 entradas
+verificadas y unos 315 GiB disponibles. El perfil PC de A: ya la monta por UUID;
+el contenedor anterior de C: se conserva para recuperación.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.

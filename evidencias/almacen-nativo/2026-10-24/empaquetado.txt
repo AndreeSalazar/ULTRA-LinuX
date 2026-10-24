@@ -1,0 +1,1 @@
+VERDE: sistema y BMO nativos empaquetados; kernel identico; pruebas e instalacion pendientes

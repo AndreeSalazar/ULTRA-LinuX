@@ -1,0 +1,32 @@
+
+
+ultra-entrar /usr/bin/bash /tmp/native-test; echo RESULTADO-$?; echo TERMINADO-$((40+2))
+
+ultra:~# ultra-entrar /usr/bin/bash /tmp/native-test; echo RESULTADO-$?; echo TE
+
+
+RMINADO-$((40+2))
+
+ROJO [JUEGOS]: particion Linux ausente o ambigua; no se abre una copia antigua
+
+VERDE-NATIVA-AUSENTE-SIN-FALLBACK
+
+VERDE [JUEGOS]: almacenamiento ext4 persistente y home preparados; volumen privado; juego con capa de escritura separada
+
+VERDE-NATIVA-MONTAJE-UUID
+
+VERDE-NATIVA-HOME-UID1000
+
+VERDE-NATIVA-IDEMPOTENTE
+
+VERDE-NATIVA-PERSISTENCIA
+
+ROJO [JUEGOS]: particion Linux ausente o ambigua; no se abre una copia antigua
+
+VERDE-NATIVA-UUID-DUPLICADO-RECHAZADO
+
+NATIVA-FIN-42
+
+RESULTADO-0
+
+TERMINADO-42

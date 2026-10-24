@@ -1,0 +1,26 @@
+{
+  "informe_sha256": "b74fcf57cc581f50896d1fa2192428ff696ee187597769751ddc8e7925bc38c5",
+  "muestras_RAM": 120,
+  "muestras_GPU": 120,
+  "RAM_max_GiB": 3.859,
+  "VRAM_max_MiB": 497.0,
+  "GPU_uso_max_pct": 54.0,
+  "GPU_temperatura_max_C": 50.0,
+  "enlaces_Mbps_observados": [
+    100
+  ],
+  "avisos": {
+    "pixman_rectangulo_invalido": false,
+    "kernel_Xid_observado": false,
+    "sin_espacio_observado": false
+  },
+  "limites": [
+    "Picos de muestras; no maximos continuos ni FPS.",
+    "Proceso presente no acredita partida, renderizado correcto o estabilidad.",
+    "El informe no desglosa que carpetas consumieron el espacio.",
+    "El trafico es de la interfaz completa, no se atribuye a Warframe.",
+    "Ausencia de error en este informe no prueba ausencia global de fallos."
+  ],
+  "cyberpunk_update_no_space": true,
+  "legacy_available_bytes": 6399770624
+}

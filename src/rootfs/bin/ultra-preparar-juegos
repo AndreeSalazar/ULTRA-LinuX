@@ -3,26 +3,22 @@
 # Privileged mounts only. Never formats, repairs NTFS, forces hibernation or scans game files.
 set -euo pipefail
 [[ $(id -u) == 0 ]] || exit 1
-uuid=''; image_uuid=''; image_bytes=''; image_path=ULTRA-juegos.ext4; game_uuid=''
+uuid=''; image_uuid=''; image_bytes=''; image_path=ULTRA-juegos.ext4; game_uuid=''; partition_uuid=''
 while IFS='=' read -r key value; do
-    case $key in uuid) uuid=$value;; image_uuid) image_uuid=$value;; image_bytes) image_bytes=$value;; image_path) image_path=$value;; game_uuid) game_uuid=$value;; esac
+    case $key in uuid) uuid=$value;; image_uuid) image_uuid=$value;; image_bytes) image_bytes=$value;; image_path) image_path=$value;; game_uuid) game_uuid=$value;; partition_uuid) partition_uuid=$value;; esac
 done < /etc/ultra/juegos.conf
 [[ $uuid =~ ^[0-9A-Fa-f]{16}$ && $image_uuid =~ ^[0-9a-f-]{36}$ && $image_bytes =~ ^[0-9]{8,12}$ ]] || exit 2
 [[ $image_path == ULTRA-juegos.ext4 || $image_path == 'Espacio para Linux/ULTRA-juegos.ext4' ]] || exit 2
+[[ -z $partition_uuid || $partition_uuid =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]] || exit 2
+storage_uuid=${partition_uuid:-$image_uuid}
 game_uuid=${game_uuid:-$uuid}
 [[ $game_uuid =~ ^[0-9A-Fa-f]{16}$ ]] || exit 2
 private=/run/ultra-juegos
 volume=$private/volumen
 if mountpoint -q /juegos; then
-    [[ $(findmnt -n -o UUID --target /juegos) == "$image_uuid" ]]
+    [[ $(findmnt -n -o UUID --target /juegos) == "$storage_uuid" ]]
     exit $?
 fi
-devices=()
-found=$(blkid -t "UUID=${uuid^^}" -o device || true)
-[[ -z $found ]] || mapfile -t devices <<< "$found"
-(( ${#devices[@]} == 1 )) || { echo 'AMARILLO [JUEGOS]: volumen de almacenamiento ausente o ambiguo; no se monta otro'; exit 1; }
-device=${devices[0]}
-[[ -b $device && $(blkid -s TYPE -o value "$device") == ntfs ]] || exit 1
 install -d -m 0700 "$private" "$volume"
 mounted_volume=0; mounted_data=0; success=0
 rollback() {
@@ -31,6 +27,22 @@ rollback() {
     ((mounted_volume==0)) || umount "$volume" || true
 }
 trap rollback EXIT
+devices=()
+if [[ -n $partition_uuid ]]; then
+    found=$(blkid -t "UUID=$partition_uuid" -o device || true)
+    [[ -z $found ]] || mapfile -t devices <<< "$found"
+    (( ${#devices[@]} == 1 )) || { echo 'ROJO [JUEGOS]: particion Linux ausente o ambigua; no se abre una copia antigua'; exit 1; }
+    device=${devices[0]}
+    [[ -b $device && $(blkid -s TYPE -o value "$device") == ext4 ]] || exit 1
+    install -d -m 0755 /juegos
+    mount -t ext4 -o rw,nosuid,nodev "$device" /juegos
+    mounted_data=1
+else
+found=$(blkid -t "UUID=${uuid^^}" -o device || true)
+[[ -z $found ]] || mapfile -t devices <<< "$found"
+(( ${#devices[@]} == 1 )) || { echo 'AMARILLO [JUEGOS]: volumen de almacenamiento ausente o ambiguo; no se monta otro'; exit 1; }
+device=${devices[0]}
+[[ -b $device && $(blkid -s TYPE -o value "$device") == ntfs ]] || exit 1
 # root-only ancestor hides the entire Windows volume from desktop applications.
 # File ownership below is usable through the game overlay without opening D: globally.
 mount -t ntfs3 -o rw,nosuid,nodev,noexec,uid=1000,gid=1000,dmask=0022,fmask=0133,windows_names "$device" "$volume"
@@ -42,6 +54,7 @@ image=$volume/$image_path
 install -d -m 0755 /juegos
 mount -t ext4 -o loop,rw,nosuid,nodev "$image" /juegos
 mounted_data=1
+fi
 install -d -m 0755 /juegos/usuarios
 [[ ! -L /juegos/usuarios/ultra ]] || exit 1
 install -d -m 0700 -o 1000 -g 1000 /juegos/usuarios/ultra
@@ -57,7 +70,7 @@ setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
         cp -an /home/ultra/.config/. "$home/.config/"
     ' ultra-seed "$home"
 game_volume=$volume
-if [[ ${game_uuid^^} != ${uuid^^} ]]; then
+if [[ -n $partition_uuid || ${game_uuid^^} != ${uuid^^} ]]; then
     game_devices=()
     found=$(blkid -t "UUID=${game_uuid^^}" -o device || true)
     [[ -z $found ]] || mapfile -t game_devices <<< "$found"

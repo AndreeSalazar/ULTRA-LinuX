@@ -1,0 +1,33 @@
+
+
+ultra:~# ultra-entrar /usr/bin/cat /tmp/f-linux.log; echo REGISTRO-$((40+2))
+
+ULTRA-DATOS: recovering journal
+
+ULTRA-DATOS: clean, 12/27172864 files, 1986477/108670208 blocks
+
+F-FASE-COPIA
+
+F-FASE-VERIFICACION
+
+F-VERIFICADO {"entries": 121866, "regular_bytes": 97059790020, "sha256_equal": true, "metadata_equal": true}
+
+F-ESPACIO blocks=106683740 available=82688471 blocksize=4096
+
+e2fsck 1.47.4 (6-Mar-2025)
+
+Pass 1: Checking inodes, blocks, and sizes
+
+Pass 2: Checking directory structure
+
+Pass 3: Checking directory connectivity
+
+Pass 4: Checking reference counts
+
+Pass 5: Checking group summary information
+
+ULTRA-DATOS: 93839/27172864 files (0.2% non-contiguous), 24890939/108670208 blocks
+
+F-LINUX-OK-42
+
+REGISTRO-42

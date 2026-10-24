@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-24",
+  "base_commit": "c5be8a0",
+  "partition": {
+    "disk": 0,
+    "number": 3,
+    "offset": 34989932544,
+    "bytes": 445113171968,
+    "uuid": "19a78f63-4252-45e8-b032-5b6e53f67af5",
+    "label": "ULTRA-DATOS",
+    "filesystem": "ext4",
+    "gpt_linux": true,
+    "windows_letter_removed": true
+  },
+  "neighbors_efi_and_a_unchanged": true,
+  "migration": {
+    "entries": 121866,
+    "regular_bytes": 97059790020,
+    "sha256_equal": true,
+    "metadata_equal": true
+  },
+  "available_user_bytes": 338691977216,
+  "available_user_GiB": 315.43,
+  "source_readonly": true,
+  "source_container_preserved": true,
+  "qemu_boot_checks": 186,
+  "native_checks": 6,
+  "kernel_unchanged": true,
+  "installation": {
+    "files": [
+      {
+        "file": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+        "sha256": "E2242E375F3F508C535F18CF684A573D1D5664350A6199742EE9F0AB1891C8F7",
+        "matches": true
+      },
+      {
+        "file": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+        "sha256": "42E6F855F47D27A921BCD44F549D6E3A2BCD1874F00C390E7D9486E3A3738FC9",
+        "matches": true
+      }
+    ],
+    "datos_ext4_sha256": "C93622F05B8447E06C83C44455206BC92D0955C397594C724025D03294B9DF8D",
+    "datos_unchanged": true
+  },
+  "physical_boot_pending": true,
+  "cyberpunk_update_retry_pending": true
+}
