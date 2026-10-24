@@ -57,7 +57,7 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   Ctrl+Shift+F busca texto en todo, y **Enfocar** (E) hace raíz a una carpeta; un organizador medido
   sobre Chromium (509 418 archivos) agrupa `foo.h`+`foo.cc`+`foo_unittest.cc` en unidades. Y la
   **vista Ciudad** (como CodeCity): distritos = carpetas, edificios = archivos, huella = tamaño,
-  altura = líneas, color = lenguaje o errores, con su % ([detalle](docs/ULTRA-CARPETAS.md#vista-ciudad-inspirada-en-codecity)) ([en vivo](docs/ULTRA-CARPETAS.md#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)).
+  altura = líneas o cambios en git, color = lenguaje, errores o **calor** (puntos calientes: lo grande que más cambia), con su % ([detalle](docs/ULTRA-CARPETAS.md#vista-ciudad-inspirada-en-codecity)) ([en vivo](docs/ULTRA-CARPETAS.md#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)).
   **9 temas** (Neón BMO-X, TITAN Taller, Synthwave '84, Tokyo Night, Catppuccin, Rosé Pine, Kanagawa,
   Dracula, Nord) con contraste comprobado y panel de ajustes en Ctrl+, ([temas](docs/TEMAS-APPS.md)).
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y

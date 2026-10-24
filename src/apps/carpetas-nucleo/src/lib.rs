@@ -31,6 +31,7 @@ pub mod disposicion;
 pub mod editor;
 pub mod estado;
 pub mod grafo;
+pub mod historia;
 pub mod iconos;
 pub mod organizar;
 pub mod procesos;

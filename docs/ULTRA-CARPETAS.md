@@ -338,8 +338,8 @@ archivos**.
 | | Qué dice | Opciones (clic en la leyenda) |
 | --- | --- | --- |
 | **Huella** (el área) | Cuánto ocupa | bytes, o líneas de texto (como CodeCity) |
-| **Altura** | Cuánto código | líneas, errores y avisos, resultados de búsqueda, o plana (mapa) |
-| **Color** | Qué es | lenguaje (Rust, C, cabeceras `.h`, C++, `.hpp`, Python…), salud (rojo: errores; amarillo: avisos; verde: sin errores conocidos) o búsqueda |
+| **Altura** | Cuánto código | líneas, cambios en git, errores y avisos, resultados de búsqueda, o plana (mapa) |
+| **Color** | Qué es | lenguaje (Rust, C, cabeceras `.h`, C++, `.hpp`, Python…), calor (cambios en git), edad (último cambio), salud (rojo: errores; amarillo: avisos; verde: sin errores conocidos) o búsqueda |
 | **Distritos** | Carpetas anidadas | en terrazas, con su nombre, archivos y **% del total** |
 
 ![Salud: tras cargo run, el archivo con error es un edificio rojo](maquetas/png/neon/carpetas-ciudad-salud.png)
@@ -380,6 +380,43 @@ archivos**.
 | Clic derecho | Abrirlo en el editor |
 | Doble clic en un distrito | Enfocarlo: la ciudad pasa a ser esa carpeta |
 | Ctrl+P | Además de revelar el archivo, lleva la cámara a su edificio |
+
+### Historia de git: puntos calientes
+
+En un proyecto gigante nadie lee todo, pero **git ya sabe dónde se trabaja**. Un
+archivo **grande** que **cambia mucho** es un *punto caliente*: ahí se concentran el
+trabajo y los fallos, y es lo primero que conviene mirar para optimizar o partir.
+La idea es de Adam Tornhill, *Your Code as a Crime Scene*.
+
+![Color = calor: 76 commits de 2 autores y la lista de puntos calientes](maquetas/png/neon/carpetas-ciudad-calor.png)
+
+- **Color: calor.** De azul (casi no cambia) a rojo (cambia todo el rato).
+  - La leyenda lista los **puntos calientes**: cambios × tamaño. Mandan los cambios;
+    el tamaño pesa con su raíz cuarta, así que un archivo enorme que cambió una vez
+    no tapa a uno mediano que cambia siempre.
+  - Clic en uno: se revela en el explorador y la cámara va a su edificio.
+- **Color: edad.** El último cambio en el color del acento si es reciente; apagado
+  si hace tiempo que nadie lo toca.
+- **Altura: cambios en git.** Lo que nunca se tocó queda plano y lo que se trabaja
+  sube.
+- La **ficha** de cada edificio añade, por ejemplo, «3 cambios en git · último hace
+  4 horas · 1 autor». Una carpeta o un bloque suman lo de dentro.
+
+![Clic en build-baseline.sh (25 cambios): revelado en el explorador y la cámara en su edificio](maquetas/png/neon/carpetas-ciudad-punto-caliente.png)
+
+**Seguridad y límites** (carril **Git**, en su propio hilo):
+
+- Ejecuta `git log` sin shell y **solo lee**:
+  - nunca pide claves (`GIT_TERMINAL_PROMPT=0`);
+  - no toma bloqueos ni reescribe el índice de git (`GIT_OPTIONAL_LOCKS=0`);
+  - con las firmas y `core.fsmonitor` apagados, un repositorio ajeno no puede hacer
+    que se ejecute otro programa al leer su historia.
+- Lee como mucho los últimos 20 000 commits (Chromium tiene ~1,5 millones), 30 s y
+  256 MiB de salida. Si corta, la leyenda dice «solo los últimos».
+- Las rutas son relativas a la carpeta abierta (`--relative`). Se descartan las
+  absolutas o con `..`, y los commits de fusión.
+- Si la carpeta no es un repositorio, o git no confía en ella (`safe.directory`), la
+  leyenda lo dice en vez de inventar datos.
 
 ![Chromium entero: third_party 50 %, chrome 18 %, components 8,3 %, con bloques y los carriles](maquetas/png/neon/carpetas-ciudad-chromium.png)
 
@@ -490,6 +527,7 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 | **Iconos SVG** | 8 ms | 30 ms | CPU una vez por icono y tamaño; después es textura en la GPU |
 | **Índice** | 50 ms | 300 ms | Ctrl+P: puntuar nombres en su hilo, repartido entre los núcleos; recorrer el disco (1 s en Chromium) va aparte, solo al abrir |
 | **Búsqueda** | 2 s | 10 s | Texto dentro de los archivos en su hilo, cancelable; lotes cada 100 ms; se salta lo binario |
+| **Git** | 2 s | 15 s | `git log` en su hilo, solo lectura; como mucho 20 000 commits, 30 s y 256 MiB |
 | **Ciudad** | 30 ms | 150 ms | Treemap e instancias solo al cambiar los datos; girar la cámara manda 80 bytes. Los datos salen del hilo del índice (F12 muestra cuánto) |
 
 **Límites duros** (por diseño, no por suerte):
@@ -592,7 +630,7 @@ Si no hay Rust o no compila, avisa en amarillo y sigue Thunar. Corre desde
   líneas coloreados enteros (ahora solo su primera línea).
 - Ciudad: el treemap de Chromium entero (~55 ms) queda en amarillo; partirlo en
   trozos o en un hilo lo dejaría en verde. Altura por complejidad (como CodeCity) y
-  color por antigüedad (git).
+  cables de dependencias (`use`/`#include`) para ver qué archivo es central.
 - El índice se rehace al abrir la carpeta, con H u «Volver a indexar». Cambios
   posteriores en carpetas plegadas no se ven en Ctrl+P hasta reindexar.
 - Miniaturas de imágenes, renombrar y mover archivos de verdad (con confirmación y

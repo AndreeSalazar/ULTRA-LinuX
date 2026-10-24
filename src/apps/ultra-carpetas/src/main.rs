@@ -15,6 +15,7 @@ mod ciudad3d;
 mod disco;
 mod editor_ui;
 mod entradas;
+mod git;
 mod gpu;
 mod indice;
 mod paneles;
@@ -50,7 +51,7 @@ fn acento() -> Rgb {
 
 /// Ultimo tiempo y maximo por carril, en microsegundos.
 #[derive(Default)]
-struct Medidas { ultimo: [u64; 12], maximo: [u64; 12] }
+struct Medidas { ultimo: [u64; 13], maximo: [u64; 13] }
 
 impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
@@ -96,6 +97,9 @@ struct App {
     ciudad: ciudad3d::Vista3,
     ciudad_ok: bool,
     micros_datos_ciudad: u64,
+    /// Historia de git (su hilo) y que pedido es el ultimo.
+    git: git::Git,
+    pedido_git: u64,
 }
 
 /// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
@@ -113,6 +117,7 @@ impl App {
         let ctx = cc.egui_ctx.clone();
         let ctx_vivos = cc.egui_ctx.clone();
         let ctx_proyecto = cc.egui_ctx.clone();
+        let ctx_git = cc.egui_ctx.clone();
         let mut app = App {
             estado: Estado { acento: acento(), ..Estado::default() }, carpeta: PathBuf::new(), atras: Vec::new(), error: None, contexto: cc.egui_ctx.clone(),
             texto_paleta: String::new(), tema_aplicado: None, disco: Disco::nuevo(move || ctx.request_repaint()), generacion: 0,
@@ -122,6 +127,7 @@ impl App {
             proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
             texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
             ciudad: ciudad3d::Vista3::default(), ciudad_ok, micros_datos_ciudad: 0,
+            git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -177,6 +183,7 @@ impl App {
                 self.proyecto.pedir(indice::Pedido::Texto { generacion, base: self.carpeta.clone(), carpeta, patron, mayusculas, palabra, filtro });
             }
             Efecto::CancelarTexto => self.proyecto.pedir(indice::Pedido::Cancelar),
+            Efecto::LeerHistoria => { self.pedido_git += 1; self.git.pedir(self.pedido_git, self.carpeta.clone()); }
             Efecto::PedirCiudad { generacion, raiz } => self.proyecto.pedir(indice::Pedido::Ciudad { generacion, raiz }),
             Efecto::LeerArchivo(rel) => {
                 let t = Instant::now();
@@ -304,6 +311,16 @@ impl App {
                     self.despachar(Accion::ResultadosProyecto { generacion, lote, vistos, terminada, truncada });
                 }
             }
+        }
+    }
+
+    /// La historia de git, cuando llega (solo la del ultimo pedido).
+    fn recoger_git(&mut self) {
+        for (g, micros, resultado) in self.git.recoger() {
+            if g != self.pedido_git { continue; }
+            self.medidas.anotar(Carril::Git, micros);
+            let ahora = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            self.despachar(Accion::Historia { resultado, ahora });
         }
     }
 
@@ -782,7 +799,7 @@ impl App {
                 ui.set_width(430.0);
                 ui.label(egui::RichText::new("CARRILES // SEMAFORO  (F12)").color(c.acento).strong());
                 for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Geometria, Carril::Pintado, Carril::Iconos, Carril::Terminal,
-                               Carril::Procesos, Carril::Editor, Carril::Indice, Carril::Busqueda, Carril::Ciudad] {
+                               Carril::Procesos, Carril::Editor, Carril::Indice, Carril::Busqueda, Carril::Ciudad, Carril::Git] {
                     let p = presupuesto(carril);
                     let (u, m) = (self.medidas.ultimo[carril as usize], self.medidas.maximo[carril as usize]);
                     let foco = match luz(carril, u) { Luz::Verde => Color32::from_rgb(61, 255, 154), Luz::Amarillo => Color32::from_rgb(252, 238, 10), Luz::Rojo => Color32::from_rgb(255, 42, 79) };
@@ -909,6 +926,7 @@ impl eframe::App for App {
         self.recoger_proceso();
         self.recoger_vivos();
         self.recoger_proyecto();
+        self.recoger_git();
         self.teclado(&ctx);
         if self.estado.panel_ajustes && ctx.input(|i| i.key_pressed(Key::Escape)) { self.despachar(Accion::Comando(Comando::Ajustes)); }
         let tema = self.estado.ajustes.tema(self.estado.acento);

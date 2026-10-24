@@ -8,7 +8,7 @@
 
 use crate::{color, Colores};
 use bytemuck::{Pod, Zeroable};
-use carpetas_nucleo::ciudad::{color_lenguaje, leyenda_lenguajes, lineas_de, Altura, ArchivoCiudad, Ciudad, Color as ColorCiudad, Edificio, TERRAZA};
+use carpetas_nucleo::ciudad::{color_calor, color_lenguaje, leyenda_lenguajes, lineas_de, Altura, ArchivoCiudad, Ciudad, Color as ColorCiudad, Edificio, TERRAZA};
 use carpetas_nucleo::{legible, Accion, Comando, Estado};
 use eframe::egui::{self, Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use eframe::egui_wgpu::{self, wgpu, CallbackResources, CallbackTrait, ScreenDescriptor};
@@ -103,6 +103,22 @@ fn color_edificio(e: &Edificio, modo: ColorCiudad, estado: &Estado, c: &Colores)
     let nombre = e.ruta.rsplit('/').next().unwrap_or(&e.ruta);
     match modo {
         ColorCiudad::Lenguaje => color_lenguaje(nombre, e.bloque),
+        ColorCiudad::Calor => {
+            let h = &estado.historia.datos;
+            let v = h.de(&e.ruta).veces;
+            // Raiz: que los pocos cambios no queden todos en el mismo azul.
+            color_calor((v > 0).then(|| carpetas_nucleo::ciudad::raiz2(v as f32 / h.max_veces().max(1) as f32)))
+        }
+        ColorCiudad::Edad => {
+            let h = &estado.historia.datos;
+            let u = h.de(&e.ruta).ultimo;
+            if u == 0 { return [44, 48, 60]; }
+            // Reciente = claro y del acento; viejo = apagado. Escala: lo leido de la historia.
+            let t = (u.saturating_sub(h.desde)) as f32 / (h.hasta.saturating_sub(h.desde)).max(1) as f32;
+            let a = c.acento;
+            let mezcla = |x: u8, viejo: f32| (viejo + (x as f32 - viejo) * t) as u8;
+            [mezcla(a.r(), 70.0), mezcla(a.g(), 76.0), mezcla(a.b(), 98.0)]
+        }
         ColorCiudad::Salud => {
             let (err, av) = estado.errores.conteo(&e.ruta);
             if err > 0 { [235, 70, 80] } else if av > 0 { [230, 175, 60] } else { [70, 185, 110] }
@@ -116,7 +132,7 @@ fn color_edificio(e: &Edificio, modo: ColorCiudad, estado: &Estado, c: &Colores)
 /// Lo que se recuerda entre cuadros: la ciudad armada, sus instancias y la camara.
 #[derive(Default)]
 pub struct Vista3 {
-    clave: Option<(u64, Altura, ColorCiudad, carpetas_nucleo::ciudad::Huella, usize, u64, usize, [u8; 3])>,
+    clave: Option<(u64, Altura, ColorCiudad, carpetas_nucleo::ciudad::Huella, usize, u64, usize, [u8; 3], u64)>,
     pub ciudad: Arc<Ciudad>,
     instancias: Arc<Vec<Instancia>>,
     version_gpu: u64,
@@ -130,12 +146,13 @@ impl Vista3 {
     /// Rehace la ciudad y sus instancias si cambio algo que se ve (no la camara).
     pub fn preparar(&mut self, e: &Estado, c: &Colores) {
         let a = c.acento;
-        let clave = (e.ciudad.version, e.ajustes.altura_ciudad, e.ajustes.color_ciudad, e.ajustes.huella_ciudad, e.errores.total, e.proyecto.generacion, e.proyecto.total, [a.r(), a.g(), a.b()]);
+        let clave = (e.ciudad.version, e.ajustes.altura_ciudad, e.ajustes.color_ciudad, e.ajustes.huella_ciudad, e.errores.total, e.proyecto.generacion, e.proyecto.total, [a.r(), a.g(), a.b()], e.historia.version);
         if self.clave == Some(clave) { return; }
         let t = std::time::Instant::now();
         let medida = |r: &str| match e.ajustes.altura_ciudad {
             Altura::Errores => { let (x, y) = e.errores.conteo(r); x * 3 + y }
             Altura::Coincidencias => e.proyecto.conteo(r),
+            Altura::Cambios => e.historia.datos.de(r).veces,
             _ => 0,
         };
         let ciudad = carpetas_nucleo::ciudad::construir(&e.ciudad.raiz, &e.ciudad.archivos, e.ajustes.huella_ciudad, e.ajustes.altura_ciudad, &medida);
@@ -345,6 +362,12 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         if err + av > 0 { t += &format!("\n{err} errores · {av} avisos"); }
         let n = e.proyecto.conteo(&b.ruta);
         if n > 0 { t += &format!("\n{n} resultados de la busqueda"); }
+        if e.historia.lista && e.historia.sin.is_none() {
+            let h = e.historia.datos.de(&b.ruta);
+            t += &if h.veces == 0 { "\nsin cambios en la historia leida".to_string() }
+                  else { format!("\n{} en git · ultimo {} · {}", carpetas_nucleo::diagnosticos::contar(h.veces, "cambio", "cambios"),
+                                 carpetas_nucleo::historia::hace(h.ultimo, e.historia.ahora), carpetas_nucleo::diagnosticos::contar(h.autores as u32, "autor", "autores")) };
+        }
         t += if b.bloque { "\nclic: enfocar este bloque" } else { "\nclic: mostrar en el explorador · clic derecho: editor" };
         ficha(&pintor, rect, p, &t, c);
     } else if let (Some(p), Some(i)) = (resp.hover_pos(), distrito) {
@@ -422,6 +445,43 @@ fn leyenda(ui: &mut egui::Ui, lienzo: Rect, v3: &mut Vista3, e: &Estado, c: &Col
                 ColorCiudad::Lenguaje => {
                     let total = ciudad.archivos.max(1) as f32;
                     for (n, col, k) in leyenda_lenguajes(&ciudad).into_iter().take(8) { muestra(ui, col, format!("{n}  {k} ({})", por(k as f32 / total * 100.0))); }
+                }
+                ColorCiudad::Calor | ColorCiudad::Edad => {
+                    let h = &e.historia;
+                    if !h.lista { ui.label(egui::RichText::new("leyendo la historia de git…").color(c.tenue).size(10.5)); }
+                    else if let Some(m) = &h.sin { ui.label(egui::RichText::new(format!("Sin historia: {m}")).color(c.aviso).size(11.0)); }
+                    else {
+                        let d = &h.datos;
+                        ui.label(egui::RichText::new(format!("{} commits · {} · de {} a {}{}", d.commits, carpetas_nucleo::diagnosticos::contar(d.autores, "autor", "autores"),
+                            carpetas_nucleo::historia::hace(d.desde, h.ahora), carpetas_nucleo::historia::hace(d.hasta, h.ahora),
+                            if d.truncada { " (solo los ultimos)" } else { "" })).color(c.tenue).size(10.5));
+                        // Barra de la escala.
+                        let (barra, _) = ui.allocate_exact_size(Vec2::new(280.0, 10.0), Sense::hover());
+                        for k in 0..56 {
+                            let t = k as f32 / 55.0;
+                            let col = if e.ajustes.color_ciudad == ColorCiudad::Calor { color_calor(Some(t)) } else {
+                                let a = c.acento; [(70.0 + (a.r() as f32 - 70.0) * t) as u8, (76.0 + (a.g() as f32 - 76.0) * t) as u8, (98.0 + (a.b() as f32 - 98.0) * t) as u8] };
+                            ui.painter().rect_filled(Rect::from_min_size(barra.min + Vec2::new(k as f32 * 5.0, 0.0), Vec2::new(5.0, 10.0)), 0, color(col));
+                        }
+                        let (izq, der) = if e.ajustes.color_ciudad == ColorCiudad::Calor { ("casi no cambia", "cambia mucho") } else { ("hace mas", "reciente") };
+                        ui.horizontal(|ui| {
+                            ui.label(egui::RichText::new(izq).color(c.tenue).size(10.5));
+                            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| ui.label(egui::RichText::new(der).color(c.tenue).size(10.5)));
+                        });
+                        if e.ajustes.color_ciudad == ColorCiudad::Calor {
+                            ui.label(egui::RichText::new("PUNTOS CALIENTES (cambios x tamano)").color(c.acento).size(11.0));
+                            let lineas = ciudad.edificios.iter().filter(|b| !b.bloque).map(|b| {
+                                let (l, _) = lineas_de(&ArchivoCiudad { ruta: b.ruta.clone(), tam: b.tam, lineas: b.lineas, archivos: b.archivos, bloque: false });
+                                (b.ruta.as_str(), l)
+                            });
+                            for (ruta, veces, l, _) in carpetas_nucleo::historia::puntos_calientes(d, lineas, 8) {
+                                let nombre = ruta.rsplit('/').next().unwrap_or(&ruta).to_string();
+                                let r = ui.add(egui::Button::new(egui::RichText::new(format!("{nombre}  {veces} cambios · {l} lineas")).size(11.0)).frame(false))
+                                    .on_hover_text(format!("{ruta}\nclic: mostrar y llevar la camara"));
+                                if r.clicked() { acciones.push(Accion::Revelar { id: ruta.clone(), editor: false }); }
+                            }
+                        }
+                    }
                 }
                 ColorCiudad::Salud => {
                     muestra(ui, [235, 70, 80], "con errores (ultima ejecucion)".into());

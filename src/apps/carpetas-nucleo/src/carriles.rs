@@ -29,6 +29,8 @@ pub enum Carril {
     Busqueda,
     /// Vista Ciudad: armar el treemap y las instancias (solo cuando cambian los datos).
     Ciudad,
+    /// Leer la historia de git (su propio hilo, solo lectura).
+    Git,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -69,6 +71,8 @@ pub const PRESUPUESTOS: &[Presupuesto] = &[
                   que_consume: "E/S y CPU en su hilo: lee archivos de texto de hasta 2 MiB; se cancela al escribir otra cosa; lotes cada 100 ms" },
     Presupuesto { carril: Carril::Ciudad, nombre: "Ciudad", verde_us: 30_000, amarillo_us: 150_000,
                   que_consume: "CPU al cambiar los datos: treemap de hasta 60 000 edificios e instancias para la GPU; girar la camara solo manda 80 bytes" },
+    Presupuesto { carril: Carril::Git, nombre: "Git", verde_us: 2_000_000, amarillo_us: 15_000_000,
+                  que_consume: "git log en su hilo, solo lectura (sin bloqueos ni tocar el indice de git); como mucho 20 000 commits, 30 s y 256 MiB de salida" },
 ];
 
 pub fn presupuesto(c: Carril) -> &'static Presupuesto {

@@ -24,7 +24,7 @@ pub const TERRAZA: f32 = 3.0;
 /// Que dice la altura de un edificio.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Altura { #[default] Lineas, Errores, Coincidencias, Plana }
+pub enum Altura { #[default] Lineas, Cambios, Errores, Coincidencias, Plana }
 
 /// Que dice la huella (el area): bytes (todo lo que ocupa) o lineas (solo el texto, como CodeCity).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -39,15 +39,23 @@ impl Huella {
 /// Que dice el color.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Color { #[default] Lenguaje, Salud, Busqueda }
+pub enum Color { #[default] Lenguaje, Calor, Edad, Salud, Busqueda }
 
 impl Altura {
-    pub fn siguiente(self) -> Self { match self { Altura::Lineas => Altura::Errores, Altura::Errores => Altura::Coincidencias, Altura::Coincidencias => Altura::Plana, Altura::Plana => Altura::Lineas } }
-    pub fn nombre(self) -> &'static str { match self { Altura::Lineas => "lineas", Altura::Errores => "errores y avisos", Altura::Coincidencias => "resultados de busqueda", Altura::Plana => "plana (mapa)" } }
+    pub fn siguiente(self) -> Self {
+        match self { Altura::Lineas => Altura::Cambios, Altura::Cambios => Altura::Errores, Altura::Errores => Altura::Coincidencias, Altura::Coincidencias => Altura::Plana, Altura::Plana => Altura::Lineas }
+    }
+    pub fn nombre(self) -> &'static str {
+        match self { Altura::Lineas => "lineas", Altura::Cambios => "cambios en git", Altura::Errores => "errores y avisos", Altura::Coincidencias => "resultados de busqueda", Altura::Plana => "plana (mapa)" }
+    }
 }
 impl Color {
-    pub fn siguiente(self) -> Self { match self { Color::Lenguaje => Color::Salud, Color::Salud => Color::Busqueda, Color::Busqueda => Color::Lenguaje } }
-    pub fn nombre(self) -> &'static str { match self { Color::Lenguaje => "lenguaje", Color::Salud => "salud (errores)", Color::Busqueda => "busqueda" } }
+    pub fn siguiente(self) -> Self {
+        match self { Color::Lenguaje => Color::Calor, Color::Calor => Color::Edad, Color::Edad => Color::Salud, Color::Salud => Color::Busqueda, Color::Busqueda => Color::Lenguaje }
+    }
+    pub fn nombre(self) -> &'static str {
+        match self { Color::Lenguaje => "lenguaje", Color::Calor => "calor (cambios en git)", Color::Edad => "edad (ultimo cambio)", Color::Salud => "salud (errores)", Color::Busqueda => "busqueda" }
+    }
 }
 
 /// Un archivo (o un bloque de una carpeta entera) para la ciudad.
@@ -306,7 +314,7 @@ pub fn construir(raiz: &str, archivos: &[ArchivoCiudad], huella: Huella, altura:
             let por_archivo = lineas_de(a).0 / a.archivos.max(1) as u64;
             let alto = match altura {
                 Altura::Lineas => 1.0 + 140.0 * raiz2(por_archivo as f32 / lineas_max as f32),
-                Altura::Errores | Altura::Coincidencias => 0.6 + 140.0 * raiz2(medida(&a.ruta) as f32 / medida_max as f32),
+                Altura::Cambios | Altura::Errores | Altura::Coincidencias => 0.6 + 140.0 * raiz2(medida(&a.ruta) as f32 / medida_max as f32),
                 Altura::Plana => 0.6,
             };
             let nombre = a.ruta.rsplit('/').next().unwrap_or(&a.ruta);
@@ -366,4 +374,17 @@ pub fn leyenda_lenguajes(ciudad: &Ciudad) -> Vec<(&'static str, crate::tipos::Rg
     v.retain(|f| f.2 > 0);
     v.sort_by(|a, b| b.2.cmp(&a.2));
     v
+}
+
+/// Calor: de frio (azul, casi no cambia) a caliente (rojo, cambia todo el rato), pasando
+/// por amarillo. `t` en 0..1. Sin cambios en lo leido: gris oscuro.
+pub fn color_calor(t: Option<f32>) -> crate::tipos::Rgb {
+    let Some(t) = t else { return [52, 56, 68] };
+    let t = t.clamp(0.0, 1.0);
+    let paradas: [(f32, [f32; 3]); 4] = [(0.0, [40.0, 90.0, 200.0]), (0.4, [60.0, 190.0, 200.0]), (0.7, [250.0, 205.0, 60.0]), (1.0, [240.0, 60.0, 60.0])];
+    let mut k = 0;
+    while k + 2 < paradas.len() && t > paradas[k + 1].0 { k += 1; }
+    let (a, b) = (paradas[k], paradas[k + 1]);
+    let u = ((t - a.0) / (b.0 - a.0)).clamp(0.0, 1.0);
+    [(a.1[0] + (b.1[0] - a.1[0]) * u) as u8, (a.1[1] + (b.1[1] - a.1[1]) * u) as u8, (a.1[2] + (b.1[2] - a.1[2]) * u) as u8]
 }

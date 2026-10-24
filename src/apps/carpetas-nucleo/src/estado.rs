@@ -105,6 +105,20 @@ pub enum Accion {
     DatosCiudad { generacion: u64, raiz: String, archivos: Vec<crate::ciudad::ArchivoCiudad> },
     /// El hilo de lineas termino de contar.
     LineasListas { contadas: u64 },
+    /// Llego la historia de git (o por que no hay). `ahora`: la hora de la plataforma.
+    Historia { resultado: Result<crate::historia::Historia, String>, ahora: u64 },
+}
+
+/// La historia de git de la carpeta abierta.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct EstadoHistoria {
+    pub datos: crate::historia::Historia,
+    pub lista: bool,
+    /// Por que no hay historia ("no es un repositorio git"...).
+    pub sin: Option<String>,
+    /// Hora de la plataforma cuando llego (para "hace 3 dias").
+    pub ahora: u64,
+    pub version: u64,
 }
 
 /// Datos de la vista Ciudad (la plataforma los pide al hilo del indice).
@@ -175,6 +189,8 @@ pub enum Efecto {
     CancelarTexto,
     /// Archivos (con tamano y lineas) de `raiz` para la vista Ciudad.
     PedirCiudad { generacion: u64, raiz: String },
+    /// Leer la historia de git de la carpeta abierta (en su hilo, sin tocar el repositorio).
+    LeerHistoria,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -229,6 +245,7 @@ pub struct Estado {
     /// Un aviso corto para la barra de estado.
     pub aviso: Option<String>,
     pub ciudad: DatosCiudad,
+    pub historia: EstadoHistoria,
 }
 
 impl Default for Estado {
@@ -240,7 +257,7 @@ impl Default for Estado {
                  version_contenido: 0, terminal: Terminal::default(), errores: Errores::default(), raiz_absoluta: String::new(),
                  editor: Pestanas::default(), procesos: Vec::new(), ir_a: None, proyecto: BusquedaProyecto::default(),
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
-                 ciudad: DatosCiudad::default() }
+                 ciudad: DatosCiudad::default(), historia: EstadoHistoria::default() }
     }
 }
 
@@ -405,7 +422,7 @@ impl Estado {
             Comando::IrA => self.ir_a(AccionIrA::Abrir),
             Comando::BuscarProyecto => self.proyecto(AccionProyecto::Abrir),
             Comando::Organizar => { self.ajustes.organizar = self.ajustes.organizar.siguiente(); vec![self.guardar_ajustes()] }
-            Comando::Reindexar => vec![Efecto::Reindexar { ocultos: self.ocultos }],
+            Comando::Reindexar => vec![Efecto::Reindexar { ocultos: self.ocultos }, Efecto::LeerHistoria],
             Comando::Ciudad => { self.ajustes.modo = Modo::Ciudad; vec![self.guardar_ajustes()] }
             Comando::AlturaCiudad => { self.ajustes.altura_ciudad = self.ajustes.altura_ciudad.siguiente(); vec![self.guardar_ajustes()] }
             Comando::HuellaCiudad => { self.ajustes.huella_ciudad = self.ajustes.huella_ciudad.siguiente(); vec![self.guardar_ajustes()] }
@@ -711,7 +728,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                        | Accion::Procesos(_) | Accion::Editar(_) | Accion::RutaRaiz(_) | Accion::Buscar(_) | Accion::Pestana(_)
                        | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. } | Accion::IrA(_)
                        | Accion::ResultadosIrA { .. } | Accion::Indice(_) | Accion::Lateral(_) | Accion::ResultadosProyecto { .. }
-                       | Accion::DatosCiudad { .. } | Accion::LineasListas { .. }
+                       | Accion::DatosCiudad { .. } | Accion::LineasListas { .. } | Accion::Historia { .. }
                        | Accion::Proyecto(AccionProyecto::Patron(_) | AccionProyecto::Mayusculas | AccionProyecto::Palabra
                                           | AccionProyecto::Filtro(_) | AccionProyecto::Lanzar | AccionProyecto::Limpiar | AccionProyecto::Plegar(_))) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
@@ -737,6 +754,8 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             let mut efectos = e.sincronizar();
             if e.en_grafo() { e.encuadrar(); }
             efectos.push(Efecto::Reindexar { ocultos: e.ocultos });
+            e.historia = EstadoHistoria { version: e.historia.version + 1, ..EstadoHistoria::default() };
+            efectos.push(Efecto::LeerHistoria);
             // El foco guardado: se abre el camino hasta el (sus carpetas aun no estan leidas).
             let foco = e.disp.foco.clone();
             if !foco.is_empty() { e.revelar = Some(Revelar { enfocar: true, ..Revelar::a(&foco) }); efectos.extend(e.avanzar_revelar()); }
@@ -918,6 +937,14 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             vec![]
         }
         Accion::Indice(i) => { let v = e.indice.version + 1; e.indice = InfoIndice { version: v, ..i }; vec![] }
+        Accion::Historia { resultado, ahora } => {
+            let h = &mut e.historia;
+            match resultado { Ok(d) => { h.datos = d; h.sin = None; } Err(m) => { h.datos = Default::default(); h.sin = Some(m); } }
+            h.lista = true;
+            h.ahora = ahora;
+            h.version += 1;
+            vec![]
+        }
         Accion::LineasListas { contadas } => { e.indice.lineas = contadas; e.indice.lineas_listas = true; e.indice.version += 1; vec![] }
         Accion::DatosCiudad { generacion, raiz, archivos } => {
             if generacion == e.ciudad.generacion {
