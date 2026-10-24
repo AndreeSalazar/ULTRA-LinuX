@@ -10,7 +10,9 @@ use crate::editor::{AccionBuscar, Pestanas, MAX_EDITOR};
 use crate::procesos::{ProcesoVivo, MAX_PROCESOS};
 use crate::disposicion::{Disposicion, ICONO};
 use crate::ejecutar::{lanzador, partir_linea, Terminal};
-use crate::grafo::{acomodar, hijo, limites, Camara, Direccion, Modo, NODO};
+use crate::grafo::{acomodar, hijo, limites, raiz_vista, Camara, Direccion, Modo, NODO};
+use crate::organizar::{camino_a, es_grupo, id_grupo, organizar, partes_grupo, Hijo};
+use crate::proyecto::{AccionIrA, AccionProyecto, BusquedaProyecto, Coincidencia, IrA, MAX_RESULTADOS_IR_A};
 use crate::tema::TEMAS;
 use crate::tipos::{Rgb, Tipo, HIELO};
 use alloc::collections::{BTreeMap, BTreeSet};
@@ -85,7 +87,45 @@ pub enum Accion {
     CerrarPestana(usize),
     /// Buscar y reemplazar en la pestana activa.
     Buscar(AccionBuscar),
+    /// Una carpeta pasa a ser la raiz del grafo y del explorador ("" = la abierta).
+    Enfocar(String),
+    /// Mostrar una ruta en el grafo y en el explorador (desplegando lo que haga falta).
+    Revelar { id: String, editor: bool },
+    /// Ctrl+P: ir a un archivo o carpeta de todo el proyecto.
+    IrA(AccionIrA),
+    ResultadosIrA { generacion: u64, resultados: Vec<(String, bool)> },
+    /// Ctrl+Shift+F: buscar texto en todo el proyecto.
+    Proyecto(AccionProyecto),
+    ResultadosProyecto { generacion: u64, lote: Vec<(String, Vec<Coincidencia>)>, vistos: u64, terminada: bool, truncada: bool },
+    /// El hilo del indice termino de recorrer el proyecto.
+    Indice(InfoIndice),
+    /// Panel lateral: explorador o busqueda.
+    Lateral(Lateral),
 }
+
+/// Lo que se esta revelando y que hacer al llegar.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Revelar {
+    pub id: String,
+    /// Abrirlo en el editor (en esa linea y con ese tramo seleccionado).
+    pub editor: bool,
+    pub linea: Option<u32>,
+    pub rango: Option<(usize, usize)>,
+    /// Es una carpeta que pasa a ser la raiz.
+    pub enfocar: bool,
+}
+
+impl Revelar {
+    pub fn a(id: &str) -> Revelar { Revelar { id: id.to_string(), ..Revelar::default() } }
+}
+
+/// Que muestra el panel de la izquierda.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Lateral { #[default] Explorador, Buscar }
+
+/// Estado del indice de todo el proyecto (lo lleva la plataforma en su hilo).
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct InfoIndice { pub archivos: u64, pub carpetas: u64, pub truncado: bool, pub micros: u64, pub listo: bool }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Efecto {
@@ -107,6 +147,13 @@ pub enum Efecto {
     LeerArchivo(String),
     /// Guardar el editor: escritura atomica en la plataforma.
     GuardarArchivo { id: String, texto: String },
+    /// Recorrer todo el proyecto (en su hilo) para Ctrl+P y la busqueda.
+    Reindexar { ocultos: bool },
+    /// Nombres del indice que se parecen a la consulta.
+    BuscarArchivos { generacion: u64, consulta: String },
+    /// Texto dentro de los archivos de `carpeta` (relativa), en su hilo; cancela la anterior.
+    BuscarTexto { generacion: u64, carpeta: String, patron: String, mayusculas: bool, palabra: bool, filtro: String },
+    CancelarTexto,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -150,6 +197,16 @@ pub struct Estado {
     pub editor: Pestanas,
     /// El proceso en marcha y sus hijos (de /proc).
     pub procesos: Vec<ProcesoVivo>,
+    pub ir_a: Option<IrA>,
+    pub proyecto: BusquedaProyecto,
+    pub lateral: Lateral,
+    pub indice: InfoIndice,
+    /// Ruta que se esta revelando (se continua cuando llegan sus carpetas del disco).
+    pub revelar: Option<Revelar>,
+    /// Ultima ruta revelada y un contador: la plataforma centra el grafo y el explorador.
+    pub revelado: (String, u64),
+    /// Un aviso corto para la barra de estado.
+    pub aviso: Option<String>,
 }
 
 impl Default for Estado {
@@ -159,7 +216,8 @@ impl Default for Estado {
                  ajustes: Ajustes::default(), panel_ajustes: false, carriles: false, arbol: BTreeMap::new(),
                  expandidas: BTreeSet::new(), camara: Camara::default(), version: 0, nombre_raiz: String::new(),
                  version_contenido: 0, terminal: Terminal::default(), errores: Errores::default(), raiz_absoluta: String::new(),
-                 editor: Pestanas::default(), procesos: Vec::new() }
+                 editor: Pestanas::default(), procesos: Vec::new(), ir_a: None, proyecto: BusquedaProyecto::default(),
+                 lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None }
     }
 }
 
@@ -180,7 +238,19 @@ impl Estado {
 
     fn en_grafo(&self) -> bool { self.ajustes.modo == Modo::Grafo }
 
+    /// Existe en la vista: una entrada leida o un grupo de una carpeta leida.
+    pub fn existe(&self, id: &str) -> bool {
+        match partes_grupo(id) {
+            Some((carpeta, _)) => self.arbol.contains_key(carpeta),
+            None => self.entrada(id).is_some(),
+        }
+    }
+
+    /// Carpetas reales desplegadas (sin los grupos virtuales): las que lee y vigila el disco.
+    pub fn carpetas_desplegadas(&self) -> impl Iterator<Item = &String> { self.expandidas.iter().filter(|id| !es_grupo(id)) }
+
     fn abrir(&mut self, id: &str) -> Vec<Efecto> {
+        if es_grupo(id) { return self.expandir(id); }
         match self.entrada(id).map(|e| e.tipo) {
             Some(Tipo::Carpeta) if self.en_grafo() => self.expandir(id),
             Some(Tipo::Carpeta) => vec![Efecto::EntrarCarpeta(id.into())],
@@ -190,9 +260,17 @@ impl Estado {
     }
 
     fn expandir(&mut self, id: &str) -> Vec<Efecto> {
+        if es_grupo(id) {
+            // Un grupo no lee nada del disco: solo se abre en la vista.
+            if self.existe(id) && !self.expandidas.remove(id) && self.expandidas.len() < MAX_DESPLEGADAS * 4 { self.expandidas.insert(id.to_string()); }
+            return vec![];
+        }
         if self.entrada(id).map(|e| e.tipo) != Some(Tipo::Carpeta) { return vec![]; }
         if self.expandidas.remove(id) { return vec![]; }
-        if self.expandidas.len() >= MAX_DESPLEGADAS { return vec![]; } // limite duro del carril de disco
+        if self.carpetas_desplegadas().count() >= MAX_DESPLEGADAS {
+            self.aviso = Some(alloc::format!("Hay {MAX_DESPLEGADAS} carpetas desplegadas (el limite): pliega alguna o enfoca una carpeta [E]"));
+            return vec![];
+        } // limite duro del carril de disco
         self.expandidas.insert(id.to_string());
         vec![Efecto::LeerCarpeta(id.to_string())]
     }
@@ -221,7 +299,7 @@ impl Estado {
         match c {
             Comando::Rejilla => { self.disp.rejilla = !self.disp.rejilla; vec![self.guardar()] }
             Comando::Candado => { self.disp.bloqueada = !self.disp.bloqueada; vec![self.guardar()] }
-            Comando::Ocultos => { self.ocultos = !self.ocultos; vec![Efecto::Releer { ocultos: self.ocultos }] }
+            Comando::Ocultos => { self.ocultos = !self.ocultos; vec![Efecto::Releer { ocultos: self.ocultos }, Efecto::Reindexar { ocultos: self.ocultos }] }
             Comando::Deshacer => if self.disp.deshacer() { vec![self.guardar()] } else { vec![] },
             Comando::Ordenar(o) => self.ordenar(o),
             Comando::SeleccionarTodo => { self.seleccion = self.nombres().into_iter().collect(); vec![] }
@@ -290,6 +368,21 @@ impl Estado {
             },
             Comando::CerrarEditor => { let i = self.editor.activa; self.editor.cerrar(i); vec![] }
             Comando::SiguientePestana => { self.editor.mover(1); vec![] }
+            Comando::Enfocar => match self.seleccion.iter().next() {
+                Some(id) if self.seleccion.len() == 1 => { let id = id.clone(); self.enfocar(&id) }
+                _ => vec![],
+            },
+            Comando::SubirFoco => {
+                let f = raiz_vista(self).to_string();
+                if f.is_empty() { return vec![]; }
+                let padre = padre_de(&f).0.to_string();
+                self.seleccion = [f].into();
+                self.enfocar(&padre)
+            }
+            Comando::IrA => self.ir_a(AccionIrA::Abrir),
+            Comando::BuscarProyecto => self.proyecto(AccionProyecto::Abrir),
+            Comando::Organizar => { self.ajustes.organizar = self.ajustes.organizar.siguiente(); vec![self.guardar_ajustes()] }
+            Comando::Reindexar => vec![Efecto::Reindexar { ocultos: self.ocultos }],
             Comando::AnteriorPestana => { self.editor.mover(-1); vec![] }
             Comando::EjecutarSeleccion => match self.seleccion.iter().next() {
                 Some(id) if self.seleccion.len() == 1 => { let id = id.clone(); self.ejecutar(&id) }
@@ -323,6 +416,14 @@ impl Estado {
 
     /// El editor en un archivo leido (o en el primer error de una carpeta).
     fn abrir_editor(&mut self, id: &str, linea: Option<u32>) -> Vec<Efecto> {
+        // Un grupo abre su pieza con errores, o la principal (la cabecera o el codigo).
+        if let Some((carpeta, clave)) = partes_grupo(id) {
+            let Some(entradas) = self.arbol.get(carpeta) else { return vec![] };
+            let miembros: Vec<String> = organizar(entradas, self.ajustes.organizar, Some(clave)).into_iter()
+                .filter_map(|h| match h { Hijo::Real(e) if e.tipo != Tipo::Carpeta => Some(hijo(carpeta, &e.nombre)), _ => None }).collect();
+            let elegido = miembros.iter().find(|m| !self.errores.de(m).is_empty()).or(miembros.first()).cloned();
+            return match elegido { Some(m) => self.abrir_editor(&m, linea), None => vec![] };
+        }
         let tipo = if id.is_empty() { Some(Tipo::Carpeta) } else { self.entrada(id).map(|e| e.tipo) };
         let (id, mut linea) = if tipo == Some(Tipo::Carpeta) {
             match self.errores.primero(id) {
@@ -369,6 +470,150 @@ impl Estado {
         efectos
     }
 
+    /// Centra la camara del grafo en un nodo (sin alejar mas de lo que se lee).
+    fn centrar(&mut self, id: &str) {
+        let Some(p) = acomodar(self).get(id).copied() else { return };
+        let z = self.camara.zoom.max(0.8);
+        self.camara = Camara { zoom: z, x: p[0] + NODO[0] / 2.0 - self.lienzo[0] / 2.0 / z, y: p[1] + NODO[1] / 2.0 - self.lienzo[1] / 2.0 / z };
+    }
+
+    /// Sigue abriendo el camino hacia lo que se revela; cada carpeta que falta se pide al
+    /// disco y se continua cuando llega su contenido.
+    fn avanzar_revelar(&mut self) -> Vec<Efecto> {
+        let Some(Revelar { id, editor, linea, rango, enfocar }) = self.revelar.clone() else { return vec![] };
+        let tramos: Vec<&str> = id.split('/').collect();
+        // Las carpetas de encima (y la propia si hay que enfocarla).
+        let hasta = if enfocar { tramos.len() } else { tramos.len() - 1 };
+        let mut camino = String::new();
+        for tramo in &tramos[..hasta] {
+            let padre = camino.clone();
+            camino = hijo(&camino, tramo);
+            if !self.arbol.contains_key(&padre) { return vec![]; } // aun llegando
+            if self.entrada(&camino).map(|e| e.tipo) != Some(Tipo::Carpeta) {
+                self.revelar = None;
+                self.aviso = Some(alloc::format!("{id}: ya no esta en el disco"));
+                return vec![];
+            }
+            if !self.arbol.contains_key(&camino) {
+                if self.expandidas.contains(&camino) { return vec![]; } // ya pedida
+                let ef = self.expandir(&camino);
+                if ef.is_empty() { self.revelar = None; return vec![]; } // limite: avisado
+                return ef;
+            }
+            self.expandidas.insert(camino.clone());
+        }
+        self.revelar = None;
+        // Cambia lo que se ve: aunque la accion venga de Ctrl+P (que no rehace la vista al teclear).
+        self.version_contenido = self.version_contenido.wrapping_add(1);
+        if enfocar {
+            self.disp.foco = id.clone();
+            if self.en_grafo() { self.encuadrar(); }
+            return vec![self.guardar()];
+        }
+        let (padre, nombre) = padre_de(&id);
+        let Some(entradas) = self.arbol.get(padre) else { return vec![] };
+        if !entradas.iter().any(|e| e.nombre == nombre) { self.aviso = Some(alloc::format!("{id}: ya no esta en el disco")); return vec![]; }
+        for clave in camino_a(entradas, self.ajustes.organizar, nombre) { self.expandidas.insert(id_grupo(padre, &clave)); }
+        // Si quedo fuera de la carpeta enfocada, se quita el foco para poder verlo.
+        let raiz = raiz_vista(self).to_string();
+        if !raiz.is_empty() && !id.starts_with(&(raiz + "/")) { self.disp.foco.clear(); }
+        self.seleccion = [id.clone()].into();
+        self.revelado = (id.clone(), self.revelado.1 + 1);
+        self.version_contenido = self.version_contenido.wrapping_add(1);
+        if self.en_grafo() { self.centrar(&id); }
+        let carpeta = self.entrada(&id).is_some_and(|e| e.tipo == Tipo::Carpeta);
+        if !editor || carpeta { return vec![]; }
+        let ef = self.abrir_editor(&id, linea);
+        if let Some(r) = rango { self.editor.marcar(&id, r); }
+        ef
+    }
+
+    fn enfocar(&mut self, id: &str) -> Vec<Efecto> {
+        if id.is_empty() {
+            self.version_contenido = self.version_contenido.wrapping_add(1);
+            self.disp.foco.clear();
+            if self.en_grafo() { self.encuadrar(); }
+            return vec![self.guardar()];
+        }
+        if es_grupo(id) || self.entrada(id).map(|e| e.tipo) != Some(Tipo::Carpeta) { return vec![]; }
+        self.seleccion.clear();
+        self.revelar = Some(Revelar { enfocar: true, ..Revelar::a(id) });
+        self.avanzar_revelar()
+    }
+
+    fn ir_a(&mut self, a: AccionIrA) -> Vec<Efecto> {
+        match a {
+            AccionIrA::Abrir => { self.ir_a = Some(IrA::default()); self.paleta = None; vec![] }
+            AccionIrA::Cerrar => { self.ir_a = None; vec![] }
+            AccionIrA::Texto(t) => {
+                let Some(ir) = &mut self.ir_a else { return vec![] };
+                ir.texto = t.chars().take(128).collect();
+                ir.generacion += 1;
+                ir.elegido = 0;
+                if ir.texto.trim().is_empty() { ir.resultados.clear(); ir.buscando = false; return vec![]; }
+                ir.buscando = true;
+                vec![Efecto::BuscarArchivos { generacion: ir.generacion, consulta: ir.texto.clone() }]
+            }
+            AccionIrA::Mover(d) => {
+                if let Some(ir) = &mut self.ir_a { let n = ir.resultados.len() as i32; if n > 0 { ir.elegido = (ir.elegido as i32 + d).rem_euclid(n) as usize; } }
+                vec![]
+            }
+            AccionIrA::Elegir(i) => { if let Some(ir) = &mut self.ir_a { ir.elegido = i; } self.ir_a(AccionIrA::Aceptar { editor: false }) }
+            AccionIrA::Aceptar { editor } => {
+                // Enter mientras busca: se recuerda y se acepta el primero al llegar.
+                if let Some(ir) = &mut self.ir_a { if ir.buscando { ir.aceptar_al_llegar = Some(editor); return vec![]; } }
+                let Some(ir) = self.ir_a.take() else { return vec![] };
+                let Some((ruta, carpeta)) = ir.resultados.get(ir.elegido).cloned() else { return vec![] };
+                // Ctrl+Enter: un archivo se abre en el editor; una carpeta se enfoca.
+                if carpeta && editor { return self.enfocar(&ruta); }
+                self.revelar = Some(Revelar { editor, ..Revelar::a(&ruta) });
+                self.avanzar_revelar()
+            }
+        }
+    }
+
+    fn lanzar_busqueda(&mut self) -> Vec<Efecto> {
+        if !self.proyecto.por_archivo.is_empty() { self.version_contenido = self.version_contenido.wrapping_add(1); } // se van las insignias
+        let p = &mut self.proyecto;
+        p.generacion += 1;
+        p.por_archivo.clear();
+        p.total = 0;
+        p.archivos_vistos = 0;
+        p.truncada = false;
+        if p.patron.is_empty() { p.buscando = false; return vec![Efecto::CancelarTexto]; }
+        p.buscando = true;
+        vec![Efecto::BuscarTexto { generacion: p.generacion, carpeta: raiz_vista(self).to_string(), patron: self.proyecto.patron.clone(),
+                                   mayusculas: self.proyecto.mayusculas, palabra: self.proyecto.palabra, filtro: self.proyecto.filtro.clone() }]
+    }
+
+    fn proyecto(&mut self, a: AccionProyecto) -> Vec<Efecto> {
+        match a {
+            AccionProyecto::Abrir => {
+                self.lateral = Lateral::Buscar;
+                if !self.ajustes.explorador { self.ajustes.explorador = true; }
+                self.proyecto.foco += 1;
+                vec![]
+            }
+            AccionProyecto::Patron(t) => {
+                self.proyecto.patron = t.chars().take(crate::editor::MAX_PATRON).collect();
+                // Busca mientras escribes desde 2 letras; la busqueda anterior se cancela sola.
+                if self.proyecto.patron.chars().count() >= 2 || self.proyecto.patron.is_empty() { self.lanzar_busqueda() } else { vec![] }
+            }
+            AccionProyecto::Mayusculas => { self.proyecto.mayusculas = !self.proyecto.mayusculas; self.lanzar_busqueda() }
+            AccionProyecto::Palabra => { self.proyecto.palabra = !self.proyecto.palabra; self.lanzar_busqueda() }
+            AccionProyecto::Filtro(f) => { self.proyecto.filtro = f.chars().take(256).collect(); self.lanzar_busqueda() }
+            AccionProyecto::Lanzar => self.lanzar_busqueda(),
+            AccionProyecto::Limpiar => { self.proyecto.patron.clear(); self.lanzar_busqueda() }
+            AccionProyecto::Plegar(id) => { if !self.proyecto.plegados.remove(&id) { self.proyecto.plegados.insert(id); } vec![] }
+            AccionProyecto::Ir { id, i } => {
+                let Some(c) = self.proyecto.por_archivo.get(&id).and_then(|v| v.get(i)).cloned() else { return vec![] };
+                // En las dos vistas: se revela el nodo y se abre el editor con la coincidencia elegida.
+                self.revelar = Some(Revelar { editor: true, linea: Some(c.linea), rango: Some(c.rango), ..Revelar::a(&id) });
+                self.avanzar_revelar()
+            }
+        }
+    }
+
     fn poner_tema(&mut self, i: usize) -> Vec<Efecto> {
         self.ajustes.tema = TEMAS[i].id.to_string();
         vec![self.guardar_ajustes()]
@@ -377,13 +622,15 @@ impl Estado {
     fn sincronizar(&mut self) -> Vec<Efecto> {
         let nombres = self.nombres();
         // Lo que ya no existe se olvida: seleccion, desplegadas y posiciones del grafo.
-        let arbol = &self.arbol;
-        let existe = |id: &String| { let (p, n) = padre_de(id); arbol.get(p).is_some_and(|l| l.iter().any(|e| e.nombre == n)) };
-        self.seleccion.retain(|id| existe(id));
+        let quedan: BTreeSet<String> = self.seleccion.iter().filter(|id| self.existe(id)).cloned().collect();
+        self.seleccion = quedan;
         let antes = self.disp.grafo.len();
         let raices: BTreeSet<&String> = nombres.iter().collect();
-        self.disp.grafo.retain(|id, _| id.is_empty() || raices.contains(&String::from(id.split('/').next().unwrap_or(""))));
-        self.expandidas.retain(|id| raices.contains(&String::from(id.split('/').next().unwrap_or(""))));
+        // Los grupos de la raiz empiezan por NUL: siguen mientras siga la carpeta abierta.
+        let sigue = |id: &str| { let t = id.split('/').next().unwrap_or(""); t.starts_with(crate::organizar::MARCA) || raices.contains(&String::from(t)) };
+        self.disp.grafo.retain(|id, _| id.is_empty() || sigue(id));
+        self.expandidas.retain(|id| sigue(id));
+        if !self.disp.foco.is_empty() && !sigue(&self.disp.foco) { self.disp.foco.clear(); }
         let cambio_grafo = self.disp.grafo.len() != antes;
         if self.disp.sincronizar(&nombres, self.ancho) || cambio_grafo { vec![self.guardar()] } else { vec![] }
     }
@@ -391,7 +638,8 @@ impl Estado {
     /// Ids de lo que esta en la banda: iconos (coordenadas del lienzo) o nodos (del mundo).
     fn en_banda(&self, caja: ([f32; 2], [f32; 2])) -> Vec<String> {
         if self.en_grafo() {
-            acomodar(self).into_iter().filter(|(id, p)| !id.is_empty() && se_cruzan(caja, (*p, [p[0] + NODO[0], p[1] + NODO[1]]))).map(|(id, _)| id).collect()
+            let raiz = raiz_vista(self).to_string();
+            acomodar(self).into_iter().filter(|(id, p)| *id != raiz && se_cruzan(caja, (*p, [p[0] + NODO[0], p[1] + NODO[1]]))).map(|(id, _)| id).collect()
         } else {
             self.disp.posiciones.iter().filter(|(_, p)| se_cruzan(caja, rect_icono(**p))).map(|(n, _)| n.clone()).collect()
         }
@@ -412,7 +660,10 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
     // nuevo en un nodo, se marca abajo a mano.
     if !matches!(accion, Accion::Desplazar(_) | Accion::Zoom { .. } | Accion::Lienzo(_) | Accion::Ancho(_) | Accion::Salida { .. }
                        | Accion::Procesos(_) | Accion::Editar(_) | Accion::RutaRaiz(_) | Accion::Buscar(_) | Accion::Pestana(_)
-                       | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. }) {
+                       | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. } | Accion::IrA(_)
+                       | Accion::ResultadosIrA { .. } | Accion::Indice(_) | Accion::Lateral(_) | Accion::ResultadosProyecto { .. }
+                       | Accion::Proyecto(AccionProyecto::Patron(_) | AccionProyecto::Mayusculas | AccionProyecto::Palabra
+                                          | AccionProyecto::Filtro(_) | AccionProyecto::Lanzar | AccionProyecto::Limpiar | AccionProyecto::Plegar(_))) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
     }
     match accion {
@@ -427,8 +678,17 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             e.expandidas.clear();
             e.arrastrando = false;
             e.banda = None;
-            let efectos = e.sincronizar();
+            e.revelar = None;
+            e.ir_a = None;
+            e.proyecto = BusquedaProyecto { patron: core::mem::take(&mut e.proyecto.patron), mayusculas: e.proyecto.mayusculas,
+                                            palabra: e.proyecto.palabra, filtro: core::mem::take(&mut e.proyecto.filtro), ..BusquedaProyecto::default() };
+            e.indice = InfoIndice::default();
+            let mut efectos = e.sincronizar();
             if e.en_grafo() { e.encuadrar(); }
+            efectos.push(Efecto::Reindexar { ocultos: e.ocultos });
+            // El foco guardado: se abre el camino hasta el (sus carpetas aun no estan leidas).
+            let foco = e.disp.foco.clone();
+            if !foco.is_empty() { e.revelar = Some(Revelar { enfocar: true, ..Revelar::a(&foco) }); efectos.extend(e.avanzar_revelar()); }
             efectos
         }
         Accion::Refrescar(entradas) => {
@@ -441,14 +701,16 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             // Solo se acepta lo que se pidio y sigue desplegado (una respuesta tardia no ensucia nada).
             if !e.expandidas.contains(&ruta) || e.entrada(&ruta).map(|x| x.tipo) != Some(Tipo::Carpeta) { return vec![]; }
             e.arbol.insert(ruta, entradas);
-            let arbol = &e.arbol;
-            e.seleccion.retain(|id| { let (p, n) = padre_de(id); arbol.get(p).is_some_and(|l| l.iter().any(|x| x.nombre == n)) });
-            e.desplegar_errores()
+            let quedan: BTreeSet<String> = e.seleccion.iter().filter(|id| e.existe(id)).cloned().collect();
+            e.seleccion = quedan;
+            let mut ef = e.desplegar_errores();
+            ef.extend(e.avanzar_revelar());
+            ef
         }
         Accion::Ancho(a) => { if a.is_finite() && a > 0.0 { e.ancho = a; } vec![] }
         Accion::Lienzo(t) => { if t.iter().all(|v| v.is_finite() && *v > 0.0) { e.lienzo = t; } vec![] }
         Accion::Pulsar { nombre, sumar } => {
-            if e.entrada(&nombre).is_none() { return vec![]; }
+            if !e.existe(&nombre) { return vec![]; }
             if sumar {
                 if !e.seleccion.remove(&nombre) { e.seleccion.insert(nombre); }
             } else {
@@ -459,7 +721,7 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         Accion::Abrir(nombre) => e.abrir(&nombre),
         Accion::Expandir(id) => e.expandir(&id),
         Accion::EmpezarArrastre(nombre) => {
-            if e.disp.bloqueada || e.entrada(&nombre).is_none() { return vec![]; }
+            if e.disp.bloqueada || !e.existe(&nombre) { return vec![]; }
             if !e.seleccion.contains(&nombre) { e.seleccion = [nombre].into(); }
             e.disp.recordar();
             if e.en_grafo() {
@@ -572,6 +834,40 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         Accion::Pestana(i) => { e.editor.elegir(i); vec![] }
         Accion::CerrarPestana(i) => { e.editor.cerrar(i); vec![] }
         Accion::Buscar(b) => { e.editor.buscar(b); vec![] }
+        Accion::Enfocar(id) => e.enfocar(&id),
+        Accion::Revelar { id, editor } => { e.revelar = Some(Revelar { editor, ..Revelar::a(&id) }); e.avanzar_revelar() }
+        Accion::IrA(a) => e.ir_a(a),
+        Accion::ResultadosIrA { generacion, mut resultados } => {
+            if let Some(ir) = &mut e.ir_a {
+                if ir.generacion == generacion {
+                    resultados.truncate(MAX_RESULTADOS_IR_A);
+                    ir.resultados = resultados;
+                    ir.buscando = false;
+                    ir.elegido = 0;
+                    if let Some(editor) = ir.aceptar_al_llegar.take() { return e.ir_a(AccionIrA::Aceptar { editor }); }
+                }
+            }
+            vec![]
+        }
+        Accion::Proyecto(a) => e.proyecto(a),
+        Accion::ResultadosProyecto { generacion, lote, vistos, terminada, truncada } => {
+            let p = &mut e.proyecto;
+            if p.generacion != generacion { return vec![]; }
+            let habia = !lote.is_empty();
+            for (id, v) in lote {
+                if p.total >= crate::proyecto::MAX_COINCIDENCIAS { p.truncada = true; break; }
+                p.total += v.len();
+                p.por_archivo.insert(id, v);
+            }
+            p.archivos_vistos = vistos;
+            p.buscando = !terminada;
+            p.truncada |= truncada;
+            // Los nodos con coincidencias cambian (insignia): se rehace la vista una vez por lote.
+            if habia { e.version_contenido = e.version_contenido.wrapping_add(1); }
+            vec![]
+        }
+        Accion::Indice(i) => { e.indice = i; vec![] }
+        Accion::Lateral(l) => { e.lateral = l; if !e.ajustes.explorador { e.ajustes.explorador = true; } vec![] }
     }
 }
 

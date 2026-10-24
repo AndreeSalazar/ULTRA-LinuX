@@ -23,6 +23,10 @@ pub enum Carril {
     Procesos,
     /// Pintar el editor de codigo (texto, numeros de linea, marcas de error).
     Editor,
+    /// Recorrer todo el proyecto para Ctrl+P (su propio hilo) y responder nombres.
+    Indice,
+    /// Buscar texto en todo el proyecto (su propio hilo, cancelable).
+    Busqueda,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -57,6 +61,10 @@ pub const PRESUPUESTOS: &[Presupuesto] = &[
                   que_consume: "Leer /proc cada 500 ms en su hilo (solo el grupo del proceso lanzado, max 64); no rehace la geometria" },
     Presupuesto { carril: Carril::Editor, nombre: "Editor", verde_us: 4_000, amarillo_us: 10_000,
                   que_consume: "CPU: egui teselar el texto visible; archivos de hasta 2 MiB; teclear no rehace el grafo" },
+    Presupuesto { carril: Carril::Indice, nombre: "Indice", verde_us: 50_000, amarillo_us: 300_000,
+                  que_consume: "Ctrl+P: puntuar nombres en su hilo (hasta 600 000 rutas en un bloque de texto); recorrer el disco solo al abrir" },
+    Presupuesto { carril: Carril::Busqueda, nombre: "Busqueda", verde_us: 2_000_000, amarillo_us: 10_000_000,
+                  que_consume: "E/S y CPU en su hilo: lee archivos de texto de hasta 2 MiB; se cancela al escribir otra cosa; lotes cada 100 ms" },
 ];
 
 pub fn presupuesto(c: Carril) -> &'static Presupuesto {
@@ -77,3 +85,5 @@ pub const MAX_LINEAS_POR_CUADRO: usize = 512;
 pub const MAX_PROCESOS: usize = crate::procesos::MAX_PROCESOS;
 pub const MAX_DIAGNOSTICOS: usize = crate::diagnosticos::MAX_DIAGNOSTICOS;
 pub const MAX_EDITOR: u64 = crate::editor::MAX_EDITOR;
+pub const MAX_INDICE: usize = crate::proyecto::MAX_INDICE;
+pub const MAX_COINCIDENCIAS: usize = crate::proyecto::MAX_COINCIDENCIAS;

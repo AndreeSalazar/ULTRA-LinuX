@@ -99,9 +99,16 @@ pub fn geometria(nodos: &[NodoGrafo], cables: &[Cable], t: &Tema, direccion: Dir
     for n in nodos {
         let (p, s) = (n.pos, n.tam);
         let max = [p[0] + s[0], p[1] + s[1]];
+        // Un grupo del organizador se ve como una pila de tarjetas (varios archivos en uno).
+        if n.grupo.is_some() {
+            for k in [8.0, 4.0] {
+                m.rect([p[0] + k, p[1] + k], [max[0] + k, max[1] + k], rgba(t.superficie, 0.85));
+                m.borde([p[0] + k, p[1] + k], [max[0] + k, max[1] + k], 1.0, rgba(n.color, 0.55));
+            }
+        }
         m.rect(p, max, rgba(t.superficie, 1.0));
         let cab = 22.0;
-        m.rect(p, [max[0], p[1] + cab], rgba(mezcla(n.color, if n.id.is_empty() { 0.75 } else { 0.5 }), 1.0));
+        m.rect(p, [max[0], p[1] + cab], rgba(mezcla(n.color, if n.raiz { 0.75 } else { 0.5 }), 1.0));
         m.borde(p, max, if n.seleccionado { 2.0 } else { 1.0 }, rgba(if n.seleccionado { t.acento } else { t.linea }, 1.0));
         if n.seleccionado && t.brillo {
             m.borde([p[0] - 3.0, p[1] - 3.0], [max[0] + 3.0, max[1] + 3.0], 2.0, rgba(t.acento, 0.3));
@@ -119,7 +126,7 @@ pub fn geometria(nodos: &[NodoGrafo], cables: &[Cable], t: &Tema, direccion: Dir
             Direccion::Blender => ([p[0], p[1] + s[1] / 2.0], [max[0], p[1] + s[1] / 2.0]),
             Direccion::Houdini => ([p[0] + s[0] / 2.0, p[1]], [p[0] + s[0] / 2.0, max[1]]),
         };
-        if !n.id.is_empty() { m.circulo(entrada, 5.0, rgba(n.color, 1.0)); m.circulo(entrada, 3.5, rgba(t.superficie, 1.0)); }
+        if !n.raiz { m.circulo(entrada, 5.0, rgba(n.color, 1.0)); m.circulo(entrada, 3.5, rgba(t.superficie, 1.0)); }
         if n.expandida == Some(true) { m.circulo(salida, 5.0, rgba(t.fondo, 1.0)); m.circulo(salida, 4.0, rgba(n.color, 1.0)); }
         let barra_min = [p[0] + 10.0, max[1] - 12.0];
         let barra_max = [max[0] - 10.0, max[1] - 8.0];
@@ -210,7 +217,7 @@ mod pruebas {
     use carpetas_nucleo::{Tipo, TEMAS};
 
     fn nodo(id: &str, pos: [f32; 2]) -> NodoGrafo {
-        NodoGrafo { id: id.into(), nombre: id.into(), tipo: Tipo::Carpeta, pos, tam: [210.0, 74.0], color: [255, 0, 0], icono: "", detalle: String::new(), marcas: Default::default(),
+        NodoGrafo { id: id.into(), nombre: id.into(), tipo: Tipo::Carpeta, pos, tam: [210.0, 74.0], color: [255, 0, 0], icono: "", detalle: String::new(), marcas: Default::default(), raiz: id.is_empty(), grupo: None,
                     peso: 0.5, expandida: Some(true), seleccionado: false, play: None }
     }
 
@@ -222,6 +229,17 @@ mod pruebas {
         assert!(cerca(a_gpu([100.0, 50.0]), [-1.0, 1.0]), "la esquina de la camara es arriba a la izquierda");
         assert!(cerca(a_gpu([500.0, 350.0]), [1.0, -1.0]), "800x600 px con zoom 2 son 400x300 de mundo");
         assert!(cerca(a_gpu([300.0, 200.0]), [0.0, 0.0]), "el centro del lienzo");
+    }
+
+    #[test]
+    fn un_grupo_es_una_pila_de_tarjetas() {
+        let t = TEMAS[0];
+        let mut g = nodo("u", [0.0, 0.0]);
+        let solo = geometria(&[g.clone()], &[], &t, Direccion::Blender);
+        g.grupo = Some("h · cc".into());
+        let pila = geometria(&[g], &[], &t, Direccion::Blender);
+        assert!(pila.len() > solo.len());
+        assert!(pila.iter().any(|v| v.pos == [218.0, 82.0]), "tarjeta de atras desplazada 8 px");
     }
 
     #[test]

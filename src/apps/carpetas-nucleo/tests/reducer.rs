@@ -9,7 +9,7 @@ fn estado() -> Estado {
     let mut s = Estado { ancho: CELDA[0] * 3.0, ..Estado::default() };
     let entradas = vec![e("Juegos", Tipo::Carpeta, 0), e("kernel.rs", Tipo::Codigo, 900), e("foto.png", Tipo::Imagen, 5000), e("notas.txt", Tipo::Documento, 10)];
     let ef = reducir(&mut s, Accion::Cargar { nombre: "prueba".into(), entradas, disposicion: Disposicion::default() });
-    assert!(matches!(ef.as_slice(), [Efecto::Guardar(_)]), "lo nuevo se coloca y se guarda");
+    assert!(matches!(ef.as_slice(), [Efecto::Guardar(_), Efecto::Reindexar { .. }]), "lo nuevo se coloca y se guarda; y se indexa");
     s
 }
 
@@ -89,7 +89,7 @@ fn abrir_pide_efectos_segun_tipo() {
     assert!(reducir(&mut s, Accion::Abrir("../../etc/passwd".into())).is_empty(), "solo lo que esta en la carpeta");
     reducir(&mut s, Accion::Pulsar { nombre: "notas.txt".into(), sumar: false });
     assert_eq!(reducir(&mut s, Accion::Comando(Comando::AbrirSeleccion)), vec![Efecto::AbrirArchivo("notas.txt".into())]);
-    assert_eq!(reducir(&mut s, Accion::Comando(Comando::Ocultos)), vec![Efecto::Releer { ocultos: true }]);
+    assert_eq!(reducir(&mut s, Accion::Comando(Comando::Ocultos)), vec![Efecto::Releer { ocultos: true }, Efecto::Reindexar { ocultos: true }]);
 }
 
 #[test]

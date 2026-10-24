@@ -232,6 +232,11 @@ impl Pestanas {
         }
     }
 
+    /// Selecciona un tramo (una coincidencia de la busqueda del proyecto) en la pestana del archivo.
+    pub fn marcar(&mut self, id: &str, rango: (usize, usize)) {
+        if let Some(ed) = self.lista.iter_mut().find(|e| e.id == id) { let l = ed.ir_a; ed.saltar_a(l, Some(rango)); }
+    }
+
     pub fn elegir(&mut self, i: usize) {
         if i < self.lista.len() && i != self.activa { self.activa = i; self.rebuscar(false); }
     }

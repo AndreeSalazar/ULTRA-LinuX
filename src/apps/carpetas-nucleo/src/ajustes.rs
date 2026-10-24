@@ -30,12 +30,14 @@ pub struct Ajustes {
     pub dibujo: Dibujo,
     /// Detener el proceso con el primer error atrapado (como "break on error").
     pub parar_en_error: bool,
+    /// Organizar carpetas grandes en unidades, metadatos y prefijos (solo la vista).
+    pub organizar: crate::organizar::Organizar,
 }
 
 impl Default for Ajustes {
     fn default() -> Self {
         Ajustes { tema: TEMAS[0].id.to_string(), brillo: None, acento_escritorio: false, iconos: EstiloIconos::Neon,
-                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true, dibujo: Dibujo::Gpu, parar_en_error: false }
+                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true, dibujo: Dibujo::Gpu, parar_en_error: false, organizar: crate::organizar::Organizar::Auto }
     }
 }
 

@@ -15,12 +15,14 @@ mod disco;
 mod editor_ui;
 mod entradas;
 mod gpu;
+mod indice;
+mod paneles;
 mod pintar_grafo;
 mod proceso;
 mod svg;
 mod vivos;
 
-use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_DESPLEGADAS, MAX_DIAGNOSTICOS, MAX_ENTRADAS, MAX_LINEAS_POR_CUADRO, MAX_NODOS, MAX_PROCESOS};
+use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_COINCIDENCIAS, MAX_DESPLEGADAS, MAX_DIAGNOSTICOS, MAX_ENTRADAS, MAX_INDICE, MAX_LINEAS_POR_CUADRO, MAX_NODOS, MAX_PROCESOS};
 use carpetas_nucleo::{atajo, reducir, vista, Accion, AccionPaleta, Comando, Dibujo, Direccion, Efecto, EstiloIconos, Estado, Modo, Nodo, Orden, Rgb,
                       Tecla, Tema, Tipo, Vista};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -32,7 +34,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-fn color(c: Rgb) -> Color32 { Color32::from_rgb(c[0], c[1], c[2]) }
+pub(crate) fn color(c: Rgb) -> Color32 { Color32::from_rgb(c[0], c[1], c[2]) }
 
 fn acento() -> Rgb {
     // El mismo acento que el resto del escritorio (Personalizar); hielo si no hay.
@@ -47,7 +49,7 @@ fn acento() -> Rgb {
 
 /// Ultimo tiempo y maximo por carril, en microsegundos.
 #[derive(Default)]
-struct Medidas { ultimo: [u64; 9], maximo: [u64; 9] }
+struct Medidas { ultimo: [u64; 11], maximo: [u64; 11] }
 
 impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
@@ -81,6 +83,14 @@ struct App {
     editor: editor_ui::PanelEditor,
     /// Huella de cada archivo abierto en el editor (para no pisar cambios de fuera).
     huellas: std::collections::HashMap<String, archivo::Huella>,
+    /// Indice y busqueda de todo el proyecto (sus dos hilos).
+    proyecto: indice::Proyecto,
+    texto_ir_a: String,
+    texto_buscar: String,
+    texto_filtro: String,
+    foco_buscar_visto: u64,
+    /// Ultima revelacion que ya se llevo al explorador (para desplazarlo una vez).
+    revelado_visto: u64,
 }
 
 /// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
@@ -94,12 +104,15 @@ impl App {
         fuentes(&cc.egui_ctx);
         let ctx = cc.egui_ctx.clone();
         let ctx_vivos = cc.egui_ctx.clone();
+        let ctx_proyecto = cc.egui_ctx.clone();
         let mut app = App {
             estado: Estado { acento: acento(), ..Estado::default() }, carpeta: PathBuf::new(), atras: Vec::new(), error: None, contexto: cc.egui_ctx.clone(),
             texto_paleta: String::new(), tema_aplicado: None, disco: Disco::nuevo(move || ctx.request_repaint()), generacion: 0,
             pendiente: None, vigiladas: Vec::new(), cache: None, medidas: Medidas::default(), iconos: svg::Iconos::nuevo(), tiempo_iconos: Cell::new(0),
             gpu_ok, geometria: None, subidas: Arc::new(AtomicU64::new(0)), cuadros: 0, proceso: None, texto_terminal: String::new(),
             vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huellas: Default::default(),
+            proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
+            texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -149,6 +162,12 @@ impl App {
                 }
             }
             Efecto::Detener => { if let Some(p) = &self.proceso { p.detener(); } }
+            Efecto::Reindexar { ocultos } => self.proyecto.pedir(indice::Pedido::Reindexar { base: self.carpeta.clone(), ocultos }),
+            Efecto::BuscarArchivos { generacion, consulta } => self.proyecto.pedir(indice::Pedido::Nombres { generacion, consulta }),
+            Efecto::BuscarTexto { generacion, carpeta, patron, mayusculas, palabra, filtro } => {
+                self.proyecto.pedir(indice::Pedido::Texto { generacion, base: self.carpeta.clone(), carpeta, patron, mayusculas, palabra, filtro });
+            }
+            Efecto::CancelarTexto => self.proyecto.pedir(indice::Pedido::Cancelar),
             Efecto::LeerArchivo(rel) => {
                 let t = Instant::now();
                 let resultado = archivo::leer(&self.carpeta, &rel).map(|(texto, h)| { self.huellas.insert(rel.clone(), h); texto });
@@ -160,7 +179,7 @@ impl App {
                 self.despachar(Accion::Guardado { id, resultado });
             }
             Efecto::Releer { .. } => {
-                for ruta in std::iter::once(String::new()).chain(self.estado.expandidas.iter().cloned()) {
+                for ruta in std::iter::once(String::new()).chain(self.estado.carpetas_desplegadas().cloned()) {
                     self.disco.pedir(Pedido::Listar { generacion: self.generacion, base: self.carpeta.clone(), ruta, ocultos: self.estado.ocultos });
                 }
             }
@@ -211,7 +230,7 @@ impl App {
     /// Dice al hilo del disco que carpetas vigilar: la abierta y las desplegadas.
     fn vigilar(&mut self) {
         if self.carpeta.as_os_str().is_empty() { return; }
-        let rutas: Vec<String> = std::iter::once(String::new()).chain(self.estado.expandidas.iter().cloned()).collect();
+        let rutas: Vec<String> = std::iter::once(String::new()).chain(self.estado.carpetas_desplegadas().cloned()).collect();
         if rutas != self.vigiladas {
             self.vigiladas = rutas.clone();
             self.disco.pedir(Pedido::Vigilar { generacion: self.generacion, base: self.carpeta.clone(), rutas, ocultos: self.estado.ocultos });
@@ -253,6 +272,25 @@ impl App {
         Some((g.clave, g.vertices.clone(), self.subidas.clone()))
     }
 
+    /// Lo que llego de los hilos del indice y de la busqueda.
+    fn recoger_proyecto(&mut self) {
+        for r in self.proyecto.recoger() {
+            match r {
+                // El recorrido del disco (1 s en Chromium entero) va en su hilo y se muestra aparte;
+                // el carril Indice mide lo que espera quien escribe en Ctrl+P: puntuar nombres.
+                indice::Respuesta::Indice(info) => self.despachar(Accion::Indice(info)),
+                indice::Respuesta::Nombres { generacion, resultados, micros } => {
+                    self.medidas.anotar(Carril::Indice, micros);
+                    self.despachar(Accion::ResultadosIrA { generacion, resultados });
+                }
+                indice::Respuesta::Texto { generacion, lote, vistos, terminada, truncada, micros } => {
+                    self.medidas.anotar(Carril::Busqueda, micros);
+                    self.despachar(Accion::ResultadosProyecto { generacion, lote, vistos, terminada, truncada });
+                }
+            }
+        }
+    }
+
     /// Lo que va midiendo /proc del proceso en marcha (su hilo manda una muestra cada 500 ms).
     fn recoger_vivos(&mut self) {
         if let Some(m) = self.vivos.recoger() {
@@ -287,7 +325,7 @@ impl App {
 
     /// Teclas de egui -> teclas del nucleo -> accion (el "keybindings.json").
     fn teclado(&mut self, ctx: &egui::Context) {
-        const MAPA: [(Key, Tecla); 27] = [(Key::S, Tecla::S), (Key::F8, Tecla::F8), (Key::F, Tecla::F), (Key::W, Tecla::W), (Key::F3, Tecla::F3), (Key::T, Tecla::T), (Key::Comma, Tecla::Coma), (Key::G, Tecla::G), (Key::L, Tecla::L), (Key::H, Tecla::H),
+        const MAPA: [(Key, Tecla); 30] = [(Key::E, Tecla::E), (Key::U, Tecla::U), (Key::O, Tecla::O), (Key::S, Tecla::S), (Key::F8, Tecla::F8), (Key::F, Tecla::F), (Key::W, Tecla::W), (Key::F3, Tecla::F3), (Key::T, Tecla::T), (Key::Comma, Tecla::Coma), (Key::G, Tecla::G), (Key::L, Tecla::L), (Key::H, Tecla::H),
             (Key::Z, Tecla::Z), (Key::A, Tecla::A), (Key::P, Tecla::P), (Key::B, Tecla::B), (Key::D, Tecla::D), (Key::I, Tecla::I), (Key::Tab, Tecla::Tab),
             (Key::Home, Tecla::Inicio), (Key::F12, Tecla::F12), (Key::Backspace, Tecla::Retroceso), (Key::Enter, Tecla::Enter),
             (Key::Escape, Tecla::Escape), (Key::F5, Tecla::F5), (Key::ArrowUp, Tecla::Arriba), (Key::ArrowDown, Tecla::Abajo),
@@ -300,6 +338,21 @@ impl App {
         }).collect());
         // Escribiendo en la terminal: las letras son letras, no atajos (solo Ctrl, F y Esc).
         let escribiendo = ctx.egui_wants_keyboard_input() && self.estado.paleta.is_none();
+        // Ctrl+P abierto: flechas, Enter (Ctrl+Enter: editor) y Esc son suyos.
+        if self.estado.ir_a.is_some() {
+            for (t, m) in pulsadas {
+                let a = match t {
+                    Tecla::Escape => Some(carpetas_nucleo::proyecto::AccionIrA::Cerrar),
+                    Tecla::Enter => Some(carpetas_nucleo::proyecto::AccionIrA::Aceptar { editor: m.command }),
+                    Tecla::Arriba => Some(carpetas_nucleo::proyecto::AccionIrA::Mover(-1)),
+                    Tecla::Abajo => Some(carpetas_nucleo::proyecto::AccionIrA::Mover(1)),
+                    Tecla::P if m.command && !m.shift => Some(carpetas_nucleo::proyecto::AccionIrA::Cerrar),
+                    _ => None,
+                };
+                if let Some(a) = a { self.despachar(Accion::IrA(a)); }
+            }
+            return;
+        }
         for (t, m) in pulsadas {
             // En el editor, Esc cierra primero la busqueda y luego la pestana (con aviso si hay cambios).
             if t == Tecla::Escape && self.estado.paleta.is_none() {
@@ -338,11 +391,20 @@ impl App {
         });
         let play_raiz = self.vista().play_raiz.clone();
         ui.horizontal(|ui| {
+            // Buscar rapido: un cuadro siempre a la vista (Ctrl+P), como el de VS Code.
+            let (caja, rb) = ui.allocate_exact_size(Vec2::new(250.0, 22.0), Sense::click());
+            let p = ui.painter_at(caja);
+            p.rect(caja, 4, if rb.hovered() { c.superficie } else { c.fondo }, Stroke::new(1.0, if rb.hovered() { c.acento } else { c.linea }), StrokeKind::Inside);
+            paneles::dibujar(&p, Rect::from_center_size(Pos2::new(caja.min.x + 14.0, caja.center().y), Vec2::splat(20.0)), paneles::Icono::Buscar, c.tenue);
+            p.text(Pos2::new(caja.min.x + 28.0, caja.center().y), Align2::LEFT_CENTER, "Ir a archivo o carpeta…", FontId::proportional(12.5), c.tenue);
+            p.text(Pos2::new(caja.max.x - 8.0, caja.center().y), Align2::RIGHT_CENTER, "Ctrl+P", FontId::monospace(11.0), c.tenue);
+            if rb.on_hover_text("Busca por nombre en TODO el proyecto (no solo lo desplegado) y lo muestra en el grafo y el explorador").clicked() {
+                acciones.push(Accion::Comando(Comando::IrA));
+            }
             let a = &self.estado.ajustes;
             let grafo = a.modo == Modo::Grafo;
             if ui.selectable_label(!grafo, "Iconos").clicked() && grafo { acciones.push(Accion::Comando(Comando::Modo)); }
             if ui.selectable_label(grafo, "Grafo [Tab]").clicked() && !grafo { acciones.push(Accion::Comando(Comando::Modo)); }
-            if ui.selectable_label(a.explorador, "Explorador [Ctrl+B]").clicked() { acciones.push(Accion::Comando(Comando::Explorador)); }
             ui.separator();
             let d = &self.estado.disp;
             if grafo {
@@ -350,6 +412,12 @@ impl App {
                 if ui.button(texto).on_hover_text("Blender: de izquierda a derecha. Houdini: de arriba abajo.").clicked() { acciones.push(Accion::Comando(Comando::Direccion)); }
                 if ui.button("Encuadrar [Inicio]").clicked() { acciones.push(Accion::Comando(Comando::Encuadrar)); }
                 if ui.add_enabled(!d.bloqueada, egui::Button::new("Reacomodar")).clicked() { acciones.push(Accion::Comando(Comando::Reacomodar)); }
+                let org = match a.organizar { carpetas_nucleo::organizar::Organizar::Auto => "Organizar: auto [O]",
+                                              carpetas_nucleo::organizar::Organizar::Siempre => "Organizar: siempre [O]",
+                                              carpetas_nucleo::organizar::Organizar::Nunca => "Organizar: no [O]" };
+                if ui.button(org).on_hover_text("Carpetas grandes en unidades (foo.h + foo.cc + foo_unittest.cc), build y metadatos, y prefijos. Solo la vista: nada se mueve en disco.").clicked() {
+                    acciones.push(Accion::Comando(Comando::Organizar));
+                }
             } else {
                 if ui.selectable_label(d.rejilla, "Rejilla [G]").clicked() { acciones.push(Accion::Comando(Comando::Rejilla)); }
                 ui.add_enabled_ui(!d.bloqueada, |ui| {
@@ -378,9 +446,7 @@ impl App {
                 if ui.add(egui::Button::new(egui::RichText::new(texto).color(if errores > 0 { c.error } else { c.aviso }).strong()))
                     .on_hover_text("Ir al siguiente error: abre el editor en la linea").clicked() { acciones.push(Accion::Comando(Comando::SiguienteError)); }
             }
-            if ui.selectable_label(self.estado.terminal.abierta, "Terminal [Ctrl+`]").clicked() { acciones.push(Accion::Comando(Comando::Terminal)); }
             if ui.button("Comandos [Ctrl+Shift+P]").clicked() { acciones.push(Accion::Comando(Comando::Paleta)); }
-            if ui.selectable_label(self.estado.panel_ajustes, "Ajustes [Ctrl+,]").clicked() { acciones.push(Accion::Comando(Comando::Ajustes)); }
         });
         for a in acciones { self.despachar(a); }
     }
@@ -390,8 +456,20 @@ impl App {
         let Some(filas) = &v.arbol else { return };
         let mut acciones = Vec::new();
         ui.label(egui::RichText::new("EXPLORADOR").color(c.acento).strong());
-        ui.label(egui::RichText::new(self.carpeta.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "/".into())).color(c.tenue));
+        // Migas: de la carpeta abierta a la enfocada; clic = enfocar ahi.
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing.x = 2.0;
+            for (i, (id, nombre)) in v.migas.iter().enumerate() {
+                let ultima = i + 1 == v.migas.len();
+                let r = ui.add(egui::Button::new(egui::RichText::new(nombre).color(if ultima { c.texto } else { c.tenue }).size(12.0)).frame(false));
+                if r.clicked() && !ultima { acciones.push(Accion::Enfocar(id.clone())); }
+                if !ultima { ui.label(egui::RichText::new("/").color(c.tenue).size(12.0)); }
+            }
+            if v.migas.len() > 1 && ui.small_button("Subir [U]").clicked() { acciones.push(Accion::Comando(Comando::SubirFoco)); }
+        });
         ui.add_space(4.0);
+        let revelar = (self.estado.revelado.1 != self.revelado_visto).then(|| self.estado.revelado.0.clone());
+        self.revelado_visto = self.estado.revelado.1;
         let ctrl = ui.input(|i| i.modifiers.command);
         egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
             for f in filas {
@@ -415,8 +493,25 @@ impl App {
                     pintar_grafo::icono_dibujado(&p, ic, f.tipo, color(f.color), f.expandida == Some(true));
                 }
                 let col_nombre = if f.marcas.errores > 0 { c.error } else if f.marcas.avisos > 0 { c.aviso } else if f.seleccionado { c.texto } else { c.tenue };
-                p.text(Pos2::new(ic.max.x + 6.0, fila.center().y), Align2::LEFT_CENTER, &f.nombre, FontId::proportional(13.0), col_nombre);
-                let derecha = Pos2::new(fila.max.x - if f.play.is_some() { 26.0 } else { 4.0 }, fila.center().y - 8.5);
+                let nombre_g = p.layout_no_wrap(f.nombre.clone(), FontId::proportional(13.0), col_nombre);
+                let fin_nombre = ic.max.x + 6.0 + nombre_g.size().x;
+                p.galley(Pos2::new(ic.max.x + 6.0, fila.center().y - nombre_g.size().y / 2.0), nombre_g, col_nombre);
+                if let Some(resumen) = &f.grupo {
+                    // Grupo del organizador: sus piezas en pequeno ("h · cc · unittest").
+                    p.text(Pos2::new(fin_nombre + 6.0, fila.center().y), Align2::LEFT_CENTER, resumen, FontId::monospace(10.0), c.tenue);
+                }
+                if revelar.as_deref() == Some(f.id.as_str()) { r.scroll_to_me(Some(egui::Align::Center)); }
+                // Enfocar una carpeta desde el explorador (al pasar el raton).
+                let es_carpeta = f.tipo == Tipo::Carpeta && f.grupo.is_none();
+                if es_carpeta && r.hovered() && f.play.is_none() {
+                    let caja = Rect::from_center_size(Pos2::new(fila.max.x - 14.0, fila.center().y), Vec2::splat(16.0));
+                    let rd = ui.interact(caja, ui.make_persistent_id(("arbol-enfocar", &f.id)), Sense::click());
+                    p.circle_stroke(caja.center(), 5.5, Stroke::new(1.3, if rd.hovered() { c.acento } else { c.tenue }));
+                    p.circle_filled(caja.center(), 2.0, if rd.hovered() { c.acento } else { c.tenue });
+                    if rd.clicked() { acciones.push(Accion::Enfocar(f.id.clone())); continue; }
+                    rd.on_hover_text("Enfocar: esta carpeta pasa a ser la raiz [E]");
+                }
+                let derecha = Pos2::new(fila.max.x - if f.play.is_some() || es_carpeta { 26.0 } else { 4.0 }, fila.center().y - 8.5);
                 pintar_grafo::insignia(&p, c, derecha, &f.marcas);
                 if r.secondary_clicked() { acciones.push(Accion::AbrirEditor { id: f.id.clone(), linea: None }); }
                 if let Some(primero) = &f.marcas.primero { if r.hovered() { r.clone().on_hover_text(format!("{primero}\nclic derecho: abrir en el editor")); } }
@@ -664,7 +759,7 @@ impl App {
                 ui.set_width(430.0);
                 ui.label(egui::RichText::new("CARRILES // SEMAFORO  (F12)").color(c.acento).strong());
                 for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Geometria, Carril::Pintado, Carril::Iconos, Carril::Terminal,
-                               Carril::Procesos, Carril::Editor] {
+                               Carril::Procesos, Carril::Editor, Carril::Indice, Carril::Busqueda] {
                     let p = presupuesto(carril);
                     let (u, m) = (self.medidas.ultimo[carril as usize], self.medidas.maximo[carril as usize]);
                     let foco = match luz(carril, u) { Luz::Verde => Color32::from_rgb(61, 255, 154), Luz::Amarillo => Color32::from_rgb(252, 238, 10), Luz::Rojo => Color32::from_rgb(255, 42, 79) };
@@ -679,6 +774,9 @@ impl App {
                     self.estado.expandidas.len(), self.estado.entradas.len(), self.iconos.cantidad())).color(c.tenue).size(11.0));
                 ui.label(egui::RichText::new(format!("procesos {}/{MAX_PROCESOS} · errores atrapados {}/{MAX_DIAGNOSTICOS} · lineas terminal {}",
                     self.estado.procesos.len(), self.estado.errores.total, self.estado.terminal.lineas.len())).color(c.tenue).size(11.0));
+                let ix = self.estado.indice;
+                ui.label(egui::RichText::new(format!("indice {}/{MAX_INDICE} rutas en {:.1} s · coincidencias {}/{MAX_COINCIDENCIAS}",
+                    paneles::miles(ix.archivos + ix.carpetas), ix.micros as f64 / 1e6, self.estado.proyecto.total)).color(c.tenue).size(11.0));
                 let modo = match (self.gpu_ok, self.estado.ajustes.dibujo) { (true, Dibujo::Gpu) => "GPU retenido", (false, _) => "CPU (sin wgpu)", _ => "CPU" };
                 let vertices = self.geometria.as_ref().map(|g| g.vertices.len()).unwrap_or(0);
                 ui.label(egui::RichText::new(format!("grafo: {modo} · {vertices} vertices · subidas a la GPU {} en {} cuadros",
@@ -783,6 +881,7 @@ impl eframe::App for App {
         self.recoger();
         self.recoger_proceso();
         self.recoger_vivos();
+        self.recoger_proyecto();
         self.teclado(&ctx);
         if self.estado.panel_ajustes && ctx.input(|i| i.key_pressed(Key::Escape)) { self.despachar(Accion::Comando(Comando::Ajustes)); }
         let tema = self.estado.ajustes.tema(self.estado.acento);
@@ -795,8 +894,13 @@ impl eframe::App for App {
             ui.horizontal(|ui| {
                 ui.label(egui::RichText::new(estado).color(c.tenue));
                 if let Some(e) = &self.error { ui.label(egui::RichText::new(format!("· {e}")).color(c.error)); }
+                if let Some(a) = &self.estado.aviso { ui.label(egui::RichText::new(format!("· {a}")).color(c.aviso)); }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(egui::RichText::new("Solo ordena la vista: tus archivos no se mueven · F12 carriles").color(c.tenue).italics());
+                    let ix = self.estado.indice;
+                    let texto = if ix.listo { format!("indice: {} archivos ({:.1} s) · Ctrl+P ·", paneles::miles(ix.archivos), ix.micros as f64 / 1e6) }
+                                else { "indexando el proyecto… ·".to_string() };
+                    ui.label(egui::RichText::new(texto).color(c.tenue));
                 });
             });
         });
@@ -815,9 +919,15 @@ impl eframe::App for App {
         } else {
             self.editor.foco = false;
         }
+        egui::Panel::left("actividad").exact_size(44.0).resizable(false)
+            .frame(egui::Frame::new().fill(c.fondo).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.actividad(ui, &c));
         if v.arbol.is_some() {
-            egui::Panel::left("explorador").resizable(true).default_size(250.0)
-                .frame(egui::Frame::new().fill(c.panel).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.explorador(ui, &v, &c));
+            let lateral = self.estado.lateral;
+            egui::Panel::left("explorador").resizable(true).default_size(if lateral == carpetas_nucleo::estado::Lateral::Buscar { 340.0 } else { 260.0 })
+                .frame(egui::Frame::new().fill(c.panel).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| match lateral {
+                    carpetas_nucleo::estado::Lateral::Explorador => self.explorador(ui, &v, &c),
+                    carpetas_nucleo::estado::Lateral::Buscar => self.panel_buscar(ui, &c),
+                });
         }
         egui::CentralPanel::default().frame(egui::Frame::new().fill(c.fondo)).show(ui, |ui| {
             if v.modo == Modo::Grafo {
@@ -834,6 +944,7 @@ impl eframe::App for App {
         });
         let v = self.vista();
         self.paleta(&ctx, &v, &c);
+        self.ir_a(&ctx, &c);
         self.ajustes(&ctx, &v, &c);
         self.carriles(&ctx, &v, &c);
         self.medidas.anotar(Carril::Iconos, self.tiempo_iconos.get());

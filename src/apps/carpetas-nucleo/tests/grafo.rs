@@ -25,7 +25,7 @@ fn desplegar_pide_disco_y_acepta_solo_lo_pedido() {
     reducir(&mut s, Accion::Contenido { ruta: "../etc".into(), entradas: vec![e("passwd", Tipo::Otro, 1)] });
     assert!(!s.arbol.contains_key("docs") && !s.arbol.contains_key("../etc"));
     reducir(&mut s, Accion::Contenido { ruta: "src".into(), entradas: vec![e("main.rs", Tipo::Codigo, 2000), e("app", Tipo::Carpeta, 0)] });
-    let ids: Vec<String> = visibles(&s).into_iter().map(|(id, _, _)| id).collect();
+    let ids: Vec<String> = visibles(&s).into_iter().map(|v| v.id).collect();
     assert_eq!(ids, ["", "src", "src/main.rs", "src/app", "docs", "Cargo.toml"]);
     // Abrir un archivo de una subcarpeta pide su ruta relativa.
     assert_eq!(reducir(&mut s, Accion::Abrir("src/main.rs".into())), vec![Efecto::AbrirArchivo("src/main.rs".into())]);

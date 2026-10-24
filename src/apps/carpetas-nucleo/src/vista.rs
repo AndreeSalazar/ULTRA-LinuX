@@ -63,6 +63,8 @@ pub struct Vista {
     pub tam: [f32; 2],
     pub estado: String,
     pub paleta: Option<VistaPaleta>,
+    /// Migas de pan hasta la carpeta enfocada: (id, nombre).
+    pub migas: Vec<(String, String)>,
 }
 
 pub fn vista(e: &Estado) -> Vista {
@@ -104,5 +106,6 @@ pub fn vista(e: &Estado) -> Vista {
         en_curso: e.terminal.en_curso.clone(),
     });
     let play_raiz = crate::ejecutar::lanzador(e, "").map(|l| l.titulo);
-    Vista { tema, modo, ajustes, grafo, camara: e.camara, arbol, terminal, play_raiz, nodos, tam, estado, paleta }
+    let migas = crate::grafo::migas(e);
+    Vista { tema, modo, ajustes, grafo, camara: e.camara, arbol, terminal, play_raiz, nodos, tam, estado, paleta, migas }
 }

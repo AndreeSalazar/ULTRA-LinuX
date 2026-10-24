@@ -22,6 +22,9 @@ pub struct Disposicion {
     /// Posiciones que el usuario fijo a mano en el grafo (ruta relativa -> punto).
     #[serde(default)]
     pub grafo: BTreeMap<String, [f32; 2]>,
+    /// Carpeta enfocada (relativa): la raiz del grafo y del explorador. "" = la abierta.
+    #[serde(default)]
+    pub foco: String,
     #[serde(skip)]
     historial: Vec<(BTreeMap<String, [f32; 2]>, BTreeMap<String, [f32; 2]>)>,
 }
@@ -67,6 +70,10 @@ impl Disposicion {
         let mut d: Disposicion = serde_json::from_slice(bytes).unwrap_or_default();
         d.posiciones.retain(|_, p| valido(p[0]) && valido(p[1]));
         d.grafo.retain(|_, p| p.iter().all(|v| v.is_finite() && v.abs() <= LIMITE));
+        // Un foco raro (absoluto, con .., vacio entre barras o con NUL) se descarta.
+        if !d.foco.is_empty() && (d.foco.len() > 4096 || d.foco.split('/').any(|t| t.is_empty() || t == "." || t == ".." || t.contains('\0'))) {
+            d.foco.clear();
+        }
         d
     }
 

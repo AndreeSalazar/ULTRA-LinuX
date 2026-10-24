@@ -80,6 +80,7 @@ pub fn grafo(ui: &mut egui::Ui, v: &Vista, cam: Camara, gpu: Option<Retenido>, i
     if fondo.clicked() && !ctrl { acciones.push(Accion::Comando(carpetas_nucleo::Comando::LimpiarSeleccion)); }
 
     let Some((nodos, cables)) = &v.grafo else { return };
+    migas(ui, &pintor, rect, &v.migas, c, acciones);
     let visible = rect.expand(60.0);
     // Cables primero (quedan debajo de los nodos). Curvas como los "noodles" de Blender.
     for cable in cables.iter().filter(|_| !en_gpu) {
@@ -122,7 +123,7 @@ pub fn grafo(ui: &mut egui::Ui, v: &Vista, cam: Camara, gpu: Option<Retenido>, i
 fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, iconos: &Iconos, c: &Colores, direccion: Direccion, en_gpu: bool, acciones: &mut Vec<Accion>) {
     let col = color(n.color);
     let resp = ui.interact(r, ui.make_persistent_id(("nodo", &n.id)), Sense::click_and_drag());
-    if !n.id.is_empty() {
+    if !n.raiz {
         let ctrl = ui.input(|i| i.modifiers.command);
         if resp.clicked() { acciones.push(Accion::Pulsar { nombre: n.id.clone(), sumar: ctrl }); }
         if resp.double_clicked() { acciones.push(Accion::Abrir(n.id.clone())); }
@@ -143,16 +144,19 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
     if n.seleccionado && c.brillo {
         for (k, a) in [(2.0, 0.35), (5.0, 0.15)] { pintor.rect_stroke(r.expand(k), radio, Stroke::new(2.0, c.acento.gamma_multiply(a)), StrokeKind::Outside); }
     }
+    if n.grupo.is_some() {
+        for k in [8.0, 4.0] { pintor.rect(r.translate(Vec2::splat(k * z)), radio, c.superficie.gamma_multiply(0.85), Stroke::new(1.0, col.gamma_multiply(0.55)), StrokeKind::Inside); }
+    }
     pintor.rect(r, radio, c.superficie, Stroke::new(if n.seleccionado { 2.0 } else { 1.0 }, if n.seleccionado { c.acento } else if resp.hovered() { col } else { c.linea }), StrokeKind::Inside);
     // Cabecera de color por tipo, como las categorias de nodos de Blender.
-    pintor.rect_filled(cab, egui::CornerRadius { nw: radio, ne: radio, sw: 0, se: 0 }, col.gamma_multiply(if n.id.is_empty() { 0.75 } else { 0.5 }));
+    pintor.rect_filled(cab, egui::CornerRadius { nw: radio, ne: radio, sw: 0, se: 0 }, col.gamma_multiply(if n.raiz { 0.75 } else { 0.5 }));
     // Conectores: entrada (no en la raiz) y salida (carpetas desplegadas).
     let (entrada, salida) = match direccion {
         Direccion::Blender => (r.left_center(), r.right_center()),
         Direccion::Houdini => (r.center_top(), r.center_bottom()),
     };
     let rad = (4.5 * z).max(2.0);
-    if !n.id.is_empty() { pintor.circle(entrada, rad, c.superficie, Stroke::new(1.5, col)); }
+    if !n.raiz { pintor.circle(entrada, rad, c.superficie, Stroke::new(1.5, col)); }
     if n.expandida == Some(true) { pintor.circle(salida, rad, col, Stroke::new(1.0, c.fondo)); }
     }
     if !en_gpu && n.marcas.errores > 0 {
@@ -161,11 +165,23 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
         pintor.rect_stroke(r.expand(2.0), radio, Stroke::new(1.5, c.aviso), StrokeKind::Outside);
     }
     insignia(pintor, c, r.right_top() + Vec2::new(-4.0, -19.0), &n.marcas); // encima del borde: no tapa los botones
-    let tooltip = |base: String| match &n.marcas.primero {
-        Some(p) => format!("{base}\n\n{p}\nclic derecho: abrir en el editor"),
-        None => format!("{base}\nclic derecho: abrir en el editor"),
+    // El clic derecho abre el editor en archivos, grupos y carpetas con errores; no prometerlo en el resto.
+    let editable = n.tipo != Tipo::Carpeta || n.grupo.is_some() || n.marcas.errores + n.marcas.avisos > 0;
+    let tooltip = |base: String| {
+        let pista = if editable { "\nclic derecho: abrir en el editor" } else if n.tipo == Tipo::Carpeta && !n.raiz { "\nE o la diana: enfocar esta carpeta" } else { "" };
+        match &n.marcas.primero { Some(p) => format!("{base}\n\n{p}{pista}"), None => format!("{base}{pista}") }
     };
-    if z < 0.45 { resp.on_hover_text(tooltip(n.id.clone())); return; } // nivel de detalle: lejos, solo formas
+    if z < 0.45 {
+        // Lejos: sin iconos ni detalle, pero el nombre en letra fija y legible si cabe.
+        if z >= 0.18 && r.width() > 40.0 {
+            let mut t = n.nombre.clone();
+            let cabe = ((r.width() - 8.0) / 6.0) as usize;
+            if t.chars().count() > cabe { t = t.chars().take(cabe.saturating_sub(1)).collect::<String>() + "…"; }
+            pintor.text(r.left_center() + Vec2::new(4.0, 0.0), Align2::LEFT_CENTER, t, FontId::proportional(10.5), c.texto);
+        }
+        resp.on_hover_text(tooltip(n.id.clone()));
+        return;
+    }
     // Titulo, icono y boton de desplegar.
     let tam_letra = 12.5 * z;
     let icono_r = Rect::from_min_size(cab.min + Vec2::new(5.0 * z, 3.0 * z), Vec2::splat(16.0 * z));
@@ -176,7 +192,7 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
     let mut titulo = n.nombre.clone();
     if titulo.chars().count() > 22 { titulo = titulo.chars().take(21).collect::<String>() + "…"; }
     pintor.text(cab.left_center() + Vec2::new(26.0 * z, 0.0), Align2::LEFT_CENTER, titulo, FontId::proportional(tam_letra), c.texto);
-    if let (Some(abierta), false) = (n.expandida, n.id.is_empty()) {
+    if let (Some(abierta), false) = (n.expandida, n.raiz) {
         let boton = Rect::from_center_size(cab.right_center() - Vec2::new(12.0 * z, 0.0), Vec2::splat(16.0 * z));
         let rb = ui.interact(boton, ui.make_persistent_id(("desplegar", &n.id)), Sense::click());
         if rb.clicked() { acciones.push(Accion::Expandir(n.id.clone())); }
@@ -185,23 +201,48 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
     }
     // Play: lo que arranca este nodo (cargo run, make, python3...), como en VS Code.
     if let Some(titulo) = &n.play {
-        let hueco = if n.expandida.is_some() && !n.id.is_empty() { 34.0 } else { 12.0 };
+        let hueco = if n.expandida.is_some() && !n.raiz { 34.0 } else { 12.0 };
         let boton = Rect::from_center_size(cab.right_center() - Vec2::new(hueco * z, 0.0), Vec2::splat(16.0 * z));
         let rp = ui.interact(boton, ui.make_persistent_id(("play", &n.id)), Sense::click());
         triangulo_play(pintor, boton, if rp.hovered() { c.texto } else { c.verde });
         if rp.clicked() { acciones.push(Accion::Ejecutar(n.id.clone())); }
         rp.on_hover_text(format!("Ejecutar: {titulo}"));
     }
+    // Enfocar (carpetas reales): la carpeta pasa a ser la raiz. En la raiz enfocada: subir.
+    let es_carpeta_real = n.tipo == Tipo::Carpeta && n.grupo.is_none() && !n.raiz;
+    let foco_raiz = n.raiz && !n.id.is_empty();
+    if es_carpeta_real || foco_raiz {
+        let hueco = if foco_raiz { if n.play.is_some() { 34.0 } else { 12.0 } } else if n.play.is_some() { 56.0 } else { 34.0 };
+        let boton = Rect::from_center_size(cab.right_center() - Vec2::new(hueco * z, 0.0), Vec2::splat(16.0 * z));
+        let rb = ui.interact(boton, ui.make_persistent_id(("enfocar", &n.id)), Sense::click());
+        let tinta = if rb.hovered() { c.acento } else { c.texto.gamma_multiply(0.75) };
+        if foco_raiz {
+            flecha_arriba(pintor, boton, tinta);
+            if rb.clicked() { acciones.push(Accion::Enfocar(n.id.rsplit_once('/').map(|(p, _)| p.to_string()).unwrap_or_default())); }
+            rb.on_hover_text("Subir el foco a la carpeta de arriba [U]");
+        } else {
+            diana(pintor, boton, tinta);
+            if rb.clicked() { acciones.push(Accion::Enfocar(n.id.clone())); }
+            rb.on_hover_text("Enfocar: esta carpeta pasa a ser la raiz del grafo y del explorador [E]");
+        }
+    }
     // Cuerpo: detalle y barra de peso (para ver de un vistazo que ocupa mas espacio).
     pintor.text(r.min + Vec2::new(10.0 * z, alto_cab + 8.0 * z), Align2::LEFT_TOP, &n.detalle, FontId::proportional(11.0 * z), c.tenue);
-    if en_gpu { resp.on_hover_text(tooltip(if n.id.is_empty() { "Carpeta abierta".to_string() } else { format!("{}\n{}", n.id, n.detalle) })); return; }
+    if let Some(resumen) = &n.grupo {
+        // Que piezas tiene la unidad: "h · cc · unittest · win".
+        pintor.text(r.min + Vec2::new(10.0 * z, alto_cab + 24.0 * z), Align2::LEFT_TOP, resumen, FontId::monospace(10.0 * z), col.gamma_multiply(0.9));
+    }
+    let titulo_tip = if n.raiz { format!("{}\n{}", if n.id.is_empty() { "Carpeta abierta" } else { "Carpeta enfocada" }, n.detalle) }
+                     else if let Some(r) = &n.grupo { format!("{} (grupo: {})\n{}\ndoble clic: abrir el grupo", n.nombre, r, n.detalle) }
+                     else { format!("{}\n{}", n.id, n.detalle) };
+    if en_gpu { resp.on_hover_text(tooltip(titulo_tip)); return; }
     let barra = Rect::from_min_size(Pos2::new(r.min.x + 10.0 * z, r.max.y - 12.0 * z), Vec2::new(r.width() - 20.0 * z, 4.0 * z));
     pintor.rect_filled(barra, 1.0, c.linea);
     if n.peso > 0.0 {
         let lleno = Rect::from_min_size(barra.min, Vec2::new(barra.width() * n.peso.clamp(0.0, 1.0), barra.height()));
         pintor.rect_filled(lleno, 1.0, if n.peso > 0.6 { c.error } else { col });
     }
-    resp.on_hover_text(tooltip(if n.id.is_empty() { "Carpeta abierta".to_string() } else { format!("{}\n{}", n.id, n.detalle) }));
+    resp.on_hover_text(tooltip(titulo_tip));
 }
 
 /// Triangulo de play dibujado (no depende de que la fuente tenga el caracter).
@@ -215,9 +256,10 @@ pub fn triangulo_play(pintor: &egui::Painter, caja: Rect, color: Color32) {
 /// para que se lea a cualquier zoom. Se pinta hacia la izquierda desde `derecha`.
 pub fn insignia(pintor: &egui::Painter, c: &Colores, derecha: Pos2, m: &Marcas) -> f32 {
     let mut x = derecha.x;
-    for (n, fondo, letra, texto) in [(m.avisos, c.aviso, c.fondo, "aviso"), (m.errores, c.error, Color32::WHITE, "error")] {
+    for (n, fondo, letra, uno, varios) in [(m.coincidencias, c.acento, c.sobre_acento, "resultado", "resultados"), (m.avisos, c.aviso, c.fondo, "aviso", "avisos"),
+                                           (m.errores, c.error, Color32::WHITE, "error", "errores")] {
         if n == 0 { continue; }
-        let t = carpetas_nucleo::diagnosticos::contar(n, texto, if texto == "error" { "errores" } else { "avisos" });
+        let t = carpetas_nucleo::diagnosticos::contar(n, uno, varios);
         let g = pintor.layout_no_wrap(t, FontId::proportional(11.0), letra);
         let caja = Rect::from_min_size(Pos2::new(x - g.size().x - 12.0, derecha.y), Vec2::new(g.size().x + 12.0, 17.0));
         pintor.rect_filled(caja, 8, fondo);
@@ -298,6 +340,47 @@ pub fn icono_dibujado(p: &egui::Painter, caja: Rect, tipo: Tipo, col: Color32, a
         p.add(egui::Shape::line(vec![Pos2::new(x1 - pliegue, r.min.y), Pos2::new(x1 - pliegue, r.min.y + pliegue), Pos2::new(x1, r.min.y + pliegue)], trazo));
         if tipo == Tipo::Enlace {
             p.line_segment([Pos2::new(x0 + w * 0.12, r.max.y - h * 0.2), Pos2::new(x1 - w * 0.12, r.min.y + h * 0.5)], trazo);
+        }
+    }
+}
+
+/// Diana dibujada (enfocar).
+fn diana(p: &egui::Painter, caja: Rect, col: Color32) {
+    let r = caja.width() * 0.36;
+    p.circle_stroke(caja.center(), r, Stroke::new(1.3, col));
+    p.circle_filled(caja.center(), r * 0.35, col);
+}
+
+/// Flecha hacia arriba dibujada (subir el foco).
+pub fn flecha_arriba(p: &egui::Painter, caja: Rect, col: Color32) {
+    let c = caja.center();
+    let (w, h) = (caja.width() * 0.3, caja.height() * 0.32);
+    let trazo = Stroke::new(1.6, col);
+    p.line_segment([c + Vec2::new(0.0, h), c + Vec2::new(0.0, -h)], trazo);
+    p.line_segment([c + Vec2::new(-w, -h + w), c + Vec2::new(0.0, -h)], trazo);
+    p.line_segment([c + Vec2::new(w, -h + w), c + Vec2::new(0.0, -h)], trazo);
+}
+
+/// Migas de pan arriba a la izquierda del grafo: "chromium › net › http". Clic = enfocar ahi.
+fn migas(ui: &egui::Ui, pintor: &egui::Painter, lienzo: Rect, migas: &[(String, String)], c: &Colores, acciones: &mut Vec<Accion>) {
+    let mut x = lienzo.min.x + 10.0;
+    let y = lienzo.min.y + 10.0;
+    for (i, (id, nombre)) in migas.iter().enumerate() {
+        let ultima = i + 1 == migas.len();
+        let g = pintor.layout_no_wrap(nombre.clone(), FontId::proportional(12.5), if ultima { c.sobre_acento } else { c.texto });
+        let caja = Rect::from_min_size(Pos2::new(x, y), Vec2::new(g.size().x + 16.0, 22.0));
+        let r = ui.interact(caja, ui.make_persistent_id(("miga", id)), Sense::click());
+        pintor.rect(caja, 4, if ultima { c.acento } else if r.hovered() { c.superficie } else { c.panel }, Stroke::new(1.0, c.linea), StrokeKind::Inside);
+        pintor.galley(caja.min + Vec2::new(8.0, (22.0 - g.size().y) / 2.0), g, c.texto);
+        if r.clicked() && !ultima { acciones.push(Accion::Enfocar(id.clone())); }
+        r.on_hover_text(if ultima { "Raiz de la vista".to_string() } else { format!("Enfocar {nombre}") });
+        x = caja.max.x + 4.0;
+        if !ultima {
+            // Chevron dibujado (no depende de la fuente).
+            let m = Pos2::new(x + 6.0, y + 11.0);
+            pintor.line_segment([m + Vec2::new(-2.5, -4.0), m + Vec2::new(2.0, 0.0)], Stroke::new(1.4, c.tenue));
+            pintor.line_segment([m + Vec2::new(-2.5, 4.0), m + Vec2::new(2.0, 0.0)], Stroke::new(1.4, c.tenue));
+            x += 14.0;
         }
     }
 }

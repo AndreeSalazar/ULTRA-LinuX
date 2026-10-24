@@ -14,6 +14,7 @@ pub enum Comando {
     Modo, Explorador, Direccion, Encuadrar, Reacomodar, Iconos, Carriles,
     Terminal, Detener, LimpiarTerminal, Dibujo, EjecutarSeleccion,
     SiguienteError, PararEnError, Guardar, CerrarEditor, SiguientePestana, AnteriorPestana,
+    Enfocar, SubirFoco, IrA, BuscarProyecto, Organizar, Reindexar,
 }
 
 pub struct InfoComando {
@@ -38,6 +39,12 @@ pub const COMANDOS: &[InfoComando] = &[
     InfoComando { comando: Comando::Atras, id: "carpetas.atras", titulo: "Volver a la carpeta anterior", atajo: "Alt+Izquierda" },
     InfoComando { comando: Comando::Releer, id: "carpetas.releer", titulo: "Volver a leer la carpeta", atajo: "" },
     InfoComando { comando: Comando::Paleta, id: "carpetas.paleta", titulo: "Paleta de comandos", atajo: "Ctrl+Shift+P" },
+    InfoComando { comando: Comando::IrA, id: "proyecto.irA", titulo: "Ir a archivo o carpeta (todo el proyecto)", atajo: "Ctrl+P" },
+    InfoComando { comando: Comando::BuscarProyecto, id: "proyecto.buscar", titulo: "Buscar texto en todo el proyecto", atajo: "Ctrl+Shift+F" },
+    InfoComando { comando: Comando::Enfocar, id: "grafo.enfocar", titulo: "Enfocar: la carpeta elegida pasa a ser la raiz", atajo: "E" },
+    InfoComando { comando: Comando::SubirFoco, id: "grafo.subirFoco", titulo: "Subir el foco a la carpeta de arriba", atajo: "U" },
+    InfoComando { comando: Comando::Organizar, id: "grafo.organizar", titulo: "Organizar carpetas grandes: automatico, siempre o nunca", atajo: "O" },
+    InfoComando { comando: Comando::Reindexar, id: "proyecto.reindexar", titulo: "Volver a indexar el proyecto", atajo: "" },
     InfoComando { comando: Comando::Modo, id: "vista.modo", titulo: "Cambiar entre iconos y grafo de nodos", atajo: "Tab" },
     InfoComando { comando: Comando::Explorador, id: "vista.explorador", titulo: "Mostrar u ocultar el explorador", atajo: "Ctrl+B" },
     InfoComando { comando: Comando::Direccion, id: "grafo.direccion", titulo: "Grafo: Blender (izq-der) o Houdini (arriba-abajo)", atajo: "D" },
@@ -73,7 +80,7 @@ pub const COMANDOS: &[InfoComando] = &[
 
 /// Teclas que entiende el nucleo; cada plataforma traduce las suyas a estas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tecla { G, L, H, Z, A, P, T, B, D, I, Tab, Inicio, F12, Coma, Retroceso, Enter, Escape, F5, F8, S, F, W, F3, Arriba, Abajo, Izquierda, Acento }
+pub enum Tecla { G, L, H, Z, A, P, T, B, D, I, Tab, Inicio, F12, Coma, Retroceso, Enter, Escape, F5, F8, S, F, W, F3, E, U, O, Arriba, Abajo, Izquierda, Acento }
 
 /// Como el keybindings.json de VS Code: tecla + modificadores -> accion.
 pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: bool) -> Option<Accion> {
@@ -88,6 +95,11 @@ pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: b
     }
     let comando = match (tecla, ctrl, shift, alt) {
         (Tecla::P, true, true, _) => Comando::Paleta,
+        (Tecla::P, true, false, _) => Comando::IrA,
+        (Tecla::F, true, true, _) => Comando::BuscarProyecto,
+        (Tecla::E, false, false, false) => Comando::Enfocar,
+        (Tecla::U, false, false, false) => Comando::SubirFoco,
+        (Tecla::O, false, false, false) => Comando::Organizar,
         (Tecla::Coma, true, _, _) => Comando::Ajustes,
         (Tecla::T, false, false, false) => Comando::SiguienteTema,
         (Tecla::B, true, _, _) => Comando::Explorador,
