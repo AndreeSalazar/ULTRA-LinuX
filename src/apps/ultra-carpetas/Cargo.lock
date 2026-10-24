@@ -234,6 +234,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "carpetas-nucleo"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "cc"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2384,9 +2392,8 @@ dependencies = [
 name = "ultra-carpetas"
 version = "0.1.0"
 dependencies = [
+ "carpetas-nucleo",
  "eframe",
- "serde",
- "serde_json",
 ]
 
 [[package]]

@@ -4,10 +4,13 @@
 
 ![ULTRA Carpetas con la rejilla activa](maquetas/png/neon/ultra-carpetas.png)
 
-La captura es del programa real, dibujado con Vulkan por software (lavapipe de
-Mesa) en una pantalla virtual X11 del entorno de desarrollo, no en Hyprland.
-`captura.png` y `kernel.rs` se movieron con un ratón simulado; con la rejilla
-activa, `kernel.rs` encajó en su celda.
+Las capturas son del programa real, dibujado con Vulkan por software (lavapipe de
+Mesa) en una pantalla virtual X11 del entorno de desarrollo, no en Hyprland. Con
+un ratón y un teclado simulados se hizo esto:
+
+1. Se activó la rejilla desde la paleta.
+2. Se arrastró `captura.png`, que encajó en su celda.
+3. Una banda seleccionó 13 iconos.
 
 Gestor de carpetas inspirado en el escritorio del Windows antiguo: **cada icono va
 donde tú lo dejes y cada carpeta recuerda su orden.** Con control:
@@ -24,9 +27,21 @@ donde tú lo dejes y cada carpeta recuerda su orden.** Con control:
 | **H** — Ocultos | Muestra u oculta los archivos que empiezan por punto |
 | Retroceso, Atrás, Arriba y la ruta | Navegar; cada parte de la ruta es un botón |
 | Ctrl+A, Esc, F5 | Seleccionar todo, quitar la selección, volver a leer |
+| **Ctrl+Shift+P** | Paleta de comandos |
+| Alt+Izquierda | Volver a la carpeta anterior |
 
 Se abre con **Super+Ctrl+E**, en **Super+Espacio > Aplicaciones > Carpetas BMO-X** o
 con `ultra-carpetas [carpeta]`. Thunar sigue en Super+E para copiar, mover o borrar.
+
+### Paleta de comandos (como VS Code)
+
+![Paleta de comandos](maquetas/png/neon/ultra-carpetas-paleta.png)
+
+**Ctrl+Shift+P** abre la paleta. Escribe unas letras en orden ("rej" encuentra
+*Alternar rejilla*, "ordtam" encuentra *Ordenar por tamaño*), muévete con las
+flechas y ejecuta con Enter; Esc cierra. Busca también por id (`carpetas.candado`).
+Cada botón, atajo y fila de la paleta es el mismo **comando**: una sola tabla
+(`COMANDOS` en el núcleo) con id, título y atajo.
 
 ## Seguridad
 
@@ -40,16 +55,40 @@ con `ultra-carpetas [carpeta]`. Thunar sigue en Super+E para copiar, mover o bor
 - Si algo aparece o desaparece en la carpeta, lo nuevo va a la primera celda libre
   sin mover lo que ya ordenaste, y lo borrado se olvida.
 
-## Cómo está hecho
+## Cómo está hecho: como React, con el núcleo listo para BMO-X
 
-- **Rust**, en `src/apps/ultra-carpetas/`. Es un programa normal de tu sistema, no
-  va dentro del kernel: si falla, no se cae nada más.
+```text
+  evento (clic, tecla, arrastre)
+       │  Linux lo traduce
+       ▼
+    Accion ──► reducir(&mut Estado, Accion) ──► Vec<Efecto>   (guardar, abrir, entrar, releer)
+                      │                              │
+                      ▼                              ▼
+               vista(&Estado) ──► Vista       Linux los ejecuta (disco, xdg-open)
+               (lo que hay que dibujar)        y dibuja la Vista con egui/wgpu
+```
+
+- **Como React + Redux:** el `Estado` es la única verdad. Todo lo que pasa es
+  una `Accion`, y `reducir` calcula el estado nuevo sin tocar disco ni pantalla.
+  Lo que hay que hacer fuera (guardar el orden, abrir un archivo, entrar en una
+  carpeta) sale como `Efecto`. `vista` describe qué dibujar, como un render de
+  React, pero como una lista de nodos y no como píxeles.
+- **Como VS Code:** comandos con id, título y atajo; una paleta con búsqueda difusa;
+  y un mapa de teclas (`atajo`) igual para cualquier plataforma.
+- **Núcleo `no_std`** (`src/apps/carpetas-nucleo/`): solo `core` y `alloc`, sin
+  archivos, hilos, reloj ni GPU, y sin `unsafe` (`#![forbid(unsafe_code)]`).
+  Compila para **`x86_64-unknown-none`**, el objetivo bare-metal. En BMO-X solo
+  hay que escribir la capa fina: leer su sistema de archivos, ejecutar los
+  `Efecto` y pintar los `Nodo` en su framebuffer.
+- **Capa Linux** (`src/apps/ultra-carpetas/`): lee carpetas, guarda el JSON, abre
+  con `xdg-open` y dibuja con egui sobre wgpu. Es un programa normal, no va
+  dentro del kernel.
 - **egui** dibuja la interfaz y **wgpu** habla con la GPU: **Vulkan** en Linux y
   Windows, Metal en macOS. Es el mismo código en todas partes, en Rust seguro y
   sin Vulkan crudo.
-- `disposicion.rs` es la lógica pura (dónde va cada icono, rejilla, candado,
-  deshacer, guardar) y `entradas.rs` lee la carpeta. Los dos tienen pruebas:
-  `cargo test` en la carpeta del programa (5 pruebas).
+- **Pruebas:** 9 en el núcleo, al estilo Redux (acción → estado + efectos): arrastre,
+  rejilla, candado, deshacer, banda, abrir, paleta, JSON raro y vista. Hay 2 más en
+  la capa Linux (listar carpetas y guardar en disco).
 - Toma tu acento de Personalizar y la letra Chakra Petch si está instalada. Cada
   tipo de archivo tiene su color: imágenes violeta, video rojo, audio amarillo,
   código cyan, comprimidos coral, programas verde.
@@ -58,9 +97,10 @@ con `ultra-carpetas [carpeta]`. Thunar sigue en Super+E para copiar, mover o bor
 
 `scripts/instalar-carpetas.sh`:
 
-1. compila con Rust 1.97.0 (fijado en `rust-toolchain.toml`) y `Cargo.lock`
-   (`--locked`);
-2. pasa las pruebas;
+1. prueba el núcleo y lo compila para `x86_64-unknown-none`: si deja de ser
+   `no_std`, el build falla en rojo;
+2. compila la app con Rust 1.97.0 (fijado en `rust-toolchain.toml`) y `Cargo.lock`
+   (`--locked`), y pasa sus pruebas;
 3. instala `/usr/local/bin/ultra-carpetas`;
 4. comprueba con `ldd` que no falta ninguna biblioteca en la imagen.
 

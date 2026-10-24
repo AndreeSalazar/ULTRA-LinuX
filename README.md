@@ -40,7 +40,8 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   [rojo](docs/maquetas/png/neon/ciudad-3d-rojo.mp4)).
 - **ULTRA Carpetas** (Super+Ctrl+E), en Rust con Vulkan (wgpu): iconos donde tú quieras, como en
   el Windows antiguo, con rejilla, candado y deshacer; cada carpeta recuerda su orden y nunca
-  toca tus archivos ([detalle](docs/ULTRA-CARPETAS.md)).
+  toca tus archivos. Arquitectura como React + Redux con paleta de comandos como VS Code, y
+  el núcleo es `no_std`: compila para bare-metal, listo para BMO-X ([detalle](docs/ULTRA-CARPETAS.md)).
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y
   temperatura, con anillos y gráficas en vivo ([captura con eww real](docs/maquetas/png/neon/tarjetas-eww.png)).
   La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa

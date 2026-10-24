@@ -1,324 +1,262 @@
 // SPDX-License-Identifier: GPL-2.0-only
-//! ULTRA Carpetas: gestor de carpetas de BMO-X. Diseno: Eddi Salazar.
+//! ULTRA Carpetas para Linux: la capa fina sobre `carpetas-nucleo` (no_std). Diseno: Eddi Salazar.
 //!
-//! Los iconos van donde tu los dejes, como en el Windows antiguo, y cada carpeta
-//! recuerda su orden. Con control: rejilla, candado, deshacer y ordenar.
+//! Como React + Redux: este archivo solo traduce eventos a `Accion`, ejecuta los
+//! `Efecto` (disco, abrir archivos) y dibuja la `Vista` con egui sobre wgpu (Vulkan).
+//! Lo que el programa decide esta en el nucleo, que BMO-X puede usar tal cual.
 //! Solo ordena la vista: nunca mueve, renombra ni borra archivos.
-//! Dibuja con wgpu: Vulkan en Linux y Windows, Metal en macOS.
 
-mod disposicion;
+mod almacen;
 mod entradas;
 
-use disposicion::{archivo_para, Disposicion, CELDA};
+use carpetas_nucleo::{atajo, reducir, vista, Accion, AccionPaleta, Comando, Efecto, Estado, Nodo, Orden, Rgb, Tecla, Tipo};
 use eframe::egui::{self, Align2, Color32, CornerRadius, FontId, Key, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
-use entradas::{legible, listar, Entrada, Tipo};
-use std::collections::BTreeSet;
+use entradas::{legible, listar};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant, SystemTime};
 
-const ICONO: Vec2 = Vec2::new(96.0, 92.0);
 const NEGRO: Color32 = Color32::from_rgb(6, 5, 10);
 const PANEL: Color32 = Color32::from_rgb(15, 14, 22);
 const LINEA: Color32 = Color32::from_rgb(42, 39, 51);
 const TEXTO: Color32 = Color32::from_rgb(236, 233, 220);
 const TENUE: Color32 = Color32::from_rgb(161, 158, 174);
-const CYAN: Color32 = Color32::from_rgb(0, 240, 255);
 const ROJO: Color32 = Color32::from_rgb(255, 42, 79);
-const VERDE: Color32 = Color32::from_rgb(61, 255, 154);
-const VIOLETA: Color32 = Color32::from_rgb(192, 59, 255);
-const AMARILLO: Color32 = Color32::from_rgb(252, 238, 10);
-const CORAL: Color32 = Color32::from_rgb(255, 122, 144);
 
-fn acento() -> Color32 {
+fn color(c: Rgb) -> Color32 { Color32::from_rgb(c[0], c[1], c[2]) }
+
+fn acento() -> Rgb {
     // El mismo acento que el resto del escritorio (Personalizar); hielo si no hay.
     let salida = std::process::Command::new("ultra-personalizar").arg("acento").stdin(std::process::Stdio::null())
         .output().ok().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
     if salida.len() == 8 && salida.chars().all(|c| c.is_ascii_hexdigit()) {
         let v = |i: usize| u8::from_str_radix(&salida[i..i + 2], 16).unwrap_or(0);
-        return Color32::from_rgb(v(0), v(2), v(4));
+        return [v(0), v(2), v(4)];
     }
-    Color32::from_rgb(90, 216, 255)
+    carpetas_nucleo::tipos::HIELO
 }
-
-fn color_tipo(tipo: Tipo, acento: Color32) -> Color32 {
-    match tipo {
-        Tipo::Carpeta => acento, Tipo::Imagen => VIOLETA, Tipo::Video => ROJO, Tipo::Audio => AMARILLO,
-        Tipo::Codigo => CYAN, Tipo::Comprimido => CORAL, Tipo::Programa => VERDE, Tipo::Documento => TEXTO,
-        Tipo::Enlace => TENUE, Tipo::Otro => TENUE,
-    }
-}
-
-fn config() -> PathBuf {
-    if let Some(x) = std::env::var_os("XDG_CONFIG_HOME").filter(|v| !v.is_empty()) {
-        return PathBuf::from(x).join("ultra/carpetas");
-    }
-    PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| "/home/ultra".into())).join(".config/ultra/carpetas")
-}
-
-#[derive(Clone, Copy, PartialEq)]
-enum Orden { Nombre, Tipo, Tamano }
 
 struct App {
+    estado: Estado,
     carpeta: PathBuf,
     atras: Vec<PathBuf>,
-    entradas: Vec<Entrada>,
-    disp: Disposicion,
-    seleccion: BTreeSet<String>,
-    ocultos: bool,
-    acento: Color32,
-    arrastrando: bool,
-    banda: Option<Pos2>,
     error: Option<String>,
     revisado: Instant,
     mtime: Option<SystemTime>,
-    ancho_vista: f32,
+    texto_paleta: String,
 }
 
 impl App {
     fn new(cc: &eframe::CreationContext<'_>, carpeta: PathBuf) -> Self {
-        let acento = acento();
-        estilo(&cc.egui_ctx, acento);
-        let mut app = App {
-            carpeta: PathBuf::new(), atras: Vec::new(), entradas: Vec::new(), disp: Disposicion::default(),
-            seleccion: BTreeSet::new(), ocultos: false, acento, arrastrando: false, banda: None, error: None,
-            revisado: Instant::now(), mtime: None, ancho_vista: 1100.0,
-        };
+        let estado = Estado { acento: acento(), ..Estado::default() };
+        estilo(&cc.egui_ctx, color(estado.acento));
+        let mut app = App { estado, carpeta: PathBuf::new(), atras: Vec::new(), error: None, revisado: Instant::now(), mtime: None, texto_paleta: String::new() };
         app.abrir(carpeta, false);
         app
     }
 
-    fn ruta_disp(&self) -> PathBuf { archivo_para(&config(), &self.carpeta) }
+    /// El unico camino para cambiar el estado: accion -> reducer -> efectos.
+    fn despachar(&mut self, accion: Accion) {
+        for efecto in reducir(&mut self.estado, accion) {
+            self.ejecutar(efecto);
+        }
+    }
 
-    fn guardar(&mut self) {
-        if let Err(e) = self.disp.guardar(&self.ruta_disp()) {
-            self.error = Some(format!("No se pudo guardar el orden: {e}"));
+    fn ejecutar(&mut self, efecto: Efecto) {
+        match efecto {
+            Efecto::Guardar(json) => {
+                if let Err(e) = almacen::guardar(&almacen::archivo_para(&almacen::base(), &self.carpeta), &json) {
+                    self.error = Some(format!("No se pudo guardar el orden: {e}"));
+                }
+            }
+            // El nucleo solo pide nombres que existen en la carpeta; read_dir nunca da nombres con '/'.
+            Efecto::AbrirArchivo(n) => {
+                if let Err(e) = std::process::Command::new("xdg-open").arg(self.carpeta.join(&n)).stdin(std::process::Stdio::null())
+                    .stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).spawn() {
+                    self.error = Some(format!("No se pudo abrir {n}: {e}"));
+                }
+            }
+            Efecto::EntrarCarpeta(n) => { let destino = self.carpeta.join(n); self.abrir(destino, true); }
+            Efecto::Subir => { if let Some(p) = self.carpeta.parent().map(Path::to_path_buf) { self.abrir(p, true); } }
+            Efecto::Atras => { if let Some(p) = self.atras.pop() { self.abrir(p, false); } }
+            Efecto::Releer { .. } => self.releer(),
         }
     }
 
     fn abrir(&mut self, carpeta: PathBuf, recordar: bool) {
         let carpeta = carpeta.canonicalize().unwrap_or(carpeta);
-        match listar(&carpeta, self.ocultos) {
+        match listar(&carpeta, self.estado.ocultos) {
             Ok(entradas) => {
                 if recordar && !self.carpeta.as_os_str().is_empty() { self.atras.push(self.carpeta.clone()); }
                 self.carpeta = carpeta;
-                self.entradas = entradas;
-                self.disp = Disposicion::cargar(&self.ruta_disp());
-                self.seleccion.clear();
                 self.error = None;
                 self.mtime = std::fs::metadata(&self.carpeta).and_then(|m| m.modified()).ok();
-                self.sincronizar();
+                let disposicion = almacen::cargar(&almacen::archivo_para(&almacen::base(), &self.carpeta));
+                self.despachar(Accion::Cargar { entradas, disposicion });
             }
             Err(e) => self.error = Some(format!("No se pudo abrir {}: {e}", carpeta.display())),
         }
     }
 
-    fn recargar(&mut self) {
-        if let Ok(entradas) = listar(&self.carpeta, self.ocultos) {
-            self.entradas = entradas;
-            let nombres: BTreeSet<_> = self.entradas.iter().map(|e| e.nombre.clone()).collect();
-            self.seleccion.retain(|n| nombres.contains(n));
-            self.sincronizar();
+    fn releer(&mut self) {
+        match listar(&self.carpeta, self.estado.ocultos) {
+            Ok(entradas) => self.despachar(Accion::Refrescar(entradas)),
+            Err(e) => self.error = Some(format!("No se pudo leer la carpeta: {e}")),
         }
     }
 
-    fn sincronizar(&mut self) {
-        let nombres: Vec<String> = self.entradas.iter().map(|e| e.nombre.clone()).collect();
-        if self.disp.sincronizar(&nombres, self.ancho_vista) { self.guardar(); }
-    }
-
-    /// Si la carpeta cambio en disco (algo nuevo o borrado), se vuelve a leer. Una vez por segundo.
+    /// Si la carpeta cambio en disco, se vuelve a leer. Una vez por segundo.
     fn vigilar(&mut self) {
         if self.revisado.elapsed() < Duration::from_secs(1) { return; }
         self.revisado = Instant::now();
         let ahora = std::fs::metadata(&self.carpeta).and_then(|m| m.modified()).ok();
-        if ahora != self.mtime { self.mtime = ahora; self.recargar(); }
+        if ahora != self.mtime { self.mtime = ahora; self.releer(); }
     }
 
-    fn abrir_entrada(&mut self, nombre: &str) {
-        let Some(e) = self.entradas.iter().find(|e| e.nombre == nombre).cloned() else { return };
-        if e.tipo == Tipo::Carpeta {
-            self.abrir(e.ruta, true);
-        } else if let Err(err) = std::process::Command::new("xdg-open").arg(&e.ruta).stdin(std::process::Stdio::null())
-            .stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).spawn() {
-            self.error = Some(format!("No se pudo abrir {}: {err}", e.nombre));
-        }
-    }
-
-    fn ordenar(&mut self, orden: Orden) {
-        let mut lista: Vec<&Entrada> = self.entradas.iter().collect();
-        match orden {
-            Orden::Nombre => lista.sort_by_key(|e| (e.tipo != Tipo::Carpeta, e.nombre.to_lowercase())),
-            Orden::Tipo => lista.sort_by_key(|e| (e.tipo, e.nombre.to_lowercase())),
-            Orden::Tamano => lista.sort_by_key(|e| (e.tipo != Tipo::Carpeta, std::cmp::Reverse(e.tam))),
-        }
-        let nombres: Vec<String> = lista.iter().map(|e| e.nombre.clone()).collect();
-        self.disp.ordenar(&nombres, self.ancho_vista);
-        self.guardar();
-    }
-
+    /// Teclas de egui -> teclas del nucleo -> accion (el "keybindings.json").
     fn teclado(&mut self, ctx: &egui::Context) {
-        let (mods, teclas) = ctx.input(|i| (i.modifiers, [Key::G, Key::L, Key::H, Key::Z, Key::A, Key::Backspace, Key::Enter, Key::Escape, Key::F5]
-            .map(|k| i.key_pressed(k))));
-        let [g, l, h, z, a, atras, enter, esc, f5] = teclas;
-        if mods.ctrl && z { if self.disp.deshacer() { self.guardar(); } }
-        else if mods.ctrl && a { self.seleccion = self.entradas.iter().map(|e| e.nombre.clone()).collect(); }
-        else if g { self.disp.rejilla = !self.disp.rejilla; self.guardar(); }
-        else if l { self.disp.bloqueada = !self.disp.bloqueada; self.guardar(); }
-        else if h { self.ocultos = !self.ocultos; self.recargar(); }
-        else if atras || (mods.alt && ctx.input(|i| i.key_pressed(Key::ArrowUp))) { self.subir(); }
-        else if enter && self.seleccion.len() == 1 { let n = self.seleccion.iter().next().cloned().unwrap_or_default(); self.abrir_entrada(&n); }
-        else if esc { self.seleccion.clear(); }
-        else if f5 { self.recargar(); }
-    }
-
-    fn subir(&mut self) {
-        if let Some(padre) = self.carpeta.parent().map(Path::to_path_buf) { self.abrir(padre, true); }
+        const MAPA: [(Key, Tecla); 13] = [(Key::G, Tecla::G), (Key::L, Tecla::L), (Key::H, Tecla::H), (Key::Z, Tecla::Z), (Key::A, Tecla::A),
+            (Key::P, Tecla::P), (Key::Backspace, Tecla::Retroceso), (Key::Enter, Tecla::Enter), (Key::Escape, Tecla::Escape),
+            (Key::F5, Tecla::F5), (Key::ArrowUp, Tecla::Arriba), (Key::ArrowDown, Tecla::Abajo), (Key::ArrowLeft, Tecla::Izquierda)];
+        let (m, pulsadas) = ctx.input(|i| (i.modifiers, MAPA.iter().filter(|(k, _)| i.key_pressed(*k)).map(|(_, t)| *t).collect::<Vec<_>>()));
+        for t in pulsadas {
+            if let Some(a) = atajo(t, m.command, m.shift, m.alt, self.estado.paleta.is_some()) { self.despachar(a); }
+        }
     }
 
     fn barra(&mut self, ui: &mut egui::Ui) {
+        let mut acciones = Vec::new();
         ui.horizontal(|ui| {
-            ui.label(egui::RichText::new("BMO-X // CARPETAS").color(self.acento).strong().size(16.0));
+            ui.label(egui::RichText::new("BMO-X // CARPETAS").color(color(self.estado.acento)).strong().size(16.0));
             ui.add_space(10.0);
-            if ui.button("Atrás").on_hover_text("Carpeta anterior").clicked() {
-                if let Some(p) = self.atras.pop() { self.abrir(p, false); }
-            }
-            if ui.button("Arriba").on_hover_text("Carpeta de arriba (Retroceso)").clicked() { self.subir(); }
+            if ui.button("Atrás").clicked() { acciones.push(Accion::Comando(Comando::Atras)); }
+            if ui.button("Arriba").on_hover_text("Retroceso").clicked() { acciones.push(Accion::Comando(Comando::Subir)); }
             ui.add_space(6.0);
-            // Migas: cada parte de la ruta es un boton.
             let mut acumulada = PathBuf::new();
             let mut destino = None;
             for parte in self.carpeta.components() {
                 acumulada.push(parte);
                 let texto = parte.as_os_str().to_string_lossy();
                 let texto = if texto == "/" { "/".to_string() } else { format!("{texto} /") };
-                if ui.add(egui::Button::new(egui::RichText::new(texto).color(TEXTO)).frame(false)).clicked() {
-                    destino = Some(acumulada.clone());
-                }
+                if ui.add(egui::Button::new(egui::RichText::new(texto).color(TEXTO)).frame(false)).clicked() { destino = Some(acumulada.clone()); }
             }
             if let Some(d) = destino { self.abrir(d, true); }
         });
         ui.horizontal(|ui| {
-            let mut rejilla = self.disp.rejilla;
-            if ui.toggle_value(&mut rejilla, "Rejilla [G]").changed() { self.disp.rejilla = rejilla; self.guardar(); }
-            let mut candado = self.disp.bloqueada;
-            let texto = if candado { "Candado puesto [L]" } else { "Candado [L]" };
-            if ui.toggle_value(&mut candado, texto).changed() {
-                self.disp.bloqueada = candado; self.guardar();
-            }
-            if ui.toggle_value(&mut self.ocultos, "Ocultos [H]").changed() { self.recargar(); }
+            let d = &self.estado.disp;
+            if ui.selectable_label(d.rejilla, "Rejilla [G]").clicked() { acciones.push(Accion::Comando(Comando::Rejilla)); }
+            if ui.selectable_label(d.bloqueada, if d.bloqueada { "Candado puesto [L]" } else { "Candado [L]" }).clicked() { acciones.push(Accion::Comando(Comando::Candado)); }
+            if ui.selectable_label(self.estado.ocultos, "Ocultos [H]").clicked() { acciones.push(Accion::Comando(Comando::Ocultos)); }
             ui.separator();
-            ui.add_enabled_ui(!self.disp.bloqueada, |ui| {
+            ui.add_enabled_ui(!d.bloqueada, |ui| {
                 ui.menu_button("Ordenar", |ui| {
-                    if ui.button("Por nombre").clicked() { self.ordenar(Orden::Nombre); ui.close(); }
-                    if ui.button("Por tipo").clicked() { self.ordenar(Orden::Tipo); ui.close(); }
-                    if ui.button("Por tamano").clicked() { self.ordenar(Orden::Tamano); ui.close(); }
+                    for (texto, o) in [("Por nombre", Orden::Nombre), ("Por tipo", Orden::Tipo), ("Por tamano", Orden::Tamano)] {
+                        if ui.button(texto).clicked() { acciones.push(Accion::Comando(Comando::Ordenar(o))); ui.close(); }
+                    }
                 });
-                if ui.button("Deshacer [Ctrl+Z]").clicked() && self.disp.deshacer() { self.guardar(); }
+                if ui.button("Deshacer [Ctrl+Z]").clicked() { acciones.push(Accion::Comando(Comando::Deshacer)); }
             });
+            ui.separator();
+            if ui.button("Comandos [Ctrl+Shift+P]").clicked() { acciones.push(Accion::Comando(Comando::Paleta)); }
         });
+        for a in acciones { self.despachar(a); }
     }
 
     fn lienzo(&mut self, ui: &mut egui::Ui) {
-        self.ancho_vista = ui.available_width().max(CELDA[0]);
-        let mut alto = 0.0f32;
-        let mut ancho = 0.0f32;
-        for p in self.disp.posiciones.values() { ancho = ancho.max(p[0] + CELDA[0]); alto = alto.max(p[1] + CELDA[1]); }
-        let tam = Vec2::new(ancho.max(ui.available_width()), (alto + 200.0).max(ui.available_height()));
+        let ancho = ui.available_width().max(1.0);
+        if (ancho - self.estado.ancho).abs() > 0.5 { self.despachar(Accion::Ancho(ancho)); }
+        let v = vista(&self.estado);
+        let tam = Vec2::new(v.tam[0].max(ui.available_width()), (v.tam[1] + 200.0).max(ui.available_height()));
         let (lienzo, fondo) = ui.allocate_exact_size(tam, Sense::click_and_drag());
         let pintor = ui.painter_at(lienzo);
         let origen = lienzo.min + Vec2::splat(16.0);
-        // Rejilla visible solo cuando esta activa: puntos tenues en cada celda.
-        if self.disp.rejilla {
-            let mut y = 0.0;
-            while y < tam.y {
-                let mut x = 0.0;
-                while x < tam.x { pintor.circle_filled(origen + Vec2::new(x, y), 1.2, LINEA); x += CELDA[0]; }
-                y += CELDA[1];
-            }
-        }
-        let modificadores = ui.input(|i| i.modifiers);
-        let mut abrir = None;
-        let entradas = self.entradas.clone();
-        for e in &entradas {
-            let Some(p) = self.disp.posiciones.get(&e.nombre).copied() else { continue };
-            let rect = Rect::from_min_size(origen + Vec2::new(p[0], p[1]), ICONO);
-            let r = ui.interact(rect, ui.make_persistent_id(("icono", &self.carpeta, &e.nombre)), Sense::click_and_drag());
-            let seleccionado = self.seleccion.contains(&e.nombre);
-            if r.clicked() {
-                if modificadores.ctrl {
-                    if !self.seleccion.remove(&e.nombre) { self.seleccion.insert(e.nombre.clone()); }
-                } else {
-                    self.seleccion = [e.nombre.clone()].into();
+        let local = |p: Pos2| { let d = p - origen; [d.x, d.y] };
+        let ctrl = ui.input(|i| i.modifiers.command);
+        let mut acciones = Vec::new();
+        for nodo in &v.nodos {
+            match nodo {
+                Nodo::Rejilla { paso } => {
+                    let mut y = 0.0;
+                    while y < tam.y { let mut x = 0.0; while x < tam.x { pintor.circle_filled(origen + Vec2::new(x, y), 1.2, LINEA); x += paso[0]; } y += paso[1]; }
+                }
+                Nodo::Icono { nombre, pos, tam, tipo, color: c, seleccionado, etiqueta } => {
+                    let rect = Rect::from_min_size(origen + Vec2::new(pos[0], pos[1]), Vec2::new(tam[0], tam[1]));
+                    let r = ui.interact(rect, ui.make_persistent_id(("icono", &self.carpeta, nombre)), Sense::click_and_drag());
+                    if r.clicked() { acciones.push(Accion::Pulsar { nombre: nombre.clone(), sumar: ctrl }); }
+                    if r.double_clicked() { acciones.push(Accion::Abrir(nombre.clone())); }
+                    if r.drag_started() { acciones.push(Accion::EmpezarArrastre(nombre.clone())); }
+                    if r.dragged() { let d = r.drag_delta(); acciones.push(Accion::Arrastrar([d.x, d.y])); }
+                    if r.drag_stopped() { acciones.push(Accion::Soltar); }
+                    icono(&pintor, rect, nombre, *tipo, color(*c), color(self.estado.acento), *seleccionado, r.hovered(), etiqueta);
+                    let tam_txt = self.estado.entradas.iter().find(|e| &e.nombre == nombre).map(|e| e.tam).unwrap_or(0);
+                    r.on_hover_text(format!("{nombre}\n{}", if *tipo == Tipo::Carpeta { "Carpeta".into() } else { legible(tam_txt) }));
+                }
+                Nodo::Banda { desde, hasta, color: c } => {
+                    let banda = Rect::from_two_pos(origen + Vec2::new(desde[0], desde[1]), origen + Vec2::new(hasta[0], hasta[1]));
+                    pintor.rect(banda, CornerRadius::ZERO, color(*c).gamma_multiply(0.08), Stroke::new(1.0, color(*c)), StrokeKind::Inside);
                 }
             }
-            if r.double_clicked() { abrir = Some(e.nombre.clone()); }
-            if r.drag_started() && !self.disp.bloqueada {
-                if !seleccionado { self.seleccion = [e.nombre.clone()].into(); }
-                self.disp.recordar();
-                self.arrastrando = true;
-            }
-            if r.dragged() && self.arrastrando {
-                let d = r.drag_delta();
-                let grupo = self.seleccion.clone();
-                self.disp.mover(&grupo, [d.x, d.y]);
-            }
-            if r.drag_stopped() && self.arrastrando {
-                let grupo = self.seleccion.clone();
-                self.disp.soltar(&grupo);
-                self.arrastrando = false;
-                self.guardar();
-            }
-            let resaltado = r.hovered() || seleccionado;
-            self.icono(&pintor, rect, e, seleccionado, resaltado);
-            r.on_hover_text(format!("{}\n{}", e.nombre, if e.tipo == Tipo::Carpeta { "Carpeta".into() } else { legible(e.tam) }));
         }
-        // Banda de seleccion arrastrando sobre el fondo.
-        if fondo.drag_started() { self.banda = fondo.interact_pointer_pos(); if !modificadores.ctrl { self.seleccion.clear(); } }
-        if fondo.clicked() && !modificadores.ctrl { self.seleccion.clear(); }
-        if let (Some(inicio), Some(actual)) = (self.banda, ui.input(|i| i.pointer.interact_pos())) {
-            let banda = Rect::from_two_pos(inicio, actual);
-            pintor.rect(banda, CornerRadius::ZERO, self.acento.gamma_multiply(0.08), Stroke::new(1.0, self.acento), StrokeKind::Inside);
-            for (n, p) in &self.disp.posiciones {
-                if banda.intersects(Rect::from_min_size(origen + Vec2::new(p[0], p[1]), ICONO)) { self.seleccion.insert(n.clone()); }
-            }
-            if fondo.drag_stopped() || !ui.input(|i| i.pointer.primary_down()) { self.banda = None; }
-        }
-        if let Some(n) = abrir { self.abrir_entrada(&n); }
+        if fondo.drag_started() { if let Some(p) = fondo.interact_pointer_pos() { acciones.push(Accion::EmpezarBanda { punto: local(p), sumar: ctrl }); } }
+        if fondo.dragged() { if let Some(p) = fondo.interact_pointer_pos() { acciones.push(Accion::MoverBanda(local(p))); } }
+        if fondo.drag_stopped() { acciones.push(Accion::TerminarBanda); }
+        if fondo.clicked() && !ctrl { acciones.push(Accion::Comando(Comando::LimpiarSeleccion)); }
+        for a in acciones { self.despachar(a); }
     }
 
-    fn icono(&self, pintor: &egui::Painter, rect: Rect, e: &Entrada, seleccionado: bool, resaltado: bool) {
-        let color = color_tipo(e.tipo, self.acento);
-        if resaltado {
-            pintor.rect(rect, CornerRadius::same(2), if seleccionado { self.acento.gamma_multiply(0.16) } else { Color32::from_white_alpha(6) },
-                        Stroke::new(1.0, if seleccionado { self.acento } else { LINEA }), StrokeKind::Inside);
-        }
-        let c = rect.center_top() + Vec2::new(0.0, 30.0);
-        let trazo = Stroke::new(2.0, color);
-        if e.tipo == Tipo::Carpeta {
-            // Carpeta neon: pestana y cuerpo con un corte inclinado.
-            let pts = vec![c + Vec2::new(-26.0, -16.0), c + Vec2::new(-8.0, -16.0), c + Vec2::new(-3.0, -10.0), c + Vec2::new(26.0, -10.0),
-                           c + Vec2::new(26.0, 18.0), c + Vec2::new(-26.0, 18.0)];
-            pintor.add(egui::Shape::convex_polygon(pts.clone(), color.gamma_multiply(0.18), trazo));
-            pintor.line_segment([c + Vec2::new(-26.0, -4.0), c + Vec2::new(26.0, -4.0)], Stroke::new(1.0, color.gamma_multiply(0.6)));
-        } else {
-            // Hoja con la esquina doblada y la extension.
-            let pts = vec![c + Vec2::new(-18.0, -22.0), c + Vec2::new(8.0, -22.0), c + Vec2::new(18.0, -12.0), c + Vec2::new(18.0, 22.0), c + Vec2::new(-18.0, 22.0)];
-            pintor.add(egui::Shape::convex_polygon(pts, color.gamma_multiply(0.12), trazo));
-            pintor.line_segment([c + Vec2::new(8.0, -22.0), c + Vec2::new(8.0, -12.0)], trazo);
-            pintor.line_segment([c + Vec2::new(8.0, -12.0), c + Vec2::new(18.0, -12.0)], trazo);
-            let ext = e.nombre.rsplit_once('.').map(|(_, x)| x.to_uppercase()).unwrap_or_default();
-            if !ext.is_empty() && ext.len() <= 5 {
-                pintor.text(c + Vec2::new(0.0, 6.0), Align2::CENTER_CENTER, ext, FontId::monospace(10.0), color);
-            }
-            if e.tipo == Tipo::Enlace { pintor.text(c + Vec2::new(0.0, 16.0), Align2::CENTER_CENTER, "enlace", FontId::monospace(8.0), color); }
-        }
-        // Nombre: hasta dos lineas, recortado con "…".
-        let mut nombre = e.nombre.clone();
-        if nombre.chars().count() > 26 { nombre = nombre.chars().take(25).collect::<String>() + "…"; }
-        let galeria = pintor.layout(nombre, FontId::proportional(12.5), if seleccionado { TEXTO } else { TENUE }, ICONO.x - 6.0);
-        let pos = rect.center_top() + Vec2::new(-galeria.size().x / 2.0, 58.0);
-        pintor.galley(pos, galeria, TEXTO);
+    /// Paleta de comandos como en VS Code: escribe, flechas y Enter.
+    fn paleta(&mut self, ctx: &egui::Context) {
+        let Some(vp) = vista(&self.estado).paleta else { self.texto_paleta.clear(); return };
+        let acento = color(self.estado.acento);
+        let mut acciones = Vec::new();
+        egui::Area::new(egui::Id::unique("ultra-carpetas-paleta")).anchor(Align2::CENTER_TOP, [0.0, 70.0]).order(egui::Order::Foreground).show(ctx, |ui| {
+            egui::Frame::new().fill(PANEL).stroke(Stroke::new(1.0, acento)).inner_margin(10.0).show(ui, |ui| {
+                ui.set_width(520.0);
+                ui.label(egui::RichText::new("COMANDOS //").color(acento).strong());
+                let r = ui.add(egui::TextEdit::singleline(&mut self.texto_paleta).hint_text("escribe para buscar (ej. rej, ordtam)").desired_width(500.0));
+                r.request_focus();
+                if r.changed() { acciones.push(Accion::Paleta(AccionPaleta::Escribir(self.texto_paleta.clone()))); }
+                ui.add_space(4.0);
+                for (i, (titulo, tecla, elegido)) in vp.filas.iter().enumerate() {
+                    let fila = ui.horizontal(|ui| {
+                        let texto = egui::RichText::new(*titulo).color(if *elegido { Color32::BLACK } else { TEXTO });
+                        let r = ui.add(egui::Button::new(texto).fill(if *elegido { acento } else { Color32::TRANSPARENT }).min_size(Vec2::new(380.0, 22.0)));
+                        ui.label(egui::RichText::new(*tecla).color(TENUE).monospace());
+                        r
+                    }).inner;
+                    if fila.clicked() { acciones.push(Accion::Paleta(AccionPaleta::Elegir(i))); }
+                }
+                if vp.filas.is_empty() { ui.label(egui::RichText::new("Ningun comando coincide").color(TENUE)); }
+            });
+        });
+        for a in acciones { self.despachar(a); }
     }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn icono(pintor: &egui::Painter, rect: Rect, nombre: &str, tipo: Tipo, c: Color32, acento: Color32, seleccionado: bool, encima: bool, etiqueta: &str) {
+    if encima || seleccionado {
+        pintor.rect(rect, CornerRadius::same(2), if seleccionado { acento.gamma_multiply(0.16) } else { Color32::from_white_alpha(6) },
+                    Stroke::new(1.0, if seleccionado { acento } else { LINEA }), StrokeKind::Inside);
+    }
+    let centro = rect.center_top() + Vec2::new(0.0, 30.0);
+    let trazo = Stroke::new(2.0, c);
+    if tipo == Tipo::Carpeta {
+        let pts = vec![centro + Vec2::new(-26.0, -16.0), centro + Vec2::new(-8.0, -16.0), centro + Vec2::new(-3.0, -10.0), centro + Vec2::new(26.0, -10.0),
+                       centro + Vec2::new(26.0, 18.0), centro + Vec2::new(-26.0, 18.0)];
+        pintor.add(egui::Shape::convex_polygon(pts, c.gamma_multiply(0.18), trazo));
+        pintor.line_segment([centro + Vec2::new(-26.0, -4.0), centro + Vec2::new(26.0, -4.0)], Stroke::new(1.0, c.gamma_multiply(0.6)));
+    } else {
+        let pts = vec![centro + Vec2::new(-18.0, -22.0), centro + Vec2::new(8.0, -22.0), centro + Vec2::new(18.0, -12.0), centro + Vec2::new(18.0, 22.0), centro + Vec2::new(-18.0, 22.0)];
+        pintor.add(egui::Shape::convex_polygon(pts, c.gamma_multiply(0.12), trazo));
+        pintor.line_segment([centro + Vec2::new(8.0, -22.0), centro + Vec2::new(8.0, -12.0)], trazo);
+        pintor.line_segment([centro + Vec2::new(8.0, -12.0), centro + Vec2::new(18.0, -12.0)], trazo);
+        if !etiqueta.is_empty() { pintor.text(centro + Vec2::new(0.0, 6.0), Align2::CENTER_CENTER, etiqueta, FontId::monospace(10.0), c); }
+        if tipo == Tipo::Enlace { pintor.text(centro + Vec2::new(0.0, 16.0), Align2::CENTER_CENTER, "enlace", FontId::monospace(8.0), c); }
+    }
+    let mut texto = nombre.to_string();
+    if texto.chars().count() > 26 { texto = texto.chars().take(25).collect::<String>() + "…"; }
+    let galeria = pintor.layout(texto, FontId::proportional(12.5), if seleccionado { TEXTO } else { TENUE }, rect.width() - 6.0);
+    pintor.galley(rect.center_top() + Vec2::new(-galeria.size().x / 2.0, 58.0), galeria, TEXTO);
 }
 
 fn estilo(ctx: &egui::Context, acento: Color32) {
@@ -328,7 +266,6 @@ fn estilo(ctx: &egui::Context, acento: Color32) {
     v.extreme_bg_color = NEGRO;
     v.selection.bg_fill = acento.gamma_multiply(0.5);
     v.selection.stroke = Stroke::new(1.0, acento);
-    v.hyperlink_color = acento;
     v.widgets.inactive.weak_bg_fill = PANEL;
     v.widgets.inactive.bg_stroke = Stroke::new(1.0, LINEA);
     v.widgets.hovered.weak_bg_fill = acento.gamma_multiply(0.15);
@@ -339,7 +276,6 @@ fn estilo(ctx: &egui::Context, acento: Color32) {
     }
     v.widgets.noninteractive.fg_stroke = Stroke::new(1.0, TEXTO);
     ctx.set_visuals(v);
-    // Fuente del tema si esta instalada (Chakra Petch); si no, la de egui.
     for ruta in ["/usr/share/fonts/ultra-neon/ChakraPetch-Medium.ttf", "/usr/share/fonts/ultra-neon/ChakraPetch-Regular.ttf"] {
         if let Ok(datos) = std::fs::read(ruta) {
             let mut fuentes = egui::FontDefinitions::default();
@@ -357,11 +293,10 @@ impl eframe::App for App {
         self.vigilar();
         self.teclado(&ctx);
         egui::Panel::top("barra").frame(egui::Frame::new().fill(PANEL).inner_margin(8.0).stroke(Stroke::new(1.0, LINEA))).show(ui, |ui| self.barra(ui));
+        let estado = vista(&self.estado).estado;
         egui::Panel::bottom("estado").frame(egui::Frame::new().fill(PANEL).inner_margin(6.0)).show(ui, |ui| {
             ui.horizontal(|ui| {
-                ui.label(egui::RichText::new(format!("{} elementos · {} seleccionados", self.entradas.len(), self.seleccion.len())).color(TENUE));
-                if self.disp.rejilla { ui.label(egui::RichText::new("· rejilla").color(self.acento)); }
-                if self.disp.bloqueada { ui.label(egui::RichText::new("· candado puesto").color(ROJO)); }
+                ui.label(egui::RichText::new(estado).color(TENUE));
                 if let Some(e) = &self.error { ui.label(egui::RichText::new(format!("· {e}")).color(ROJO)); }
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(egui::RichText::new("Solo ordena la vista: tus archivos no se mueven").color(TENUE).italics());
@@ -371,6 +306,7 @@ impl eframe::App for App {
         egui::CentralPanel::default().frame(egui::Frame::new().fill(NEGRO)).show(ui, |ui| {
             egui::ScrollArea::both().auto_shrink([false, false]).show(ui, |ui| self.lienzo(ui));
         });
+        self.paleta(&ctx);
         ctx.request_repaint_after(Duration::from_secs(1));
     }
 }

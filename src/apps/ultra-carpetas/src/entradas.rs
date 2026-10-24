@@ -1,35 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-only
-//! Lee una carpeta sin seguir enlaces y sin tocar nada.
+//! Lee una carpeta sin seguir enlaces y sin tocar nada (parte de Linux; el nucleo no sabe de discos).
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub const MAX_ENTRADAS: usize = 5000;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Tipo { Carpeta, Imagen, Video, Audio, Codigo, Comprimido, Programa, Documento, Enlace, Otro }
-
-#[derive(Debug, Clone)]
-pub struct Entrada {
-    pub nombre: String,
-    pub ruta: PathBuf,
-    pub tipo: Tipo,
-    pub tam: u64,
-}
-
-pub fn tipo_por_extension(nombre: &str) -> Tipo {
-    let ext = nombre.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase()).unwrap_or_default();
-    match ext.as_str() {
-        "png" | "jpg" | "jpeg" | "webp" | "gif" | "svg" | "bmp" | "avif" => Tipo::Imagen,
-        "mp4" | "mkv" | "webm" | "mov" | "avi" => Tipo::Video,
-        "mp3" | "ogg" | "opus" | "flac" | "wav" | "m4a" => Tipo::Audio,
-        "rs" | "c" | "h" | "cpp" | "hpp" | "py" | "sh" | "lua" | "js" | "ts" | "toml" | "json" | "jsonc" | "yuck" | "scss" | "css" | "s" | "asm" => Tipo::Codigo,
-        "zip" | "tar" | "gz" | "xz" | "zst" | "7z" | "rar" | "bz2" => Tipo::Comprimido,
-        "exe" | "appimage" | "so" | "bin" => Tipo::Programa,
-        "pdf" | "txt" | "md" | "odt" | "docx" | "epub" | "log" | "csv" => Tipo::Documento,
-        _ => Tipo::Otro,
-    }
-}
+pub use carpetas_nucleo::{legible, tipo_por_extension, Entrada, Tipo};
 
 /// Entradas de la carpeta, ordenadas: carpetas primero y luego por nombre.
 pub fn listar(carpeta: &Path, ocultos: bool) -> std::io::Result<Vec<Entrada>> {
@@ -49,20 +26,10 @@ pub fn listar(carpeta: &Path, ocultos: bool) -> std::io::Result<Vec<Entrada>> {
         } else {
             tipo_por_extension(&nombre)
         };
-        salida.push(Entrada { nombre, ruta: e.path(), tipo, tam: if meta.is_file() { meta.len() } else { 0 } });
+        salida.push(Entrada { nombre, tipo, tam: if meta.is_file() { meta.len() } else { 0 } });
     }
     salida.sort_by(|a, b| (a.tipo != Tipo::Carpeta).cmp(&(b.tipo != Tipo::Carpeta)).then_with(|| a.nombre.to_lowercase().cmp(&b.nombre.to_lowercase())));
     Ok(salida)
-}
-
-pub fn legible(bytes: u64) -> String {
-    let unidades = [("GiB", 1u64 << 30), ("MiB", 1 << 20), ("KiB", 1 << 10)];
-    for (u, t) in unidades {
-        if bytes >= t {
-            return format!("{:.1} {u}", bytes as f64 / t as f64);
-        }
-    }
-    format!("{bytes} B")
 }
 
 #[cfg(test)]
