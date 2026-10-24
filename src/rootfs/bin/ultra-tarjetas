@@ -1,0 +1,282 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Tarjetas de Equipo en vivo (eww) para UID 1000. Sin root, red ni shell.
+
+    ultra-tarjetas datos       JSON por linea cada 2 s (10 s durante un juego) para eww
+    ultra-tarjetas iniciar     abre las tarjetas si estan activas en Personalizar
+    ultra-tarjetas alternar    Super+F9: mostrar u ocultar
+    ultra-tarjetas recargar    tras cambiar el acento
+    ultra-tarjetas parar
+
+Solo lee /proc, /sys y, si existe, nvidia-smi. Sin eww, Super+F9 abre la version
+de texto (foot + ultra-equipo).
+"""
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import threading
+import time
+
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+ETC = Path('/etc/ultra')
+PERSONAL = HOME / '.config/ultra/personal.json'
+TEMA_EWW = HOME / '.config/ultra/tema-personal/eww'
+PROC, SYS = Path(os.environ.get('ULTRA_PROC', '/proc')), Path(os.environ.get('ULTRA_SYS', '/sys'))
+VENTANA = 'tarjetas'
+
+
+def leer(ruta, limite=65536):
+    try:
+        with open(ruta) as f: return f.read(limite)
+    except (OSError, ValueError): return ''
+
+
+# ---------- Lecturas ----------
+def tiempos_cpu():
+    """{nombre: (ocupado, total)} de /proc/stat, 'cpu' es el total."""
+    salida = {}
+    for linea in leer(PROC / 'stat').splitlines():
+        if not linea.startswith('cpu'): break
+        partes = linea.split()
+        try: v = [int(x) for x in partes[1:9]]
+        except ValueError: continue
+        inactivo = v[3] + v[4]
+        salida[partes[0]] = (sum(v) - inactivo, sum(v))
+    return salida
+
+
+def uso(antes, ahora):
+    res = {}
+    for nombre, (ocupado, total) in ahora.items():
+        a = antes.get(nombre)
+        if a and total > a[1]: res[nombre] = round(100 * (ocupado - a[0]) / (total - a[1]), 1)
+        else: res[nombre] = 0.0
+    return res
+
+
+def memoria():
+    m = {}
+    for linea in leer(PROC / 'meminfo').splitlines():
+        campos = linea.replace(':', '').split()
+        if len(campos) >= 2 and campos[1].isdecimal(): m[campos[0]] = int(campos[1])
+    total, libre = m.get('MemTotal', 0), m.get('MemAvailable', 0)
+    st, sl = m.get('SwapTotal', 0), m.get('SwapFree', 0)
+    return dict(total=round(total / 2**20, 1), usada=round((total - libre) / 2**20, 1),
+                pct=round(100 * (total - libre) / total, 1) if total else 0.0,
+                swap=round((st - sl) / 2**20, 1), swap_pct=round(100 * (st - sl) / st, 1) if st else 0.0)
+
+
+def frecuencia():
+    mhz = [float(l.split(':')[1]) for l in leer(PROC / 'cpuinfo', 1 << 20).splitlines() if l.startswith('cpu MHz')]
+    return round(sum(mhz) / len(mhz) / 1000, 2) if mhz else 0.0
+
+
+def red():
+    """Bytes recibidos y enviados sumando interfaces reales (sin lo ni virtuales)."""
+    rx = tx = 0
+    for linea in leer(PROC / 'net/dev').splitlines()[2:]:
+        nombre, _, datos = linea.partition(':')
+        nombre = nombre.strip()
+        if nombre == 'lo' or nombre.startswith(('veth', 'docker', 'br-', 'virbr')): continue
+        campos = datos.split()
+        if len(campos) >= 9: rx += int(campos[0]); tx += int(campos[8])
+    return rx, tx
+
+
+def disco(ruta):
+    try: s = os.statvfs(ruta)
+    except OSError: return None
+    total = s.f_blocks * s.f_frsize
+    if not total: return None
+    libre = s.f_bavail * s.f_frsize
+    return dict(pct=round(100 * (total - libre) / total, 1), libre=round(libre / 2**30, 1), total=round(total / 2**30, 1))
+
+
+def temperatura():
+    """La mas alta de hwmon (CPU, GPU o NVMe), en grados."""
+    mayor = None
+    for chip in sorted((SYS / 'class/hwmon').glob('hwmon*'))[:32]:
+        for sensor in sorted(chip.glob('temp*_input'))[:16]:
+            try: grados = int(leer(sensor, 64).strip()) / 1000
+            except ValueError: continue
+            if 0 < grados < 130 and (mayor is None or grados > mayor): mayor = grados
+    return round(mayor) if mayor is not None else None
+
+
+def gpu_amd():
+    for tarjeta in sorted((SYS / 'class/drm').glob('card[0-9]'))[:4]:
+        uso_ = leer(tarjeta / 'device/gpu_busy_percent', 64).strip()
+        if uso_.isdecimal():
+            usada, total = leer(tarjeta / 'device/mem_info_vram_used', 64).strip(), leer(tarjeta / 'device/mem_info_vram_total', 64).strip()
+            vram = (round(int(usada) / 2**30, 1), round(int(total) / 2**30, 1)) if usada.isdecimal() and total.isdecimal() else (0, 0)
+            return dict(nombre='AMD', pct=float(uso_), vram=vram[0], vram_total=vram[1], temp=None, vatios=None)
+    return None
+
+
+class Nvidia:
+    """nvidia-smi en bucle (-l 2): un solo proceso, sin lanzar uno nuevo cada vez."""
+    CAMPOS = 'name,utilization.gpu,memory.used,memory.total,temperature.gpu,power.draw'
+
+    def __init__(self):
+        self.ultimo = None
+        if not shutil.which('nvidia-smi'): return
+        try:
+            self.proc = subprocess.Popen(['nvidia-smi', f'--query-gpu={self.CAMPOS}', '--format=csv,noheader,nounits', '-l', '2'],
+                                         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, text=True)
+        except OSError:
+            return
+        threading.Thread(target=self.leer, daemon=True).start()
+
+    def leer(self):
+        for linea in self.proc.stdout:
+            p = [c.strip() for c in linea.split(',')]
+            if len(p) != 6: continue
+            num = lambda v: float(v) if re.fullmatch(r'[0-9.]+', v) else None
+            self.ultimo = dict(nombre=p[0][:40].replace('NVIDIA GeForce ', ''), pct=num(p[1]) or 0.0,
+                               vram=round((num(p[2]) or 0) / 1024, 1), vram_total=round((num(p[3]) or 0) / 1024, 1),
+                               temp=num(p[4]), vatios=num(p[5]))
+
+
+def mas_cpu(antes, ahora, dt):
+    """El proceso propio que mas CPU uso en el intervalo."""
+    tick = os.sysconf('SC_CLK_TCK'); mejor = None
+    for pid, (nombre, ticks) in ahora.items():
+        previo = antes.get(pid)
+        if previo is None or previo[0] != nombre: continue
+        pct = 100 * (ticks - previo[1]) / tick / dt
+        if mejor is None or pct > mejor[1]: mejor = (nombre, pct)
+    return dict(nombre=mejor[0], pct=round(mejor[1])) if mejor and mejor[1] >= 1 else dict(nombre='en calma', pct=0)
+
+
+def procesos():
+    salida = {}
+    for p in list(PROC.iterdir())[:8192]:
+        if not p.name.isdecimal(): continue
+        crudo = leer(p / 'stat', 4096)
+        try:
+            fin = crudo.rindex(')'); campos = crudo[fin + 2:].split()
+            salida[p.name] = (crudo[crudo.index('(') + 1:fin][:24], int(campos[11]) + int(campos[12]))
+        except ValueError:
+            continue
+    return salida
+
+
+def actividad():
+    try: return round(float(leer(PROC / 'uptime', 64).split()[0]))
+    except (ValueError, IndexError): return 0
+
+
+def en_juego():
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    return bool(runtime) and Path(runtime, 'ultra-modo-juego').exists()
+
+
+def legible(bps):
+    for unidad, tam in (('GB/s', 2**30), ('MB/s', 2**20), ('KB/s', 2**10)):
+        if bps >= tam: return f'{bps / tam:.1f} {unidad}'
+    return f'{bps:.0f} B/s'
+
+
+def datos(vueltas=None, intervalo=2.0):
+    nvidia = Nvidia()
+    cpu_a, red_a, proc_a, t_a = tiempos_cpu(), red(), procesos(), time.monotonic()
+    tope_red = 1.0
+    while vueltas is None or vueltas > 0:
+        time.sleep(10.0 if en_juego() else intervalo)
+        cpu_b, red_b, proc_b, t_b = tiempos_cpu(), red(), procesos(), time.monotonic()
+        dt = max(.001, t_b - t_a)
+        cpu = uso(cpu_a, cpu_b)
+        bajada, subida = max(0, red_b[0] - red_a[0]) / dt, max(0, red_b[1] - red_a[1]) / dt
+        tope_red = max(tope_red * .97, bajada, subida, 1.0)  # escala que se adapta y baja despacio
+        gpu = nvidia.ultimo or gpu_amd() or dict(nombre='sin datos', pct=0.0, vram=0, vram_total=0, temp=None, vatios=None)
+        raiz, home = disco('/'), disco(str(HOME))
+        temp = temperatura()
+        segundos = actividad()
+        estado = dict(
+            cpu=cpu.get('cpu', 0.0), nucleos=[cpu[k] for k in sorted((k for k in cpu if k != 'cpu'), key=lambda k: int(k[3:]))][:64],
+            ghz=frecuencia(), ram=memoria(), gpu=gpu, temp=temp if temp is not None else 0, hay_temp=temp is not None,
+            bajada=legible(bajada), subida=legible(subida), red_pct=round(100 * max(bajada, subida) / tope_red, 1),
+            raiz=raiz or dict(pct=0, libre=0, total=0), home=home or dict(pct=0, libre=0, total=0),
+            top=mas_cpu(proc_a, proc_b, dt), juego=en_juego(),
+            activo=f'{segundos // 86400}d {segundos % 86400 // 3600:02d}h {segundos % 3600 // 60:02d}m' if segundos >= 86400
+                   else f'{segundos // 3600:02d}h {segundos % 3600 // 60:02d}m')
+        print(json.dumps(estado, ensure_ascii=False), flush=True)
+        cpu_a, red_a, proc_a, t_a = cpu_b, red_b, proc_b, t_b
+        if vueltas is not None: vueltas -= 1
+
+
+# ---------- eww ----------
+def activas():
+    try:
+        datos_ = json.loads(PERSONAL.read_text()[:65536]) if PERSONAL.is_file() and not PERSONAL.is_symlink() else {}
+    except (OSError, ValueError):
+        datos_ = {}
+    return not isinstance(datos_, dict) or datos_.get('tarjetas', 'visibles') != 'ocultas'
+
+
+def carpeta():
+    """Copia con tu acento si Personalizar la genero; si no, la del sistema."""
+    if PERSONAL.is_file() and (TEMA_EWW / 'eww.yuck').is_file() and not TEMA_EWW.is_symlink(): return TEMA_EWW
+    return ETC
+
+
+def eww(*args, timeout=10):
+    try: return subprocess.run(['eww', '--config', str(carpeta()), *args], stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=timeout, check=False)
+    except (OSError, subprocess.SubprocessError): return None
+
+
+def abierta():
+    r = eww('active-windows')
+    return r is not None and r.returncode == 0 and any(l.split(':')[0].strip() == VENTANA for l in r.stdout.splitlines())
+
+
+def abrir():
+    r = eww('ping', timeout=3)
+    if r is None or r.returncode != 0:
+        subprocess.Popen(['eww', '--config', str(carpeta()), 'daemon'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+        for _ in range(50):
+            r = eww('ping', timeout=2)
+            if r is not None and r.returncode == 0: break
+            time.sleep(.1)
+    eww('open', VENTANA)
+    time.sleep(.15)
+    eww('update', 'abierto=true')  # dispara la entrada animada
+
+
+def cerrar():
+    eww('update', 'abierto=false'); time.sleep(.35); eww('close', VENTANA)
+
+
+def main():
+    accion = sys.argv[1] if len(sys.argv) > 1 else 'alternar'
+    if accion == 'datos': datos(); return
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    if not shutil.which('eww'):
+        if accion == 'alternar':
+            os.execvp('foot', ['foot', '--title=ULTRA / Equipo en vivo', 'watch', '-n', '2', 'ultra-equipo', 'texto'])
+        return
+    if accion == 'iniciar':
+        if activas(): abrir()
+    elif accion == 'alternar':
+        cerrar() if abierta() else abrir()
+    elif accion == 'recargar':
+        # El daemon lee la carpeta al arrancar: se reinicia para tomar el nuevo acento.
+        eww('kill')
+        if activas(): abrir()
+    elif accion == 'parar':
+        eww('kill')
+    else:
+        raise ValueError('uso: ultra-tarjetas datos|iniciar|alternar|recargar|parar')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('TARJETAS:', error, file=sys.stderr); sys.exit(1)
+    except KeyboardInterrupt:
+        pass

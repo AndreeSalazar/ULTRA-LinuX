@@ -7,17 +7,20 @@ dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSI
 [[ -z ${DISPLAY:-} ]] || dbus-update-activation-environment DISPLAY
 hyprctl setcursor ULTRA-Nucleo 28 || echo 'AMARILLO [CURSOR]: se conserva el cursor disponible'
 # Personalizacion del usuario (ultra-personalizar); sin ella, el tema del sistema.
-fondo=/etc/ultra/wallpaper.svg fondo_modo=fill vivo= vivo_acento=#5ad8ff estilo=/etc/ultra/waybar.css barras=/etc/ultra/waybar.jsonc avisos=/etc/ultra/mako.conf
+fondo=/etc/ultra/wallpaper.svg fondo_modo=fill vivo= vivo_acento=#5ad8ff vivo_imagen= estilo=/etc/ultra/waybar.css barras=/etc/ultra/waybar.jsonc avisos=/etc/ultra/mako.conf
 while IFS='=' read -r clave valor; do
     case $clave in
         FONDO) fondo=$valor;; FONDO_MODO) fondo_modo=$valor;;
         WAYBAR_CSS) estilo=$valor;; WAYBAR_JSON) barras=$valor;; MAKO_CONF) avisos=$valor;;
-        VIVO) vivo=$valor;; VIVO_ACENTO) vivo_acento=$valor;;
+        VIVO) vivo=$valor;; VIVO_ACENTO) vivo_acento=$valor;; VIVO_IMAGEN) vivo_imagen=$valor;;
     esac
 done < <(timeout 60 ultra-personalizar rutas 2>> "$XDG_RUNTIME_DIR/ultra-personalizar.log" || true)
 if [[ $fondo_modo == color ]]; then swaybg -c "$fondo" & else swaybg -i "$fondo" -m fill & fi
 # Fondo animado: el estatico queda hasta que el bucle esta listo (la primera vez se genera).
-[[ $vivo != neon && $vivo != demonio ]] || ultra-fondo-vivo poner "$vivo" "$vivo_acento" >> "$XDG_RUNTIME_DIR/ultra-fondo-vivo.log" 2>&1 &
+case $vivo in
+    neon|demonio) ultra-fondo-vivo poner "$vivo" "$vivo_acento" >> "$XDG_RUNTIME_DIR/ultra-fondo-vivo.log" 2>&1 & ;;
+    imagen) ultra-fondo-vivo poner imagen "$vivo_acento" "$vivo_imagen" >> "$XDG_RUNTIME_DIR/ultra-fondo-vivo.log" 2>&1 & ;;
+esac
 waybar -c "$barras" -s "$estilo" &
 mako --config "$avisos" &
 ultra-personalizar hyprland >> "$XDG_RUNTIME_DIR/ultra-personalizar.log" 2>&1 &
@@ -25,6 +28,7 @@ ultra-personalizar hyprland >> "$XDG_RUNTIME_DIR/ultra-personalizar.log" 2>&1 &
 ultra-personalizar vigilar >> "$XDG_RUNTIME_DIR/ultra-personalizar.log" 2>&1 &
 ultra-portapapeles vigilar >> "$XDG_RUNTIME_DIR/ultra-portapapeles.log" 2>&1 &
 ultra-modo-juego >> "$XDG_RUNTIME_DIR/ultra-modo-juego.log" 2>&1 &
+ultra-tarjetas iniciar >> "$XDG_RUNTIME_DIR/ultra-tarjetas.log" 2>&1 &
 ultra-personalizar sonar inicio >/dev/null 2>&1 &
 ultra-discos auto >> "$XDG_RUNTIME_DIR/ultra-discos-inicio.log" 2>&1 &
 ultra-pantallas restaurar >> "$XDG_RUNTIME_DIR/ultra-pantallas-inicio.log" 2>&1 &

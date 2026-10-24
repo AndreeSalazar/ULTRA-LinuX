@@ -1,0 +1,76 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// BMO-X / Neon para eww (GTK3 CSS). Acento hielo; Personalizar cambia #5ad8ff, #bff3ff y #2b9fd0.
+$negro: #06050a; $panel: rgba(15, 14, 22, .88); $linea: #2a2733;
+$acento: #5ad8ff; $claro: #bff3ff; $oscuro: #2b9fd0;
+$cyan: #00f0ff; $rojo: #ff2a4f; $verde: #3dff9a; $violeta: #c03bff; $amarillo: #fcee0a; $coral: #ff7a90;
+$texto: #ece9dc; $tenue: #a19eae; $apagado: #625f70;
+
+* { all: unset; font-family: "Chakra Petch", "DejaVu Sans"; color: $texto; }
+
+.panel {
+  background-color: rgba(6, 5, 10, .80);
+  border: 1px solid $linea; border-top: 2px solid $acento;
+  padding: 14px; margin: 4px;
+  box-shadow: 0 0 18px rgba(90, 216, 255, .18);
+  animation: respira 5s ease-in-out infinite alternate;
+}
+.panel.juego { border-top-color: $rojo; }
+.cabecera .marca { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 19px; letter-spacing: 3px; color: $acento; }
+.cabecera .hora { font-family: "JetBrains Mono", monospace; font-size: 14px; color: $claro; }
+.subtitulo { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; color: $apagado; }
+
+.tarjeta {
+  background-color: $panel; border: 1px solid $linea; border-left: 3px solid $acento;
+  padding: 10px 12px;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+.clic:hover .tarjeta { background-color: rgba(90, 216, 255, .09); border-color: $acento; }
+.tarjeta .titulo { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 15px; letter-spacing: 3px; }
+.tarjeta .valor { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; }
+.tarjeta .detalle { font-size: 10px; color: $tenue; margin-bottom: 4px; }
+.tarjeta.alerta { animation: alerta 900ms ease-in-out infinite alternate; }
+
+.anillo { background-color: $linea; color: $acento; }
+.anillo .pct { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; }
+.linea { min-height: 28px; color: $acento; background-color: rgba(90, 216, 255, .10); }
+
+// Un color por elemento, como las categorias del centro BMO-X.
+@mixin tono($c) {
+  border-left-color: $c;
+  .titulo { color: $c; }
+  .anillo { color: $c; }
+  .linea { color: $c; }
+}
+.tarjeta.cpu { @include tono($acento); }
+.tarjeta.ram { @include tono($cyan); }
+.tarjeta.gpu { @include tono($verde); }
+.tarjeta.red { @include tono($violeta); }
+.linea.ram { background-color: rgba(0, 240, 255, .10); }
+.linea.gpu { background-color: rgba(61, 255, 154, .10); }
+.linea.red { background-color: rgba(192, 59, 255, .10); }
+
+.nucleos { padding: 0 2px; }
+.nucleo trough { background-color: $linea; min-width: 8px; min-height: 22px; }
+.nucleo progress { background-color: $acento; min-width: 8px; }
+.nucleo.caliente progress { background-color: $rojo; }
+
+.mini { background-color: $panel; border: 1px solid $linea; border-top: 2px solid $amarillo; padding: 8px; }
+.mini.home { border-top-color: $cyan; }
+.mini.temp { border-top-color: $coral; }
+.mini .titulo { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 12px; letter-spacing: 2px; color: $tenue; }
+.mini .valor { font-family: "JetBrains Mono", monospace; font-size: 11px; margin: 2px 0 5px 0; }
+.barra trough { background-color: $linea; min-height: 3px; min-width: 60px; }
+.barra progress { background-color: $amarillo; min-height: 3px; }
+.barra.home progress { background-color: $cyan; }
+.barra.temp progress { background-color: $coral; }
+.mini.alerta { animation: alerta 900ms ease-in-out infinite alternate; }
+
+.pie { background-color: $panel; border: 1px solid $linea; border-left: 3px solid $rojo; padding: 7px 10px; }
+.clic:hover .pie { background-color: rgba(255, 42, 79, .10); }
+.pie .etiqueta { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 12px; letter-spacing: 2px; color: $rojo; }
+.pie .proceso { font-family: "JetBrains Mono", monospace; font-size: 11px; margin-left: 10px; }
+.pie .valor { font-family: "JetBrains Mono", monospace; font-size: 11px; color: $rojo; font-weight: 700; }
+
+// Vida: el panel respira con el acento; las alertas laten en rojo.
+@keyframes respira { from { box-shadow: 0 0 10px rgba(90, 216, 255, .10); } to { box-shadow: 0 0 24px rgba(90, 216, 255, .32); } }
+@keyframes alerta { from { border-color: $linea; } to { border-color: $rojo; } }

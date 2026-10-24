@@ -75,6 +75,20 @@ def main():
         llamadas, _ = correr('seguir'); assert f'awww img {cache} --transition-type fade' in llamadas
         llamadas, _ = correr('parar'); assert 'awww kill' in llamadas and not (run / 'ultra-fondo-vivo').exists()
         llamadas, _ = correr('pausar'); assert 'img' not in llamadas, 'parado: pausar no hace nada'
+        # Tu propia imagen: se recorta sin deformar, sin aro ni letreros, cache por archivo.
+        (home / 'Imágenes').mkdir()
+        from PIL import Image as I
+        propia = home / 'Imágenes/cyberpunk.jpg'; I.new('RGB', (800, 800), (40, 10, 60)).save(propia)
+        llamadas, _ = correr('poner', 'imagen', '#5ad8ff', str(propia))
+        gifs = sorted((home / '.cache/ultra/fondo-vivo').glob('imagen-*-5ad8ff-v1.gif'))
+        assert len(gifs) == 1 and I.open(gifs[0]).size == (1920, 1080) and f'awww img {gifs[0]}' in llamadas
+        enlace = home / 'Imágenes/enlace.jpg'; enlace.symlink_to(propia)
+        for ruta in (str(enlace), '/etc/passwd', str(tmp / 'mini.png')):
+            r = subprocess.run([sys.executable, '-I', str(herramienta), 'poner', 'imagen', '#5ad8ff', ruta], env=entorno, capture_output=True, text=True, timeout=30)
+            assert r.returncode == 1 and 'imagen no valida' in r.stderr, ruta
+        plano = I.new('RGBA', (320, 180), (20, 20, 30, 255))
+        a0, a1 = fv.cuadro(plano, (90, 216, 255), 0.0, propio=True).convert('RGB'), fv.cuadro(plano, (90, 216, 255), 1.0, propio=True).convert('RGB')
+        assert ImageChops.difference(a0.crop((0, 3, 320, 176)), a1.crop((0, 3, 320, 176))).getbbox() is None, 'el bucle propio salta'
         # Sin awww ni swww: se queda el fondo estatico, sin error.
         (bin_ / 'awww').unlink(); (bin_ / 'awww-daemon').unlink()
         llamadas, r = correr('poner', 'demonio')

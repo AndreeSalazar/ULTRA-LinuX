@@ -24,7 +24,7 @@ SUPER + Shift + N   Recuperar el ultimo aviso cerrado (repetir para mas)
 SUPER + Shift + V   Historial del portapapeles (en RAM; se borra al apagar)
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo
-SUPER + F9          Equipo en vivo: CPU, RAM, discos, USB y sensores disponibles
+SUPER + F9          Tarjetas de equipo en vivo (eww): mostrar u ocultar
 SUPER + Esc         Administrador: cerrar procesos y limitar CPU/RAM de su arbol
 SUPER + F11         Captura de recursos Warframe (2 min)
 SUPER + Ctrl + F11  Panel de diagnostico Warframe
@@ -61,6 +61,9 @@ Sonidos, modo juego, fondo vivo y fondo segun la hora se eligen en SUPER + Shift
 Cada elemento tiene su sonido: ventanas, escritorios, menus, avisos, volumen,
 capturas y procesos. Sonidos: basicos deja solo los avisos importantes.
 Fondo vivo: lluvia, aro que gira y letreros que fallan; quieto durante juegos.
+Fondo imagen-viva: anima tu propia imagen de ~/Imágenes (lluvia, barrido, glitch).
+Tarjetas (SUPER + F9): CPU, RAM, GPU, red, discos y temperatura; clic en CPU o RAM
+para ver y cerrar lo que mas consume.
 Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 
 Si D: y ULTRA-juegos.ext4 estan disponibles, el home es persistente en ext4.

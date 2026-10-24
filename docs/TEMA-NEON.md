@@ -69,7 +69,7 @@ la luna de la barra.
 | Opción | Valores |
 | --- | --- |
 | Acento | hielo, amarillo, cyan, rojo, verde, violeta, coral, blanco o un hex propio (`#RRGGBB`) |
-| Fondo | Neón con el acento elegido, **vivo** o **vivo-demonio** (animados), **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
+| Fondo | Neón con el acento elegido, **vivo** o **vivo-demonio** (animados), **imagen-viva** (tu imagen animada), **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
 | Efectos | vivos o reducidos |
 | Borde de la ventana activa | gira o quieto |
 | Huecos entre ventanas | compacto, normal o amplio |
@@ -87,6 +87,7 @@ la luna de la barra.
 | Posición de avisos | arriba a la derecha, arriba al centro o abajo a la derecha; esquivan barra y dock |
 | Letra de la interfaz | Neón (Rajdhani y Chakra Petch), Chakra Petch, mono (JetBrains Mono) o clásica (DejaVu Sans) |
 | Sonidos del sistema | sí, básicos o no |
+| Tarjetas de equipo (eww) | visibles u ocultas |
 | Modo juego automático | auto o no |
 
 El acento también llega a la terminal: la selección y el cursor de foot cambian
@@ -250,6 +251,86 @@ mientras estás en el escritorio. Compáralo con `ultra-diagnostico-juego` con e
 fondo `neon` y con `vivo`. `scripts/probar_fondo_vivo.py` comprueba que el bucle
 cierra sin salto, la caché por acento, la pausa y el caso sin awww.
 
+### Tu imagen, viva
+
+**Fondo: imagen-viva** anima una imagen tuya (PNG, JPG, WEBP o SVG en `~/Imágenes`
+o `~/Pictures`): lluvia de tu acento, un barrido de luz que la cruza, la línea de
+escaneo y el corte glitch. El aro y los letreros no se dibujan, porque no sabemos
+dónde caerían en tu imagen. Se recorta al centro a 1920×1080 sin deformarla. Se
+guardan hasta 6 imágenes animadas (unos 100 MB); las más viejas se borran solas.
+
+Por terminal: `ultra-personalizar poner imagen-viva ~/Imágenes/mi-fondo.jpg`.
+
+### Dónde conseguir buenos fondos
+
+No van en el repo: son de sus autores. Para uso personal:
+
+| Fuente | Qué hay | Licencia |
+| --- | --- | --- |
+| [GOG: colección Goodies de Cyberpunk 2077](https://www.gogdb.org/product/1774891642) | Fondos oficiales de CD Projekt, incluidos los de Phantom Liberty (unos 1 GB). Gratis con cuenta de GOG | Uso personal; las [normas de contenido de fans](https://cdn1.epicgames.com/eulatracking-download/cp2077/en/v1/r2/ebdad01b0f2e8388d23b5750ca18a3ac.pdf) no permiten venderlos |
+| [Neoncityhub](https://neoncityhub.gumroad.com/l/ejlbx) | Ciudades neón en 4K a 0 $ | No indica licencia |
+| [404static](https://404static.gumroad.com/l/rmjqt) | 50 fondos cyberpunk por 9,99 $ | Incluye licencia comercial |
+| [Wallpapers.com: Night City](https://wallpapers.com/night-city) | Mucha variedad | No indica licencia; revisa cada imagen |
+| Los tuyos | Neón (con cualquier acento) y Demonio, de `ultra-crear-fondo` y `crear_fondo_demonio.py` | Tuyos (GPL-2.0) |
+
+Guarda el que elijas en `~/Imágenes` y elígelo en **Fondo: imagen-viva**.
+Quedan mejor las imágenes oscuras con cielo despejado arriba: la lluvia y el
+barrido se ven sobre zonas oscuras.
+
+## Tarjetas de equipo (eww)
+
+![Tarjetas eww sobre el fondo Neón](maquetas/png/neon/tarjetas-eww.png)
+
+La captura es de eww 0.6.0 real con estos mismos archivos, en una pantalla
+virtual X11 (Xvfb) del entorno de desarrollo, no en Hyprland. Por eso la GPU
+dice «sin datos» y no hay sensor de temperatura.
+
+Panel a la derecha, debajo de la barra, en la capa del escritorio: las ventanas
+lo tapan. **Super+F9** lo oculta o lo muestra, con un deslizamiento lateral.
+
+| Tarjeta | Qué muestra | Clic |
+| --- | --- | --- |
+| CPU (acento) | Anillo de uso, GHz, gráfica de 90 s y una barra por núcleo (en rojo sobre 85 %) | Los procesos que más CPU usan |
+| RAM (cyan) | Usada / total, swap y gráfica | Los que más memoria usan |
+| GPU (verde) | Uso, VRAM, temperatura y nombre (NVIDIA con `nvidia-smi`; AMD por `/sys`) | Gráficos |
+| RED (violeta) | Bajada y subida, con escala que se adapta | — |
+| Libre /, libre home, temperatura | Espacio libre y la temperatura más alta de los sensores | — |
+| MÁS CPU | El proceso tuyo que más CPU usó en los últimos 2 s | Los procesos que más CPU usan |
+
+- El panel respira con un brillo de tu acento.
+- Una tarjeta sobre el 85 % (o un disco sobre el 90 %) late en rojo.
+- En modo juego el borde se pone rojo y los datos se leen cada 10 s en vez de 2.
+
+Cómo funciona:
+
+- `ultra-tarjetas datos` lee `/proc`, `/sys` y, si existe, `nvidia-smi`. Usa
+  un solo `nvidia-smi -l 2`, no uno nuevo cada vez. Escribe un JSON por línea
+  que eww escucha (`deflisten`).
+- `eww.yuck` y `eww.scss` van en `/etc/ultra`. Personalizar genera una copia
+  con tu acento y tu letra; con efectos reducidos, el panel deja de respirar.
+- **Personalizar > Barra y dock > Tarjetas de equipo**: visibles u ocultas.
+- **Sin eww**, Super+F9 abre la versión de texto de siempre.
+
+**eww no está en los repositorios oficiales de Arch** (solo en AUR).
+`scripts/instalar-eww.sh` lo compila en el taller, sin AUR:
+
+- clona la etiqueta `v0.6.0` y comprueba que apunta al commit
+  `d87c2fdbfdc012e76d229e4e9ea3325bc0f23e89`;
+- compila solo con Wayland (`--no-default-features --features wayland`, Rust 1.76.0
+  según su `rust-toolchain.toml`);
+- comprueba con `ldd` en la imagen que no falta ninguna biblioteca.
+
+En la imagen van `gtk3`, `gtk-layer-shell` y `libdbusmenu-gtk3`. Si algo falla al
+compilar, el build avisa en amarillo y sigue sin tarjetas.
+
+`scripts/probar_tarjetas.py` prueba las lecturas con `/proc` y `/sys` falsos. También
+comprueba que cada dato que usa `eww.yuck` existe en el JSON real y en el inicial, y
+el abrir, ocultar y la versión de texto. La prueba de arranque acepta las dos formas
+de Super+F9: con eww y sin eww.
+
+**Sin medir:** eww redibuja el panel cada 2 s y mientras respira. Si quieres el
+escritorio sin ese coste, ocúltalo con Super+F9 o en Personalizar.
+
 ## Barra con vida
 
 - El escritorio activo late con un brillo de tu acento.
@@ -319,7 +400,7 @@ Lo que solo existe en el prototipo:
 
 - el corte glitch al abrir ventanas;
 - la barra de tiempo de los avisos;
-- Equipo en vivo con tarjetas (necesitaría eww).
+- el corte glitch en Equipo en vivo.
 
 ## Para RING 0
 

@@ -31,7 +31,7 @@ ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo':
            'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
 OPCIONES = {
     'acento': list(ACENTOS) + ['propio'],
-    'fondo': ['neon', 'demonio', 'vivo', 'vivo-demonio', 'auto', 'nucleo', 'imagen', 'liso'],
+    'fondo': ['neon', 'demonio', 'vivo', 'vivo-demonio', 'auto', 'nucleo', 'imagen', 'imagen-viva', 'liso'],
     'efectos': ['vivos', 'reducidos'],
     'borde': ['gira', 'quieto'],
     'huecos': ['compacto', 'normal', 'amplio'],
@@ -50,17 +50,18 @@ OPCIONES = {
     'letra': ['neon', 'petch', 'mono', 'clasica'],
     'sonidos': ['si', 'basicos', 'no'],
     'modojuego': ['auto', 'no'],
+    'tarjetas': ['visibles', 'ocultas'],
 }
 DEFECTO = dict(acento='hielo', fondo='neon', imagen='', efectos='vivos', borde='gira', huecos='normal',
                grosor='2', cursor='28', barra='normal', inactivas='100', esquinas='rectas', animacion='emergente',
                velocidad='normal', desenfoque='ligero', posicion='arriba', dock='visible', reloj='24h',
-               avisos='arriba-derecha', letra='neon', sonidos='si', modojuego='auto')
+               avisos='arriba-derecha', letra='neon', sonidos='si', modojuego='auto', tarjetas='visibles')
 TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde de la ventana activa',
                huecos='Huecos entre ventanas', grosor='Grosor del borde', cursor='Tamano del cursor',
                barra='Tamano de la barra', inactivas='Opacidad de ventanas inactivas', esquinas='Esquinas',
                animacion='Animacion al abrir', velocidad='Velocidad de animaciones', desenfoque='Desenfoque',
                posicion='Posicion de la barra', dock='Dock', reloj='Reloj', avisos='Posicion de avisos',
-               letra='Letra de la interfaz', sonidos='Sonidos del sistema', modojuego='Modo juego automatico')
+               letra='Letra de la interfaz', sonidos='Sonidos del sistema', modojuego='Modo juego automatico', tarjetas='Tarjetas de equipo (eww)')
 # Perfiles de un toque: se parte del defecto y se cambian solo estas claves.
 PERFILES = {
     'neon-hielo': {},
@@ -74,7 +75,7 @@ MAX_PERFILES = 16
 GRUPOS = [('Colores y fondo', ['acento', 'fondo']),
           ('Ventanas', ['borde', 'grosor', 'esquinas', 'huecos', 'inactivas']),
           ('Animaciones y efectos', ['efectos', 'animacion', 'velocidad', 'desenfoque']),
-          ('Barra y dock', ['posicion', 'barra', 'dock', 'reloj']),
+          ('Barra y dock', ['posicion', 'barra', 'dock', 'reloj', 'tarjetas']),
           ('Avisos, letra y cursor', ['avisos', 'letra', 'cursor']),
           ('Sonido y juegos', ['sonidos', 'modojuego'])]
 ESQUINAS = {'rectas': 0, 'suaves': 6, 'redondas': 12}
@@ -141,7 +142,7 @@ def validar(crudo):
         valor = crudo.get(clave)
         if valor in opciones and valor != 'propio': estado[clave] = valor
         elif clave == 'acento' and es_hex(valor): estado[clave] = valor.lower()
-    if estado['fondo'] == 'imagen':
+    if estado['fondo'] in ('imagen', 'imagen-viva'):
         if imagen_valida(crudo.get('imagen')): estado['imagen'] = crudo['imagen']
         else: estado['fondo'] = 'neon'
     return estado
@@ -234,6 +235,14 @@ def generar(estado):
     mako = re.sub(r'^anchor=.*$', f'anchor={ancla}', mako, flags=re.M)
     mako = re.sub(r'^outer-margin=.*$', f'outer-margin={arriba},0,{debajo}', mako, flags=re.M)
     escribir(TEMA / 'mako.conf', mako)
+    # Tarjetas eww con tu acento y tu letra.
+    if (ETC / 'eww.yuck').is_file():
+        scss = recolorear((ETC / 'eww.scss').read_text(), acento)
+        if estado['letra'] != 'neon':
+            scss = scss.replace('"Rajdhani", "DejaVu Sans Condensed"', barra_familia).replace('"Chakra Petch", "DejaVu Sans"', barra_familia)
+        if estado['efectos'] == 'reducidos': scss = re.sub(r'\n  animation: respira[^;]*;', '', scss)
+        escribir(TEMA / 'eww/eww.scss', scss)
+        escribir(TEMA / 'eww/eww.yuck', (ETC / 'eww.yuck').read_text())
     escribir(TEMA / 'fuzzel.ini', recolorear((ETC / 'fuzzel.ini').read_text(), acento)
              .replace('font=JetBrains Mono:size=12', f'font={lanzador_familia}:size=12'))
     rutas = dict(WAYBAR_CSS=TEMA / 'waybar.css', WAYBAR_JSON=TEMA / 'waybar.jsonc', MAKO_CONF=TEMA / 'mako.conf',
@@ -258,6 +267,10 @@ def rutas_fondo(estado, hora=None):
         variante = 'demonio' if fondo == 'vivo-demonio' else 'neon'
         rutas.update(VIVO=variante, VIVO_ACENTO=acento)
         fondo = variante
+    if fondo == 'imagen-viva' and imagen_valida(estado['imagen']):
+        # Tu imagen quieta primero; despues, la misma con lluvia, escaneo y glitch.
+        rutas.update(VIVO='imagen', VIVO_ACENTO=acento, VIVO_IMAGEN=estado['imagen'])
+        fondo = 'imagen'
     if fondo == 'nucleo':
         rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
     elif fondo == 'demonio':
@@ -364,7 +377,8 @@ def poner_fondo(rutas):
     ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg')
     if rutas['FONDO_MODO'] == 'color': lanzar('swaybg', '-c', str(rutas['FONDO']))
     else: lanzar('swaybg', '-i', str(rutas['FONDO']), '-m', 'fill')
-    if rutas.get('VIVO'): lanzar('ultra-fondo-vivo', 'poner', rutas['VIVO'], rutas['VIVO_ACENTO'])
+    if rutas.get('VIVO_IMAGEN'): lanzar('ultra-fondo-vivo', 'poner', 'imagen', rutas['VIVO_ACENTO'], str(rutas['VIVO_IMAGEN']))
+    elif rutas.get('VIVO'): lanzar('ultra-fondo-vivo', 'poner', rutas['VIVO'], rutas['VIVO_ACENTO'])
     else: ejecutar('ultra-fondo-vivo', 'parar')
 
 
@@ -379,11 +393,12 @@ def aplicar(estado, reiniciar=True):
     lanzar('waybar', '-c', str(rutas['WAYBAR_JSON']), '-s', str(rutas['WAYBAR_CSS']))
     ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako')
     lanzar('mako', '--config', str(rutas['MAKO_CONF']))
+    lanzar('ultra-tarjetas', 'recargar' if estado['tarjetas'] == 'visibles' else 'parar')
     return rutas
 
 
 def restablecer():
-    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg'):
+    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg', 'eww/eww.yuck', 'eww/eww.scss'):
         try: (TEMA / nombre).unlink()
         except FileNotFoundError: pass
     try: ESTADO.unlink()
@@ -394,6 +409,7 @@ def restablecer():
     aplicar_hyprland(estado)
     if os.environ.get('WAYLAND_DISPLAY'):
         ejecutar('ultra-fondo-vivo', 'parar')
+        lanzar('ultra-tarjetas', 'recargar')
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg'); lanzar('swaybg', '-i', str(ETC / 'wallpaper.svg'), '-m', 'fill')
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar'); lanzar('waybar', '-c', str(ETC / 'waybar.jsonc'), '-s', str(ETC / 'waybar.css'))
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako'); lanzar('mako', '--config', str(ETC / 'mako.conf'))
@@ -401,9 +417,9 @@ def restablecer():
 
 def poner(clave, valor):
     estado, _ = leer_estado()
-    if clave == 'imagen':
+    if clave in ('imagen', 'imagen-viva'):
         if not imagen_valida(valor): raise ValueError('imagen no valida: usa PNG, JPG o SVG propios en ~/Imágenes o ~/Pictures')
-        estado.update(fondo='imagen', imagen=valor)
+        estado.update(fondo=clave, imagen=valor)
     elif clave == 'acento' and es_hex(valor):
         estado['acento'] = valor.lower()
     elif clave in OPCIONES and valor in OPCIONES[clave] and valor != 'propio':
@@ -607,7 +623,7 @@ def menu():
                 if not texto: continue
                 texto = texto.strip()
                 estado = poner('acento', texto if texto.startswith('#') else '#' + texto)
-            elif clave == 'fondo' and valor == 'imagen':
+            elif clave == 'fondo' and valor in ('imagen', 'imagen-viva'):
                 archivos = []
                 for carpeta in IMAGENES:
                     try: archivos += sorted(p for p in (HOME / carpeta).iterdir() if imagen_valida(str(p)))[:64]
@@ -616,7 +632,7 @@ def menu():
                     avisar('Guarda una imagen PNG, JPG o SVG en ~/Imágenes y vuelve a elegirla.'); continue
                 nombre = elegir([p.name for p in archivos], 'IMAGEN', acento)
                 if not nombre: continue
-                estado = poner('imagen', str(next(p for p in archivos if p.name == nombre)))
+                estado = poner(valor, str(next(p for p in archivos if p.name == nombre)))
             else:
                 estado = poner(clave, valor)
             aplicar(estado)

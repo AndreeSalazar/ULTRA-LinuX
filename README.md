@@ -31,7 +31,10 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   **Fondo vivo**: lluvia, aro que gira y letreros que fallan, con tu acento o tu Tux, quieto en
   juegos ([Neón](docs/maquetas/png/neon/fondo-vivo-neon.mp4), [Demonio](docs/maquetas/png/neon/fondo-vivo-demonio.mp4)).
   **Un sonido propio por elemento** ([escuchar](docs/maquetas/sonidos-bmox.ogg)). Clic en CPU o RAM
-  de la barra para cerrar o frenar lo que más consume.
+  de la barra para cerrar o frenar lo que más consume. **Tu imagen, viva**: cualquier fondo tuyo
+  (por ejemplo, los oficiales de Cyberpunk 2077 de GOG) con lluvia, barrido y glitch.
+- **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y
+  temperatura, con anillos y gráficas en vivo ([captura con eww real](docs/maquetas/png/neon/tarjetas-eww.png)).
   La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa
   se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+Shift+V)
   con historial en RAM; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,

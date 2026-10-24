@@ -10,7 +10,7 @@ import tempfile
 import time
 
 RAIZ = Path(__file__).resolve().parents[1]
-FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'makoctl', 'pkill', 'notify-send', 'pw-play', 'ultra-ambiente', 'ultra-fondo-vivo')
+FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'makoctl', 'pkill', 'notify-send', 'pw-play', 'ultra-ambiente', 'ultra-fondo-vivo', 'ultra-tarjetas')
 
 
 def main():
@@ -171,6 +171,20 @@ def main():
         assert ['ultra-fondo-vivo', 'poner', 'demonio', '#ff2a4f'] in cmds
         _, cmds = correr('poner', 'fondo', 'neon')
         assert ['ultra-fondo-vivo', 'parar'] in cmds
+        # Tu imagen animada: primero quieta y luego con lluvia y escaneo.
+        propia = home / 'Imágenes/ciudad.png'; propia.write_bytes(b'\x89PNG\r\n')
+        _, cmds = correr('poner', 'imagen-viva', str(propia))
+        assert ['ultra-fondo-vivo', 'poner', 'imagen', '#ff2a4f', str(propia)] in cmds, cmds
+        assert f'VIVO_IMAGEN={propia}' in correr('rutas')[0] and f'FONDO={propia}' in correr('rutas')[0]
+        correr('poner', 'imagen-viva', '/etc/passwd', ok=False)
+        # Tarjetas eww: copia con tu acento; ocultarlas las para.
+        _, cmds = correr('poner', 'tarjetas', 'visibles')
+        assert ['ultra-tarjetas', 'recargar'] in cmds
+        scss = (tema / 'eww/eww.scss').read_text()
+        assert '$acento: #ff2a4f' in scss and '#5ad8ff' not in scss and (tema / 'eww/eww.yuck').is_file()
+        _, cmds = correr('poner', 'tarjetas', 'ocultas')
+        assert ['ultra-tarjetas', 'parar'] in cmds
+        correr('poner', 'tarjetas', 'visibles')
         # Efectos reducidos: la barra deja de latir; las alertas siguen.
         correr('poner', 'efectos', 'reducidos')
         css = (tema / 'waybar.css').read_text()
