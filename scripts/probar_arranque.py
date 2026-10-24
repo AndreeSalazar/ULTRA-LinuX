@@ -1072,6 +1072,8 @@ def main():
             expect_boot(first, ' CET Landlock seccomp FORTIFY', 'arranque 1: los cuatro guardianes activos', failures)
             # The ULTRA logo drawn on the framebuffer, top-right corner.
             expect_boot(first, 'VERDE [LOGO]: 248x300 en la pantalla', 'arranque 1: logo en la pantalla', failures)
+            # The author's Tux intro, animated in the centre and the screen put back.
+            expect_boot(first, 'VERDE [INTRO]: 419x421, 23 cuadros', 'arranque 1: intro de arranque', failures)
             # Wayland stage W1: the init mounts Arch's base system as a root at /arch.
             expect_boot(first, 'VERDE [SISTEMA]: base Arch en /arch', 'arranque 1: sistema base de Arch montado', failures)
             transcript += run(conn, BOOT1, failures)

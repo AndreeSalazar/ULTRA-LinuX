@@ -22,6 +22,9 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   borde hielo → rojo → cyan que gira; escritorios que se deslizan. También son
   animados el centro BMO-X, los avisos, Equipo en vivo, la captura, el modo juego
   con MangoHud y el bloqueo.
+- **Intro de arranque**: el Tux del autor aparece en la pantalla del firmware con
+  bloques de píxeles, glitch rojo y línea de escaneo, en 1,2 s y sin borrar la consola
+  ([intro](docs/INTRO-ARRANQUE.md), [vista previa](docs/maquetas/png/neon/intro-arranque.mp4)).
 - **Perfil del autor**: módulo **EDDI** en la barra, emblema propio
   ([`emblema-autor.svg`](src/rootfs/desktop/emblema-autor.svg)) y `/etc/ultra/AUTOR.txt`.
 
