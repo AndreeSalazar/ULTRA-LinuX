@@ -76,7 +76,7 @@ def rate(current,previous,elapsed):
 
 
 def context():
-    out=dict(network={},disks={},pressure={},vm={},transport={},uptime_s=None)
+    out=dict(network={},disks={},pressure={},vm={},transport={},uptime_s=None,ctxt=None,softirq={},cpu_mhz=None)
     try: out['uptime_s']=float(read(PROC/'uptime').split()[0])
     except (OSError,ValueError,IndexError): pass
     try:
@@ -110,14 +110,38 @@ def context():
                 if resource!='cpu' or kind!='full': out['pressure'][resource+'.'+kind]=int(total)
         except (OSError,ValueError): pass
     try:
-        out['vm']={key:int(value) for key,value in re.findall(r'^(pswpin|pswpout|pgmajfault|oom_kill) ([0-9]+)$',read(PROC/'vmstat'),re.M)}
+        # Compactacion, paginas grandes fallidas y esperas al pedir memoria: pausas tipicas de un tiron.
+        out['vm']={key:int(value) for key,value in re.findall(
+            r'^(pswpin|pswpout|pgmajfault|oom_kill|compact_stall|compact_fail|thp_fault_fallback|allocstall_normal|allocstall_movable) ([0-9]+)$',
+            read(PROC/'vmstat',262144),re.M)}
     except (OSError,ValueError): pass
+    try:
+        found=re.search(r'^ctxt ([0-9]+)$',read(PROC/'stat',262144),re.M)
+        out['ctxt']=int(found.group(1)) if found else None
+    except (OSError,ValueError): pass
+    try:
+        for line in read(PROC/'softirqs',262144).splitlines()[1:]:
+            name,_,values=line.partition(':'); name=name.strip()
+            if name in ('NET_RX','NET_TX','TIMER','HRTIMER','SCHED','BLOCK') and values.split() and all(v.isdecimal() for v in values.split()):
+                out['softirq'][name]=sum(map(int,values.split()))
+    except (OSError,ValueError): pass
+    freqs=[]
+    for cpu in range(256):
+        if len(freqs)>=64: break
+        try: freqs.append(int(read(Path(f'/sys/devices/system/cpu/cpu{cpu}/cpufreq/scaling_cur_freq'),64).strip())/1000)
+        except FileNotFoundError:
+            if not Path(f'/sys/devices/system/cpu/cpu{cpu}').exists(): break
+        except (OSError,ValueError): continue
+    if freqs: out['cpu_mhz']=dict(min=round(min(freqs)),avg=round(sum(freqs)/len(freqs)),max=round(max(freqs)),cpus=len(freqs))
     return out
 
 
 def context_rates(current,previous,elapsed):
     before=previous or {}
-    result=dict(network_global={},disks_global={},pressure_global={},vm_global_delta={},transport_global_delta={})
+    result=dict(network_global={},disks_global={},pressure_global={},vm_global_delta={},transport_global_delta={},
+                ctxt_ps=rate(current.get('ctxt'),before.get('ctxt'),elapsed),
+                softirq_ps={k:rate(v,before.get('softirq',{}).get(k),elapsed) for k,v in current.get('softirq',{}).items()},
+                cpu_mhz_global=current.get('cpu_mhz'))
     for name,row in current['network'].items():
         old=before.get('network',{}).get(name,{})
         result['network_global'][name]=dict(rx_Bps=rate(row['rx_bytes'],old.get('rx_bytes'),elapsed),
@@ -160,13 +184,20 @@ def threads(live,processes,previous,elapsed):
                     previous_tick=previous.get(key)
                     cpu=rate(item['ticks'],previous_tick,elapsed)
                     cpu=cpu*100/os.sysconf('SC_CLK_TCK') if cpu is not None else None
+                    try:
+                        found=re.search(r'^nonvoluntary_ctxt_switches:\s+([0-9]+)$',read(path/'status',16384),re.M)
+                        involuntary=int(found.group(1)) if found else None
+                    except (OSError,ValueError): involuntary=None
                     try: wait=read(path/'wchan',256).strip()
                     except (OSError,ValueError): wait=None
                     if not wait or wait=='0' or not re.fullmatch(r'[A-Za-z0-9_]{1,128}',wait): wait=None
                     if live.parse_stat(read(path/'stat',8192))['start']!=item['start']: continue
                     local_raw[key]=item['ticks']
+                    if involuntary is not None: local_raw[key+'#nv']=involuntary
+                    # Veces por segundo que el kernel le quito la CPU a este hilo sin que la soltara.
+                    preempted=rate(involuntary,previous.get(key+'#nv'),elapsed)
                     local_rows.append(dict(pid=process['pid'],tid=int(path.name),name=item['name'],
-                                     state=item['state'],cpu_pct=cpu,wait_channel=wait))
+                                     state=item['state'],cpu_pct=cpu,wait_channel=wait,preempted_ps=preempted))
                 except (OSError,ValueError,IndexError): continue
             if live.parse_stat(read(parent/'stat',8192))['start']==process['start']:
                 raw.update(local_raw); rows.extend(local_rows)
@@ -206,7 +237,7 @@ def kernel_events():
 
 
 def frame_summary(path):
-    values=[]; peaks=[]; invalid=0; rows=0
+    values=[]; timed=[]; peaks=[]; invalid=0; rows=0
     if path.stat().st_size>MAX_FRAMES: raise ValueError('CSV excede limite')
     header=None
     with path.open(newline='',encoding='utf-8',errors='replace') as f:
@@ -219,15 +250,21 @@ def frame_summary(path):
             try:
                 value=float(row[header['frametime']]); elapsed=float(row[header['elapsed']])/1e9
                 if not math.isfinite(value) or not math.isfinite(elapsed) or value<=0 or elapsed<0: raise ValueError()
-                values.append(value)
+                values.append(value); timed.append((elapsed,value))
                 if value>33.333: peaks.append(dict(elapsed_csv_s=elapsed,frametime_ms=value))
                 peaks=sorted(peaks,key=lambda r:r['frametime_ms'],reverse=True)[:16]
             except (ValueError,KeyError,IndexError): invalid+=1
     ordered=sorted(values)
     def q(p): return ordered[max(0,math.ceil(len(ordered)*p)-1)] if ordered else None
+    # A 75-144 FPS un tiron de 20 ms queda bajo 33 ms: se cuenta tambien lo que dobla la mediana.
+    median=q(.5); threshold=max(2*median,median+8) if median else None
+    relative=[dict(elapsed_csv_s=e,frametime_ms=v) for e,v in timed if threshold and v>threshold]
     return dict(file=path.name,rows=len(values),invalid_rows=invalid,
-                frametime_ms=dict(p50=q(.5),p95=q(.95),p99=q(.99),maximum=max(values) if values else None),
-                slowest=peaks,scope='CSV MangoHud; elapsed relativo al inicio del CSV, no al observador')
+                frametime_ms=dict(p50=median,p95=q(.95),p99=q(.99),p999=q(.999),maximum=max(values) if values else None),
+                slowest=peaks,
+                spikes_relative=dict(threshold_ms=round(threshold,3) if threshold else None,count=len(relative),
+                                     first=relative[:32],slowest=sorted(relative,key=lambda r:r['frametime_ms'],reverse=True)[:16]),
+                scope='CSV MangoHud; elapsed relativo al inicio del CSV, no al observador')
 
 
 def collect_frames(session):
@@ -352,9 +389,15 @@ def display(data):
           'Faults por intervalo minor/major: '+str(game.get('minor_faults_delta'))+' / '+str(game.get('major_faults_delta')),
           'CPU sistema: '+n(data.get('cpu_system_pct'),'%')+' | RAM sistema: '+n(data.get('ram_system_MiB'),' MiB')+' | libre Linux: '+n(data.get('free_GiB'),' GiB'),
           'Observador: '+n(data.get('observer_ms'),' ms')+' | hilos D: '+str(data.get('threads',{}).get('uninterruptible','NA')),
+          'CPU MHz min/media/max: '+(lambda m: '/'.join(str(m[k]) for k in ('min','avg','max')) if m else 'NA')(data.get('cpu_mhz_global'))
+          +' | cambios de contexto/s: '+n(data.get('ctxt_ps')),
+          'Softirq/s (global): '+str({k:v for k,v in (data.get('softirq_ps') or {}).items() if v is not None}),
+          'Memoria (delta): compactacion '+str((data.get('vm_global_delta') or {}).get('compact_stall'))
+          +' | THP fallback '+str((data.get('vm_global_delta') or {}).get('thp_fault_fallback'))
+          +' | espera al pedir memoria '+str((data.get('vm_global_delta') or {}).get('allocstall_normal')),
           'HILOS DEL GRUPO (estado/canal de espera no identifica una causa por si solo):']
     for row in data.get('threads',{}).get('top',[]):
-        rows.append(str(row['tid'])+' '+row['name']+' '+row['state']+' CPU '+n(row['cpu_pct'],'%')+' espera '+str(row['wait_channel']))
+        rows.append(str(row['tid'])+' '+row['name']+' '+row['state']+' CPU '+n(row['cpu_pct'],'%')+' expulsado/s '+n(row.get('preempted_ps'))+' espera '+str(row['wait_channel']))
     rows+=['GPU GLOBAL (no exclusiva del juego):']
     for row in data.get('gpu_global') or []:
         rows.append(row['name']+' uso '+n(row['use_pct'],'%')+' VRAM '+n(row['vram_MiB'],' MiB')+' '+n(row['temp_C'],' C'))
