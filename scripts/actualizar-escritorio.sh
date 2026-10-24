@@ -25,6 +25,7 @@ if [[ $modo == completo ]]; then
 sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
     -S --needed --noconfirm papirus-icon-theme otf-font-awesome ttf-jetbrains-mono rustup gcc git pkgconf grim slurp wl-clipboard cliphist python-pillow gtk3 gtk-layer-shell libdbusmenu-gtk3 mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
 bash "$lab/instalar-eww.sh" "$art/sistema-a" "$art" "$base"
+bash "$lab/instalar-carpetas.sh" "$art/sistema-a" "$art" "$base"
 for motor in awww swww; do
     sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
         -S --needed --noconfirm "$motor" > /dev/null 2>&1 && { echo "VERDE [FONDO VIVO]: $motor"; break; }

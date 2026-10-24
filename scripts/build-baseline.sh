@@ -258,6 +258,7 @@ if [[ -n $cmdline ]]; then
     bash "$lab/instalar-brave.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-heroic.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-eww.sh" "$sistema" "$art" "$base"
+    bash "$lab/instalar-carpetas.sh" "$sistema" "$art" "$base"
     # Fixed session identity; render nodes only. KMS/input go through root seatd.
     sudo systemd-sysusers --root="$sistema"
     sudo chroot "$sistema" /usr/bin/groupadd -f -r render

@@ -5,6 +5,7 @@ SUPER es la tecla Windows.
 SUPER + Enter       Nueva terminal
 SUPER + R           Buscar aplicaciones (flechas y Enter)
 SUPER + E           Archivos (Thunar)
+SUPER + Ctrl + E    Carpetas BMO-X: iconos donde quieras (G rejilla, L candado, Ctrl+Z)
 SUPER + N           Editor de texto (Mousepad)
 SUPER + B           Brave y pagina local de pruebas
 SUPER + G           Diagnostico GPU de Brave

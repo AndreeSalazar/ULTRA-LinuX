@@ -1,0 +1,17 @@
+[package]
+name = "ultra-carpetas"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.95"
+license = "GPL-2.0-only"
+description = "Gestor de carpetas de BMO-X: iconos donde tu quieras, con control. Dibuja con wgpu (Vulkan en Linux)."
+authors = ["Eddi Salazar"]
+
+[dependencies]
+eframe = { version = "0.37", default-features = false, features = ["wgpu", "wayland", "x11", "default_fonts"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = "thin"
+strip = true
