@@ -1,0 +1,29 @@
+{
+  "csv": [],
+  "csv_listado_limitado": false,
+  "hud_config": {
+    "log_interval": "1000",
+    "log_duration": "600",
+    "permit_upload": "0"
+  },
+  "engine_logs": [
+    {
+      "prefijo": 1,
+      "bytes_log": 873644,
+      "flags": {
+        "menciona_d3d11": true,
+        "menciona_d3d12": false,
+        "device_removed": false,
+        "compilacion_shader": false,
+        "io_error": false,
+        "shader_cache": true
+      },
+      "alcance": "primeros 4 MiB; menciones no prueban causalidad ni API activa"
+    }
+  ],
+  "raw_logs_exportados": false,
+  "solo_lectura": true,
+  "red": false,
+  "imagen_conservada": true,
+  "disponible_usuario_bytes": 3343835136
+}

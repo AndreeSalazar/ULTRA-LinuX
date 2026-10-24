@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Offline storage accounting: one read-only ext4 file, no NIC, no clients.
 
-Never runs the normal game test with personal storage. Only du on fixed paths;
-no account/session file contents are opened or exported.
+Never runs game tests with personal storage or opens authentication stores.
+Optional engine-log inspection exports fixed categories, never raw lines.
 """
 import importlib.util
 import argparse
+import base64
 import json
 from pathlib import Path
 import re
@@ -39,6 +40,60 @@ BUCKETS = {
     'capa_Cyberpunk': 'overlay',
 }
 
+WARFRAME_QUERY = r'''
+from pathlib import Path
+import json,os,re,stat
+root=Path('/mnt/inspeccion')
+home=root/'usuarios/ultra'
+def bounded(path,limit):
+    # Do not follow redirected paths outside this read-only mount.
+    resolved=path.resolve()
+    if not resolved.is_relative_to(root): return None
+    try:
+        fd=os.open(resolved,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+        with os.fdopen(fd,'rb') as f:
+            if not stat.S_ISREG(os.fstat(f.fileno()).st_mode): return None
+            raw=f.read(limit+1)
+            return raw[:limit].decode('utf-8',errors='replace')
+    except OSError: return None
+folder=home/'.cache/ultra/rendimiento'
+files=[]
+if folder.is_dir() and folder.resolve().is_relative_to(root):
+    for index,p in enumerate(folder.iterdir()):
+        if index>=256: break
+        if not p.is_symlink() and p.is_file() and p.suffix=='.csv':
+            files.append(dict(nombre=p.name[:160],bytes=p.stat().st_size))
+conf=bounded(home/'.config/ultra/MangoHud.conf',65536)
+keys={}
+if conf:
+    for line in conf.splitlines():
+        key,sep,value=line.partition('=')
+        if sep and key.strip() in ('log_interval','log_duration','permit_upload','autostart_log'):
+            keys[key.strip()]=value.strip()[:64]
+roots=[home/'.local/share/Steam/steamapps/compatdata/230410',
+       root/'.ultra-bibliotecas/5f9b020e65d5dfb89025/upper/steamapps/compatdata/230410']
+logs=[]
+for index,prefix in enumerate(roots):
+    path=prefix/'pfx/drive_c/users/steamuser/AppData/Local/Warframe/EE.log'
+    raw=bounded(path,4*1024*1024)
+    if raw is None: continue
+    # EE.log can contain private identifiers: export fixed categories/counts,
+    # never raw lines, network addresses, command lines or account details.
+    low=raw.lower()
+    flags={k: bool(re.search(v,low)) for k,v in {
+        'menciona_d3d11':r'\b(?:d3d11|directx ?11|direct3d ?11|dx11)\b',
+        'menciona_d3d12':r'\b(?:d3d12|directx ?12|direct3d ?12|dx12)\b',
+        'device_removed':r'dxgi_error_device_(?:removed|hung|reset)',
+        'compilacion_shader':r'(?:compil\w*[^\n]{0,80}shader|shader[^\n]{0,80}compil)',
+        'io_error':r'(?:i/o error|no space left|disk full)',
+        'shader_cache':r'shader[^\n]{0,40}cache'}.items()}
+    # Counts refer only to the bounded beginning of the last engine log.
+    logs.append(dict(prefijo=index,bytes_log=path.resolve().stat().st_size,flags=flags,
+                     alcance='primeros 4 MiB; menciones no prueban causalidad ni API activa'))
+print('WARFRAME_DIAG '+json.dumps(dict(csv=files[:32],csv_listado_limitado=len(files)>32,
+    hud_config=keys,engine_logs=logs,raw_logs_exportados=False)))
+'''
+
 
 def public_sizes(output, path):
     known, other = {}, 0
@@ -67,8 +122,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--imagen', type=Path, default=IMAGE,
                         choices=[IMAGE, Path('D:/ULTRA-juegos.ext4')])
-    args = parser.parse_args()
-    IMAGE = args.imagen
+    parser.add_argument('--warframe', action='store_true', help='Solo inventario CSV y categorias sanitizadas de EE.log')
+    options = parser.parse_args()
+    IMAGE = options.imagen
     assert IMAGE.is_file() and not IMAGE.is_symlink()
     before = IMAGE.stat()
     sys.argv = [sys.argv[0], 'generico', '--bmo']
@@ -122,6 +178,25 @@ def main():
             match = re.search(r'ESPACIO (\d+) (\d+) (\d+) (\d+)', space)
             assert match, space
             blocks, free, available, unit = map(int, match.groups())
+            if options.warframe:
+                command(': > /arch/tmp/warframe-query.b64; echo CARGA-$((40+2))','CARGA-42')
+                encoded=base64.b64encode(WARFRAME_QUERY.encode()).decode()
+                for offset in range(0,len(encoded),192):
+                    command(f"printf '%s' '{encoded[offset:offset+192]}' >> /arch/tmp/warframe-query.b64; echo CARGA-$((40+2))",'CARGA-42')
+                command('busybox base64 -d /arch/tmp/warframe-query.b64 > /arch/tmp/warframe-query.py; echo CARGA-$((40+2))','CARGA-42')
+                output=command('ultra-entrar /usr/bin/python /tmp/warframe-query.py; echo RESULTADO-$?; echo FINAL-$((40+2))','FINAL-42')
+                assert re.search(r'(?m)^RESULTADO-0\r?$',output),output
+                result=json.loads(re.search(r'(?m)^WARFRAME_DIAG (.+)\r?$',output)[1])
+                command('ultra-entrar /usr/bin/umount /mnt/inspeccion; echo SALIDA-$?','SALIDA-0')
+                connection.sendall(b'poweroff\n'); log+=base.read_until(connection,'APAGADO',40)
+                process.wait(timeout=20)
+                after=IMAGE.stat()
+                assert (before.st_size,before.st_mtime_ns)==(after.st_size,after.st_mtime_ns)
+                result.update(solo_lectura=True,red=False,imagen_conservada=True,
+                              disponible_usuario_bytes=available*unit)
+                (work/'warframe.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
+                print(json.dumps(result,indent=2),flush=True)
+                return
             sizes = {}
             for label, relative in BUCKETS.items():
                 # These are source-code constants, not filenames read from disk.
