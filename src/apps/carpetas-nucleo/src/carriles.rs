@@ -15,6 +15,10 @@ pub enum Carril {
     Pintado,
     /// Pasar SVG a textura. Solo la primera vez de cada icono y tamano.
     Iconos,
+    /// Geometria del grafo para la GPU: la CPU la arma solo cuando cambia el contenido.
+    Geometria,
+    /// Lineas que llegan de un proceso a la terminal.
+    Terminal,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -41,6 +45,10 @@ pub const PRESUPUESTOS: &[Presupuesto] = &[
                   que_consume: "CPU: egui teselar formas cada cuadro; solo se repinta con eventos" },
     Presupuesto { carril: Carril::Iconos, nombre: "Iconos SVG", verde_us: 8_000, amarillo_us: 30_000,
                   que_consume: "CPU una vez por icono y tamano (resvg); luego textura en la GPU" },
+    Presupuesto { carril: Carril::Geometria, nombre: "Geometria", verde_us: 3_000, amarillo_us: 10_000,
+                  que_consume: "CPU solo cuando cambia el grafo; mover y zoom solo mandan 16 bytes de camara a la GPU" },
+    Presupuesto { carril: Carril::Terminal, nombre: "Terminal", verde_us: 1_000, amarillo_us: 5_000,
+                  que_consume: "Lineas de procesos; como mucho 512 por cuadro y 2000 guardadas" },
 ];
 
 pub fn presupuesto(c: Carril) -> &'static Presupuesto {
@@ -57,3 +65,4 @@ pub const MAX_ENTRADAS: usize = 5000;
 pub const MAX_NODOS: usize = crate::grafo::MAX_NODOS;
 pub const MAX_DESPLEGADAS: usize = 64;
 pub const MAX_JSON: usize = crate::disposicion::MAX_JSON;
+pub const MAX_LINEAS_POR_CUADRO: usize = 512;

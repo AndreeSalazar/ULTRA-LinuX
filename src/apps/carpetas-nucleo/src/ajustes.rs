@@ -4,6 +4,11 @@
 
 use crate::grafo::{Direccion, Modo};
 use crate::iconos::EstiloIconos;
+
+/// Como se dibuja el grafo: geometria retenida en la GPU (por defecto) o todo en la CPU.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Dibujo { #[default] Gpu, Cpu }
 use crate::tema::{por_id, Tema, TEMAS};
 use crate::tipos::Rgb;
 use alloc::string::{String, ToString};
@@ -22,12 +27,13 @@ pub struct Ajustes {
     pub modo: Modo,
     /// Arbol lateral como el explorador de VS Code (Ctrl+B).
     pub explorador: bool,
+    pub dibujo: Dibujo,
 }
 
 impl Default for Ajustes {
     fn default() -> Self {
         Ajustes { tema: TEMAS[0].id.to_string(), brillo: None, acento_escritorio: false, iconos: EstiloIconos::Neon,
-                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true }
+                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true, dibujo: Dibujo::Gpu }
     }
 }
 

@@ -2576,6 +2576,7 @@ dependencies = [
 name = "ultra-carpetas"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "carpetas-nucleo",
  "eframe",
  "egui_extras",

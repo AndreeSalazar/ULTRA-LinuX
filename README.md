@@ -45,6 +45,9 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   **Modo grafo como Blender y Houdini** (nodos, cables curvos, zoom, desplegar en el grafo, peso de
   cada carpeta para optimizar), **explorador** sincronizado e **iconos SVG** de VS Code (Material) o
   Lucide. Carriles aislados con **semáforo de rendimiento** (F12) y el disco en su propio hilo.
+  **Grafo retenido en la GPU** (la CPU arma la geometría una vez; mover y zoom solo mandan la cámara
+  al shader WGSL), **botones ▶** para `cargo run`, `make`, Python y scripts, y **terminal** abajo como
+  VS Code, sin shell.
   **9 temas** (Neón BMO-X, TITAN Taller, Synthwave '84, Tokyo Night, Catppuccin, Rosé Pine, Kanagawa,
   Dracula, Nord) con contraste comprobado y panel de ajustes en Ctrl+, ([temas](docs/TEMAS-APPS.md)).
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y

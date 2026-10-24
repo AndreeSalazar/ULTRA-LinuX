@@ -5,28 +5,38 @@
 //! Rendimiento por diseno: solo se pintan los nodos y cables que caen en pantalla, y con
 //! poco zoom se dejan de pintar textos e iconos (nivel de detalle).
 
+use crate::gpu::{uniforme, Lienzo, Vertice};
 use crate::svg::Iconos;
 use crate::Colores;
-use carpetas_nucleo::{Accion, Direccion, Nodo, NodoGrafo, Tipo, Vista};
+use carpetas_nucleo::{Accion, Camara, Direccion, Nodo, NodoGrafo, Tipo, Vista};
+use std::sync::{atomic::AtomicU64, Arc};
+
+/// Geometria retenida para la GPU: (clave, vertices, contador de subidas).
+pub type Retenido = (u64, Arc<Vec<Vertice>>, Arc<AtomicU64>);
 use eframe::egui::{self, epaint::CubicBezierShape, Align2, Color32, FontId, PointerButton, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 
 fn color(c: [u8; 3]) -> Color32 { Color32::from_rgb(c[0], c[1], c[2]) }
 
-pub fn grafo(ui: &mut egui::Ui, v: &Vista, iconos: &Iconos, c: &Colores, direccion: Direccion, lienzo: [f32; 2], acciones: &mut Vec<Accion>) {
+#[allow(clippy::too_many_arguments)]
+pub fn grafo(ui: &mut egui::Ui, v: &Vista, cam: Camara, gpu: Option<Retenido>, iconos: &Iconos, c: &Colores, direccion: Direccion, lienzo: [f32; 2], acciones: &mut Vec<Accion>) {
     let (rect, fondo) = ui.allocate_exact_size(ui.available_size(), Sense::click_and_drag());
     if (rect.width() - lienzo[0]).abs() > 1.0 || (rect.height() - lienzo[1]).abs() > 1.0 {
         acciones.push(Accion::Lienzo([rect.width(), rect.height()]));
     }
-    let cam = v.camara;
     let z = cam.zoom;
+    let en_gpu = gpu.is_some();
     let a_pantalla = |p: [f32; 2]| rect.min + Vec2::new((p[0] - cam.x) * z, (p[1] - cam.y) * z);
     let a_mundo = |p: Pos2| [cam.x + (p.x - rect.min.x) / z, cam.y + (p.y - rect.min.y) / z];
     let pintor = ui.painter_at(rect);
     pintor.rect_filled(rect, 0.0, c.fondo);
+    if let Some((clave, geometria, subidas)) = gpu {
+        // La GPU pinta rejilla, cables y cuerpos con su geometria retenida; solo viaja la camara.
+        pintor.add(eframe::egui_wgpu::Callback::new_paint_callback(rect, Lienzo { clave, geometria, uniforme: uniforme(cam, rect.width(), rect.height()), subidas }));
+    }
 
     // Rejilla como en Blender: lineas finas cada 40 y marcadas cada 200 (en el mundo).
     let paso = 40.0 * z;
-    if paso >= 8.0 {
+    if paso >= 8.0 && !en_gpu {
         let inicio = [((cam.x / 40.0).floor()) * 40.0, ((cam.y / 40.0).floor()) * 40.0];
         let mut i = 0;
         let mut x = inicio[0];
@@ -68,7 +78,7 @@ pub fn grafo(ui: &mut egui::Ui, v: &Vista, iconos: &Iconos, c: &Colores, direcci
     let Some((nodos, cables)) = &v.grafo else { return };
     let visible = rect.expand(60.0);
     // Cables primero (quedan debajo de los nodos). Curvas como los "noodles" de Blender.
-    for cable in cables {
+    for cable in cables.iter().filter(|_| !en_gpu) {
         let (a, b) = (a_pantalla(cable.desde), a_pantalla(cable.hasta));
         if !visible.contains(a) && !visible.contains(b) && !visible.intersects(Rect::from_two_pos(a, b)) { continue; }
         let (c1, c2) = match direccion {
@@ -81,7 +91,7 @@ pub fn grafo(ui: &mut egui::Ui, v: &Vista, iconos: &Iconos, c: &Colores, direcci
     for n in nodos {
         let r = Rect::from_min_size(a_pantalla(n.pos), Vec2::new(n.tam[0] * z, n.tam[1] * z));
         if !visible.intersects(r) { continue; }
-        nodo(ui, &pintor, n, r, z, iconos, c, direccion, acciones);
+        nodo(ui, &pintor, n, r, z, iconos, c, direccion, en_gpu, acciones);
     }
     // Banda de seleccion (en coordenadas del mundo).
     for n in &v.nodos {
@@ -97,7 +107,7 @@ pub fn grafo(ui: &mut egui::Ui, v: &Vista, iconos: &Iconos, c: &Colores, direcci
 }
 
 #[allow(clippy::too_many_arguments)]
-fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, iconos: &Iconos, c: &Colores, direccion: Direccion, acciones: &mut Vec<Accion>) {
+fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, iconos: &Iconos, c: &Colores, direccion: Direccion, en_gpu: bool, acciones: &mut Vec<Accion>) {
     let col = color(n.color);
     let resp = ui.interact(r, ui.make_persistent_id(("nodo", &n.id)), Sense::click_and_drag());
     if !n.id.is_empty() {
@@ -109,14 +119,18 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
         if resp.drag_stopped_by(PointerButton::Primary) { acciones.push(Accion::Soltar); }
     }
     let radio = (c.esquinas as f32 * z).max(2.0) as u8;
+    let alto_cab = (22.0 * z).max(4.0);
+    let cab = Rect::from_min_size(r.min, Vec2::new(r.width(), alto_cab));
+    if en_gpu {
+        // La GPU ya pinto el cuerpo: aqui solo el resaltado al pasar el raton.
+        if resp.hovered() && !n.seleccionado { pintor.rect_stroke(r, 0, Stroke::new(1.0, col), StrokeKind::Inside); }
+    } else {
     // Brillo y borde de seleccion.
     if n.seleccionado && c.brillo {
         for (k, a) in [(2.0, 0.35), (5.0, 0.15)] { pintor.rect_stroke(r.expand(k), radio, Stroke::new(2.0, c.acento.gamma_multiply(a)), StrokeKind::Outside); }
     }
     pintor.rect(r, radio, c.superficie, Stroke::new(if n.seleccionado { 2.0 } else { 1.0 }, if n.seleccionado { c.acento } else if resp.hovered() { col } else { c.linea }), StrokeKind::Inside);
     // Cabecera de color por tipo, como las categorias de nodos de Blender.
-    let alto_cab = (22.0 * z).max(4.0);
-    let cab = Rect::from_min_size(r.min, Vec2::new(r.width(), alto_cab));
     pintor.rect_filled(cab, egui::CornerRadius { nw: radio, ne: radio, sw: 0, se: 0 }, col.gamma_multiply(if n.id.is_empty() { 0.75 } else { 0.5 }));
     // Conectores: entrada (no en la raiz) y salida (carpetas desplegadas).
     let (entrada, salida) = match direccion {
@@ -126,6 +140,7 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
     let rad = (4.5 * z).max(2.0);
     if !n.id.is_empty() { pintor.circle(entrada, rad, c.superficie, Stroke::new(1.5, col)); }
     if n.expandida == Some(true) { pintor.circle(salida, rad, col, Stroke::new(1.0, c.fondo)); }
+    }
     if z < 0.45 { return; } // nivel de detalle: lejos, solo formas
     // Titulo, icono y boton de desplegar.
     let tam_letra = 12.5 * z;
@@ -146,8 +161,18 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
         pintor.rect(boton, 2, if rb.hovered() { col.gamma_multiply(0.5) } else { Color32::TRANSPARENT }, Stroke::new(1.0, c.texto.gamma_multiply(0.6)), StrokeKind::Inside);
         pintor.text(boton.center(), Align2::CENTER_CENTER, if abierta { "-" } else { "+" }, FontId::monospace(12.0 * z), c.texto);
     }
+    // Play: lo que arranca este nodo (cargo run, make, python3...), como en VS Code.
+    if let Some(titulo) = &n.play {
+        let hueco = if n.expandida.is_some() && !n.id.is_empty() { 34.0 } else { 12.0 };
+        let boton = Rect::from_center_size(cab.right_center() - Vec2::new(hueco * z, 0.0), Vec2::splat(16.0 * z));
+        let rp = ui.interact(boton, ui.make_persistent_id(("play", &n.id)), Sense::click());
+        triangulo_play(pintor, boton, if rp.hovered() { c.texto } else { c.verde });
+        if rp.clicked() { acciones.push(Accion::Ejecutar(n.id.clone())); }
+        rp.on_hover_text(format!("Ejecutar: {titulo}"));
+    }
     // Cuerpo: detalle y barra de peso (para ver de un vistazo que ocupa mas espacio).
     pintor.text(r.min + Vec2::new(10.0 * z, alto_cab + 8.0 * z), Align2::LEFT_TOP, &n.detalle, FontId::proportional(11.0 * z), c.tenue);
+    if en_gpu { resp.on_hover_text(if n.id.is_empty() { "Carpeta abierta".to_string() } else { format!("{}\n{}", n.id, n.detalle) }); return; }
     let barra = Rect::from_min_size(Pos2::new(r.min.x + 10.0 * z, r.max.y - 12.0 * z), Vec2::new(r.width() - 20.0 * z, 4.0 * z));
     pintor.rect_filled(barra, 1.0, c.linea);
     if n.peso > 0.0 {
@@ -155,4 +180,11 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
         pintor.rect_filled(lleno, 1.0, if n.peso > 0.6 { c.error } else { col });
     }
     resp.on_hover_text(if n.id.is_empty() { "Carpeta abierta".to_string() } else { format!("{}\n{}", n.id, n.detalle) });
+}
+
+/// Triangulo de play dibujado (no depende de que la fuente tenga el caracter).
+pub fn triangulo_play(pintor: &egui::Painter, caja: Rect, color: Color32) {
+    let c = caja.center();
+    let (w, h) = (caja.width() * 0.32, caja.height() * 0.38);
+    pintor.add(egui::Shape::convex_polygon(vec![c + Vec2::new(-w * 0.8, -h), c + Vec2::new(w * 1.1, 0.0), c + Vec2::new(-w * 0.8, h)], color, Stroke::NONE));
 }

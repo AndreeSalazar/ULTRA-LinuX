@@ -76,6 +76,80 @@ desplegados con doble clic. El explorador de la izquierda se abrió solo.*
 
 ![Grafo estilo Houdini con iconos Lucide y el semáforo de carriles](maquetas/png/neon/carpetas-grafo-houdini.png)
 
+## Play y terminal (como VS Code)
+
+![Botones de play en el grafo, el explorador y la barra](maquetas/png/neon/carpetas-play.png)
+
+Los nodos que arrancan algo llevan un **▶ verde**: en el grafo, en el explorador, en
+los iconos y, para la carpeta abierta, en la barra («Ejecutar: cargo run [F5]»).
+
+| Nodo | Qué ejecuta |
+| --- | --- |
+| Carpeta con `Cargo.toml`, `Cargo.toml` o `src/main.rs` de un proyecto | `cargo run` en la carpeta del proyecto |
+| Carpeta con `Makefile`, o el propio `Makefile` | `make` |
+| `*.py` | `python3 archivo.py` |
+| `*.sh` | `bash archivo.sh` |
+
+**F5** ejecuta lo seleccionado o, si no hay nada, el proyecto abierto.
+**Ctrl+`** muestra u oculta la **terminal** de abajo:
+
+- salida en vivo, con lo grave de stderr en rojo y el progreso en ámbar;
+- **Detener**, que para también a los hijos (cargo → rustc → tu programa);
+- **Limpiar**;
+- una línea para escribir comandos (`cargo build`, `git status`, `ls -la`…).
+
+**Reglas de seguridad:**
+
+- Nada arranca solo: siempre hace falta tu clic o tu tecla.
+- Los ▶ usan una lista cerrada de programas (`cargo`, `make`, `python3`, `bash`).
+- Nada pasa por una shell, tampoco la línea de comandos: son palabras sueltas, sin
+  tuberías, `;`, comodines ni sustituciones. `ls ; rm -rf ~` es `ls` con argumentos
+  raros, y no borra nada.
+- La carpeta de trabajo se valida igual que las del disco: sin `..` ni enlaces.
+- El proceso no recibe entrada (stdin cerrado) y corre en su propio grupo.
+- Se ve sin colores ANSI (`NO_COLOR`, `CARGO_TERM_COLOR=never`). La terminal limpia
+  los códigos de control.
+- Un proceso a la vez, como mucho 512 líneas por cuadro y 2000 guardadas.
+
+Esto no es un emulador de terminal completo: no hay programas interactivos (`vim`,
+`htop`) ni tuberías. Para eso sigue `foot`.
+
+## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
+
+![Terminal tras cargo run y carriles con 7 subidas a la GPU en 153 cuadros](maquetas/png/neon/carpetas-gpu-terminal.png)
+
+egui es de **modo inmediato**: en cada cuadro la CPU vuelve a calcular todos los
+triángulos y los manda a la GPU. Para el grafo hay un camino **retenido**, como el de
+Blender y los juegos:
+
+1. **La CPU arma la geometría una sola vez**, en coordenadas del mundo: rejilla,
+   cables Bézier en 24 tramos, cuerpos, cabeceras, conectores y barras de peso
+   (`gpu.rs`, función pura con pruebas).
+2. **La sube a un búfer de la GPU**, y ahí se queda.
+3. **Cada cuadro solo viaja la cámara:** 16 bytes (escala y desplazamiento). El
+   *shader* `grafo.wgsl`, el «libreto» de la GPU, recoloca todos los vértices.
+4. La geometría solo se rehace cuando **cambia el contenido** (`version_contenido`
+   del núcleo). Mover y hacer zoom no lo cambian, así que no se rehace.
+5. Textos, iconos y botones siguen en egui por encima. Sus letras e iconos ya son
+   texturas en la GPU.
+
+**En la prueba:**
+
+- 4284 vértices;
+- **7 subidas a la GPU en 153 cuadros**, con la cámara moviéndose y haciendo zoom una
+  y otra vez;
+- carril de geometría de unos 37 µs, y solo cuando algo cambia.
+
+Lo comprobado y lo que falta:
+
+- **Comprobado:** que la cámara no rehace la geometría, en la prueba
+  `mover_la_camara_no_rehace_la_geometria` y en el contador de subidas.
+- **No medido todavía:** la diferencia de FPS frente al camino CPU en tu NVIDIA. Se
+  puede comparar en Ajustes > Dibujo (GPU retenido o CPU cada cuadro) mirando el
+  carril Pintado en F12.
+
+Si no hay wgpu (por ejemplo, en el modo de recuperación), se dibuja en la CPU como antes.
+
 ## Iconos (I o Ajustes)
 
 | Estilo | Qué es |
@@ -101,6 +175,8 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 | **Disco** | 20 ms | 200 ms | E/S, en **su propio hilo**: la interfaz nunca espera al disco. Respuestas viejas (de otra carpeta) se descartan por generación |
 | **Acomodo** | 1 ms | 4 ms | CPU, O(n log n) con n ≤ 600 nodos; solo se calcula si cambió el estado |
 | **Vista** | 1,5 ms | 5 ms | CPU y memoria: en caché por versión del estado |
+| **Geometría** | 3 ms | 10 ms | CPU solo cuando cambia el grafo; mover y zoom solo mandan 16 bytes de cámara a la GPU |
+| **Terminal** | 1 ms | 5 ms | Líneas de procesos: como mucho 512 por cuadro y 2000 guardadas |
 | **Pintado** | 6 ms | 12 ms | CPU (egui): solo se pinta lo que cae en pantalla; con poco zoom se omiten textos e iconos; solo se repinta con eventos |
 | **Iconos SVG** | 8 ms | 30 ms | CPU una vez por icono y tamaño; después es textura en la GPU |
 

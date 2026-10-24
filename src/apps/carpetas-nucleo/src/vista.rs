@@ -17,7 +17,7 @@ use alloc::vec::Vec;
 pub enum Nodo {
     /// Un punto de rejilla en cada celda.
     Rejilla { paso: [f32; 2] },
-    Icono { nombre: String, pos: [f32; 2], tam: [f32; 2], tipo: Tipo, color: Rgb, seleccionado: bool, etiqueta: String, icono: &'static str },
+    Icono { nombre: String, pos: [f32; 2], tam: [f32; 2], tipo: Tipo, color: Rgb, seleccionado: bool, etiqueta: String, icono: &'static str, play: Option<String> },
     Banda { desde: [f32; 2], hasta: [f32; 2], color: Rgb },
 }
 
@@ -37,6 +37,12 @@ pub struct VistaAjustes {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct VistaTerminal {
+    pub lineas: Vec<(String, bool)>,
+    pub en_curso: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Vista {
     /// El tema ya resuelto (con el acento y el brillo que eligio el usuario).
     pub tema: Tema,
@@ -47,6 +53,10 @@ pub struct Vista {
     pub camara: Camara,
     /// Explorador lateral (si esta visible).
     pub arbol: Option<Vec<FilaArbol>>,
+    /// Terminal de abajo (si esta abierta): ultimas lineas y lo que esta en marcha.
+    pub terminal: Option<VistaTerminal>,
+    /// Play de la carpeta abierta (si es un proyecto).
+    pub play_raiz: Option<String>,
     pub nodos: Vec<Nodo>,
     /// Tamano del lienzo que ocupan los iconos.
     pub tam: [f32; 2],
@@ -67,7 +77,8 @@ pub fn vista(e: &Estado) -> Vista {
         };
         nodos.push(Nodo::Icono { nombre: entrada.nombre.clone(), pos: *p, tam: ICONO, tipo: entrada.tipo,
                                  color: tema.color_tipo(entrada.tipo), seleccionado: e.seleccion.contains(&entrada.nombre), etiqueta,
-                                 icono: icono(&entrada.nombre, entrada.tipo, e.ajustes.iconos) });
+                                 icono: icono(&entrada.nombre, entrada.tipo, e.ajustes.iconos),
+                                 play: crate::ejecutar::lanzador(e, &entrada.nombre).map(|l| l.titulo) });
     }
     if let Some((desde, hasta)) = e.banda { nodos.push(Nodo::Banda { desde, hasta, color: tema.acento }); }
     let mut estado = format!("{} elementos · {} seleccionados", e.entradas.len(), e.seleccion.len());
@@ -86,5 +97,10 @@ pub fn vista(e: &Estado) -> Vista {
     let modo = e.ajustes.modo;
     let grafo = (modo == Modo::Grafo).then(|| nodos_y_cables(e, &tema));
     let arbol = e.ajustes.explorador.then(|| filas_arbol(e, &tema));
-    Vista { tema, modo, ajustes, grafo, camara: e.camara, arbol, nodos, tam, estado, paleta }
+    let terminal = e.terminal.abierta.then(|| VistaTerminal {
+        lineas: e.terminal.lineas.iter().rev().take(400).rev().cloned().collect(),
+        en_curso: e.terminal.en_curso.clone(),
+    });
+    let play_raiz = crate::ejecutar::lanzador(e, "").map(|l| l.titulo);
+    Vista { tema, modo, ajustes, grafo, camara: e.camara, arbol, terminal, play_raiz, nodos, tam, estado, paleta }
 }

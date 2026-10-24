@@ -168,3 +168,56 @@ fn semaforo_de_carriles() {
     reducir(&mut s, atajo(Tecla::F12, false, false, false, false).unwrap());
     assert!(s.carriles && s.version > v0, "cada accion sube la version (cache de la vista)");
 }
+
+#[test]
+fn play_en_proyectos_y_terminal() {
+    let mut s = Estado::default();
+    reducir(&mut s, Accion::Cargar { nombre: "asteroids".into(), entradas: vec![e("src", Tipo::Carpeta, 0), e("Cargo.toml", Tipo::Codigo, 1),
+        e("tools", Tipo::Carpeta, 0), e("arrancar.sh", Tipo::Codigo, 1), e("notas.txt", Tipo::Documento, 1)], disposicion: Disposicion::default() });
+    reducir(&mut s, Accion::Comando(Comando::Modo));
+    reducir(&mut s, Accion::Expandir("src".into()));
+    reducir(&mut s, Accion::Contenido { ruta: "src".into(), entradas: vec![e("main.rs", Tipo::Codigo, 1), e("ship.rs", Tipo::Codigo, 1)] });
+    let (nodos, _) = vista(&s).grafo.unwrap();
+    let play = |id: &str| nodos.iter().find(|n| n.id == id).unwrap().play.clone();
+    assert_eq!(play(""), Some("cargo run".into()), "la carpeta con Cargo.toml es un proyecto");
+    assert_eq!(play("src/main.rs"), Some("cargo run".into()), "main.rs arranca su proyecto");
+    assert_eq!(play("src/ship.rs"), None, "un modulo cualquiera no tiene play");
+    assert_eq!(play("arrancar.sh"), Some("bash arrancar.sh".into()));
+    assert_eq!(play("notas.txt"), None);
+    // Play: lanza en la carpeta del proyecto, abre la terminal y anota.
+    let ef = reducir(&mut s, Accion::Ejecutar("src/main.rs".into()));
+    assert_eq!(ef, vec![Efecto::Ejecutar { titulo: "cargo run".into(), carpeta: "".into(), programa: "cargo".into(), args: vec!["run".into()] }]);
+    assert!(s.terminal.abierta && s.terminal.en_curso.is_some());
+    assert!(reducir(&mut s, Accion::Ejecutar("arrancar.sh".into())).is_empty(), "un proceso a la vez");
+    reducir(&mut s, Accion::Salida { linea: "Compiling asteroids\u{1b}[0m".into(), error: true });
+    reducir(&mut s, Accion::Termino(Some(0)));
+    let t = vista(&s).terminal.unwrap();
+    assert_eq!(t.lineas.last().unwrap().0, "[termino bien]");
+    assert!(t.lineas.iter().all(|(l, _)| !l.contains('\u{1b}')), "sin codigos de control en pantalla");
+    assert!(t.en_curso.is_none());
+    // Linea de comandos sin shell: palabras sueltas; ';' o '|' no hacen nada especial.
+    let ef = reducir(&mut s, Accion::LineaComando("ls -la ; rm -rf ~".into()));
+    assert_eq!(ef, vec![Efecto::Ejecutar { titulo: "ls -la ; rm -rf ~".into(), carpeta: "".into(), programa: "ls".into(),
+                                           args: vec!["-la".into(), ";".into(), "rm".into(), "-rf".into(), "~".into()] }]);
+    assert_eq!(reducir(&mut s, Accion::Comando(Comando::Detener)), vec![Efecto::Detener]);
+    reducir(&mut s, Accion::Termino(None));
+    assert!(reducir(&mut s, Accion::LineaComando("   ".into())).is_empty());
+    // Limite de lineas guardadas.
+    for i in 0..2100 { reducir(&mut s, Accion::Salida { linea: format!("{i}"), error: false }); }
+    assert_eq!(s.terminal.lineas.len(), carpetas_nucleo::ejecutar::MAX_LINEAS);
+    // F5 con un nodo con play lo ejecuta.
+    reducir(&mut s, Accion::Pulsar { nombre: "arrancar.sh".into(), sumar: false });
+    assert!(matches!(reducir(&mut s, atajo(Tecla::F5, false, false, false, false).unwrap()).as_slice(), [Efecto::Ejecutar { .. }]));
+}
+
+#[test]
+fn mover_la_camara_no_rehace_la_geometria() {
+    let mut s = estado_grafo();
+    let v = s.version_contenido;
+    reducir(&mut s, Accion::Desplazar([10.0, 5.0]));
+    reducir(&mut s, Accion::Zoom { factor: 1.2, ancla: [0.0, 0.0] });
+    reducir(&mut s, Accion::Lienzo([900.0, 700.0]));
+    assert_eq!(s.version_contenido, v, "la GPU ya tiene la geometria: solo cambia la camara");
+    reducir(&mut s, Accion::Pulsar { nombre: "src".into(), sumar: false });
+    assert!(s.version_contenido > v);
+}

@@ -44,6 +44,8 @@ pub struct NodoGrafo {
     /// None en archivos; Some(abierta) en carpetas.
     pub expandida: Option<bool>,
     pub seleccionado: bool,
+    /// Boton de play: que arranca ("cargo run", "make"...).
+    pub play: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -59,6 +61,7 @@ pub struct FilaArbol {
     pub seleccionado: bool,
     pub icono: &'static str,
     pub color: Rgb,
+    pub play: Option<String>,
 }
 
 pub fn hijo(padre: &str, nombre: &str) -> String {
@@ -145,6 +148,7 @@ pub fn nodos_y_cables(e: &Estado, tema: &crate::tema::Tema) -> (Vec<NodoGrafo>, 
             icono: icono(&nombre, tipo, e.ajustes.iconos), detalle, peso,
             expandida: (tipo == Tipo::Carpeta).then(|| id.is_empty() || e.expandidas.contains(id)),
             seleccionado: e.seleccion.contains(id),
+            play: crate::ejecutar::lanzador(e, id).map(|l| l.titulo),
         });
     }
     // Cables del padre al hijo: salida a la derecha (Blender) o abajo (Houdini).
@@ -177,7 +181,7 @@ pub fn filas_arbol(e: &Estado, tema: &crate::tema::Tema) -> Vec<FilaArbol> {
         FilaArbol { nombre: en.nombre.clone(), tipo: en.tipo, nivel: nivel - 1,
                     expandida: (en.tipo == Tipo::Carpeta).then(|| e.expandidas.contains(&id)),
                     seleccionado: e.seleccion.contains(&id), icono: icono(&en.nombre, en.tipo, e.ajustes.iconos),
-                    color: tema.color_tipo(en.tipo), id }
+                    color: tema.color_tipo(en.tipo), play: crate::ejecutar::lanzador(e, &id).map(|l| l.titulo), id }
     }).collect()
 }
 

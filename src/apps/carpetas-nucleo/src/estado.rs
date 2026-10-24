@@ -6,6 +6,7 @@ use crate::ajustes::Ajustes;
 use crate::carriles::MAX_DESPLEGADAS;
 use crate::comandos::{buscar, Comando};
 use crate::disposicion::{Disposicion, ICONO};
+use crate::ejecutar::{lanzador, partir_linea, Terminal};
 use crate::grafo::{acomodar, hijo, limites, Camara, Direccion, Modo, NODO};
 use crate::tema::TEMAS;
 use crate::tipos::{Rgb, Tipo, HIELO};
@@ -59,6 +60,13 @@ pub enum Accion {
     Zoom { factor: f32, ancla: [f32; 2] },
     Comando(Comando),
     Paleta(AccionPaleta),
+    /// Boton de play de un nodo (o de una fila del explorador).
+    Ejecutar(String),
+    /// Linea escrita en la terminal (sin shell).
+    LineaComando(String),
+    /// Lo que va saliendo del proceso.
+    Salida { linea: String, error: bool },
+    Termino(Option<i32>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -74,6 +82,9 @@ pub enum Efecto {
     Subir,
     Atras,
     Releer { ocultos: bool },
+    /// Lanzar un proceso: programa y argumentos sin shell, en una carpeta relativa.
+    Ejecutar { titulo: String, carpeta: String, programa: String, args: Vec<String> },
+    Detener,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -106,6 +117,10 @@ pub struct Estado {
     pub version: u64,
     /// Nombre de la carpeta abierta (para el nodo raiz).
     pub nombre_raiz: String,
+    /// Sube solo cuando cambia lo que se dibuja (no al mover la camara): la geometria de
+    /// la GPU y la Vista se rehacen solo con esta.
+    pub version_contenido: u64,
+    pub terminal: Terminal,
 }
 
 impl Default for Estado {
@@ -113,7 +128,8 @@ impl Default for Estado {
         Estado { entradas: Vec::new(), disp: Disposicion::default(), seleccion: BTreeSet::new(), ocultos: false,
                  ancho: 1100.0, lienzo: [1100.0, 700.0], acento: HIELO, arrastrando: false, banda: None, paleta: None,
                  ajustes: Ajustes::default(), panel_ajustes: false, carriles: false, arbol: BTreeMap::new(),
-                 expandidas: BTreeSet::new(), camara: Camara::default(), version: 0, nombre_raiz: String::new() }
+                 expandidas: BTreeSet::new(), camara: Camara::default(), version: 0, nombre_raiz: String::new(),
+                 version_contenido: 0, terminal: Terminal::default() }
     }
 }
 
@@ -221,7 +237,38 @@ impl Estado {
             }
             Comando::Iconos => { self.ajustes.iconos = self.ajustes.iconos.siguiente(); vec![self.guardar_ajustes()] }
             Comando::Carriles => { self.carriles = !self.carriles; vec![] }
+            Comando::Terminal => { self.terminal.abierta = !self.terminal.abierta; vec![] }
+            Comando::Detener => if self.terminal.en_curso.is_some() { vec![Efecto::Detener] } else { vec![] },
+            Comando::LimpiarTerminal => { self.terminal.lineas.clear(); vec![] }
+            Comando::Dibujo => {
+                self.ajustes.dibujo = match self.ajustes.dibujo { crate::ajustes::Dibujo::Gpu => crate::ajustes::Dibujo::Cpu, crate::ajustes::Dibujo::Cpu => crate::ajustes::Dibujo::Gpu };
+                vec![self.guardar_ajustes()]
+            }
+            Comando::EjecutarSeleccion => match self.seleccion.iter().next() {
+                Some(id) if self.seleccion.len() == 1 => { let id = id.clone(); self.ejecutar(&id) }
+                _ if self.seleccion.is_empty() && lanzador(self, "").is_some() => self.ejecutar(""),
+                _ => vec![Efecto::Releer { ocultos: self.ocultos }],
+            },
         }
+    }
+
+    /// Play: un proceso a la vez; la terminal se abre y anota que se lanzo y donde.
+    fn ejecutar(&mut self, id: &str) -> Vec<Efecto> {
+        if self.terminal.en_curso.is_some() {
+            self.terminal.abierta = true;
+            self.terminal.escribir("ya hay un proceso en marcha: detenlo antes de lanzar otro", true);
+            return vec![];
+        }
+        let Some(l) = lanzador(self, id) else { return vec![] };
+        self.lanzar(l.titulo, l.carpeta, l.programa.to_string(), l.args)
+    }
+
+    fn lanzar(&mut self, titulo: String, carpeta: String, programa: String, args: Vec<String>) -> Vec<Efecto> {
+        self.terminal.abierta = true;
+        let donde = if carpeta.is_empty() { self.nombre_raiz.clone() } else { carpeta.clone() };
+        self.terminal.escribir(&alloc::format!("$ {titulo}   (en {donde})"), false);
+        self.terminal.en_curso = Some(titulo.clone());
+        vec![Efecto::Ejecutar { titulo, carpeta, programa, args }]
     }
 
     fn poner_tema(&mut self, i: usize) -> Vec<Efecto> {
@@ -262,6 +309,10 @@ fn se_cruzan(a: ([f32; 2], [f32; 2]), b: ([f32; 2], [f32; 2])) -> bool {
 /// El reducer: (estado, accion) -> estado nuevo + efectos. Puro: sin E/S, sin reloj.
 pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
     e.version = e.version.wrapping_add(1);
+    // Mover la camara o cambiar el tamano no cambia lo que se dibuja: la GPU ya lo tiene.
+    if !matches!(accion, Accion::Desplazar(_) | Accion::Zoom { .. } | Accion::Lienzo(_) | Accion::Ancho(_)) {
+        e.version_contenido = e.version_contenido.wrapping_add(1);
+    }
     match accion {
         Accion::CargarAjustes(a) => { e.ajustes = a; vec![] }
         Accion::Cargar { nombre, entradas, disposicion } => {
@@ -370,6 +421,24 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         }
         Accion::Comando(c) => e.comando(c),
         Accion::Paleta(p) => paleta(e, p),
+        Accion::Ejecutar(id) => e.ejecutar(&id),
+        Accion::LineaComando(linea) => {
+            if e.terminal.en_curso.is_some() { e.terminal.escribir("ya hay un proceso en marcha", true); return vec![]; }
+            match partir_linea(&linea) {
+                Some((programa, args)) => {
+                    let titulo = linea.split_whitespace().collect::<Vec<_>>().join(" ");
+                    e.lanzar(titulo, String::new(), programa, args)
+                }
+                None => vec![],
+            }
+        }
+        Accion::Salida { linea, error } => { e.terminal.escribir(&linea, error); vec![] }
+        Accion::Termino(codigo) => {
+            let texto = match codigo { Some(0) => String::from("[termino bien]"), Some(c) => alloc::format!("[termino con codigo {c}]"), None => String::from("[detenido]") };
+            e.terminal.escribir(&texto, codigo != Some(0));
+            e.terminal.en_curso = None;
+            vec![]
+        }
     }
 }
 

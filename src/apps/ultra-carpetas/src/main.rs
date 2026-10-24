@@ -12,12 +12,15 @@
 mod almacen;
 mod disco;
 mod entradas;
+mod gpu;
 mod pintar_grafo;
+mod proceso;
 mod svg;
 
-use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_DESPLEGADAS, MAX_ENTRADAS, MAX_NODOS};
-use carpetas_nucleo::{atajo, reducir, vista, Accion, AccionPaleta, Comando, Direccion, Efecto, EstiloIconos, Estado, Modo, Nodo, Orden, Rgb,
+use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_DESPLEGADAS, MAX_ENTRADAS, MAX_LINEAS_POR_CUADRO, MAX_NODOS};
+use carpetas_nucleo::{atajo, reducir, vista, Accion, AccionPaleta, Comando, Dibujo, Direccion, Efecto, EstiloIconos, Estado, Modo, Nodo, Orden, Rgb,
                       Tecla, Tema, Tipo, Vista};
+use std::sync::atomic::{AtomicU64, Ordering};
 use disco::{ruta_segura, Disco, Pedido};
 use eframe::egui::{self, Align2, Color32, CornerRadius, FontId, Key, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use entradas::legible;
@@ -41,7 +44,7 @@ fn acento() -> Rgb {
 
 /// Ultimo tiempo y maximo por carril, en microsegundos.
 #[derive(Default)]
-struct Medidas { ultimo: [u64; 5], maximo: [u64; 5] }
+struct Medidas { ultimo: [u64; 7], maximo: [u64; 7] }
 
 impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
@@ -54,6 +57,7 @@ struct App {
     error: Option<String>,
     texto_paleta: String,
     tema_aplicado: Option<Tema>,
+    contexto: egui::Context,
     disco: Disco,
     generacion: u64,
     /// Carpeta pedida y aun sin respuesta (y si hay que recordarla para "Atras").
@@ -63,17 +67,26 @@ struct App {
     medidas: Medidas,
     iconos: svg::Iconos,
     tiempo_iconos: Cell<u64>,
+    /// Hay wgpu: el grafo se dibuja con geometria retenida en la GPU.
+    gpu_ok: bool,
+    geometria: Option<(u64, Arc<Vec<gpu::Vertice>>)>,
+    subidas: Arc<AtomicU64>,
+    cuadros: u64,
+    proceso: Option<proceso::Proceso>,
+    texto_terminal: String,
 }
 
 impl App {
     fn new(cc: &eframe::CreationContext<'_>, carpeta: PathBuf) -> Self {
         egui_extras::install_image_loaders(&cc.egui_ctx);
+        let gpu_ok = gpu::instalar(cc.wgpu_render_state.as_ref());
         fuentes(&cc.egui_ctx);
         let ctx = cc.egui_ctx.clone();
         let mut app = App {
-            estado: Estado { acento: acento(), ..Estado::default() }, carpeta: PathBuf::new(), atras: Vec::new(), error: None,
+            estado: Estado { acento: acento(), ..Estado::default() }, carpeta: PathBuf::new(), atras: Vec::new(), error: None, contexto: cc.egui_ctx.clone(),
             texto_paleta: String::new(), tema_aplicado: None, disco: Disco::nuevo(move || ctx.request_repaint()), generacion: 0,
             pendiente: None, vigiladas: Vec::new(), cache: None, medidas: Medidas::default(), iconos: svg::Iconos::nuevo(), tiempo_iconos: Cell::new(0),
+            gpu_ok, geometria: None, subidas: Arc::new(AtomicU64::new(0)), cuadros: 0, proceso: None, texto_terminal: String::new(),
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -110,6 +123,19 @@ impl App {
             Efecto::LeerCarpeta(rel) => self.disco.pedir(Pedido::Listar { generacion: self.generacion, base: self.carpeta.clone(), ruta: rel, ocultos: self.estado.ocultos }),
             Efecto::Subir => { if let Some(p) = self.carpeta.parent().map(Path::to_path_buf) { self.abrir(p, true); } }
             Efecto::Atras => { if let Some(p) = self.atras.pop() { self.abrir(p, false); } }
+            Efecto::Ejecutar { titulo: _, carpeta, programa, args } => {
+                let Some(dir) = ruta_segura(&self.carpeta, &carpeta) else {
+                    self.despachar(Accion::Salida { linea: format!("carpeta rechazada: {carpeta}"), error: true });
+                    self.despachar(Accion::Termino(None));
+                    return;
+                };
+                let ctx = self.contexto.clone();
+                match proceso::Proceso::lanzar(&dir, &programa, &args, move || ctx.request_repaint()) {
+                    Ok(p) => self.proceso = Some(p),
+                    Err(e) => { self.despachar(Accion::Salida { linea: e, error: true }); self.despachar(Accion::Termino(None)); }
+                }
+            }
+            Efecto::Detener => { if let Some(p) = &self.proceso { p.detener(); } }
             Efecto::Releer { .. } => {
                 for ruta in std::iter::once(String::new()).chain(self.estado.expandidas.iter().cloned()) {
                     self.disco.pedir(Pedido::Listar { generacion: self.generacion, base: self.carpeta.clone(), ruta, ocultos: self.estado.ocultos });
@@ -168,9 +194,9 @@ impl App {
         }
     }
 
-    /// La Vista en cache: solo se recalcula si el estado cambio (carriles Vista y Acomodo).
+    /// La Vista en cache: solo se recalcula si cambio el contenido (mover la camara no cuenta).
     fn vista(&mut self) -> Arc<Vista> {
-        if let Some((version, v)) = &self.cache { if *version == self.estado.version { return v.clone(); } }
+        if let Some((version, v)) = &self.cache { if *version == self.estado.version_contenido { return v.clone(); } }
         if self.estado.ajustes.modo == Modo::Grafo {
             let t = Instant::now();
             let _ = carpetas_nucleo::grafo::acomodar(&self.estado);
@@ -179,8 +205,39 @@ impl App {
         let t = Instant::now();
         let v = Arc::new(vista(&self.estado));
         self.medidas.anotar(Carril::Vista, t.elapsed().as_micros() as u64);
-        self.cache = Some((self.estado.version, v.clone()));
+        self.cache = Some((self.estado.version_contenido, v.clone()));
         v
+    }
+
+    /// Geometria del grafo para la GPU: la CPU la arma solo si cambio el contenido.
+    fn retenido(&mut self, v: &Vista, tema: &Tema) -> Option<pintar_grafo::Retenido> {
+        if !self.gpu_ok || self.estado.ajustes.dibujo != Dibujo::Gpu { return None; }
+        let (nodos, cables) = v.grafo.as_ref()?;
+        let clave = self.estado.version_contenido;
+        if self.geometria.as_ref().map(|g| g.0) != Some(clave) {
+            let t = Instant::now();
+            let g = Arc::new(gpu::geometria(nodos, cables, tema, self.estado.ajustes.direccion));
+            self.medidas.anotar(Carril::Geometria, t.elapsed().as_micros() as u64);
+            self.geometria = Some((clave, g));
+        }
+        let (clave, g) = self.geometria.as_ref()?;
+        Some((*clave, g.clone(), self.subidas.clone()))
+    }
+
+    /// Lo que salio del proceso desde el ultimo cuadro (como mucho 512 lineas).
+    fn recoger_proceso(&mut self) {
+        let Some(p) = &self.proceso else { return };
+        let t = Instant::now();
+        let mensajes = p.recoger(MAX_LINEAS_POR_CUADRO);
+        let quedan = mensajes.len() == MAX_LINEAS_POR_CUADRO;
+        for m in mensajes {
+            match m {
+                proceso::Mensaje::Linea(linea, error) => self.despachar(Accion::Salida { linea, error }),
+                proceso::Mensaje::Fin(codigo) => { self.proceso = None; self.despachar(Accion::Termino(codigo)); }
+            }
+        }
+        self.medidas.anotar(Carril::Terminal, t.elapsed().as_micros() as u64);
+        if quedan { self.contexto.request_repaint(); } // el resto, en el siguiente cuadro
     }
 
     fn pintar_icono(&self, ui: &egui::Ui, clave: &str, rect: Rect, col: Color32) -> bool {
@@ -199,7 +256,11 @@ impl App {
             (Key::Escape, Tecla::Escape), (Key::F5, Tecla::F5), (Key::ArrowUp, Tecla::Arriba), (Key::ArrowDown, Tecla::Abajo)];
         let (m, mut pulsadas) = ctx.input(|i| (i.modifiers, MAPA.iter().filter(|(k, _)| i.key_pressed(*k)).map(|(_, t)| *t).collect::<Vec<_>>()));
         if ctx.input(|i| i.key_pressed(Key::ArrowLeft)) { pulsadas.push(Tecla::Izquierda); }
+        if ctx.input(|i| i.key_pressed(Key::Backtick)) { pulsadas.push(Tecla::Acento); }
+        // Escribiendo en la terminal: las letras son letras, no atajos (solo Ctrl, F y Esc).
+        let escribiendo = ctx.egui_wants_keyboard_input() && self.estado.paleta.is_none();
         for t in pulsadas {
+            if escribiendo && !m.command && !matches!(t, Tecla::F5 | Tecla::F12 | Tecla::Escape) { continue; }
             if let Some(a) = atajo(t, m.command, m.shift, m.alt, self.estado.paleta.is_some()) { self.despachar(a); }
         }
     }
@@ -223,6 +284,7 @@ impl App {
             if let Some(d) = destino { self.abrir(d, true); }
             if self.pendiente.is_some() { ui.label(egui::RichText::new("leyendo…").color(c.tenue)); }
         });
+        let play_raiz = self.vista().play_raiz.clone();
         ui.horizontal(|ui| {
             let a = &self.estado.ajustes;
             let grafo = a.modo == Modo::Grafo;
@@ -250,6 +312,10 @@ impl App {
             if ui.button("Deshacer [Ctrl+Z]").clicked() { acciones.push(Accion::Comando(Comando::Deshacer)); }
             ui.separator();
             if ui.button(format!("Iconos: {} [I]", a.iconos.nombre())).clicked() { acciones.push(Accion::Comando(Comando::Iconos)); }
+            if let Some(titulo) = &play_raiz {
+                if ui.add(egui::Button::new(egui::RichText::new(format!("Ejecutar: {titulo} [F5]")).color(c.verde))).clicked() { acciones.push(Accion::Ejecutar(String::new())); }
+            }
+            if ui.selectable_label(self.estado.terminal.abierta, "Terminal [Ctrl+`]").clicked() { acciones.push(Accion::Comando(Comando::Terminal)); }
             if ui.button("Comandos [Ctrl+Shift+P]").clicked() { acciones.push(Accion::Comando(Comando::Paleta)); }
             if ui.selectable_label(self.estado.panel_ajustes, "Ajustes [Ctrl+,]").clicked() { acciones.push(Accion::Comando(Comando::Ajustes)); }
         });
@@ -286,6 +352,13 @@ impl App {
                     p.rect(ic.shrink(2.0), 1, if f.tipo == Tipo::Carpeta { color(f.color).gamma_multiply(0.35) } else { Color32::TRANSPARENT }, Stroke::new(1.2, color(f.color)), StrokeKind::Inside);
                 }
                 p.text(Pos2::new(ic.max.x + 6.0, fila.center().y), Align2::LEFT_CENTER, &f.nombre, FontId::proportional(13.0), if f.seleccionado { c.texto } else { c.tenue });
+                if let Some(titulo) = &f.play {
+                    let caja = Rect::from_center_size(Pos2::new(fila.max.x - 14.0, fila.center().y), Vec2::splat(16.0));
+                    let rp = ui.interact(caja, ui.make_persistent_id(("arbol-play", &f.id)), Sense::click());
+                    pintar_grafo::triangulo_play(&p, caja, if rp.hovered() { c.texto } else { c.verde });
+                    if rp.clicked() { acciones.push(Accion::Ejecutar(f.id.clone())); continue; }
+                    rp.on_hover_text(format!("Ejecutar: {titulo}"));
+                }
                 if r.clicked() { acciones.push(Accion::Pulsar { nombre: f.id.clone(), sumar: ctrl }); }
                 if r.double_clicked() { acciones.push(Accion::Abrir(f.id.clone())); }
             }
@@ -310,7 +383,7 @@ impl App {
                     let mut y = 0.0;
                     while y < tam.y { let mut x = 0.0; while x < tam.x { let p = origen + Vec2::new(x, y); if visible.contains(p) { pintor.circle_filled(p, 1.2, c.linea); } x += paso[0]; } y += paso[1]; }
                 }
-                Nodo::Icono { nombre, pos, tam, tipo, color: col, seleccionado, etiqueta, icono } => {
+                Nodo::Icono { nombre, pos, tam, tipo, color: col, seleccionado, etiqueta, icono, play } => {
                     let rect = Rect::from_min_size(origen + Vec2::new(pos[0], pos[1]), Vec2::new(tam[0], tam[1]));
                     if !visible.intersects(rect) { continue; } // carril de pintado: solo lo que se ve
                     let r = ui.interact(rect, ui.make_persistent_id(("icono", &self.carpeta, nombre)), Sense::click_and_drag());
@@ -323,6 +396,14 @@ impl App {
                     if r.hovered() || *seleccionado { marco(&pintor, c, rect, *seleccionado); }
                     if !self.pintar_icono(ui, icono, caja, color(*col)) { icono_neon(&pintor, rect, *tipo, color(*col), etiqueta); }
                     etiqueta_nombre(&pintor, c, rect, nombre, *seleccionado);
+                    if let Some(titulo) = play {
+                        let caja = Rect::from_min_size(rect.right_top() + Vec2::new(-22.0, 4.0), Vec2::splat(18.0));
+                        let rp = ui.interact(caja, ui.make_persistent_id(("icono-play", nombre)), Sense::click());
+                        pintor.circle_filled(caja.center(), 9.0, c.panel);
+                        pintar_grafo::triangulo_play(&pintor, caja, if rp.hovered() { c.texto } else { c.verde });
+                        if rp.clicked() { acciones.push(Accion::Ejecutar(nombre.clone())); }
+                        rp.on_hover_text(format!("Ejecutar: {titulo}"));
+                    }
                     let tam_txt = self.estado.entradas.iter().find(|e| &e.nombre == nombre).map(|e| e.tam).unwrap_or(0);
                     r.on_hover_text(format!("{nombre}\n{}", if *tipo == Tipo::Carpeta { "Carpeta".into() } else { legible(tam_txt) }));
                 }
@@ -420,12 +501,57 @@ impl App {
                     }
                 });
                 ui.horizontal(|ui| {
+                    ui.label(egui::RichText::new("DIBUJO").color(c.acento).strong());
+                    let dibujo = self.estado.ajustes.dibujo;
+                    let texto_gpu = if self.gpu_ok { "GPU retenido (la CPU arma la geometria una vez)" } else { "GPU retenido (no hay wgpu aqui)" };
+                    if ui.add_enabled(self.gpu_ok, egui::Button::selectable(dibujo == Dibujo::Gpu, texto_gpu)).clicked() && dibujo != Dibujo::Gpu { acciones.push(Accion::Comando(Comando::Dibujo)); }
+                    if ui.selectable_label(dibujo == Dibujo::Cpu, "CPU cada cuadro").clicked() && dibujo != Dibujo::Cpu { acciones.push(Accion::Comando(Comando::Dibujo)); }
+                });
+                ui.horizontal(|ui| {
                     let mut brillo = va.brillo;
                     if ui.checkbox(&mut brillo, "Brillo neon en lo seleccionado").changed() { acciones.push(Accion::Comando(Comando::Brillo)); }
                     let mut propio = va.acento_escritorio;
                     if ui.checkbox(&mut propio, "Usar el acento del escritorio en cualquier tema").changed() { acciones.push(Accion::Comando(Comando::AcentoEscritorio)); }
                 });
             });
+        });
+        for a in acciones { self.despachar(a); }
+    }
+
+    /// Terminal de abajo, como la de VS Code: salida en vivo, parar, limpiar y una linea
+    /// para escribir comandos (sin shell: sin tuberias ni comodines).
+    fn terminal(&mut self, ui: &mut egui::Ui, v: &Vista, c: &Colores) {
+        let Some(t) = &v.terminal else { return };
+        let mut acciones = Vec::new();
+        ui.horizontal(|ui| {
+            ui.label(egui::RichText::new("TERMINAL").color(c.acento).strong());
+            match &t.en_curso {
+                Some(titulo) => { ui.label(egui::RichText::new(format!("en marcha: {titulo}")).color(c.verde)); if ui.button("Detener").clicked() { acciones.push(Accion::Comando(Comando::Detener)); } }
+                None => { ui.label(egui::RichText::new("sin procesos").color(c.tenue)); }
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui.button("Cerrar").clicked() { acciones.push(Accion::Comando(Comando::Terminal)); }
+                if ui.button("Limpiar").clicked() { acciones.push(Accion::Comando(Comando::LimpiarTerminal)); }
+            });
+        });
+        let alto = (ui.available_height() - 30.0).max(40.0);
+        egui::ScrollArea::vertical().max_height(alto).auto_shrink([false, false]).stick_to_bottom(true).show(ui, |ui| {
+            for (linea, error) in &t.lineas {
+                // stderr no siempre es un error (cargo escribe ahi su progreso): rojo solo si lo parece.
+                let minus = linea.to_lowercase();
+                let grave = minus.contains("error") || minus.contains("panicked") || minus.contains("fatal") || minus.starts_with("[termino con");
+                let col = if *error && grave { c.error } else if *error { c.aviso } else if linea.starts_with("$ ") { c.acento } else { c.texto };
+                ui.label(egui::RichText::new(linea).monospace().size(12.0).color(col));
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label(egui::RichText::new("$").monospace().color(c.acento));
+            let r = ui.add(egui::TextEdit::singleline(&mut self.texto_terminal).font(egui::TextStyle::Monospace)
+                .hint_text("comando (ej. cargo build, ls -la, git status) · sin shell").desired_width(f32::INFINITY));
+            if r.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) && !self.texto_terminal.trim().is_empty() {
+                acciones.push(Accion::LineaComando(std::mem::take(&mut self.texto_terminal)));
+                r.request_focus();
+            }
         });
         for a in acciones { self.despachar(a); }
     }
@@ -437,7 +563,7 @@ impl App {
             egui::Frame::new().fill(c.panel).stroke(Stroke::new(1.0, c.linea)).corner_radius(c.radio()).inner_margin(10.0).show(ui, |ui| {
                 ui.set_width(430.0);
                 ui.label(egui::RichText::new("CARRILES // SEMAFORO  (F12)").color(c.acento).strong());
-                for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Pintado, Carril::Iconos] {
+                for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Geometria, Carril::Pintado, Carril::Iconos, Carril::Terminal] {
                     let p = presupuesto(carril);
                     let (u, m) = (self.medidas.ultimo[carril as usize], self.medidas.maximo[carril as usize]);
                     let foco = match luz(carril, u) { Luz::Verde => Color32::from_rgb(61, 255, 154), Luz::Amarillo => Color32::from_rgb(252, 238, 10), Luz::Rojo => Color32::from_rgb(255, 42, 79) };
@@ -450,6 +576,11 @@ impl App {
                 let nodos = v.grafo.as_ref().map(|g| g.0.len()).unwrap_or(0);
                 ui.label(egui::RichText::new(format!("nodos {nodos}/{MAX_NODOS} · desplegadas {}/{MAX_DESPLEGADAS} · entradas {}/{MAX_ENTRADAS} · iconos SVG {}",
                     self.estado.expandidas.len(), self.estado.entradas.len(), self.iconos.cantidad())).color(c.tenue).size(11.0));
+                let modo = match (self.gpu_ok, self.estado.ajustes.dibujo) { (true, Dibujo::Gpu) => "GPU retenido", (false, _) => "CPU (sin wgpu)", _ => "CPU" };
+                let vertices = self.geometria.as_ref().map(|g| g.1.len()).unwrap_or(0);
+                ui.label(egui::RichText::new(format!("grafo: {modo} · {vertices} vertices · subidas a la GPU {} en {} cuadros",
+                    self.subidas.load(Ordering::Relaxed), self.cuadros)).color(c.tenue).size(11.0))
+                    .on_hover_text("Cada subida es cuando el grafo cambio de verdad. Mover o hacer zoom solo manda 16 bytes de camara.");
             });
         });
     }
@@ -457,13 +588,13 @@ impl App {
 
 /// Los colores del tema ya convertidos para egui.
 pub(crate) struct Colores { fondo: Color32, panel: Color32, superficie: Color32, linea: Color32, texto: Color32, tenue: Color32,
-                            acento: Color32, sobre_acento: Color32, error: Color32, esquinas: u8, brillo: bool }
+                            acento: Color32, sobre_acento: Color32, error: Color32, verde: Color32, aviso: Color32, esquinas: u8, brillo: bool }
 
 impl Colores {
     fn de(t: &Tema) -> Colores {
         Colores { fondo: color(t.fondo), panel: color(t.panel), superficie: color(t.superficie), linea: color(t.linea), texto: color(t.texto),
                   tenue: color(t.tenue), acento: color(t.acento), sobre_acento: color(t.sobre_acento), error: color(t.error),
-                  esquinas: t.esquinas, brillo: t.brillo }
+                  verde: color(t.tipos[5]), aviso: color(t.tipos[2]), esquinas: t.esquinas, brillo: t.brillo }
     }
     fn radio(&self) -> CornerRadius { CornerRadius::same(self.esquinas) }
 }
@@ -545,7 +676,9 @@ impl eframe::App for App {
         let inicio = Instant::now();
         self.tiempo_iconos.set(0);
         let ctx = ui.ctx().clone();
+        self.cuadros += 1;
         self.recoger();
+        self.recoger_proceso();
         self.teclado(&ctx);
         if self.estado.panel_ajustes && ctx.input(|i| i.key_pressed(Key::Escape)) { self.despachar(Accion::Comando(Comando::Ajustes)); }
         let tema = self.estado.ajustes.tema(self.estado.acento);
@@ -563,6 +696,10 @@ impl eframe::App for App {
                 });
             });
         });
+        if v.terminal.is_some() {
+            egui::Panel::bottom("terminal").resizable(true).default_size(220.0)
+                .frame(egui::Frame::new().fill(c.fondo).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.terminal(ui, &v, &c));
+        }
         if v.arbol.is_some() {
             egui::Panel::left("explorador").resizable(true).default_size(250.0)
                 .frame(egui::Frame::new().fill(c.panel).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.explorador(ui, &v, &c));
@@ -571,7 +708,8 @@ impl eframe::App for App {
             if v.modo == Modo::Grafo {
                 let mut acciones = Vec::new();
                 let lienzo = self.estado.lienzo;
-                pintar_grafo::grafo(ui, &v, &self.iconos, &c, self.estado.ajustes.direccion, lienzo, &mut acciones);
+                let retenido = self.retenido(&v, &tema);
+                pintar_grafo::grafo(ui, &v, self.estado.camara, retenido, &self.iconos, &c, self.estado.ajustes.direccion, lienzo, &mut acciones);
                 for a in acciones { self.despachar(a); }
             } else {
                 egui::ScrollArea::both().auto_shrink([false, false]).show(ui, |ui| self.iconos_libres(ui, &v, &c));
