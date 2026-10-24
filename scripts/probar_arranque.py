@@ -879,6 +879,30 @@ def check_hyprland(conn, failures):
                     except (OSError,SyntaxError): time.sleep(.1)
                 else: raise ValueError('captura de equipo incompleta')
                 shutil.copyfile(target,LOG.with_name(LOG.stem+'-equipo.png'))
+        if '--limites' in sys.argv:
+            encoded=base64.b64encode((ROOT/'scripts/banco_limites.py').read_bytes()).decode()
+            conn.sendall(b': > /arch/tmp/limites.b64; echo LIM-CARGA-$((40+6))\n');transcript+=response('LIM-CARGA-46')
+            for offset in range(0,len(encoded),192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/limites.b64; echo LIM-CARGA-$((40+6))\n").encode());transcript+=response('LIM-CARGA-46')
+            conn.sendall(b'busybox base64 -d /arch/tmp/limites.b64 > /arch/tmp/limites.py; echo LIM-CARGA-$((40+6))\n');transcript+=response('LIM-CARGA-46')
+            payload='printf "%s\\n" "$$" > /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs; exec /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all --inh-caps=-all --ambient-caps=-all /usr/bin/env HOME=/home/ultra /usr/bin/python /tmp/limites.py'
+            command='ultra-entrar /usr/bin/nsenter --target $(pidof Hyprland) --mount --root --wd -- /usr/bin/bash -c '+shlex.quote(payload)+'; echo LIM-RC-$?; echo LIM-FIN-$((40+6))\n'
+            conn.sendall(command.encode());result=response('LIM-FIN-46',timeout=40);transcript+=result
+            for marker,label in [('LIMITES-ANCESTRO-OK','techo de RAM reservado y no ampliable sin root'),('LIMITES-CPU-PIDFD-OK','cuota de CPU medida y cierre por pidfd'),('LIMITES-RAM-OOM-OK','limite de RAM detiene al consumidor de prueba'),('LIM-RC-0','banco de limites finaliza correctamente')]:
+                expect(marker in result,'Recursos: '+label)
+            mon.sendall(b'sendkey meta_l-esc\n');time.sleep(1)
+            found=wait_apps(lambda apps:any(a.get('title')=='ULTRA / Aplicaciones' for a in apps))
+            expect(bool(found),'Recursos: Super+Esc abre el administrador')
+            if found:
+                target=pathlib.Path(tempfile.gettempdir())/'ultra-aplicaciones.png';target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot:shot.verify()
+                        break
+                    except (OSError,SyntaxError):time.sleep(.1)
+                else:raise ValueError('captura del administrador incompleta')
+                shutil.copyfile(target,LOG.with_name(LOG.stem+'-aplicaciones.png'))
         finished_auto = False
         for _ in range(65):
             conn.sendall(b'grep -q \'"running": false\' /arch/juegos/usuarios/ultra/.cache/ultra/discos/automatico.json && echo DISCOS-FIN-$((9+4)); echo DISCOS-QUERY-$((9+5))\n')

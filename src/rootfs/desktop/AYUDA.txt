@@ -18,6 +18,7 @@ SUPER + C           Limpiar notificaciones
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo
 SUPER + F9          Equipo en vivo: CPU, RAM, discos, USB y sensores disponibles
+SUPER + Esc         Administrador: cerrar procesos y limitar CPU/RAM de su arbol
 SUPER + F11         Captura de recursos Warframe (2 min)
 SUPER + Ctrl + F11  Panel de diagnostico Warframe
 SUPER + Shift + F11 Marcar el momento del tiron en la captura

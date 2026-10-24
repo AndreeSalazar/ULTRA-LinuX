@@ -1,0 +1,11 @@
+test_existing_large_layer_needs_space_for_renewal (__main__.Manager.test_existing_large_layer_needs_space_for_renewal) ... ok
+test_low_space_rotation_preserves_existing_store (__main__.Manager.test_low_space_rotation_preserves_existing_store) ... ok
+test_pidfd_identity_protected_self_and_close_fixture (__main__.Manager.test_pidfd_identity_protected_self_and_close_fixture) ... ok
+test_retention_keeps_open_recent_symlink_and_games (__main__.Manager.test_retention_keeps_open_recent_symlink_and_games) ... ok
+test_rotation_refuses_second_archive_without_deleting_first (__main__.Manager.test_rotation_refuses_second_archive_without_deleting_first) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.199s
+
+OK
+CAPA CONSERVADA: library.anterior-1792820955279124019 ; origen actualizado, se crea una vista limpia

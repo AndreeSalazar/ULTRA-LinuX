@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-24",
+  "profile": "pc",
+  "kernel_build": 46,
+  "checks": {
+    "component": 5,
+    "boot_green": 185,
+    "boot_red": 0
+  },
+  "cleanup": {
+    "capa_antigua_retirada": "5f9b020e65d5dfb89025.anterior-1792758815349198139",
+    "home_y_capa_activa_metadatos_conservados": true,
+    "liberado_bytes": 32196112384,
+    "disponible_usuario_bytes": 32203538432
+  },
+  "fsck_before_after": true,
+  "backup": {
+    "project_relative": "build/respaldo-capa-20261024/5f9b020e65d5dfb89025.anterior-1792758815349198139.tar.zst",
+    "compressed_bytes": 30075082803,
+    "sha256": "6b5f4dd1d316550d6a49773cc7b89c11eead6e06ec0d04846ea7721eb531726c",
+    "entries": 19752,
+    "content_and_posix_metadata_verified": true,
+    "private_manifest_sha256": "51b8abed3777eaa8a6712f18518c75ff58b7481d71d9566732ad4e874fb527f6",
+    "committed": false
+  },
+  "installed": {
+    "datos_intactos": true,
+    "kernel_coincide": true,
+    "sistema_coincide": true,
+    "datos_sha256": "F2AFD3EC9A39FA51961298725868FDE9633FDD088238F5A5D601BA8F06AA174A",
+    "kernel_sha256": "11D065632A24397947DDFC77B900E4472F85BCBD88F2CF2003E43D0FA730CCC2",
+    "sistema_sha256": "F91C3D6FF48C575AA9D99239E70EECA250D14A0C7FF3E03F4D4560D86A3EE5EF"
+  },
+  "generic_rebuilt": false,
+  "limits": [
+    "Cgroups reales probados en QEMU; no se midio rendimiento de juegos nativos",
+    "La reserva no cubre toda memoria del kernel/GPU ni garantiza ausencia de OOM",
+    "No hay cuota dura de almacenamiento; clientes ya abiertos pueden seguir escribiendo",
+    "No se borran partidas, prefijos ni shaders; no usar archivos abiertos como unico criterio de borrado general",
+    "NVIDIA conserva 11674 avisos SRSO previos"
+  ],
+  "sources_lf_sha256": {
+    "scripts/build-baseline.sh": "b2120cd4541a930511a7ecd9bca25dc13ca5375000e5d73ef4e69b1e7bbde611",
+    "scripts/probar_arranque.py": "8837c58cc4c9b220a3f049f85cb84a0654b1009eaa9bffd22b749fd61510af45",
+    "scripts/banco_limites.py": "7b79b8428ce66b74275b109967f0af6adac218ae0dfb87b60218a32bc1f32de5",
+    "scripts/probar_administrador.py": "6dc2a5ff505e890315f33410ab6f7b5efb9c47272c4a13c49d7047448680410f",
+    "src/rootfs/bin/ultra-aplicaciones": "b700ca3798e0c69dd5ba109f87acaac543215aafc43f3da6635148b14ce5579d",
+    "src/rootfs/bin/ultra-espacio": "4df77fcf3de28ae6c422b48fe608f07c2d17f94a7826d76e51bd4fefcb93ee77",
+    "src/rootfs/bin/ultra-preparar-limites": "afb1b9b8b3f84ef345afa12977857934d49fed6d4206209b64503fafc978391d",
+    "src/rootfs/bin/ultra-bibliotecas.py": "05335423018c302adaff36efda239e9dcfe0e930fa21f463e0942b8dc23227cb",
+    "src/rootfs/bin/ultra-sesion": "9177a356e063c07d9c0bcaabbf8047d16f74b296a99dbbf11ae3a12ad0df1b8d",
+    "src/rootfs/bin/ultra-desktop-session": "0246e3ba6db0bbacf758caa33f3842695b2f92eb1f5b29605eb3cd610d97c4f9",
+    "src/rootfs/bin/ultra-juegos": "86f56bf45893f877bdeef2c4fd6f7c2209a4c82bd6aa993a572108dba4a2ff3f",
+    "src/rootfs/bin/ultra-ambiente": "1247706992e3f3540c52c93787f5d4f5a2680365721e3883da286d0d55dee32a",
+    "src/rootfs/bin/ultra-informe-gpu": "0315fdba53211092fe7ed8bc9d89801bf1710c8ee46e032b7bb49b1a7cd089ed",
+    "src/rootfs/desktop/hyprland.lua": "a56902aca583a0e6a23d640b2fd31235be32cfcd2c96e44252db54a913102321"
+  }
+}

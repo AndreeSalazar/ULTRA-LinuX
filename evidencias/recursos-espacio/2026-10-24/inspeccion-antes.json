@@ -1,0 +1,71 @@
+{
+  "solo_lectura_QEMU": true,
+  "montaje_ro_noload": true,
+  "red": false,
+  "capacidad_bytes": 101264994304,
+  "usado_bytes": 100209999872,
+  "libre_bytes": 1054994432,
+  "disponible_usuario_bytes": 7426048,
+  "clientes_ejecutados": false,
+  "imagen_tamano_mtime_conservados": true,
+  "bloques_asignados_bytes": {
+    "total_archivos": 100210110464,
+    "home_total": 6750552064,
+    "steam_total": 4821684224,
+    "steam_common_Proton_runtimes": null,
+    "steam_descargas_temporales": null,
+    "steam_shadercache": null,
+    "steam_compatdata": 354594816,
+    "cache_usuario": 260399104,
+    "prefijos_UMU": 302092288,
+    "capas_bibliotecas": 93458354176,
+    "biblioteca_Steam_upper": 61262155776,
+    "biblioteca_Steam_common": 56853848064,
+    "biblioteca_Steam_descargando": 4096,
+    "biblioteca_Steam_shadercache": 3817209856,
+    "biblioteca_Steam_compatdata": 591028224,
+    "capa_Warframe_anterior": 20480,
+    "capa_Cyberpunk": 1134592
+  },
+  "capas_bytes": {
+    "5caa2065bc3b89402ba6/work": 8192,
+    "5caa2065bc3b89402ba6/upper": 4096,
+    "5caa2065bc3b89402ba6": 20480,
+    "5f9b020e65d5dfb89025/work": 8192,
+    "5f9b020e65d5dfb89025/upper": 61262155776,
+    "5f9b020e65d5dfb89025": 61262172160,
+    "3771b8c34a411d86c759/work": 8192,
+    "3771b8c34a411d86c759/upper": 4096,
+    "3771b8c34a411d86c759": 20480,
+    "5f9b020e65d5dfb89025.anterior-1792758815349198139/work": 8192,
+    "5f9b020e65d5dfb89025.anterior-1792758815349198139/upper": 32196120576,
+    "5f9b020e65d5dfb89025.anterior-1792758815349198139": 32196136960
+  },
+  "software": {
+    "biblioteca_common": {
+      "directorios_publicos_bytes": {
+        "Proton - Experimental": 1554026496,
+        "SteamLinuxRuntime_sniper": 841547776,
+        "SteamLinuxRuntime_4": 740253696,
+        "Warframe": 53160632320
+      },
+      "otros_directorios_bytes": 557375488
+    },
+    "cliente_Steam": {
+      "directorios_publicos_bytes": {
+        "steamapps": 354611200,
+        "package": 520232960,
+        "ubuntu12_64": 406573056,
+        "compatibilitytools.d": 1614995456,
+        "userdata": 1212416,
+        "steamrt64": 595668992,
+        "config": 181071872,
+        "steamrt32": 98394112,
+        "logs": 4698112,
+        "ubuntu12_32": 554217472
+      },
+      "otros_directorios_bytes": 410750976
+    }
+  },
+  "nota": "Totales contienen subtotales; no sumar todas las filas. du no sigue enlaces."
+}

@@ -16,6 +16,11 @@ real del banco QEMU; no es una maqueta ni una medición de la RTX física.
 
 [Tema Núcleo: uso, respaldo y alcance](docs/TEMA-NUCLEO.md).
 
+[Espacio y aplicaciones](docs/ESPACIO-Y-APLICACIONES.md): Super+Esc abre el
+administrador para cerrar procesos y limitar CPU/RAM. El sistema distingue
+cache recuperable, espacio ext4 y tamaño del contenedor de Windows, y evita
+acumular generaciones antiguas de bibliotecas sin revision.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.

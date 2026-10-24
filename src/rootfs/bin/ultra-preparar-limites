@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Root establishes an immutable session ceiling; no commands arrive from users.
+set -euo pipefail
+[[ $(id -u) == 0 ]] || exit 1
+root=/sys/fs/cgroup
+[[ -d $root && ! -L $root ]] || exit 1
+mountpoint -q "$root" || mount -t cgroup2 -o nosuid,nodev,noexec cgroup2 "$root"
+for controller in cpu memory pids; do
+    grep -qw "$controller" "$root/cgroup.controllers" || exit 1
+done
+printf '+cpu +memory +pids\n' > "$root/cgroup.subtree_control"
+base=$root/ultra-usuario
+mkdir -p "$base"
+total=$(awk '/^MemTotal:/ {printf "%.0f\n", $2*1024}' /proc/meminfo)
+reserve=$((total/8)); ((reserve>=536870912)) || reserve=536870912
+((reserve<=2147483648)) || reserve=2147483648
+maximum=$((total-reserve)); ((maximum>=536870912)) || exit 1
+printf '%s\n' "$maximum" > "$base/memory.max"
+printf '%s\n' "$((maximum*9/10))" > "$base/memory.high"
+printf '8192\n' > "$base/pids.max"
+printf '+cpu +memory +pids\n' > "$base/cgroup.subtree_control"
+# Delegate migration and children only. Ancestor ceilings remain root-owned.
+chown 1000:1000 "$base" "$base/cgroup.procs" "$base/cgroup.subtree_control" "$base/cgroup.threads"
+mkdir -p "$base/escritorio"
+chown 1000:1000 "$base/escritorio" "$base/escritorio/cgroup.procs" "$base/escritorio/cgroup.threads"
+printf 'VERDE [LIMITES]: memoria de sesion max=%s reserva=%s; CPU libre; pids=8192\n' "$maximum" "$reserve"

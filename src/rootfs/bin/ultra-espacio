@@ -1,0 +1,55 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Free-space guard and narrowly scoped, closed ULTRA log retention."""
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+HOME=Path(os.environ['HOME'])
+LOGS={'juegos-vivo.log','steam.log','heroic.log','cyberpunk.log','brave.log',
+      'pipewire.log','pipewire-pulse.log','wireplumber.log','gog-cyberpunk.log'}
+def available():
+    s=os.statvfs(HOME);return s.f_bavail*s.f_frsize
+def opened():
+    names=set()
+    for p in Path('/proc').iterdir():
+        try:
+            if not p.name.isdecimal() or p.stat().st_uid!=os.geteuid():continue
+            for fd in (p/'fd').iterdir():
+                try:names.add(os.readlink(fd))
+                except OSError:pass
+        except OSError:pass
+    return names
+def clean():
+    cache=HOME/'.cache/ultra';busy=opened();removed=0
+    if cache.resolve()!=cache:return 0
+    for name in LOGS:
+        path=cache/name
+        try:
+            s=path.lstat()
+            if path.is_symlink() or not path.is_file() or s.st_uid!=os.geteuid():continue
+            if str(path) not in busy and time.time()-s.st_mtime>7*86400 and s.st_size>1024**2:
+                path.unlink();removed+=s.st_size
+        except OSError:pass
+    return removed
+def notify(text):
+    subprocess.run(['notify-send','--urgency=critical','ULTRA / espacio',text],timeout=5,check=False)
+if __name__=='__main__':
+    if os.geteuid()!=1000:raise SystemExit('Requiere usuario ultra')
+    action=sys.argv[1] if len(sys.argv)>1 else 'estado'
+    if action=='limpiar':print('Bytes retirados de registros ULTRA cerrados y antiguos:',clean())
+    elif action=='vigilar':
+        clean();previous=None
+        while True:
+            low=available()<4*1024**3
+            if low and low!=previous:notify('Quedan menos de 4 GiB. No se borran juegos ni partidas; revisa Estado y espacio antes de descargar.')
+            previous=low;time.sleep(60)
+    elif action=='permitir-juegos':
+        if available()<4*1024**3:
+            notify('Se bloquea este nuevo lanzamiento: menos de 4 GiB para actualizaciones y prefijos. Libera espacio primero.');raise SystemExit(1)
+    else:
+        s=os.statvfs(HOME)
+        print(f'Linux: disponibles {s.f_bavail*s.f_frsize/2**30:.2f} GiB; libres incluyendo reserva {s.f_bfree*s.f_frsize/2**30:.2f} GiB')
+        print('El archivo ext4 de Windows conserva su tamano fijo aunque borres archivos dentro. Cache RAM no equivale a fuga.')

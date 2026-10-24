@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import stat
 import subprocess
 import sys
@@ -136,6 +137,20 @@ def rotate_changed_store(store, identity):
     if ({k: v for k, v in state.items() if k != 'version'} !=
             {k: v for k, v in identity.items() if k != 'version'}):
         raise ValueError('identidad de origen cambio; revisar la capa anterior')
+    # Keep a recoverable layer, but never accumulate unlimited generations.
+    if any(store.parent.glob(store.name+'.anterior-*')):
+        raise ValueError('ya existe una capa anterior; respaldarla y revisar antes de duplicar otra version')
+    free = shutil.disk_usage(store.parent).free
+    if free < 4*1024**3:
+        raise ValueError('menos de 4 GiB libres; no se crea otra capa de biblioteca')
+    # A refreshed lower can force another copy of the writable game files.
+    # Account allocated blocks once, without following user-controlled symlinks.
+    try:
+        previous_bytes = int(run('/usr/bin/du', '-sx', '-B1', str(store/'upper')).split()[0])
+    except (ValueError, IndexError, subprocess.SubprocessError) as error:
+        raise ValueError('no se pudo medir la capa; se conserva para revision') from error
+    if free < previous_bytes + 4*1024**3:
+        raise ValueError('espacio insuficiente para renovar sin duplicar la biblioteca; revisar la capa existente')
     # Same parent, no recursive traversal and no deletion of saves or prefixes.
     archive = store.with_name(store.name+'.anterior-'+str(time.time_ns()))
     store.rename(archive)

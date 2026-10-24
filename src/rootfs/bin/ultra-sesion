@@ -89,6 +89,7 @@ fi
 setpriv --no-new-privs --bounding-set=-all,+syslog --inh-caps=-all --ambient-caps=-all \
     /usr/bin/python -I /usr/local/libexec/ultra-eventos-kernel > /run/ultra-escritorio/kernel-eventos.log 2>&1 9>&- &
 kernel_pid=$!
+/usr/bin/bash /usr/local/libexec/ultra-preparar-limites > /run/ultra-escritorio/limites.log 2>&1 || echo 'AMARILLO [LIMITES]: no disponibles; consulta el administrador'
 seatd -u ultra -g ultra -l info > /run/ultra-escritorio/seatd.log 2>&1 9>&- &
 seat_pid=$!
 ready=0
@@ -113,6 +114,7 @@ fi
 # Observer is bounded to ten minutes plus query time, and joined before export.
 /usr/bin/bash /usr/local/libexec/ultra-medir-sesion "$mode" > /run/ultra-escritorio/medicion.log 2>&1 9>&- &
 meter_pid=$!
+/usr/bin/bash -c 'if [[ -w /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs ]]; then printf "%s\n" "$$" > /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs || exit 1; fi; exec "$@"' ultra-limites \
 setpriv --reuid=ultra --regid=ultra --init-groups --no-new-privs \
     --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
     /usr/bin/env -i "${client_env[@]}" /usr/bin/bash /usr/local/libexec/ultra-cliente "$@" \

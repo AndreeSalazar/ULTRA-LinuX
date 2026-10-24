@@ -64,6 +64,12 @@ tmp=$out.$$
         cat /run/ultra-escritorio/medicion.log
     else printf 'NA: la sesion no llego a iniciar el observador\n'; fi
     printf '\n[KERNEL: GPU y audio, ultimas 70 coincidencias]\n'
+    printf '\n[LIMITES DE RECURSOS: contadores globales de la sesion]\n'
+    for key in memory.current memory.high memory.max memory.events pids.current pids.max; do
+        file=/sys/fs/cgroup/ultra-usuario/$key
+        if [[ -r $file ]]; then printf '%s: ' "$key"; head -c 4096 "$file"; printf '\n'; fi
+    done
+    [[ ! -r /run/ultra-escritorio/limites.log ]] || head -c 4096 /run/ultra-escritorio/limites.log
     printf '\n[DIAGNOSTICO WARFRAME: resumen acotado, sin registros privados]\n'
     if mountpoint -q /juegos; then
         setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs --bounding-set=-all --inh-caps=-all --ambient-caps=-all \
