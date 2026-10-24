@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<title>BMO-X / Nucleo · cyan, violet and dark green metal</title>
+<desc>Original static circuit artwork. Decorative traces are not hardware telemetry.</desc>
+<defs>
+<linearGradient id="base" x2="100%" y2="100%"><stop stop-color="#03080d"/><stop offset=".5" stop-color="#09121b"/><stop offset="1" stop-color="#06120f"/></linearGradient>
+<linearGradient id="metal" x2="15%" y2="100%"><stop stop-color="#19352f"/><stop offset=".48" stop-color="#0b1818"/><stop offset=".49" stop-color="#29473e"/><stop offset=".51" stop-color="#102420"/><stop offset="1" stop-color="#050e10"/></linearGradient>
+<linearGradient id="violet" x2="100%" y2="100%"><stop stop-color="#100d20"/><stop offset=".48" stop-color="#29213e"/><stop offset=".5" stop-color="#443457"/><stop offset=".52" stop-color="#1b152b"/><stop offset="1" stop-color="#0a1015"/></linearGradient>
+<radialGradient id="light"><stop stop-color="#153b46" stop-opacity=".35"/><stop offset="1" stop-color="#051018" stop-opacity="0"/></radialGradient>
+<pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 1h6" stroke="#a5dbc9" stroke-opacity=".018"/></pattern>
+<pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#3b6872" stroke-opacity=".09"/></pattern>
+</defs>
+<rect width="1920" height="1080" fill="url(#base)"/>
+<ellipse cx="1060" cy="480" rx="900" ry="660" fill="url(#light)"/>
+<path d="M0 0H440L510 70V260L390 380V760L490 860V1080H0Z" fill="url(#metal)"/>
+<path d="M1920 0H1620L1550 70V280L1640 370V700L1530 810V1080H1920Z" fill="url(#violet)"/>
+<rect width="1920" height="1080" fill="url(#grain)"/>
+<path d="M480 170H1410L1490 250V800L1410 880H480" fill="url(#grid)" opacity=".55"/>
+<g fill="none" stroke="#284b47"><path d="M30 98H365L445 178V266L338 373V740L423 825V950H30Z"/><path d="M44 112H353L430 190V260L324 368V746L409 831V936H44Z"/><path d="M1880 98H1692L1610 180V271L1699 360V717L1585 831V950H1880Z" stroke="#40334f"/><path d="M1900 82H1680L1594 168V278L1683 368V710L1569 824V970H1900" stroke="#2a263c"/></g>
+<g fill="none" stroke="#43deeb" stroke-width="2" opacity=".75"><path d="M30 98H190M30 98V154M365 98L445 178V220M30 950H137M1880 98H1760M1880 98V156M1880 950H1740M1880 950V900"/><path d="M520 72H800L826 98H1060M838 86H1072M840 1016H1140L1195 961H1425" opacity=".5"/></g>
+<g fill="none" stroke="#a987e6" stroke-width="2" opacity=".6"><path d="M1880 270H1800L1750 320V445M1790 284L1738 336V390M1610 570V636L1540 706H1465M1623 575V641L1548 719H1500"/></g>
+<g fill="none" stroke="#68bd9d" stroke-width="2" opacity=".55"><path d="M0 522H112L158 568H242M0 536H104L148 580H212M0 975H340L390 925H560M0 989H348L400 937H510"/></g>
+<g transform="translate(1630 780)" fill="none"><circle r="94" stroke="#383049"/><circle r="81" stroke="#55dcea" stroke-opacity=".3" stroke-width="2" stroke-dasharray="92 30 26 75"/><circle r="66" stroke="#9a78d3" stroke-opacity=".4" stroke-width="4" stroke-dasharray="55 120"/><circle r="52" stroke="#386257"/><path d="M-110 0H-88M88 0H110M0-110V-88M0 88V110" stroke="#55dcea" stroke-opacity=".5"/></g>
+<g font-family="DejaVu Sans, sans-serif"><text x="205" y="218" font-size="13" fill="#82aeaa" letter-spacing="5">ULTRA LINUX</text><text x="205" y="246" font-size="10" fill="#486f6c" letter-spacing="4">PERSONAL SYSTEM / 01</text><text x="205" y="828" font-size="54" font-weight="bold" fill="#7eb3b4" letter-spacing="6">BMO-X</text><text x="208" y="860" font-size="11" fill="#62b6bf" letter-spacing="5">NUCLEO</text><path d="M208 883H322" stroke="#43deeb" stroke-width="3"/><path d="M332 883H380" stroke="#a987e6" stroke-width="3"/><path d="M390 883H422" stroke="#68bd9d" stroke-width="3"/></g>
+</svg>

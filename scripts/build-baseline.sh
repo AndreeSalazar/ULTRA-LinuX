@@ -231,7 +231,9 @@ if [[ -n $cmdline ]]; then
         pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
         steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk procps-ng vulkan-tools e2fsprogs
         mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
-        mangohud=0.8.4-1 lib32-mangohud=0.8.4-1)
+        mangohud=0.8.4-1 lib32-mangohud=0.8.4-1
+        # Rust para el usuario: rustup instala las versiones en el home persistente; gcc enlaza.
+        rustup gcc git pkgconf)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -250,7 +252,7 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render,audio -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-medir-recursos ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-eventos-kernel ultra-preparar-limites; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-medir-recursos ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-eventos-kernel ultra-preparar-limites ultra-crear-fondo; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
@@ -276,7 +278,7 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
     sudo install -d -m 0755 "$sistema/usr/lib/locale"

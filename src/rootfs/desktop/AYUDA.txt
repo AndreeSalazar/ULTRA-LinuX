@@ -14,6 +14,7 @@ SUPER + Shift + E   Abrir Windows NVMe en solo lectura (/windows)
 SUPER + H           Esta ayuda
 SUPER + Space       Centro BMO-X: aplicaciones y ambiente
 SUPER + Shift + A   Alternar efectos vivos / reducidos
+SUPER + Shift + P   Personalizar: acento, fondo, borde, huecos, cursor y barra
 SUPER + C           Limpiar notificaciones
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo
@@ -56,3 +57,8 @@ El llavero puede pedir crear una clave o desbloquearse al primer uso de Brave.
 Usa una clave no vacia. No es la contrasena de Gmail; ULTRA no la automatiza.
 La red por cable intenta DHCP; Wi-Fi aun requiere validacion.
 USB tiene prioridad de audio; pavucontrol permite cambiar salida y volumen por app.
+
+Rust: la primera vez, en una terminal, "rustup default stable" (descarga unos
+300 MB al home). Con almacenamiento persistente queda guardado; con home en
+RAM se pierde al apagar. Los proyectos con rust-toolchain.toml, como BMO-X,
+eligen su propia version solos.

@@ -45,7 +45,7 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
 
 /* ---------- Barra ---------- */
 .barra { position: absolute; top: 0; left: 0; right: 0; height: 40px; z-index: 30; display: flex; align-items: stretch; background: rgba(6, 5, 10, .92);
-  border-bottom: 2px solid var(--amarillo); box-shadow: 0 2px 18px var(--brillo); font: 600 15px/1 var(--titulo); letter-spacing: 1px; text-transform: uppercase;
+  border-bottom: 2px solid var(--amarillo); box-shadow: 0 2px 18px var(--brillo); font: 600 var(--barra-letra, 15px)/1 var(--titulo); letter-spacing: 1px; text-transform: uppercase;
   transition: transform .35s var(--curva); }
 .juego-on .barra { transform: translateY(-110%); }
 .barra .grupo { display: flex; align-items: center; }
@@ -62,7 +62,7 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
 .titulo-ventana b { color: var(--cyan); font-weight: 600; margin-right: 6px; }
 .titulo-ventana i { display: inline-block; width: 8px; height: 14px; vertical-align: -2px; background: var(--amarillo); animation: parpadeo 1s steps(1) infinite; }
 .centro { position: absolute; left: 50%; top: 0; bottom: 0; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; }
-.reloj { font: 700 23px/1 var(--titulo); letter-spacing: 3px; font-variant-numeric: tabular-nums; }
+.reloj { font: 700 var(--barra-reloj, 23px)/1 var(--titulo); letter-spacing: 3px; font-variant-numeric: tabular-nums; }
 .reloj i { color: var(--amarillo); font-style: normal; animation: parpadeo 2s steps(1) infinite; }
 .fecha { font-size: 13px; color: var(--texto-2); letter-spacing: 2px; }
 .mod { display: flex; align-items: center; gap: 7px; padding: 0 13px; height: 100%; font-variant-numeric: tabular-nums; position: relative; }
@@ -93,13 +93,17 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
 /* ---------- Escritorios y ventanas ---------- */
 .capa { position: absolute; inset: 0; transition: transform .45s var(--curva); }
 .quieto .capa, .quieto .escritorios .marca { transition: none !important; }
-.win { position: absolute; padding: 2px; background: var(--linea); z-index: 5;
+.win { position: absolute; padding: var(--grosor, 2px); background: var(--linea); z-index: 5; opacity: var(--inactiva, 1);
   transition: left .35s var(--curva), top .35s var(--curva), width .35s var(--curva), height .35s var(--curva), box-shadow .3s; }
 .win.flota { z-index: 8; box-shadow: 0 20px 60px rgba(0, 0, 0, .75); }
 .win.activa { background: conic-gradient(from var(--ang), var(--amarillo), var(--rojo), var(--cyan), var(--amarillo)); animation: girar 6s linear infinite; box-shadow: 0 0 26px var(--brillo); }
 .win.flota.activa { box-shadow: 0 0 26px var(--brillo), 0 20px 60px rgba(0, 0, 0, .75); }
 .win-in { width: 100%; height: 100%; background: #08070c; overflow: hidden; position: relative; transition: filter .3s; }
 .win:not(.activa) .win-in { filter: brightness(.78) saturate(.75); }
+.win.activa { opacity: 1; }
+.borde-quieto .win.activa { animation: none; }
+.fondo-liso #fondo { opacity: 0; }
+.fondo-liso .escena { background: #06050a; }
 .win.abriendo { animation: abrir .42s var(--curva) both; }
 .win.cerrando { animation: cerrar .18s ease-in both; pointer-events: none; }
 .win.abriendo .win-in::after { content: ""; position: absolute; inset: 0; pointer-events: none; animation: rejilla-glitch .42s steps(5) both;
@@ -332,6 +336,23 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
 .perfil .pie b { color: var(--hielo); font-weight: 500; }
 @keyframes rotar { to { transform: rotate(360deg); } }
 @keyframes barrer { to { background-position: 0 40px; } }
+/* Personalizar (ultra-personalizar) */
+.personal { position: absolute; left: 50%; top: 70px; z-index: 44; width: 860px; padding: 24px 28px 20px; background: rgba(6, 5, 10, .97); border: 2px solid var(--amarillo);
+  box-shadow: 0 0 40px var(--brillo), 0 30px 80px rgba(0, 0, 0, .7); transform: translate(-50%, -20px); opacity: 0; pointer-events: none; transition: transform .22s var(--curva), opacity .18s, border-color .2s;
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%); }
+.personal.ver { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.personal h3 { margin: 0 0 4px; font: 700 26px var(--titulo); letter-spacing: 5px; color: var(--amarillo); }
+.personal .sub { font: 12px var(--mono); color: var(--texto-3); margin-bottom: 16px; }
+.personal .fila-p { display: grid; grid-template-columns: 230px 1fr; gap: 14px; align-items: center; padding: 9px 0; border-top: 1px solid var(--linea); }
+.personal .fila-p > span { font: 700 14px var(--titulo); letter-spacing: 2px; text-transform: uppercase; color: var(--texto-2); }
+.personal .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.personal button { font: 700 13px var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; color: var(--texto); background: var(--panel); border: 1px solid var(--linea-2); padding: 7px 11px; cursor: pointer; clip-path: var(--corte-chico); transition: border-color .15s, background .15s, color .15s; }
+.personal button:hover { border-color: var(--amarillo); }
+.personal button.on { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+.personal button.color { width: 34px; height: 30px; padding: 0; }
+.personal button.color.on { outline: 2px solid #fff; outline-offset: 2px; }
+.personal input[type=color] { width: 40px; height: 30px; border: 1px solid var(--linea-2); background: var(--panel); padding: 2px; cursor: pointer; }
+.personal .pie-p { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; font: 12px var(--mono); color: var(--texto-3); }
 .sello { position: absolute; right: 22px; bottom: 22px; z-index: 31; font: 600 12px/1 var(--titulo); letter-spacing: 3px; text-transform: uppercase; color: var(--texto-3); padding: 7px 10px; border: 1px dashed var(--linea-2); background: rgba(6, 5, 10, .8); }
 .juego-on .sello { opacity: 0; }
 
@@ -385,6 +406,7 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
       <div class="menu" id="menu"><div class="prompt" id="menu-prompt"></div><div class="filas" id="menu-filas"></div></div>
       <div class="alttab" id="alttab"></div>
       <div class="ayuda" id="ayuda"></div>
+      <div class="personal" id="personal"></div>
       <div class="perfil" id="perfil"></div>
       <div class="avisos" id="avisos"></div>
       <div class="captura" id="captura"></div>
@@ -407,6 +429,7 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
     <button data-a="bloquear">Bloquear<kbd>Alt+L</kbd></button>
     <button data-a="efectos" id="b-efectos">Efectos: vivos<kbd>Alt+A</kbd></button>
     <button data-a="perfil">Perfil del autor<kbd>Alt+I</kbd></button>
+    <button data-a="personalizar">Personalizar<kbd>Alt+U</kbd></button>
     <button data-a="acento" id="b-acento">Acento: hielo<kbd>Alt+K</kbd></button>
     <button data-a="ayuda">Atajos<kbd>Alt+H</kbd></button>
   </div>
@@ -606,7 +629,7 @@ const Fondo = (() => {
   }
 
   function bucle(t) {
-    if (activo && S.vivo && !S.juego) {
+    if (activo && S.vivo && !S.juego && PER.fondo !== 'liso') {
       const dt = Math.min(t - ultimo, 100);
       if (dt >= 32) { cuadro(t, dt); ultimo = t; }
     }
@@ -712,7 +735,8 @@ function dockEstado() {
 /* ---------- Ventanas y escritorios ---------- */
 const NOMBRE = { terminal: 'foot', archivos: 'Archivos', editor: 'Mousepad', navegador: 'Brave', equipo: 'Equipo en vivo', juegos: 'Juegos' };
 const SUB = { terminal: '~/proyectos/ULTRA-LinuX', archivos: 'Juegos', editor: 'paleta.json', navegador: 'Inicio ULTRA', equipo: 'SYS.MONITOR' };
-const AREA = { x: 12, y: 54, w: 1896, h: 1080 - 54 - 96 };
+const HUECOS = { compacto: [3, 6], normal: [6, 12], amplio: [10, 24] };
+const area = () => { const o = HUECOS[PER.huecos][1]; return { x: o, y: 42 + o, w: 1920 - 2 * o, h: 1080 - (42 + o) - 96 }; };
 const ventana = id => S.wins.find(w => w.id === id);
 function capas() {
   $('#capas').innerHTML = [1, 2, 3, 4, 5].map(n => `<div class="capa" id="capa-${n}"></div>`).join('');
@@ -720,7 +744,7 @@ function capas() {
 }
 function posicionCapas() { for (let n = 1; n <= 5; n++) $('#capa-' + n).style.transform = `translateX(${(n - S.ws) * 1920}px)`; }
 function disponer(ws) {
-  const g = 12, lista = S.wins.filter(w => w.ws === ws && !w.flota), n = lista.length, A = AREA;
+  const g = HUECOS[PER.huecos][0] * 2, lista = S.wins.filter(w => w.ws === ws && !w.flota), n = lista.length, A = area();
   lista.forEach((w, i) => {
     let r;
     if (n === 1) r = [A.x, A.y, A.w, A.h];
@@ -1101,11 +1125,64 @@ function perfil() {
   $('#velo').classList.toggle('ver', ver);
 }
 function cambiarAcento(forzar) {
-  const hielo = typeof forzar === 'boolean' ? forzar : !document.body.classList.contains('hielo');
-  document.body.classList.toggle('hielo', hielo);
-  $('#b-acento').firstChild.textContent = 'Acento: ' + (hielo ? 'hielo' : 'amarillo');
-  Fondo.reconstruir();
+  const hielo = typeof forzar === 'boolean' ? forzar : PER.acento !== ACENTOS.hielo;
+  aplicarAcento(hielo ? ACENTOS.hielo : ACENTOS.amarillo, false);
   aviso(hielo ? 'Acento hielo' : 'Acento amarillo', hielo ? 'Negro y azul hielo: el acento principal, estilo del autor.' : 'Amarillo neón: el acento alternativo.', { icono: 'ambiente', dur: 3000 });
+}
+
+/* ---------- Personalizar (mismo modelo que ultra-personalizar) ---------- */
+const ACENTOS = { hielo: '#5ad8ff', amarillo: '#fcee0a', cyan: '#00f0ff', rojo: '#ff2a4f', verde: '#3dff9a', violeta: '#c03bff', coral: '#ff7a90', blanco: '#ece9dc' };
+const PER = { acento: '#5ad8ff', fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal' };
+const OPC = [
+  ['fondo', 'Fondo', [['neon', 'Neón animado'], ['liso', 'Color liso']]],
+  ['borde', 'Borde de la activa', [['gira', 'Gira'], ['quieto', 'Quieto']]],
+  ['huecos', 'Huecos', [['compacto', 'Compacto'], ['normal', 'Normal'], ['amplio', 'Amplio']]],
+  ['grosor', 'Grosor del borde', [['1', '1 px'], ['2', '2 px'], ['3', '3 px']]],
+  ['inactivas', 'Ventanas inactivas', [['100', 'Opacas'], ['92', '92 %'], ['85', '85 %']]],
+  ['barra', 'Barra', [['compacta', 'Compacta'], ['normal', 'Normal'], ['grande', 'Grande']]],
+];
+const mezcla = (hex, otro, peso) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - peso) + parseInt(otro.slice(i, i + 2), 16) * peso).toString(16).padStart(2, '0')).join('');
+function aplicarAcento(hex, avisar = true) {
+  PER.acento = hex;
+  const b = document.body, [r, g, bl] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  b.classList.remove('hielo');
+  b.style.setProperty('--amarillo', hex);
+  b.style.setProperty('--amarillo-2', mezcla(hex, '#000000', .35));
+  b.style.setProperty('--brillo', `rgba(${r}, ${g}, ${bl}, .26)`);
+  b.style.setProperty('--foco-fondo', mezcla(hex, '#000000', .85));
+  const nombre = Object.keys(ACENTOS).find(k => ACENTOS[k] === hex) || hex;
+  $('#b-acento').firstChild.textContent = 'Acento: ' + nombre;
+  Fondo.reconstruir();
+  if (avisar) aviso('Acento ' + nombre, 'Barra, bordes, menús, avisos y fondo cambian juntos.', { icono: 'ambiente', dur: 2600 });
+  if ($('#personal').classList.contains('ver')) pintarPersonal();
+}
+function aplicarPersonal() {
+  const b = document.body;
+  b.classList.toggle('borde-quieto', PER.borde === 'quieto');
+  b.classList.toggle('fondo-liso', PER.fondo === 'liso');
+  b.style.setProperty('--grosor', PER.grosor + 'px');
+  b.style.setProperty('--inactiva', String(+PER.inactivas / 100));
+  const [letra, reloj] = { compacta: [13, 19], normal: [15, 23], grande: [17, 27] }[PER.barra];
+  b.style.setProperty('--barra-letra', letra + 'px'); b.style.setProperty('--barra-reloj', reloj + 'px');
+  for (let n = 1; n <= 5; n++) disponer(n);
+}
+function pintarPersonal() {
+  const colores = Object.entries(ACENTOS).map(([k, v]) => `<button class="color ${PER.acento === v ? 'on' : ''}" data-acento="${v}" title="${k}" aria-label="Acento ${k}" style="background:${v}"></button>`).join('');
+  $('#personal').innerHTML = `<h3>PERSONALIZAR</h3><div class="sub">ultra-personalizar · Super+Shift+P en el sistema real · se guarda en ~/.config/ultra/personal.json</div>
+    <div class="fila-p"><span>Acento</span><div class="chips">${colores}<input type="color" id="p-propio" value="${PER.acento}" aria-label="Acento propio"></div></div>
+    ${OPC.map(([k, t, ops]) => `<div class="fila-p"><span>${t}</span><div class="chips">${ops.map(([v, n]) => `<button class="${PER[k] === v ? 'on' : ''}" data-k="${k}" data-v="${v}">${n}</button>`).join('')}</div></div>`).join('')}
+    <div class="fila-p"><span>Efectos</span><div class="chips"><button class="${S.vivo ? 'on' : ''}" data-ef="1">Vivos</button><button class="${S.vivo ? '' : 'on'}" data-ef="0">Reducidos</button></div></div>
+    <div class="pie-p"><span>El sistema real añade: fondo Núcleo, imagen propia y tamaño del cursor.</span><button data-reset="1">Restablecer</button></div>`;
+  $('#personal').querySelectorAll('[data-acento]').forEach(e => e.onclick = () => aplicarAcento(e.dataset.acento));
+  $('#p-propio').oninput = e => aplicarAcento(e.target.value, false);
+  $('#personal').querySelectorAll('[data-k]').forEach(e => e.onclick = () => { PER[e.dataset.k] = e.dataset.v; aplicarPersonal(); pintarPersonal(); });
+  $('#personal').querySelectorAll('[data-ef]').forEach(e => e.onclick = () => { efectos(e.dataset.ef === '1'); pintarPersonal(); });
+  $('#personal [data-reset]').onclick = () => { Object.assign(PER, { fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal' }); aplicarPersonal(); aplicarAcento('#5ad8ff'); if (!S.vivo) efectos(true); pintarPersonal(); };
+}
+function personalizar() {
+  const ver = !$('#personal').classList.contains('ver');
+  if (ver) { cerrarTodo(); pintarPersonal(); }
+  $('#personal').classList.toggle('ver', ver);
 }
 
 /* ---------- Efectos ---------- */
@@ -1118,7 +1195,7 @@ function efectos(forzar) {
 }
 
 /* ---------- Teclado ---------- */
-function cerrarTodo() { if (S.menu) cerrarMenu(); if (S.alttab) cerrarVentanas(); if (S.ayuda) ayuda(); if ($('#perfil').classList.contains('ver')) { $('#perfil').classList.remove('ver'); $('#velo').classList.remove('ver'); } }
+function cerrarTodo() { if ($('#personal').classList.contains('ver')) $('#personal').classList.remove('ver'); if (S.menu) cerrarMenu(); if (S.alttab) cerrarVentanas(); if (S.ayuda) ayuda(); if ($('#perfil').classList.contains('ver')) { $('#perfil').classList.remove('ver'); $('#velo').classList.remove('ver'); } }
 document.addEventListener('keydown', e => {
   if (e.target.closest && e.target.closest('.controles')) { if (e.key === 'Enter' || e.key === ' ') return; }
   if (S.bloqueado) { e.preventDefault(); return teclaBloqueo(e); }
@@ -1142,10 +1219,10 @@ document.addEventListener('keydown', e => {
     else return;
     return e.preventDefault();
   }
-  if (e.key === 'Escape') { if (S.juego) salirJuego(); else if ($('#perfil').classList.contains('ver')) cerrarTodo(); else if (S.ayuda) ayuda(); else if (S.especial) rapida(); else return; return e.preventDefault(); }
+  if (e.key === 'Escape') { if ($('#personal').classList.contains('ver')) { $('#personal').classList.remove('ver'); return e.preventDefault(); } if (S.juego) salirJuego(); else if ($('#perfil').classList.contains('ver')) cerrarTodo(); else if (S.ayuda) ayuda(); else if (S.especial) rapida(); else return; return e.preventDefault(); }
   if (!e.altKey) return;
   const acciones = { Space: () => abrirMenu(), Enter: () => abrir('terminal'), KeyQ: () => cerrar(), KeyP: () => enfocarOAbrir('equipo'), F9: () => enfocarOAbrir('equipo'), KeyW: () => ventanas(e.shiftKey ? -1 : 1),
-    KeyS: () => rapida(), KeyC: () => captura(), KeyG: () => juego(), KeyL: () => bloquear(), KeyA: () => efectos(), KeyH: () => ayuda(), KeyI: () => perfil(), KeyK: () => cambiarAcento(), KeyE: () => enfocarOAbrir('archivos'), KeyN: () => enfocarOAbrir('editor'), KeyB: () => enfocarOAbrir('navegador') };
+    KeyS: () => rapida(), KeyC: () => captura(), KeyG: () => juego(), KeyL: () => bloquear(), KeyA: () => efectos(), KeyH: () => ayuda(), KeyI: () => perfil(), KeyK: () => cambiarAcento(), KeyU: () => personalizar(), KeyE: () => enfocarOAbrir('archivos'), KeyN: () => enfocarOAbrir('editor'), KeyB: () => enfocarOAbrir('navegador') };
   const d = /^Digit[1-5]$/.test(e.code) ? () => irA(+e.code.slice(5)) : acciones[e.code];
   if (d) { e.preventDefault(); d(); }
 });
@@ -1167,7 +1244,7 @@ async function recorrido() {
     if (S.juego) salirJuego();
     cerrarTodo(); if (S.especial) rapida();
     if (!S.vivo) efectos(true);
-    if (!document.body.classList.contains('hielo')) cambiarAcento(true);
+    if (PER.acento !== ACENTOS.hielo) aplicarAcento(ACENTOS.hielo, false);
     irA(4);
     await rotulo('FONDO', 'lluvia, letreros, aro y haces de luz en vivo', 2600);
     irA(2);
@@ -1185,7 +1262,11 @@ async function recorrido() {
     rotulo('SUPER+SHIFT+S', 'captura de región', 1500); await captura(); await espera(2200);
     rotulo('JUEGO', 'barra y dock se apartan; MangoHud', 1800); juego('Warframe'); await espera(5000); salirJuego(); await espera(1400);
     rotulo('PERFIL', 'Eddi Salazar, autor de ULTRA LinuX', 2600); perfil(); await espera(3200); cerrarTodo(); await espera(400);
-    rotulo('ALT+K', 'acento alternativo amarillo', 2400); cambiarAcento(false); await espera(3400); cambiarAcento(true); await espera(1200);
+    rotulo('SUPER+SHIFT+P', 'personalizar: acento, huecos, borde', 2600); personalizar(); await espera(1200);
+    aplicarAcento(ACENTOS.violeta, false); pintarPersonal(); await espera(1300);
+    PER.huecos = 'amplio'; PER.grosor = '3'; aplicarPersonal(); pintarPersonal(); await espera(1500);
+    aplicarAcento(ACENTOS.hielo, false); PER.huecos = 'normal'; PER.grosor = '2'; aplicarPersonal(); pintarPersonal(); await espera(900);
+    personalizar(); await espera(500);
     rotulo('SUPER+L', 'bloqueo hyprlock', 1500); bloquear(); await espera(1600);
     for (let i = 0; i < 6; i++) { teclaBloqueo({ key: 'x' }); await espera(170); }
     await espera(400); teclaBloqueo({ key: 'Enter' }); await espera(2600);
@@ -1195,7 +1276,7 @@ async function recorrido() {
 /* ---------- Controles ---------- */
 const ACCIONES = { recorrido, menu: () => abrirMenu(), terminal: () => abrir('terminal'), equipo: () => enfocarOAbrir('equipo'), ventanas: () => ventanas(), rapida, captura,
   aviso: () => aviso(...[['Audio USB conectado', 'Salida maestra cambiada. Volumen 100 %.', { icono: 'audio' }], ['/juegos casi lleno', 'Quedan 2.8 GiB. Revisa Super+J › Espacio.', { icono: 'discos', critica: true }], ['Steam actualizado', '2 bibliotecas registradas en /juegos.', { icono: 'juegos' }]][Math.floor(Math.random() * 3)]),
-  juego: () => juego(), bloquear, efectos: () => efectos(), ayuda, perfil: () => perfil(), acento: () => cambiarAcento() };
+  juego: () => juego(), bloquear, efectos: () => efectos(), ayuda, perfil: () => perfil(), acento: () => cambiarAcento(), personalizar: () => personalizar() };
 document.querySelectorAll('#controles button').forEach(b => b.onclick = () => { ACCIONES[b.dataset.a](); if (b.dataset.a !== 'recorrido') marco.focus({ preventScroll: true }); });
 
 /* ---------- Inicio ---------- */

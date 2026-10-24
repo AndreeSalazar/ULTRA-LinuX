@@ -84,7 +84,7 @@
       "format": "",
       "tooltip-format": "Alternar efectos · Super+Shift+A",
       "on-click": "ultra-ambiente alternar",
-      "on-click-right": "ultra-ambiente menu"
+      "on-click-right": "ultra-personalizar menu"
     },
     "custom/autor": {
       "format": "EDDI",

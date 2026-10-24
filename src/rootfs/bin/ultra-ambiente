@@ -8,6 +8,8 @@ if [[ $mode == menu ]]; then
     category=raiz
     remembered="${XDG_RUNTIME_DIR:?}/ultra-categoria"
     previous=apps
+    personal=$(ultra-personalizar acento 2>/dev/null || true)
+    [[ $personal =~ ^[0-9a-f]{8}$ ]] || personal=5ad8ffff
     [[ ! -f $remembered ]] || read -r previous < "$remembered" || true
     pick() {
         printf '%s\n' "$@" | fuzzel --dmenu --only-match --no-sort --width=48 \
@@ -21,10 +23,10 @@ if [[ $mode == menu ]]; then
         index=0
         case $category in
             raiz)
-                title='BMO-X // Categorias'; accent=5ad8ffff
+                title='BMO-X // Categorias'; accent=$personal
                 case $previous in apps) index=0;; discos) index=1;; juegos) index=2;; pantalla) index=3;; audio) index=4;; ambiente) index=5;; sistema) index=6;; esac
                 rows=('1 Aplicaciones' '2 Discos y bibliotecas' '3 Juegos' '4 Pantalla y graficos' '5 Audio' '6 Ambiente' '7 Sistema y ayuda');;
-            apps) title='Aplicaciones / HIELO'; accent=5ad8ffff
+            apps) title='Aplicaciones / ACENTO'; accent=$personal
                 rows=('Buscar aplicaciones' 'Navegador Brave' 'Archivos' 'Terminal' 'Editor' 'Volver a categorias');;
             discos) title='Discos / CYAN'; accent=00f0ffff
                 rows=('Panel de discos y preparacion' 'Carpetas guardadas' 'Windows NVMe (solo lectura)' 'Explorar discos (solo lectura)' 'Volver a categorias');;
@@ -35,7 +37,7 @@ if [[ $mode == menu ]]; then
             audio) title='Audio / VIOLETA'; accent=c03bffff
                 rows=('Salidas y volumen por aplicacion' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Amplificar 200%' 'Amplificar 300%' 'Amplificar 400%' 'Amplificar 500%' 'Volver a categorias');;
             ambiente) title='Ambiente / AMARILLO'; accent=fcee0aff
-                rows=('Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Volver a categorias');;
+                rows=('Personalizar escritorio' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Volver a categorias');;
             sistema) title='Sistema / CORAL'; accent=ff7a90ff
                 rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Volver a categorias');;
             *) exit 2;;
@@ -59,7 +61,7 @@ if [[ $mode == menu ]]; then
         break
     done
     case $choice in
-        'Buscar aplicaciones') exec fuzzel;;
+        'Buscar aplicaciones') exec ultra-personalizar lanzador;;
         'Navegador Brave') exec ultra-brave;;
         Archivos) exec thunar;;
         'Panel de discos y preparacion') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
@@ -92,6 +94,7 @@ if [[ $mode == menu ]]; then
         'Efectos vivos') mode=vivo;;
         'Efectos reducidos') mode=sobrio;;
         'Limpiar notificaciones') exec makoctl dismiss -a;;
+        'Personalizar escritorio') exec ultra-personalizar menu;;
         'Ayuda y atajos') exec foot /usr/bin/less /etc/ultra/AYUDA.txt;;
         'Equipo en vivo') exec foot --title='ULTRA / Equipo en vivo' watch -n 2 ultra-equipo texto;;
         'Administrador de aplicaciones') exec foot --fullscreen --title='ULTRA / Aplicaciones' ultra-aplicaciones;;

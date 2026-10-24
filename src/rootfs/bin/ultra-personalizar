@@ -1,0 +1,345 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Personalizacion del escritorio BMO-X / Neon. UID 1000, sin root, red ni eval de shell.
+
+Las elecciones se guardan en ~/.config/ultra/personal.json. Con ellas se generan
+copias del tema en ~/.config/ultra/tema-personal/ y se aplican en vivo.
+Sin elecciones guardadas no se genera nada: el escritorio usa /etc/ultra tal cual.
+"""
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+CONF = HOME / '.config/ultra'
+ESTADO = CONF / 'personal.json'
+TEMA = CONF / 'tema-personal'
+ETC = Path('/etc/ultra')
+CREAR_FONDO = Path('/usr/local/libexec/ultra-crear-fondo')
+
+# Colores del tema base que se sustituyen por el acento elegido.
+BASE, CLARO, OSCURO, BRILLO = '#5ad8ff', '#bff3ff', '#2b9fd0', 'rgba(90, 216, 255,'
+ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo': '#ff2a4f',
+           'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
+OPCIONES = {
+    'acento': list(ACENTOS) + ['propio'],
+    'fondo': ['neon', 'nucleo', 'imagen', 'liso'],
+    'efectos': ['vivos', 'reducidos'],
+    'borde': ['gira', 'quieto'],
+    'huecos': ['compacto', 'normal', 'amplio'],
+    'grosor': ['1', '2', '3'],
+    'cursor': ['24', '28', '32', '48'],
+    'barra': ['compacta', 'normal', 'grande'],
+    'inactivas': ['100', '92', '85'],
+}
+DEFECTO = dict(acento='hielo', fondo='neon', imagen='', efectos='vivos', borde='gira', huecos='normal',
+               grosor='2', cursor='28', barra='normal', inactivas='100')
+TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde de la ventana activa',
+               huecos='Huecos entre ventanas', grosor='Grosor del borde', cursor='Tamano del cursor',
+               barra='Tamano de la barra', inactivas='Opacidad de ventanas inactivas')
+HUECOS = {'compacto': (3, 6), 'normal': (6, 12), 'amplio': (10, 24)}
+BARRA = {'compacta': (13, 19), 'normal': (15, 23), 'grande': (17, 27)}
+IMAGENES = ('Imágenes', 'Pictures')
+EXTENSIONES = ('.png', '.jpg', '.jpeg', '.svg')
+
+
+def es_hex(valor):
+    return isinstance(valor, str) and re.fullmatch(r'#[0-9a-fA-F]{6}', valor) is not None
+
+
+def imagen_valida(texto):
+    if not isinstance(texto, str) or not texto or len(texto) > 512: return None
+    path = Path(texto)
+    if not any(path.parent == HOME / carpeta for carpeta in IMAGENES): return None
+    if path.suffix.lower() not in EXTENSIONES: return None
+    try:
+        info = path.lstat()
+    except OSError:
+        return None
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_size > 64 * 2**20: return None
+    return path
+
+
+def leer_estado():
+    """Estado validado; cualquier valor desconocido vuelve al defecto."""
+    estado = dict(DEFECTO)
+    try:
+        if ESTADO.is_symlink(): raise ValueError('personal.json redirigido')
+        crudo = json.loads(ESTADO.read_text()[:65536])
+    except FileNotFoundError:
+        return estado, False
+    except (OSError, ValueError):
+        return estado, True
+    if not isinstance(crudo, dict): return estado, True
+    for clave, opciones in OPCIONES.items():
+        valor = crudo.get(clave)
+        if valor in opciones and valor != 'propio': estado[clave] = valor
+        elif clave == 'acento' and es_hex(valor): estado[clave] = valor.lower()
+    if estado['fondo'] == 'imagen':
+        if imagen_valida(crudo.get('imagen')): estado['imagen'] = crudo['imagen']
+        else: estado['fondo'] = 'neon'
+    return estado, True
+
+
+def carpeta_segura(path):
+    path.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if path.is_symlink() or path.resolve() != path or path.stat().st_uid != os.geteuid():
+        raise ValueError('carpeta de personalizacion redirigida')
+
+
+def escribir(path, texto):
+    carpeta_segura(path.parent)
+    fd, nombre = tempfile.mkstemp(prefix='.personal-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            os.fchmod(f.fileno(), 0o600); f.write(texto)
+        os.replace(nombre, path)
+    finally:
+        if os.path.exists(nombre): os.unlink(nombre)
+
+
+def guardar(estado):
+    escribir(ESTADO, json.dumps({k: estado[k] for k in DEFECTO}, ensure_ascii=False, indent=1) + '\n')
+
+
+def color_acento(estado):
+    return ACENTOS.get(estado['acento'], estado['acento'])
+
+
+def rgb(color):
+    return tuple(int(color[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def mezclar(color, otro, peso):
+    return '#' + ''.join(f'{round(a * (1 - peso) + b * peso):02x}' for a, b in zip(rgb(color), rgb(otro)))
+
+
+def recolorear(texto, acento):
+    r, g, b = rgb(acento)
+    claro, oscuro = mezclar(acento, '#ffffff', .6), mezclar(acento, '#000000', .35)
+    for viejo, nuevo in ((BASE, acento), (CLARO, claro), (OSCURO, oscuro), (BRILLO, f'rgba({r}, {g}, {b},'),
+                         (BASE[1:] + 'ff', acento[1:] + 'ff'), (BASE[1:].upper(), acento[1:])):
+        texto = texto.replace(viejo, nuevo)
+    return texto
+
+
+def generar(estado):
+    """Copias personales del tema. Devuelve las rutas que debe usar la sesion."""
+    acento = color_acento(estado)
+    carpeta_segura(TEMA)
+    css = recolorear((ETC / 'waybar.css').read_text(), acento)
+    letra, reloj = BARRA[estado['barra']]
+    # Una sola pasada: un cambio no debe volver a tocar el resultado de otro.
+    tamanos = {'15': letra, '17': letra + 2, '23': reloj}
+    css = re.sub(r'font-size: (15|17|23)px', lambda m: f'font-size: {tamanos[m.group(1)]}px', css)
+    escribir(TEMA / 'waybar.css', css)
+    escribir(TEMA / 'mako.conf', recolorear((ETC / 'mako.conf').read_text(), acento))
+    escribir(TEMA / 'fuzzel.ini', recolorear((ETC / 'fuzzel.ini').read_text(), acento))
+    rutas = dict(WAYBAR_CSS=TEMA / 'waybar.css', MAKO_CONF=TEMA / 'mako.conf', FUZZEL_INI=TEMA / 'fuzzel.ini',
+                 FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    if estado['fondo'] == 'nucleo':
+        rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
+    elif estado['fondo'] == 'imagen' and imagen_valida(estado['imagen']):
+        rutas['FONDO'] = Path(estado['imagen'])
+    elif estado['fondo'] == 'liso':
+        rutas.update(FONDO='#06050a', FONDO_MODO='color')
+    elif acento != BASE:
+        resultado = subprocess.run(['/usr/bin/python', str(CREAR_FONDO), '--acento', acento],
+                                   capture_output=True, text=True, timeout=60, check=True)
+        if not resultado.stdout.startswith('<svg'): raise ValueError('fondo generado invalido')
+        escribir(TEMA / 'fondo.svg', resultado.stdout)
+        rutas['FONDO'] = TEMA / 'fondo.svg'
+    return rutas
+
+
+def rutas_sesion():
+    """Lineas CLAVE=valor para ultra-iniciar-escritorio; vacio si no hay personalizacion."""
+    estado, existe = leer_estado()
+    if not existe: return {}
+    return generar(estado)
+
+
+def lua_hyprland(estado):
+    acento = color_acento(estado)[1:]
+    dentro, fuera = HUECOS[estado['huecos']]
+    opacidad = int(estado['inactivas']) / 100
+    lua = ('hl.config({general={gaps_in=%d,gaps_out=%d,border_size=%s,col={active_border={colors={"rgba(%sff)","rgba(ff2a4fff)","rgba(00f0ffff)"},angle=45}}},'
+           'decoration={inactive_opacity=%.2f,shadow={color="rgba(%s40)"}}})'
+           % (dentro, fuera, estado['grosor'], acento, opacidad, acento))
+    lua += ';hl.animation({leaf="borderangle",enabled=%s,speed=60,bezier="lineal",style="loop"})' % (
+        'true' if estado['borde'] == 'gira' else 'false')
+    return lua
+
+
+def ejecutar(*cmd):
+    try: subprocess.run(list(cmd), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10, check=False)
+    except (OSError, subprocess.SubprocessError): pass
+
+
+def lanzar(*cmd):
+    try: subprocess.Popen(list(cmd), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError: pass
+
+
+def cursor_gtk(tamano):
+    for version in ('gtk-3.0', 'gtk-4.0'):
+        path = HOME / '.config' / version / 'settings.ini'
+        try:
+            if path.is_symlink() or not path.is_file(): continue
+            texto = path.read_text()[:65536]
+        except OSError:
+            continue
+        nuevo = re.sub(r'^gtk-cursor-theme-size=.*$', f'gtk-cursor-theme-size={tamano}', texto, flags=re.M)
+        if nuevo != texto: escribir(path, nuevo)
+
+
+def aplicar_hyprland(estado):
+    if not os.environ.get('HYPRLAND_INSTANCE_SIGNATURE'): return
+    ejecutar('hyprctl', 'eval', lua_hyprland(estado))
+    ejecutar('hyprctl', 'setcursor', 'ULTRA-Nucleo', estado['cursor'])
+    ejecutar('ultra-ambiente', 'vivo' if estado['efectos'] == 'vivos' else 'sobrio')
+
+
+def aplicar(estado, reiniciar=True):
+    rutas = generar(estado)
+    cursor_gtk(estado['cursor'])
+    aplicar_hyprland(estado)
+    if not reiniciar or not os.environ.get('WAYLAND_DISPLAY'): return rutas
+    ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg')
+    if rutas['FONDO_MODO'] == 'color': lanzar('swaybg', '-c', str(rutas['FONDO']))
+    else: lanzar('swaybg', '-i', str(rutas['FONDO']), '-m', 'fill')
+    ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar')
+    lanzar('waybar', '-c', str(ETC / 'waybar.jsonc'), '-s', str(rutas['WAYBAR_CSS']))
+    ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako')
+    lanzar('mako', '--config', str(rutas['MAKO_CONF']))
+    return rutas
+
+
+def restablecer():
+    for nombre in ('waybar.css', 'mako.conf', 'fuzzel.ini', 'fondo.svg'):
+        try: (TEMA / nombre).unlink()
+        except FileNotFoundError: pass
+    try: ESTADO.unlink()
+    except FileNotFoundError: pass
+    estado = dict(DEFECTO)
+    cursor_gtk(estado['cursor'])
+    aplicar_hyprland(estado)
+    if os.environ.get('WAYLAND_DISPLAY'):
+        ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg'); lanzar('swaybg', '-i', str(ETC / 'wallpaper.svg'), '-m', 'fill')
+        ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar'); lanzar('waybar', '-c', str(ETC / 'waybar.jsonc'), '-s', str(ETC / 'waybar.css'))
+        ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako'); lanzar('mako', '--config', str(ETC / 'mako.conf'))
+
+
+def poner(clave, valor):
+    estado, _ = leer_estado()
+    if clave == 'imagen':
+        if not imagen_valida(valor): raise ValueError('imagen no valida: usa PNG, JPG o SVG propios en ~/Imágenes o ~/Pictures')
+        estado.update(fondo='imagen', imagen=valor)
+    elif clave == 'acento' and es_hex(valor):
+        estado['acento'] = valor.lower()
+    elif clave in OPCIONES and valor in OPCIONES[clave] and valor != 'propio':
+        estado[clave] = valor
+    else:
+        raise ValueError(f'opcion no valida: {clave}={valor}')
+    guardar(estado)
+    return estado
+
+
+# ---------- Menu con fuzzel ----------
+def elegir(filas, titulo, acento, indice=0, escribir_libre=False):
+    color = acento[1:] + 'ff'
+    cmd = ['fuzzel', '--dmenu', '--no-sort', '--width=46', f'--lines={max(1, len(filas))}', f'--prompt={titulo} // ',
+           f'--select-index={indice}', '--background-color=06050af7', '--text-color=ece9dcff',
+           f'--selection-color={color}', '--selection-text-color=000000ff', f'--border-color={color}',
+           f'--prompt-color={color}', f'--match-color={color}', '--selection-match-color=000000ff']
+    if not escribir_libre: cmd.insert(2, '--only-match')
+    try:
+        resultado = subprocess.run(cmd, input='\n'.join(filas), capture_output=True, text=True, timeout=600)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return resultado.stdout.rstrip('\n') if resultado.returncode == 0 else None
+
+
+def avisar(texto):
+    ejecutar('notify-send', '--app-name=ULTRA', '--icon=preferences-desktop-theme', 'BMO-X / Personalizar', texto)
+
+
+def menu():
+    while True:
+        estado, _ = leer_estado()
+        acento = color_acento(estado)
+        claves = list(OPCIONES)
+        filas = [f'{TITULOS[c]}: {estado[c]}' for c in claves] + ['Restablecer todo', 'Cerrar']
+        eleccion = elegir(filas, 'PERSONALIZAR', acento)
+        eleccion = eleccion.strip() if eleccion is not None else None
+        if eleccion is None or eleccion == 'Cerrar': return
+        if eleccion == 'Restablecer todo':
+            if elegir(['No, volver', 'Si, restablecer todo'], 'RESTABLECER', acento) == 'Si, restablecer todo':
+                restablecer(); avisar('Escritorio restablecido al tema Neon hielo.')
+            continue
+        clave = claves[filas.index(eleccion)] if eleccion in filas[:len(claves)] else None
+        if clave is None: continue
+        opciones = OPCIONES[clave]
+        actual = estado[clave] if estado[clave] in opciones else 'propio'
+        marcadas = [('● ' if o == actual else '  ') + o for o in opciones] + ['  ← volver']
+        valor = elegir(marcadas, TITULOS[clave].upper(), acento, opciones.index(actual))
+        if not valor or valor.endswith('volver'): continue
+        valor = valor.lstrip('● ').strip()
+        try:
+            if clave == 'acento' and valor == 'propio':
+                texto = elegir([], 'COLOR HEX #RRGGBB', acento, escribir_libre=True)
+                if not texto: continue
+                texto = texto.strip()
+                estado = poner('acento', texto if texto.startswith('#') else '#' + texto)
+            elif clave == 'fondo' and valor == 'imagen':
+                archivos = []
+                for carpeta in IMAGENES:
+                    try: archivos += sorted(p for p in (HOME / carpeta).iterdir() if imagen_valida(str(p)))[:64]
+                    except OSError: pass
+                if not archivos:
+                    avisar('Guarda una imagen PNG, JPG o SVG en ~/Imágenes y vuelve a elegirla.'); continue
+                nombre = elegir([p.name for p in archivos], 'IMAGEN', acento)
+                if not nombre: continue
+                estado = poner('imagen', str(next(p for p in archivos if p.name == nombre)))
+            else:
+                estado = poner(clave, valor)
+            aplicar(estado)
+            avisar(f'{TITULOS[clave]}: {estado[clave]}')
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            avisar(str(error))
+
+
+def main():
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    os.umask(0o077)
+    accion = sys.argv[1] if len(sys.argv) > 1 else 'menu'
+    if accion == 'menu': menu()
+    elif accion == 'rutas':
+        for clave, valor in rutas_sesion().items(): print(f'{clave}={valor}')
+    elif accion == 'hyprland':
+        estado, existe = leer_estado()
+        if existe: aplicar_hyprland(estado)
+    elif accion == 'acento':
+        estado, existe = leer_estado()
+        if existe: print(color_acento(estado)[1:] + 'ff')
+    elif accion == 'lanzador':
+        config = TEMA / 'fuzzel.ini'
+        _, existe = leer_estado()
+        if existe and config.is_file() and not config.is_symlink(): os.execvp('fuzzel', ['fuzzel', f'--config={config}'])
+        os.execvp('fuzzel', ['fuzzel'])
+    elif accion == 'poner' and len(sys.argv) == 4:
+        aplicar(poner(sys.argv[2], sys.argv[3]))
+    elif accion == 'restablecer': restablecer()
+    else: raise ValueError('uso: ultra-personalizar menu|poner CLAVE VALOR|restablecer|rutas|hyprland|acento|lanzador')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('PERSONALIZAR:', error, file=sys.stderr); sys.exit(1)

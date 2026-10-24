@@ -60,6 +60,55 @@ La migración `neon-1` funciona igual que `nucleo-1`, en el primer inicio:
 - instala los nuevos;
 - no vuelve a pisar los cambios que el usuario haga después.
 
+## Personalizar (Super+Shift+P)
+
+`ultra-personalizar` cambia el escritorio sin root. Se abre con **Super+Shift+P**,
+con **Super+Espacio > Ambiente > Personalizar escritorio** o con clic derecho en
+la luna de la barra.
+
+| Opción | Valores |
+| --- | --- |
+| Acento | hielo, amarillo, cyan, rojo, verde, violeta, coral, blanco o un hex propio (`#RRGGBB`) |
+| Fondo | Neón con el acento elegido, Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
+| Efectos | vivos o reducidos |
+| Borde de la ventana activa | gira o quieto |
+| Huecos entre ventanas | compacto, normal o amplio |
+| Grosor del borde | 1, 2 o 3 px |
+| Tamaño del cursor | 24, 28, 32 o 48 px |
+| Tamaño de la barra | compacta, normal o grande |
+| Opacidad de ventanas inactivas | 100 %, 92 % u 85 % |
+
+Cómo funciona:
+
+- Las elecciones van a `~/.config/ultra/personal.json`.
+- A partir de ellas se generan copias del tema en `~/.config/ultra/tema-personal/`:
+  Waybar, mako, fuzzel y el fondo.
+- Hyprland recibe los cambios en vivo con `hyprctl eval`; la barra, los avisos y
+  el fondo se reinician solos.
+- Al iniciar sesión, `ultra-iniciar-escritorio` vuelve a aplicar lo guardado.
+- **Sin elecciones guardadas no se genera nada**: el escritorio usa `/etc/ultra`
+  tal cual y las pruebas de arranque no cambian.
+- Un `personal.json` dañado o editado a mano vuelve a valores seguros. Las imágenes
+  deben ser archivos propios, no enlaces y de menos de 64 MiB.
+- **Restablecer todo** borra solo esos archivos y vuelve al tema del sistema.
+
+`scripts/probar_personalizar.py` prueba todo esto en un HOME temporal, con el tema
+real y comandos de sesión falsos: generación, aplicación, rechazos, valores
+dañados, menú y restablecimiento. El [prototipo](maquetas/neon/vivo.html) tiene el
+mismo panel (Alt+U) para ver cada opción antes de construir la imagen.
+
+## Rust
+
+La imagen incluye `rustup`, `gcc` (Rust lo usa para enlazar), `git` y `pkgconf`.
+
+- **Primera vez:** en una terminal, `rustup default stable`. Descarga unos 300 MB
+  al home.
+- **Dónde queda:** con almacenamiento persistente se conserva; con el home en RAM
+  se pierde al apagar.
+- **Versión por proyecto:** los proyectos con `rust-toolchain.toml`, como BMO-X,
+  eligen su propia versión solos.
+- **PATH:** `~/.cargo/bin` ya está incluido para lo que instales con `cargo install`.
+
 ## Animaciones del sistema real
 
 | Animación | Configuración |

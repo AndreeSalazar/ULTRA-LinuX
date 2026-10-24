@@ -23,7 +23,7 @@ kernel_before=$(sha256sum bzImage-tiny64)
 rm -f build-complete
 if [[ $modo == completo ]]; then
 sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
-    -S --needed --noconfirm papirus-icon-theme otf-font-awesome ttf-jetbrains-mono mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
+    -S --needed --noconfirm papirus-icon-theme otf-font-awesome ttf-jetbrains-mono rustup gcc git pkgconf mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
 if sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -Q woff2-font-awesome >/dev/null 2>&1; then
     sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -R --noconfirm woff2-font-awesome
 fi
@@ -34,10 +34,10 @@ sudo install -m 0644 "$lab/rootfs/desktop/"* "$art/sistema-a/etc/ultra/"
 sudo install -m 0644 fuentes-escritorio.sha256 "$art/sistema-a/etc/ultra/escritorio-fuentes.sha256"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$art/sistema-a/usr/local/bin/ultra-ambiente"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-hyprland" "$art/sistema-a/usr/local/libexec/ultra-hyprland"
-for helper in ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio; do
+for helper in ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-crear-fondo ultra-preparar-limites; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/libexec/$helper"
 done
-for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas ultra-pantallas ultra-discos; do
+for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas ultra-pantallas ultra-discos ultra-personalizar ultra-aplicaciones ultra-espacio; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/bin/$helper"
 done
 for helper in "$lab/rootfs/bin/"*; do

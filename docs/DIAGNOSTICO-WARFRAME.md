@@ -48,6 +48,26 @@ un JSON con categorias y numeros. El recolector, el panel y sus archivos se
 ejecutan con UID 1000 sin capacidades. No existe un canal para enviarle
 ordenes al lector privilegiado.
 
+## Contadores del kernel para tirones (24 de octubre)
+
+Para buscar la causa de los tirones en multijugador, cada muestra añade, solo
+lectura:
+
+| Dato | Para qué sirve |
+| --- | --- |
+| `compact_stall`, `compact_fail`, `thp_fault_fallback`, `allocstall_*` | Pausas del kernel al reorganizar memoria o al no conseguir páginas grandes |
+| Frecuencia de la CPU (mínima, media, máxima) | Si el tirón coincide con una bajada de frecuencia |
+| Softirq por segundo (NET_RX, NET_TX, TIMER, HRTIMER, SCHED, BLOCK) | Ráfagas de red o de temporizador durante el tirón |
+| Cambios de contexto por segundo | Carga de planificación global |
+| `expulsado/s` por hilo del juego | Cuántas veces el kernel le quitó la CPU a ese hilo sin que la soltara |
+
+El resumen de cuadros añade el p99.9 y los **tirones relativos**: cuadros que
+duran más del doble de la mediana (y al menos 8 ms más). Antes solo se contaban
+los de más de 33 ms; a 75–144 FPS un tirón de 15–30 ms no aparecía.
+
+Ningún contador demuestra la causa por sí solo. Sirven para ver qué coincide con
+cada tirón y decidir qué probar después.
+
 ## Almacenamiento acotado
 
 Los cuadros se escriben temporalmente en un tmpfs de **64 MiB**, con
