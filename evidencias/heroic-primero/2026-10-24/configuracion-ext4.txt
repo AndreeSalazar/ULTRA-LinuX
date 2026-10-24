@@ -1,0 +1,15 @@
+
+ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINAL-$((40+2))
+ultra:~# ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINA
+L-$((40+2))
+HEROIC-CONFIG {"targetExe": "/juegos/Cyberpunk2077/REDprelauncher.exe", "ignoreGameUpdates": false, "prefix_preserved": true, "runner_preserved": true, "config_backed_up": true, "game_files_unchanged": true}
+e2fsck 1.47.4 (6-Mar-2025)
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+ULTRA-DATOS: 110599/27172864 files (0.4% non-contiguous), 49208371/108670208 blocks
+HEROIC-LAUNCHER-42
+RESULTADO-0
+FINAL-42

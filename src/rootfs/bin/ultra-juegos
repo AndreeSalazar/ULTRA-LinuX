@@ -110,14 +110,14 @@ case $action in
             notify-send --urgency=critical 'Cyberpunk: falta el montaje' 'El juego no esta accesible en /juegos/Cyberpunk2077. Revisa Estado y espacio; no hace falta instalarlo de nuevo.' || true
             exit 1
         fi
-        # Use Heroic's saved runner and prefix, including its update state.
-        # Do not silently create a second Wine prefix from the desktop shortcut.
+        # Open the manager first: the user can review updates before pressing Play.
+        # The game's saved runner, prefix and launcher are managed by Heroic.
         if ! ultra-gog-cyberpunk > "$HOME/.cache/ultra/gog-cyberpunk.log" 2>&1; then
             notify-send 'Cyberpunk / Heroic' 'No se pudo registrar ahora. Se abre Heroic para revisar el juego; si estaba abierto, cierralo y vuelve a intentarlo.' || true
             exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1
         fi
-        export ULTRA_GAME_ID=ultra:cyberpunk2077 ULTRA_GAME_NAME='Cyberpunk 2077'
-        exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland 'heroic://launch?appName=1423049311&runner=gog' >> "$HOME/.cache/ultra/cyberpunk-heroic.log" 2>&1;;
+        notify-send 'Cyberpunk / GOG' 'Primero Heroic: selecciona Cyberpunk para actualizar o verificar. Pulsa Jugar para abrir REDlauncher.' || true
+        exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/cyberpunk-heroic.log" 2>&1;;
     cyberpunk-directo)
         ultra-espacio permitir-juegos || exit 1
         game=/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe

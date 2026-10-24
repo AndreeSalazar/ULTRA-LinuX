@@ -35,9 +35,9 @@ class Launch(unittest.TestCase):
     def tearDown(self):self.temp.cleanup()
     def run_action(self,action='cyberpunk'):
         return subprocess.run(['/usr/bin/bash',str(self.script),action],env=self.env,capture_output=True,text=True)
-    def test_normal_uses_saved_heroic_configuration_without_second_prefix(self):
+    def test_normal_opens_manager_without_launching_game_or_second_prefix(self):
         result=self.run_action();self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(self.record.read_text().splitlines(),['preserved-sentinel','--ozone-platform=wayland','heroic://launch?appName=1423049311&runner=gog'])
+        self.assertEqual(self.record.read_text().splitlines(),['preserved-sentinel','--ozone-platform=wayland'])
         self.assertFalse((self.home/'Juegos/prefijos/cyberpunk2077').exists())
     def test_registration_failure_opens_manager_without_automatic_launch(self):
         self.env['REGISTER_RESULT']='1'

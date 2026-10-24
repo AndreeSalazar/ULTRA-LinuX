@@ -1,0 +1,13 @@
+{
+  "checkForUpdatesOnStartup": true,
+  "autoUpdateGames": false,
+  "ultima_consulta_hora_peru": "2026-10-24 15:38:40",
+  "actualizaciones_detectadas_en_esa_consulta": 0,
+  "consulta_nueva_a_gog_realizada": false,
+  "descargas_iniciadas": false,
+  "interfaz_objetivo": [
+    "Heroic",
+    "REDlauncher",
+    "Cyberpunk2077"
+  ]
+}

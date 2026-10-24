@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Cyberpunk 2077 - GOG / Heroic
-Comment=Usa el Proton y el prefijo configurados en Heroic; almacenamiento Linux persistente
+Name=Cyberpunk 2077 - Abrir Heroic
+Comment=Primero Heroic para actualizar o verificar; pulsa Jugar para abrir REDlauncher
 Exec=/usr/local/bin/ultra-juegos cyberpunk
 Icon=ultra-cyberpunk
 Terminal=false

@@ -1,0 +1,13 @@
+{
+  "system_sha256": "C5FCD8B8C503ECA35E68E99C279AA259749D2C87DEDABF59FE2BE762EEF0535F",
+  "kernel_sha256": "E2242E375F3F508C535F18CF684A573D1D5664350A6199742EE9F0AB1891C8F7",
+  "datos_sha256": "3BA563FF7E5ED6CD0B33A736FF17EBB800F6B5332F55BA2D657443A00D284E0C",
+  "datos_preservados": true,
+  "qa_arranque_verde": 152,
+  "qa_arranque_rojo": 0,
+  "fixtures_lanzador": 4,
+  "fixtures_registro": 9,
+  "heroic_primero": true,
+  "redlauncher_configurado": true,
+  "transicion_visual_hardware_pendiente": true
+}

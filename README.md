@@ -78,6 +78,10 @@ apartaron con respaldo y se comprobó su lectura como usuario del escritorio.
 El seguimiento revisó 26 archivos PE y recuperó otras tres dependencias
 transitivas ocultas; la cadena local termina ahora sin faltantes detectados.
 
+[Heroic primero](docs/HEROIC-PRIMERO-2026-10-24.md): el acceso abre el gestor
+para revisar actualizaciones. Al pulsar Jugar, se abre REDlauncher y después
+el juego; la recuperación directa sigue disponible.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.
