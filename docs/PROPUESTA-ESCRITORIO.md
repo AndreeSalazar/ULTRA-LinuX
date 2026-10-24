@@ -104,6 +104,67 @@ Qué puede dibujar cada programa (las maquetas respetan estos límites):
 Las funciones de cada maqueta son las mismas que se describen abajo para
 Núcleo 2; solo cambia el estilo.
 
+### Neón en vivo: prototipo animado
+
+[`maquetas/neon/vivo.html`](maquetas/neon/vivo.html) es el escritorio Neón
+funcionando en el navegador: se abre con doble clic, sin instalar nada. Alt hace
+de Super. El botón **▶ Recorrido** muestra todo en un minuto, y
+[`recorrido.mp4`](maquetas/png/neon/recorrido.mp4) es la grabación de ese
+recorrido.
+
+Qué se anima:
+
+- **Fondo:** lluvia, ventanas y balizas que se encienden, letreros con apagones,
+  dos haces de luz, el aro del autor girando y destellos en el horizonte.
+- **Ventanas:** aparecen con un corte, se reacomodan al abrir o cerrar, y la
+  activa lleva un borde amarillo → rojo → cyan que gira.
+- **Escritorios** que se deslizan, terminal rápida que baja desde arriba,
+  Alt+Tab, centro BMO-X con filtro y avisos que entran desde la derecha.
+- **Barra:** números de CPU, GPU, RAM y red que se mueven solos, y la CPU parpadea
+  en rojo si pasa del 80 %.
+- **Paneles y pantallas especiales:** Equipo en vivo con barras que se llenan,
+  captura de región con destello, modo juego con MangoHud en vivo, y bloqueo con
+  reloj glitch y salida animada.
+- **Efectos reducidos** (Alt+A) lo detiene todo, igual que `ultra-ambiente sobrio`.
+
+### Qué animación es real en cada programa
+
+| Animación | Programa | Cómo | Estado |
+| --- | --- | --- | --- |
+| Ventana nueva (popin) y cierre | Hyprland | `windowsIn` popin 90 %, `windowsOut` popin 94 %, curva `0.16,1,0.3,1` | Nativo |
+| Corte glitch al abrir | Hyprland | No existe: se queda en popin | Solo prototipo |
+| Reacomodo de ventanas | Hyprland | `windowsMove` 0,35 s | Nativo |
+| Borde que gira | Hyprland | Borde con degradado + `borderangle` en modo `loop` | Nativo (gasta algo de GPU) |
+| Brillo de la ventana activa | Hyprland | Sombra con color de acento | Nativo |
+| Escritorios que se deslizan | Hyprland | `workspaces` slide 0,45 s | Nativo |
+| Terminal rápida | Hyprland | `specialWorkspace` slidevert | Nativo |
+| Menú, avisos y barra que entran | Hyprland | Animación de capas (`layers`) con slide | Nativo |
+| Reloj, alerta de CPU y escritorio activo | Waybar | `@keyframes` y `transition` de GTK CSS | Nativo |
+| Barra de tiempo del aviso | mako | mako no la tiene | Solo prototipo |
+| Barras de Equipo en vivo | eww | `transition` de GTK CSS | Nativo con eww |
+| Reloj glitch del bloqueo | hyprlock | Aparición y desaparición sí; glitch no | Aproximado |
+| Fondo con lluvia, letreros y aro | Programa de fondo animado | Pintor propio o video en bucle | Decide RING 0 |
+
+El fondo animado es lo único con coste continuo. Propuesta:
+
+- pausarlo en pantalla completa, en juegos y con efectos reducidos;
+- usar el SVG fijo como respaldo;
+- si RING 0 no lo aprueba, el escritorio funciona igual con el fondo fijo.
+
+### Perfil del autor
+
+- **Autor:** Eddi Salazar aparece en la barra (botón **EDDI**), en una tarjeta de
+  perfil (Alt+I), en el bloqueo, en `ultra-info` y en la placa del fondo.
+- **Emblema:** [`emblema-autor.svg`](maquetas/neon/emblema-autor.svg) es original,
+  inspirado en tu personaje: capucha negra, ojos y sonrisa en azul hielo, corona
+  de cristal, aro y fragmentos glitch. Serviría de avatar en hyprlock y de logo
+  en `ultra-info`.
+- **Tu imagen:** para usarla, guárdala como `docs/maquetas/neon/autor.png`. El
+  prototipo la detecta y la pone en lugar del emblema.
+- **Acento Hielo:** Alt+K cambia el amarillo por el azul hielo `#5ad8ff` en
+  toda la interfaz y en el fondo.
+
+
 ## Maquetas Núcleo 2
 
 Las maquetas son HTML renderizado con Chromium a 1920×1080, en
@@ -215,7 +276,8 @@ Es la referencia para generar todos los archivos de tema desde un solo
 
 ### A. Coherencia visual
 
-- [ ] Elegir el estilo: Neón (propuesta principal) o Núcleo 2.
+- [ ] Elegir el estilo: Neón (propuesta principal) o Núcleo 2, y el acento: amarillo o hielo.
+- [ ] Decidir el fondo animado (RING 0) y aplicar las animaciones nativas de Hyprland de la tabla.
 - [ ] `paleta.json` como fuente única. Un script generaría `hyprland.lua`
       (colores), `waybar.css`, `gtk.css`, `mako.conf`, `fuzzel.ini`,
       `foot.ini`, `MangoHud.conf`, hyprlock y el SVG del fondo. Ver la maqueta 9.

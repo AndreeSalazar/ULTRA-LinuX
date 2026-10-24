@@ -1,0 +1,1220 @@
+<title>BMO-X Neón en vivo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Escritorio BMO-X / Neon simulado a 1920x1080 y escalado a la ventana; controles debajo. */
+:root {
+  color-scheme: dark;
+  --negro: #06050a; --fondo: #0a0910; --panel: #0f0e16; --panel-2: #16141f;
+  --linea: #2a2733; --linea-2: #3b3747;
+  --amarillo: #fcee0a; --amarillo-2: #c9be08; --rojo: #ff2a4f; --cyan: #00f0ff; --cyan-2: #0aa3ad; --verde: #3dff9a; --violeta: #c03bff;
+  --texto: #ece9dc; --texto-2: #a19eae; --texto-3: #625f70;
+  --titulo: "Rajdhani", "Arial Narrow", sans-serif;
+  --ui: "Chakra Petch", "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "DejaVu Sans Mono", monospace;
+  --curva: cubic-bezier(.16, 1, .3, 1);
+  --corte-chico: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  --brillo: rgba(252, 238, 10, .22); --foco-fondo: #1b1906; --hielo: #5ad8ff; --hielo-claro: #bff3ff;
+}
+/* Acento Hielo: el estilo del autor (negro y azul hielo) */
+body.hielo { --amarillo: #5ad8ff; --amarillo-2: #2b9fd0; --brillo: rgba(90, 216, 255, .28); --foco-fondo: #06161d; }
+@property --ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: #030206; color: var(--texto); font-family: var(--ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 14px; }
+.pagina { display: flex; flex-direction: column; gap: 12px; max-width: 1920px; margin: 0 auto; }
+.cabeza { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; }
+.cabeza h1 { margin: 0; font: 700 26px/1 var(--titulo); letter-spacing: 5px; color: var(--amarillo); text-shadow: -2px 0 rgba(255, 42, 79, .7), 2px 0 rgba(0, 240, 255, .5); }
+.cabeza p { margin: 0; font: 13px/1.5 var(--mono); color: var(--texto-2); min-width: 0; }
+.marco { position: relative; width: min(100%, calc((100dvh - 190px) * 16 / 9)); min-width: 280px; max-width: 100%; aspect-ratio: 16 / 9; margin-inline: auto; overflow: hidden; outline: 1px solid var(--linea-2); background: #000; }
+.marco:focus-visible { outline: 2px solid var(--amarillo); }
+.escena { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; font-family: var(--ui); }
+.controles { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.controles button { font: 700 13px/1 var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; color: var(--texto); background: var(--panel); border: 1px solid var(--linea-2); padding: 9px 12px; cursor: pointer; clip-path: var(--corte-chico); }
+.controles button:hover { border-color: var(--amarillo); color: var(--amarillo); }
+.controles button:focus-visible { outline: 2px solid var(--amarillo); outline-offset: 1px; }
+.controles button.prin { background: var(--amarillo); color: #000; border-color: var(--amarillo); }
+.controles kbd { font: 500 11px var(--mono); color: var(--texto-3); margin-left: 6px; letter-spacing: 0; }
+.controles button.prin kbd { color: #4a4600; }
+.nota { text-align: center; font: 12px/1.5 var(--mono); color: var(--texto-3); }
+
+/* ---------- Fondo ---------- */
+#fondo { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+
+/* ---------- Barra ---------- */
+.barra { position: absolute; top: 0; left: 0; right: 0; height: 40px; z-index: 30; display: flex; align-items: stretch; background: rgba(6, 5, 10, .92);
+  border-bottom: 2px solid var(--amarillo); box-shadow: 0 2px 18px var(--brillo); font: 600 15px/1 var(--titulo); letter-spacing: 1px; text-transform: uppercase;
+  transition: transform .35s var(--curva); }
+.juego-on .barra { transform: translateY(-110%); }
+.barra .grupo { display: flex; align-items: center; }
+.barra .der { margin-left: auto; }
+.inicio { display: flex; align-items: center; gap: 10px; padding: 0 34px 0 18px; color: #000; font-weight: 700; font-size: 17px; letter-spacing: 3px; cursor: pointer;
+  background: linear-gradient(115deg, var(--amarillo) calc(100% - 18px), transparent calc(100% - 18px)); }
+.inicio:hover { animation: glitch-txt .35s steps(2) 1; }
+.escritorios { position: relative; display: flex; gap: 3px; margin: 0 14px 0 6px; }
+.escritorios .marca { position: absolute; left: 0; top: 0; width: 34px; height: 26px; background: var(--amarillo); transition: transform .3s var(--curva); box-shadow: 0 0 12px var(--brillo); }
+.esc { position: relative; z-index: 1; width: 34px; height: 26px; display: grid; place-items: center; color: var(--texto-3); font: 600 14px var(--mono); cursor: pointer; border-bottom: 2px solid transparent; transition: color .2s; }
+.esc.ocupado { color: var(--texto); border-bottom-color: var(--amarillo-2); }
+.esc.activo { color: #000; font-weight: 700; border-bottom-color: transparent; }
+.titulo-ventana { color: var(--texto-2); font: 500 14px var(--ui); text-transform: none; letter-spacing: .3px; padding-left: 14px; border-left: 1px solid var(--linea-2); width: 470px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.titulo-ventana b { color: var(--cyan); font-weight: 600; margin-right: 6px; }
+.titulo-ventana i { display: inline-block; width: 8px; height: 14px; vertical-align: -2px; background: var(--amarillo); animation: parpadeo 1s steps(1) infinite; }
+.centro { position: absolute; left: 50%; top: 0; bottom: 0; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; }
+.reloj { font: 700 23px/1 var(--titulo); letter-spacing: 3px; font-variant-numeric: tabular-nums; }
+.reloj i { color: var(--amarillo); font-style: normal; animation: parpadeo 2s steps(1) infinite; }
+.fecha { font-size: 13px; color: var(--texto-2); letter-spacing: 2px; }
+.mod { display: flex; align-items: center; gap: 7px; padding: 0 13px; height: 100%; font-variant-numeric: tabular-nums; position: relative; }
+.mod + .mod::before { content: ""; position: absolute; left: 0; top: 11px; bottom: 11px; width: 1px; background: var(--linea-2); transform: skewX(-20deg); }
+.mod .k { color: var(--cyan); font-size: 12px; letter-spacing: 2px; }
+.mod .t { color: var(--texto-3); font-size: 13px; }
+.mod.alerta .v { color: var(--rojo); animation: pulso .8s ease-in-out infinite; }
+.mod.boton { cursor: pointer; color: var(--cyan); }
+.mod.boton:hover { color: var(--amarillo); }
+.fin { padding: 0 18px 0 30px; color: #000; display: flex; align-items: center; cursor: pointer; background: linear-gradient(115deg, transparent 16px, var(--rojo) 16px); }
+.fin:hover { filter: brightness(1.2); }
+
+/* ---------- Dock ---------- */
+.dock { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 30; display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: rgba(6, 5, 10, .94);
+  border-top: 2px solid var(--amarillo); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); transition: transform .35s var(--curva); }
+.juego-on .dock { transform: translate(-50%, 140%); }
+.app { position: relative; width: 58px; height: 52px; display: grid; place-items: center; background: var(--panel); border: 1px solid var(--linea); clip-path: var(--corte-chico); cursor: pointer;
+  transition: transform .2s var(--curva), border-color .2s, background .2s; }
+.app svg { width: 32px; height: 32px; transition: transform .2s var(--curva); }
+.app:hover { transform: translateY(-4px); border-color: var(--amarillo-2); }
+.app:hover svg { transform: scale(1.08); }
+.app::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 0; height: 3px; background: var(--amarillo-2); transform: translateX(-50%); transition: width .3s var(--curva), background .2s; }
+.app.abierta::after { width: 14px; }
+.app.foco { border-color: var(--amarillo); background: var(--foco-fondo); }
+.app.foco::after { width: 30px; background: var(--amarillo); box-shadow: 0 0 8px var(--amarillo); }
+.dock .sep { width: 2px; height: 34px; background: var(--linea-2); margin: 0 4px; transform: skewX(-20deg); }
+
+/* ---------- Escritorios y ventanas ---------- */
+.capa { position: absolute; inset: 0; transition: transform .45s var(--curva); }
+.quieto .capa, .quieto .escritorios .marca { transition: none !important; }
+.win { position: absolute; padding: 2px; background: var(--linea); z-index: 5;
+  transition: left .35s var(--curva), top .35s var(--curva), width .35s var(--curva), height .35s var(--curva), box-shadow .3s; }
+.win.flota { z-index: 8; box-shadow: 0 20px 60px rgba(0, 0, 0, .75); }
+.win.activa { background: conic-gradient(from var(--ang), var(--amarillo), var(--rojo), var(--cyan), var(--amarillo)); animation: girar 6s linear infinite; box-shadow: 0 0 26px var(--brillo); }
+.win.flota.activa { box-shadow: 0 0 26px var(--brillo), 0 20px 60px rgba(0, 0, 0, .75); }
+.win-in { width: 100%; height: 100%; background: #08070c; overflow: hidden; position: relative; transition: filter .3s; }
+.win:not(.activa) .win-in { filter: brightness(.78) saturate(.75); }
+.win.abriendo { animation: abrir .42s var(--curva) both; }
+.win.cerrando { animation: cerrar .18s ease-in both; pointer-events: none; }
+.win.abriendo .win-in::after { content: ""; position: absolute; inset: 0; pointer-events: none; animation: rejilla-glitch .42s steps(5) both;
+  background: linear-gradient(transparent 0 30%, rgba(252, 238, 10, .25) 30% 33%, transparent 33% 62%, rgba(0, 240, 255, .25) 62% 64%, transparent 64%); }
+
+/* Contenido: terminal */
+.term { font: 15px/1.6 var(--mono); padding: 14px 18px; white-space: pre; color: var(--texto); height: 100%; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+.am { color: var(--amarillo); } .ro { color: var(--rojo); } .cy { color: var(--cyan); } .gr { color: var(--texto-3); } .ve { color: var(--verde); } .bl { color: #fff; } .vi { color: var(--violeta); }
+.cursor { display: inline-block; width: 9px; height: 18px; vertical-align: -3px; background: var(--amarillo); animation: parpadeo 1s steps(1) infinite; }
+/* GTK */
+.gtk-cab { height: 42px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--linea-2); font: 600 15px var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; }
+.gtk-cab .sep { color: var(--texto-3); } .gtk-cab .sub { color: var(--cyan); }
+.gtk-cab .bts { margin-left: auto; display: flex; gap: 6px; }
+.gtk-cab .bts span { width: 26px; height: 22px; border: 1px solid var(--linea-2); }
+.gtk-cab .bts span:last-child { background: var(--rojo); border-color: var(--rojo); cursor: pointer; }
+.ruta { height: 40px; display: flex; align-items: center; gap: 4px; padding: 0 14px; border-bottom: 1px solid var(--linea); background: var(--fondo); font: 500 13px var(--mono); color: var(--texto-2); }
+.ruta span { padding: 4px 10px; background: var(--panel-2); clip-path: var(--corte-chico); }
+.ruta span:last-child { background: var(--amarillo); color: #000; font-weight: 700; }
+.thunar { display: grid; grid-template-columns: 210px 1fr; height: calc(100% - 82px); }
+.lado { background: var(--fondo); border-right: 1px solid var(--linea); padding: 10px 0; font-size: 14px; }
+.lado h4 { margin: 0; font: 700 12px var(--titulo); letter-spacing: 3px; color: var(--rojo); padding: 10px 18px 6px; }
+.lado div { display: flex; align-items: center; gap: 10px; padding: 8px 18px; color: var(--texto-2); cursor: pointer; transition: background .15s, color .15s; }
+.lado div:hover { color: var(--texto); background: rgba(255, 255, 255, .03); }
+.lado div.sel { color: var(--amarillo); background: rgba(252, 238, 10, .08); box-shadow: inset 3px 0 0 var(--amarillo); }
+.lado svg { width: 20px; height: 20px; }
+.rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; padding: 18px; align-content: start; }
+.archivo { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; padding: 12px 4px; border: 1px solid transparent; cursor: pointer; transition: border-color .15s, background .15s; text-align: center; }
+.archivo svg { width: 50px; height: 50px; }
+.archivo:hover { border-color: var(--linea-2); }
+.archivo.sel { border-color: var(--amarillo); background: rgba(252, 238, 10, .06); }
+.editor { font: 14px/1.75 var(--mono); padding: 10px 0; }
+.editor div { padding: 0 16px; white-space: pre; }
+.editor i { display: inline-block; width: 30px; color: var(--texto-3); font-style: normal; text-align: right; margin-right: 16px; }
+.editor .act { background: rgba(0, 240, 255, .06); box-shadow: inset 3px 0 0 var(--cyan); }
+/* Navegador */
+.nav-barra { height: 46px; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: var(--panel); border-bottom: 1px solid var(--linea-2); }
+.nav-barra .url { flex: 1; height: 30px; display: flex; align-items: center; padding: 0 12px; background: var(--negro); border: 1px solid var(--linea-2); font: 13px var(--mono); color: var(--texto-2); }
+.nav-barra .url b { color: var(--verde); font-weight: 500; margin-right: 8px; }
+.web { padding: 40px 48px; }
+.web h2 { margin: 0; font: 700 54px/1 var(--titulo); letter-spacing: 5px; color: var(--amarillo); text-shadow: -3px 0 rgba(255, 42, 79, .6), 3px 0 rgba(0, 240, 255, .45); }
+.web p { color: var(--texto-2); max-width: 60ch; line-height: 1.5; }
+.web .tarjetas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+.web .tarjetas div { padding: 18px; background: var(--panel); border: 1px solid var(--linea); clip-path: var(--corte-chico); transition: border-color .2s, transform .2s var(--curva); cursor: pointer; }
+.web .tarjetas div:hover { border-color: var(--amarillo); transform: translateY(-3px); }
+.web .tarjetas b { display: block; font: 700 18px var(--titulo); letter-spacing: 2px; color: var(--cyan); margin-bottom: 6px; }
+.web .tarjetas span { font-size: 13px; color: var(--texto-2); }
+/* Equipo en vivo */
+.eq-cab { height: 58px; display: flex; align-items: center; gap: 16px; padding: 0 22px; background: linear-gradient(100deg, var(--amarillo) 0 300px, transparent 300px); }
+.eq-cab h3 { margin: 0; font: 700 24px/1 var(--titulo); letter-spacing: 4px; color: #000; }
+.eq-cab .cod { font: 600 12px var(--mono); color: var(--texto-3); margin-left: 60px; letter-spacing: 2px; }
+.eq-cab .der { margin-left: auto; display: flex; gap: 8px; font: 600 12px var(--mono); }
+.eq-cab .der span { padding: 5px 9px; border: 1px solid var(--linea-2); color: var(--texto-2); }
+.eq-cab .der .vivo { color: var(--verde); border-color: #1d7a4c; }
+.eq-cab .der .vivo::before { content: "● "; animation: parpadeo 1s steps(1) infinite; }
+.franja { height: 6px; background: repeating-linear-gradient(-45deg, var(--amarillo) 0 10px, transparent 10px 20px); background-size: 28.28px 100%; animation: franja 1.2s linear infinite; }
+.eq-cuerpo { padding: 18px 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tj { position: relative; padding: 14px 18px 16px; background: var(--panel); border: 1px solid var(--linea); clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); }
+.tj::after { content: ""; position: absolute; left: -1px; top: -1px; width: 22px; height: 22px; border-left: 2px solid var(--c); border-top: 2px solid var(--c); }
+.tj.ancha { grid-column: span 2; }
+.tj h4 { margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; font: 700 15px var(--titulo); letter-spacing: 3px; color: var(--c); }
+.tj h4 small { font: 500 12px var(--mono); color: var(--texto-3); letter-spacing: 0; }
+.tj h4 .der { margin-left: auto; font: 500 13px var(--ui); letter-spacing: .5px; color: var(--texto-2); }
+.gran { display: flex; align-items: baseline; gap: 14px; }
+.gran b { font: 700 50px/1 var(--titulo); font-variant-numeric: tabular-nums; text-shadow: -2px 0 rgba(255, 42, 79, .55), 2px 0 rgba(0, 240, 255, .45); }
+.gran span { font: 500 15px var(--ui); color: var(--texto-2); }
+.seg { display: grid; grid-template-columns: repeat(40, 1fr); gap: 3px; height: 12px; margin: 10px 0 8px; }
+.seg i { background: #1d1b27; transform: skewX(-20deg); transition: background .25s, box-shadow .25s; }
+.seg i.on { background: var(--c); box-shadow: 0 0 6px var(--c); }
+.seg i.al { background: var(--rojo); box-shadow: 0 0 6px var(--rojo); }
+.hilos { display: grid; grid-template-columns: repeat(12, 1fr); gap: 5px; height: 40px; align-items: end; }
+.hilos i { background: var(--c); opacity: .85; height: 3px; transition: height .6s var(--curva); }
+.datos { display: grid; grid-template-columns: auto 1fr; gap: 5px 16px; font: 14px var(--mono); color: var(--texto-3); }
+.datos b { color: var(--texto); font-weight: 500; }
+.disco { display: grid; grid-template-columns: 260px 1fr 140px; gap: 14px; align-items: center; padding: 4px 0; }
+.disco .n { font: 600 15px var(--ui); }
+.disco .n small { display: block; font: 12px var(--mono); color: var(--texto-3); }
+.disco .seg { margin: 0; }
+.disco .v { text-align: right; font: 600 14px var(--mono); }
+
+/* ---------- Terminal rapida (special workspace, slidevert) ---------- */
+.especial { position: absolute; left: 140px; top: 52px; width: 940px; height: 430px; z-index: 22; transform: translateY(-120%); transition: transform .4s var(--curva); }
+.especial.ver { transform: none; }
+.especial .tira { height: 26px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; background: var(--amarillo); color: #000; font: 700 12px var(--titulo); letter-spacing: 3px; }
+.especial .term { height: calc(100% - 26px); }
+
+/* ---------- Menu (fuzzel, animado como capa) ---------- */
+.menu { position: absolute; left: 50%; top: 200px; width: 620px; z-index: 40; padding: 18px 0 12px; background: rgba(6, 5, 10, .97); border: 2px solid var(--acento, var(--amarillo));
+  font: 16px/1 var(--mono); transform: translate(-50%, -24px); opacity: 0; pointer-events: none; transition: transform .22s var(--curva), opacity .18s, border-color .2s; box-shadow: 0 30px 80px rgba(0, 0, 0, .7); }
+.menu.ver { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.menu .prompt { padding: 0 22px 14px; color: var(--acento, var(--amarillo)); font-weight: 700; letter-spacing: 1px; transition: color .2s; }
+.menu .prompt span { color: var(--texto); font-weight: 400; }
+.menu .prompt i { display: inline-block; width: 10px; height: 19px; margin-left: 3px; vertical-align: -4px; background: var(--acento, var(--amarillo)); animation: parpadeo 1s steps(1) infinite; }
+.filas { position: relative; }
+.filas .barra-sel { position: absolute; left: 0; right: 0; top: 0; height: 40px; background: var(--acento, var(--amarillo)); transition: transform .16s var(--curva), background .2s; }
+.fila { position: relative; z-index: 1; display: flex; align-items: center; gap: 14px; height: 40px; padding: 0 22px; color: var(--texto); font: 500 16px var(--mono); cursor: pointer; animation: entrar-fila .25s var(--curva) both; transition: color .12s; }
+.fila svg { width: 22px; height: 22px; transition: stroke .12s; }
+.fila .num { color: var(--texto-3); width: 16px; }
+.fila.sel { color: #000; font-weight: 700; }
+.fila.sel svg { stroke: #000 !important; }
+.fila.sel .num { color: #000; }
+.fila u { text-decoration: none; color: var(--rojo); }
+.fila.sel u { color: #7a0016; }
+.menu .vacio { padding: 10px 22px; color: var(--texto-3); }
+.velo { position: absolute; inset: 0; z-index: 35; background: rgba(4, 3, 8, .55); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.velo.ver { opacity: 1; pointer-events: auto; }
+
+/* ---------- Avisos (mako) ---------- */
+.avisos { position: absolute; right: 18px; top: 54px; z-index: 45; display: flex; flex-direction: column; gap: 10px; width: 440px; }
+.aviso { position: relative; display: flex; gap: 14px; padding: 16px 18px 18px; background: rgba(6, 5, 10, .97); border: 2px solid var(--amarillo); overflow: hidden; animation: aviso-in .38s var(--curva) both; }
+.aviso.critica { border-color: var(--rojo); }
+.aviso.sale { animation: aviso-out .25s ease-in both; }
+.aviso::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 100%; background: linear-gradient(transparent, rgba(252, 238, 10, .18), transparent); transform: translateY(-100%); animation: barrido .6s .1s ease-out both; pointer-events: none; }
+.aviso .ic { width: 38px; height: 38px; flex: none; }
+.aviso b { display: block; font: 700 17px/1.1 var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; color: var(--amarillo); }
+.aviso.critica b { color: var(--rojo); }
+.aviso p { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--texto-2); }
+.aviso .tiempo { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--amarillo); transform-origin: left; animation: tiempo var(--dur, 5s) linear both; }
+.aviso.critica .tiempo { background: var(--rojo); }
+.aviso .mini { margin-top: 8px; height: 110px; border: 1px solid var(--linea-2); background-size: cover; background-position: center; }
+
+/* ---------- Alt+Tab ---------- */
+.alttab { position: absolute; left: 50%; top: 330px; z-index: 42; display: flex; gap: 14px; padding: 30px 22px 20px; background: rgba(6, 5, 10, .97); border-top: 2px solid var(--amarillo);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%); transform: translate(-50%, 16px) scale(.97); opacity: 0; pointer-events: none; transition: transform .2s var(--curva), opacity .15s; }
+.alttab.ver { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.alttab::before { content: "VENTANAS // ALT+W"; position: absolute; left: 22px; top: 8px; font: 700 11px var(--titulo); letter-spacing: 3px; color: var(--texto-3); }
+.at { width: 230px; padding: 8px; border: 1px solid var(--linea); background: var(--panel); cursor: pointer; transition: border-color .15s, transform .2s var(--curva), box-shadow .2s; }
+.at.sel { border-color: var(--amarillo); transform: translateY(-6px); box-shadow: 0 0 22px var(--brillo); }
+.at .pv { height: 120px; display: grid; place-items: center; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 8px), var(--negro); border: 1px solid var(--linea); }
+.at .pv svg { width: 54px; height: 54px; }
+.at .nom { display: flex; align-items: center; gap: 8px; margin-top: 8px; font: 700 14px var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.at .nom small { margin-left: auto; font: 600 12px var(--mono); color: var(--texto-3); }
+.at.sel .nom { color: var(--amarillo); }
+
+/* ---------- Captura ---------- */
+.captura { position: absolute; inset: 0; z-index: 50; pointer-events: none; opacity: 0; transition: opacity .15s; }
+.captura.ver { opacity: 1; }
+.captura .sombra { position: absolute; background: rgba(2, 1, 4, .7); }
+.captura .rect { position: absolute; border: 1px solid var(--amarillo); }
+.captura .rect::before, .captura .rect::after { content: ""; position: absolute; width: 26px; height: 26px; border: 3px solid var(--amarillo); }
+.captura .rect::before { left: -4px; top: -4px; border-right: 0; border-bottom: 0; }
+.captura .rect::after { right: -4px; bottom: -4px; border-left: 0; border-top: 0; }
+.captura .med { position: absolute; left: -1px; top: -30px; font: 700 13px var(--mono); color: #000; background: var(--amarillo); padding: 6px 10px; white-space: nowrap; }
+.destello { position: absolute; inset: 0; z-index: 55; background: #fff; opacity: 0; pointer-events: none; }
+.destello.ya { animation: destello .35s ease-out; }
+
+/* ---------- Modo juego ---------- */
+.juego { position: absolute; inset: 0; z-index: 25; opacity: 0; pointer-events: none; transition: opacity .4s; overflow: hidden;
+  background: radial-gradient(ellipse 50% 35% at 50% 52%, rgba(255, 42, 79, .35), transparent 70%), linear-gradient(#07050d, #120a1c 50%, #050308 51%, #020103); }
+.juego.ver { opacity: 1; pointer-events: auto; }
+.juego .suelo { position: absolute; left: -400px; right: -400px; top: 550px; height: 900px; transform: perspective(600px) rotateX(62deg); transform-origin: top;
+  background: repeating-linear-gradient(90deg, rgba(0, 240, 255, .35) 0 2px, transparent 2px 90px), repeating-linear-gradient(0deg, rgba(0, 240, 255, .25) 0 2px, transparent 2px 90px); animation: avanzar .6s linear infinite; }
+.juego .pilar { position: absolute; bottom: 530px; width: 18px; background: currentColor; box-shadow: 0 0 22px currentColor; animation: neon 3s infinite; }
+.juego .hint { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); font: 700 13px var(--titulo); letter-spacing: 4px; color: rgba(255, 255, 255, .35); }
+.mango { position: absolute; left: 12px; top: 12px; width: 330px; padding: 10px 14px 12px; background: rgba(6, 5, 10, .8); font: 500 17px/1.55 var(--mono); font-variant-numeric: tabular-nums; }
+.mango .f { display: grid; grid-template-columns: 70px 1fr 1fr; align-items: baseline; }
+.mango .f > :nth-child(n+2) { text-align: right; }
+.mango .k { font-weight: 700; }
+.mango small { font-size: 12px; color: var(--texto-3); margin-left: 3px; }
+.mango .fps { font-size: 32px; font-weight: 700; color: #fff; }
+.mango canvas { display: block; width: 302px; height: 46px; margin-top: 8px; border-top: 1px solid var(--linea-2); }
+
+/* ---------- Bloqueo (hyprlock) ---------- */
+.bloqueo { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; padding-top: 170px; opacity: 0; pointer-events: none;
+  backdrop-filter: blur(12px) brightness(.42) saturate(1.2); -webkit-backdrop-filter: blur(12px) brightness(.42); background: rgba(4, 3, 8, .35); transition: opacity .5s; }
+.bloqueo.ver { opacity: 1; pointer-events: auto; }
+.bloqueo::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, .3) 0 1px, transparent 1px 3px); pointer-events: none; }
+.bl-hora { position: relative; font: 700 190px/1 var(--titulo); letter-spacing: 8px; color: var(--amarillo); font-variant-numeric: tabular-nums;
+  text-shadow: -4px 0 rgba(255, 42, 79, .8), 4px 0 rgba(0, 240, 255, .6), 0 0 40px var(--brillo); }
+.bloqueo.ver .bl-hora { animation: glitch-txt 3.5s steps(1) infinite; }
+.bl-dia { position: relative; margin-top: 4px; font: 600 24px var(--titulo); letter-spacing: 8px; text-transform: uppercase; }
+.bl-dia b { color: var(--rojo); }
+.acceso { position: relative; margin-top: 64px; width: 560px; padding: 26px 30px 28px; background: rgba(6, 5, 10, .9); border: 1px solid var(--linea-2);
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); }
+.acceso::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: repeating-linear-gradient(-45deg, var(--amarillo) 0 8px, transparent 8px 16px); }
+.acceso.mal { animation: sacudir .4s; }
+.usuario { display: flex; align-items: center; gap: 16px; }
+.usuario .av { width: 62px; height: 62px; display: grid; place-items: center; background: var(--amarillo); clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); }
+.usuario .av svg { width: 36px; height: 36px; }
+.usuario h2 { margin: 0; font: 700 28px/1 var(--titulo); letter-spacing: 5px; }
+.usuario small { display: block; font: 12px var(--mono); color: var(--texto-3); letter-spacing: 2px; margin-top: 4px; }
+.campo { margin-top: 22px; height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 18px; border: 2px solid var(--amarillo); background: #0b0a05; transition: border-color .2s; }
+.acceso.mal .campo { border-color: var(--rojo); }
+.acceso.ok .campo { border-color: var(--verde); }
+.campo .k { font: 700 13px var(--titulo); letter-spacing: 3px; color: var(--amarillo); margin-right: 8px; }
+.campo i { width: 16px; height: 16px; background: var(--amarillo); transform: skewX(-20deg); box-shadow: 0 0 8px rgba(252, 238, 10, .7); animation: punto .18s var(--curva) both; }
+.acceso.ok .campo i { background: var(--verde); box-shadow: 0 0 8px var(--verde); }
+.campo .cur { width: 10px; height: 26px; background: var(--amarillo); animation: parpadeo 1s steps(1) infinite; }
+.bl-estado { margin-top: 14px; display: flex; gap: 10px; font: 600 12px var(--mono); letter-spacing: 1px; }
+.bl-estado span { padding: 5px 9px; border: 1px solid var(--linea-2); color: var(--texto-2); }
+.bl-estado .msg { color: #000; background: var(--amarillo); border-color: var(--amarillo); }
+.bl-estado .msg.mal { background: var(--rojo); border-color: var(--rojo); }
+.bl-estado .msg.ok { background: var(--verde); border-color: var(--verde); }
+.bloqueo.saliendo { animation: desbloquear .6s steps(6) both; }
+
+/* ---------- Ayuda, rotulo, sello ---------- */
+.ayuda { position: absolute; left: 50%; top: 120px; z-index: 44; width: 760px; padding: 24px 28px; background: rgba(6, 5, 10, .97); border: 2px solid var(--cyan); transform: translate(-50%, -20px); opacity: 0; pointer-events: none; transition: transform .22s var(--curva), opacity .18s; }
+.ayuda.ver { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.ayuda h3 { margin: 0 0 14px; font: 700 22px var(--titulo); letter-spacing: 4px; color: var(--cyan); }
+.ayuda dl { margin: 0; display: grid; grid-template-columns: 170px 1fr; gap: 8px 16px; font-size: 15px; }
+.ayuda dt { font: 700 13px var(--mono); color: #000; background: var(--amarillo); padding: 3px 8px; justify-self: start; }
+.ayuda dd { margin: 0; color: var(--texto-2); }
+.ayuda p { margin: 16px 0 0; font: 12px var(--mono); color: var(--texto-3); }
+.rotulo { position: absolute; left: 50%; bottom: 100px; z-index: 70; transform: translate(-50%, 10px); opacity: 0; transition: opacity .2s, transform .25s var(--curva); pointer-events: none;
+  font: 700 22px var(--titulo); letter-spacing: 4px; text-transform: uppercase; background: rgba(6, 5, 10, .92); border-left: 6px solid var(--amarillo); padding: 12px 20px; white-space: nowrap; }
+.rotulo.ver { opacity: 1; transform: translate(-50%, 0); }
+.rotulo b { color: #000; background: var(--amarillo); padding: 1px 8px; margin-right: 12px; }
+/* Perfil del autor */
+.emblema { display: block; width: 100%; height: 100%; }
+.emblema img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.perfil-chip { cursor: pointer; gap: 9px; }
+.perfil-chip .mini-av { width: 28px; height: 28px; display: block; background: #05070b; border: 1px solid var(--hielo); clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); overflow: hidden; }
+.perfil-chip .v { color: var(--hielo); letter-spacing: 2px; }
+.perfil-chip:hover .v { color: var(--hielo-claro); text-shadow: 0 0 8px var(--hielo); }
+.perfil { position: absolute; left: 50%; top: 96px; z-index: 44; width: 900px; display: grid; grid-template-columns: 300px 1fr; gap: 30px; padding: 28px 32px; background: rgba(4, 6, 10, .97);
+  border: 2px solid var(--hielo); box-shadow: 0 0 40px rgba(90, 216, 255, .25), 0 30px 80px rgba(0, 0, 0, .7); transform: translate(-50%, -20px); opacity: 0; pointer-events: none; transition: transform .25s var(--curva), opacity .2s;
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px)); }
+.perfil.ver { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.perfil .retrato { position: relative; width: 300px; height: 300px; }
+.perfil .retrato .aro { position: absolute; inset: -6px; border-radius: 50%; border: 2px dashed var(--hielo); opacity: .7; animation: rotar 16s linear infinite; }
+.perfil .retrato .aro.b { inset: 14px; border: 1px solid rgba(90, 216, 255, .35); border-style: dotted; animation-direction: reverse; animation-duration: 24s; }
+.perfil .retrato .cara { position: absolute; inset: 30px; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); background: #05070b; }
+.perfil .retrato .cara::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(90, 216, 255, .06) 0 1px, transparent 1px 4px); animation: barrer 3s linear infinite; }
+.perfil h3 { margin: 6px 0 0; font: 700 44px/1 var(--titulo); letter-spacing: 6px; color: var(--hielo-claro); text-shadow: 0 0 18px rgba(90, 216, 255, .55), -2px 0 rgba(255, 42, 79, .5); }
+.perfil .rol { margin-top: 8px; font: 600 15px var(--titulo); letter-spacing: 3px; color: var(--hielo); text-transform: uppercase; }
+.perfil .cod { margin-top: 4px; font: 12px var(--mono); color: var(--texto-3); letter-spacing: 1px; }
+.perfil ul { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 9px; font-size: 15px; color: var(--texto-2); }
+.perfil li { display: flex; gap: 12px; align-items: baseline; }
+.perfil li::before { content: ""; width: 8px; height: 8px; flex: none; background: var(--hielo); transform: skewX(-20deg); box-shadow: 0 0 8px var(--hielo); }
+.perfil .pie { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--linea-2); font: 12px/1.5 var(--mono); color: var(--texto-3); }
+.perfil .pie b { color: var(--hielo); font-weight: 500; }
+@keyframes rotar { to { transform: rotate(360deg); } }
+@keyframes barrer { to { background-position: 0 40px; } }
+.sello { position: absolute; right: 22px; bottom: 22px; z-index: 31; font: 600 12px/1 var(--titulo); letter-spacing: 3px; text-transform: uppercase; color: var(--texto-3); padding: 7px 10px; border: 1px dashed var(--linea-2); background: rgba(6, 5, 10, .8); }
+.juego-on .sello { opacity: 0; }
+
+/* ---------- Animaciones ---------- */
+@keyframes girar { to { --ang: 360deg; } }
+@keyframes parpadeo { 50% { opacity: 0; } }
+@keyframes pulso { 50% { opacity: .45; } }
+@keyframes abrir { 0% { opacity: 0; transform: scale(.9); clip-path: inset(0 0 100% 0); } 45% { opacity: 1; clip-path: inset(0 0 0 0); } 55% { transform: scale(1.01) translateX(-4px); } 70% { transform: translateX(3px); } 100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0); } }
+@keyframes cerrar { to { opacity: 0; transform: scale(.94); filter: brightness(2); } }
+@keyframes rejilla-glitch { 0% { opacity: 1; transform: translateY(0); } 50% { opacity: 1; transform: translateY(40%); } 100% { opacity: 0; transform: translateY(-20%); } }
+@keyframes glitch-txt { 0%, 92% { transform: none; } 93% { transform: translate(-5px, 1px); clip-path: inset(10% 0 55% 0); } 95% { transform: translate(4px, -1px); clip-path: inset(55% 0 10% 0); } 97% { transform: none; clip-path: none; } }
+@keyframes entrar-fila { from { opacity: 0; transform: translateX(-10px); } }
+@keyframes aviso-in { 0% { transform: translateX(110%); } 70% { transform: translateX(-6px); } 100% { transform: none; } }
+@keyframes aviso-out { to { transform: translateX(110%); opacity: 0; } }
+@keyframes barrido { to { transform: translateY(100%); } }
+@keyframes tiempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes destello { 0% { opacity: .55; } 100% { opacity: 0; } }
+@keyframes avanzar { to { background-position: 0 90px, 0 90px; } }
+@keyframes neon { 0%, 100% { opacity: .9; } 47% { opacity: .9; } 48% { opacity: .3; } 50% { opacity: .9; } }
+@keyframes franja { to { background-position: 28.28px 0; } }
+@keyframes punto { from { transform: skewX(-20deg) scale(0); } }
+@keyframes sacudir { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+@keyframes desbloquear { 0% { opacity: 1; clip-path: inset(0); } 30% { clip-path: inset(20% 0 30% 0); transform: translateX(-12px); } 60% { clip-path: inset(50% 0 10% 0); transform: translateX(10px); } 100% { opacity: 0; clip-path: inset(50% 0 50% 0); } }
+
+/* Efectos reducidos: igual que ultra-ambiente sobrio */
+.sobrio *, .sobrio *::before, .sobrio *::after { animation-duration: 0s !important; animation-iteration-count: 1 !important; transition-duration: 0s !important; }
+@media (max-width: 600px) { .cabeza h1 { font-size: 20px; } .controles button { padding: 8px 9px; font-size: 12px; } .controles kbd { display: none; } }
+</style>
+
+<div class="pagina">
+  <div class="cabeza">
+    <h1>BMO-X // NEÓN</h1>
+    <p>Prototipo animado del escritorio ULTRA LinuX. Alt hace de Super. Los datos son de ejemplo.</p>
+  </div>
+  <div class="marco" id="marco" tabindex="0" aria-label="Escritorio simulado BMO-X Neón">
+    <div class="escena" id="escena">
+      <canvas id="fondo" width="1920" height="1080"></canvas>
+      <div id="capas"></div>
+      <div class="especial" id="especial"><div class="win activa" style="position:absolute;inset:0"><div class="win-in">
+        <div class="tira"><span>TERMINAL RÁPIDA // SPECIAL:RAPIDA</span><span>ALT+S OCULTA</span></div><div class="term" id="term-rapida"></div></div></div></div>
+      <div class="juego" id="juego">
+        <div class="suelo"></div>
+        <div class="pilar" style="left:420px;height:300px;color:#fcee0a"></div><div class="pilar" style="left:560px;height:200px;color:#ff2a4f;animation-delay:-1s"></div>
+        <div class="pilar" style="left:1350px;height:260px;color:#00f0ff;animation-delay:-2s"></div><div class="pilar" style="left:1480px;height:340px;color:#ff2a4f"></div>
+        <div class="mango" id="mango"></div>
+        <div class="hint">ESCENA DE EJEMPLO · ESC PARA SALIR DEL JUEGO</div>
+      </div>
+      <div class="barra" id="barra"></div>
+      <div class="dock" id="dock"></div>
+      <div class="velo" id="velo"></div>
+      <div class="menu" id="menu"><div class="prompt" id="menu-prompt"></div><div class="filas" id="menu-filas"></div></div>
+      <div class="alttab" id="alttab"></div>
+      <div class="ayuda" id="ayuda"></div>
+      <div class="perfil" id="perfil"></div>
+      <div class="avisos" id="avisos"></div>
+      <div class="captura" id="captura"></div>
+      <div class="destello" id="destello"></div>
+      <div class="bloqueo" id="bloqueo"></div>
+      <div class="rotulo" id="rotulo"></div>
+      <div class="sello">Prototipo · datos de ejemplo</div>
+    </div>
+  </div>
+  <div class="controles" id="controles">
+    <button class="prin" data-a="recorrido" id="b-recorrido">▶ Recorrido</button>
+    <button data-a="menu">Centro<kbd>Alt+Espacio</kbd></button>
+    <button data-a="terminal">Terminal<kbd>Alt+Enter</kbd></button>
+    <button data-a="equipo">Equipo<kbd>Alt+P</kbd></button>
+    <button data-a="ventanas">Ventanas<kbd>Alt+W</kbd></button>
+    <button data-a="rapida">Terminal rápida<kbd>Alt+S</kbd></button>
+    <button data-a="captura">Captura<kbd>Alt+C</kbd></button>
+    <button data-a="aviso">Aviso</button>
+    <button data-a="juego">Modo juego<kbd>Alt+G</kbd></button>
+    <button data-a="bloquear">Bloquear<kbd>Alt+L</kbd></button>
+    <button data-a="efectos" id="b-efectos">Efectos: vivos<kbd>Alt+A</kbd></button>
+    <button data-a="perfil">Perfil del autor<kbd>Alt+I</kbd></button>
+    <button data-a="acento" id="b-acento">Acento: amarillo<kbd>Alt+K</kbd></button>
+    <button data-a="ayuda">Atajos<kbd>Alt+H</kbd></button>
+  </div>
+  <div class="nota">Escritorios: Alt+1…5 · Cerrar ventana: Alt+Q · En el bloqueo, escribe cualquier clave y pulsa Enter.</div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const AM = 'var(--amarillo)', RO = '#ff2a4f', CY = '#00f0ff', VE = '#3dff9a', VI = '#c03bff', T2 = '#a19eae', T3 = '#625f70';
+const $ = s => document.querySelector(s);
+const acento = () => getComputedStyle(document.body).getPropertyValue('--amarillo').trim() || '#fcee0a';
+const AUTOR = { nombre: 'Eddi Salazar', corto: 'EDDI', rol: 'Autor de ULTRA LinuX · BMO-X' };
+const esperar = ms => new Promise(r => setTimeout(r, S.vivo ? ms : Math.min(ms, 60)));
+const espera = ms => new Promise(r => setTimeout(r, ms));
+
+/* ---------- Iconos (mismos trazos que crear-tema.py) ---------- */
+const APP = {
+  terminal: '<path d="m15 18 9 6-9 6m14 1h8"/>',
+  archivos: '<path d="M10 17h12l4 4h13v15H10Z"/><path d="M10 17v-4h12l4 4"/>',
+  equipo: '<rect x="11" y="12" width="27" height="20" rx="2"/><path d="M24 32v6m-8 0h16"/>',
+  ajustes: '<circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="3"/><path d="M24 10v5m0 18v5M10 24h5m18 0h5M14 14l4 4m12 12 4 4m0-20-4 4M18 30l-4 4"/>',
+  navegador: '<circle cx="24" cy="24" r="13"/><ellipse cx="24" cy="24" rx="6" ry="13"/><path d="M11 24h26m-23-7h20m-20 14h20"/>',
+  juegos: '<path d="M14 18h20l6 17-5 2-8-8h-6l-8 8-5-2Z"/><path d="M15 22v8m-4-4h8m12-3h1m3 5h1"/>',
+  ayuda: '<path d="M18 18a6 6 0 1 1 9 5c-3 1-3 3-3 5m0 5v1"/>',
+  editor: '<path d="m15 31 16-18 5 5-16 18-7 2Z"/><path d="m28 17 5 5M12 39h25"/>',
+  audio: '<path d="M11 20h6l8-7v23l-8-7h-6Z"/><path d="M30 19q6 5 0 10m5-15q11 10 0 20"/>',
+  pantalla: '<rect x="10" y="12" width="29" height="22" rx="2"/><path d="m18 26 5-8 6 11 4-6m-9 11v5m-7 0h14"/>',
+  discos: '<ellipse cx="24" cy="14" rx="13" ry="5"/><path d="M11 14v20c0 3 6 5 13 5s13-2 13-5V14"/><path d="M11 24c0 3 6 5 13 5s13-2 13-5"/>',
+  ambiente: '<path d="M30 10a14 14 0 1 0 8 22 11 11 0 0 1-8-22Z"/>',
+  captura: '<path d="M10 16v-4h4m20 0h4v4M10 32v4h4m20 0h4v-4"/><circle cx="24" cy="24" r="6"/>',
+  candado: '<rect x="13" y="22" width="22" height="16" rx="2"/><path d="M17 22v-5a7 7 0 0 1 14 0v5m-7 7v4"/>',
+  fin: '<path d="M24 9v14"/><path d="M15 14a13 13 0 1 0 18 0"/>',
+  prompt: '<path d="m10 16 9 8-9 8m14 2h14"/>'
+};
+const ic = (n, c, extra = '') => `<svg viewBox="0 0 48 48" fill="none" style="stroke:${c}" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="miter" ${extra}>${APP[n]}</svg>`;
+
+/* ---------- Emblema del autor (original, inspirado en su personaje) ---------- */
+function emblema() {
+  if (S.autorImg) return '<span class="emblema"><img src="autor.png" alt="Eddi Salazar"></span>';
+  return `<svg class="emblema" viewBox="0 0 120 120" role="img" aria-label="Emblema de Eddi Salazar">
+    <defs><filter id="bri" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="capa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a22"/><stop offset="1" stop-color="#030406"/></linearGradient></defs>
+    <rect width="120" height="120" fill="#03050a"/>
+    <circle cx="60" cy="54" r="46" fill="none" stroke="#5ad8ff" stroke-width="2" stroke-dasharray="70 7 18 7 110 12" opacity=".75" filter="url(#bri)"/>
+    <g fill="#5ad8ff" opacity=".55"><rect x="8" y="70" width="5" height="5"/><rect x="14" y="82" width="3" height="3"/><rect x="104" y="40" width="5" height="5"/><rect x="99" y="28" width="3" height="3"/><rect x="106" y="88" width="4" height="4"/></g>
+    <path d="M37 33 41 15 47 27 53 7 60 23 67 5 73 23 79 13 83 33Z" fill="#0b1a24" stroke="#8ae6ff" stroke-width="1.8" stroke-linejoin="miter" filter="url(#bri)"/>
+    <path d="M53 7 56 22M67 5 64 21" stroke="#bff3ff" stroke-width="1" opacity=".7"/>
+    <path d="M60 24 90 48 97 104 60 120 23 104 30 48Z" fill="url(#capa)" stroke="#2c5468" stroke-width="1.8"/>
+    <path d="M60 24 72 50M60 24 48 50" stroke="#5ad8ff" stroke-width="1" opacity=".5"/>
+    <path d="M60 42 79 56 77 84 60 95 43 84 41 56Z" fill="#000"/>
+    <g stroke="#bff3ff" stroke-width="3.2" stroke-linecap="square" filter="url(#bri)"><path d="M46 61 56 64"/><path d="M74 61 64 64"/></g>
+    <path d="M46 73 49.5 79 53 73 56.5 80 60 73 63.5 80 67 73 70.5 79 74 73" fill="none" stroke="#5ad8ff" stroke-width="2.2" stroke-linejoin="miter" filter="url(#bri)"/>
+    <path d="M30 48 23 104M90 48 97 104" stroke="#5ad8ff" stroke-width="1.4" opacity=".6"/>
+  </svg>`;
+}
+
+/* ---------- Estado ---------- */
+const S = { autorImg: false, ws: 2, wins: [], foco: {}, sig: 1, vivo: true, juego: false, bloqueado: false, especial: false, menu: null, alttab: null, ayuda: false, ocupado: false };
+const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const escena = $('#escena'), marco = $('#marco');
+
+function ajustar() { escena.style.transform = `scale(${marco.clientWidth / 1920})`; }
+new ResizeObserver(ajustar).observe(marco);
+ajustar();
+
+/* ---------- Fondo animado (ciudad, lluvia, letreros, haces) ---------- */
+const Fondo = (() => {
+  const W = 1920, H = 1080, HOR = 756;
+  const cv = $('#fondo'), cx = cv.getContext('2d');
+  const base = document.createElement('canvas'); base.width = W; base.height = H;
+  let semilla = 2077;
+  const rnd = () => { semilla |= 0; semilla = semilla + 0x6D2B79F5 | 0; let t = Math.imul(semilla ^ semilla >>> 15, 1 | semilla); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const luces = [];
+  const letreros = [{ x: 163, t: 'ULTRA', c: 'acento', off: 0 }, { x: 1497, t: '24H', c: RO, off: 0, muerta: 1 }, { x: 1670, t: 'BMO-X', c: CY, off: 0 }];
+  const gotas = [];
+  let activo = true, ultimo = 0, rafaga = 0, acentoFondo = '#fcee0a';
+
+  function construir() {
+    semilla = 2077; luces.length = 0; gotas.length = 0;
+    const AC = acento(); acentoFondo = AC;
+    const b = base.getContext('2d');
+    let g = b.createLinearGradient(0, 0, 0, H);
+    [[0, '#040309'], [.45, '#0b0816'], [.62, '#2a0a1e'], [.70, '#4a0d24'], [.701, '#05030a'], [1, '#030205']].forEach(([o, c]) => g.addColorStop(o, c));
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    g = b.createRadialGradient(W * .8, H * .1, 0, W * .8, H * .1, W * .6); g.addColorStop(0, 'rgba(90,26,110,.35)'); g.addColorStop(1, 'rgba(90,26,110,0)');
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    b.save(); b.beginPath(); b.rect(0, 0, W, HOR); b.clip();
+    b.translate(W / 2, HOR); b.scale(1, .45);
+    g = b.createRadialGradient(0, 0, 0, 0, 0, W * .62); g.addColorStop(0, 'rgba(255,42,79,.42)'); g.addColorStop(1, 'rgba(255,42,79,0)');
+    b.fillStyle = g; b.fillRect(-W, -H * 2.3, W * 2, H * 2.3); b.restore();
+    // Ciudad en tres capas
+    const ciudad = document.createElement('canvas'); ciudad.width = W; ciudad.height = H;
+    const c = ciudad.getContext('2d');
+    [['#160f24', .30, .55, 40, 110, .10], ['#0e0a17', .18, .42, 60, 150, .20], ['#07050c', .08, .30, 90, 210, .32]].forEach(([col, amin, amax, wmin, wmax, luz], capa) => {
+      let x = -20;
+      while (x < W) {
+        const an = wmin + Math.floor(rnd() * (wmax - wmin));
+        const centro = 1 - Math.abs((x + an / 2) / W - .5) * 2;
+        const al = Math.floor(H * (amin + rnd() * (amax - amin)) * (1 - .45 * centro));
+        const top = HOR - al;
+        c.fillStyle = col; c.fillRect(x, top, an, al);
+        if (rnd() < .35) { const ant = 20 + rnd() * 50; c.fillRect(x + an / 2 - 1, top - ant, 3, ant); luces.push({ x: x + an / 2, y: top - ant, baliza: true, f: .5 + rnd() * 1.5, p: rnd() * 6 }); }
+        for (let fy = top + 10; fy < HOR - 8; fy += 14) for (let fx = x + 6; fx < x + an - 8; fx += 11) {
+          if (rnd() < luz) {
+            const r = rnd(); const tono = r < .42 ? '#fcee0a' : r < .67 ? '#00f0ff' : r < .75 ? '#ff2a4f' : '#f6e7c1';
+            const a = .25 + rnd() * .55;
+            c.globalAlpha = a; c.fillStyle = tono; c.fillRect(fx, fy, 5, 6); c.globalAlpha = 1;
+            if (capa === 2 && rnd() < .07) luces.push({ x: fx, y: fy, tono, a, f: .2 + rnd() * .8, p: rnd() * 6 });
+          }
+        }
+        x += an + Math.floor(rnd() * 14);
+      }
+    });
+    b.drawImage(ciudad, 0, 0);
+    // Reflejo en el suelo mojado
+    b.save(); b.translate(0, HOR); b.scale(1, -.55); b.translate(0, -HOR); b.globalAlpha = .22; b.filter = 'blur(3px)';
+    b.beginPath(); b.rect(0, 0, W, HOR); b.clip(); b.drawImage(ciudad, 0, 0); b.restore();
+    g = b.createLinearGradient(0, HOR, 0, H); g.addColorStop(0, 'rgba(255,42,79,.10)'); g.addColorStop(1, 'rgba(255,42,79,0)');
+    b.fillStyle = g; b.fillRect(0, HOR, W, H - HOR);
+    for (let i = 1; i < 9; i++) { b.strokeStyle = `rgba(255,42,79,${.22 - i * .02})`; b.beginPath(); b.moveTo(0, HOR + i * i * 4 + .5); b.lineTo(W, HOR + i * i * 4 + .5); b.stroke(); }
+    b.strokeStyle = 'rgba(0,240,255,.07)';
+    for (let i = -14; i <= 14; i++) { b.beginPath(); b.moveTo(W / 2 + i * 30, HOR); b.lineTo(W / 2 + i * 260, H); b.stroke(); }
+    // Placa amarilla
+    const py = H - 150;
+    b.fillStyle = AC; b.beginPath(); b.moveTo(0, py); b.lineTo(520, py); b.lineTo(470, py + 70); b.lineTo(0, py + 70); b.fill();
+    b.save(); b.beginPath(); b.moveTo(0, py + 78); b.lineTo(440, py + 78); b.lineTo(425, py + 98); b.lineTo(0, py + 98); b.clip();
+    for (let x = -40; x < 480; x += 22) { b.fillStyle = AC; b.beginPath(); b.moveTo(x, py + 98); b.lineTo(x + 11, py + 98); b.lineTo(x + 31, py + 78); b.lineTo(x + 20, py + 78); b.fill(); }
+    b.restore();
+    b.fillStyle = '#0a0710'; b.font = '700 40px Rajdhani, sans-serif'; b.letterSpacing = '7px'; b.fillText('ULTRA LINUX', 34, py + 50);
+    b.font = '500 15px "JetBrains Mono", monospace'; b.letterSpacing = '0px'; b.fillText('//BMO-X', 372, py + 48);
+    b.fillStyle = AC; b.globalAlpha = .7; b.font = '13px "JetBrains Mono", monospace'; b.letterSpacing = '3px'; b.fillText('SYS.01 · NEON · EDDI SALAZAR', 34, py + 128); b.letterSpacing = '0px'; b.globalAlpha = 1;
+    // Esquinas de HUD
+    b.strokeStyle = 'rgba(0,240,255,.55)'; b.lineWidth = 2;
+    [[24, 24, 1, 1], [W - 24, 24, -1, 1]].forEach(([x0, y0, dx, dy]) => { b.beginPath(); b.moveTo(x0, y0 + dy * 36); b.lineTo(x0, y0); b.lineTo(x0 + dx * 36, y0); b.stroke(); });
+    for (let i = 0; i < 260; i++) gotas.push({ x: rnd() * W, y: rnd() * H, l: 14 + rnd() * 26, v: 14 + rnd() * 10, a: .05 + rnd() * .12 });
+  }
+
+  function letrero(l, t) {
+    const col = l.c === 'acento' ? acentoFondo : l.c;
+    const ly = HOR - 432, alto = l.t.length * 42 + 20;
+    // Parpadeo: apagones cortos aleatorios
+    if (l.off <= t && Math.random() < .004) l.off = t + 60 + Math.random() * 140;
+    const apagado = l.off > t;
+    cx.save();
+    cx.globalAlpha = apagado ? .25 : 1;
+    cx.shadowColor = col; cx.shadowBlur = apagado ? 0 : 16;
+    cx.strokeStyle = col; cx.lineWidth = 2; cx.fillStyle = '#05040a';
+    cx.fillRect(l.x - 4, ly, 44, alto); cx.strokeRect(l.x - 4, ly, 44, alto);
+    cx.font = '700 34px Rajdhani, sans-serif'; cx.textAlign = 'center'; cx.fillStyle = col;
+    [...l.t].forEach((ch, i) => {
+      let a = 1;
+      if (l.muerta === i) a = Math.sin(t / 70) > .3 ? 1 : .2;
+      cx.globalAlpha = (apagado ? .25 : 1) * a;
+      cx.fillText(ch, l.x + 18, ly + 46 + i * 42);
+    });
+    cx.restore();
+  }
+
+  function cuadro(t, dt) {
+    cx.drawImage(base, 0, 0);
+    // Haces de luz que barren despacio
+    [[W * .30, -0.35, 'rgba(0,240,255,'], [W * .66, 0.30, 'rgba(252,238,10,']].forEach(([x0, ang, col], i) => {
+      const a = ang + Math.sin(t / 4200 + i * 2) * .12;
+      const x1 = x0 + Math.tan(a) * HOR;
+      const g = cx.createLinearGradient(0, HOR, 0, 0); g.addColorStop(0, col + (i ? '.10)' : '.15)')); g.addColorStop(1, col + '0)');
+      cx.fillStyle = g; cx.beginPath(); cx.moveTo(x0 - 8, HOR); cx.lineTo(x1 - 60, 0); cx.lineTo(x1 + 60, 0); cx.lineTo(x0 + 8, HOR); cx.fill();
+    });
+    // Aro del autor: anillo hielo que gira despacio sobre la ciudad
+    cx.save(); cx.translate(1250, 250); cx.strokeStyle = '#5ad8ff'; cx.shadowColor = '#5ad8ff'; cx.shadowBlur = 14;
+    cx.globalAlpha = .38; cx.lineWidth = 3; cx.setLineDash([120, 14, 40, 14, 220, 22]); cx.lineDashOffset = -t / 60;
+    cx.beginPath(); cx.arc(0, 0, 170, 0, 7); cx.stroke();
+    cx.globalAlpha = .22; cx.lineWidth = 1; cx.setLineDash([3, 9]); cx.lineDashOffset = t / 90; cx.beginPath(); cx.arc(0, 0, 150, 0, 7); cx.stroke();
+    cx.setLineDash([]); cx.globalAlpha = .45; cx.lineWidth = 2;
+    for (const [a, b] of [[-200, -176], [176, 200]]) { cx.beginPath(); cx.moveTo(a, 0); cx.lineTo(b, 0); cx.stroke(); cx.beginPath(); cx.moveTo(0, a); cx.lineTo(0, b); cx.stroke(); }
+    cx.restore(); cx.shadowBlur = 0; cx.globalAlpha = 1;
+    // Ventanas y balizas que cambian
+    for (const l of luces) {
+      const v = .5 + .5 * Math.sin(t / 1000 * l.f + l.p);
+      if (l.baliza) { cx.globalAlpha = v > .7 ? 1 : .15; cx.fillStyle = RO; cx.shadowColor = RO; cx.shadowBlur = 10; cx.beginPath(); cx.arc(l.x, l.y, 2.6, 0, 7); cx.fill(); cx.shadowBlur = 0; }
+      else { cx.globalAlpha = v < .25 ? 0 : l.a; cx.fillStyle = v < .25 ? '#07050c' : l.tono; cx.globalAlpha = 1 * (v < .25 ? 1 : l.a); cx.fillRect(l.x, l.y, 5, 6); }
+    }
+    cx.globalAlpha = 1;
+    letreros.forEach(l => letrero(l, t));
+    // Lluvia
+    cx.strokeStyle = '#a8c8ff'; cx.lineWidth = 1;
+    const k = dt / 33;
+    for (const g of gotas) {
+      g.y += g.v * k; g.x -= g.v * k / 4;
+      if (g.y > H) { g.y = -g.l; g.x = Math.random() * (W + 200); }
+      cx.globalAlpha = g.a; cx.beginPath(); cx.moveTo(g.x, g.y); cx.lineTo(g.x - g.l / 4, g.y + g.l); cx.stroke();
+    }
+    cx.globalAlpha = 1;
+    // Destello rojo ocasional en el horizonte
+    if (Math.random() < .002) rafaga = t + 900;
+    if (rafaga > t) { const p = (rafaga - t) / 900; cx.fillStyle = `rgba(255,42,79,${.10 * p})`; cx.fillRect(0, HOR - 300, W, 300); }
+  }
+
+  function bucle(t) {
+    if (activo && S.vivo && !S.juego) {
+      const dt = Math.min(t - ultimo, 100);
+      if (dt >= 32) { cuadro(t, dt); ultimo = t; }
+    }
+    requestAnimationFrame(bucle);
+  }
+  return {
+    async iniciar() {
+      try { await Promise.all([document.fonts.load('700 40px Rajdhani'), document.fonts.load('15px "JetBrains Mono"')]); } catch (e) { /* fuentes de respaldo */ }
+      construir(); cuadro(0, 0); requestAnimationFrame(bucle);
+    },
+    estatico() { cuadro(performance.now(), 0); },
+    reconstruir() { construir(); cuadro(performance.now(), 0); },
+    miniatura(x, y, w, h) { const m = document.createElement('canvas'); m.width = 420; m.height = 220; m.getContext('2d').drawImage(cv, x, y, w, h, 0, 0, 420, 220); return m.toDataURL('image/jpeg', .8); }
+  };
+})();
+
+/* ---------- Barra ---------- */
+function barra() {
+  $('#barra').innerHTML = `
+    <div class="grupo"><div class="inicio" id="b-inicio">${ic('prompt', '#000', 'width="20" height="20" stroke-width="4"')}BMO-X</div>
+      <div class="escritorios" id="escs"><div class="marca" id="marca"></div>${[1, 2, 3, 4, 5].map(n => `<div class="esc" data-ws="${n}">${String(n).padStart(2, '0')}</div>`).join('')}</div>
+      <div class="titulo-ventana" id="titulo"></div></div>
+    <div class="centro"><span class="reloj" id="reloj">--:--</span><span class="fecha" id="fecha"></span></div>
+    <div class="grupo der">
+      <div class="mod" id="m-gpu"><span class="k">GPU</span><span class="v">12%</span><span class="t">41°</span></div>
+      <div class="mod" id="m-cpu"><span class="k">CPU</span><span class="v">8%</span><span class="t">46°</span></div>
+      <div class="mod" id="m-ram"><span class="k">RAM</span><span class="v">5.8G</span></div>
+      <div class="mod" id="m-net"><span class="k">NET</span><span class="v">↓2.1M</span></div>
+      <div class="mod"><span class="k">VOL</span><span class="v">100</span></div>
+      <div class="mod"><span class="v" style="color:${T2}">LATAM</span></div>
+      <div class="mod perfil-chip" id="b-perfil" title="Perfil del autor"><span class="mini-av">${emblema()}</span><span class="v">${AUTOR.corto}</span></div>
+      <div class="mod boton" id="b-luna" title="Efectos vivos o reducidos">${ic('ambiente', 'currentColor', 'width="18" height="18" stroke-width="3.4"')}</div>
+      <div class="fin" id="b-fin" title="Bloquear">${ic('fin', '#000', 'width="18" height="18" stroke-width="4"')}</div>
+    </div>`;
+  $('#b-inicio').onclick = () => abrirMenu();
+  $('#b-luna').onclick = () => efectos();
+  $('#b-perfil').onclick = () => perfil();
+  $('#b-fin').onclick = () => bloquear();
+  document.querySelectorAll('.esc').forEach(e => e.onclick = () => irA(+e.dataset.ws));
+}
+const lima = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: false });
+const limaDia = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'short', day: '2-digit', month: 'short' });
+const limaLargo = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
+function reloj() {
+  const d = new Date(), [h, m] = lima.format(d).split(':');
+  $('#reloj').innerHTML = `${h}<i>:</i>${m}`;
+  $('#fecha').textContent = limaDia.format(d).replace(/\./g, '').toUpperCase() + ' · LIMA';
+  const bh = $('#bl-hora'); if (bh) bh.textContent = `${h}:${m}`;
+}
+const valores = { gpu: 12, cpu: 8, ram: 5.8, net: 2.1, gt: 41, ct: 46 };
+function animarNumero(el, de, a, fmt) {
+  const t0 = performance.now(), d = S.vivo ? 700 : 0;
+  const paso = t => { const p = d ? Math.min((t - t0) / d, 1) : 1, e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(de + (a - de) * e); if (p < 1) requestAnimationFrame(paso); };
+  requestAnimationFrame(paso);
+}
+function sensores() {
+  const ant = { ...valores };
+  const pico = Math.random() < .12;
+  valores.cpu = S.juego ? 30 + Math.random() * 15 : pico ? 82 + Math.random() * 12 : Math.max(2, Math.min(35, valores.cpu + (Math.random() - .5) * 10));
+  valores.gpu = S.juego ? 93 + Math.random() * 5 : Math.max(3, Math.min(40, valores.gpu + (Math.random() - .5) * 8));
+  valores.ram = Math.max(4.6, Math.min(S.juego ? 9.8 : 7.2, valores.ram + (Math.random() - .5) * .4 + (S.juego ? .5 : 0)));
+  valores.net = Math.max(0, Math.min(11, valores.net + (Math.random() - .5) * 2));
+  valores.ct = 40 + valores.cpu * .3; valores.gt = 36 + valores.gpu * .38;
+  const q = id => $(id + ' .v');
+  animarNumero(q('#m-cpu'), ant.cpu, valores.cpu, v => Math.round(v) + '%');
+  animarNumero(q('#m-gpu'), ant.gpu, valores.gpu, v => Math.round(v) + '%');
+  animarNumero(q('#m-ram'), ant.ram, valores.ram, v => v.toFixed(1) + 'G');
+  animarNumero(q('#m-net'), ant.net, valores.net, v => '↓' + v.toFixed(1) + 'M');
+  $('#m-cpu .t').textContent = Math.round(valores.ct) + '°';
+  $('#m-gpu .t').textContent = Math.round(valores.gt) + '°';
+  $('#m-cpu').classList.toggle('alerta', valores.cpu > 80);
+  equipoActualizar();
+}
+function escribirTitulo(texto, sub) {
+  const el = $('#titulo'); const full = `<b>${texto}</b>`; let i = 0;
+  clearInterval(escribirTitulo.t);
+  if (!S.vivo) { el.innerHTML = full + (sub || ''); return; }
+  escribirTitulo.t = setInterval(() => { i += 2; el.innerHTML = `<b>${texto}</b>` + (sub || '').slice(0, i) + (i < (sub || '').length ? '<i></i>' : ''); if (i >= (sub || '').length) clearInterval(escribirTitulo.t); }, 18);
+}
+
+/* ---------- Dock ---------- */
+const DOCK = [['navegador', CY], ['juegos', AM], ['archivos', CY], ['terminal', AM], ['editor', CY]];
+function dock() {
+  $('#dock').innerHTML = DOCK.map(([n, c]) => `<div class="app" data-app="${n}" title="${NOMBRE[n]}">${ic(n, c)}</div>`).join('') +
+    `<div class="sep"></div><div class="app" data-app="equipo" title="Equipo en vivo">${ic('equipo', RO)}</div><div class="app" data-app="ayuda" title="Atajos">${ic('ayuda', T2)}</div>`;
+  document.querySelectorAll('.dock .app').forEach(a => a.onclick = () => {
+    const n = a.dataset.app;
+    if (n === 'juegos') abrirMenu('juegos');
+    else if (n === 'ayuda') ayuda();
+    else if (n === 'terminal') abrir('terminal');
+    else enfocarOAbrir(n);
+  });
+}
+function dockEstado() {
+  const f = ventana(S.foco[S.ws]);
+  document.querySelectorAll('.dock .app').forEach(a => {
+    const n = a.dataset.app;
+    a.classList.toggle('abierta', S.wins.some(w => w.app === n));
+    a.classList.toggle('foco', !!f && f.app === n);
+  });
+}
+
+/* ---------- Ventanas y escritorios ---------- */
+const NOMBRE = { terminal: 'foot', archivos: 'Archivos', editor: 'Mousepad', navegador: 'Brave', equipo: 'Equipo en vivo', juegos: 'Juegos' };
+const SUB = { terminal: '~/proyectos/ULTRA-LinuX', archivos: 'Juegos', editor: 'paleta.json', navegador: 'Inicio ULTRA', equipo: 'SYS.MONITOR' };
+const AREA = { x: 12, y: 54, w: 1896, h: 1080 - 54 - 96 };
+const ventana = id => S.wins.find(w => w.id === id);
+function capas() {
+  $('#capas').innerHTML = [1, 2, 3, 4, 5].map(n => `<div class="capa" id="capa-${n}"></div>`).join('');
+  posicionCapas();
+}
+function posicionCapas() { for (let n = 1; n <= 5; n++) $('#capa-' + n).style.transform = `translateX(${(n - S.ws) * 1920}px)`; }
+function disponer(ws) {
+  const g = 12, lista = S.wins.filter(w => w.ws === ws && !w.flota), n = lista.length, A = AREA;
+  lista.forEach((w, i) => {
+    let r;
+    if (n === 1) r = [A.x, A.y, A.w, A.h];
+    else if (i === 0) r = [A.x, A.y, (A.w - g) / 2, A.h];
+    else { const h = (A.h - g * (n - 2)) / (n - 1); r = [A.x + (A.w + g) / 2, A.y + (i - 1) * (h + g), (A.w - g) / 2, h]; }
+    Object.assign(w.el.style, { left: r[0] + 'px', top: r[1] + 'px', width: r[2] + 'px', height: r[3] + 'px' });
+  });
+  S.wins.filter(w => w.ws === ws && w.flota).forEach(w => Object.assign(w.el.style, { left: (1920 - 1140) / 2 + 'px', top: '64px', width: '1140px', height: '890px' }));
+}
+function enfocar(id) {
+  const w = ventana(id); if (!w) return;
+  S.foco[w.ws] = id;
+  S.wins.forEach(v => v.el.classList.toggle('activa', v.id === id));
+  escribirTitulo(NOMBRE[w.app], SUB[w.app]);
+  dockEstado();
+}
+function contenido(app) {
+  if (app === 'terminal') return '<div class="term"></div>';
+  if (app === 'archivos') return `<div class="gtk-cab">Archivos <span class="sep">//</span> <span class="sub">Juegos</span><span class="bts"><span></span><span data-cerrar></span></span></div>
+    <div class="ruta"><span>/</span><span>juegos</span><span>Steam</span></div>
+    <div class="thunar"><div class="lado"><h4>// LUGARES</h4><div>${ic('archivos', CY)}Inicio</div><div class="sel">${ic('juegos', AM)}Juegos</div><div>${ic('discos', CY)}Windows C:</div>
+      <h4>// DISCOS</h4><div>${ic('discos', CY)}NVMe Personal</div></div>
+      <div class="rejilla">${[['steamapps', 'archivos'], ['Warframe', 'archivos'], ['shadercache', 'archivos'], ['compatdata', 'archivos'], ['libraryfolders.vdf', 'editor']].map(([n, i], k) => `<div class="archivo ${k ? '' : 'sel'}">${ic(i, k ? CY : AM)}${n}</div>`).join('')}</div></div>`;
+  if (app === 'editor') return `<div class="gtk-cab">Mousepad <span class="sep">//</span> <span class="sub">paleta.json</span><span class="bts"><span></span><span data-cerrar></span></span></div>
+    <div class="editor"><div><i>1</i><span class="gr">{</span></div><div><i>2</i>  <span class="cy">"nombre"</span>: <span class="am">"Neón"</span>,</div>
+    <div class="act"><i>3</i>  <span class="cy">"amarillo"</span>: <span class="am">"#fcee0a"</span>,<span class="cursor"></span></div><div><i>4</i>  <span class="cy">"rojo"</span>: <span class="am">"#ff2a4f"</span>,</div>
+    <div><i>5</i>  <span class="cy">"cyan"</span>: <span class="am">"#00f0ff"</span>,</div><div><i>6</i>  <span class="cy">"bordes"</span>: <span class="am">"amarillo → rojo → cyan"</span>,</div>
+    <div><i>7</i>  <span class="cy">"animacion_borde"</span>: <span class="am">"giro 6 s"</span></div><div><i>8</i><span class="gr">}</span></div></div>`;
+  if (app === 'navegador') return `<div class="nav-barra"><span style="color:${CY}">◀ ▶ ⟳</span><div class="url"><b>●</b>file:///etc/ultra/inicio.html</div></div>
+    <div class="web"><h2>ULTRA // INICIO</h2><p>Página local de pruebas del sistema. Comprueba la GPU, abre la tienda de juegos o consulta los atajos del escritorio.</p>
+    <div class="tarjetas"><div><b>GPU</b><span>Diagnóstico de Brave y WebGL</span></div><div><b>JUEGOS</b><span>Steam, GOG y espacio libre</span></div><div><b>AYUDA</b><span>Atajos y notas del sistema</span></div></div></div>`;
+  if (app === 'equipo') return `<div class="eq-cab"><h3>EQUIPO EN VIVO</h3><span class="cod">SYS.MONITOR // BMO-X</span><div class="der"><span class="vivo">CADA 1 S</span><span>SOLO LECTURA</span><span data-cerrar style="color:${RO};border-color:#7a1426;cursor:pointer">ESC</span></div></div>
+    <div class="franja"></div>
+    <div class="eq-cuerpo">
+      <div class="tj" style="--c:${AM}"><h4>CPU<small>//01</small><span class="der">Ryzen 5 5600X · 12 hilos</span></h4><div class="gran"><b data-eq="cpu">08%</b><span data-eq="ct">46 °C · Tctl</span></div><div class="seg" data-seg="cpu"></div><div class="hilos" data-eq="hilos">${'<i></i>'.repeat(12)}</div></div>
+      <div class="tj" style="--c:${CY}"><h4>GPU<small>//02</small><span class="der">GeForce RTX 3060</span></h4><div class="gran"><b data-eq="gpu">12%</b><span data-eq="gt">41 °C · 38 W</span></div><div class="seg" data-seg="gpu"></div><div class="datos"><span>VRAM</span><b data-eq="vram">1.4 / 12.0 GiB</b><span>RELOJ</span><b>1320 MHz</b></div></div>
+      <div class="tj" style="--c:${VE}"><h4>RAM<small>//03</small><span class="der">disponible según el kernel</span></h4><div class="gran"><b data-eq="ram">5.8</b><span>de 31.3 GiB</span></div><div class="seg" data-seg="ram"></div><div class="datos"><span>CACHÉ</span><b>3.1 GiB</b><span>ZRAM</span><b>0 B</b></div></div>
+      <div class="tj" style="--c:${RO}"><h4>SENSORES<small>//04</small><span class="der">expuestos por el kernel</span></h4><div class="datos"><span>k10temp / Tctl</span><b data-eq="ct2">46.0 °C</b><span>nvme / Composite</span><b>38.9 °C</b><span>nvidia / GPU</span><b data-eq="gt2">41 °C</b><span>ventiladores</span><span>SIN LECTURA</span></div></div>
+      <div class="tj ancha" style="--c:${CY}"><h4>DISCOS<small>//05</small><span class="der">físicos y montajes ULTRA</span></h4>
+        <div class="disco"><span class="n">NVMe Windows C:<small>nvme0n1 · 931.5 GiB · solo lectura</small></span><div class="seg" data-fijo=".72"></div><span class="v">72%</span></div>
+        <div class="disco" style="--c:${VE}"><span class="n">ULTRA-juegos.ext4<small>/juegos · 96 GiB</small></span><div class="seg" data-fijo=".16"></div><span class="v">80.6 GiB libres</span></div>
+        <div class="disco" style="--c:${AM}"><span class="n">Disco Personal D:<small>sda · 1.8 TiB</small></span><div class="seg" data-fijo=".91" data-alerta="1"></div><span class="v" style="color:${RO}">91% ▲</span></div></div>
+    </div>`;
+  return '';
+}
+function seg(el, p, alerta) {
+  if (!el.children.length) el.innerHTML = '<i></i>'.repeat(40);
+  const n = Math.round(p * 40);
+  [...el.children].forEach((i, k) => { i.className = k < n ? (alerta && k >= 32 ? 'al' : 'on') : ''; i.style.transitionDelay = S.vivo ? k * 8 + 'ms' : '0ms'; });
+}
+function equipoActualizar() {
+  const w = S.wins.find(v => v.app === 'equipo'); if (!w) return;
+  const q = s => w.el.querySelector(s);
+  q('[data-eq=cpu]').textContent = String(Math.round(valores.cpu)).padStart(2, '0') + '%';
+  q('[data-eq=gpu]').textContent = Math.round(valores.gpu) + '%';
+  q('[data-eq=ram]').textContent = valores.ram.toFixed(1);
+  q('[data-eq=ct]').textContent = valores.ct.toFixed(0) + ' °C · Tctl';
+  q('[data-eq=gt]').textContent = valores.gt.toFixed(0) + ' °C · ' + Math.round(30 + valores.gpu * 1.2) + ' W';
+  q('[data-eq=ct2]').textContent = valores.ct.toFixed(1) + ' °C';
+  q('[data-eq=gt2]').textContent = valores.gt.toFixed(0) + ' °C';
+  q('[data-eq=vram]').textContent = (1.2 + valores.gpu * .07).toFixed(1) + ' / 12.0 GiB';
+  seg(q('[data-seg=cpu]'), valores.cpu / 100, true);
+  seg(q('[data-seg=gpu]'), valores.gpu / 100, true);
+  seg(q('[data-seg=ram]'), valores.ram / 31.3);
+  [...q('[data-eq=hilos]').children].forEach(i => i.style.height = Math.max(3, Math.min(40, valores.cpu * (.3 + Math.random() * 1.4) * .5)) + 'px');
+}
+function abrir(app, opciones = {}) {
+  const ws = opciones.ws || S.ws;
+  const w = { id: S.sig++, app, ws, flota: app === 'equipo' };
+  w.el = document.createElement('div');
+  w.el.className = 'win' + (w.flota ? ' flota' : '') + (opciones.sinAnim ? '' : ' abriendo');
+  w.el.innerHTML = `<div class="win-in">${contenido(app)}</div>`;
+  w.el.addEventListener('mousedown', () => enfocar(w.id));
+  w.el.querySelectorAll('[data-cerrar]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); cerrar(w.id); }));
+  $('#capa-' + ws).appendChild(w.el);
+  S.wins.push(w);
+  if (opciones.sinAnim) w.el.style.transition = 'none';
+  disponer(ws);
+  if (opciones.sinAnim) { void w.el.offsetWidth; w.el.style.transition = ''; }
+  setTimeout(() => w.el.classList.remove('abriendo'), 450);
+  if (app === 'terminal') Terminal(w.el.querySelector('.term'), () => w.ws === S.ws && document.body.contains(w.el), opciones.guion);
+  if (app === 'equipo') { seg(w.el.querySelector('[data-seg=cpu]'), 0); seg(w.el.querySelector('[data-seg=gpu]'), 0); seg(w.el.querySelector('[data-seg=ram]'), 0);
+    w.el.querySelectorAll('[data-fijo]').forEach(s => { seg(s, 0); setTimeout(() => seg(s, +s.dataset.fijo, !!s.dataset.alerta), 80); }); setTimeout(equipoActualizar, 80); }
+  if (ws === S.ws) enfocar(w.id); else S.foco[ws] = w.id;
+  marcarEscritorios(); dockEstado();
+  return w;
+}
+function cerrar(id) {
+  const w = ventana(id ?? S.foco[S.ws]); if (!w) return;
+  S.wins = S.wins.filter(v => v !== w);
+  w.el.classList.add('cerrando');
+  setTimeout(() => w.el.remove(), 200);
+  disponer(w.ws);
+  const resto = S.wins.filter(v => v.ws === w.ws);
+  S.foco[w.ws] = resto.length ? resto[resto.length - 1].id : null;
+  if (S.foco[w.ws]) enfocar(S.foco[w.ws]); else { escribirTitulo('escritorio', ' ' + String(S.ws).padStart(2, '0')); dockEstado(); }
+  marcarEscritorios();
+}
+function enfocarOAbrir(app) {
+  const w = S.wins.find(v => v.app === app);
+  if (!w) return abrir(app);
+  if (w.ws !== S.ws) irA(w.ws);
+  enfocar(w.id);
+}
+function irA(n) {
+  if (n === S.ws || n < 1 || n > 5) return;
+  S.ws = n; posicionCapas(); marcarEscritorios();
+  if (S.foco[n] && ventana(S.foco[n])) enfocar(S.foco[n]); else { escribirTitulo('escritorio', ' ' + String(n).padStart(2, '0')); dockEstado(); }
+}
+function marcarEscritorios() {
+  document.querySelectorAll('.esc').forEach(e => {
+    const n = +e.dataset.ws;
+    e.classList.toggle('activo', n === S.ws);
+    e.classList.toggle('ocupado', S.wins.some(w => w.ws === n));
+  });
+  $('#marca').style.transform = `translateX(${(S.ws - 1) * 37}px)`;
+}
+
+/* ---------- Terminal con guiones ---------- */
+const P = '<span class="am">ultra</span><span class="gr">@</span><span class="cy">bmo-x</span> <span class="gr">::</span> <span class="bl">~</span> <span class="am">▶</span> ';
+const GUIONES = {
+  info: [['ultra-info', [
+    '<span class="am">  ██████████████ </span>   <span class="am">ULTRA</span><span class="gr">//</span><span class="cy">BMO-X</span>',
+    '<span class="am">  ██</span><span class="ro">▀▀▀▀▀▀▀▀▀▀</span><span class="am">██ </span>   <span class="ro">SISTEMA </span> ULTRA LinuX 0.1',
+    '<span class="am">  ██</span> <span class="cy">▄█</span>    <span class="cy">█▄</span> <span class="am">██ </span>   <span class="ro">INIT    </span> PID 1 en C',
+    '<span class="am">  ██</span>   <span class="ro">▀▀▀▀</span>   <span class="am">██ </span>   <span class="ro">SESIÓN  </span> Hyprland 0.56 · Wayland',
+    '<span class="am">  ██</span><span class="ro">▄▄▄▄▄▄▄▄▄▄</span><span class="am">██ </span>   <span class="ro">TEMA    </span> NEÓN · animaciones vivas',
+    '<span class="am">  ██████████████ </span>   <span class="ro">AUTOR   </span> <span class="cy">Eddi Salazar</span>',
+    '                    <span class="ro">GPU     </span> GeForce RTX 3060',
+    '']],
+    ['ultra-juegos estado', ['<span class="ve">VERDE   </span> [ESPACIO] /juegos: 80.6 GiB libres de 96 GiB', '<span class="ve">VERDE   </span> [STEAM]   2 bibliotecas registradas', '<span class="am">AMARILLO</span> [GOG]     Cyberpunk sin validar en este equipo', '']],
+    ['git log --oneline -3', ['<span class="cy">8f2c1a0</span> docs: animar el escritorio Neon', '<span class="cy">5e91b3d</span> docs: anadir estilo Neon cyberpunk', '<span class="cy">ad87ea2</span> Add Nucleo desktop theme', '']],
+    ['clear', null]],
+  rapida: [['ultra-juegos estado', ['<span class="ve">VERDE   </span> [ESPACIO] /juegos: 80.6 GiB libres', '<span class="ve">VERDE   </span> [STEAM]   2 bibliotecas registradas', '']],
+    ['ultra-audio estado', ['<span class="cy">SALIDA </span> Interfaz de audio USB · 100 %', '']], ['clear', null]],
+  red: [['ultra-informe-red', ['<span class="cy">ENP5S0 </span> enlace 100 Mb/s · DHCP correcto', '<span class="am">AVISO  </span> el otro extremo anuncia 100 Mb/s', '']], ['ping -c 2 1.1.1.1', ['64 bytes: icmp_seq=1 tiempo=9.8 ms', '64 bytes: icmp_seq=2 tiempo=10.1 ms', '']], ['clear', null]]
+};
+async function Terminal(el, visible, guion = 'info') {
+  const pasos = GUIONES[guion];
+  let lineas = [];
+  const pintar = extra => { el.innerHTML = '<div>' + lineas.concat([extra ?? '']).slice(-40).join('\n') + '</div>'; };
+  await espera(500);
+  for (let i = 0; document.body.contains(el); i = (i + 1) % pasos.length) {
+    const [cmd, salida] = pasos[i];
+    while (!visible()) { await espera(400); if (!document.body.contains(el)) return; }
+    for (let k = 0; k <= cmd.length; k++) { pintar(P + cmd.slice(0, k) + '<span class="cursor"></span>'); await esperar(45 + Math.random() * 50); }
+    await esperar(250);
+    if (!salida) { lineas = []; pintar(P + '<span class="cursor"></span>'); await esperar(800); continue; }
+    lineas.push(P + cmd);
+    for (const l of salida) { lineas.push(l); pintar(); await esperar(55); }
+    pintar(P + '<span class="cursor"></span>');
+    await esperar(2600);
+  }
+}
+
+/* ---------- Avisos ---------- */
+function aviso(titulo, texto, o = {}) {
+  const cont = $('#avisos');
+  while (cont.children.length >= 3) cont.firstElementChild.remove();
+  const a = document.createElement('div');
+  const dur = o.dur || 5000;
+  a.className = 'aviso' + (o.critica ? ' critica' : '');
+  a.style.setProperty('--dur', dur + 'ms');
+  a.innerHTML = `${ic(o.icono || 'ambiente', o.critica ? RO : AM, 'class="ic"')}<div style="flex:1;min-width:0"><b>${titulo}</b><p>${texto}</p>${o.mini ? `<div class="mini" style="background-image:url(${o.mini})"></div>` : ''}</div><div class="tiempo"></div>`;
+  a.onclick = () => quitar();
+  cont.appendChild(a);
+  const quitar = () => { if (!a.isConnected) return; a.classList.add('sale'); setTimeout(() => a.remove(), 260); };
+  setTimeout(quitar, dur);
+}
+
+/* ---------- Menu (fuzzel) ---------- */
+const MENU = {
+  raiz: { t: 'BMO-X', ac: AM, f: [['Aplicaciones', 'navegador', AM, 'apps'], ['Discos y bibliotecas', 'discos', CY, 'discos'], ['Juegos', 'juegos', RO, 'juegos'], ['Pantalla y gráficos', 'pantalla', VE, 'pantalla'], ['Audio', 'audio', VI, 'audio'], ['Ambiente', 'ambiente', CY, 'ambiente'], ['Sistema y ayuda', 'ajustes', AM, 'sistema']] },
+  apps: { t: 'APLICACIONES', ac: AM, f: [['Terminal', 'terminal', () => abrir('terminal')], ['Archivos', 'archivos', () => enfocarOAbrir('archivos')], ['Editor', 'editor', () => enfocarOAbrir('editor')], ['Navegador Brave', 'navegador', () => enfocarOAbrir('navegador')]] },
+  discos: { t: 'DISCOS', ac: CY, f: [['Panel de discos', 'discos', () => demo('Panel de discos', 'Aquí se abriría ultra-discos panel a pantalla completa.')], ['Windows NVMe (solo lectura)', 'discos', () => demo('Windows NVMe', 'Se montaría /windows en solo lectura.')], ['Explorar discos', 'archivos', () => enfocarOAbrir('archivos')]] },
+  juegos: { t: 'JUEGOS', ac: RO, f: [['Steam', 'juegos', () => juego('Steam')], ['GOG / Heroic', 'juegos', () => juego('Heroic')], ['Warframe / Steam', 'juegos', () => juego('Warframe')], ['Cyberpunk 2077', 'juegos', () => juego('Cyberpunk 2077')], ['Juegos y consumo en vivo', 'equipo', () => enfocarOAbrir('equipo')], ['FPS y HUD', 'pantalla', () => demo('MangoHud', 'Shift derecho+F12 muestra u oculta el HUD dentro del juego.')]] },
+  pantalla: { t: 'PANTALLA', ac: VE, f: [['Resolución, Hz y escala', 'pantalla', () => demo('Pantallas', 'Se abriría ultra-pantallas con confirmación de 20 s.')], ['Informe Vulkan y OpenGL', 'pantalla', () => abrirTerminalCon('red')], ['Cubo Vulkan', 'pantalla', () => demo('Cubo Vulkan', 'Prueba gráfica en una ventana nueva.')]] },
+  audio: { t: 'AUDIO', ac: VI, f: [['Salidas y volumen', 'audio', () => aviso('Audio', 'Salida: interfaz USB · 100 %.', { icono: 'audio' })], ['Subir volumen', 'audio', () => aviso('Volumen 105 %', 'Amplificación opcional activa.', { icono: 'audio' })], ['Silencio', 'audio', () => aviso('Silencio', 'Audio maestro silenciado.', { icono: 'audio', critica: true })]] },
+  ambiente: { t: 'AMBIENTE', ac: CY, f: [['Efectos vivos', 'ambiente', () => efectos(true)], ['Efectos reducidos', 'ambiente', () => efectos(false)], ['Limpiar avisos', 'ambiente', () => { $('#avisos').innerHTML = ''; }]] },
+  sistema: { t: 'SISTEMA', ac: AM, f: [['Equipo en vivo', 'equipo', () => enfocarOAbrir('equipo')], ['Atajos', 'ayuda', () => ayuda()], ['Bloquear sesión', 'candado', () => bloquear()]] }
+};
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function filasMenu() {
+  const m = MENU[S.menu.cat];
+  let f = m.f.map((x, i) => ({ x, i }));
+  if (S.menu.q) f = f.filter(({ x }) => norm(x[0]).includes(norm(S.menu.q)));
+  if (S.menu.cat !== 'raiz' && !S.menu.q) f.push({ x: ['← Volver a categorías', 'ayuda', 'volver'], i: -1 });
+  return f;
+}
+function pintarMenu(animar) {
+  const m = MENU[S.menu.cat], menu = $('#menu');
+  menu.style.setProperty('--acento', m.ac);
+  $('#menu-prompt').innerHTML = `${m.t} // <span>${S.menu.q}</span><i></i>`;
+  const f = filasMenu();
+  S.menu.sel = Math.max(0, Math.min(S.menu.sel, f.length - 1));
+  const marcar = t => { if (!S.menu.q) return t; const k = norm(t).indexOf(norm(S.menu.q)); return k < 0 ? t : t.slice(0, k) + '<u>' + t.slice(k, k + S.menu.q.length) + '</u>' + t.slice(k + S.menu.q.length); };
+  $('#menu-filas').innerHTML = `<div class="barra-sel" style="transform:translateY(${S.menu.sel * 40}px)${f.length ? '' : ';opacity:0'}"></div>` +
+    (f.length ? f.map(({ x, i }, k) => `<div class="fila ${k === S.menu.sel ? 'sel' : ''}" data-k="${k}" style="animation-delay:${animar ? k * 22 : 0}ms;${animar ? '' : 'animation:none'}">${S.menu.cat === 'raiz' ? `<span class="num">${i + 1}</span>` : ''}${ic(x[1], i < 0 ? T3 : (x[2] && typeof x[2] === 'string' ? x[2] : m.ac))}${marcar(x[0])}</div>`).join('') : '<div class="vacio">Sin coincidencias</div>');
+  document.querySelectorAll('#menu .fila').forEach(el => {
+    el.onmouseenter = () => { S.menu.sel = +el.dataset.k; moverSel(); };
+    el.onclick = () => { S.menu.sel = +el.dataset.k; elegir(); };
+  });
+}
+function moverSel() {
+  $('#menu .barra-sel').style.transform = `translateY(${S.menu.sel * 40}px)`;
+  document.querySelectorAll('#menu .fila').forEach((el, k) => el.classList.toggle('sel', k === S.menu.sel));
+}
+function abrirMenu(cat = 'raiz') {
+  cerrarTodo();
+  S.menu = { cat, sel: cat === 'raiz' ? 2 : 0, q: '' };
+  pintarMenu(true);
+  $('#menu').classList.add('ver'); $('#velo').classList.add('ver');
+}
+function cerrarMenu() { S.menu = null; $('#menu').classList.remove('ver'); $('#velo').classList.remove('ver'); }
+function elegir() {
+  const f = filasMenu()[S.menu.sel]; if (!f) return;
+  const x = f.x;
+  if (x[2] === 'volver') { S.menu = { cat: 'raiz', sel: 0, q: '' }; return pintarMenu(true); }
+  if (S.menu.cat === 'raiz') { S.menu = { cat: x[3], sel: 0, q: '' }; return pintarMenu(true); }
+  const accion = x[2]; cerrarMenu(); setTimeout(accion, 120);
+}
+function demo(t, txt) { aviso(t, txt + ' (demostración)', { icono: 'ajustes' }); }
+function abrirTerminalCon(g) { abrir('terminal', { guion: g }); }
+
+/* ---------- Alt+Tab ---------- */
+function ventanas(paso = 1) {
+  if (!S.wins.length) return aviso('Sin ventanas', 'Abre una aplicación desde el dock o el centro.', { icono: 'ayuda' });
+  if (!S.alttab) {
+    cerrarTodo();
+    const orden = [...S.wins].sort((a, b) => (a.ws === S.ws ? -1 : 0) - (b.ws === S.ws ? -1 : 0));
+    const ini = Math.max(0, orden.findIndex(w => w.id === S.foco[S.ws]));
+    S.alttab = { orden, sel: orden.length > 1 ? (ini + 1) % orden.length : 0 };
+    const col = { terminal: AM, archivos: CY, editor: CY, navegador: CY, equipo: RO };
+    $('#alttab').innerHTML = orden.map((w, k) => `<div class="at" data-k="${k}"><div class="pv">${ic(w.app, col[w.app])}</div><div class="nom">${ic(w.app, col[w.app], 'width="20" height="20"')}${NOMBRE[w.app]}<small>${String(w.ws).padStart(2, '0')}</small></div></div>`).join('');
+    document.querySelectorAll('.at').forEach(e => { e.onclick = () => { S.alttab.sel = +e.dataset.k; confirmarVentana(); }; });
+    $('#alttab').classList.add('ver'); $('#velo').classList.add('ver');
+  } else S.alttab.sel = (S.alttab.sel + paso + S.alttab.orden.length) % S.alttab.orden.length;
+  document.querySelectorAll('.at').forEach((e, k) => e.classList.toggle('sel', k === S.alttab.sel));
+}
+function confirmarVentana() {
+  if (!S.alttab) return;
+  const w = S.alttab.orden[S.alttab.sel];
+  cerrarVentanas();
+  if (w) { irA(w.ws); enfocar(w.id); }
+}
+function cerrarVentanas() { S.alttab = null; $('#alttab').classList.remove('ver'); $('#velo').classList.remove('ver'); }
+
+/* ---------- Terminal rapida ---------- */
+let rapidaIniciada = false;
+function rapida() {
+  S.especial = !S.especial;
+  $('#especial').classList.toggle('ver', S.especial);
+  if (S.especial && !rapidaIniciada) { rapidaIniciada = true; Terminal($('#term-rapida'), () => S.especial, 'rapida'); }
+}
+
+/* ---------- Ayuda ---------- */
+function ayuda() {
+  S.ayuda = !S.ayuda;
+  if (S.ayuda) { cerrarMenu(); cerrarVentanas(); }
+  $('#ayuda').innerHTML = `<h3>ATAJOS // BMO-X NEÓN</h3><dl>
+    <dt>Super+Espacio</dt><dd>Centro BMO-X (flechas, Enter, Esc; escribir filtra)</dd><dt>Super+Enter</dt><dd>Nueva terminal</dd>
+    <dt>Super+1…5</dt><dd>Cambiar de escritorio (deslizamiento)</dd><dt>Super+Q</dt><dd>Cerrar ventana</dd>
+    <dt>Super+F9</dt><dd>Equipo en vivo</dd><dt>Alt+Tab</dt><dd>Cambiar de ventana</dd>
+    <dt>Super+S</dt><dd>Terminal rápida</dd><dt>Super+Shift+S</dt><dd>Captura de región</dd>
+    <dt>Super+L</dt><dd>Bloquear sesión</dd><dt>Super+Shift+A</dt><dd>Efectos vivos o reducidos</dd></dl>
+    <p>En este prototipo, Alt hace de Super: el navegador no deja usar la tecla Windows. Alt+W hace de Alt+Tab.</p>`;
+  $('#ayuda').classList.toggle('ver', S.ayuda);
+}
+
+/* ---------- Captura ---------- */
+async function captura() {
+  if (S.ocupado) return; S.ocupado = true;
+  cerrarTodo();
+  const c = $('#captura');
+  c.innerHTML = '<div class="sombra" data-s="a"></div><div class="sombra" data-s="b"></div><div class="sombra" data-s="c"></div><div class="sombra" data-s="d"></div><div class="rect"><span class="med"></span></div>';
+  const [x0, y0, x1, y1] = [560, 230, 1340, 720];
+  const poner = (x, y, w, h) => {
+    const s = k => c.querySelector(`[data-s=${k}]`).style;
+    Object.assign(s('a'), { left: 0, top: 0, width: '1920px', height: y + 'px' });
+    Object.assign(s('b'), { left: 0, top: y + h + 'px', width: '1920px', height: 1080 - y - h + 'px' });
+    Object.assign(s('c'), { left: 0, top: y + 'px', width: x + 'px', height: h + 'px' });
+    Object.assign(s('d'), { left: x + w + 'px', top: y + 'px', width: 1920 - x - w + 'px', height: h + 'px' });
+    Object.assign(c.querySelector('.rect').style, { left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px' });
+    c.querySelector('.med').textContent = `${Math.round(w)} × ${Math.round(h)}`;
+  };
+  poner(x0, y0, 0, 0); c.classList.add('ver');
+  await esperar(250);
+  const d = S.vivo ? 700 : 1, t0 = performance.now();
+  await new Promise(r => { const paso = t => { const p = Math.min((t - t0) / d, 1), e = 1 - Math.pow(1 - p, 3); poner(x0, y0, (x1 - x0) * e, (y1 - y0) * e); p < 1 ? requestAnimationFrame(paso) : r(); }; requestAnimationFrame(paso); });
+  await esperar(350);
+  c.classList.remove('ver');
+  const f = $('#destello'); f.classList.remove('ya'); void f.offsetWidth; f.classList.add('ya');
+  const hora = lima.format(new Date()).replace(':', '-');
+  aviso('Captura guardada', `~/Imágenes/Capturas/captura_${hora}.png · copiada`, { icono: 'captura', mini: Fondo.miniatura(x0, y0, x1 - x0, y1 - y0), dur: 6000 });
+  S.ocupado = false;
+}
+
+/* ---------- Modo juego ---------- */
+let mangoT = null;
+function juego(nombre = 'Warframe') {
+  if (S.juego) return salirJuego();
+  cerrarTodo();
+  S.juego = true; escena.classList.add('juego-on'); $('#juego').classList.add('ver');
+  $('#especial').classList.remove('ver'); S.especial = false;
+  const m = $('#mango');
+  m.innerHTML = `<div class="f"><span class="k" style="color:${CY}">CPU</span><span id="mg-cpu">38%</span><span>62°C</span></div>
+    <div class="f"><span class="k" style="color:${AM}">GPU</span><span id="mg-gpu">97%</span><span>71°C</span></div>
+    <div class="f"><span class="k" style="color:${AM}">VRAM</span><span>7.9</span><span><small>GiB</small></span></div>
+    <div class="f"><span class="k" style="color:${VE}">RAM</span><span id="mg-ram">9.2</span><span><small>GiB</small></span></div>
+    <div class="f"><span class="k" style="color:${RO}">FPS</span><span class="fps" id="mg-fps">144</span><span id="mg-ms">6.9<small>ms</small></span></div>
+    <canvas id="mg-graf" width="302" height="46"></canvas>`;
+  const cv = $('#mg-graf'), g = cv.getContext('2d'), hist = Array(60).fill(6.9);
+  let n = 0;
+  clearInterval(mangoT);
+  mangoT = setInterval(() => {
+    const pico = Math.random() < .04;
+    const ms = pico ? 9 + Math.random() * 3 : 6.8 + Math.random() * .4;
+    hist.push(ms); hist.shift();
+    g.clearRect(0, 0, 302, 46);
+    const ac = acento(); hist.forEach((v, i) => { g.fillStyle = v > 9 ? RO : ac; const h = Math.min(44, (v - 5.5) * 7); g.fillRect(i * 5 + 1, 46 - h, 3, h); });
+    if (++n % 8 === 0) {
+      const media = hist.slice(-20).reduce((a, b) => a + b) / 20;
+      $('#mg-fps').textContent = Math.round(1000 / media);
+      $('#mg-ms').innerHTML = media.toFixed(1) + '<small>ms</small>';
+      $('#mg-cpu').textContent = Math.round(valores.cpu) + '%';
+      $('#mg-gpu').textContent = Math.round(valores.gpu) + '%';
+      $('#mg-ram').textContent = valores.ram.toFixed(1);
+    }
+  }, 60);
+  setTimeout(() => aviso('Modo juego activado', `${nombre} a pantalla completa. Fondo animado en pausa; barra y dock ocultos.`, { icono: 'juegos', dur: 4500 }), 300);
+}
+function salirJuego() {
+  S.juego = false; escena.classList.remove('juego-on'); $('#juego').classList.remove('ver'); clearInterval(mangoT);
+  aviso('Modo juego terminado', 'Efectos, barra y fondo animado restaurados.', { icono: 'juegos', dur: 3500 });
+}
+
+/* ---------- Bloqueo ---------- */
+let clave = 0;
+function bloquear() {
+  if (S.bloqueado) return;
+  cerrarTodo(); if (S.juego) salirJuego();
+  S.bloqueado = true; clave = 0;
+  const [h, m] = lima.format(new Date()).split(':');
+  const dia = limaLargo.format(new Date()).split(' ');
+  $('#bloqueo').className = 'bloqueo';
+  $('#bloqueo').innerHTML = `<div class="bl-hora" id="bl-hora">${h}:${m}</div><div class="bl-dia">${dia[0].replace(',', '')} <b>//</b> ${dia.slice(1).join(' ')}</div>
+    <div class="acceso" id="acceso"><div class="usuario"><div class="av" style="background:#05070b;border:0;padding:0;overflow:hidden">${emblema()}</div><div><h2>${AUTOR.nombre.toUpperCase()}</h2><small>AUTOR · USUARIO ultra · UID 1000</small></div></div>
+    <div class="campo" id="campo"><span class="k">CLAVE</span><span class="cur"></span></div>
+    <div class="bl-estado"><span class="msg" id="bl-msg">ESCRIBE TU CLAVE</span><span>LATAM</span><span>ENTER = ENTRAR</span></div></div>`;
+  void $('#bloqueo').offsetWidth;
+  $('#bloqueo').classList.add('ver');
+}
+function teclaBloqueo(e) {
+  const campo = $('#campo'), acc = $('#acceso'), msg = $('#bl-msg');
+  if (acc.classList.contains('ok')) return;
+  if (e.key === 'Enter') {
+    if (!clave) { acc.classList.remove('mal'); void acc.offsetWidth; acc.classList.add('mal'); msg.className = 'msg mal'; msg.textContent = 'CLAVE VACÍA'; return; }
+    acc.classList.add('ok'); msg.className = 'msg ok'; msg.textContent = 'ACCESO CONCEDIDO';
+    setTimeout(() => { $('#bloqueo').classList.add('saliendo'); }, 650);
+    setTimeout(() => { $('#bloqueo').className = 'bloqueo'; S.bloqueado = false; aviso(`Bienvenido, ${AUTOR.corto}`, 'Sesión desbloqueada.', { icono: 'candado', dur: 3000 }); }, 1300);
+    return;
+  }
+  if (e.key === 'Backspace') { if (clave) { clave--; campo.querySelectorAll('i')[clave].remove(); } }
+  else if (e.key.length === 1 && clave < 14) { clave++; campo.insertBefore(document.createElement('i'), campo.querySelector('.cur')); }
+  acc.classList.remove('mal'); msg.className = 'msg'; msg.textContent = clave ? `${clave} CARACTERES` : 'ESCRIBE TU CLAVE';
+}
+
+/* ---------- Perfil del autor ---------- */
+function perfil() {
+  const ver = !$('#perfil').classList.contains('ver');
+  if (ver) cerrarTodo();
+  $('#perfil').innerHTML = `<div class="retrato"><div class="aro"></div><div class="aro b"></div><div class="cara">${emblema()}</div></div>
+    <div><div class="cod">PERFIL // AUTOR // UID 1000</div><h3>${AUTOR.nombre.toUpperCase()}</h3><div class="rol">${AUTOR.rol}</div>
+    <ul><li>Kernel Linux configurado y compilado para ULTRA</li><li>PID 1 propio escrito en C, con perfiles genérico y PC</li>
+      <li>Guardianes, Custodia y auditoría HEX de producción</li><li>Escritorio BMO-X: Núcleo y Neón</li><li>Usuario del sistema: ultra · zona horaria America/Lima</li></ul>
+    <div class="pie">Estilo del autor: negro y <b>azul hielo</b>. ${S.autorImg ? 'Retrato: autor.png.' : 'Emblema original; guarda tu imagen como <b>autor.png</b> junto a esta página para usarla.'}</div></div>`;
+  $('#perfil').classList.toggle('ver', ver);
+  $('#velo').classList.toggle('ver', ver);
+}
+function cambiarAcento(forzar) {
+  const hielo = typeof forzar === 'boolean' ? forzar : !document.body.classList.contains('hielo');
+  document.body.classList.toggle('hielo', hielo);
+  $('#b-acento').firstChild.textContent = 'Acento: ' + (hielo ? 'hielo' : 'amarillo');
+  Fondo.reconstruir();
+  aviso(hielo ? 'Acento hielo' : 'Acento amarillo', hielo ? 'Negro y azul hielo: el estilo del autor.' : 'Amarillo neón: el acento original de Neón.', { icono: 'ambiente', dur: 3000 });
+}
+
+/* ---------- Efectos ---------- */
+function efectos(forzar) {
+  S.vivo = typeof forzar === 'boolean' ? forzar : !S.vivo;
+  document.body.classList.toggle('sobrio', !S.vivo);
+  $('#b-efectos').firstChild.textContent = 'Efectos: ' + (S.vivo ? 'vivos' : 'reducidos');
+  if (!S.vivo) Fondo.estatico();
+  aviso('Ambiente', S.vivo ? 'Animaciones, brillo y fondo animado activados.' : 'Animaciones y fondo animado desactivados.', { icono: 'ambiente', dur: 3000 });
+}
+
+/* ---------- Teclado ---------- */
+function cerrarTodo() { if (S.menu) cerrarMenu(); if (S.alttab) cerrarVentanas(); if (S.ayuda) ayuda(); if ($('#perfil').classList.contains('ver')) { $('#perfil').classList.remove('ver'); $('#velo').classList.remove('ver'); } }
+document.addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('.controles')) { if (e.key === 'Enter' || e.key === ' ') return; }
+  if (S.bloqueado) { e.preventDefault(); return teclaBloqueo(e); }
+  if (S.menu) {
+    const n = filasMenu().length;
+    if (e.key === 'ArrowDown') { S.menu.sel = (S.menu.sel + 1) % Math.max(n, 1); moverSel(); }
+    else if (e.key === 'ArrowUp') { S.menu.sel = (S.menu.sel - 1 + n) % Math.max(n, 1); moverSel(); }
+    else if (e.key === 'Enter') elegir();
+    else if (e.key === 'Escape') { if (S.menu.q) { S.menu.q = ''; pintarMenu(false); } else if (S.menu.cat !== 'raiz') { S.menu = { cat: 'raiz', sel: 0, q: '' }; pintarMenu(true); } else cerrarMenu(); }
+    else if (e.key === 'Backspace') { S.menu.q = S.menu.q.slice(0, -1); S.menu.sel = 0; pintarMenu(false); }
+    else if (S.menu.cat === 'raiz' && !S.menu.q && /^[1-7]$/.test(e.key)) { S.menu.sel = +e.key - 1; elegir(); }
+    else if (e.key.length === 1 && !e.altKey && !e.ctrlKey && !e.metaKey) { S.menu.q += e.key; S.menu.sel = 0; pintarMenu(false); }
+    else return;
+    return e.preventDefault();
+  }
+  if (S.alttab) {
+    if (e.key === 'ArrowRight' || (e.altKey && e.code === 'KeyW') || e.key === 'Tab') ventanas(e.shiftKey ? -1 : 1);
+    else if (e.key === 'ArrowLeft') ventanas(-1);
+    else if (e.key === 'Enter') confirmarVentana();
+    else if (e.key === 'Escape') cerrarVentanas();
+    else return;
+    return e.preventDefault();
+  }
+  if (e.key === 'Escape') { if (S.juego) salirJuego(); else if ($('#perfil').classList.contains('ver')) cerrarTodo(); else if (S.ayuda) ayuda(); else if (S.especial) rapida(); else return; return e.preventDefault(); }
+  if (!e.altKey) return;
+  const acciones = { Space: () => abrirMenu(), Enter: () => abrir('terminal'), KeyQ: () => cerrar(), KeyP: () => enfocarOAbrir('equipo'), F9: () => enfocarOAbrir('equipo'), KeyW: () => ventanas(e.shiftKey ? -1 : 1),
+    KeyS: () => rapida(), KeyC: () => captura(), KeyG: () => juego(), KeyL: () => bloquear(), KeyA: () => efectos(), KeyH: () => ayuda(), KeyI: () => perfil(), KeyK: () => cambiarAcento(), KeyE: () => enfocarOAbrir('archivos'), KeyN: () => enfocarOAbrir('editor'), KeyB: () => enfocarOAbrir('navegador') };
+  const d = /^Digit[1-5]$/.test(e.code) ? () => irA(+e.code.slice(5)) : acciones[e.code];
+  if (d) { e.preventDefault(); d(); }
+});
+document.addEventListener('keyup', e => { if (S.alttab && e.key === 'Alt') confirmarVentana(); });
+$('#velo').onclick = () => cerrarTodo();
+
+/* ---------- Recorrido ---------- */
+let enRecorrido = false;
+async function rotulo(tecla, texto, ms = 1600) {
+  const r = $('#rotulo'); r.innerHTML = `<b>${tecla}</b>${texto}`; r.classList.add('ver');
+  await espera(ms); r.classList.remove('ver'); await espera(200);
+}
+const tecla = k => document.dispatchEvent(new KeyboardEvent('keydown', k));
+async function recorrido() {
+  if (enRecorrido) return; enRecorrido = true;
+  const boton = $('#b-recorrido'); boton.textContent = '■ Recorrido en curso';
+  try {
+    if (S.bloqueado) { clave = 1; teclaBloqueo({ key: 'Enter' }); await espera(1500); }
+    if (S.juego) salirJuego();
+    cerrarTodo(); if (S.especial) rapida();
+    if (!S.vivo) efectos(true);
+    irA(4);
+    await rotulo('FONDO', 'lluvia, letreros, aro y haces de luz en vivo', 2600);
+    irA(2);
+    await rotulo('BORDE', 'la ventana activa gira amarillo → rojo → cyan', 2200);
+    rotulo('SUPER+ESPACIO', 'centro BMO-X', 1400); abrirMenu(); await espera(900);
+    for (const k of ['ArrowUp', 'ArrowUp']) { tecla({ key: k }); await espera(380); }
+    tecla({ key: 'Enter' }); await espera(900);
+    tecla({ key: 'Enter' }); await espera(1400);
+    await rotulo('VENTANA NUEVA', 'aparece con un corte glitch y se acomoda', 2000);
+    for (const n of [3, 1, 2]) { rotulo('SUPER+' + n, 'cambio de escritorio con deslizamiento', 900); irA(n); await espera(1100); }
+    rotulo('SUPER+F9', 'equipo en vivo flotante', 1800); enfocarOAbrir('equipo'); await espera(3800);
+    cerrar(S.wins.find(w => w.app === 'equipo')?.id); await espera(500);
+    rotulo('SUPER+S', 'terminal rápida', 1600); rapida(); await espera(3200); rapida(); await espera(600);
+    rotulo('ALT+TAB', 'cambiar de ventana', 1600); ventanas(); await espera(700); ventanas(); await espera(700); ventanas(); await espera(700); confirmarVentana(); await espera(900);
+    rotulo('SUPER+SHIFT+S', 'captura de región', 1500); await captura(); await espera(2200);
+    rotulo('JUEGO', 'barra y dock se apartan; MangoHud', 1800); juego('Warframe'); await espera(5000); salirJuego(); await espera(1400);
+    rotulo('PERFIL', 'Eddi Salazar, autor de ULTRA LinuX', 2600); perfil(); await espera(3200); cerrarTodo(); await espera(400);
+    rotulo('ACENTO HIELO', 'el estilo del autor', 2400); cambiarAcento(true); await espera(3600);
+    rotulo('SUPER+L', 'bloqueo hyprlock', 1500); bloquear(); await espera(1600);
+    for (let i = 0; i < 6; i++) { teclaBloqueo({ key: 'x' }); await espera(170); }
+    await espera(400); teclaBloqueo({ key: 'Enter' }); await espera(2400);
+    cambiarAcento(false); await espera(1500);
+  } finally { enRecorrido = false; boton.textContent = '▶ Recorrido'; }
+}
+
+/* ---------- Controles ---------- */
+const ACCIONES = { recorrido, menu: () => abrirMenu(), terminal: () => abrir('terminal'), equipo: () => enfocarOAbrir('equipo'), ventanas: () => ventanas(), rapida, captura,
+  aviso: () => aviso(...[['Audio USB conectado', 'Salida maestra cambiada. Volumen 100 %.', { icono: 'audio' }], ['/juegos casi lleno', 'Quedan 2.8 GiB. Revisa Super+J › Espacio.', { icono: 'discos', critica: true }], ['Steam actualizado', '2 bibliotecas registradas en /juegos.', { icono: 'juegos' }]][Math.floor(Math.random() * 3)]),
+  juego: () => juego(), bloquear, efectos: () => efectos(), ayuda, perfil: () => perfil(), acento: () => cambiarAcento() };
+document.querySelectorAll('#controles button').forEach(b => b.onclick = () => { ACCIONES[b.dataset.a](); if (b.dataset.a !== 'recorrido') marco.focus({ preventScroll: true }); });
+
+/* ---------- Inicio ---------- */
+const pruebaAutor = new Image();
+pruebaAutor.onload = () => { S.autorImg = true; barra(); marcarEscritorios(); reloj(); if (S.foco[S.ws]) enfocar(S.foco[S.ws]); };
+pruebaAutor.src = 'autor.png';
+barra(); dock(); capas();
+abrir('navegador', { ws: 1, sinAnim: true });
+abrir('terminal', { ws: 3, sinAnim: true, guion: 'red' });
+abrir('terminal', { ws: 2, sinAnim: true });
+abrir('archivos', { ws: 2, sinAnim: true });
+abrir('editor', { ws: 2, sinAnim: true });
+enfocar(S.wins.find(w => w.ws === 2 && w.app === 'terminal').id);
+escena.classList.add('quieto'); irA(4); void escena.offsetWidth; escena.classList.remove('quieto');
+marcarEscritorios(); reloj(); setInterval(reloj, 1000); setInterval(sensores, 2000);
+setTimeout(() => aviso(`Bienvenido, ${AUTOR.corto}`, 'BMO-X // Neón listo. Pulsa ▶ Recorrido o Alt+Espacio. Tus ventanas están en el escritorio 02.', { icono: 'candado', dur: 7000 }), 900);
+if (reducir) { S.vivo = false; document.body.classList.add('sobrio'); $('#b-efectos').firstChild.textContent = 'Efectos: reducidos'; }
+Fondo.iniciar();
+if (location.hash === '#recorrido') setTimeout(recorrido, 900);
+if (location.hash === '#hielo') setTimeout(() => cambiarAcento(true), 300);
+})();
+</script>
