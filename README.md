@@ -72,6 +72,10 @@ sus cambios y sus partidas; el original de D: se retiró con autorización del a
 usa la configuración de Heroic; el modo UMU separado queda como recuperación
 con registro de Proton. La carga de partida se valida en el PC.
 
+[Reparación de DLL de Cyberpunk](docs/CYBERPUNK-DLL-2026-10-24.md): dos marcas
+de borrado del overlay ocultaban bibliotecas originales necesarias. Se
+apartaron con respaldo y se comprobó su lectura como usuario del escritorio.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.

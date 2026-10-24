@@ -1,0 +1,18 @@
+
+ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINAL-$((40+2))
+ultra:~# ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINA
+L-$((40+2))
+REPARACION {"restored_dlls": [{"name": "ffx_backend_dx12_x64.dll", "bytes": 12901512, "sha256": "bd2212b435cdd4b1bd66d36dde8e8f94de8cd728af8155848d86005a66a0657d", "whiteout": true}, {"name": "ffx_fsr3_x64.dll", "bytes": 163464, "sha256": "042e083248869e106059e0d08a753dc29ce82122096cbd2a582127c83ab2a793", "whiteout": true}], "whiteouts_backed_up": true, "configuration_backed_up": true, "targetExe": "/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe", "verboseLogs": true, "prefix_preserved": true, "base_unchanged": true, "gameplay_tested": false}
+DLL-VISIBLE-UID1000 ffx_backend_dx12_x64.dll
+DLL-VISIBLE-UID1000 ffx_fsr3_x64.dll
+HEROIC-EJECUTABLE-REAL-OK
+e2fsck 1.47.4 (6-Mar-2025)
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+ULTRA-DATOS: 108374/27172864 files (0.4% non-contiguous), 49207015/108670208 blocks
+DLL-REPARADAS-42
+RESULTADO-0
+FINAL-42

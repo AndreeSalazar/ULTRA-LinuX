@@ -1,0 +1,54 @@
+{
+  "proton_errors": [
+    "105.498:0154:0158:err:module:import_dll Library ffx_backend_dx12_x64.dll (which is needed by L\"S:\\\\bin\\\\x64\\\\Cyberpunk2077.exe\") not found",
+    "105.500:0154:0158:err:module:import_dll Library ffx_fsr3_x64.dll (which is needed by L\"S:\\\\bin\\\\x64\\\\Cyberpunk2077.exe\") not found",
+    "105.510:0154:0158:err:module:loader_init Importing dlls for L\"S:\\\\bin\\\\x64\\\\Cyberpunk2077.exe\" failed, status c0000135"
+  ],
+  "whiteouts_before": [
+    {
+      "path": "overlay/upper/bin/x64/ffx_backend_dx12_x64.dll",
+      "size": 0,
+      "mode": "0o20000",
+      "uid": 0,
+      "rdev": 0,
+      "xattrs": []
+    },
+    {
+      "path": "overlay/upper/bin/x64/ffx_fsr3_x64.dll",
+      "size": 0,
+      "mode": "0o20000",
+      "uid": 0,
+      "rdev": 0,
+      "xattrs": []
+    }
+  ],
+  "repair": {
+    "restored_dlls": [
+      {
+        "name": "ffx_backend_dx12_x64.dll",
+        "bytes": 12901512,
+        "sha256": "bd2212b435cdd4b1bd66d36dde8e8f94de8cd728af8155848d86005a66a0657d",
+        "whiteout": true
+      },
+      {
+        "name": "ffx_fsr3_x64.dll",
+        "bytes": 163464,
+        "sha256": "042e083248869e106059e0d08a753dc29ce82122096cbd2a582127c83ab2a793",
+        "whiteout": true
+      }
+    ],
+    "whiteouts_backed_up": true,
+    "configuration_backed_up": true,
+    "targetExe": "/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe",
+    "verboseLogs": true,
+    "prefix_preserved": true,
+    "base_unchanged": true,
+    "gameplay_tested": false
+  },
+  "hashes_preservados": true,
+  "whiteouts_activos_despues": 0,
+  "verificacion_solo_lectura": true,
+  "red": false,
+  "disponible_bytes": 239093329920,
+  "juego_en_hardware_pendiente": true
+}
