@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X cambiar ventana</title>
+<link rel="stylesheet" href="nucleo.css"><script src="comun.js"></script>
+<style>
+  body { background: url("png/base-escritorio.png") 0 0 / 1920px 1080px; }
+  .velo { position: absolute; inset: 0; background: rgba(2, 6, 10, .62); z-index: 15; }
+  .cambiador { position: absolute; z-index: 30; left: 50%; top: 330px; transform: translateX(-50%); display: flex; gap: 18px; padding: 22px;
+    background: rgba(7, 16, 26, .95); border: 1px solid var(--borde-2); border-top: 2px solid var(--cyan); border-radius: 14px; box-shadow: 0 20px 50px rgba(0, 0, 0, .7); }
+  .tarjeta { width: 300px; border-radius: 10px; padding: 10px; border: 1px solid #22413a; background: #0a1615; }
+  .tarjeta.sel { border: 2px solid var(--cyan); background: #10221f; padding: 9px; box-shadow: 0 0 0 4px rgba(67, 222, 235, .12); }
+  .vista { height: 168px; border-radius: 6px; background-size: 1920px 1080px; background-image: url("png/base-escritorio.png"); border: 1px solid #1d3a33; }
+  .nombre { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px; font-weight: 600; }
+  .nombre svg { width: 24px; height: 24px; }
+  .nombre small { margin-left: auto; color: var(--texto-3); font-weight: 500; font-size: 12px; }
+  .etiqueta { position: absolute; z-index: 31; left: 50%; transform: translateX(-50%); top: 296px; font: 600 12px/1 var(--ui); letter-spacing: 3px; text-transform: uppercase; color: var(--texto-2); }
+  .etiqueta b { color: var(--cyan-claro); }
+  .resumen { position: absolute; z-index: 30; left: 50%; transform: translateX(-50%); top: 640px; display: flex; gap: 14px; }
+  .ws { width: 210px; height: 128px; border-radius: 8px; border: 1px solid #22413a; background: rgba(10, 22, 21, .9); position: relative; overflow: hidden; }
+  .ws.act { border: 2px solid var(--verde-claro); }
+  .ws span { position: absolute; left: 8px; top: 6px; font: 700 13px var(--mono); color: var(--texto-2); z-index: 2; }
+  .ws i { position: absolute; border-radius: 3px; background: #1a2f2a; border: 1px solid #2f5248; }
+  .ws.vacio { display: grid; place-items: center; color: var(--texto-3); font-size: 12px; }
+</style></head>
+<body>
+<div class="velo"></div>
+<script>document.write(sello('Alt+Tab y vista de escritorios'));</script>
+<div class="etiqueta"><b>Alt+Tab</b> · soltar Alt para cambiar · Shift invierte</div>
+<div class="cambiador">
+  <div class="tarjeta sel"><div class="vista" style="background-position:-18px -72px;background-size:1880px 1060px"></div>
+    <div class="nombre"><script>document.write(app('terminal', '#8dcdaa'))</script>foot<small>escritorio 2</small></div></div>
+  <div class="tarjeta"><div class="vista" style="background-position:-700px -50px;background-size:1500px 840px"></div>
+    <div class="nombre"><script>document.write(app('archivos', '#66e1eb'))</script>Archivos — Juegos<small>2</small></div></div>
+  <div class="tarjeta"><div class="vista" style="background-position:-700px -380px;background-size:1500px 840px"></div>
+    <div class="nombre"><script>document.write(app('editor', '#ba9bea'))</script>Mousepad<small>2</small></div></div>
+  <div class="tarjeta"><div class="vista" style="background-image:url('png/03-equipo.png');background-position:-260px -60px;background-size:1300px 731px"></div>
+    <div class="nombre"><script>document.write(app('navegador', '#b496e8'))</script>Brave<small>1</small></div></div>
+</div>
+<div class="resumen">
+  <div class="ws"><span>1</span><i style="left:8px;top:28px;width:192px;height:90px"></i></div>
+  <div class="ws act"><span>2</span><i style="left:8px;top:28px;width:96px;height:90px;border-color:var(--cyan)"></i><i style="left:110px;top:28px;width:90px;height:42px"></i><i style="left:110px;top:76px;width:90px;height:42px"></i></div>
+  <div class="ws"><span>3</span><i style="left:8px;top:28px;width:192px;height:90px"></i></div>
+  <div class="ws vacio"><span>4</span>vacío</div>
+  <div class="ws vacio"><span>5</span>vacío</div>
+</div>
+</body></html>

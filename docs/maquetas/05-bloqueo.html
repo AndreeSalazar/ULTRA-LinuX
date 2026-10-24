@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X bloqueo</title>
+<link rel="stylesheet" href="nucleo.css"><script src="comun.js"></script>
+<style>
+  .fondo { position: absolute; inset: -30px; background: url("../../src/rootfs/desktop/wallpaper.svg") center / cover; filter: blur(14px) brightness(.55) saturate(1.1); }
+  .centro { position: absolute; left: 0; right: 0; top: 190px; display: flex; flex-direction: column; align-items: center; z-index: 5; }
+  .hora { font: 200 168px/1 var(--ui); letter-spacing: 6px; color: #e6fbff; font-variant-numeric: tabular-nums; text-shadow: 0 0 40px rgba(67, 222, 235, .25); }
+  .dia { margin-top: 12px; font: 500 22px var(--ui); letter-spacing: 3px; color: var(--texto-2); }
+  .avatar { margin-top: 70px; width: 116px; height: 116px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--cyan), var(--morado) 60%, var(--verde)); clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
+  .avatar div { width: 110px; height: 110px; display: grid; place-items: center; background: #0a1615; clip-path: inherit; }
+  .avatar svg { width: 60px; height: 60px; }
+  .usuario { margin-top: 18px; font: 600 18px var(--ui); letter-spacing: 4px; color: var(--cyan-claro); }
+  .campo { margin-top: 26px; width: 440px; height: 56px; display: flex; align-items: center; justify-content: center; gap: 14px;
+    background: rgba(7, 16, 26, .85); border: 2px solid var(--cyan); clip-path: var(--corte); }
+  .campo i { width: 12px; height: 12px; border-radius: 50%; background: var(--cyan-claro); box-shadow: 0 0 10px rgba(99, 244, 255, .6); }
+  .campo i.vacio { background: transparent; border: 1px solid #2f5a55; box-shadow: none; }
+  .avisos { margin-top: 16px; display: flex; gap: 14px; font: 500 13px var(--ui); color: var(--texto-3); }
+  .avisos span { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border: 1px solid #23423a; border-radius: 5px; background: rgba(7, 16, 26, .6); }
+  .avisos .on { color: var(--aviso); border-color: #6b5136; }
+  .abajo { position: absolute; bottom: 28px; right: 34px; display: flex; gap: 22px; z-index: 5; font: 500 14px var(--ui); color: var(--texto-2); }
+  .abajo span { display: flex; align-items: center; gap: 8px; }
+  .marca { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); z-index: 5; font: 600 13px var(--ui); letter-spacing: 6px; color: var(--texto-3); }
+  .marca b { color: var(--cyan); }
+</style></head>
+<body>
+<div class="fondo"></div>
+<script>document.write(sello('pantalla de bloqueo hyprlock'));</script>
+<div class="centro">
+  <div class="hora">23:19</div>
+  <div class="dia">viernes, 23 de octubre</div>
+  <div class="avatar"><div><script>document.write(app('candado', '#8af6ff'))</script></div></div>
+  <div class="usuario">ULTRA</div>
+  <div class="campo"><i></i><i></i><i></i><i></i><i></i><i class="vacio"></i><i class="vacio"></i></div>
+  <div class="avisos"><span class="on">⇪ Bloq Mayús activado</span><span>LATAM</span></div>
+</div>
+<div class="marca"><b>BMO-X</b> · NÚCLEO</div>
+<div class="abajo">
+  <span><script>document.write(mini('vol', '#93b2b6'))</script>100 %</span>
+  <span><script>document.write(mini('red', '#93b2b6'))</script>enp5s0</span>
+</div>
+</body></html>

@@ -15,6 +15,8 @@ notificaciones, efectos regulables y aplicaciones con ventanas. La captura es
 real del banco QEMU; no es una maqueta ni una medición de la RTX física.
 
 [Tema Núcleo: uso, respaldo y alcance](docs/TEMA-NUCLEO.md).
+[Propuesta Núcleo 2 con maquetas](docs/PROPUESTA-ESCRITORIO.md): paleta única,
+paneles flotantes, atajos, capturas, bloqueo y modo juego. Aún no instalada.
 
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza

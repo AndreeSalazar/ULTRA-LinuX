@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X hoja de estilo</title>
+<link rel="stylesheet" href="nucleo.css"><script src="comun.js"></script>
+<style>
+  body { background: radial-gradient(ellipse at 70% 0%, #0d1f22, transparent 60%), var(--fondo-0); padding: 44px 56px; }
+  h1 { font: 700 30px var(--ui); letter-spacing: 4px; color: #e6fbff; }
+  h1 span { color: var(--cyan); }
+  .sub { color: var(--texto-2); margin-top: 6px; font-size: 15px; }
+  h2 { font: 600 12px var(--ui); letter-spacing: 3px; text-transform: uppercase; color: var(--texto-2); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  h2::before { content: ""; width: 18px; height: 2px; background: var(--cyan); }
+  .rejilla { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 26px; margin-top: 30px; }
+  .caja { background: rgba(10, 22, 21, .7); border: 1px solid #1f3b34; border-radius: 12px; padding: 20px 22px; }
+  .muestras { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .m { border-radius: 8px; overflow: hidden; border: 1px solid #1f3b34; }
+  .m i { display: block; height: 54px; }
+  .m div { padding: 7px 9px; font: 11px/1.35 var(--mono); color: var(--texto-2); background: #071012; }
+  .m b { display: block; font: 600 12px var(--ui); color: var(--texto); }
+  .tipo-ui { font-family: var(--ui); }
+  .tipo-ui div { display: flex; align-items: baseline; gap: 14px; padding: 5px 0; border-bottom: 1px solid #142a26; }
+  .tipo-ui small { width: 120px; color: var(--texto-3); font: 11px var(--mono); flex: none; }
+  .tipo-mono { margin-top: 14px; padding: 12px 14px; background: #060e10; border-radius: 8px; font: 14px/1.6 var(--mono); }
+  .cat { display: grid; grid-template-columns: 1fr 70px 70px; gap: 8px 12px; align-items: center; font-size: 14px; }
+  .cat .h { font: 600 11px var(--ui); letter-spacing: 2px; color: var(--texto-3); }
+  .cat i { display: block; height: 22px; border-radius: 4px; }
+  .cat i.viejo { opacity: .9; outline: 1px dashed #ff7a9066; outline-offset: 2px; }
+  .comp { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; }
+  .comp > div { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--texto-3); }
+  .esc.urgente { color: var(--peligro); border-color: #a83850; }
+  .marcos { display: flex; gap: 16px; align-items: flex-end; }
+  .marco { border: 1px solid #2f5a55; border-radius: 6px; background: url("../../src/rootfs/desktop/wallpaper.svg") center / cover; position: relative; }
+  .marco span { position: absolute; left: 6px; bottom: 6px; font: 600 11px var(--mono); color: #e6fbff; background: rgba(0, 0, 0, .6); padding: 3px 6px; border-radius: 3px; }
+  .nota { font-size: 12.5px; color: var(--texto-2); line-height: 1.5; margin-top: 12px; }
+  .ventanita { width: 120px; height: 70px; border-radius: 8px; background: #060e10; }
+  .notis { display: grid; gap: 10px; }
+  .noti.est { position: static; width: auto; padding: 12px; }
+  .noti.est .ic { width: 32px; height: 32px; }
+</style></head>
+<body>
+<h1>BMO-X / <span>NÚCLEO 2</span></h1>
+<div class="sub">Hoja de estilo propuesta. Una paleta (paleta.json) generaría Hyprland, Waybar, GTK, mako, fuzzel, foot, hyprlock y MangoHud.</div>
+
+<div class="rejilla">
+  <div class="caja">
+    <h2>Colores</h2>
+    <div class="muestras" id="muestras"></div>
+    <div class="nota">Ámbar y rosa quedan solo para avisos y peligro. El resto de la interfaz usa cyan, morado y verde metálico.</div>
+  </div>
+
+  <div class="caja">
+    <h2>Tipografía</h2>
+    <div class="tipo-ui">
+      <div><small>Reloj 18 / 700</small><span style="font-size:18px;font-weight:700;letter-spacing:2px">23:19</span></div>
+      <div><small>Título 15 / 600</small><span style="font-size:15px;font-weight:600">Equipo en vivo</span></div>
+      <div><small>Interfaz 13 / 500</small><span style="font-size:13px;font-weight:500">Pantalla y gráficos · Discos</span></div>
+      <div><small>Detalle 11 / 500</small><span style="font-size:11px;color:var(--texto-2)">46 °C · solo lectura</span></div>
+    </div>
+    <div class="tipo-mono"><span class="c-ver">ultra</span><span class="c-gris">@</span><span class="c-cyan">bmo-x</span> <span class="c-mor">~</span> <span class="c-cyan">❯</span> ls -> != === <br><span class="c-gris">JetBrains Mono · terminal, menús y HUD</span></div>
+    <div class="nota">Inter para la interfaz y JetBrains Mono (Nerd Font) para terminal. La negrita queda para reloj y títulos.</div>
+  </div>
+
+  <div class="caja">
+    <h2>Centro BMO-X: acentos</h2>
+    <div class="cat" id="cat"><span class="h">CATEGORÍA</span><span class="h">HOY</span><span class="h">NÚCLEO 2</span></div>
+    <div class="nota">Los colores de hoy (con borde punteado) salen de la paleta. Los nuevos se quedan en la misma familia y se distinguen por el número y el icono.</div>
+  </div>
+
+  <div class="caja" style="grid-column:span 2">
+    <h2>Componentes</h2>
+    <div class="comp">
+      <div><div class="escritorios" style="margin:0"><div class="esc">4</div><div class="esc ocupado">1</div><div class="esc activo">2</div><div class="esc urgente">3</div></div>vacío · ocupado · activo · urgente</div>
+      <div><div style="display:flex;gap:6px" id="apps"></div>cerrada · abierta · con foco</div>
+      <div><div style="display:flex;gap:12px"><div class="ventana activa" style="position:static"><div class="dentro ventanita"></div></div><div class="ventana inactiva" style="position:static"><div class="dentro ventanita"></div></div></div>borde activo · inactiva atenuada</div>
+      <div><div style="display:flex;gap:8px"><span class="btn">Normal</span><span class="btn" style="background:#1d3c31;border-color:var(--cyan)">Encima</span><span class="btn" style="color:var(--peligro);border-color:#743246">Peligro</span></div>botones</div>
+    </div>
+    <div class="notis" style="grid-template-columns:1fr 1fr;margin-top:20px">
+      <div class="noti est"><script>document.write(app('audio', '#c9b0f5', 'class="ic"'))</script><div><b>Audio USB conectado</b><p>Salida maestra cambiada. Volumen 100 %.</p></div></div>
+      <div class="noti est" style="border-color:var(--peligro)"><script>document.write(app('discos', '#ff7a90', 'class="ic"'))</script><div><b>/juegos casi lleno</b><p>Quedan 2,8 GiB. Revisa Super+J › Espacio.</p></div></div>
+    </div>
+  </div>
+
+  <div class="caja">
+    <h2>Fondo según pantalla</h2>
+    <div class="marcos">
+      <div class="marco" style="width:160px;height:90px"><span>16:9</span></div>
+      <div class="marco" style="width:144px;height:90px"><span>16:10</span></div>
+      <div class="marco" style="width:210px;height:90px"><span>21:9</span></div>
+    </div>
+    <div class="nota">Hoy el SVG de 1920×1080 se recorta con «fill»: en 16:10 se pierde parte del marco y en 21:9 se corta arriba y abajo. Propuesta: generar el PNG a la resolución real al iniciar, con los marcos anclados a los bordes.</div>
+  </div>
+</div>
+
+<script>
+const colores = [
+  ['fondo-0', '#03080d', 'escritorio'], ['superficie', '#0a1615', 'ventanas'], ['metal', '#19352f', 'paneles'], ['borde', '#294a41', 'líneas'],
+  ['cyan', '#43deeb', 'foco, controles'], ['morado', '#a987e6', 'acentos, GPU'], ['verde', '#68bd9d', 'RAM, ocupado'], ['acero', '#7fb4e6', 'red, discos'],
+  ['texto', '#d3e8e4', 'principal'], ['texto-2', '#93b2b6', 'secundario'], ['aviso', '#ffbe85', 'solo avisos'], ['peligro', '#ff7a90', 'apagar, críticos'],
+];
+document.getElementById('muestras').innerHTML = colores.map(([n, h, r]) => `<div class="m"><i style="background:${h}"></i><div><b>${n}</b>${h}<br>${r}</div></div>`).join('');
+const cats = [
+  ['Aplicaciones', '#00d4e8', '#43deeb'], ['Discos y bibliotecas', '#2de2b8', '#68bd9d'], ['Juegos', '#76ff58', '#9be5c4'],
+  ['Pantalla y gráficos', '#5298ff', '#7fb4e6'], ['Audio', '#ffc857', '#c9b0f5'], ['Ambiente', '#c49aff', '#a987e6'], ['Sistema y ayuda', '#ff657a', '#ff8ea0'],
+];
+document.getElementById('cat').innerHTML += cats.map(([n, v, h]) => `<span>${n}</span><i class="viejo" style="background:#${v.slice(1)}"></i><i style="background:${h}"></i>`).join('');
+document.getElementById('apps').innerHTML =
+  `<div class="app">${app('editor', '#ba9bea')}</div><div class="app abierta">${app('archivos', '#66e1eb')}</div><div class="app abierta foco">${app('terminal', '#8dcdaa')}</div>`;
+</script>
+</body></html>

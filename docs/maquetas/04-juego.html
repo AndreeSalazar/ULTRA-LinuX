@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X modo juego</title>
+<link rel="stylesheet" href="nucleo.css"><script src="comun.js"></script>
+<style>
+  /* Escena abstracta: sustituye a la imagen del juego */
+  body { background:
+    radial-gradient(ellipse 60% 40% at 50% 62%, rgba(255, 170, 90, .35), transparent 70%),
+    linear-gradient(to bottom, #0d1d2e 0%, #1b3446 38%, #3a3a46 55%, #15151c 56%, #0b0c11 100%); }
+  .suelo { position: absolute; left: 0; right: 0; top: 605px; bottom: 0; background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .03) 0 2px, transparent 2px 120px),
+    linear-gradient(to bottom, rgba(255, 180, 110, .12), transparent 60%); transform: perspective(500px) rotateX(55deg); transform-origin: top; }
+  .torre { position: absolute; bottom: 474px; background: linear-gradient(to top, #121a24, #24364a); }
+  .escena-txt { position: absolute; right: 40px; bottom: 30px; font: 600 12px var(--ui); letter-spacing: 3px; color: rgba(255, 255, 255, .3); text-transform: uppercase; }
+  .mango {
+    position: absolute; left: 14px; top: 14px; z-index: 30; width: 340px; padding: 12px 14px;
+    background: rgba(7, 16, 26, .78); border-left: 3px solid var(--cyan); border-radius: 0 8px 8px 0;
+    font: 500 17px/1.55 var(--mono); color: #d9e8f0; font-variant-numeric: tabular-nums;
+  }
+  .mango .f { display: grid; grid-template-columns: 74px 1fr 1fr; align-items: baseline; }
+  .mango .f > :nth-child(2), .mango .f > :nth-child(3) { text-align: right; }
+  .mango .k { font-weight: 700; }
+  .mango small { font-size: 12px; color: #8fb0b8; margin-left: 3px; }
+  .mango .fps { font-size: 30px; font-weight: 700; color: #e6fbff; }
+  .grafica { height: 46px; margin-top: 8px; border-top: 1px solid #1d3a3f; padding-top: 6px; display: flex; align-items: flex-end; gap: 2px; }
+  .grafica i { flex: 1; background: var(--verde); border-radius: 1px; opacity: .85; }
+  .noti { top: 22px; width: 470px; }
+  .lista { margin-top: 8px; display: grid; gap: 5px; font-size: 13px; color: var(--texto-2); }
+  .lista span::before { content: "◆"; color: var(--cyan); font-size: 9px; margin-right: 8px; vertical-align: 2px; }
+  .lista .ring::before { color: var(--aviso); }
+</style></head>
+<body>
+<div class="suelo"></div>
+<div class="torre" style="left:180px;width:120px;height:330px"></div>
+<div class="torre" style="left:330px;width:70px;height:220px"></div>
+<div class="torre" style="left:1460px;width:150px;height:380px"></div>
+<div class="torre" style="left:1640px;width:90px;height:250px"></div>
+<div class="escena-txt">Juego a pantalla completa · sin barra ni dock</div>
+<script>document.write(sello('modo juego con MangoHud Núcleo'));</script>
+
+<div class="mango">
+  <div class="f"><span class="k" style="color:#43deeb">CPU</span><span>38 %</span><span>62 °C</span></div>
+  <div class="f"><span class="k" style="color:#a987e6">GPU</span><span>97 %</span><span>71 °C</span></div>
+  <div class="f"><span></span><span>152<small>W</small></span><span>1890<small>MHz</small></span></div>
+  <div class="f"><span class="k" style="color:#a987e6">VRAM</span><span>7,9</span><span><small>GiB</small></span></div>
+  <div class="f"><span class="k" style="color:#68bd9d">RAM</span><span>9,2</span><span><small>GiB</small></span></div>
+  <div class="f"><span class="k" style="color:#9be5c4">FPS</span><span class="fps">144</span><span>6,9<small>ms</small></span></div>
+  <div class="grafica"><script>
+    [7,7,7,6.8,7,7.1,6.9,7,7,7.2,7,6.9,7,9.5,7,7,6.9,7,7,7.1,7,7,6.8,7,7,7,7.1,6.9,7,7,7,7,7.3,7,7,6.9,7,7,7,7].forEach(v => document.write(`<i style="height:${(v - 5.5) * 12}px;${v > 9 ? 'background:var(--aviso)' : ''}"></i>`));
+  </script></div>
+</div>
+
+<div class="noti">
+  <script>document.write(app('juegos', '#9be5c4', 'class="ic"'))</script>
+  <div><b>Modo juego activado</b>
+    <p>Warframe a pantalla completa. Al cerrarlo se restaura todo.</p>
+    <div class="lista">
+      <span>Sin blur, sombras ni bordes</span>
+      <span>Barra y dock en pausa</span>
+      <span class="ring">VRR y tearing: lo decide RING 0</span>
+    </div>
+  </div>
+</div>
+</body></html>
