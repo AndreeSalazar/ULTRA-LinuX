@@ -151,6 +151,21 @@ copia la imagen al portapapeles y avisa con la miniatura. Valida la geometría
 que devuelve `slurp` antes de usarla. `scripts/probar_captura.py` lo prueba con
 herramientas falsas.
 
+## Controles de la barra
+
+| Clic | En CPU | En RAM |
+| --- | --- | --- |
+| Izquierdo | Los 15 procesos con más CPU (medida real en 0,6 s) | Los 15 con más memoria |
+| Derecho | Administrador completo ordenado por CPU | Administrador ordenado por RAM |
+
+Al elegir un proceso: **cerrar** (le pide salir, puede guardar), **forzar cierre**,
+**limitar a 50 % de un núcleo** o **limitar a 2 GiB**. Cerrar y forzar piden
+confirmación. Usa lo mismo que `ultra-aplicaciones` (Super+Esc): señales por
+`pidfd`, que comprueban que el proceso sigue siendo el mismo, y límites con cgroups
+en `ultra-usuario`. Los procesos del escritorio y los de root no aparecen. En el
+administrador, **O** alterna el orden entre CPU y RAM. `scripts/probar_controles_barra.py`
+lo prueba con un proceso real como UID 1000.
+
 ## Avisos y portapapeles
 
 | Atajo | Qué hace |

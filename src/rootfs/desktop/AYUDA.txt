@@ -42,6 +42,10 @@ SUPER + arrastrar con boton izquierdo/derecho: mover/redimensionar
 SUPER + Shift + M   Terminar Hyprland y volver al menu/consola
 
 La barra muestra CPU, RAM y enlace de red; enlace no garantiza Internet.
+Clic en CPU o RAM: los 15 procesos que mas consumen; eliges uno y lo cierras,
+lo fuerzas, o lo limitas a 50% de un nucleo o 2 GiB (cerrar pide confirmar).
+Clic derecho en CPU o RAM: administrador completo ordenado por eso (O cambia).
+Los procesos del escritorio (Hyprland, waybar, audio...) no aparecen ni se cierran.
 El dock inferior abre Brave, archivos, terminal y editor con el raton.
 El boton BMO-X abre el centro con teclado; Escape lo cierra.
 En NVIDIA se activan animaciones breves, sombras y desenfoque ligero.

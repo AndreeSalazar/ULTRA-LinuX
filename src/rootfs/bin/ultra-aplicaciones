@@ -6,6 +6,8 @@ import os
 from pathlib import Path
 import signal
 import re
+import subprocess
+import sys
 import time
 
 PROC=Path('/proc'); CG=Path('/sys/fs/cgroup/ultra-usuario')
@@ -92,7 +94,51 @@ def prune():
         try:
             if path.stat().st_uid==1000 and 'populated 0' in read(path/'cgroup.events'):path.rmdir()
         except OSError:pass
-def panel(win):
+def sample(delay=0.6):
+    """CPU% real: dos lecturas de /proc separadas por delay."""
+    before={(r['pid'],r['start']):r['ticks'] for r in processes()}; t=time.monotonic(); time.sleep(delay)
+    rows=processes(); dt=max(1e-3,time.monotonic()-t)
+    for r in rows:
+        prev=before.get((r['pid'],r['start'])); r['cpu']=100*(r['ticks']-prev)/os.sysconf('SC_CLK_TCK')/dt if prev is not None else 0.0
+    return rows
+def accent():
+    try: out=subprocess.run(['ultra-personalizar','acento'],capture_output=True,text=True,timeout=10).stdout.strip()
+    except (OSError,subprocess.SubprocessError): out=''
+    return out if re.fullmatch(r'[0-9a-f]{8}',out) else '5ad8ffff'
+def pick(labels,prompt,color):
+    cmd=['fuzzel','--dmenu','--only-match','--no-sort','--width=64',f'--lines={min(16,len(labels))}',f'--prompt={prompt} // ',
+         '--background-color=06050af7','--text-color=ece9dcff',f'--selection-color={color}','--selection-text-color=000000ff',
+         f'--border-color={color}',f'--prompt-color={color}','--match-color=ff2a4fff']
+    try: r=subprocess.run(cmd,input='\n'.join(labels)+'\n',capture_output=True,text=True,timeout=600)
+    except (OSError,subprocess.SubprocessError): return None
+    choice=r.stdout.rstrip('\n')
+    return choice if r.returncode==0 and choice in labels else None
+def notify(text,critical=False):
+    try: subprocess.run(['notify-send','--app-name=ULTRA','--icon=dialog-warning']+(['--urgency=critical'] if critical else [])+['BMO-X / Procesos',text],capture_output=True,timeout=5)
+    except (OSError,subprocess.SubprocessError): pass
+ACTIONS=[('Cerrar (le pide salir; puede guardar)','close'),('Forzar cierre (no guarda nada)','kill'),
+         ('Limitar a 50% de un nucleo','cpu'),('Limitar a 2 GiB de RAM','ram'),('Cancelar',None)]
+def quick(order):
+    """Clic en CPU o RAM de la barra: lo que mas consume y que hacer con ello. Los del escritorio no salen."""
+    rows=sample(); guard=protected(rows)
+    rows=sorted((r for r in rows if r['pid'] not in guard),key=(lambda r:r['cpu']) if order=='cpu' else (lambda r:r['rss']),reverse=True)[:15]
+    color=accent()
+    labels=[f"{r['cpu']:6.1f}%  {r['rss']/2**20:8.0f} MiB  {r['name']}  [{r['pid']}]" for r in rows]
+    full='Abrir el administrador completo'
+    choice=pick(labels+[full],'CPU' if order=='cpu' else 'RAM',color)
+    if choice is None: return
+    if choice==full: os.execvp('foot',['foot','--fullscreen','--title=ULTRA / Aplicaciones','ultra-aplicaciones','--orden',order])
+    r=rows[labels.index(choice)]
+    label=pick([a for a,_ in ACTIONS],r['name'][:24].upper(),color)
+    action=dict(ACTIONS).get(label)
+    if not action: return
+    if action in ('close','kill') and pick(['No, volver',f"Si, {label.split(' (')[0].lower()} {r['name']}"],'CONFIRMAR','ff2a4fff') in (None,'No, volver'): return
+    try:
+        if action in ('close','kill'): close(r,action=='kill'); notify(f"Senal enviada a {r['name']} [{r['pid']}]")
+        elif action=='cpu': limit(r,'max','50000'); notify(f"{r['name']}: CPU limitada a 50% de un nucleo")
+        else: limit(r,'2147483648','max'); notify(f"{r['name']}: RAM limitada a 2 GiB")
+    except (OSError,ValueError) as e: notify(str(e)[:180],True)
+def panel(win,order='ram'):
     index=0; old={}; last=time.monotonic(); msg=''; win.timeout(1000)
     def confirm(text):
         win.erase(); win.addnstr(0,0,text+' [s/N]',win.getmaxyx()[1]-1);win.refresh();win.timeout(-1)
@@ -108,10 +154,10 @@ def panel(win):
         for r in rows:
             prev=old.get((r['pid'],r['start']));r['cpu']=100*(r['ticks']-prev)/os.sysconf('SC_CLK_TCK')/(now-last) if prev is not None and now>last else 0
         old={(r['pid'],r['start']):r['ticks'] for r in rows};last=now
-        rows=sorted(rows,key=lambda r:r['rss'],reverse=True);index=min(index,max(0,len(rows)-1));mem=memory();h,w=win.getmaxyx()
+        rows=sorted(rows,key=(lambda r:r['cpu']) if order=='cpu' else (lambda r:r['rss']),reverse=True);index=min(index,max(0,len(rows)-1));mem=memory();h,w=win.getmaxyx()
         win.erase()
         header=['ULTRA / ADMINISTRADOR DE APLICACIONES',
-          'Flechas: elegir | C: cerrar | K: forzar | L: limitar arbol | Esc: salir',
+          f"Flechas: elegir | C: cerrar | K: forzar | L: limitar arbol | O: ordenar ({order.upper()}) | Esc: salir",
           f"RAM disponible {mem.get('MemAvailable',0)/2**20:.2f} GiB / {mem.get('MemTotal',0)/2**20:.2f} GiB; cache {mem.get('Cached',0)/2**20:.2f} GiB (recuperable en parte)",
           'RSS no es RAM exclusiva. CPU 100% = un nucleo. * = proceso protegido.',msg,
           ' PID       CPU%     RSS MiB   NOMBRE']
@@ -123,6 +169,7 @@ def panel(win):
         if key in (27,ord('q')):return
         if key==curses.KEY_DOWN:index+=1
         elif key==curses.KEY_UP:index=max(0,index-1)
+        elif key in (ord('o'),ord('O')):order='ram' if order=='cpu' else 'cpu';index=0
         elif rows and key in (ord('c'),ord('k'),ord('l')):
             r=rows[index]
             try:
@@ -139,4 +186,7 @@ def panel(win):
             except (OSError,ValueError) as e:msg=str(e)[:180]
 if __name__=='__main__':
     if os.geteuid()!=1000:raise SystemExit('Abrir como usuario del escritorio')
-    curses.wrapper(panel)
+    args=sys.argv[1:]
+    if len(args)==2 and args[0]=='rapido' and args[1] in ('cpu','ram'): quick(args[1])
+    elif args in ([],['--orden','ram'],['--orden','cpu']): curses.wrapper(panel,args[1] if args else 'ram')
+    else: raise SystemExit('uso: ultra-aplicaciones [--orden cpu|ram] | rapido cpu|ram')
