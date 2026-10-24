@@ -242,6 +242,154 @@ coloreado del editor se guarda en caché por huella: un cuadro sin teclear no vu
 a colorear nada. Los archivos de más de 256 KiB se editan sin colores, para que el
 carril Editor siga en verde.
 
+## Todo el proyecto: Ctrl+P, buscar en el proyecto y enfocar
+
+Hasta ahora solo se veía lo desplegado. Ahora un hilo propio **indexa la carpeta
+abierta entera** al abrirla:
+- sin seguir enlaces;
+- saltando `.git`, `node_modules` y las carpetas de build generadas (las que tienen
+  `CACHEDIR.TAG`, `build.ninja` o `CMakeCache.txt`).
+
+Con eso se puede buscar en todo, no solo en lo abierto. Se probó con la estructura
+**real de Chromium** (commit `4f4983c8c934`): **509 418 archivos y 46 035
+carpetas en ~1 s**.
+
+![Ctrl+P: «base» entre 509 418 archivos de Chromium](maquetas/png/neon/carpetas-ctrl-p.png)
+
+**Ir a archivo o carpeta (Ctrl+P, o el cuadro de arriba a la izquierda).**
+
+- Búsqueda difusa por nombre:
+  - escribe un trozo (`file_path`);
+  - o las iniciales: `fpw` encuentra `file_path_watcher`;
+  - o una ruta con `/`: `core/dom/node` encuentra
+    `third_party/blink/renderer/core/dom/node.h`.
+- La búsqueda se reparte entre los núcleos. Sobre Chromium, una consulta tarda
+  ~70 ms en un núcleo.
+- **Enter** lo muestra **en las dos vistas a la vez**:
+  1. despliega el camino (también los grupos del organizador);
+  2. lo selecciona en el explorador y lo lleva a la vista;
+  3. centra el grafo o la ciudad en él.
+- **Ctrl+Enter** abre el archivo en el editor; en una carpeta, la **enfoca**.
+- Si pulsas Enter antes de que lleguen los resultados, espera y elige el primero.
+
+![Enter: abre base/files, la unidad file_path_watcher y selecciona file_path_watcher_inotify.h](maquetas/png/neon/carpetas-revelado-chromium.png)
+
+**Buscar en el proyecto (Ctrl+Shift+F, la lupa de la barra de actividad).**
+
+- Busca texto dentro de los archivos, mientras escribes (desde 2 letras).
+- Corre en un hilo propio: una búsqueda nueva cancela la anterior.
+- **Aa** distingue mayúsculas; **ab** busca solo palabras enteras.
+- Filtro de archivos: `*.cc, *.h`, `src/` o `!third_party/` para excluir.
+- Resultados agrupados por archivo, con la coincidencia marcada.
+  - Clic en una línea: la revela en el grafo y el explorador y abre el editor con la
+    coincidencia seleccionada.
+  - Los nodos y las carpetas que tienen resultados llevan una insignia («10
+    resultados»).
+- Se salta lo binario sin leerlo entero: imágenes, audio, comprimidos, o un byte NUL
+  en los primeros 8 KB. Sobre este repositorio (2 418 rutas) busca en ~40 ms.
+- Con una carpeta enfocada, busca solo dentro de ella.
+
+![Buscar «ruta_segura»: 10 resultados en 2 archivos de 2 170, y las insignias en el grafo](maquetas/png/neon/carpetas-buscar-proyecto.png)
+
+**Enfocar** (**E**, la diana de una carpeta, o Ctrl+Enter en Ctrl+P):
+
+- La carpeta pasa a ser **la raíz** del grafo, del explorador, de la búsqueda y de
+  la ciudad, así que ya no hay que mirar desde la raíz del proyecto.
+- Arriba aparecen **migas de pan** (`src › base`). Clic en una para volver a ella, o
+  **U** / Subir para subir un nivel.
+- Se guarda por carpeta: al volver a abrirla, sigue enfocada.
+
+## Organizar como Chromium (solo la vista)
+
+Se midió sobre los nombres reales de Chromium cómo está organizado un proyecto
+enorme, y el organizador (**O**: automático, siempre o nunca) aplica esas reglas.
+Las carpetas con más de 24 archivos se agrupan en la vista; **en el disco no se
+mueve nada**:
+
+- **Unidades:** `foo.h`, `foo.cc`, `foo_unittest.cc`, `foo_win.cc`, `foo_mac.mm`…
+  son una sola pieza de código, así que forman un nodo `foo` con sus piezas
+  («h · cc · unittest · win»). Por ejemplo, `base_paths` reúne 15 archivos y
+  `file_path_watcher` 12 (inotify, kqueue, fsevents…).
+- **Build y metadatos:** `BUILD.gn`, `*.gni`, `DEPS`, `OWNERS`, `DIR_METADATA` y
+  README, en un grupo al final.
+- **Prefijos:** las carpetas generadas gigantes, como `generated_resources_grd` con
+  3 514 archivos `IDS_*.png.sha1`, se agrupan por el comienzo del nombre en niveles.
+  Si los nombres no comparten prefijos, se agrupan en rangos alfabéticos.
+- **Rejilla:** cuando una carpeta tiene muchos hijos cerrados, van en columnas de 16
+  en vez de una columna interminable. La raíz de Chromium (77 nodos) queda en 5
+  columnas.
+
+| Carpeta de Chromium | Archivos | Nodos organizados |
+| --- | --- | --- |
+| `base/files` | 93 | 28 |
+| `net/http` | 294 | 109 |
+| `third_party/blink/renderer/core/dom` | 383 | 198 |
+
+![base enfocada: 42 carpetas y sus unidades en rejilla, con migas src › base](maquetas/png/neon/carpetas-enfocado-base.png)
+
+## Vista Ciudad (inspirada en CodeCity)
+
+La tercera vista (**Tab**, o el icono de edificios de la barra de actividad) muestra
+el proyecto como una ciudad en 3D: **los distritos son carpetas y los edificios
+archivos**.
+
+![La ciudad de este repositorio con huella por líneas: evidencias 90 %, src 5,4 % (C azul, Rust naranja, Python amarillo)](maquetas/png/neon/carpetas-ciudad-lineas.png)
+
+| | Qué dice | Opciones (clic en la leyenda) |
+| --- | --- | --- |
+| **Huella** (el área) | Cuánto ocupa | bytes, o líneas de texto (como CodeCity) |
+| **Altura** | Cuánto código | líneas, errores y avisos, resultados de búsqueda, o plana (mapa) |
+| **Color** | Qué es | lenguaje (Rust, C, cabeceras `.h`, C++, `.hpp`, Python…), salud (rojo: errores; amarillo: avisos; verde: sin errores conocidos) o búsqueda |
+| **Distritos** | Carpetas anidadas | en terrazas, con su nombre, archivos y **% del total** |
+
+![Salud: tras cargo run, el archivo con error es un edificio rojo](maquetas/png/neon/carpetas-ciudad-salud.png)
+
+**Cómo se arma:**
+
+- **Treemap squarified** (Bruls et al., 2000) en el núcleo `no_std`: las áreas son
+  proporcionales y nada se pisa, y hay pruebas que lo comprueban. La raíz cuadrada
+  es de Newton, porque `no_std` no tiene biblioteca matemática.
+- Las **líneas** se cuentan en otro hilo, en los archivos de texto de hasta 2 MiB,
+  con un presupuesto de 1 GiB o 20 s. Hasta que terminan, se estiman por tamaño y la
+  ficha lo dice. Las imágenes y los binarios no tienen líneas, así que quedan bajitos
+  y no parecen código.
+- **Proyectos enormes:** las carpetas hondas se juntan en **bloques** grises (clic:
+  entrar) hasta que caben 60 000 edificios, sin perder ningún archivo en la cuenta.
+  Chromium entero son 43 416 edificios y 1 489 distritos.
+  - Juntarlos tarda 0,26 s: rutas en orden alfabético y búsqueda binaria de la
+    profundidad, antes 3,3 s.
+  - El treemap tarda ~55 ms y solo se rehace al cambiar los datos.
+
+**En la GPU** (wgpu/Vulkan, con búfer de profundidad):
+
+- Cada edificio es una **instancia de 40 bytes**. El cubo lo arma el shader con el
+  número de vértice: 36 por caja.
+- Girar, acercar o mover la cámara solo manda **80 bytes**.
+- Los bordes de cada cara se oscurecen un poco, así que edificios iguales y pegados
+  se distinguen.
+
+**Ratón:**
+
+| Acción | Qué hace |
+| --- | --- |
+| Arrastrar | Girar la cámara |
+| Botón central o derecho, arrastrando | Mover la cámara |
+| Rueda | Acercar o alejar |
+| Pasar por encima | **Ficha**: tamaño, líneas, % del distrito y de toda la ciudad, errores y resultados |
+| Clic | Mostrar el archivo en el explorador (y en el grafo) |
+| Clic derecho | Abrirlo en el editor |
+| Doble clic en un distrito | Enfocarlo: la ciudad pasa a ser esa carpeta |
+| Ctrl+P | Además de revelar el archivo, lleva la cámara a su edificio |
+
+![Chromium entero: third_party 50 %, chrome 18 %, components 8,3 %, con bloques y los carriles](maquetas/png/neon/carpetas-ciudad-chromium.png)
+
+![base de Chromium enfocada: C++ 43 %, cabeceras .h 32 %, Java/Kotlin 12 % (Android)](maquetas/png/neon/carpetas-ciudad-base.png)
+
+La copia de Chromium de estas capturas tiene la estructura real con archivos vacíos,
+así que todas las alturas son iguales. Los nombres, carpetas, porcentajes de archivos
+y lenguajes son los de verdad. En un Chromium completo, las alturas y huellas
+saldrían de sus líneas y bytes reales.
+
 ## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
 
 ![Terminal tras cargo run y carriles con 7 subidas a la GPU en 153 cuadros](maquetas/png/neon/carpetas-gpu-terminal.png)
@@ -340,6 +488,9 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 | **Editor** | 4 ms | 10 ms | CPU (egui): texto coloreado en caché por huella; sin colores por encima de 256 KiB; teclear no rehace el grafo |
 | **Pintado** | 6 ms | 12 ms | CPU (egui): solo se pinta lo que cae en pantalla; con poco zoom se omiten textos e iconos; solo se repinta con eventos |
 | **Iconos SVG** | 8 ms | 30 ms | CPU una vez por icono y tamaño; después es textura en la GPU |
+| **Índice** | 50 ms | 300 ms | Ctrl+P: puntuar nombres en su hilo, repartido entre los núcleos; recorrer el disco (1 s en Chromium) va aparte, solo al abrir |
+| **Búsqueda** | 2 s | 10 s | Texto dentro de los archivos en su hilo, cancelable; lotes cada 100 ms; se salta lo binario |
+| **Ciudad** | 30 ms | 150 ms | Treemap e instancias solo al cambiar los datos; girar la cámara manda 80 bytes. Los datos salen del hilo del índice (F12 muestra cuánto) |
 
 **Límites duros** (por diseño, no por suerte):
 
@@ -437,8 +588,12 @@ Si no hay Rust o no compila, avisa en amarillo y sigue Thunar. Corre desde
 
 - Probarlo en Hyprland real con NVIDIA (aquí se probó con Vulkan por software). Los
   tiempos de los carriles en la pantalla virtual no valen como medida de tu PC.
-- Editor: expresiones regulares en la búsqueda, buscar en todo el proyecto y
-  comentarios `/* */` de varias líneas coloreados enteros (ahora solo su primera
-  línea).
+- Editor: expresiones regulares en la búsqueda y comentarios `/* */` de varias
+  líneas coloreados enteros (ahora solo su primera línea).
+- Ciudad: el treemap de Chromium entero (~55 ms) queda en amarillo; partirlo en
+  trozos o en un hilo lo dejaría en verde. Altura por complejidad (como CodeCity) y
+  color por antigüedad (git).
+- El índice se rehace al abrir la carpeta, con H u «Volver a indexar». Cambios
+  posteriores en carpetas plegadas no se ven en Ctrl+P hasta reindexar.
 - Miniaturas de imágenes, renombrar y mover archivos de verdad (con confirmación y
   deshacer), varias ventanas y arrastrar entre carpetas.

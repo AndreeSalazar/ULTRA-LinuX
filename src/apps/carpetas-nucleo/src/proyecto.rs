@@ -18,10 +18,13 @@ pub const MAX_VISTA: usize = 240;
 /// Rutas relativas en un solo bloque de texto (sin una reserva por ruta) y su copia en
 /// minusculas ASCII, para puntuar sin convertir letra a letra (Chromium entero: ~55 MB).
 #[derive(Debug, Clone, Default, PartialEq)]
-pub struct Indice { texto: String, minus: Vec<u8>, inicios: Vec<u32>, nombres: Vec<u32>, carpetas: Vec<bool> }
+pub struct Indice { texto: String, minus: Vec<u8>, inicios: Vec<u32>, nombres: Vec<u32>, carpetas: Vec<bool>, tams: Vec<u64> }
 
 impl Indice {
-    pub fn agregar(&mut self, ruta: &str, carpeta: bool) -> bool {
+    pub fn agregar(&mut self, ruta: &str, carpeta: bool) -> bool { self.agregar_con(ruta, carpeta, 0) }
+
+    /// Con su tamano en bytes (para la vista Ciudad).
+    pub fn agregar_con(&mut self, ruta: &str, carpeta: bool, tam: u64) -> bool {
         if self.inicios.len() >= MAX_INDICE || self.texto.len() + ruta.len() > u32::MAX as usize { return false; }
         let inicio = self.texto.len();
         self.inicios.push(inicio as u32);
@@ -29,8 +32,10 @@ impl Indice {
         self.texto.push_str(ruta);
         self.minus.extend(ruta.bytes().map(|b| b.to_ascii_lowercase()));
         self.carpetas.push(carpeta);
+        self.tams.push(tam);
         true
     }
+    pub fn tam(&self, i: usize) -> u64 { self.tams[i] }
     pub fn len(&self) -> usize { self.inicios.len() }
     pub fn is_empty(&self) -> bool { self.inicios.is_empty() }
     fn fin(&self, i: usize) -> usize { self.inicios.get(i + 1).map(|x| *x as usize).unwrap_or(self.texto.len()) }

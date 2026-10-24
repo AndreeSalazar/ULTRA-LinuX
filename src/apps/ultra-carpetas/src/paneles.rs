@@ -11,7 +11,7 @@ use eframe::egui::{self, text::LayoutJob, Align, Align2, Color32, FontId, Pos2, 
 
 /// Iconos de la barra de actividad, dibujados con formas (nitidos y sin fuentes).
 #[derive(Clone, Copy, PartialEq)]
-pub enum Icono { Explorador, Buscar, IrA, Grafo, Terminal, Carriles, Ajustes }
+pub enum Icono { Explorador, Buscar, IrA, Grafo, Ciudad, Terminal, Carriles, Ajustes }
 
 pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
     let c = caja.center();
@@ -36,6 +36,14 @@ pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
             p.line_segment([a, b], t);
             p.line_segment([a, d], t);
             for q in [a, b, d] { p.circle_filled(q, 3.2, col); }
+        }
+        Icono::Ciudad => {
+            // Tres edificios de alturas distintas sobre el suelo.
+            let suelo = c.y + 8.0;
+            for (x, h, w) in [(-8.0, 9.0, 5.0), (-2.0, 15.0, 5.0), (4.0, 11.0, 5.0)] {
+                p.rect_stroke(Rect::from_min_max(Pos2::new(c.x + x, suelo - h), Pos2::new(c.x + x + w, suelo)), 0, t, StrokeKind::Middle);
+            }
+            p.line_segment([Pos2::new(c.x - 10.0, suelo), Pos2::new(c.x + 11.0, suelo)], t);
         }
         Icono::Terminal => {
             p.rect_stroke(Rect::from_center_size(c, Vec2::new(20.0, 15.0)), 2, t, StrokeKind::Middle);
@@ -70,19 +78,26 @@ impl App {
         let mut acciones = Vec::new();
         let e = &self.estado;
         let lateral = e.ajustes.explorador;
-        let botones: [(Icono, bool, &str, Accion); 5] = [
+        let modo = e.ajustes.modo;
+        let pasos = |destino: Modo| -> usize { let i = |m: Modo| match m { Modo::Iconos => 0, Modo::Grafo => 1, Modo::Ciudad => 2 }; (i(destino) + 3 - i(modo)) % 3 };
+        let botones: [(Icono, bool, &str, Accion); 6] = [
             (Icono::Explorador, lateral && e.lateral == Lateral::Explorador, "Explorador [Ctrl+B]",
              if lateral && e.lateral == Lateral::Explorador { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Explorador) }),
             (Icono::Buscar, lateral && e.lateral == Lateral::Buscar, "Buscar en el proyecto [Ctrl+Shift+F]",
              if lateral && e.lateral == Lateral::Buscar { Accion::Comando(Comando::Explorador) } else { Accion::Proyecto(AccionProyecto::Abrir) }),
             (Icono::IrA, e.ir_a.is_some(), "Ir a archivo o carpeta [Ctrl+P]: lo busca en todo el proyecto y lo muestra en el grafo y el explorador",
              Accion::Comando(Comando::IrA)),
-            (Icono::Grafo, e.ajustes.modo == Modo::Grafo, "Grafo de nodos / iconos [Tab]", Accion::Comando(Comando::Modo)),
+            (Icono::Grafo, modo == Modo::Grafo, "Grafo de nodos [Tab]", if modo == Modo::Grafo { Accion::Comando(Comando::Encuadrar) } else { Accion::Comando(Comando::Modo) }),
+            (Icono::Ciudad, modo == Modo::Ciudad, "Ciudad 3D: carpetas = distritos, archivos = edificios (huella = tamano, altura = lineas) [Tab]",
+             Accion::Comando(Comando::Ciudad)),
             (Icono::Terminal, e.terminal.abierta, "Terminal [Ctrl+`]", Accion::Comando(Comando::Terminal)),
         ];
         ui.add_space(4.0);
         for (icono, activo, ayuda, accion) in botones {
-            if self.boton_actividad(ui, c, icono, activo).on_hover_text(ayuda).clicked() { acciones.push(accion); }
+            if self.boton_actividad(ui, c, icono, activo).on_hover_text(ayuda).clicked() {
+                // El boton de grafo lleva a esa vista desde cualquiera (Tab va en orden).
+                if icono == Icono::Grafo && modo != Modo::Grafo { for _ in 0..pasos(Modo::Grafo) { acciones.push(Accion::Comando(Comando::Modo)); } } else { acciones.push(accion); }
+            }
         }
         ui.with_layout(egui::Layout::bottom_up(Align::Center), |ui| {
             ui.add_space(6.0);

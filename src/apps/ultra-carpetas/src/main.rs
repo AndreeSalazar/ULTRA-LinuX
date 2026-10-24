@@ -11,6 +11,7 @@
 
 mod almacen;
 mod archivo;
+mod ciudad3d;
 mod disco;
 mod editor_ui;
 mod entradas;
@@ -49,7 +50,7 @@ fn acento() -> Rgb {
 
 /// Ultimo tiempo y maximo por carril, en microsegundos.
 #[derive(Default)]
-struct Medidas { ultimo: [u64; 11], maximo: [u64; 11] }
+struct Medidas { ultimo: [u64; 12], maximo: [u64; 12] }
 
 impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
@@ -91,6 +92,10 @@ struct App {
     foco_buscar_visto: u64,
     /// Ultima revelacion que ya se llevo al explorador (para desplazarlo una vez).
     revelado_visto: u64,
+    /// Vista Ciudad: la ciudad armada, sus instancias y su camara.
+    ciudad: ciudad3d::Vista3,
+    ciudad_ok: bool,
+    micros_datos_ciudad: u64,
 }
 
 /// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
@@ -100,7 +105,10 @@ struct Geometria { version: u64, clave: u64, fuente: Arc<Vista>, vertices: Arc<V
 impl App {
     fn new(cc: &eframe::CreationContext<'_>, carpeta: PathBuf) -> Self {
         egui_extras::install_image_loaders(&cc.egui_ctx);
-        let gpu_ok = gpu::instalar(cc.wgpu_render_state.as_ref());
+        // Bufer de profundidad (24 bits): la ciudad en 3D tapa bien lo de atras.
+        let profundidad = eframe::egui_wgpu::depth_format_from_bits(24, 0);
+        let gpu_ok = gpu::instalar(cc.wgpu_render_state.as_ref(), profundidad);
+        let ciudad_ok = cc.wgpu_render_state.as_ref().is_some_and(|rs| ciudad3d::instalar(rs, profundidad));
         fuentes(&cc.egui_ctx);
         let ctx = cc.egui_ctx.clone();
         let ctx_vivos = cc.egui_ctx.clone();
@@ -113,6 +121,7 @@ impl App {
             vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huellas: Default::default(),
             proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
             texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
+            ciudad: ciudad3d::Vista3::default(), ciudad_ok, micros_datos_ciudad: 0,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -168,6 +177,7 @@ impl App {
                 self.proyecto.pedir(indice::Pedido::Texto { generacion, base: self.carpeta.clone(), carpeta, patron, mayusculas, palabra, filtro });
             }
             Efecto::CancelarTexto => self.proyecto.pedir(indice::Pedido::Cancelar),
+            Efecto::PedirCiudad { generacion, raiz } => self.proyecto.pedir(indice::Pedido::Ciudad { generacion, raiz }),
             Efecto::LeerArchivo(rel) => {
                 let t = Instant::now();
                 let resultado = archivo::leer(&self.carpeta, &rel).map(|(texto, h)| { self.huellas.insert(rel.clone(), h); texto });
@@ -283,6 +293,12 @@ impl App {
                     self.medidas.anotar(Carril::Indice, micros);
                     self.despachar(Accion::ResultadosIrA { generacion, resultados });
                 }
+                indice::Respuesta::Ciudad { generacion, raiz, archivos, micros } => {
+                    // Sacar los datos de la ciudad corre en el hilo del indice: se muestra aparte (F12).
+                    self.micros_datos_ciudad = micros;
+                    self.despachar(Accion::DatosCiudad { generacion, raiz, archivos });
+                }
+                indice::Respuesta::Lineas { contadas, .. } => self.despachar(Accion::LineasListas { contadas }),
                 indice::Respuesta::Texto { generacion, lote, vistos, terminada, truncada, micros } => {
                     self.medidas.anotar(Carril::Busqueda, micros);
                     self.despachar(Accion::ResultadosProyecto { generacion, lote, vistos, terminada, truncada });
@@ -353,6 +369,9 @@ impl App {
             }
             return;
         }
+        if self.estado.ajustes.modo == Modo::Ciudad && pulsadas.iter().any(|(t, _)| *t == Tecla::Inicio) && !self.editor.foco {
+            self.ciudad.camara = ciudad3d::Camara3::default();
+        }
         for (t, m) in pulsadas {
             // En el editor, Esc cierra primero la busqueda y luego la pestana (con aviso si hay cambios).
             if t == Tecla::Escape && self.estado.paleta.is_none() {
@@ -403,8 +422,12 @@ impl App {
             }
             let a = &self.estado.ajustes;
             let grafo = a.modo == Modo::Grafo;
-            if ui.selectable_label(!grafo, "Iconos").clicked() && grafo { acciones.push(Accion::Comando(Comando::Modo)); }
-            if ui.selectable_label(grafo, "Grafo [Tab]").clicked() && !grafo { acciones.push(Accion::Comando(Comando::Modo)); }
+            // Tres vistas: iconos, grafo y ciudad (Tab las recorre).
+            let modo = a.modo;
+            for (m, texto, pasos) in [(Modo::Iconos, "Iconos", [0, 2, 1]), (Modo::Grafo, "Grafo", [1, 0, 2]), (Modo::Ciudad, "Ciudad [Tab]", [2, 1, 0])] {
+                let desde = match modo { Modo::Iconos => 0, Modo::Grafo => 1, Modo::Ciudad => 2 };
+                if ui.selectable_label(modo == m, texto).clicked() { for _ in 0..pasos[desde] { acciones.push(Accion::Comando(Comando::Modo)); } }
+            }
             ui.separator();
             let d = &self.estado.disp;
             if grafo {
@@ -759,7 +782,7 @@ impl App {
                 ui.set_width(430.0);
                 ui.label(egui::RichText::new("CARRILES // SEMAFORO  (F12)").color(c.acento).strong());
                 for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Geometria, Carril::Pintado, Carril::Iconos, Carril::Terminal,
-                               Carril::Procesos, Carril::Editor, Carril::Indice, Carril::Busqueda] {
+                               Carril::Procesos, Carril::Editor, Carril::Indice, Carril::Busqueda, Carril::Ciudad] {
                     let p = presupuesto(carril);
                     let (u, m) = (self.medidas.ultimo[carril as usize], self.medidas.maximo[carril as usize]);
                     let foco = match luz(carril, u) { Luz::Verde => Color32::from_rgb(61, 255, 154), Luz::Amarillo => Color32::from_rgb(252, 238, 10), Luz::Rojo => Color32::from_rgb(255, 42, 79) };
@@ -777,6 +800,10 @@ impl App {
                 let ix = self.estado.indice;
                 ui.label(egui::RichText::new(format!("indice {}/{MAX_INDICE} rutas en {:.1} s · coincidencias {}/{MAX_COINCIDENCIAS}",
                     paneles::miles(ix.archivos + ix.carpetas), ix.micros as f64 / 1e6, self.estado.proyecto.total)).color(c.tenue).size(11.0));
+                if self.estado.ajustes.modo == Modo::Ciudad {
+                    ui.label(egui::RichText::new(format!("ciudad: {} edificios · datos en {:.0} ms (hilo del indice) · treemap en {:.0} ms (al cambiar)",
+                        self.ciudad.ciudad.edificios.len(), self.micros_datos_ciudad as f64 / 1e3, self.ciudad.micros as f64 / 1e3)).color(c.tenue).size(11.0));
+                }
                 let modo = match (self.gpu_ok, self.estado.ajustes.dibujo) { (true, Dibujo::Gpu) => "GPU retenido", (false, _) => "CPU (sin wgpu)", _ => "CPU" };
                 let vertices = self.geometria.as_ref().map(|g| g.vertices.len()).unwrap_or(0);
                 ui.label(egui::RichText::new(format!("grafo: {modo} · {vertices} vertices · subidas a la GPU {} en {} cuadros",
@@ -889,7 +916,7 @@ impl eframe::App for App {
         let c = Colores::de(&tema);
         egui::Panel::top("barra").frame(egui::Frame::new().fill(c.panel).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.barra(ui, &c));
         let v = self.vista();
-        let estado = format!("{} · {} · tema {}", v.estado, if v.modo == Modo::Grafo { "grafo" } else { "iconos" }, tema.nombre);
+        let estado = format!("{} · {} · tema {}", v.estado, match v.modo { Modo::Grafo => "grafo", Modo::Iconos => "iconos", Modo::Ciudad => "ciudad" }, tema.nombre);
         egui::Panel::bottom("estado").frame(egui::Frame::new().fill(c.panel).inner_margin(6.0)).show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.label(egui::RichText::new(estado).color(c.tenue));
@@ -938,6 +965,12 @@ impl eframe::App for App {
                 let vivos = t.en_curso.as_deref().map(|titulo| pintar_grafo::Vivos { id: &t.carpeta, titulo, procesos: &self.estado.procesos });
                 pintar_grafo::grafo(ui, &v, self.estado.camara, retenido, &self.iconos, &c, self.estado.ajustes.direccion, lienzo, vivos, &mut acciones);
                 for a in acciones { self.despachar(a); }
+            } else if v.modo == Modo::Ciudad {
+                let mut acciones = Vec::new();
+                let antes = self.ciudad.micros;
+                ciudad3d::pintar(ui, &mut self.ciudad, &self.estado, &c, self.ciudad_ok, &mut acciones);
+                if self.ciudad.micros != antes { self.medidas.anotar(Carril::Ciudad, self.ciudad.micros); }
+                for a in acciones { self.despachar(a); }
             } else {
                 egui::ScrollArea::both().auto_shrink([false, false]).show(ui, |ui| self.iconos_libres(ui, &v, &c));
             }
@@ -958,6 +991,7 @@ fn main() -> eframe::Result {
         .unwrap_or_else(|| PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| "/".into())));
     let opciones = eframe::NativeOptions {
         renderer: eframe::Renderer::Wgpu,
+        depth_buffer: 24,
         viewport: egui::ViewportBuilder::default().with_title("ULTRA Carpetas").with_app_id("ultra-carpetas").with_inner_size([1280.0, 800.0]),
         ..Default::default()
     };

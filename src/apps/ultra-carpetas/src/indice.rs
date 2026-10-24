@@ -11,6 +11,7 @@
 //! y el estandar de carpetas de cache), `build.ninja` o `CMakeCache.txt` (out/ de
 //! Chromium, CMake), y `.git`, `.hg`, `.svn`, `node_modules`.
 
+use carpetas_nucleo::ciudad::{juntar, ArchivoCiudad, MAX_EDIFICIOS};
 use carpetas_nucleo::editor::buscar;
 use carpetas_nucleo::estado::InfoIndice;
 use carpetas_nucleo::proyecto::{buscar_en_tramo, ordenar, coincidencias, pasa_filtro, Coincidencia, Indice, MAX_COINCIDENCIAS, MAX_POR_ARCHIVO, MAX_RESULTADOS_IR_A};
@@ -27,6 +28,10 @@ const MAX_TEXTO: u64 = 2 * 1024 * 1024;
 
 pub enum Pedido {
     Reindexar { base: PathBuf, ocultos: bool },
+    /// Archivos de `raiz` con tamano y lineas, juntados en bloques si son demasiados.
+    Ciudad { generacion: u64, raiz: String },
+    /// (interno) El hilo de lineas termino: (version del indice, lineas por ruta, total).
+    Lineas(u64, Arc<Vec<u32>>, u64, u64),
     Nombres { generacion: u64, consulta: String },
     Texto { generacion: u64, base: PathBuf, carpeta: String, patron: String, mayusculas: bool, palabra: bool, filtro: String },
     Cancelar,
@@ -36,7 +41,15 @@ pub enum Respuesta {
     Indice(InfoIndice),
     Nombres { generacion: u64, resultados: Vec<(String, bool)>, micros: u64 },
     Texto { generacion: u64, lote: Vec<(String, Vec<Coincidencia>)>, vistos: u64, terminada: bool, truncada: bool, micros: u64 },
+    Ciudad { generacion: u64, raiz: String, archivos: Vec<ArchivoCiudad>, micros: u64 },
+    Lineas { contadas: u64 },
 }
+
+/// Lineas desconocidas (binario, demasiado grande, fuera del presupuesto).
+pub const SIN_LINEAS: u32 = u32::MAX;
+/// Presupuesto para contar lineas: hasta 1 GiB leido o 20 s (Chromium real son varios GiB).
+const LINEAS_BYTES: u64 = 1 << 30;
+const LINEAS_TIEMPO: Duration = Duration::from_secs(20);
 
 pub struct Proyecto { tx: Sender<Pedido>, rx: Receiver<Respuesta> }
 
@@ -47,26 +60,28 @@ pub fn indexar(base: &Path, ocultos: bool) -> (Indice, bool) {
     while let Some(rel) = pila.pop() {
         let dir = if rel.is_empty() { base.to_path_buf() } else { base.join(&rel) };
         let Ok(lectura) = std::fs::read_dir(&dir) else { continue };
-        let mut hijos: Vec<(String, bool)> = Vec::new();
+        let mut hijos: Vec<(String, bool, u64)> = Vec::new();
         for e in lectura.flatten() {
             let Ok(tipo) = e.file_type() else { continue };
             if tipo.is_symlink() { continue; } // nunca se sigue un enlace (ni bucles ni salir de la carpeta)
             let Some(nombre) = e.file_name().to_str().map(str::to_string) else { continue };
             if !ocultos && nombre.starts_with('.') { continue; }
-            hijos.push((nombre, tipo.is_dir()));
+            // El tamano (para la ciudad): metadata de la entrada, sin seguir enlaces.
+            let tam = if tipo.is_dir() { 0 } else { e.metadata().map(|m| m.len()).unwrap_or(0) };
+            hijos.push((nombre, tipo.is_dir(), tam));
         }
         // Una carpeta de build generada no se indexa (ni ella ni lo de dentro).
-        if !rel.is_empty() && hijos.iter().any(|(n, d)| !d && MARCAS_DE_BUILD.contains(&n.as_str())) { continue; }
+        if !rel.is_empty() && hijos.iter().any(|(n, d, _)| !d && MARCAS_DE_BUILD.contains(&n.as_str())) { continue; }
         hijos.sort();
-        for (nombre, es_dir) in hijos.iter().rev() {
+        for (nombre, es_dir, _) in hijos.iter().rev() {
             if *es_dir && SALTAR.contains(&nombre.as_str()) { continue; }
             let ruta = if rel.is_empty() { nombre.clone() } else { format!("{rel}/{nombre}") };
             if *es_dir { pila.push(ruta); }
         }
-        for (nombre, es_dir) in hijos {
+        for (nombre, es_dir, tam) in hijos {
             if es_dir && SALTAR.contains(&nombre.as_str()) { continue; }
             let ruta = if rel.is_empty() { nombre } else { format!("{rel}/{nombre}") };
-            if !indice.agregar(&ruta, es_dir) { return (indice, true); }
+            if !indice.agregar_con(&ruta, es_dir, tam) { return (indice, true); }
         }
     }
     (indice, false)
@@ -89,6 +104,25 @@ fn leer_texto(ruta: &Path) -> Option<String> {
     if bytes.contains(&0) { return None; }
     Read::by_ref(&mut f).take(MAX_TEXTO).read_to_end(&mut bytes).ok()?;
     String::from_utf8(bytes).ok()
+}
+
+/// Cuenta las lineas de los archivos de texto del indice (presupuesto de bytes y tiempo).
+/// Devuelve una linea por ruta (SIN_LINEAS si no se conto) y el total contado.
+pub fn contar_lineas(indice: &Indice, base: &Path, sigue: &dyn Fn() -> bool) -> (Vec<u32>, u64) {
+    let inicio = Instant::now();
+    let mut v = vec![SIN_LINEAS; indice.len()];
+    let (mut leidos, mut total) = (0u64, 0u64);
+    for (i, l) in v.iter_mut().enumerate() {
+        if indice.es_carpeta(i) || indice.tam(i) > MAX_TEXTO { continue; }
+        if leidos > LINEAS_BYTES || inicio.elapsed() > LINEAS_TIEMPO || (i % 256 == 0 && !sigue()) { break; }
+        if indice.tam(i) == 0 { *l = 0; continue; }
+        let Some(texto) = leer_texto(&base.join(indice.ruta(i))) else { continue };
+        leidos += texto.len() as u64;
+        let n = texto.bytes().filter(|b| *b == b'\n').count() as u32 + u32::from(!texto.ends_with('\n'));
+        *l = n;
+        total += n as u64;
+    }
+    (v, total)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -124,6 +158,17 @@ fn buscar_texto(indice: &Indice, base: &Path, carpeta: &str, patron: &str, mayus
     avisar();
 }
 
+/// Los archivos de `raiz` para la ciudad (con lineas si ya se contaron), en bloques si son muchos.
+fn ciudad(indice: &Indice, lineas: &[u32], generacion: u64, raiz: &str) -> Respuesta {
+    let t = Instant::now();
+    let prefijo = if raiz.is_empty() { String::new() } else { format!("{raiz}/") };
+    let archivos: Vec<ArchivoCiudad> = (0..indice.len()).filter(|i| !indice.es_carpeta(*i) && indice.ruta(*i).starts_with(&prefijo))
+        .map(|i| ArchivoCiudad { ruta: indice.ruta(i).to_string(), tam: indice.tam(i), lineas: lineas.get(i).copied().filter(|l| *l != SIN_LINEAS), archivos: 1, bloque: false })
+        .collect();
+    let archivos = juntar(archivos, raiz, MAX_EDIFICIOS);
+    Respuesta::Ciudad { generacion, raiz: raiz.to_string(), archivos, micros: t.elapsed().as_micros() as u64 }
+}
+
 /// Ctrl+P repartido entre los nucleos (cada hilo puntua un tramo del indice).
 fn nombres_en_paralelo(indice: &Indice, consulta: &str) -> Vec<usize> {
     let hilos = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1).clamp(1, 8);
@@ -141,6 +186,23 @@ fn nombres_en_paralelo(indice: &Indice, consulta: &str) -> Vec<usize> {
 impl Proyecto {
     pub fn nuevo(avisar: impl Fn() + Send + Sync + Clone + 'static) -> Proyecto {
         let (tx, rx_pedidos) = mpsc::channel::<Pedido>();
+        let tx_interno = tx.clone();
+        // Hilo de lineas: cuenta en segundo plano y avisa al hilo del indice.
+        let (tx_contar, rx_contar) = mpsc::channel::<(u64, Arc<Indice>, PathBuf)>();
+        let version_lineas = Arc::new(AtomicU64::new(0));
+        {
+            let version_lineas = version_lineas.clone();
+            std::thread::Builder::new().name("ultra-lineas".into()).spawn(move || {
+                while let Ok((version, indice, base)) = rx_contar.recv() {
+                    if version_lineas.load(Ordering::Relaxed) != version { continue; }
+                    let t = Instant::now();
+                    let sigue = || version_lineas.load(Ordering::Relaxed) == version;
+                    let (lineas, total) = contar_lineas(&indice, &base, &sigue);
+                    if !sigue() { continue; }
+                    if tx_interno.send(Pedido::Lineas(version, Arc::new(lineas), total, t.elapsed().as_micros() as u64)).is_err() { return; }
+                }
+            }).expect("hilo de lineas");
+        }
         let (tx_resp, rx) = mpsc::channel();
         let vigente = Arc::new(AtomicU64::new(0));
         // Hilo de busqueda de texto: recibe trabajos con su copia del indice.
@@ -158,6 +220,9 @@ impl Proyecto {
         std::thread::Builder::new().name("ultra-indice".into()).spawn(move || {
             let mut indice = Arc::new(Indice::default());
             let mut pendiente_texto: Option<Trabajo> = None;
+            let mut version = 0u64;
+            let mut lineas: Arc<Vec<u32>> = Arc::new(Vec::new());
+            let mut pendiente_ciudad: Option<(u64, String)> = None;
             while let Ok(primero) = rx_pedidos.recv() {
                 // De varias consultas de nombres en cola (se teclea rapido) solo vale la ultima.
                 let mut cola: Vec<Pedido> = std::iter::once(primero).chain(rx_pedidos.try_iter()).collect();
@@ -171,10 +236,15 @@ impl Proyecto {
                         let t = Instant::now();
                         let (nuevo, truncado) = indexar(&base, ocultos);
                         let carpetas = (0..nuevo.len()).filter(|i| nuevo.es_carpeta(*i)).count() as u64;
-                        let info = InfoIndice { archivos: nuevo.len() as u64 - carpetas, carpetas, truncado, micros: t.elapsed().as_micros() as u64, listo: true };
+                        let info = InfoIndice { archivos: nuevo.len() as u64 - carpetas, carpetas, truncado, micros: t.elapsed().as_micros() as u64, listo: true, ..InfoIndice::default() };
                         indice = Arc::new(nuevo);
+                        version += 1;
+                        lineas = Arc::new(Vec::new());
+                        version_lineas.store(version, Ordering::Relaxed);
+                        let _ = tx_contar.send((version, indice.clone(), base.clone()));
                         if tx_resp.send(Respuesta::Indice(info)).is_err() { return; }
                         avisar();
+                        if let Some((g, r)) = pendiente_ciudad.take() { let _ = tx_resp.send(ciudad(&indice, &lineas, g, &r)); avisar(); }
                         // Una busqueda pedida mientras se indexaba se lanza ahora.
                         if let Some(mut tr) = pendiente_texto.take() { tr.0 = indice.clone(); let _ = tx_trabajo.send(tr); }
                     }
@@ -191,6 +261,17 @@ impl Proyecto {
                         if indice.is_empty() { pendiente_texto = Some(tr); } else { let _ = tx_trabajo.send(tr); }
                     }
                     Pedido::Cancelar => { vigente.fetch_add(1 << 40, Ordering::Relaxed); pendiente_texto = None; }
+                    Pedido::Ciudad { generacion, raiz } => {
+                        if indice.is_empty() { pendiente_ciudad = Some((generacion, raiz)); continue; }
+                        if tx_resp.send(ciudad(&indice, &lineas, generacion, &raiz)).is_err() { return; }
+                        avisar();
+                    }
+                    Pedido::Lineas(v, l, total, _micros) => {
+                        if v != version { continue; } // de un indice viejo
+                        lineas = l;
+                        if tx_resp.send(Respuesta::Lineas { contadas: total }).is_err() { return; }
+                        avisar();
+                    }
                 }
                 }
             }

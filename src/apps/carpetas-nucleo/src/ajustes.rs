@@ -32,12 +32,17 @@ pub struct Ajustes {
     pub parar_en_error: bool,
     /// Organizar carpetas grandes en unidades, metadatos y prefijos (solo la vista).
     pub organizar: crate::organizar::Organizar,
+    /// Vista Ciudad: que dicen la altura y el color de los edificios.
+    pub altura_ciudad: crate::ciudad::Altura,
+    pub huella_ciudad: crate::ciudad::Huella,
+    pub color_ciudad: crate::ciudad::Color,
 }
 
 impl Default for Ajustes {
     fn default() -> Self {
         Ajustes { tema: TEMAS[0].id.to_string(), brillo: None, acento_escritorio: false, iconos: EstiloIconos::Neon,
-                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true, dibujo: Dibujo::Gpu, parar_en_error: false, organizar: crate::organizar::Organizar::Auto }
+                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true, dibujo: Dibujo::Gpu, parar_en_error: false, organizar: crate::organizar::Organizar::Auto,
+                  altura_ciudad: crate::ciudad::Altura::Lineas, huella_ciudad: crate::ciudad::Huella::Bytes, color_ciudad: crate::ciudad::Color::Lenguaje }
     }
 }
 

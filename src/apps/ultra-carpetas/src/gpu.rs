@@ -151,7 +151,7 @@ struct Recursos {
 }
 
 /// Crea el pipeline una vez. Devuelve false si no hay wgpu (entonces se dibuja en CPU).
-pub fn instalar(estado: Option<&egui_wgpu::RenderState>) -> bool {
+pub fn instalar(estado: Option<&egui_wgpu::RenderState>, profundidad: Option<wgpu::TextureFormat>) -> bool {
     let Some(rs) = estado else { return false };
     let d = &rs.device;
     let shader = d.create_shader_module(wgpu::ShaderModuleDescriptor { label: Some("ultra-carpetas grafo"), source: wgpu::ShaderSource::Wgsl(include_str!("grafo.wgsl").into()) });
@@ -169,7 +169,9 @@ pub fn instalar(estado: Option<&egui_wgpu::RenderState>) -> bool {
         vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs"), compilation_options: Default::default(),
             buffers: &[Some(wgpu::VertexBufferLayout { array_stride: std::mem::size_of::<Vertice>() as u64, step_mode: wgpu::VertexStepMode::Vertex, attributes: &atributos })] },
         primitive: wgpu::PrimitiveState::default(),
-        depth_stencil: None,
+        // El cuadro tiene bufer de profundidad (por la ciudad): el grafo es 2D, ni lo mira ni lo escribe.
+        depth_stencil: profundidad.map(|format| wgpu::DepthStencilState { format, depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::Always),
+                                                                         stencil: wgpu::StencilState::default(), bias: wgpu::DepthBiasState::default() }),
         multisample: wgpu::MultisampleState::default(),
         fragment: Some(wgpu::FragmentState { module: &shader, entry_point: Some("fs"), compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState { format: rs.target_format, blend: Some(wgpu::BlendState::PREMULTIPLIED_ALPHA_BLENDING), write_mask: wgpu::ColorWrites::ALL })] }),

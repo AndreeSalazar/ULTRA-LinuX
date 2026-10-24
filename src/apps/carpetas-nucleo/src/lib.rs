@@ -23,6 +23,7 @@ extern crate alloc;
 
 pub mod ajustes;
 pub mod carriles;
+pub mod ciudad;
 pub mod comandos;
 pub mod diagnosticos;
 pub mod ejecutar;

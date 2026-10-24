@@ -14,7 +14,7 @@ pub enum Comando {
     Modo, Explorador, Direccion, Encuadrar, Reacomodar, Iconos, Carriles,
     Terminal, Detener, LimpiarTerminal, Dibujo, EjecutarSeleccion,
     SiguienteError, PararEnError, Guardar, CerrarEditor, SiguientePestana, AnteriorPestana,
-    Enfocar, SubirFoco, IrA, BuscarProyecto, Organizar, Reindexar,
+    Enfocar, SubirFoco, IrA, BuscarProyecto, Organizar, Reindexar, Ciudad, AlturaCiudad, ColorCiudad, HuellaCiudad,
 }
 
 pub struct InfoComando {
@@ -45,7 +45,11 @@ pub const COMANDOS: &[InfoComando] = &[
     InfoComando { comando: Comando::SubirFoco, id: "grafo.subirFoco", titulo: "Subir el foco a la carpeta de arriba", atajo: "U" },
     InfoComando { comando: Comando::Organizar, id: "grafo.organizar", titulo: "Organizar carpetas grandes: automatico, siempre o nunca", atajo: "O" },
     InfoComando { comando: Comando::Reindexar, id: "proyecto.reindexar", titulo: "Volver a indexar el proyecto", atajo: "" },
-    InfoComando { comando: Comando::Modo, id: "vista.modo", titulo: "Cambiar entre iconos y grafo de nodos", atajo: "Tab" },
+    InfoComando { comando: Comando::Ciudad, id: "vista.ciudad", titulo: "Vista Ciudad: el proyecto en 3D (distritos y edificios)", atajo: "Tab" },
+    InfoComando { comando: Comando::AlturaCiudad, id: "ciudad.altura", titulo: "Ciudad: altura = lineas, errores, busqueda o plana", atajo: "" },
+    InfoComando { comando: Comando::HuellaCiudad, id: "ciudad.huella", titulo: "Ciudad: huella = bytes o lineas", atajo: "" },
+    InfoComando { comando: Comando::ColorCiudad, id: "ciudad.color", titulo: "Ciudad: color = lenguaje, salud o busqueda", atajo: "" },
+    InfoComando { comando: Comando::Modo, id: "vista.modo", titulo: "Cambiar de vista: iconos, grafo y ciudad", atajo: "Tab" },
     InfoComando { comando: Comando::Explorador, id: "vista.explorador", titulo: "Mostrar u ocultar el explorador", atajo: "Ctrl+B" },
     InfoComando { comando: Comando::Direccion, id: "grafo.direccion", titulo: "Grafo: Blender (izq-der) o Houdini (arriba-abajo)", atajo: "D" },
     InfoComando { comando: Comando::Encuadrar, id: "grafo.encuadrar", titulo: "Grafo: encuadrar todo", atajo: "Inicio" },

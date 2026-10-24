@@ -23,7 +23,7 @@ pub enum Direccion { #[default] Blender, Houdini }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Modo { #[default] Iconos, Grafo }
+pub enum Modo { #[default] Iconos, Grafo, Ciudad }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Camara { pub x: f32, pub y: f32, pub zoom: f32 }

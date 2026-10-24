@@ -101,6 +101,23 @@ pub enum Accion {
     Indice(InfoIndice),
     /// Panel lateral: explorador o busqueda.
     Lateral(Lateral),
+    /// Los archivos de la ciudad (de la raiz de la vista), ya juntados en bloques si son muchos.
+    DatosCiudad { generacion: u64, raiz: String, archivos: Vec<crate::ciudad::ArchivoCiudad> },
+    /// El hilo de lineas termino de contar.
+    LineasListas { contadas: u64 },
+}
+
+/// Datos de la vista Ciudad (la plataforma los pide al hilo del indice).
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct DatosCiudad {
+    pub generacion: u64,
+    /// Para que raiz y con que version del indice se pidieron.
+    pub raiz: String,
+    pub version_indice: u64,
+    pub archivos: Vec<crate::ciudad::ArchivoCiudad>,
+    pub cargando: bool,
+    /// Sube cuando llegan datos nuevos (la plataforma rehace la ciudad).
+    pub version: u64,
 }
 
 /// Lo que se esta revelando y que hacer al llegar.
@@ -125,7 +142,9 @@ pub enum Lateral { #[default] Explorador, Buscar }
 
 /// Estado del indice de todo el proyecto (lo lleva la plataforma en su hilo).
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct InfoIndice { pub archivos: u64, pub carpetas: u64, pub truncado: bool, pub micros: u64, pub listo: bool }
+pub struct InfoIndice { pub archivos: u64, pub carpetas: u64, pub truncado: bool, pub micros: u64, pub listo: bool,
+                         /// Sube con cada indice nuevo y cuando se cuentan las lineas.
+                         pub version: u64, pub lineas: u64, pub lineas_listas: bool }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Efecto {
@@ -154,6 +173,8 @@ pub enum Efecto {
     /// Texto dentro de los archivos de `carpeta` (relativa), en su hilo; cancela la anterior.
     BuscarTexto { generacion: u64, carpeta: String, patron: String, mayusculas: bool, palabra: bool, filtro: String },
     CancelarTexto,
+    /// Archivos (con tamano y lineas) de `raiz` para la vista Ciudad.
+    PedirCiudad { generacion: u64, raiz: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -207,6 +228,7 @@ pub struct Estado {
     pub revelado: (String, u64),
     /// Un aviso corto para la barra de estado.
     pub aviso: Option<String>,
+    pub ciudad: DatosCiudad,
 }
 
 impl Default for Estado {
@@ -217,7 +239,8 @@ impl Default for Estado {
                  expandidas: BTreeSet::new(), camara: Camara::default(), version: 0, nombre_raiz: String::new(),
                  version_contenido: 0, terminal: Terminal::default(), errores: Errores::default(), raiz_absoluta: String::new(),
                  editor: Pestanas::default(), procesos: Vec::new(), ir_a: None, proyecto: BusquedaProyecto::default(),
-                 lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None }
+                 lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
+                 ciudad: DatosCiudad::default() }
     }
 }
 
@@ -322,7 +345,7 @@ impl Estado {
             }
             Comando::AcentoEscritorio => { self.ajustes.acento_escritorio = !self.ajustes.acento_escritorio; vec![self.guardar_ajustes()] }
             Comando::Modo => {
-                self.ajustes.modo = if self.en_grafo() { Modo::Iconos } else { Modo::Grafo };
+                self.ajustes.modo = match self.ajustes.modo { Modo::Iconos => Modo::Grafo, Modo::Grafo => Modo::Ciudad, Modo::Ciudad => Modo::Iconos };
                 self.seleccion.clear();
                 if self.en_grafo() { self.encuadrar(); }
                 vec![self.guardar_ajustes()]
@@ -383,6 +406,10 @@ impl Estado {
             Comando::BuscarProyecto => self.proyecto(AccionProyecto::Abrir),
             Comando::Organizar => { self.ajustes.organizar = self.ajustes.organizar.siguiente(); vec![self.guardar_ajustes()] }
             Comando::Reindexar => vec![Efecto::Reindexar { ocultos: self.ocultos }],
+            Comando::Ciudad => { self.ajustes.modo = Modo::Ciudad; vec![self.guardar_ajustes()] }
+            Comando::AlturaCiudad => { self.ajustes.altura_ciudad = self.ajustes.altura_ciudad.siguiente(); vec![self.guardar_ajustes()] }
+            Comando::HuellaCiudad => { self.ajustes.huella_ciudad = self.ajustes.huella_ciudad.siguiente(); vec![self.guardar_ajustes()] }
+            Comando::ColorCiudad => { self.ajustes.color_ciudad = self.ajustes.color_ciudad.siguiente(); vec![self.guardar_ajustes()] }
             Comando::AnteriorPestana => { self.editor.mover(-1); vec![] }
             Comando::EjecutarSeleccion => match self.seleccion.iter().next() {
                 Some(id) if self.seleccion.len() == 1 => { let id = id.clone(); self.ejecutar(&id) }
@@ -535,7 +562,9 @@ impl Estado {
             if self.en_grafo() { self.encuadrar(); }
             return vec![self.guardar()];
         }
-        if es_grupo(id) || self.entrada(id).map(|e| e.tipo) != Some(Tipo::Carpeta) { return vec![]; }
+        // Una carpeta aun no leida (doble clic en un distrito de la ciudad) tambien vale: el
+        // camino se valida al ir llegando del disco.
+        if es_grupo(id) || self.entrada(id).is_some_and(|e| e.tipo != Tipo::Carpeta) { return vec![]; }
         self.seleccion.clear();
         self.revelar = Some(Revelar { enfocar: true, ..Revelar::a(id) });
         self.avanzar_revelar()
@@ -654,6 +683,26 @@ fn se_cruzan(a: ([f32; 2], [f32; 2]), b: ([f32; 2], [f32; 2])) -> bool {
 
 /// El reducer: (estado, accion) -> estado nuevo + efectos. Puro: sin E/S, sin reloj.
 pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
+    let mut efectos = reducir_sin_ciudad(e, accion);
+    efectos.extend(e.pedir_ciudad());
+    efectos
+}
+
+impl Estado {
+    /// En la vista Ciudad: si cambio la raiz o el indice, se piden los datos otra vez.
+    fn pedir_ciudad(&mut self) -> Vec<Efecto> {
+        if self.ajustes.modo != Modo::Ciudad || !self.indice.listo || self.ciudad.cargando { return vec![]; }
+        let raiz = raiz_vista(self).to_string();
+        if self.ciudad.version > 0 && self.ciudad.raiz == raiz && self.ciudad.version_indice == self.indice.version { return vec![]; }
+        self.ciudad.generacion += 1;
+        self.ciudad.cargando = true;
+        self.ciudad.raiz = raiz.clone();
+        self.ciudad.version_indice = self.indice.version;
+        vec![Efecto::PedirCiudad { generacion: self.ciudad.generacion, raiz }]
+    }
+}
+
+fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
     e.version = e.version.wrapping_add(1);
     // Mover la camara o cambiar el tamano no cambia lo que se dibuja: la GPU ya lo tiene.
     // Tampoco la salida de un proceso, /proc o teclear en el editor: si de ahi sale un error
@@ -662,6 +711,7 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                        | Accion::Procesos(_) | Accion::Editar(_) | Accion::RutaRaiz(_) | Accion::Buscar(_) | Accion::Pestana(_)
                        | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. } | Accion::IrA(_)
                        | Accion::ResultadosIrA { .. } | Accion::Indice(_) | Accion::Lateral(_) | Accion::ResultadosProyecto { .. }
+                       | Accion::DatosCiudad { .. } | Accion::LineasListas { .. }
                        | Accion::Proyecto(AccionProyecto::Patron(_) | AccionProyecto::Mayusculas | AccionProyecto::Palabra
                                           | AccionProyecto::Filtro(_) | AccionProyecto::Lanzar | AccionProyecto::Limpiar | AccionProyecto::Plegar(_))) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
@@ -682,7 +732,8 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             e.ir_a = None;
             e.proyecto = BusquedaProyecto { patron: core::mem::take(&mut e.proyecto.patron), mayusculas: e.proyecto.mayusculas,
                                             palabra: e.proyecto.palabra, filtro: core::mem::take(&mut e.proyecto.filtro), ..BusquedaProyecto::default() };
-            e.indice = InfoIndice::default();
+            e.indice = InfoIndice { version: e.indice.version + 1, ..InfoIndice::default() };
+            e.ciudad = DatosCiudad { generacion: e.ciudad.generacion, ..DatosCiudad::default() };
             let mut efectos = e.sincronizar();
             if e.en_grafo() { e.encuadrar(); }
             efectos.push(Efecto::Reindexar { ocultos: e.ocultos });
@@ -866,7 +917,17 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             if habia { e.version_contenido = e.version_contenido.wrapping_add(1); }
             vec![]
         }
-        Accion::Indice(i) => { e.indice = i; vec![] }
+        Accion::Indice(i) => { let v = e.indice.version + 1; e.indice = InfoIndice { version: v, ..i }; vec![] }
+        Accion::LineasListas { contadas } => { e.indice.lineas = contadas; e.indice.lineas_listas = true; e.indice.version += 1; vec![] }
+        Accion::DatosCiudad { generacion, raiz, archivos } => {
+            if generacion == e.ciudad.generacion {
+                e.ciudad.archivos = archivos;
+                e.ciudad.raiz = raiz;
+                e.ciudad.cargando = false;
+                e.ciudad.version += 1;
+            }
+            vec![]
+        }
         Accion::Lateral(l) => { e.lateral = l; if !e.ajustes.explorador { e.ajustes.explorador = true; } vec![] }
     }
 }
