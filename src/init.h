@@ -38,6 +38,7 @@ void release_system(void);
 
 /* logo.c: the ULTRA logo in the top-right corner of the screen, through /dev/fb0. */
 void show_logo(void);
+void show_intro(void);
 
 /* particiones.c: the BMO partition's device (/dev/sda2) when ULTRA runs from it, else NULL. */
 const char *bmo_device(void);

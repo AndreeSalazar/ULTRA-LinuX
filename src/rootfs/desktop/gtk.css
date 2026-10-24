@@ -1,28 +1,30 @@
-@define-color theme_bg_color #0a1615;
-@define-color theme_fg_color #cee1dc;
-@define-color theme_base_color #050c10;
-@define-color theme_text_color #cee1dc;
-@define-color theme_selected_bg_color #203c32;
-@define-color theme_selected_fg_color #63f4ff;
-window, .background { background-color: #0a1615; color: #cee1dc; }
-headerbar, toolbar, menubar { background-image: linear-gradient(to bottom, #19302a, #0a1615); color: #9fdce8; border-color: #304a40; }
-textview text, treeview.view, iconview.view, .view { background-color: #050c10; color: #cee1dc; }
-button { background-image: linear-gradient(to bottom, #1c342c, #0a1815); color: #addce8; border-color: #3a564b; border-radius: 3px; }
-button:hover { background-image: none; background-color: #1d3c31; color: #63f4ff; border-color: #43deeb; }
-entry { background-color: #050c10; color: #cee1dc; border-color: #234455; }
-entry:focus { border-color: #43deeb; }
-*:selected, selection { background-color: #203c32; color: #63f4ff; }
-.destructive-action { color: #ff7185; border-color: #743246; }
-
-/* Night Circuit: focused controls and tactile dark metal. */
-headerbar { border-bottom: 1px solid #167587; padding: 6px; }
-button, entry, scrollbar slider { transition: background-color 150ms ease, border-color 150ms ease; }
-button:checked, button:active { background-image: linear-gradient(to bottom, #315545, #173a2c); border-color: #a987e6; color: #b8fff0; }
-notebook header { background-color: #091813; border-color: #304a40; }
-notebook tab { padding: 8px 14px; border-bottom: 2px solid transparent; }
-notebook tab:checked { background-color: #1d3329; border-bottom-color: #a987e6; color: #9dffdd; }
-scrollbar { background-color: #07101a; }
-scrollbar slider { min-width: 6px; min-height: 6px; border-radius: 6px; background-color: #3c6152; }
-scrollbar slider:hover { background-color: #73d7c5; }
-progressbar progress { background-image: linear-gradient(to right, #00b8d0, #48e9aa); border-color: #1a958d; }
-menu, popover { background-color: #091725; color: #cee1dc; border: 1px solid #47634e; }
+/* BMO-X / Neon: GTK3/GTK4. Negro, acento hielo, esquinas rectas. */
+@define-color theme_bg_color #0a0910;
+@define-color theme_fg_color #ece9dc;
+@define-color theme_base_color #06050a;
+@define-color theme_text_color #ece9dc;
+@define-color theme_selected_bg_color #5ad8ff;
+@define-color theme_selected_fg_color #000000;
+window, .background { background-color: #0a0910; color: #ece9dc; }
+headerbar, toolbar, menubar { background-image: none; background-color: #0f0e16; color: #ece9dc; border-color: #3b3747; border-radius: 0; }
+headerbar { border-bottom: 2px solid #5ad8ff; padding: 6px; }
+headerbar .title { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; letter-spacing: 2px; }
+textview text, treeview.view, iconview.view, .view { background-color: #06050a; color: #ece9dc; }
+button { background-image: none; background-color: #0f0e16; color: #ece9dc; border: 1px solid #3b3747; border-radius: 0; }
+button:hover { background-color: #0a1a22; color: #bff3ff; border-color: #5ad8ff; }
+button:checked, button:active { background-color: #5ad8ff; color: #000000; border-color: #5ad8ff; }
+button.suggested-action { background-color: #5ad8ff; color: #000000; border-color: #5ad8ff; }
+.destructive-action { background-color: #ff2a4f; color: #000000; border-color: #ff2a4f; }
+entry { background-color: #06050a; color: #ece9dc; border: 1px solid #3b3747; border-radius: 0; }
+entry:focus { border-color: #5ad8ff; box-shadow: 0 0 8px rgba(90, 216, 255, .35); }
+*:selected, selection { background-color: #5ad8ff; color: #000000; }
+button, entry, scrollbar slider, notebook tab { transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
+notebook header { background-color: #0a0910; border-color: #2a2733; }
+notebook tab { padding: 8px 14px; border-bottom: 2px solid transparent; border-radius: 0; }
+notebook tab:checked { background-color: #0f0e16; border-bottom-color: #5ad8ff; color: #bff3ff; }
+scrollbar { background-color: #06050a; }
+scrollbar slider { min-width: 6px; min-height: 6px; border-radius: 0; background-color: #3b3747; }
+scrollbar slider:hover { background-color: #5ad8ff; }
+progressbar progress { background-image: none; background-color: #5ad8ff; border-color: #2b9fd0; border-radius: 0; }
+menu, popover, .menu { background-color: #06050a; color: #ece9dc; border: 1px solid #5ad8ff; border-radius: 0; }
+menuitem:hover { background-color: #5ad8ff; color: #000000; }

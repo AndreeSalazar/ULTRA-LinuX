@@ -6,9 +6,23 @@ set -euo pipefail
 dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_RUNTIME_DIR HYPRLAND_INSTANCE_SIGNATURE
 [[ -z ${DISPLAY:-} ]] || dbus-update-activation-environment DISPLAY
 hyprctl setcursor ULTRA-Nucleo 28 || echo 'AMARILLO [CURSOR]: se conserva el cursor disponible'
-swaybg -i /etc/ultra/wallpaper.svg -m fill &
-waybar -c /etc/ultra/waybar.jsonc -s /etc/ultra/waybar.css &
-mako --config /etc/ultra/mako.conf &
+# Personalizacion del usuario (ultra-personalizar); sin ella, el tema del sistema.
+fondo=/etc/ultra/wallpaper.svg fondo_modo=fill estilo=/etc/ultra/waybar.css barras=/etc/ultra/waybar.jsonc avisos=/etc/ultra/mako.conf
+while IFS='=' read -r clave valor; do
+    case $clave in
+        FONDO) fondo=$valor;; FONDO_MODO) fondo_modo=$valor;;
+        WAYBAR_CSS) estilo=$valor;; WAYBAR_JSON) barras=$valor;; MAKO_CONF) avisos=$valor;;
+    esac
+done < <(timeout 60 ultra-personalizar rutas 2>> "$XDG_RUNTIME_DIR/ultra-personalizar.log" || true)
+if [[ $fondo_modo == color ]]; then swaybg -c "$fondo" & else swaybg -i "$fondo" -m fill & fi
+waybar -c "$barras" -s "$estilo" &
+mako --config "$avisos" &
+ultra-personalizar hyprland >> "$XDG_RUNTIME_DIR/ultra-personalizar.log" 2>&1 &
+# Fondo segun la hora, historial del portapapeles en RAM, modo juego automatico y sonido de inicio.
+ultra-personalizar vigilar >> "$XDG_RUNTIME_DIR/ultra-personalizar.log" 2>&1 &
+ultra-portapapeles vigilar >> "$XDG_RUNTIME_DIR/ultra-portapapeles.log" 2>&1 &
+ultra-modo-juego >> "$XDG_RUNTIME_DIR/ultra-modo-juego.log" 2>&1 &
+ultra-personalizar sonar inicio >/dev/null 2>&1 &
 ultra-discos auto >> "$XDG_RUNTIME_DIR/ultra-discos-inicio.log" 2>&1 &
 ultra-pantallas restaurar >> "$XDG_RUNTIME_DIR/ultra-pantallas-inicio.log" 2>&1 &
 foot --title=ULTRA-Bienvenida /usr/bin/less /etc/ultra/AYUDA.txt &

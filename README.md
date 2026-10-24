@@ -6,15 +6,49 @@
 
 <p align="center">Distribución personal y experimental para x86-64, creada e integrada por Eddi Salazar.<br>Linux + entorno Arch + init propio en C + escritorio Wayland con Hyprland.</p>
 
+## Escritorio BMO-X // Neón
+
+<p align="center">
+  <img src="docs/maquetas/png/neon/recorrido.gif" alt="Recorrido animado del escritorio BMO-X Neón en azul hielo: ciudad nocturna con lluvia, ventanas con borde que gira, menú, escritorios, equipo en vivo, captura, modo juego y bloqueo" width="760">
+</p>
+
+<p align="center"><b>Neón</b>: negro, azul hielo, cyan y rojo, con estética cyberpunk original.<br>
+Diseño y autoría: <b>Eddi Salazar</b>.</p>
+
+- **Video de presentación** (53 s): [`recorrido.mp4`](docs/maquetas/png/neon/recorrido.mp4).
+- **Prototipo interactivo**: [`vivo.html`](docs/maquetas/neon/vivo.html). Se abre en
+  el navegador; Alt hace de Super.
+- **Animaciones**: fondo con lluvia, letreros y el aro del autor; ventanas con
+  borde hielo → rojo → cyan que gira; escritorios que se deslizan. También son
+  animados el centro BMO-X, los avisos, Equipo en vivo, la captura, el modo juego
+  con MangoHud y el bloqueo.
+- **Intro de arranque**: el Tux del autor aparece en la pantalla del firmware con
+  bloques de píxeles, glitch rojo y línea de escaneo, en 1,2 s y sin borrar la consola
+  ([intro](docs/INTRO-ARRANQUE.md), [vista previa](docs/maquetas/png/neon/intro-arranque.mp4)).
+- **Personalizar** (Super+Shift+P): perfiles de un toque (Neón hielo, Demonio, Sobrio, Minimal,
+  Juego y los tuyos), fondo Demonio con tu Tux, fondo según la hora y 20 opciones de colores,
+  ventanas, animaciones, barra, dock, avisos, letra y sonidos ([detalle](docs/TEMA-NEON.md)).
+  La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa
+  se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+Shift+V)
+  con historial en RAM; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,
+  Super+Shift+S y Super+Impr Pant. **Incidentes** (Super+Shift+I):
+  foto de lo que se cruzó cuando algo falla ([detalle](docs/INCIDENTES.md)).
+- **Perfil del autor**: módulo **EDDI** en la barra, emblema propio
+  ([`emblema-autor.svg`](src/rootfs/desktop/emblema-autor.svg)) y `/etc/ultra/AUTOR.txt`.
+
+El tema real ya está en el código del escritorio: Hyprland, Waybar, fuzzel,
+mako, GTK, foot, MangoHud, fondo, iconos y cursores. Las fuentes Rajdhani y
+Chakra Petch (OFL) viajan con el proyecto.
+
+El GIF y el video salen del prototipo en el navegador, no de una captura del
+sistema. Falta reconstruir las imágenes y pasar las pruebas de arranque en QEMU
+y en el PC. Hasta entonces, la última captura real es la de Núcleo:
+
 ![Escritorio BMO-X Nucleo en QEMU: cyan, morado y verde metalico oscuro](evidencias/tema-nucleo/2026-10-23/escritorio.png)
 
-BMO-X / Núcleo combina cyan, morado y verde metálico oscuro. Incluye
-cursores propios, iconos vectoriales, panel del equipo en vivo (Super+F9),
-barra de estado, dock con iconos, lanzador con teclado,
-notificaciones, efectos regulables y aplicaciones con ventanas. La captura es
-real del banco QEMU; no es una maqueta ni una medición de la RTX física.
-
-[Tema Núcleo: uso, respaldo y alcance](docs/TEMA-NUCLEO.md).
+[Tema Neón: uso, animaciones y verificación pendiente](docs/TEMA-NEON.md) ·
+[Propuesta y maquetas](docs/PROPUESTA-ESCRITORIO.md) ·
+[Tema Núcleo anterior](docs/TEMA-NUCLEO.md).
 
 [Espacio y aplicaciones](docs/ESPACIO-Y-APLICACIONES.md): Super+Esc abre el
 administrador para cerrar procesos y limitar CPU/RAM. El sistema distingue

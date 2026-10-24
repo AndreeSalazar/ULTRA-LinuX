@@ -1,0 +1,16 @@
+<!-- Emblema del autor Eddi Salazar: original, inspirado en su personaje (capucha, corona de cristal, aro y brillo hielo). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 120 120" role="img" aria-label="Emblema de Eddi Salazar">
+    <defs><filter id="bri" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <linearGradient id="capa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#121a22"/><stop offset="1" stop-color="#030406"/></linearGradient></defs>
+    <rect width="120" height="120" fill="#03050a"/>
+    <circle cx="60" cy="54" r="46" fill="none" stroke="#5ad8ff" stroke-width="2" stroke-dasharray="70 7 18 7 110 12" opacity=".75" filter="url(#bri)"/>
+    <g fill="#5ad8ff" opacity=".55"><rect x="8" y="70" width="5" height="5"/><rect x="14" y="82" width="3" height="3"/><rect x="104" y="40" width="5" height="5"/><rect x="99" y="28" width="3" height="3"/><rect x="106" y="88" width="4" height="4"/></g>
+    <path d="M37 33 41 15 47 27 53 7 60 23 67 5 73 23 79 13 83 33Z" fill="#0b1a24" stroke="#8ae6ff" stroke-width="1.8" stroke-linejoin="miter" filter="url(#bri)"/>
+    <path d="M53 7 56 22M67 5 64 21" stroke="#bff3ff" stroke-width="1" opacity=".7"/>
+    <path d="M60 24 90 48 97 104 60 120 23 104 30 48Z" fill="url(#capa)" stroke="#2c5468" stroke-width="1.8"/>
+    <path d="M60 24 72 50M60 24 48 50" stroke="#5ad8ff" stroke-width="1" opacity=".5"/>
+    <path d="M60 42 79 56 77 84 60 95 43 84 41 56Z" fill="#000"/>
+    <g stroke="#bff3ff" stroke-width="3.2" stroke-linecap="square" filter="url(#bri)"><path d="M46 61 56 64"/><path d="M74 61 64 64"/></g>
+    <path d="M46 73 49.5 79 53 73 56.5 80 60 73 63.5 80 67 73 70.5 79 74 73" fill="none" stroke="#5ad8ff" stroke-width="2.2" stroke-linejoin="miter" filter="url(#bri)"/>
+    <path d="M30 48 23 104M90 48 97 104" stroke="#5ad8ff" stroke-width="1.4" opacity=".6"/>
+  </svg>

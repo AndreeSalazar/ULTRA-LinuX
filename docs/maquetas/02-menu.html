@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X centro</title>
+<link rel="stylesheet" href="nucleo.css"><script src="comun.js"></script>
+<style>
+  .velo { position: absolute; inset: 0; background: rgba(2, 6, 10, .45); z-index: 15; }
+  .estado { position: absolute; z-index: 41; font: 600 12px/1 var(--ui); letter-spacing: 3px; text-transform: uppercase; color: var(--texto-2); }
+  .estado b { color: var(--cyan-claro); font-weight: 700; }
+  .flecha { position: absolute; z-index: 41; left: 912px; top: 520px; width: 96px; height: 2px; background: linear-gradient(90deg, var(--cyan), var(--verde-claro)); }
+  .flecha::after { content: ""; position: absolute; right: -2px; top: -5px; border: 6px solid transparent; border-left-color: var(--verde-claro); }
+  .fila .num { font: 600 13px var(--mono); color: var(--texto-3); width: 14px; }
+  .pie { padding: 12px 24px 0; margin-top: 8px; border-top: 1px solid #16303a; display: flex; gap: 18px; font: 12px var(--mono); color: var(--texto-3); }
+  .pie b { color: var(--texto-2); font-weight: 500; }
+</style></head>
+<body>
+<script>
+document.write(barra({ titulo: 'Centro BMO-X', escritorios: [[1, 'ocupado'], [2, 'activo'], [3, ''], [4, ''], [5, '']] }));
+document.write(dock({ abiertas: ['terminal'], foco: '' }));
+document.write(sello('centro BMO-X con la paleta Núcleo'));
+
+const raiz = [
+  ['Aplicaciones', 'navegador', '#43deeb', 'Super+R'],
+  ['Discos y bibliotecas', 'discos', '#68bd9d', 'Super+E'],
+  ['Juegos', 'juegos', '#9be5c4', 'Super+J'],
+  ['Pantalla y gráficos', 'pantalla', '#7fb4e6', 'Super+P'],
+  ['Audio', 'audio', '#c9b0f5', 'Super+A'],
+  ['Ambiente', 'ambiente', '#a987e6', 'Super+Shift+A'],
+  ['Sistema y ayuda', 'ajustes', '#ff8ea0', 'Super+H'],
+];
+const juegos = [
+  ['Steam', 'juegos'], ['GOG / Heroic', 'juegos'], ['Importar juegos GOG', 'archivos'],
+  ['Warframe / Steam', 'juegos'], ['Cyberpunk 2077', 'juegos'], ['Revisar bibliotecas', 'discos'],
+  ['Juegos y consumo en vivo', 'equipo', 'Super+F10'], ['FPS y HUD', 'pantalla', 'Shift der.+F12'],
+  ['Espacio y estado', 'discos'], ['← Volver a categorías', 'ayuda', 'Esc'],
+];
+let html = '<div class="velo"></div>';
+html += '<div class="estado" style="left:290px;top:300px"><b>Super+Espacio</b> · categorías</div>';
+html += '<div class="menu" style="left:290px;top:328px">';
+html += '<div class="prompt">BMO-X / <span>Categorías</span><i></i></div>';
+raiz.forEach(([n, ic, c, a], k) => {
+  html += `<div class="fila ${k === 2 ? 'sel' : ''}" style="${k === 2 ? '--acento:' + c : ''}"><span class="num">${k + 1}</span>${app(ic, c, 'class="i"')}${n}<span class="atajo">${a}</span></div>`;
+});
+html += '<div class="pie"><span><b>↑↓</b> elegir</span><span><b>Enter</b> abrir</span><span><b>Esc</b> cerrar</span><span><b>texto</b> filtra</span></div></div>';
+html += '<div class="flecha"></div>';
+html += '<div class="estado" style="left:1030px;top:180px"><b style="color:#9be5c4">Enter</b> · submenú con su acento</div>';
+html += '<div class="menu" style="left:1030px;top:208px;--acento:#9be5c4">';
+html += '<div class="prompt">Juegos / <span></span><i></i></div>';
+juegos.forEach(([n, ic, a], k) => {
+  const marcado = n;
+  html += `<div class="fila ${k === 3 ? 'sel' : ''}" style="${k === 9 ? 'color:var(--texto-3)' : ''}">${app(ic, k === 9 ? '#5f7d86' : '#9be5c4', 'class="i"')}${marcado}<span class="atajo">${a || ''}</span></div>`;
+});
+html += '</div>';
+document.write(html);
+</script>
+</body></html>

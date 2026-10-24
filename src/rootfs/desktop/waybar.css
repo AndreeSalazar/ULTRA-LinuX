@@ -1,44 +1,46 @@
-/* BMO-X / Night Circuit. GTK CSS. */
-* { font-family: "DejaVu Sans", "Font Awesome 7 Free", "Font Awesome 7 Brands"; font-size: 12px; font-weight: bold; min-height: 0; }
-window#waybar { background: transparent; color: #b9d5e3; }
-window#waybar.hud > box { background: linear-gradient(115deg, #050c10, #10221f, #091813); border: 1px solid #294a41; border-bottom: 2px solid #329eaa; border-radius: 9px; box-shadow: 0 4px 12px rgba(0, 5, 12, .65); }
-window#waybar.dock > box { background: linear-gradient(120deg, #10261f, #050c10); border: 1px solid #385344; border-top: 2px solid #43deeb; border-radius: 12px; padding: 5px 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, .6); }
-tooltip { background: #091725; border: 1px solid #329eaa; border-radius: 7px; }
-tooltip label { color: #d3edf3; padding: 6px; }
-#custom-apps { color: #61f4ff; background: linear-gradient(115deg, #153c39, #0b171a); border-right: 1px solid #38645c; border-radius: 8px 0 0 8px; padding: 0 18px; letter-spacing: 2px; }
-#workspaces { margin: 4px 6px; }
-#workspaces button { color: #6a859b; min-width: 18px; padding: 0 8px; margin: 1px 2px; border: 1px solid transparent; border-radius: 5px; transition: background-color .16s, color .16s; }
-#workspaces button.active { background: #213227; color: #9be5c4; border: 1px solid #547d68; }
-#workspaces button.urgent { color: #ff6b83; border-color: #a83850; }
-#workspaces button:hover { background: #18374c; color: #ddfbff; box-shadow: none; }
-#window { color: #7e9bb2; font-weight: normal; margin-left: 6px; }
-#clock { color: #d6faff; font-size: 15px; letter-spacing: 2px; padding: 0 16px; }
-#cpu, #memory, #network { padding: 0 10px; font-size: 11px; }
-#cpu { color: #65e1ec; }
-#memory { color: #8acbaa; }
-#network { color: #b69be8; }
-#network.disconnected, #network.linked { color: #ffad78; }
-#custom-ambiente, #custom-logout { padding: 0 14px; font-size: 16px; }
-#custom-ambiente { color: #6de8e9; border-left: 1px solid #1b3e50; }
-#custom-logout { color: #ff8295; border-radius: 0 8px 8px 0; background: linear-gradient(125deg, #30223e, #14121e); border-left: 1px solid #574469; }
-#custom-apps:hover, #custom-ambiente:hover { background: #164054; color: #e8fdff; }
-#custom-logout:hover { background: #4a345e; color: #fff2f4; }
-.dock #custom-browser, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help { font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 2px; border-radius: 7px; border-bottom: 2px solid transparent; transition: background-color .16s, color .16s; }
-#custom-browser { color: #ac8cde; }
-#custom-files { color: #66e1eb; }
-#custom-terminal { color: #8dcdaa; }
-#custom-editor { color: #ba9bea; }
-#custom-help { color: #809db6; }
-.dock #custom-browser:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover { color: #e6ffff; background: #253c35; border-bottom-color: #a987e6; }
+/* BMO-X / Neon. GTK CSS. Acento hielo #5ad8ff, datos cyan #00f0ff, alertas rojo #ff2a4f.
+   Sin clip-path en GTK: los cortes inclinados se hacen con degradados. */
+* { font-family: "Rajdhani", "DejaVu Sans Condensed", "Font Awesome 7 Free", "Font Awesome 7 Brands"; font-size: 15px; font-weight: 600; min-height: 0; border-radius: 0; }
+window#waybar { background: transparent; color: #ece9dc; }
+window#waybar.hud > box { background: rgba(6, 5, 10, .92); border-bottom: 2px solid #5ad8ff; box-shadow: 0 2px 14px rgba(90, 216, 255, .18); }
+tooltip { background: #06050a; border: 1px solid #5ad8ff; }
+tooltip label { color: #ece9dc; padding: 6px; font-family: "Chakra Petch", "DejaVu Sans"; font-weight: 500; font-size: 13px; }
 
-#pulseaudio { color: #86dfdf; padding: 0 10px; font-size: 11px; }
-#pulseaudio.muted { color: #ffad78; }
-.dock #custom-games { font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 2px; border-radius: 7px; border-bottom: 2px solid transparent; color: #8dcdaa; }
-.dock #custom-games:hover { background: #253c35; color: #e6ffff; border-bottom-color: #a987e6; }
+#custom-apps { color: #000000; font-size: 17px; font-weight: 700; letter-spacing: 3px; padding: 0 32px 0 16px;
+  background-image: linear-gradient(115deg, #5ad8ff 82%, transparent 82%); }
+#custom-apps:hover { background-image: linear-gradient(115deg, #bff3ff 82%, transparent 82%); }
 
-/* Nucleo: restrained cyan / violet / dark green metal. */
-#custom-equipo { color: #a987e6; padding: 0 9px; border-left: 1px solid #314a42; font-size: 11px; }
-#custom-equipo:hover { background: #25332e; color: #e4d4ff; }
-window#waybar.dock > box { border-top-color: #43deeb; border-bottom: 1px solid #695184; }
-.dock #custom-browser, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help, .dock #custom-games { border: 1px solid #304a40; border-bottom: 2px solid #3f6351; background: linear-gradient(135deg, #182b25, #091410); }
-.dock #custom-browser:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover, .dock #custom-games:hover { border-color: #6c568b; border-bottom-color: #43deeb; }
+#workspaces { margin: 6px 12px 6px 4px; }
+#workspaces button { font-family: "JetBrains Mono", "DejaVu Sans Mono"; font-size: 13px; color: #ece9dc; min-width: 30px; padding: 0 4px; margin: 0 2px;
+  border-bottom: 2px solid #2b9fd0; background: transparent; transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease; }
+#workspaces button.empty { color: #625f70; border-bottom-color: transparent; }
+#workspaces button.active { background: #5ad8ff; color: #000000; font-weight: 700; border-bottom-color: #5ad8ff; box-shadow: 0 0 10px rgba(90, 216, 255, .45); }
+#workspaces button.urgent { color: #ff2a4f; border-bottom-color: #ff2a4f; animation: alerta 700ms ease-in-out infinite alternate; }
+#workspaces button:hover { background: rgba(90, 216, 255, .12); color: #bff3ff; box-shadow: none; }
+
+#window { font-family: "Chakra Petch", "DejaVu Sans"; font-weight: 500; font-size: 14px; color: #a19eae; padding-left: 14px; border-left: 1px solid #3b3747; }
+#clock { font-size: 23px; font-weight: 700; letter-spacing: 3px; color: #ece9dc; padding: 0 16px; }
+
+#custom-equipo, #cpu, #memory, #network, #pulseaudio, #custom-autor { padding: 0 12px; border-left: 1px solid #3b3747; color: #ece9dc; font-size: 15px; }
+#custom-equipo { color: #5ad8ff; }
+#custom-equipo:hover { color: #bff3ff; background: rgba(90, 216, 255, .10); }
+#cpu.alerta { color: #ff2a4f; animation: alerta 800ms ease-in-out infinite alternate; }
+#network.disconnected, #network.linked, #pulseaudio.muted { color: #ff2a4f; }
+#custom-autor { color: #5ad8ff; letter-spacing: 2px; text-shadow: 0 0 8px rgba(90, 216, 255, .55); }
+#custom-autor:hover { color: #bff3ff; }
+#custom-ambiente { color: #00f0ff; padding: 0 14px; font-size: 16px; border-left: 1px solid #3b3747; }
+#custom-ambiente:hover { color: #bff3ff; background: rgba(0, 240, 255, .10); }
+#custom-logout { color: #000000; font-size: 16px; padding: 0 18px 0 30px; background-image: linear-gradient(115deg, transparent 14px, #ff2a4f 14px); }
+#custom-logout:hover { background-image: linear-gradient(115deg, transparent 14px, #ff6b85 14px); }
+
+window#waybar.dock > box { background: rgba(6, 5, 10, .94); border-top: 2px solid #5ad8ff; padding: 6px 10px; box-shadow: 0 -2px 14px rgba(90, 216, 255, .12); }
+.dock #custom-browser, .dock #custom-games, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help {
+  font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 3px; background: #0f0e16; border: 1px solid #2a2733; border-bottom: 2px solid #2a2733;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
+#custom-browser, #custom-files, #custom-editor { color: #00f0ff; }
+#custom-games, #custom-terminal { color: #5ad8ff; }
+#custom-help { color: #a19eae; }
+.dock #custom-browser:hover, .dock #custom-games:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover {
+  color: #bff3ff; background: #0a1a22; border-color: #5ad8ff; border-bottom-color: #5ad8ff; }
+
+@keyframes alerta { from { color: #ff2a4f; } to { color: #ffffff; } }

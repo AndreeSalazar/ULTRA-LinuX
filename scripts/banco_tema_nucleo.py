@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory(prefix='nucleo-qa-') as temp:
     foot=config/'foot.ini'; foot.write_text('PERSONAL-ANTERIOR\n')
     env=dict(os.environ,HOME=temp)
     subprocess.run(['/usr/local/bin/ultra-tema'],env=env,check=True)
-    backup=home/'.config/ultra/tema-respaldo-nucleo-1/foot--foot.ini.bak'
+    backup=home/'.config/ultra/tema-respaldo-neon-1/foot--foot.ini.bak'
     assert backup.read_text()=='PERSONAL-ANTERIOR\n'
     assert foot.read_bytes()==Path('/etc/ultra/foot.ini').read_bytes()
     foot.write_text('PERSONAL-POSTERIOR\n')

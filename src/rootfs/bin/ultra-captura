@@ -1,0 +1,95 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Capturas de pantalla para UID 1000: region, pantalla o ventana activa.
+
+Guarda PNG en ~/Imágenes/Capturas, copia la imagen al portapapeles y avisa.
+Usa grim, slurp y wl-copy; sin root, red ni shell. El recuadro usa el acento personal.
+"""
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+import time
+
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+CARPETA = HOME / 'Imágenes' / 'Capturas'
+
+
+def correr(cmd, entrada=None, timeout=120):
+    return subprocess.run(cmd, input=entrada, capture_output=True, timeout=timeout, check=False)
+
+
+def acento():
+    try:
+        salida = correr(['ultra-personalizar', 'acento'], timeout=10).stdout.decode().strip()
+    except (OSError, subprocess.SubprocessError):
+        salida = ''
+    return salida if re.fullmatch(r'[0-9a-f]{8}', salida) else '5ad8ffff'
+
+
+def geometria_ventana():
+    datos = json.loads(correr(['hyprctl', '-j', 'activewindow'], timeout=10).stdout or b'{}')
+    x, y = datos.get('at', [None, None]); w, h = datos.get('size', [None, None])
+    if not all(isinstance(v, int) for v in (x, y, w, h)) or w <= 0 or h <= 0: raise ValueError('no hay ventana activa')
+    return f'{x},{y} {w}x{h}'
+
+
+def pantalla_activa():
+    for monitor in json.loads(correr(['hyprctl', '-j', 'monitors'], timeout=10).stdout or b'[]'):
+        if monitor.get('focused') and re.fullmatch(r'[A-Za-z0-9_.-]{1,64}', str(monitor.get('name', ''))):
+            return monitor['name']
+    return None
+
+
+def capturar(modo):
+    CARPETA.mkdir(parents=True, exist_ok=True)
+    if CARPETA.is_symlink() or CARPETA.resolve() != CARPETA: raise ValueError('carpeta de capturas redirigida')
+    destino = CARPETA / time.strftime('captura_%Y-%m-%d_%H-%M-%S.png')
+    cmd = ['grim']
+    if modo == 'region':
+        color = acento()
+        seleccion = correr(['slurp', '-d', '-b', '06050aaa', '-c', color, '-s', '00000000', '-w', '2'])
+        if seleccion.returncode != 0: return None  # Esc: cancelada, sin aviso.
+        geometria = seleccion.stdout.decode().strip()
+        if not re.fullmatch(r'-?[0-9]+,-?[0-9]+ [0-9]+x[0-9]+', geometria): raise ValueError('seleccion no valida')
+        cmd += ['-g', geometria]
+    elif modo == 'ventana':
+        cmd += ['-g', geometria_ventana()]
+    elif modo == 'pantalla':
+        nombre = pantalla_activa()
+        if nombre: cmd += ['-o', nombre]
+    else:
+        raise ValueError('uso: ultra-captura region|pantalla|ventana')
+    resultado = correr(cmd + [str(destino)])
+    if resultado.returncode != 0 or not destino.is_file(): raise ValueError('grim no pudo capturar')
+    destino.chmod(0o600)
+    with destino.open('rb') as f:
+        correr(['wl-copy', '--type', 'image/png'], entrada=f.read(), timeout=10)
+    return destino
+
+
+def avisar(titulo, texto, icono='camera-photo', critico=False):
+    try:
+        correr(['notify-send', '--app-name=ULTRA', f'--icon={icono}'] + (['--urgency=critical'] if critico else []) + [titulo, texto], timeout=5)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
+def main():
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    os.umask(0o077)
+    destino = capturar(sys.argv[1] if len(sys.argv) > 1 else 'region')
+    if destino:
+        try: correr(['ultra-personalizar', 'sonar', 'captura'], timeout=5)
+        except (OSError, subprocess.SubprocessError): pass
+        avisar('Captura guardada', f'~/Imágenes/Capturas/{destino.name} · copiada al portapapeles', icono=str(destino))
+        print(destino)
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        avisar('Captura no guardada', str(error), critico=True)
+        print('CAPTURA:', error, file=sys.stderr); sys.exit(1)

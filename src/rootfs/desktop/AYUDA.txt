@@ -14,7 +14,14 @@ SUPER + Shift + E   Abrir Windows NVMe en solo lectura (/windows)
 SUPER + H           Esta ayuda
 SUPER + Space       Centro BMO-X: aplicaciones y ambiente
 SUPER + Shift + A   Alternar efectos vivos / reducidos
+SUPER + Shift + P   Personalizar: colores, fondo, ventanas, barra, dock, avisos y letra
+SUPER + Shift + I   Guardar incidente: eventos del kernel, memoria y registros del momento
+Impr Pant           Captura de la pantalla activa (se copia y se guarda en ~/Imágenes/Capturas)
+SUPER + Shift + S   Captura de una region; Esc cancela
+SUPER + Impr Pant   Captura de la ventana activa
 SUPER + C           Limpiar notificaciones
+SUPER + Shift + N   Recuperar el ultimo aviso cerrado (repetir para mas)
+SUPER + Shift + V   Historial del portapapeles (en RAM; se borra al apagar)
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo
 SUPER + F9          Equipo en vivo: CPU, RAM, discos, USB y sensores disponibles
@@ -43,6 +50,10 @@ Pantallas ofrece modos anunciados por el monitor y pide confirmar cada cambio.
 Si no confirmas, intenta volver al ajuste anterior en 20 segundos.
 Los ajustes confirmados se guardan en el home; al iniciar se prueban de nuevo
 con confirmacion. Sin home persistente se pierden al apagar.
+Modo juego: con un juego en pantalla completa (Steam/Proton, .exe o gamescope)
+se apagan animaciones, desenfoque, sombras y el borde que gira, y los avisos
+quedan en silencio salvo los criticos. Al salir del juego todo vuelve.
+Sonidos, modo juego y fondo segun la hora se eligen en SUPER + Shift + P.
 Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 
 Si D: y ULTRA-juegos.ext4 estan disponibles, el home es persistente en ext4.
@@ -56,3 +67,8 @@ El llavero puede pedir crear una clave o desbloquearse al primer uso de Brave.
 Usa una clave no vacia. No es la contrasena de Gmail; ULTRA no la automatiza.
 La red por cable intenta DHCP; Wi-Fi aun requiere validacion.
 USB tiene prioridad de audio; pavucontrol permite cambiar salida y volumen por app.
+
+Rust: la primera vez, en una terminal, "rustup default stable" (descarga unos
+300 MB al home). Con almacenamiento persistente queda guardado; con home en
+RAM se pierde al apagar. Los proyectos con rust-toolchain.toml, como BMO-X,
+eligen su propia version solos.

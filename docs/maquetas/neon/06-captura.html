@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon captura</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  body { background: url("../png/neon/03-equipo.png") 0 0 / 1920px 1080px; }
+  .tapa { position: absolute; right: 0; bottom: 0; width: 560px; height: 90px; background: url("../png/neon/base-escritorio.png") right bottom / 1920px 1080px; }
+  .oscuro { position: absolute; z-index: 25; background: rgba(2, 1, 4, .74); }
+  .region { position: absolute; z-index: 26; left: 520px; top: 200px; width: 760px; height: 470px; border: 1px solid var(--amarillo); }
+  .region::before, .region::after { content: ""; position: absolute; width: 28px; height: 28px; border: 3px solid var(--amarillo); }
+  .region::before { left: -4px; top: -4px; border-right: 0; border-bottom: 0; }
+  .region::after { right: -4px; bottom: -4px; border-left: 0; border-top: 0; }
+  .med { position: absolute; left: -1px; top: -30px; font: 700 13px var(--mono); color: #000; background: var(--amarillo); padding: 6px 10px; }
+  .cruz { position: absolute; z-index: 27; left: 1280px; top: 670px; width: 40px; height: 40px; transform: translate(-50%, -50%); }
+  .cruz::before, .cruz::after { content: ""; position: absolute; background: var(--cyan); }
+  .cruz::before { left: 19px; top: 0; width: 2px; height: 40px; } .cruz::after { top: 19px; left: 0; height: 2px; width: 40px; }
+  .ayuda { position: absolute; z-index: 27; left: 50%; transform: translateX(-50%); bottom: 110px; display: flex; gap: 8px; font: 600 13px var(--ui); color: var(--texto-2); }
+  .ayuda span { padding: 8px 12px; background: rgba(6, 5, 10, .95); border: 1px solid var(--linea-2); }
+  .ayuda kbd { font: 700 12px var(--mono); color: #000; background: var(--amarillo); padding: 2px 6px; margin-right: 8px; }
+  .noti { top: 54px; z-index: 30; }
+  .mini { height: 120px; margin-top: 10px; border: 1px solid var(--linea-2); background: url("../png/neon/03-equipo.png") 48% 30% / 260% no-repeat; }
+  .acciones { display: flex; gap: 8px; margin-top: 10px; }
+  .btn { font: 700 12px var(--titulo); letter-spacing: 2px; padding: 7px 12px; color: #000; background: var(--amarillo); clip-path: var(--corte-chico); }
+  .btn.sec { background: transparent; color: var(--cyan); border: 1px solid var(--cyan-2); }
+</style></head>
+<body>
+<div class="tapa"></div>
+<script>document.write(sello('captura · Print / Super+Shift+S'));</script>
+<div class="oscuro" style="left:0;top:0;right:0;height:200px"></div>
+<div class="oscuro" style="left:0;top:670px;right:0;bottom:0"></div>
+<div class="oscuro" style="left:0;top:200px;width:520px;height:470px"></div>
+<div class="oscuro" style="left:1280px;top:200px;right:0;height:470px"></div>
+<div class="region"><span class="med">760 × 470</span></div>
+<div class="cruz"></div>
+<div class="ayuda"><span><kbd>ARRASTRAR</kbd>región</span><span><kbd>CLIC</kbd>ventana</span><span><kbd>PRINT</kbd>pantalla entera</span><span><kbd>ESC</kbd>cancelar</span></div>
+<div class="noti">
+  <script>document.write(app('captura', AM, 'class="ic"'))</script>
+  <div style="flex:1"><b>Captura guardada</b>
+    <p>~/Imágenes/Capturas/2026-10-23_23-19-04.png · copiada</p>
+    <div class="mini"></div>
+    <div class="acciones"><span class="btn">EDITAR</span><span class="btn sec">ABRIR CARPETA</span></div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,112 @@
+/* BMO-X / Neon: estetica cyberpunk original para las maquetas.
+   Negro, amarillo neon, rojo y cyan. Esquinas rectas o cortadas, sin redondeo. */
+@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=block");
+
+:root {
+  --negro: #06050a;
+  --fondo: #0a0910;
+  --panel: #0f0e16;
+  --panel-2: #16141f;
+  --linea: #2a2733;
+  --linea-2: #3b3747;
+  --amarillo: #5ad8ff;
+  --amarillo-2: #2b9fd0;
+  --rojo: #ff2a4f;
+  --cyan: #00f0ff;
+  --cyan-2: #0aa3ad;
+  --verde: #3dff9a;
+  --texto: #ece9dc;
+  --texto-2: #a19eae;
+  --texto-3: #625f70;
+  --titulo: "Rajdhani", "DejaVu Sans Condensed", sans-serif;
+  --ui: "Chakra Petch", "DejaVu Sans", sans-serif;
+  --mono: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+  --corte: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  --corte-chico: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; }
+body { font-family: var(--ui); color: var(--texto); background: var(--negro) url("fondo-neon.svg") center / cover no-repeat; position: relative; -webkit-font-smoothing: antialiased; }
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; flex: none; }
+
+.sello { position: absolute; right: 26px; bottom: 58px; z-index: 50; font: 600 12px/1 var(--titulo); letter-spacing: 3px; text-transform: uppercase;
+  color: var(--texto-3); padding: 7px 10px; border: 1px dashed var(--linea-2); background: rgba(6, 5, 10, .8); }
+
+/* ---------- Barra ---------- */
+.barra { position: absolute; top: 0; left: 0; right: 0; height: 40px; z-index: 20; display: flex; align-items: stretch;
+  background: rgba(6, 5, 10, .92); border-bottom: 2px solid var(--amarillo); box-shadow: 0 2px 18px rgba(90, 216, 255, .12);
+  font: 600 15px/1 var(--titulo); letter-spacing: 1px; text-transform: uppercase; }
+.barra .grupo { display: flex; align-items: center; }
+.barra .der { margin-left: auto; }
+.inicio { display: flex; align-items: center; gap: 10px; padding: 0 34px 0 18px; color: #000; font-weight: 700; font-size: 17px; letter-spacing: 3px;
+  background: linear-gradient(115deg, var(--amarillo) calc(100% - 18px), transparent calc(100% - 18px)); }
+.inicio svg.i { stroke-width: 2.6; }
+.escritorios { display: flex; gap: 3px; margin: 0 14px 0 6px; }
+.esc { width: 34px; height: 26px; display: grid; place-items: center; color: var(--texto-3); font: 600 14px var(--mono); border: 1px solid transparent; position: relative; }
+.esc.ocupado { color: var(--texto); border-bottom: 2px solid var(--amarillo-2); }
+.esc.activo { background: var(--amarillo); color: #000; font-weight: 700; }
+.esc.urgente { color: var(--rojo); border: 1px solid var(--rojo); }
+.titulo-ventana { color: var(--texto-2); font: 500 14px var(--ui); text-transform: none; letter-spacing: .3px; padding-left: 14px; border-left: 1px solid var(--linea-2); max-width: 460px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.titulo-ventana b { color: var(--cyan); font-weight: 600; margin-right: 6px; }
+.barra .centro { position: absolute; left: 50%; top: 0; bottom: 0; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; }
+.reloj { font: 700 23px/1 var(--titulo); letter-spacing: 3px; color: var(--texto); font-variant-numeric: tabular-nums; }
+.reloj i { color: var(--amarillo); font-style: normal; }
+.fecha { font-size: 13px; color: var(--texto-2); letter-spacing: 2px; }
+.mod { display: flex; align-items: center; gap: 7px; padding: 0 13px; height: 100%; font-variant-numeric: tabular-nums; position: relative; }
+.mod + .mod::before { content: ""; position: absolute; left: 0; top: 11px; bottom: 11px; width: 1px; background: var(--linea-2); transform: skewX(-20deg); }
+.mod .k { color: var(--cyan); font-size: 12px; letter-spacing: 2px; }
+.mod .v { color: var(--texto); }
+.mod .t { color: var(--texto-3); font-size: 13px; }
+.mod.alerta .v { color: var(--rojo); }
+.boton-fin { padding: 0 18px 0 30px; color: #000; background: linear-gradient(115deg, transparent 16px, var(--rojo) 16px); }
+.boton-fin svg.i { stroke-width: 2.6; }
+
+/* ---------- Dock ---------- */
+.dock { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 20; display: flex; align-items: center; gap: 6px; padding: 8px 12px;
+  background: rgba(6, 5, 10, .94); border-top: 2px solid var(--amarillo); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
+.dock::after { content: "//DOCK"; position: absolute; right: 18px; top: 2px; font: 600 9px var(--mono); color: var(--texto-3); letter-spacing: 2px; }
+.app { position: relative; width: 58px; height: 52px; display: grid; place-items: center; background: var(--panel); border: 1px solid var(--linea); clip-path: var(--corte-chico); }
+.app svg { width: 32px; height: 32px; }
+.app.abierta::after { content: ""; position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); width: 14px; height: 3px; background: var(--amarillo-2); }
+.app.foco { border-color: var(--amarillo); background: #06161d; }
+.app.foco::after { width: 30px; background: var(--amarillo); }
+.dock .linea { width: 2px; height: 34px; background: var(--linea-2); margin: 0 4px; transform: skewX(-20deg); }
+
+/* ---------- Ventanas (Hyprland: sin barras de titulo, rounding 0) ---------- */
+.ventana { position: absolute; z-index: 10; background: rgba(8, 7, 12, .985); }
+.ventana.activa { border: 2px solid; border-image: linear-gradient(135deg, var(--amarillo), var(--rojo) 70%, var(--cyan)) 1; box-shadow: 0 0 24px rgba(90, 216, 255, .22); }
+.ventana.inactiva { border: 2px solid var(--linea); filter: brightness(.82) saturate(.8); }
+.dentro { width: 100%; height: 100%; overflow: hidden; position: relative; }
+.term { font: 15px/1.6 var(--mono); padding: 16px 20px; color: var(--texto); white-space: pre; }
+.c-am { color: var(--amarillo); } .c-ro { color: var(--rojo); } .c-cy { color: var(--cyan); } .c-gr { color: var(--texto-3); } .c-ve { color: var(--verde); } .c-bl { color: #fff; }
+
+/* GTK (Thunar, Mousepad) con tema Neon */
+.gtk-cab { height: 42px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: var(--panel); border-bottom: 1px solid var(--linea-2); font: 600 15px var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; color: var(--texto); }
+.gtk-cab .der { margin-left: auto; display: flex; gap: 6px; }
+.gtk-cab .der span { width: 26px; height: 22px; border: 1px solid var(--linea-2); }
+.gtk-cab .der span:last-child { background: var(--rojo); border-color: var(--rojo); }
+
+/* ---------- Notificaciones (mako: rectangulo, borde, sin redondeo) ---------- */
+.noti { position: absolute; right: 18px; width: 440px; z-index: 30; display: flex; gap: 14px; padding: 16px 18px; background: rgba(6, 5, 10, .97); border: 2px solid var(--amarillo); }
+.noti.critica { border-color: var(--rojo); }
+.noti .ic { width: 40px; height: 40px; flex: none; }
+.noti b { display: block; font: 700 17px/1.1 var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; color: var(--amarillo); }
+.noti.critica b { color: var(--rojo); }
+.noti p { font-size: 13.5px; line-height: 1.45; color: var(--texto-2); }
+
+/* ---------- Menu fuzzel (lo que fuzzel puede dibujar) ---------- */
+.menu { position: absolute; z-index: 40; width: 600px; padding: 18px 0 12px; background: rgba(6, 5, 10, .97); border: 2px solid var(--acento, var(--amarillo)); font: 16px/1 var(--mono); }
+.menu .prompt { padding: 0 22px 14px; color: var(--acento, var(--amarillo)); font-weight: 700; letter-spacing: 1px; }
+.menu .prompt span { color: var(--texto); font-weight: 400; }
+.menu .prompt i { display: inline-block; width: 10px; height: 19px; margin-left: 3px; vertical-align: -4px; background: var(--acento, var(--amarillo)); }
+.fila { display: flex; align-items: center; gap: 14px; padding: 9px 22px; color: var(--texto); font: 500 16px var(--mono); }
+.fila svg { width: 22px; height: 22px; }
+.fila.sel { background: var(--acento, var(--amarillo)); color: #000; font-weight: 700; }
+.fila.sel svg { stroke: #000 !important; }
+.fila u { text-decoration: none; color: var(--rojo); }
+.fila.sel u { color: #7a0016; }
+
+/* Etiquetas de las maquetas */
+.etiqueta { position: absolute; z-index: 41; font: 700 13px/1 var(--titulo); letter-spacing: 3px; text-transform: uppercase; color: var(--texto-2); background: rgba(6, 5, 10, .95); padding-right: 10px; }
+.etiqueta b { color: #000; background: var(--amarillo); padding: 3px 7px; margin-right: 8px; }

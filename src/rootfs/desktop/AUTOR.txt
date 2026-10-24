@@ -1,0 +1,9 @@
+ULTRA LinuX // BMO-X
+====================
+Autor: Eddi Salazar
+
+Distribucion personal y experimental: kernel Linux configurado y compilado,
+PID 1 propio en C, guardianes, Custodia, perfiles generico y PC, y el
+escritorio BMO-X (Nucleo y Neon). El tema Neon usa negro y azul hielo.
+
+Emblema del autor: /etc/ultra/emblema-autor.svg

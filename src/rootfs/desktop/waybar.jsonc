@@ -3,10 +3,10 @@
     "name": "hud",
     "layer": "top",
     "position": "top",
-    "height": 38,
-    "margin-top": 10,
-    "margin-left": 14,
-    "margin-right": 14,
+    "height": 40,
+    "margin-top": 0,
+    "margin-left": 0,
+    "margin-right": 0,
     "spacing": 4,
     "modules-left": [
       "custom/apps",
@@ -22,6 +22,7 @@
       "memory",
       "network",
       "pulseaudio",
+      "custom/autor",
       "custom/ambiente",
       "custom/logout"
     ],
@@ -31,45 +32,51 @@
       "on-click": "ultra-ambiente menu"
     },
     "hyprland/workspaces": {
-      "format": "{name}",
+      "format": "{icon}",
+      "format-icons": {
+        "1": "01", "2": "02", "3": "03", "4": "04", "5": "05",
+        "6": "06", "7": "07", "8": "08", "9": "09"
+      },
       "all-outputs": false,
       "persistent-workspaces": {
         "*": [
           1,
           2,
           3,
-          4
+          4,
+          5
         ]
       },
       "on-click": "activate"
     },
     "hyprland/window": {
       "format": "{title}",
-      "max-length": 18,
+      "max-length": 40,
       "separate-outputs": true
     },
     "clock": {
       "format": "{:%H:%M}",
-      "format-alt": "{:%a %d / %m}",
+      "format-alt": "{:%a %d %b · LIMA}",
       "timezone": "America/Lima",
       "locale": "es_PE.UTF-8",
       "on-click-right": "foot --hold ultra-hora",
       "tooltip-format": "<big>{:%A %d de %B}</big>\n<tt>{calendar}</tt>"
     },
     "cpu": {
-      "format": " {usage}%",
+      "format": "<span color='#00f0ff' size='small'>CPU</span> {usage}%",
+      "states": { "alerta": 80 },
       "interval": 3,
       "tooltip": true
     },
     "memory": {
-      "format": " {used:0.1f}G",
+      "format": "<span color='#00f0ff' size='small'>RAM</span> {used:0.1f}G",
       "interval": 5,
       "tooltip-format": "RAM: {used:0.2f} / {total:0.2f} GiB · {percentage}%"
     },
     "network": {
-      "format-ethernet": " {ifname}",
-      "format-linked": " SIN IP",
-      "format-disconnected": " SIN ENLACE",
+      "format-ethernet": "<span color='#00f0ff' size='small'>NET</span> {ifname}",
+      "format-linked": "<span color='#00f0ff' size='small'>NET</span> SIN IP",
+      "format-disconnected": "<span color='#ff2a4f' size='small'>NET</span> SIN ENLACE",
       "tooltip-format": "{ifname} · {ipaddr}/{cidr}\n↓ {bandwidthDownBytes}  ↑ {bandwidthUpBytes}\nEnlace local; acceso a Internet sin comprobar",
       "interval": 3
     },
@@ -77,7 +84,12 @@
       "format": "",
       "tooltip-format": "Alternar efectos · Super+Shift+A",
       "on-click": "ultra-ambiente alternar",
-      "on-click-right": "ultra-ambiente menu"
+      "on-click-right": "ultra-personalizar menu"
+    },
+    "custom/autor": {
+      "format": "EDDI",
+      "tooltip-format": "Eddi Salazar · autor de ULTRA LinuX / BMO-X",
+      "on-click": "foot --hold /usr/bin/cat /etc/ultra/AUTOR.txt"
     },
     "custom/logout": {
       "format": "",
@@ -85,9 +97,9 @@
       "on-click": "hyprctl dispatch 'hl.dsp.exit()'"
     },
     "pulseaudio": {
-      "format": " {volume}%",
-      "format-muted": " MUTE",
-      "format-source": " {volume}%",
+      "format": "<span color='#00f0ff' size='small'>VOL</span> {volume}%",
+      "format-muted": "<span color='#ff2a4f' size='small'>VOL</span> MUTE",
+      "format-source": "{volume}%",
       "on-click": "ultra-audio menu",
       "on-click-right": "pavucontrol",
       "on-scroll-up": "ultra-audio subir",
@@ -107,7 +119,7 @@
     "layer": "top",
     "position": "bottom",
     "height": 56,
-    "width": 420,
+    "width": 440,
     "margin-bottom": 12,
     "spacing": 4,
     "exclusive": true,

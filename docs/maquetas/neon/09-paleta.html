@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon hoja de estilo</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  body { background: linear-gradient(rgba(6, 5, 10, .93), rgba(6, 5, 10, .97)), url("fondo-neon.svg") center / cover; padding: 40px 54px; }
+  .cab { display: flex; align-items: flex-end; gap: 24px; }
+  h1 { font: 700 46px/1 var(--titulo); letter-spacing: 6px; color: var(--amarillo); text-shadow: -3px 0 rgba(255, 42, 79, .7), 3px 0 rgba(0, 240, 255, .5); }
+  .cab p { font: 14px var(--mono); color: var(--texto-2); padding-bottom: 6px; }
+  .peligro { height: 8px; margin: 16px 0 24px; background: repeating-linear-gradient(-45deg, var(--amarillo) 0 12px, transparent 12px 24px); }
+  .rejilla { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 22px; }
+  .caja { position: relative; padding: 18px 20px; background: rgba(15, 14, 22, .92); border: 1px solid var(--linea); clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%); }
+  .caja::after { content: ""; position: absolute; left: -1px; top: -1px; width: 24px; height: 24px; border-left: 2px solid var(--amarillo); border-top: 2px solid var(--amarillo); }
+  h2 { font: 700 15px var(--titulo); letter-spacing: 4px; color: var(--amarillo); margin-bottom: 14px; }
+  h2 small { font: 500 11px var(--mono); color: var(--texto-3); letter-spacing: 0; margin-left: 8px; }
+  .muestras { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .m i { display: block; height: 50px; clip-path: var(--corte-chico); }
+  .m div { padding: 6px 2px; font: 11px/1.35 var(--mono); color: var(--texto-3); }
+  .m b { display: block; font: 700 13px var(--titulo); letter-spacing: 1px; color: var(--texto); text-transform: uppercase; }
+  .tipo div { display: flex; align-items: baseline; gap: 14px; padding: 6px 0; border-bottom: 1px solid var(--linea); }
+  .tipo small { width: 150px; flex: none; font: 11px var(--mono); color: var(--texto-3); }
+  .nota { margin-top: 12px; font: 12.5px/1.5 var(--ui); color: var(--texto-2); }
+  .comp { display: flex; flex-wrap: wrap; gap: 22px; align-items: flex-end; }
+  .comp > div { display: flex; flex-direction: column; align-items: center; gap: 8px; font: 11px var(--mono); color: var(--texto-3); }
+  .vent { width: 120px; height: 70px; background: #08070c; }
+  .botones { display: flex; gap: 8px; }
+  .b { font: 700 12px var(--titulo); letter-spacing: 2px; padding: 7px 12px; clip-path: var(--corte-chico); }
+  .tabla { display: grid; grid-template-columns: 1fr auto; gap: 7px 14px; font: 13px var(--ui); }
+  .tabla .ok { font: 700 11px var(--mono); padding: 2px 6px; color: #000; background: var(--verde); }
+  .tabla .med { font: 700 11px var(--mono); padding: 2px 6px; color: #000; background: var(--amarillo); }
+  .tabla .no { font: 700 11px var(--mono); padding: 2px 6px; color: #000; background: var(--rojo); }
+</style></head>
+<body>
+<div class="cab"><h1>BMO-X // NEÓN</h1><p>Hoja de estilo · estética cyberpunk con recursos originales · un solo paleta.json para todo el tema</p></div>
+<div class="peligro"></div>
+<div class="rejilla">
+  <div class="caja">
+    <h2>COLORES<small>//01</small></h2>
+    <div class="muestras" id="muestras"></div>
+    <div class="nota">Hielo = foco y acciones (acento principal; el amarillo queda como alternativa). Cyan = datos. Rojo = alertas, apagar y cortes. Verde y violeta solo en terminal y categorías.</div>
+  </div>
+  <div class="caja">
+    <h2>TIPOGRAFÍA<small>//02</small></h2>
+    <div class="tipo">
+      <div><small>Rajdhani 700 · reloj</small><span style="font:700 30px var(--titulo);letter-spacing:3px">23<span style="color:var(--amarillo)">:</span>19</span></div>
+      <div><small>Rajdhani 600 · barra</small><span style="font:600 16px var(--titulo);letter-spacing:2px">GPU 12% / CPU 8%</span></div>
+      <div><small>Chakra Petch · interfaz</small><span style="font:500 15px var(--ui)">Pantalla y gráficos · Discos</span></div>
+      <div><small>JetBrains Mono · terminal</small><span style="font:15px var(--mono)"><span class="c-am">▶</span> ls -> != ===</span></div>
+    </div>
+    <div class="nota">Las tres son libres (licencia OFL). JetBrains Mono está en Arch; Rajdhani y Chakra Petch se copiarían a la imagen desde Google Fonts. Ninguna es la fuente del juego.</div>
+  </div>
+  <div class="caja">
+    <h2>QUÉ SE PUEDE DIBUJAR<small>//03</small></h2>
+    <div class="tabla">
+      <span>Hyprland: bordes con degradado, brillo, rounding 0</span><span class="ok">SÍ</span>
+      <span>Waybar: bloques inclinados con degradados</span><span class="ok">SÍ</span>
+      <span>fuzzel / mako: rectángulo, borde y colores</span><span class="ok">SÍ</span>
+      <span>hyprlock: reloj, campo de clave, formas</span><span class="ok">SÍ</span>
+      <span>Esquinas cortadas en Waybar (sin clip-path)</span><span class="med">SVG</span>
+      <span>Equipo en vivo con tarjetas</span><span class="med">EWW</span>
+      <span>Scanlines o glitch en toda la pantalla</span><span class="no">RING 0</span>
+    </div>
+  </div>
+  <div class="caja" style="grid-column:span 2">
+    <h2>COMPONENTES<small>//04</small></h2>
+    <div class="comp">
+      <div><div class="escritorios" style="margin:0"><div class="esc">04</div><div class="esc ocupado">01</div><div class="esc activo">02</div><div class="esc urgente">03</div></div>vacío · ocupado · activo · urgente</div>
+      <div><div style="display:flex;gap:6px" id="apps"></div>cerrada · abierta · foco</div>
+      <div><div style="display:flex;gap:12px"><div class="ventana activa" style="position:static"><div class="vent"></div></div><div class="ventana inactiva" style="position:static"><div class="vent"></div></div></div>activa (brillo) · inactiva</div>
+      <div><div class="botones"><span class="b" style="background:var(--amarillo);color:#000">ACEPTAR</span><span class="b" style="border:1px solid var(--cyan-2);color:var(--cyan)">OPCIÓN</span><span class="b" style="background:var(--rojo);color:#000">APAGAR</span></div>botones</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px">
+      <div class="noti" style="position:static;width:auto"><script>document.write(app('audio', AM, 'class="ic"'))</script><div><b>Audio USB conectado</b><p>Salida maestra cambiada. Volumen 100 %.</p></div></div>
+      <div class="noti critica" style="position:static;width:auto"><script>document.write(app('discos', RO, 'class="ic"'))</script><div><b>/juegos casi lleno</b><p>Quedan 2.8 GiB. Revisa Super+J › Espacio.</p></div></div>
+    </div>
+  </div>
+  <div class="caja">
+    <h2>FONDO<small>//05</small></h2>
+    <div style="height:150px;background:url('fondo-neon.svg') center / cover;border:1px solid var(--linea-2)"></div>
+    <div class="nota">Ciudad nocturna original generada por <code style="font-family:var(--mono);color:var(--cyan)">crear-fondo.py</code> con semilla fija. Se genera a la resolución exacta del monitor (16:9, 16:10, 21:9). El centro queda bajo para dejar libre la zona de ventanas.</div>
+  </div>
+</div>
+<script>
+const colores = [
+  ['negro', '#06050a', 'fondo'], ['panel', '#0f0e16', 'ventanas'], ['línea', '#2a2733', 'bordes'], ['texto', '#ece9dc', 'principal'],
+  ['hielo', '#5ad8ff', 'foco, acción'], ['cyan', '#00f0ff', 'datos'], ['rojo', '#ff2a4f', 'alerta, apagar'], ['texto-2', '#a19eae', 'secundario'],
+  ['verde', '#3dff9a', 'ok, RAM'], ['violeta', '#c03bff', 'audio'], ['amarillo', '#fcee0a', 'acento alternativo'], ['cyan-2', '#0aa3ad', 'bordes datos'],
+];
+document.getElementById('muestras').innerHTML = colores.map(([n, h, r]) => `<div class="m"><i style="background:${h};${h === '#06050a' ? 'outline:1px solid #3b3747' : ''}"></i><div><b>${n}</b>${h} · ${r}</div></div>`).join('');
+document.getElementById('apps').innerHTML = `<div class="app">${app('editor', CY)}</div><div class="app abierta">${app('archivos', CY)}</div><div class="app abierta foco">${app('terminal', AM)}</div>`;
+</script>
+</body></html>

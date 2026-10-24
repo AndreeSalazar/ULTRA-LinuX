@@ -1,0 +1,641 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Personalizacion del escritorio BMO-X / Neon. UID 1000, sin root, red ni eval de shell.
+
+Las elecciones se guardan en ~/.config/ultra/personal.json. Con ellas se generan
+copias del tema en ~/.config/ultra/tema-personal/ y se aplican en vivo.
+Sin elecciones guardadas no se genera nada: el escritorio usa /etc/ultra tal cual.
+"""
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+CONF = HOME / '.config/ultra'
+ESTADO = CONF / 'personal.json'
+PERFILES_DIR = CONF / 'perfiles'
+TEMA = CONF / 'tema-personal'
+ETC = Path('/etc/ultra')
+CREAR_FONDO = Path('/usr/local/libexec/ultra-crear-fondo')
+
+# Colores del tema base que se sustituyen por el acento elegido.
+BASE, CLARO, OSCURO, BRILLO = '#5ad8ff', '#bff3ff', '#2b9fd0', 'rgba(90, 216, 255,'
+ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo': '#ff2a4f',
+           'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
+OPCIONES = {
+    'acento': list(ACENTOS) + ['propio'],
+    'fondo': ['neon', 'demonio', 'auto', 'nucleo', 'imagen', 'liso'],
+    'efectos': ['vivos', 'reducidos'],
+    'borde': ['gira', 'quieto'],
+    'huecos': ['compacto', 'normal', 'amplio'],
+    'grosor': ['1', '2', '3'],
+    'cursor': ['24', '28', '32', '48'],
+    'barra': ['compacta', 'normal', 'grande'],
+    'inactivas': ['100', '92', '85'],
+    'esquinas': ['rectas', 'suaves', 'redondas'],
+    'animacion': ['emergente', 'deslizar', 'zoom'],
+    'velocidad': ['rapida', 'normal', 'lenta'],
+    'desenfoque': ['ligero', 'fuerte', 'no'],
+    'posicion': ['arriba', 'abajo'],
+    'dock': ['visible', 'oculto'],
+    'reloj': ['24h', '12h', 'segundos'],
+    'avisos': ['arriba-derecha', 'arriba-centro', 'abajo-derecha'],
+    'letra': ['neon', 'petch', 'mono', 'clasica'],
+    'sonidos': ['si', 'no'],
+    'modojuego': ['auto', 'no'],
+}
+DEFECTO = dict(acento='hielo', fondo='neon', imagen='', efectos='vivos', borde='gira', huecos='normal',
+               grosor='2', cursor='28', barra='normal', inactivas='100', esquinas='rectas', animacion='emergente',
+               velocidad='normal', desenfoque='ligero', posicion='arriba', dock='visible', reloj='24h',
+               avisos='arriba-derecha', letra='neon', sonidos='si', modojuego='auto')
+TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde de la ventana activa',
+               huecos='Huecos entre ventanas', grosor='Grosor del borde', cursor='Tamano del cursor',
+               barra='Tamano de la barra', inactivas='Opacidad de ventanas inactivas', esquinas='Esquinas',
+               animacion='Animacion al abrir', velocidad='Velocidad de animaciones', desenfoque='Desenfoque',
+               posicion='Posicion de la barra', dock='Dock', reloj='Reloj', avisos='Posicion de avisos',
+               letra='Letra de la interfaz', sonidos='Sonidos del sistema', modojuego='Modo juego automatico')
+# Perfiles de un toque: se parte del defecto y se cambian solo estas claves.
+PERFILES = {
+    'neon-hielo': {},
+    'demonio': dict(acento='rojo', fondo='demonio', borde='gira', esquinas='rectas', desenfoque='ligero', inactivas='92'),
+    'sobrio': dict(efectos='reducidos', borde='quieto', desenfoque='no', velocidad='rapida'),
+    'minimal': dict(dock='oculto', barra='compacta', huecos='compacto', grosor='1', reloj='24h'),
+    'juego': dict(efectos='reducidos', borde='quieto', desenfoque='no', dock='oculto', avisos='arriba-centro', inactivas='100'),
+}
+NOMBRE_PERFIL = re.compile(r'[a-z0-9][a-z0-9-]{0,23}')
+MAX_PERFILES = 16
+GRUPOS = [('Colores y fondo', ['acento', 'fondo']),
+          ('Ventanas', ['borde', 'grosor', 'esquinas', 'huecos', 'inactivas']),
+          ('Animaciones y efectos', ['efectos', 'animacion', 'velocidad', 'desenfoque']),
+          ('Barra y dock', ['posicion', 'barra', 'dock', 'reloj']),
+          ('Avisos, letra y cursor', ['avisos', 'letra', 'cursor']),
+          ('Sonido y juegos', ['sonidos', 'modojuego'])]
+ESQUINAS = {'rectas': 0, 'suaves': 6, 'redondas': 12}
+DESENFOQUE = {'ligero': (3, 1), 'fuerte': (8, 3), 'no': (3, 1)}
+VELOCIDAD = {'rapida': .6, 'normal': 1.0, 'lenta': 1.6}
+ESTILO = {'emergente': 'popin 90%', 'deslizar': 'slide', 'zoom': 'popin 60%'}
+RELOJ = {'24h': '{:%H:%M}', '12h': '{:%I:%M %p}', 'segundos': '{:%H:%M:%S}'}
+# Familia de la barra, de los avisos (mako) y del lanzador (fuzzel).
+LETRAS = {'neon': ('"Rajdhani", "DejaVu Sans Condensed"', 'Chakra Petch', 'JetBrains Mono'),
+          'petch': ('"Chakra Petch", "DejaVu Sans"', 'Chakra Petch', 'Chakra Petch'),
+          'mono': ('"JetBrains Mono", "DejaVu Sans Mono"', 'JetBrains Mono', 'JetBrains Mono'),
+          'clasica': ('"DejaVu Sans"', 'DejaVu Sans', 'DejaVu Sans')}
+HUECOS = {'compacto': (3, 6), 'normal': (6, 12), 'amplio': (10, 24)}
+BARRA = {'compacta': (13, 19), 'normal': (15, 23), 'grande': (17, 27)}
+IMAGENES = ('Imágenes', 'Pictures')
+# Fondo auto: Neon de dia, Demonio de noche (hora local).
+DIA = range(7, 19)
+SONIDOS = ('inicio', 'captura', 'critico', 'juego')
+FOOT = HOME / '.config/foot/foot.ini'
+EXTENSIONES = ('.png', '.jpg', '.jpeg', '.svg')
+
+
+def es_hex(valor):
+    return isinstance(valor, str) and re.fullmatch(r'#[0-9a-fA-F]{6}', valor) is not None
+
+
+def imagen_valida(texto):
+    if not isinstance(texto, str) or not texto or len(texto) > 512: return None
+    path = Path(texto)
+    if not any(path.parent == HOME / carpeta for carpeta in IMAGENES): return None
+    if path.suffix.lower() not in EXTENSIONES: return None
+    try:
+        info = path.lstat()
+    except OSError:
+        return None
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_size > 64 * 2**20: return None
+    return path
+
+
+def leer_estado():
+    """Estado validado; cualquier valor desconocido vuelve al defecto."""
+    estado = dict(DEFECTO)
+    try:
+        if ESTADO.is_symlink(): raise ValueError('personal.json redirigido')
+        crudo = json.loads(ESTADO.read_text()[:65536])
+    except FileNotFoundError:
+        return estado, False
+    except (OSError, ValueError):
+        return estado, True
+    return validar(crudo), True
+
+
+def validar(crudo):
+    """Solo claves y valores conocidos; lo demas vuelve al defecto."""
+    estado = dict(DEFECTO)
+    if not isinstance(crudo, dict): return estado
+    for clave, opciones in OPCIONES.items():
+        valor = crudo.get(clave)
+        if valor in opciones and valor != 'propio': estado[clave] = valor
+        elif clave == 'acento' and es_hex(valor): estado[clave] = valor.lower()
+    if estado['fondo'] == 'imagen':
+        if imagen_valida(crudo.get('imagen')): estado['imagen'] = crudo['imagen']
+        else: estado['fondo'] = 'neon'
+    return estado
+
+
+def carpeta_segura(path):
+    path.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if path.is_symlink() or path.resolve() != path or path.stat().st_uid != os.geteuid():
+        raise ValueError('carpeta de personalizacion redirigida')
+
+
+def escribir(path, texto):
+    carpeta_segura(path.parent)
+    fd, nombre = tempfile.mkstemp(prefix='.personal-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            os.fchmod(f.fileno(), 0o600); f.write(texto)
+        os.replace(nombre, path)
+    finally:
+        if os.path.exists(nombre): os.unlink(nombre)
+
+
+def guardar(estado):
+    escribir(ESTADO, json.dumps({k: estado[k] for k in DEFECTO}, ensure_ascii=False, indent=1) + '\n')
+
+
+def color_acento(estado):
+    return ACENTOS.get(estado['acento'], estado['acento'])
+
+
+def rgb(color):
+    return tuple(int(color[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def mezclar(color, otro, peso):
+    return '#' + ''.join(f'{round(a * (1 - peso) + b * peso):02x}' for a, b in zip(rgb(color), rgb(otro)))
+
+
+def recolorear(texto, acento):
+    r, g, b = rgb(acento)
+    claro, oscuro = mezclar(acento, '#ffffff', .6), mezclar(acento, '#000000', .35)
+    for viejo, nuevo in ((BASE, acento), (CLARO, claro), (OSCURO, oscuro), (BRILLO, f'rgba({r}, {g}, {b},'),
+                         (BASE[1:] + 'ff', acento[1:] + 'ff'), (BASE[1:].upper(), acento[1:])):
+        texto = texto.replace(viejo, nuevo)
+    return texto
+
+
+def generar(estado):
+    """Copias personales del tema. Devuelve las rutas que debe usar la sesion."""
+    acento = color_acento(estado)
+    carpeta_segura(TEMA)
+    css = recolorear((ETC / 'waybar.css').read_text(), acento)
+    letra, reloj = BARRA[estado['barra']]
+    # Una sola pasada: un cambio no debe volver a tocar el resultado de otro.
+    tamanos = {'15': letra, '17': letra + 2, '23': reloj}
+    css = re.sub(r'font-size: (15|17|23)px', lambda m: f'font-size: {tamanos[m.group(1)]}px', css)
+    barra_familia, aviso_familia, lanzador_familia = LETRAS[estado['letra']]
+    css = css.replace('"Rajdhani", "DejaVu Sans Condensed"', barra_familia)
+    if estado['letra'] != 'neon': css = css.replace('"Chakra Petch", "DejaVu Sans"', barra_familia)
+    abajo, con_dock = estado['posicion'] == 'abajo', estado['dock'] == 'visible'
+    lineas = []
+    for linea in css.splitlines():
+        # Barra abajo: su linea de acento pasa arriba; el dock sube y la suya pasa abajo.
+        if abajo and linea.startswith('window#waybar.hud > box'):
+            linea = linea.replace('border-bottom: 2px solid', 'border-top: 2px solid').replace('0 2px 14px', '0 -2px 14px')
+        if abajo and linea.startswith('window#waybar.dock > box'):
+            linea = linea.replace('border-top: 2px solid', 'border-bottom: 2px solid').replace('0 -2px 14px', '0 2px 14px')
+        lineas.append(linea)
+    escribir(TEMA / 'waybar.css', '\n'.join(lineas) + '\n')
+    barras = json.loads((ETC / 'waybar.jsonc').read_text())
+    hud = next(b for b in barras if b.get('name') == 'hud')
+    hud['clock']['format'] = RELOJ[estado['reloj']]
+    if estado['reloj'] == 'segundos': hud['clock']['interval'] = 1
+    if abajo: hud['position'] = 'bottom'
+    final = [hud]
+    if con_dock:
+        dock = next(b for b in barras if b.get('name') == 'dock')
+        if abajo:
+            dock['position'] = 'top'; dock['margin-top'] = dock.pop('margin-bottom', 12)
+        final.append(dock)
+    final += [b for b in barras if b.get('name') not in ('hud', 'dock')]
+    escribir(TEMA / 'waybar.jsonc', json.dumps(final, ensure_ascii=False, indent=2) + '\n')
+    mako = recolorear((ETC / 'mako.conf').read_text(), acento).replace('font=Chakra Petch 11', f'font={aviso_familia} 11')
+    ancla = {'arriba-derecha': 'top-right', 'arriba-centro': 'top-center', 'abajo-derecha': 'bottom-right'}[estado['avisos']]
+    arriba = 90 if (abajo and con_dock) else (12 if abajo else 48)
+    debajo = 52 if abajo else (90 if con_dock else 12)
+    mako = re.sub(r'^anchor=.*$', f'anchor={ancla}', mako, flags=re.M)
+    mako = re.sub(r'^outer-margin=.*$', f'outer-margin={arriba},0,{debajo}', mako, flags=re.M)
+    escribir(TEMA / 'mako.conf', mako)
+    escribir(TEMA / 'fuzzel.ini', recolorear((ETC / 'fuzzel.ini').read_text(), acento)
+             .replace('font=JetBrains Mono:size=12', f'font={lanzador_familia}:size=12'))
+    rutas = dict(WAYBAR_CSS=TEMA / 'waybar.css', WAYBAR_JSON=TEMA / 'waybar.jsonc', MAKO_CONF=TEMA / 'mako.conf',
+                 FUZZEL_INI=TEMA / 'fuzzel.ini')
+    rutas.update(rutas_fondo(estado))
+    return rutas
+
+
+def fondo_efectivo(estado, hora=None):
+    """El fondo que toca ahora: auto se resuelve a neon (de dia) o demonio (de noche)."""
+    if estado['fondo'] != 'auto': return estado['fondo']
+    hora = time.localtime().tm_hour if hora is None else hora
+    return 'neon' if hora in DIA else 'demonio'
+
+
+def rutas_fondo(estado, hora=None):
+    acento = color_acento(estado)
+    fondo = fondo_efectivo(estado, hora)
+    rutas = dict(FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    if fondo == 'nucleo':
+        rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
+    elif fondo == 'demonio':
+        rutas['FONDO'] = ETC / 'wallpaper-demonio.png'
+    elif fondo == 'imagen' and imagen_valida(estado['imagen']):
+        rutas['FONDO'] = Path(estado['imagen'])
+    elif fondo == 'liso':
+        rutas.update(FONDO='#06050a', FONDO_MODO='color')
+    elif acento != BASE:
+        resultado = subprocess.run(['/usr/bin/python', str(CREAR_FONDO), '--acento', acento],
+                                   capture_output=True, text=True, timeout=60, check=True)
+        if not resultado.stdout.startswith('<svg'): raise ValueError('fondo generado invalido')
+        escribir(TEMA / 'fondo.svg', resultado.stdout)
+        rutas['FONDO'] = TEMA / 'fondo.svg'
+    return rutas
+
+
+def rutas_sesion():
+    """Lineas CLAVE=valor para ultra-iniciar-escritorio; vacio si no hay personalizacion."""
+    estado, existe = leer_estado()
+    if not existe: return {}
+    return generar(estado)
+
+
+def modo_efectos(estado, modo=None):
+    """vivo o sobrio: el que pide ultra-ambiente, o el guardado; el modo software siempre es sobrio."""
+    if modo in ('vivo', 'sobrio'): return modo
+    if modo == 'juego': return 'sobrio'
+    if os.environ.get('ULTRA_EFECTOS') == 'sobrio': return 'sobrio'
+    return 'vivo' if estado['efectos'] == 'vivos' else 'sobrio'
+
+
+def lua_hyprland(estado, modo=None):
+    acento = color_acento(estado)[1:]
+    dentro, fuera = HUECOS[estado['huecos']]
+    opacidad = int(estado['inactivas']) / 100
+    vivo = modo_efectos(estado, modo) == 'vivo'
+    tam, pasadas = DESENFOQUE[estado['desenfoque']]
+    si = lambda v: 'true' if v else 'false'
+    lua = ('hl.config({general={gaps_in=%d,gaps_out=%d,border_size=%s,col={active_border={colors={"rgba(%sff)","rgba(ff2a4fff)","rgba(00f0ffff)"},angle=45}}},'
+           'decoration={rounding=%d,inactive_opacity=%.2f,shadow={enabled=%s,color="rgba(%s40)"},blur={enabled=%s,size=%d,passes=%d}},'
+           'animations={enabled=%s}})'
+           % (dentro, fuera, estado['grosor'], acento, ESQUINAS[estado['esquinas']], opacidad, si(vivo), acento,
+              si(vivo and estado['desenfoque'] != 'no'), tam, pasadas, si(vivo)))
+    factor = VELOCIDAD[estado['velocidad']]
+    for hoja, base, estilo in (('windows', 4, ESTILO[estado['animacion']]), ('windowsOut', 2, 'popin 94%'), ('windowsMove', 3.5, None),
+                               ('fade', 2, None), ('layers', 2.5, 'slide'), ('workspaces', 4, 'slide')):
+        lua += ';hl.animation({leaf="%s",enabled=true,speed=%.1f,bezier="ultraEase"%s})' % (
+            hoja, base * factor, f',style="{estilo}"' if estilo else '')
+    # En modo juego el borde no gira aunque se haya elegido.
+    lua += ';hl.animation({leaf="borderangle",enabled=%s,speed=60,bezier="lineal",style="loop"})' % si(estado['borde'] == 'gira' and modo != 'juego')
+    return lua
+
+
+def ejecutar(*cmd):
+    try: subprocess.run(list(cmd), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10, check=False)
+    except (OSError, subprocess.SubprocessError): pass
+
+
+def lanzar(*cmd):
+    try: subprocess.Popen(list(cmd), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError: pass
+
+
+def cursor_gtk(tamano):
+    for version in ('gtk-3.0', 'gtk-4.0'):
+        path = HOME / '.config' / version / 'settings.ini'
+        try:
+            if path.is_symlink() or not path.is_file(): continue
+            texto = path.read_text()[:65536]
+        except OSError:
+            continue
+        nuevo = re.sub(r'^gtk-cursor-theme-size=.*$', f'gtk-cursor-theme-size={tamano}', texto, flags=re.M)
+        if nuevo != texto: escribir(path, nuevo)
+
+
+def aplicar_hyprland(estado, modo=None):
+    """Con modo (lo pide ultra-ambiente) no cambia el estado de efectos guardado."""
+    if not os.environ.get('HYPRLAND_INSTANCE_SIGNATURE'): return
+    ejecutar('hyprctl', 'eval', lua_hyprland(estado, modo))
+    ejecutar('hyprctl', 'setcursor', 'ULTRA-Nucleo', estado['cursor'])
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    if modo is None and runtime and Path(runtime).is_dir():
+        # Para que Super+Shift+A alterne desde el modo que se acaba de aplicar.
+        try: escribir(Path(runtime) / 'ultra-efectos', modo_efectos(estado) + '\n')
+        except (OSError, ValueError): pass
+
+
+def terminal_acento(acento):
+    """La seleccion y el cursor de foot siguen al acento; el resto del foot.ini del usuario no se toca.
+    Vale para las terminales que se abran despues."""
+    try:
+        if FOOT.is_symlink() or not FOOT.is_file(): return
+        texto = FOOT.read_text()[:65536]
+    except OSError:
+        return
+    hexa = acento[1:].lower()
+    nuevo = re.sub(r'^selection-background=[0-9a-fA-F]{6}$', f'selection-background={hexa}', texto, flags=re.M)
+    nuevo = re.sub(r'^cursor=([0-9a-fA-F]{6}) [0-9a-fA-F]{6}$', lambda m: f'cursor={m.group(1)} {hexa}', nuevo, flags=re.M)
+    if nuevo != texto: escribir(FOOT, nuevo)
+
+
+def poner_fondo(rutas):
+    ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg')
+    if rutas['FONDO_MODO'] == 'color': lanzar('swaybg', '-c', str(rutas['FONDO']))
+    else: lanzar('swaybg', '-i', str(rutas['FONDO']), '-m', 'fill')
+
+
+def aplicar(estado, reiniciar=True):
+    rutas = generar(estado)
+    cursor_gtk(estado['cursor'])
+    terminal_acento(color_acento(estado))
+    aplicar_hyprland(estado)
+    if not reiniciar or not os.environ.get('WAYLAND_DISPLAY'): return rutas
+    poner_fondo(rutas)
+    ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar')
+    lanzar('waybar', '-c', str(rutas['WAYBAR_JSON']), '-s', str(rutas['WAYBAR_CSS']))
+    ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako')
+    lanzar('mako', '--config', str(rutas['MAKO_CONF']))
+    return rutas
+
+
+def restablecer():
+    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg'):
+        try: (TEMA / nombre).unlink()
+        except FileNotFoundError: pass
+    try: ESTADO.unlink()
+    except FileNotFoundError: pass
+    estado = dict(DEFECTO)
+    cursor_gtk(estado['cursor'])
+    terminal_acento(BASE)
+    aplicar_hyprland(estado)
+    if os.environ.get('WAYLAND_DISPLAY'):
+        ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg'); lanzar('swaybg', '-i', str(ETC / 'wallpaper.svg'), '-m', 'fill')
+        ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar'); lanzar('waybar', '-c', str(ETC / 'waybar.jsonc'), '-s', str(ETC / 'waybar.css'))
+        ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako'); lanzar('mako', '--config', str(ETC / 'mako.conf'))
+
+
+def poner(clave, valor):
+    estado, _ = leer_estado()
+    if clave == 'imagen':
+        if not imagen_valida(valor): raise ValueError('imagen no valida: usa PNG, JPG o SVG propios en ~/Imágenes o ~/Pictures')
+        estado.update(fondo='imagen', imagen=valor)
+    elif clave == 'acento' and es_hex(valor):
+        estado['acento'] = valor.lower()
+    elif clave in OPCIONES and valor in OPCIONES[clave] and valor != 'propio':
+        estado[clave] = valor
+    else:
+        raise ValueError(f'opcion no valida: {clave}={valor}')
+    guardar(estado)
+    return estado
+
+
+# ---------- Sonidos, modo juego y fondo segun la hora ----------
+def runtime():
+    ruta = os.environ.get('XDG_RUNTIME_DIR')
+    return Path(ruta) if ruta and Path(ruta).is_dir() else None
+
+
+def sonar(evento):
+    """Reproduce un sonido propio (pw-play) si los sonidos estan activos. No espera a que acabe."""
+    if evento not in SONIDOS: raise ValueError(f'sonido desconocido: {evento}')
+    estado, _ = leer_estado()
+    archivo = ETC / f'sonido-{evento}.wav'
+    if estado['sonidos'] != 'si' or archivo.is_symlink() or not archivo.is_file(): return
+    lanzar('pw-play', '--volume=0.6', str(archivo))
+
+
+def juego(accion):
+    """entrar: sin animaciones, desenfoque, sombras ni borde que gira, y avisos en no molestar
+    (los criticos se siguen viendo). salir: vuelve a lo que habia. Lo usa ultra-modo-juego."""
+    estado, _ = leer_estado()
+    base = runtime()
+    marca = base / 'ultra-modo-juego' if base else None
+    if accion == 'entrar':
+        if estado['modojuego'] != 'auto': return
+        aplicar_hyprland(estado, 'juego')
+        ejecutar('makoctl', 'mode', '-a', 'do-not-disturb')
+        if marca: escribir(marca, 'activo\n')
+        sonar('juego')
+    elif accion == 'salir':
+        modo = None
+        try:
+            guardado = (base / 'ultra-efectos').read_text().strip() if base else ''
+            if guardado in ('vivo', 'sobrio'): modo = guardado
+        except OSError:
+            pass
+        # Sin modo guardado vuelve a lo elegido; aplicar_hyprland con modo no reescribe ultra-efectos.
+        aplicar_hyprland(estado, modo or modo_efectos(estado))
+        ejecutar('makoctl', 'mode', '-r', 'do-not-disturb')
+        if marca:
+            try: marca.unlink()
+            except FileNotFoundError: pass
+    else:
+        raise ValueError('uso: ultra-personalizar juego entrar|salir')
+
+
+def vigilar(intervalo=300, vueltas=None):
+    """Con fondo auto, cambia Neon/Demonio al pasar las 7:00 y las 19:00. En juego espera."""
+    ultimo = None
+    while vueltas is None or vueltas > 0:
+        estado, existe = leer_estado()
+        if existe and estado['fondo'] == 'auto':
+            ahora = fondo_efectivo(estado)
+            base = runtime()
+            en_juego = base is not None and (base / 'ultra-modo-juego').exists()
+            if ultimo is not None and ahora != ultimo and not en_juego:
+                poner_fondo(rutas_fondo(estado)); ultimo = ahora
+            elif ultimo is None:
+                ultimo = ahora  # La sesion ya arranco con el fondo correcto.
+        else:
+            ultimo = None
+        if vueltas is not None: vueltas -= 1
+        if vueltas != 0: time.sleep(intervalo)
+
+
+# ---------- Perfiles ----------
+def perfiles_propios():
+    try:
+        if PERFILES_DIR.is_symlink(): return []
+        return sorted(p.stem for p in PERFILES_DIR.glob('*.json') if NOMBRE_PERFIL.fullmatch(p.stem) and not p.is_symlink())[:MAX_PERFILES]
+    except OSError:
+        return []
+
+
+def perfil_estado(nombre):
+    if nombre in PERFILES:
+        estado = dict(DEFECTO); estado.update(PERFILES[nombre]); return estado
+    if not NOMBRE_PERFIL.fullmatch(nombre or '') or nombre not in perfiles_propios(): raise ValueError(f'perfil desconocido: {nombre}')
+    try:
+        return validar(json.loads((PERFILES_DIR / f'{nombre}.json').read_text()[:65536]))
+    except (OSError, ValueError) as error:
+        raise ValueError(f'perfil danado: {nombre}') from error
+
+
+def perfil_aplicar(nombre):
+    estado = perfil_estado(nombre)
+    guardar(estado)
+    return estado
+
+
+def perfil_guardar(nombre):
+    if not NOMBRE_PERFIL.fullmatch(nombre or '') or nombre in PERFILES:
+        raise ValueError('nombre de perfil: minusculas, numeros y guiones, hasta 24, distinto de los de fabrica')
+    if nombre not in perfiles_propios() and len(perfiles_propios()) >= MAX_PERFILES:
+        raise ValueError(f'ya hay {MAX_PERFILES} perfiles guardados; borra alguno')
+    estado, _ = leer_estado()
+    escribir(PERFILES_DIR / f'{nombre}.json', json.dumps({k: estado[k] for k in DEFECTO}, ensure_ascii=False, indent=1) + '\n')
+
+
+def perfil_borrar(nombre):
+    if nombre not in perfiles_propios(): raise ValueError(f'perfil desconocido: {nombre}')
+    (PERFILES_DIR / f'{nombre}.json').unlink()
+
+
+# ---------- Menu con fuzzel ----------
+def elegir(filas, titulo, acento, indice=0, escribir_libre=False):
+    color = acento[1:] + 'ff'
+    cmd = ['fuzzel', '--dmenu', '--no-sort', '--width=46', f'--lines={max(1, len(filas))}', f'--prompt={titulo} // ',
+           f'--select-index={indice}', '--background-color=06050af7', '--text-color=ece9dcff',
+           f'--selection-color={color}', '--selection-text-color=000000ff', f'--border-color={color}',
+           f'--prompt-color={color}', f'--match-color={color}', '--selection-match-color=000000ff']
+    if not escribir_libre: cmd.insert(2, '--only-match')
+    try:
+        resultado = subprocess.run(cmd, input='\n'.join(filas), capture_output=True, text=True, timeout=600)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return resultado.stdout.rstrip('\n') if resultado.returncode == 0 else None
+
+
+def avisar(texto):
+    ejecutar('notify-send', '--app-name=ULTRA', '--icon=preferences-desktop-theme', 'BMO-X / Personalizar', texto)
+
+
+def menu_perfiles(acento):
+    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'juego': 'Juego'}
+    while True:
+        propios = perfiles_propios()
+        filas = [f'Aplicar: {t}' for t in fabrica.values()] + [f'Aplicar: {n} (tuyo)' for n in propios]
+        filas += ['Guardar el actual como...'] + (['Borrar un perfil tuyo'] if propios else []) + ['← volver']
+        eleccion = elegir(filas, 'PERFILES', acento)
+        eleccion = eleccion.strip() if eleccion is not None else None
+        if eleccion is None or eleccion == '← volver': return
+        try:
+            if eleccion == 'Guardar el actual como...':
+                nombre = elegir([], 'NOMBRE (minusculas)', acento, escribir_libre=True)
+                if not nombre: continue
+                perfil_guardar(nombre.strip()); avisar(f'Perfil guardado: {nombre.strip()}')
+            elif eleccion == 'Borrar un perfil tuyo':
+                nombre = elegir(propios + ['← volver'], 'BORRAR', acento)
+                if nombre and nombre.strip() in propios:
+                    perfil_borrar(nombre.strip()); avisar(f'Perfil borrado: {nombre.strip()}')
+            elif eleccion.startswith('Aplicar: '):
+                texto = eleccion[len('Aplicar: '):].removesuffix(' (tuyo)')
+                nombre = next((k for k, v in fabrica.items() if v == texto), texto)
+                aplicar(perfil_aplicar(nombre)); avisar(f'Perfil aplicado: {texto}')
+                acento = color_acento(leer_estado()[0])
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            avisar(str(error))
+
+
+def menu():
+    grupo = None
+    while True:
+        estado, _ = leer_estado()
+        acento = color_acento(estado)
+        if grupo is None:
+            filas = ['Perfiles'] + [g for g, _ in GRUPOS] + ['Restablecer todo', 'Cerrar']
+            eleccion = elegir(filas, 'PERSONALIZAR', acento)
+            eleccion = eleccion.strip() if eleccion is not None else None
+            if eleccion is None or eleccion == 'Cerrar': return
+            if eleccion == 'Restablecer todo':
+                if elegir(['No, volver', 'Si, restablecer todo'], 'RESTABLECER', acento) == 'Si, restablecer todo':
+                    restablecer(); avisar('Escritorio restablecido al tema Neon hielo.')
+                continue
+            if eleccion == 'Perfiles':
+                menu_perfiles(acento); continue
+            grupo = next((g for g in GRUPOS if g[0] == eleccion), None)
+            continue
+        claves = grupo[1]
+        filas = [f'{TITULOS[c]}: {estado[c]}' for c in claves] + ['← volver']
+        eleccion = elegir(filas, grupo[0].upper(), acento)
+        eleccion = eleccion.strip() if eleccion is not None else None
+        if eleccion is None or eleccion == '← volver':
+            grupo = None; continue
+        clave = claves[filas.index(eleccion)] if eleccion in filas[:len(claves)] else None
+        if clave is None: continue
+        opciones = OPCIONES[clave]
+        actual = estado[clave] if estado[clave] in opciones else 'propio'
+        marcadas = [('● ' if o == actual else '  ') + o for o in opciones] + ['  ← volver']
+        valor = elegir(marcadas, TITULOS[clave].upper(), acento, opciones.index(actual))
+        if not valor or valor.endswith('volver'): continue
+        valor = valor.lstrip('● ').strip()
+        try:
+            if clave == 'acento' and valor == 'propio':
+                texto = elegir([], 'COLOR HEX #RRGGBB', acento, escribir_libre=True)
+                if not texto: continue
+                texto = texto.strip()
+                estado = poner('acento', texto if texto.startswith('#') else '#' + texto)
+            elif clave == 'fondo' and valor == 'imagen':
+                archivos = []
+                for carpeta in IMAGENES:
+                    try: archivos += sorted(p for p in (HOME / carpeta).iterdir() if imagen_valida(str(p)))[:64]
+                    except OSError: pass
+                if not archivos:
+                    avisar('Guarda una imagen PNG, JPG o SVG en ~/Imágenes y vuelve a elegirla.'); continue
+                nombre = elegir([p.name for p in archivos], 'IMAGEN', acento)
+                if not nombre: continue
+                estado = poner('imagen', str(next(p for p in archivos if p.name == nombre)))
+            else:
+                estado = poner(clave, valor)
+            aplicar(estado)
+            avisar(f'{TITULOS[clave]}: {estado[clave]}')
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            avisar(str(error))
+
+
+def main():
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    os.umask(0o077)
+    accion = sys.argv[1] if len(sys.argv) > 1 else 'menu'
+    if accion == 'menu': menu()
+    elif accion == 'rutas':
+        for clave, valor in rutas_sesion().items(): print(f'{clave}={valor}')
+    elif accion == 'hyprland':
+        estado, existe = leer_estado()
+        modo = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] in ('vivo', 'sobrio') else None
+        if existe: aplicar_hyprland(estado, modo)
+    elif accion == 'acento':
+        estado, existe = leer_estado()
+        if existe: print(color_acento(estado)[1:] + 'ff')
+    elif accion == 'lanzador':
+        config = TEMA / 'fuzzel.ini'
+        _, existe = leer_estado()
+        if existe and config.is_file() and not config.is_symlink(): os.execvp('fuzzel', ['fuzzel', f'--config={config}'])
+        os.execvp('fuzzel', ['fuzzel'])
+    elif accion == 'poner' and len(sys.argv) == 4:
+        aplicar(poner(sys.argv[2], sys.argv[3]))
+    elif accion == 'restablecer': restablecer()
+    elif accion == 'sonar' and len(sys.argv) == 3: sonar(sys.argv[2])
+    elif accion == 'juego' and len(sys.argv) == 3: juego(sys.argv[2])
+    elif accion == 'vigilar': vigilar()
+    elif accion == 'perfiles':
+        for nombre in list(PERFILES) + perfiles_propios(): print(nombre)
+    elif accion == 'perfil' and len(sys.argv) == 4 and sys.argv[2] in ('aplicar', 'guardar', 'borrar'):
+        if sys.argv[2] == 'aplicar': aplicar(perfil_aplicar(sys.argv[3]))
+        elif sys.argv[2] == 'guardar': perfil_guardar(sys.argv[3])
+        else: perfil_borrar(sys.argv[3])
+    else: raise ValueError('uso: ultra-personalizar menu|poner CLAVE VALOR|perfil aplicar|guardar|borrar NOMBRE|perfiles|restablecer|rutas|hyprland|acento|lanzador|sonar EVENTO|juego entrar|salir|vigilar')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('PERSONALIZAR:', error, file=sys.stderr); sys.exit(1)

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon bloqueo</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  .fondo { position: absolute; inset: -30px; background: url("fondo-neon.svg") center / cover; filter: blur(10px) brightness(.45) saturate(1.2); }
+  .lineas { position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, .35) 0 1px, transparent 1px 3px); }
+  .centro { position: absolute; left: 0; right: 0; top: 170px; display: flex; flex-direction: column; align-items: center; z-index: 5; }
+  .hora { font: 700 190px/1 var(--titulo); letter-spacing: 8px; color: var(--amarillo); font-variant-numeric: tabular-nums;
+    text-shadow: -4px 0 rgba(255, 42, 79, .8), 4px 0 rgba(0, 240, 255, .6), 0 0 40px rgba(90, 216, 255, .35); }
+  .dia { margin-top: 4px; font: 600 24px var(--titulo); letter-spacing: 8px; color: var(--texto); text-transform: uppercase; }
+  .dia b { color: var(--rojo); }
+  .acceso { margin-top: 70px; width: 560px; position: relative; padding: 26px 30px 28px; background: rgba(6, 5, 10, .9); border: 1px solid var(--linea-2);
+    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px)); }
+  .acceso::before { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 4px; background: repeating-linear-gradient(-45deg, var(--amarillo) 0 8px, transparent 8px 16px); }
+  .usuario { display: flex; align-items: center; gap: 16px; }
+  .usuario .av { width: 62px; height: 62px; display: grid; place-items: center; background: var(--amarillo); clip-path: polygon(0 0, 75% 0, 100% 25%, 100% 100%, 25% 100%, 0 75%); }
+  .usuario .av svg { width: 36px; height: 36px; }
+  .usuario h2 { font: 700 28px/1 var(--titulo); letter-spacing: 5px; }
+  .usuario small { display: block; font: 12px var(--mono); color: var(--texto-3); letter-spacing: 2px; margin-top: 4px; }
+  .campo { margin-top: 22px; height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 18px; border: 2px solid var(--amarillo); background: #03090c; }
+  .campo .k { font: 700 13px var(--titulo); letter-spacing: 3px; color: var(--amarillo); margin-right: 8px; }
+  .campo i { width: 16px; height: 16px; background: var(--amarillo); transform: skewX(-20deg); box-shadow: 0 0 8px rgba(90, 216, 255, .7); }
+  .campo .cursor { width: 10px; height: 26px; background: var(--amarillo); transform: none; margin-left: 4px; }
+  .avisos { margin-top: 14px; display: flex; gap: 10px; font: 600 12px var(--mono); letter-spacing: 1px; }
+  .avisos span { padding: 5px 9px; border: 1px solid var(--linea-2); color: var(--texto-2); }
+  .avisos .on { color: #000; background: var(--rojo); border-color: var(--rojo); }
+  .esq { position: absolute; z-index: 5; font: 600 13px var(--mono); color: var(--texto-3); letter-spacing: 2px; }
+  .esq b { color: var(--amarillo); }
+</style></head>
+<body>
+<div class="fondo"></div><div class="lineas"></div>
+<script>document.write(sello('bloqueo hyprlock'));</script>
+<div class="esq" style="left:30px;top:28px"><b>BMO-X</b> // SESIÓN BLOQUEADA</div>
+<div class="esq" style="right:30px;top:28px">VOL 100 · ENP5S0 · <b>LATAM</b></div>
+<div class="centro">
+  <div class="hora">23:19</div>
+  <div class="dia">viernes <b>//</b> 23 de octubre</div>
+  <div class="acceso">
+    <div class="usuario"><div class="av" style="background:#03050a"><img src="emblema-autor.svg" alt="" style="width:100%;height:100%"></div>
+      <div><h2>EDDI SALAZAR</h2><small>AUTOR · USUARIO ultra · UID 1000</small></div></div>
+    <div class="campo"><span class="k">CLAVE</span><i></i><i></i><i></i><i></i><i></i><i class="cursor"></i></div>
+    <div class="avisos"><span class="on">BLOQ MAYÚS</span><span>LATAM</span><span>ENTER = ENTRAR</span></div>
+  </div>
+</div>
+</body></html>

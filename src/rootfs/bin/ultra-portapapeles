@@ -1,0 +1,91 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Historial del portapapeles para UID 1000 (Super+Shift+V).
+
+vigilar: guarda cada copia con cliphist en $XDG_RUNTIME_DIR, que esta en RAM;
+         el historial se borra al cerrar la sesion o apagar.
+menu:    elige una entrada con fuzzel y la vuelve a copiar; tambien borra todo.
+borrar:  vacia el historial.
+Sin root, red ni shell. Las copias que una app marca como sensibles no se guardan.
+"""
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+MAX = 200
+BORRAR = 'Borrar todo el historial'
+
+
+def base_datos():
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    if not runtime or not Path(runtime).is_dir(): raise ValueError('sin XDG_RUNTIME_DIR')
+    return Path(runtime) / 'ultra-portapapeles.db'
+
+
+def cliphist(*args, entrada=None):
+    return subprocess.run(['cliphist', '-db-path', str(base_datos()), '-max-items', str(MAX), *args],
+                          input=entrada, capture_output=True, timeout=20, check=False)
+
+
+def acento():
+    try:
+        salida = subprocess.run(['ultra-personalizar', 'acento'], capture_output=True, text=True, timeout=10, check=False).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        salida = ''
+    return salida if re.fullmatch(r'[0-9a-f]{8}', salida) else '5ad8ffff'
+
+
+def avisar(texto):
+    try:
+        subprocess.run(['notify-send', '--app-name=ULTRA', '--icon=edit-paste', 'BMO-X / Portapapeles', texto],
+                       capture_output=True, timeout=5, check=False)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
+def vigilar():
+    datos = base_datos()
+    os.execvp('wl-paste', ['wl-paste', '--watch', 'cliphist', '-db-path', str(datos), '-max-items', str(MAX), 'store'])
+
+
+def borrar():
+    cliphist('wipe')
+    avisar('Historial borrado.')
+
+
+def menu():
+    lista = cliphist('list').stdout
+    filas = [f for f in lista.split(b'\n') if f.strip()]
+    color = acento()
+    cmd = ['fuzzel', '--dmenu', '--width=70', f'--lines={min(15, len(filas) + 1)}', '--prompt=PORTAPAPELES // ',
+           '--background-color=06050af7', '--text-color=ece9dcff', f'--selection-color={color}',
+           '--selection-text-color=000000ff', f'--border-color={color}', f'--prompt-color={color}', '--match-color=ff2a4fff']
+    entrada = b'\n'.join(filas + [BORRAR.encode()]) + b'\n'
+    resultado = subprocess.run(cmd, input=entrada, capture_output=True, timeout=600, check=False)
+    eleccion = resultado.stdout.rstrip(b'\n')
+    if resultado.returncode != 0 or not eleccion: return
+    if eleccion == BORRAR.encode():
+        borrar(); return
+    # cliphist list escribe "ID<TAB>vista previa"; solo se aceptan entradas que estaban en la lista.
+    if eleccion not in filas or not re.fullmatch(rb'[0-9]+\t.*', eleccion, flags=re.S): return
+    contenido = cliphist('decode', entrada=eleccion + b'\n')
+    if contenido.returncode != 0: raise ValueError('no se pudo recuperar la entrada')
+    subprocess.run(['wl-copy'], input=contenido.stdout, timeout=10, check=False)
+
+
+def main():
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    os.umask(0o077)
+    accion = sys.argv[1] if len(sys.argv) > 1 else 'menu'
+    if accion == 'vigilar': vigilar()
+    elif accion == 'menu': menu()
+    elif accion == 'borrar': borrar()
+    else: raise ValueError('uso: ultra-portapapeles vigilar|menu|borrar')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('PORTAPAPELES:', error, file=sys.stderr); sys.exit(1)

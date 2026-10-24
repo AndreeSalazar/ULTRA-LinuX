@@ -1,0 +1,154 @@
+/* BMO-X / Nucleo 2: paleta unica propuesta para las maquetas.
+   Las mismas variables generarian Hyprland, Waybar, GTK, mako, fuzzel y foot. */
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=block");
+
+:root {
+  /* Fondos y superficies */
+  --fondo-0: #03080d;
+  --fondo-1: #050c10;
+  --superficie: #0a1615;
+  --superficie-2: #10221f;
+  --metal: #19352f;
+  --borde: #294a41;
+  --borde-2: #385344;
+  /* Texto */
+  --texto: #d3e8e4;
+  --texto-2: #93b2b6;
+  --texto-3: #5f7d86;
+  /* Acentos Nucleo */
+  --cyan: #43deeb;
+  --cyan-claro: #8af6ff;
+  --morado: #a987e6;
+  --morado-claro: #c9b0f5;
+  --verde: #68bd9d;
+  --verde-claro: #9be5c4;
+  --acero: #7fb4e6;
+  /* Estados (solo avisos, nunca decoracion) */
+  --aviso: #ffbe85;
+  --peligro: #ff7a90;
+
+  --ui: "Inter", "DejaVu Sans", sans-serif;
+  --mono: "JetBrains Mono", "DejaVu Sans Mono", monospace;
+  --corte: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1920px; height: 1080px; overflow: hidden; }
+body {
+  font-family: var(--ui);
+  color: var(--texto);
+  background: var(--fondo-0) url("../../src/rootfs/desktop/wallpaper.svg") center / cover no-repeat;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+}
+svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* Sello que deja claro que no es una captura real */
+.sello {
+  position: absolute; left: 24px; bottom: 22px; z-index: 50;
+  font: 600 12px/1 var(--ui); letter-spacing: 3px; text-transform: uppercase;
+  color: var(--texto-3); padding: 7px 10px; border: 1px dashed var(--borde-2); border-radius: 6px;
+  background: rgba(3, 8, 13, .7);
+}
+
+/* ---------- Barra superior ---------- */
+.barra {
+  position: absolute; top: 12px; left: 18px; right: 18px; height: 44px; z-index: 20;
+  display: flex; align-items: stretch;
+  background: linear-gradient(115deg, rgba(5, 12, 16, .94), rgba(16, 34, 31, .94) 55%, rgba(9, 24, 19, .94));
+  border: 1px solid var(--borde); border-bottom: 2px solid rgba(67, 222, 235, .55);
+  border-radius: 10px; box-shadow: 0 6px 18px rgba(0, 5, 12, .6);
+  font-size: 13px; font-weight: 500;
+}
+.barra .grupo { display: flex; align-items: center; gap: 2px; }
+.barra .centro { position: absolute; left: 50%; top: 0; bottom: 0; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; }
+.barra .der { margin-left: auto; }
+.inicio {
+  display: flex; align-items: center; gap: 10px; padding: 0 20px;
+  color: var(--cyan-claro); font-weight: 700; letter-spacing: 3px;
+  background: linear-gradient(115deg, #153c39, #0b171a); border-right: 1px solid #38645c; border-radius: 9px 0 0 9px;
+}
+.escritorios { display: flex; gap: 4px; margin: 0 10px; }
+.esc {
+  position: relative; min-width: 30px; height: 30px; line-height: 1; padding: 0 9px; border-radius: 6px;
+  display: grid; place-items: center; color: var(--texto-3); font-weight: 600; border: 1px solid transparent;
+}
+.esc.ocupado { color: var(--texto-2); }
+.esc.ocupado { background: radial-gradient(circle at 50% 93%, var(--verde) 1.8px, transparent 2.4px) no-repeat; }
+.esc.activo { background: #1c332b; color: var(--verde-claro); border-color: #4f7a66; box-shadow: inset 0 -2px 0 var(--cyan); }
+.titulo-ventana { color: var(--texto-2); font-weight: 400; max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 6px; }
+.reloj { font: 700 18px/1 var(--ui); letter-spacing: 2px; color: #e2fbff; font-variant-numeric: tabular-nums; }
+.fecha { font-size: 12px; color: var(--texto-2); letter-spacing: 1px; }
+.mod { display: flex; align-items: center; gap: 7px; padding: 0 12px; height: 100%; font-variant-numeric: tabular-nums; }
+.mod small { color: var(--texto-3); font-size: 11px; font-weight: 500; }
+.mod.sep { border-left: 1px solid #22413a; }
+.mod .t { color: var(--texto-3); }
+.boton-fin { padding: 0 16px; color: var(--peligro); background: linear-gradient(125deg, #30223e, #14121e); border-left: 1px solid #574469; border-radius: 0 9px 9px 0; }
+.barra.pausa { opacity: .0; }
+
+/* ---------- Dock ---------- */
+.dock {
+  position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
+  display: flex; align-items: center; gap: 6px; padding: 7px 10px;
+  background: linear-gradient(120deg, rgba(16, 38, 31, .95), rgba(5, 12, 16, .95));
+  border: 1px solid var(--borde-2); border-top: 2px solid var(--cyan); border-bottom-color: #695184;
+  border-radius: 14px; box-shadow: 0 6px 16px rgba(0, 0, 0, .6);
+}
+.app {
+  position: relative; width: 58px; height: 52px; border-radius: 9px; display: grid; place-items: center;
+  border: 1px solid #2c463d; border-bottom: 2px solid #3f6351; background: linear-gradient(135deg, #182b25, #091410);
+}
+.app svg { width: 34px; height: 34px; }
+.app.abierta::after { content: ""; position: absolute; bottom: -7px; width: 6px; height: 4px; border-radius: 2px; background: var(--verde); }
+.app.foco { border-color: #6c568b; border-bottom-color: var(--cyan); background: #20372f; }
+.app.foco::after { width: 18px; background: var(--cyan); }
+.dock .linea { width: 1px; height: 36px; background: var(--borde-2); margin: 0 4px; }
+
+/* ---------- Ventanas ---------- */
+.ventana {
+  position: absolute; border-radius: 10px; overflow: hidden; z-index: 10;
+  background: rgba(6, 14, 16, .97); box-shadow: 0 10px 26px rgba(0, 6, 14, .6);
+}
+.ventana.activa { padding: 2px; background: linear-gradient(35deg, var(--cyan), var(--morado) 55%, var(--verde)); }
+.ventana.activa > .dentro { border-radius: 8px; }
+.ventana.inactiva { border: 2px solid #29473e; opacity: .92; filter: saturate(.85) brightness(.9); }
+.dentro { width: 100%; height: 100%; background: #060e10; overflow: hidden; position: relative; }
+.cab {
+  height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 14px;
+  background: linear-gradient(to bottom, #19302a, #0a1615); border-bottom: 1px solid #167587;
+  font-size: 13px; color: #9fdce8; font-weight: 600;
+}
+.cab .der { margin-left: auto; color: var(--texto-3); font-weight: 500; }
+
+/* Terminal */
+.term { font: 15px/1.6 var(--mono); padding: 14px 18px; color: #c8e9f2; white-space: pre; }
+.c-cyan { color: #63f4ff; } .c-mor { color: #c1a3f2; } .c-ver { color: #70ffba; } .c-gris { color: #5f7d86; }
+.c-am { color: #e1dfac; } .c-rojo { color: #ff7185; } .c-az { color: #74c5ff; }
+
+/* ---------- Notificaciones ---------- */
+.noti {
+  position: absolute; right: 22px; width: 400px; z-index: 30; display: flex; gap: 14px; padding: 16px;
+  background: rgba(9, 24, 19, .97); border: 2px solid var(--morado); border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .55);
+}
+.noti .ic { width: 44px; height: 44px; flex: none; }
+.noti b { display: block; font-size: 14px; margin-bottom: 4px; color: #e6fbff; }
+.noti p { font-size: 13px; line-height: 1.45; color: var(--texto-2); }
+.noti .acciones { display: flex; gap: 8px; margin-top: 10px; }
+.btn { font: 600 12px/1 var(--ui); padding: 7px 11px; border-radius: 6px; color: var(--cyan-claro); border: 1px solid #2f5a55; background: #10221f; }
+
+/* ---------- Menu fuzzel ---------- */
+.menu {
+  position: absolute; z-index: 40; width: 620px; padding: 20px 0 14px;
+  background: rgba(7, 16, 26, .97); border: 2px solid var(--acento, var(--cyan)); border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 18px 40px rgba(0, 0, 0, .65);
+  font: 16px/1 var(--mono);
+}
+.menu .prompt { padding: 0 24px 16px; color: var(--acento, var(--cyan)); font-weight: 700; letter-spacing: 1px; }
+.menu .prompt span { color: var(--texto); font-weight: 400; }
+.menu .prompt i { display: inline-block; width: 9px; height: 18px; margin-left: 3px; vertical-align: -3px; background: var(--acento, var(--cyan)); }
+.fila { display: flex; align-items: center; gap: 14px; padding: 10px 24px; color: #b8d9ea; font-family: var(--ui); font-size: 16px; font-weight: 500; }
+.fila .punto { width: 10px; height: 10px; border-radius: 3px; transform: rotate(45deg); flex: none; }
+.fila .atajo { margin-left: auto; color: var(--texto-3); font: 12px var(--mono); }
+.fila.sel { background: #153831; color: #e0ffff; box-shadow: inset 3px 0 0 var(--acento, var(--cyan)); }
+.fila svg.i { width: 24px; height: 24px; stroke-width: 3.4; }

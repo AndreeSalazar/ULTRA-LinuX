@@ -261,6 +261,8 @@ int main(void) {
     choose_profile(data);
     /* After the profile: a jump to the tuned kernel reboots before anything else is mounted. */
     prepare_system(data);
+    /* The author's Tux, animated for about 1.2 s; the screen underneath is put back. */
+    show_intro();
     show_card();
     show_logo();
 

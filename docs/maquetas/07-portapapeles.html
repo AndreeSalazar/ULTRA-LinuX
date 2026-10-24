@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X portapapeles</title>
+<link rel="stylesheet" href="nucleo.css"><script src="comun.js"></script>
+<style>
+  body { background: url("png/base-escritorio.png") 0 0 / 1920px 1080px; }
+  .velo { position: absolute; inset: 0; background: rgba(2, 6, 10, .5); z-index: 15; }
+  .rapida { position: absolute; left: 160px; top: 70px; width: 900px; height: 430px; z-index: 30; box-shadow: 0 24px 50px rgba(0, 0, 0, .7); }
+  .etiqueta { position: absolute; z-index: 41; font: 600 12px/1 var(--ui); letter-spacing: 3px; text-transform: uppercase; color: var(--texto-2); }
+  .etiqueta b { color: var(--cyan-claro); }
+  .menu { left: 1130px; top: 300px; width: 640px; }
+  .clip { font-family: var(--mono); font-size: 14px; }
+  .clip .tipo { font: 600 10px var(--ui); letter-spacing: 1.5px; color: var(--texto-3); border: 1px solid #23423a; border-radius: 4px; padding: 3px 6px; width: 54px; text-align: center; flex: none; }
+  .clip .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .img { width: 74px; height: 42px; border-radius: 4px; border: 1px solid #2f5a55; background: url("png/03-equipo.png") 50% 30% / 400%; flex: none; }
+</style></head>
+<body>
+<div class="velo"></div>
+<script>document.write(sello('terminal rápida y portapapeles'));</script>
+
+<div class="etiqueta" style="left:160px;top:516px"><b>Super+S</b> · terminal rápida que baja y se oculta</div>
+<div class="ventana activa rapida"><div class="dentro">
+  <div class="cab"><svg class="i" viewBox="0 0 24 24"><path d="m4 7 5 5-5 5m8 1h8"/></svg>Terminal rápida<span class="der">special:rapida · Super+S oculta</span></div>
+<div class="term"><span class="c-ver">ultra</span><span class="c-gris">@</span><span class="c-cyan">bmo-x</span> <span class="c-mor">~</span>
+<span class="c-cyan">❯</span> ultra-juegos estado
+<span class="c-ver">VERDE</span>  [ESPACIO] /juegos: 80,6 GiB libres de 96 GiB
+<span class="c-ver">VERDE</span>  [STEAM]   2 bibliotecas registradas
+<span class="c-am">AMARILLO</span> [GOG] Cyberpunk sin validar en este equipo
+
+<span class="c-ver">ultra</span><span class="c-gris">@</span><span class="c-cyan">bmo-x</span> <span class="c-mor">~</span>
+<span class="c-cyan">❯</span> <span style="background:#43deeb;color:#05101a"> </span></div>
+</div></div>
+
+<div class="etiqueta" style="left:1130px;top:272px"><b>Super+Shift+V</b> · historial del portapapeles</div>
+<div class="menu clip" style="--acento:var(--morado)">
+  <div class="prompt">Portapapeles / <span></span><i></i></div>
+  <div class="fila sel"><span class="tipo">TEXTO</span><span class="txt">ultra-juegos estado</span><span class="atajo">ahora</span></div>
+  <div class="fila"><span class="tipo">IMAGEN</span><span class="img"></span><span class="txt">captura 760 × 470</span><span class="atajo">1 min</span></div>
+  <div class="fila"><span class="tipo">RUTA</span><span class="txt">/juegos/Steam/steamapps/common/Warframe</span><span class="atajo">4 min</span></div>
+  <div class="fila"><span class="tipo">TEXTO</span><span class="txt">#43deeb</span><span class="atajo">12 min</span></div>
+  <div class="fila"><span class="tipo">ENLACE</span><span class="txt">https://wiki.hypr.land/0.56.0/</span><span class="atajo">20 min</span></div>
+  <div class="fila" style="color:var(--texto-3)"><span class="tipo">—</span><span class="txt">Borrar historial</span><span class="atajo">Supr</span></div>
+  <div class="pie" style="padding:12px 24px 0;margin-top:8px;border-top:1px solid #16303a;display:flex;gap:18px;font:12px var(--mono);color:var(--texto-3)">
+    <span>Se guarda solo en RAM · se borra al apagar</span><span>Contraseñas del llavero: excluidas</span></div>
+</div>
+</body></html>

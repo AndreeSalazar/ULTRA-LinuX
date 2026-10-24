@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon modo juego</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  /* Escena abstracta en lugar de la imagen del juego */
+  body { background: radial-gradient(ellipse 50% 35% at 50% 52%, rgba(255, 42, 79, .35), transparent 70%), linear-gradient(#07050d, #120a1c 50%, #050308 51%, #020103); }
+  .suelo { position: absolute; left: -400px; right: -400px; top: 550px; height: 900px; transform: perspective(600px) rotateX(62deg); transform-origin: top;
+    background: repeating-linear-gradient(90deg, rgba(0, 240, 255, .35) 0 2px, transparent 2px 90px), repeating-linear-gradient(0deg, rgba(0, 240, 255, .25) 0 2px, transparent 2px 90px); }
+  .pilar { position: absolute; bottom: 530px; width: 18px; box-shadow: 0 0 22px currentColor, 0 0 4px currentColor inset; background: currentColor; opacity: .85; }
+  .bloque { position: absolute; bottom: 530px; background: #0b0812; border-top: 2px solid #2a2140; }
+  .escena { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); font: 700 12px var(--titulo); letter-spacing: 4px; color: rgba(255, 255, 255, .25); }
+  .mango { position: absolute; left: 12px; top: 12px; z-index: 30; width: 330px; padding: 10px 14px 12px; background: rgba(6, 5, 10, .8); font: 500 17px/1.55 var(--mono); color: var(--texto); font-variant-numeric: tabular-nums; }
+  .mango .f { display: grid; grid-template-columns: 70px 1fr 1fr; align-items: baseline; }
+  .mango .f > :nth-child(n+2) { text-align: right; }
+  .mango .k { font-weight: 700; }
+  .mango small { font-size: 12px; color: var(--texto-3); margin-left: 3px; }
+  .mango .fps { font-size: 32px; font-weight: 700; color: #fff; }
+  .graf { display: flex; align-items: flex-end; gap: 2px; height: 46px; margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--linea-2); }
+  .graf i { flex: 1; background: var(--amarillo); }
+  .noti { top: 18px; width: 470px; }
+  .lista { margin-top: 10px; display: grid; gap: 6px; font: 13px var(--mono); color: var(--texto-2); }
+  .lista span::before { content: "▶ "; color: var(--amarillo); }
+  .lista .ring::before { color: var(--rojo); }
+</style></head>
+<body>
+<div class="suelo"></div>
+<div class="bloque" style="left:120px;width:340px;height:330px"></div>
+<div class="bloque" style="left:1430px;width:380px;height:380px"></div>
+<div class="pilar" style="left:420px;height:300px;color:#5ad8ff"></div>
+<div class="pilar" style="left:560px;height:200px;color:#ff2a4f"></div>
+<div class="pilar" style="left:1350px;height:260px;color:#00f0ff"></div>
+<div class="pilar" style="left:1480px;height:340px;color:#ff2a4f"></div>
+<div class="escena">ESCENA DE EJEMPLO · JUEGO A PANTALLA COMPLETA · SIN BARRA NI DOCK</div>
+<script>document.write(sello('modo juego + MangoHud'));</script>
+
+<div class="mango">
+  <div class="f"><span class="k" style="color:var(--cyan)">CPU</span><span>38%</span><span>62°C</span></div>
+  <div class="f"><span class="k" style="color:var(--amarillo)">GPU</span><span>97%</span><span>71°C</span></div>
+  <div class="f"><span></span><span>152<small>W</small></span><span>1890<small>MHz</small></span></div>
+  <div class="f"><span class="k" style="color:var(--amarillo)">VRAM</span><span>7.9</span><span><small>GiB</small></span></div>
+  <div class="f"><span class="k" style="color:var(--verde)">RAM</span><span>9.2</span><span><small>GiB</small></span></div>
+  <div class="f"><span class="k" style="color:var(--rojo)">FPS</span><span class="fps">144</span><span>6.9<small>ms</small></span></div>
+  <div class="graf"><script>
+    [7,7,7,6.8,7,7.1,6.9,7,7,7.2,7,6.9,7,9.6,7,7,6.9,7,7,7.1,7,7,6.8,7,7,7,7.1,6.9,7,7,7,7,7.3,7,7,6.9,7,7,7,7]
+      .forEach(v => document.write(`<i style="height:${(v - 5.5) * 12}px;${v > 9 ? 'background:var(--rojo)' : ''}"></i>`));
+  </script></div>
+</div>
+
+<div class="noti">
+  <script>document.write(app('juegos', AM, 'class="ic"'))</script>
+  <div><b>Modo juego activado</b>
+    <p>Warframe a pantalla completa. Al cerrarlo se restaura todo.</p>
+    <div class="lista"><span>Sin blur, sombras ni bordes</span><span>Barra y dock en pausa</span><span class="ring">VRR y tearing: lo decide RING 0</span></div>
+  </div>
+</div>
+</body></html>

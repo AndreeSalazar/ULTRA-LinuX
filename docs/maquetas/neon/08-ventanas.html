@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon ventanas</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  body { background: url("../png/neon/base-escritorio.png") 0 0 / 1920px 1080px; }
+  .velo { position: absolute; inset: 0; background: rgba(4, 3, 8, .72); z-index: 15; }
+  .cambiador { position: absolute; z-index: 30; left: 50%; top: 300px; transform: translateX(-50%); display: flex; gap: 16px; padding: 26px 24px 22px; background: rgba(6, 5, 10, .97);
+    border-top: 2px solid var(--amarillo); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%); }
+  .cambiador::before { content: "ALT+TAB // VENTANAS"; position: absolute; left: 24px; top: 6px; font: 700 11px var(--titulo); letter-spacing: 3px; color: var(--texto-3); }
+  .tj { width: 300px; padding: 8px; border: 1px solid var(--linea); background: var(--panel); }
+  .tj.sel { border: 2px solid var(--amarillo); padding: 7px; box-shadow: 0 0 22px rgba(90, 216, 255, .25); }
+  .vista { height: 168px; background-image: url("../png/neon/base-escritorio.png"); border: 1px solid var(--linea); }
+  .nom { display: flex; align-items: center; gap: 10px; margin-top: 9px; font: 700 15px var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; }
+  .nom svg { width: 22px; height: 22px; }
+  .nom small { margin-left: auto; font: 600 12px var(--mono); color: var(--texto-3); }
+  .tj.sel .nom { color: var(--amarillo); }
+  .resumen { position: absolute; z-index: 30; left: 50%; transform: translateX(-50%); top: 640px; display: flex; gap: 12px; }
+  .ws { width: 210px; height: 128px; border: 1px solid var(--linea); background: rgba(10, 9, 16, .95); position: relative; }
+  .ws.act { border: 2px solid var(--amarillo); }
+  .ws span { position: absolute; left: 8px; top: 6px; font: 700 14px var(--mono); color: var(--texto-2); }
+  .ws.act span { color: #000; background: var(--amarillo); padding: 0 5px; left: 0; top: 0; }
+  .ws i { position: absolute; background: #16141f; border: 1px solid var(--linea-2); }
+  .ws.vacio { display: grid; place-items: center; font: 600 12px var(--mono); color: var(--texto-3); }
+</style></head>
+<body>
+<div class="velo"></div>
+<script>document.write(sello('Alt+Tab y escritorios'));</script>
+<div class="cambiador">
+  <div class="tj sel"><div class="vista" style="background-position:-12px -54px;background-size:1880px 1060px"></div>
+    <div class="nom"><script>document.write(app('terminal', AM))</script>foot<small>02</small></div></div>
+  <div class="tj"><div class="vista" style="background-position:-720px -40px;background-size:1500px 844px"></div>
+    <div class="nom"><script>document.write(app('archivos', CY))</script>Archivos<small>02</small></div></div>
+  <div class="tj"><div class="vista" style="background-position:-720px -420px;background-size:1500px 844px"></div>
+    <div class="nom"><script>document.write(app('editor', CY))</script>Mousepad<small>02</small></div></div>
+  <div class="tj"><div class="vista" style="background-image:url('../png/neon/03-equipo.png');background-position:-250px -40px;background-size:1300px 731px"></div>
+    <div class="nom"><script>document.write(app('equipo', RO))</script>Equipo en vivo<small>01</small></div></div>
+</div>
+<div class="resumen">
+  <div class="ws"><span>01</span><i style="left:8px;top:28px;width:192px;height:90px"></i></div>
+  <div class="ws act"><span>02</span><i style="left:8px;top:28px;width:96px;height:90px;border-color:var(--amarillo)"></i><i style="left:110px;top:28px;width:90px;height:42px"></i><i style="left:110px;top:76px;width:90px;height:42px"></i></div>
+  <div class="ws"><span>03</span><i style="left:8px;top:28px;width:192px;height:90px"></i></div>
+  <div class="ws vacio"><span>04</span>VACÍO</div>
+  <div class="ws vacio"><span>05</span>VACÍO</div>
+</div>
+</body></html>

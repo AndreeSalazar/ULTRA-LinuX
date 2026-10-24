@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>BMO-X Neon escritorio</title>
+<link rel="stylesheet" href="neon.css"><script src="../comun.js"></script><script src="neon.js"></script>
+<style>
+  .thunar { display: grid; grid-template-columns: 220px 1fr; height: calc(100% - 42px - 40px); }
+  .ruta { height: 40px; display: flex; align-items: center; gap: 4px; padding: 0 14px; border-bottom: 1px solid var(--linea); background: var(--fondo); font: 500 13px var(--mono); color: var(--texto-2); }
+  .ruta span { padding: 4px 10px; background: var(--panel-2); clip-path: var(--corte-chico); }
+  .ruta span:last-child { background: var(--amarillo); color: #000; font-weight: 700; }
+  .lado { background: var(--fondo); border-right: 1px solid var(--linea); padding: 12px 0; font-size: 14px; }
+  .lado h4 { font: 700 12px var(--titulo); letter-spacing: 3px; color: var(--rojo); padding: 10px 18px 6px; }
+  .lado div { display: flex; align-items: center; gap: 10px; padding: 8px 18px; color: var(--texto-2); }
+  .lado div.sel { color: var(--amarillo); background: rgba(90, 216, 255, .08); box-shadow: inset 3px 0 0 var(--amarillo); }
+  .lado svg { width: 20px; height: 20px; }
+  .lado small { color: var(--cyan); font: 600 10px var(--mono); border: 1px solid var(--cyan-2); padding: 1px 4px; margin-left: auto; }
+  .rejilla { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; padding: 20px; align-content: start; }
+  .archivo { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; padding: 12px 4px; border: 1px solid transparent; }
+  .archivo svg { width: 54px; height: 54px; }
+  .archivo.sel { border-color: var(--amarillo); background: rgba(90, 216, 255, .06); }
+  .editor { font: 14px/1.75 var(--mono); padding: 10px 0; }
+  .editor div { padding: 0 16px; white-space: pre; }
+  .editor i { display: inline-block; width: 30px; color: var(--texto-3); font-style: normal; text-align: right; margin-right: 16px; }
+  .editor .act { background: rgba(0, 240, 255, .06); box-shadow: inset 3px 0 0 var(--cyan); }
+</style></head>
+<body>
+<script>
+document.write(barra());
+document.write(dock({ abiertas: ['navegador', 'terminal', 'archivos', 'editor'] }));
+document.write(sello('escritorio'));
+</script>
+
+<div class="ventana activa" style="left:12px;top:54px;width:946px;height:928px"><div class="dentro">
+<div class="term"><span class="c-am">ultra</span><span class="c-gr">@</span><span class="c-cy">bmo-x</span> <span class="c-gr">::</span> <span class="c-bl">~/proyectos/ULTRA-LinuX</span> <span class="c-ro">[modest-edison]</span>
+<span class="c-am">▶</span> ultra-info
+
+<span class="c-am">  ██████████████   </span>   <span class="c-am">ULTRA</span><span class="c-gr">//</span><span class="c-cy">BMO-X</span>
+<span class="c-am">  ██</span><span class="c-ro">▀▀▀▀▀▀▀▀▀▀</span><span class="c-am">██   </span>   <span class="c-gr">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+<span class="c-am">  ██</span> <span class="c-cy">▄█</span>    <span class="c-cy">█▄</span> <span class="c-am">██   </span>   <span class="c-ro">SISTEMA </span> ULTRA LinuX 0.1
+<span class="c-am">  ██</span>   <span class="c-ro">▀▀▀▀</span>   <span class="c-am">██   </span>   <span class="c-ro">INIT    </span> PID 1 en C
+<span class="c-am">  ██</span><span class="c-ro">▄▄▄▄▄▄▄▄▄▄</span><span class="c-am">██   </span>   <span class="c-ro">SESIÓN  </span> Hyprland 0.56 · Wayland
+<span class="c-am">  ██████████████   </span>   <span class="c-ro">AUTOR   </span> <span class="c-cy">Eddi Salazar</span>
+<span class="c-am">   █ </span><span class="c-cy">▬</span> <span class="c-ro">●</span> <span class="c-am">●</span> <span class="c-cy">▬</span><span class="c-am"> █     </span>   <span class="c-ro">TEMA    </span> NEÓN · cursor 28 px
+<span class="c-am">   ▀▀▀▀▀▀▀▀▀▀▀▀    </span>   <span class="c-ro">CPU     </span> Ryzen 5 5600X · 12 hilos
+                      <span class="c-ro">GPU     </span> GeForce RTX 3060
+                      <span class="c-ro">EFECTOS </span> <span class="c-ve">vivos</span>
+
+                      <span style="background:#06050a"> </span><span style="background:#ff2a4f">   </span><span style="background:#3dff9a">   </span><span style="background:#fcee0a">   </span><span style="background:#2f7bff">   </span><span style="background:#c03bff">   </span><span style="background:#00f0ff">   </span><span style="background:#ece9dc">   </span>
+
+<span class="c-am">ultra</span><span class="c-gr">@</span><span class="c-cy">bmo-x</span> <span class="c-gr">::</span> <span class="c-bl">~/proyectos/ULTRA-LinuX</span>
+<span class="c-am">▶</span> git log --oneline -3
+<span class="c-cy">ad87ea2</span> Add Nucleo desktop theme, cursor assets and live equipment panel
+<span class="c-cy">ca48a56</span> Add bounded live Warframe resource diagnostics and frame capture
+<span class="c-cy">f798a3d</span> docs: investigar microtiron de Warframe con diagnostico privado
+
+<span class="c-am">ultra</span><span class="c-gr">@</span><span class="c-cy">bmo-x</span> <span class="c-gr">::</span> <span class="c-bl">~/proyectos/ULTRA-LinuX</span>
+<span class="c-am">▶</span> <span style="background:#5ad8ff;color:#000"> </span></div>
+</div></div>
+
+<div class="ventana inactiva" style="left:970px;top:54px;width:938px;height:478px"><div class="dentro">
+  <div class="gtk-cab">Archivos <span style="color:var(--texto-3)">//</span> <span style="color:var(--cyan)">Juegos</span><span class="der"><span></span><span></span></span></div>
+  <div class="ruta"><span>/</span><span>juegos</span><span>Steam</span></div>
+  <div class="thunar">
+    <div class="lado">
+      <h4>// LUGARES</h4>
+      <div><script>document.write(app('archivos', CY))</script>Inicio</div>
+      <div class="sel"><script>document.write(app('juegos', AM))</script>Juegos</div>
+      <div><script>document.write(app('discos', CY))</script>Windows C:<small>RO</small></div>
+      <h4>// DISCOS</h4>
+      <div><script>document.write(app('discos', CY))</script>NVMe Personal</div>
+    </div>
+    <div class="rejilla"><script>
+      [['steamapps', 'archivos', 1], ['Warframe', 'archivos'], ['shadercache', 'archivos'], ['compatdata', 'archivos'], ['libraryfolders.vdf', 'editor']]
+        .forEach(([n, ic, s]) => document.write(`<div class="archivo ${s ? 'sel' : ''}">${app(ic, s ? AM : CY)}${n}</div>`));
+    </script></div>
+  </div>
+</div></div>
+
+<div class="ventana inactiva" style="left:970px;top:544px;width:938px;height:438px"><div class="dentro">
+  <div class="gtk-cab">Mousepad <span style="color:var(--texto-3)">//</span> <span style="color:var(--cyan)">paleta.json</span><span class="der"><span></span><span></span></span></div>
+  <div class="editor">
+<div><i>1</i><span class="c-gr">{</span></div>
+<div><i>2</i>  <span class="c-cy">"nombre"</span>: <span class="c-am">"Neón"</span>,</div>
+<div class="act"><i>3</i>  <span class="c-cy">"acento"</span>: <span class="c-am">"#5ad8ff"</span>,</div>
+<div><i>4</i>  <span class="c-cy">"rojo"</span>: <span class="c-am">"#ff2a4f"</span>,</div>
+<div><i>5</i>  <span class="c-cy">"cyan"</span>: <span class="c-am">"#00f0ff"</span>,</div>
+<div><i>6</i>  <span class="c-cy">"fondo"</span>: <span class="c-am">"#06050a"</span>,</div>
+<div><i>7</i>  <span class="c-cy">"fuente_titulos"</span>: <span class="c-am">"Rajdhani"</span>,</div>
+<div><i>8</i>  <span class="c-cy">"fuente_ui"</span>: <span class="c-am">"Chakra Petch"</span></div>
+<div><i>9</i><span class="c-gr">}</span></div>
+  </div>
+</div></div>
+</body></html>

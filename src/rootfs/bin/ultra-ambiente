@@ -8,36 +8,38 @@ if [[ $mode == menu ]]; then
     category=raiz
     remembered="${XDG_RUNTIME_DIR:?}/ultra-categoria"
     previous=apps
+    personal=$(ultra-personalizar acento 2>/dev/null || true)
+    [[ $personal =~ ^[0-9a-f]{8}$ ]] || personal=5ad8ffff
     [[ ! -f $remembered ]] || read -r previous < "$remembered" || true
     pick() {
         printf '%s\n' "$@" | fuzzel --dmenu --only-match --no-sort --width=48 \
             --lines="$#" --prompt="$title / " --select-index="$index" \
-            --background-color=07101af5 --text-color=d9e8f0ff \
-            --selection-color=153141ff --selection-text-color=f0ffffff \
+            --background-color=06050af7 --text-color=ece9dcff \
+            --selection-color="$accent" --selection-text-color=000000ff \
             --border-color="$accent" --prompt-color="$accent" \
-            --match-color="$accent" --selection-match-color="$accent"
+            --match-color="$accent" --selection-match-color=000000ff
     }
     while true; do
         index=0
         case $category in
             raiz)
-                title='BMO-X / Categorias'; accent=00d4e8ff
+                title='BMO-X // Categorias'; accent=$personal
                 case $previous in apps) index=0;; discos) index=1;; juegos) index=2;; pantalla) index=3;; audio) index=4;; ambiente) index=5;; sistema) index=6;; esac
                 rows=('1 Aplicaciones' '2 Discos y bibliotecas' '3 Juegos' '4 Pantalla y graficos' '5 Audio' '6 Ambiente' '7 Sistema y ayuda');;
-            apps) title='Aplicaciones / CYAN'; accent=00d4e8ff
+            apps) title='Aplicaciones / ACENTO'; accent=$personal
                 rows=('Buscar aplicaciones' 'Navegador Brave' 'Archivos' 'Terminal' 'Editor' 'Volver a categorias');;
-            discos) title='Discos / TURQUESA'; accent=2de2b8ff
+            discos) title='Discos / CYAN'; accent=00f0ffff
                 rows=('Panel de discos y preparacion' 'Carpetas guardadas' 'Windows NVMe (solo lectura)' 'Explorar discos (solo lectura)' 'Volver a categorias');;
-            juegos) title='Juegos / VERDE'; accent=76ff58ff
+            juegos) title='Juegos / ROJO'; accent=ff2a4fff
                 rows=('Steam' 'GOG / Heroic' 'Importar juegos GOG' 'Warframe / Steam' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Espacio y estado de juegos' 'Volver a categorias');;
-            pantalla) title='Pantalla / AZUL'; accent=5298ffff
+            pantalla) title='Pantalla / VERDE'; accent=3dff9aff
                 rows=('Resolucion, Hz y escala' 'Informe Vulkan y OpenGL' 'Cubo Vulkan' 'Cubo Vulkan con validacion' 'Volver a categorias');;
-            audio) title='Audio / AMBAR'; accent=ffc857ff
+            audio) title='Audio / VIOLETA'; accent=c03bffff
                 rows=('Salidas y volumen por aplicacion' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Amplificar 200%' 'Amplificar 300%' 'Amplificar 400%' 'Amplificar 500%' 'Volver a categorias');;
-            ambiente) title='Ambiente / VIOLETA'; accent=c49affff
-                rows=('Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Volver a categorias');;
-            sistema) title='Sistema / ROJO'; accent=ff657aff
-                rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Volver a categorias');;
+            ambiente) title='Ambiente / AMARILLO'; accent=fcee0aff
+                rows=('Personalizar escritorio' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Recuperar ultimo aviso' 'Historial del portapapeles' 'Volver a categorias');;
+            sistema) title='Sistema / CORAL'; accent=ff7a90ff
+                rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Guardar incidente' 'Abrir incidentes' 'Volver a categorias');;
             *) exit 2;;
         esac
         if ! choice=$(pick "${rows[@]}"); then
@@ -59,7 +61,7 @@ if [[ $mode == menu ]]; then
         break
     done
     case $choice in
-        'Buscar aplicaciones') exec fuzzel --border-color=00d4e8ff;;
+        'Buscar aplicaciones') exec ultra-personalizar lanzador;;
         'Navegador Brave') exec ultra-brave;;
         Archivos) exec thunar;;
         'Panel de discos y preparacion') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
@@ -92,10 +94,15 @@ if [[ $mode == menu ]]; then
         'Efectos vivos') mode=vivo;;
         'Efectos reducidos') mode=sobrio;;
         'Limpiar notificaciones') exec makoctl dismiss -a;;
+        'Recuperar ultimo aviso') exec makoctl restore;;
+        'Historial del portapapeles') exec ultra-portapapeles menu;;
+        'Personalizar escritorio') exec ultra-personalizar menu;;
         'Ayuda y atajos') exec foot /usr/bin/less /etc/ultra/AYUDA.txt;;
         'Equipo en vivo') exec foot --title='ULTRA / Equipo en vivo' watch -n 2 ultra-equipo texto;;
         'Administrador de aplicaciones') exec foot --fullscreen --title='ULTRA / Aplicaciones' ultra-aplicaciones;;
         'Limpiar registros ULTRA antiguos') exec foot --hold ultra-espacio limpiar;;
+        'Guardar incidente') exec ultra-incidente guardar;;
+        'Abrir incidentes') exec ultra-incidente abrir;;
         *) exit 0;;
     esac
 fi
@@ -111,5 +118,7 @@ case $mode in
     *) printf 'Uso: ultra-ambiente menu|alternar|vivo|sobrio\n' >&2; exit 2;;
 esac
 hyprctl eval "hl.config({animations={enabled=$enabled},decoration={blur={enabled=$enabled},shadow={enabled=$enabled}}})" >/dev/null
+# Con personalizacion guardada, vuelve a poner su desenfoque, esquinas y animaciones para este modo.
+ultra-personalizar hyprland "$mode" >/dev/null 2>&1 || true
 printf '%s\n' "$mode" > "$state"
 notify-send --app-name=ULTRA --icon=preferences-desktop-theme 'BMO-X / Ambiente' "$message" || true
