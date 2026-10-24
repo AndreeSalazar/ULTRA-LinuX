@@ -79,8 +79,8 @@ struct App {
     texto_terminal: String,
     vivos: vivos::Muestreador,
     editor: editor_ui::PanelEditor,
-    /// Huella del archivo abierto en el editor (para no pisar cambios de fuera).
-    huella: Option<archivo::Huella>,
+    /// Huella de cada archivo abierto en el editor (para no pisar cambios de fuera).
+    huellas: std::collections::HashMap<String, archivo::Huella>,
 }
 
 /// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
@@ -99,7 +99,7 @@ impl App {
             texto_paleta: String::new(), tema_aplicado: None, disco: Disco::nuevo(move || ctx.request_repaint()), generacion: 0,
             pendiente: None, vigiladas: Vec::new(), cache: None, medidas: Medidas::default(), iconos: svg::Iconos::nuevo(), tiempo_iconos: Cell::new(0),
             gpu_ok, geometria: None, subidas: Arc::new(AtomicU64::new(0)), cuadros: 0, proceso: None, texto_terminal: String::new(),
-            vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huella: None,
+            vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huellas: Default::default(),
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -151,12 +151,12 @@ impl App {
             Efecto::Detener => { if let Some(p) = &self.proceso { p.detener(); } }
             Efecto::LeerArchivo(rel) => {
                 let t = Instant::now();
-                let resultado = archivo::leer(&self.carpeta, &rel).map(|(texto, h)| { self.huella = Some(h); texto });
+                let resultado = archivo::leer(&self.carpeta, &rel).map(|(texto, h)| { self.huellas.insert(rel.clone(), h); texto });
                 self.medidas.anotar(Carril::Disco, t.elapsed().as_micros() as u64);
                 self.despachar(Accion::ArchivoLeido { id: rel, resultado });
             }
             Efecto::GuardarArchivo { id, texto } => {
-                let resultado = archivo::guardar(&self.carpeta, &id, &texto, self.huella).map(|h| { self.huella = Some(h); });
+                let resultado = archivo::guardar(&self.carpeta, &id, &texto, self.huellas.get(&id).copied()).map(|h| { self.huellas.insert(id.clone(), h); });
                 self.despachar(Accion::Guardado { id, resultado });
             }
             Efecto::Releer { .. } => {
@@ -287,7 +287,7 @@ impl App {
 
     /// Teclas de egui -> teclas del nucleo -> accion (el "keybindings.json").
     fn teclado(&mut self, ctx: &egui::Context) {
-        const MAPA: [(Key, Tecla); 24] = [(Key::S, Tecla::S), (Key::F8, Tecla::F8), (Key::T, Tecla::T), (Key::Comma, Tecla::Coma), (Key::G, Tecla::G), (Key::L, Tecla::L), (Key::H, Tecla::H),
+        const MAPA: [(Key, Tecla); 27] = [(Key::S, Tecla::S), (Key::F8, Tecla::F8), (Key::F, Tecla::F), (Key::W, Tecla::W), (Key::F3, Tecla::F3), (Key::T, Tecla::T), (Key::Comma, Tecla::Coma), (Key::G, Tecla::G), (Key::L, Tecla::L), (Key::H, Tecla::H),
             (Key::Z, Tecla::Z), (Key::A, Tecla::A), (Key::P, Tecla::P), (Key::B, Tecla::B), (Key::D, Tecla::D), (Key::I, Tecla::I), (Key::Tab, Tecla::Tab),
             (Key::Home, Tecla::Inicio), (Key::F12, Tecla::F12), (Key::Backspace, Tecla::Retroceso), (Key::Enter, Tecla::Enter),
             (Key::Escape, Tecla::Escape), (Key::F5, Tecla::F5), (Key::ArrowUp, Tecla::Arriba), (Key::ArrowDown, Tecla::Abajo),
@@ -301,12 +301,17 @@ impl App {
         // Escribiendo en la terminal: las letras son letras, no atajos (solo Ctrl, F y Esc).
         let escribiendo = ctx.egui_wants_keyboard_input() && self.estado.paleta.is_none();
         for (t, m) in pulsadas {
-            // En el editor, Esc cierra el editor (con aviso si hay cambios sin guardar).
-            if t == Tecla::Escape && self.editor.foco && self.estado.paleta.is_none() { self.despachar(Accion::Comando(Comando::CerrarEditor)); continue; }
+            // En el editor, Esc cierra primero la busqueda y luego la pestana (con aviso si hay cambios).
+            if t == Tecla::Escape && self.estado.paleta.is_none() {
+                if self.estado.editor.busqueda.is_some() && (self.editor.foco || self.editor.foco_busqueda) {
+                    self.despachar(Accion::Buscar(carpetas_nucleo::editor::AccionBuscar::Cerrar)); continue;
+                }
+                if self.editor.foco { self.despachar(Accion::Comando(Comando::CerrarEditor)); continue; }
+            }
             // Escribiendo (editor, terminal): Ctrl+Z, Ctrl+A y las letras son del texto. Solo pasan
             // las teclas F, Esc y los Ctrl que no tienen sentido dentro de un texto.
-            let global = matches!(t, Tecla::F5 | Tecla::F8 | Tecla::F12 | Tecla::Escape)
-                || (m.command && matches!(t, Tecla::S | Tecla::P | Tecla::Acento | Tecla::B | Tecla::Coma));
+            let global = matches!(t, Tecla::F3 | Tecla::F5 | Tecla::F8 | Tecla::F12 | Tecla::Escape)
+                || (m.command && matches!(t, Tecla::S | Tecla::P | Tecla::Acento | Tecla::B | Tecla::Coma | Tecla::F | Tecla::H | Tecla::W | Tecla::Tab));
             if escribiendo && !global { continue; }
             if let Some(a) = atajo(t, m.command, m.shift, m.alt, self.estado.paleta.is_some()) { self.despachar(a); }
         }
@@ -407,7 +412,7 @@ impl App {
                 }
                 let ic = Rect::from_min_size(Pos2::new(x + 14.0, fila.center().y - 8.0), Vec2::splat(16.0));
                 if !self.pintar_icono(ui, f.icono, ic, color(f.color)) {
-                    p.rect(ic.shrink(2.0), 1, if f.tipo == Tipo::Carpeta { color(f.color).gamma_multiply(0.35) } else { Color32::TRANSPARENT }, Stroke::new(1.2, color(f.color)), StrokeKind::Inside);
+                    pintar_grafo::icono_dibujado(&p, ic, f.tipo, color(f.color), f.expandida == Some(true));
                 }
                 let col_nombre = if f.marcas.errores > 0 { c.error } else if f.marcas.avisos > 0 { c.aviso } else if f.seleccionado { c.texto } else { c.tenue };
                 p.text(Pos2::new(ic.max.x + 6.0, fila.center().y), Align2::LEFT_CENTER, &f.nombre, FontId::proportional(13.0), col_nombre);
@@ -799,12 +804,12 @@ impl eframe::App for App {
             egui::Panel::bottom("terminal").resizable(true).default_size(220.0)
                 .frame(egui::Frame::new().fill(c.fondo).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.terminal(ui, &c));
         }
-        if self.estado.editor.is_some() {
+        if self.estado.editor.abierta() {
             let mut acciones = Vec::new();
             let mut micros = 0;
             egui::Panel::right("editor").resizable(true).default_size(620.0).min_size(320.0)
                 .frame(egui::Frame::new().fill(c.panel).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea)))
-                .show(ui, |ui| micros = self.editor.pintar(ui, &self.estado, &c, &mut acciones));
+                .show(ui, |ui| micros = self.editor.pintar(ui, &self.estado, &c, &self.iconos, &mut acciones));
             self.medidas.anotar(Carril::Editor, micros);
             for a in acciones { self.despachar(a); }
         } else {

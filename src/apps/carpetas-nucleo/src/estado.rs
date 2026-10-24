@@ -6,7 +6,7 @@ use crate::ajustes::Ajustes;
 use crate::carriles::MAX_DESPLEGADAS;
 use crate::comandos::{buscar, Comando};
 use crate::diagnosticos::{self, Errores};
-use crate::editor::{Editor, MAX_EDITOR};
+use crate::editor::{AccionBuscar, Pestanas, MAX_EDITOR};
 use crate::procesos::{ProcesoVivo, MAX_PROCESOS};
 use crate::disposicion::{Disposicion, ICONO};
 use crate::ejecutar::{lanzador, partir_linea, Terminal};
@@ -80,6 +80,11 @@ pub enum Accion {
     /// El texto del editor cambio (no rehace la geometria).
     Editar(String),
     Guardado { id: String, resultado: Result<(), String> },
+    /// Pestanas del editor: traer al frente / cerrar (con aviso si hay cambios).
+    Pestana(usize),
+    CerrarPestana(usize),
+    /// Buscar y reemplazar en la pestana activa.
+    Buscar(AccionBuscar),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -141,8 +146,8 @@ pub struct Estado {
     /// Errores de la ultima ejecucion, por nodo.
     pub errores: Errores,
     pub raiz_absoluta: String,
-    /// Editor de codigo abierto (clic derecho).
-    pub editor: Option<Editor>,
+    /// Editor de codigo (clic derecho): pestanas y busqueda.
+    pub editor: Pestanas,
     /// El proceso en marcha y sus hijos (de /proc).
     pub procesos: Vec<ProcesoVivo>,
 }
@@ -154,7 +159,7 @@ impl Default for Estado {
                  ajustes: Ajustes::default(), panel_ajustes: false, carriles: false, arbol: BTreeMap::new(),
                  expandidas: BTreeSet::new(), camara: Camara::default(), version: 0, nombre_raiz: String::new(),
                  version_contenido: 0, terminal: Terminal::default(), errores: Errores::default(), raiz_absoluta: String::new(),
-                 editor: None, procesos: Vec::new() }
+                 editor: Pestanas::default(), procesos: Vec::new() }
     }
 }
 
@@ -279,20 +284,13 @@ impl Estado {
                 if self.entrada(&id).is_some() { self.seleccion = [id.clone()].into(); }
                 self.abrir_editor(&id, Some(linea))
             }
-            Comando::Guardar => match &self.editor {
-                Some(ed) if ed.cargado && ed.sucio => vec![Efecto::GuardarArchivo { id: ed.id.clone(), texto: ed.texto.clone() }],
-                _ => vec![],
+            Comando::Guardar => match self.editor.para_guardar() {
+                Some((id, texto)) => vec![Efecto::GuardarArchivo { id, texto }],
+                None => vec![],
             },
-            Comando::CerrarEditor => {
-                match &mut self.editor {
-                    Some(ed) if ed.sucio && !ed.cerrar_pedido => {
-                        ed.cerrar_pedido = true;
-                        ed.aviso = Some(String::from("Cambios sin guardar: Ctrl+S guarda; cerrar otra vez los descarta"));
-                    }
-                    _ => self.editor = None,
-                }
-                vec![]
-            }
+            Comando::CerrarEditor => { let i = self.editor.activa; self.editor.cerrar(i); vec![] }
+            Comando::SiguientePestana => { self.editor.mover(1); vec![] }
+            Comando::AnteriorPestana => { self.editor.mover(-1); vec![] }
             Comando::EjecutarSeleccion => match self.seleccion.iter().next() {
                 Some(id) if self.seleccion.len() == 1 => { let id = id.clone(); self.ejecutar(&id) }
                 _ if self.seleccion.is_empty() && lanzador(self, "").is_some() => self.ejecutar(""),
@@ -344,17 +342,11 @@ impl Estado {
             return vec![];
         }
         if linea.is_none() { linea = self.errores.de(&id).iter().find(|d| d.grave).or(self.errores.de(&id).first()).map(|d| d.linea); }
-        let carga = match &mut self.editor {
-            Some(ed) if ed.id == id => { ed.ir_a = linea.or(ed.ir_a); ed.saltos += 1; return vec![]; }
-            Some(ed) if ed.sucio => {
-                ed.aviso = Some(alloc::format!("Guarda (Ctrl+S) o descarta {} antes de abrir otro archivo", ed.id));
-                return vec![];
-            }
-            Some(ed) => ed.carga + 1,
-            None => 1,
-        };
-        self.editor = Some(Editor { id: id.clone(), ir_a: linea.or(Some(1)), saltos: 1, carga, ..Editor::default() });
-        vec![Efecto::LeerArchivo(id)]
+        match self.editor.abrir(&id, linea) {
+            Ok(true) => vec![Efecto::LeerArchivo(id)],
+            Ok(false) => vec![],
+            Err(aviso) => { self.terminal.escribir(&aviso, true); vec![] }
+        }
     }
 
     /// Despliega las carpetas que llevan a un archivo con error (una vez por ejecucion:
@@ -419,7 +411,8 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
     // Tampoco la salida de un proceso, /proc o teclear en el editor: si de ahi sale un error
     // nuevo en un nodo, se marca abajo a mano.
     if !matches!(accion, Accion::Desplazar(_) | Accion::Zoom { .. } | Accion::Lienzo(_) | Accion::Ancho(_) | Accion::Salida { .. }
-                       | Accion::Procesos(_) | Accion::Editar(_) | Accion::RutaRaiz(_)) {
+                       | Accion::Procesos(_) | Accion::Editar(_) | Accion::RutaRaiz(_) | Accion::Buscar(_) | Accion::Pestana(_)
+                       | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. }) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
     }
     match accion {
@@ -573,39 +566,12 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             vec![]
         }
         Accion::AbrirEditor { id, linea } => e.abrir_editor(&id, linea),
-        Accion::ArchivoLeido { id, resultado } => {
-            if let Some(ed) = &mut e.editor {
-                if ed.id == id && !ed.cargado {
-                    match resultado {
-                        Ok(t) => { ed.texto = t; ed.cargado = true; ed.carga += 1; }
-                        Err(m) => ed.aviso = Some(m),
-                    }
-                }
-            }
-            vec![]
-        }
-        Accion::Editar(t) => {
-            if let Some(ed) = &mut e.editor {
-                if ed.cargado && t != ed.texto {
-                    if t.len() as u64 > MAX_EDITOR { ed.aviso = Some(String::from("El texto pasa de 2 MiB: no se acepta")); return vec![]; }
-                    ed.texto = t;
-                    ed.sucio = true;
-                    ed.cerrar_pedido = false;
-                }
-            }
-            vec![]
-        }
-        Accion::Guardado { id, resultado } => {
-            if let Some(ed) = &mut e.editor {
-                if ed.id == id {
-                    match resultado {
-                        Ok(()) => { ed.sucio = false; ed.cerrar_pedido = false; ed.aviso = Some(String::from("Guardado. F5 para volver a ejecutar")); }
-                        Err(m) => ed.aviso = Some(m),
-                    }
-                }
-            }
-            vec![]
-        }
+        Accion::ArchivoLeido { id, resultado } => { e.editor.leido(&id, resultado); vec![] }
+        Accion::Editar(t) => { e.editor.editar(t); vec![] }
+        Accion::Guardado { id, resultado } => { e.editor.guardado(&id, resultado); vec![] }
+        Accion::Pestana(i) => { e.editor.elegir(i); vec![] }
+        Accion::CerrarPestana(i) => { e.editor.cerrar(i); vec![] }
+        Accion::Buscar(b) => { e.editor.buscar(b); vec![] }
     }
 }
 

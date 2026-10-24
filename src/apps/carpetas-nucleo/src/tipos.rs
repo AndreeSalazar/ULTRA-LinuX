@@ -31,15 +31,17 @@ impl Tipo {
 }
 
 pub fn tipo_por_extension(nombre: &str) -> Tipo {
+    if crate::iconos::nombre_de_codigo(nombre) { return Tipo::Codigo; }
     let ext = nombre.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase()).unwrap_or_default();
     match ext.as_str() {
         "png" | "jpg" | "jpeg" | "webp" | "gif" | "svg" | "bmp" | "avif" => Tipo::Imagen,
         "mp4" | "mkv" | "webm" | "mov" | "avi" => Tipo::Video,
         "mp3" | "ogg" | "opus" | "flac" | "wav" | "m4a" => Tipo::Audio,
-        "rs" | "c" | "h" | "cpp" | "hpp" | "py" | "sh" | "lua" | "js" | "ts" | "toml" | "json" | "jsonc" | "yuck" | "scss" | "css" | "s" | "asm" => Tipo::Codigo,
+        "yuck" => Tipo::Codigo,
         "zip" | "tar" | "gz" | "xz" | "zst" | "7z" | "rar" | "bz2" => Tipo::Comprimido,
         "exe" | "appimage" | "so" | "bin" => Tipo::Programa,
         "pdf" | "txt" | "md" | "odt" | "docx" | "epub" | "log" | "csv" => Tipo::Documento,
+        _ if crate::iconos::es_codigo(nombre) => Tipo::Codigo,
         _ => Tipo::Otro,
     }
 }

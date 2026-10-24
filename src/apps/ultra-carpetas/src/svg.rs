@@ -24,6 +24,12 @@ const TODOS: &[(&str, &[u8])] = iconos![
     "material/video", "material/audio", "material/zip", "material/exe", "material/dll", "material/settings", "material/log", "material/git",
     "material/svg", "material/html", "material/yaml", "material/xml", "material/table", "material/font", "material/key", "material/lock",
     "material/database", "material/assembly", "material/nix", "material/makefile", "material/docker", "material/readme", "material/license",
+    "material/hpp", "material/cmake", "material/go", "material/java", "material/kotlin", "material/zig", "material/csharp", "material/swift",
+    "material/ruby", "material/php", "material/haskell", "material/dart", "material/react", "material/react_ts", "material/powershell",
+    "material/cuda", "material/verilog", "material/meson", "material/editorconfig", "material/shader", "material/objective-c",
+    "material/objective-cpp", "material/clangd", "material/gradle", "material/ocaml", "material/elixir", "material/erlang", "material/scala",
+    "material/julia", "material/r", "material/vue", "material/svelte", "material/webassembly", "material/hcl", "material/terraform",
+    "material/proto", "material/graphql", "material/diff", "material/certificate",
     "lucide/folder", "lucide/folder-open", "lucide/file", "lucide/file-image", "lucide/file-video-camera", "lucide/file-music", "lucide/file-code",
     "lucide/file-archive", "lucide/file-text", "lucide/file-cog", "lucide/file-terminal", "lucide/file-spreadsheet", "lucide/file-key", "lucide/link",
 ];
@@ -82,9 +88,10 @@ mod pruebas {
         let tipos = [Tipo::Codigo, Tipo::Imagen, Tipo::Video, Tipo::Audio, Tipo::Comprimido, Tipo::Programa, Tipo::Documento, Tipo::Otro, Tipo::Enlace];
         let carpetas = ["src", "Imágenes", "Música", "Vídeos", "Descargas", "docs", "config", "scripts", "tools", "tmp", ".git", "public", "assets",
             "Escritorio", "Proyectos", "lib", "dist", "target", "include", "tests", "fuentes", "home", "cualquiera"];
-        for estilo in [EstiloIconos::Material, EstiloIconos::Lucide] {
-            for n in nombres { for t in tipos { let c = icono(n, t, estilo); assert!(claves.contains(c), "{c} ({n}, {t:?})"); } }
-            for n in carpetas { let c = icono(n, Tipo::Carpeta, estilo); assert!(claves.contains(c), "{c}"); }
+        for c in carpetas_nucleo::iconos::claves() { assert!(claves.contains(c), "falta el SVG de {c}"); }
+        for estilo in [EstiloIconos::Material, EstiloIconos::Lucide, EstiloIconos::Neon] {
+            for n in nombres { for t in tipos { let c = icono(n, t, estilo); assert!(c.is_empty() && estilo == EstiloIconos::Neon || claves.contains(c), "{c} ({n}, {t:?})"); } }
+            for n in carpetas { let c = icono(n, Tipo::Carpeta, estilo); assert!(c.is_empty() && estilo == EstiloIconos::Neon || claves.contains(c), "{c}"); }
         }
     }
 }

@@ -28,6 +28,7 @@ donde tú lo dejes y cada carpeta recuerda su orden.** Con control:
 | Retroceso, Atrás, Arriba y la ruta | Navegar; cada parte de la ruta es un botón |
 | Ctrl+A, Esc, F5 | Seleccionar todo, quitar la selección, ejecutar (play) o volver a leer |
 | **Clic derecho**, **F8** | Editor de código en el error / siguiente error ([en vivo](#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)) |
+| **Ctrl+F**, **Ctrl+H**, **Ctrl+Tab**, **Ctrl+W** | En el editor: buscar, reemplazar, cambiar de pestaña, cerrarla ([pestañas](#pestañas-y-buscar-y-reemplazar)) |
 | **Ctrl+Shift+P** | Paleta de comandos |
 | **Ctrl+,** | Ajustes: temas con vista previa ([guía](TEMAS-APPS.md)), iconos y dirección del grafo |
 | **Tab** / **Ctrl+B** | Iconos ↔ grafo / mostrar u ocultar el explorador |
@@ -171,6 +172,50 @@ actualiza sola.
   checkout`), no lo pisa y te avisa.
 - Nunca guarda solo: solo con Ctrl+S o con el botón.
 
+### Pestañas y buscar y reemplazar
+
+![Tres pestañas con su logo; Ctrl+H buscó «vga» (3 de 18) con las coincidencias marcadas](maquetas/png/neon/carpetas-buscar.png)
+
+| Tecla | Qué hace |
+| --- | --- |
+| Clic derecho, F8 o un enlace de la terminal | Abre el archivo en **una pestaña nueva**, o trae al frente la que ya lo tiene |
+| **Ctrl+Tab** / **Ctrl+Shift+Tab** | Siguiente / anterior pestaña |
+| **Ctrl+W**, la X o clic central | Cerrar la pestaña (si tiene cambios, avisa la primera vez) |
+| **Ctrl+F** | Buscar; vuelve a poner lo último que buscaste |
+| **Ctrl+H** | Buscar y reemplazar |
+| **Enter** / **Shift+Enter**, **F3** / **Shift+F3** | Siguiente / anterior coincidencia |
+| **Aa** / **Palabra** | Distinguir mayúsculas / solo palabras enteras |
+| Reemplazar / **Todo** | Esta coincidencia / todas de una vez (Ctrl+Z en el editor lo deshace en un paso) |
+| **Esc** | Cierra la búsqueda; otra vez, la pestaña |
+
+**Pestañas:**
+
+- Cada una lleva el logo de su lenguaje y una insignia roja si tiene errores.
+- Si tiene cambios sin guardar, muestra un punto amarillo, como VS Code. El punto
+  se va solo si deshaces hasta lo que hay en disco: se compara con una huella de lo
+  guardado.
+- Caben 12. Al abrir la 13.ª se recicla la más vieja **sin cambios**; si todas
+  tienen cambios, no se abre y te avisa. Nunca se pierde nada.
+- Cada pestaña guarda su propia huella de disco, así que guardar una nunca pisa un
+  archivo que otro programa cambió.
+
+**Búsqueda:**
+
+- Marca todas las coincidencias, y la actual más fuerte.
+- Elegir una coincidencia la selecciona y la centra sin quitarte el foco del cuadro
+  de buscar.
+- Sin «Aa» también encuentra ñ y tildes (`ñandú` = `ÑANDÚ`).
+- Es texto literal, sin expresiones regulares, y marca como mucho 10 000
+  coincidencias (si hay más, lo indica con un «+»).
+- Vuelve a buscar sola cuando tecleas o cambias de pestaña.
+- Reemplazar no deja pasar el límite de 2 MiB.
+- Todo está en el núcleo `no_std`, con pruebas.
+
+El coloreado conoce C++ (`class`, `template`, `namespace`, `constexpr`,
+`nullptr`…) y las directivas `#include`, `#define` y `#pragma`.
+
+![Pestañas con logo en el grafo: motor.cpp, motor.hpp, main.rs, vga.c y vga.h, buscando VGA_ANCHO](maquetas/png/neon/carpetas-pestanas-iconos.png)
+
 ![Procesos en vivo: motor al 99 % de CPU con su hijo sleep, leído de /proc; carriles en verde y 2 subidas a la GPU en 70 cuadros](maquetas/png/neon/carpetas-en-vivo.png)
 
 **Procesos en vivo.** Al darle a play, el nodo que se ejecuta lleva un borde verde y
@@ -237,11 +282,42 @@ Si no hay wgpu (por ejemplo, en el modo de recuperación), se dibuja en la CPU c
 
 | Estilo | Qué es |
 | --- | --- |
-| Neón | Dibujados con formas, como hasta ahora |
+| Neón | Carpetas (abiertas o cerradas) y páginas dibujadas con formas; **los archivos de código llevan su logo** (ver abajo) |
 | **Material** | Los iconos de archivos de VS Code ([Material Icon Theme](https://github.com/material-extensions/vscode-material-icon-theme), MIT): logos de Rust, C, Python, TOML…, y carpetas especiales (`src`, `docs`, Imágenes, Música, Descargas…) |
 | **Lucide** | Iconos de líneas ([Lucide](https://github.com/lucide-icons/lucide), ISC) teñidos con los colores del tema |
 
-Son 78 SVG incrustados en el programa, con sus licencias en
+![Explorador con logos de lenguaje: asm, C, .h, C++, .hpp, shell, Python, WGSL, Rust, TOML, CMake y Makefile](maquetas/png/neon/carpetas-iconos-lenguajes.png)
+
+**Logos reconocibles también en Neón.** Un engranaje de Rust o una C azul se
+reconocen de un vistazo, así que los archivos de código llevan el logo de su
+lenguaje en los tres sitios: el explorador, el grafo y las pestañas del editor.
+Lo demás (carpetas, documentos, imágenes) sigue dibujado. Toda la familia de C y
+C++ está cubierta:
+
+| Archivos | Icono |
+| --- | --- |
+| `.c` | C |
+| `.h` | cabecera de C |
+| `.cpp` `.cc` `.cxx` `.c++` `.cppm` `.ixx` | C++ |
+| `.hpp` `.hh` `.hxx` `.h++` `.inl` `.ipp` `.tpp` | cabecera de C++ |
+| `.cu` `.cuh` | CUDA |
+| `.m` / `.mm` | Objective-C / Objective-C++ |
+| `.s` `.asm` `.nasm` | ensamblador |
+| `CMakeLists.txt` `.cmake` | CMake |
+| `Makefile` `GNUmakefile` | Make |
+| `meson.build` | Meson |
+| `.clang-format` `.clangd` `.clang-tidy` `compile_commands.json` | clangd |
+
+También están Rust, Zig, Go, Python, Java, Kotlin, C#, Swift, Ruby, PHP, Haskell,
+OCaml, Elixir, Erlang, Scala, Julia, R, Dart, JS/TS, React, Vue, Svelte, Lua,
+shell, PowerShell, Verilog, WebAssembly, shaders (`.wgsl` `.glsl` `.hlsl` `.vert`
+`.frag`…), Nix, Terraform, Protobuf, GraphQL, SQL, Markdown, JSON, TOML, YAML y diff.
+
+Una sola tabla en el núcleo decide el icono, si el archivo es código (su color y su
+botón de play) y cómo se colorea en el editor. Así no pueden desencajarse.
+Un archivo oculto sin nombre (`.rs`) no cuenta como Rust.
+
+Son 117 SVG incrustados en el programa, con sus licencias en
 `src/apps/ultra-carpetas/iconos/`. El programa nunca abre un SVG de fuera, así que
 el lector SVG (resvg) solo ve archivos conocidos. Una prueba comprueba que ninguno
 lleva scripts, enlaces externos ni imágenes incrustadas, y otra que cada icono que
@@ -361,7 +437,8 @@ Si no hay Rust o no compila, avisa en amarillo y sigue Thunar. Corre desde
 
 - Probarlo en Hyprland real con NVIDIA (aquí se probó con Vulkan por software). Los
   tiempos de los carriles en la pantalla virtual no valen como medida de tu PC.
-- Editor: buscar y reemplazar, varias pestañas y comentarios `/* */` de varias líneas
-  coloreados enteros (ahora solo su primera línea).
+- Editor: expresiones regulares en la búsqueda, buscar en todo el proyecto y
+  comentarios `/* */` de varias líneas coloreados enteros (ahora solo su primera
+  línea).
 - Miniaturas de imágenes, renombrar y mover archivos de verdad (con confirmación y
   deshacer), varias ventanas y arrastrar entre carpetas.

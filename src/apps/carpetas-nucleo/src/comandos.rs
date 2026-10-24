@@ -2,6 +2,7 @@
 //! Comandos como en VS Code: cada cosa que se puede hacer tiene id, titulo y atajo.
 //! La paleta (Ctrl+Shift+P) y el teclado usan la misma tabla.
 
+use crate::editor::AccionBuscar;
 use crate::estado::{Accion, AccionPaleta, Orden};
 use alloc::vec::Vec;
 
@@ -12,7 +13,7 @@ pub enum Comando {
     Ajustes, SiguienteTema, Tema(u8), Brillo, AcentoEscritorio,
     Modo, Explorador, Direccion, Encuadrar, Reacomodar, Iconos, Carriles,
     Terminal, Detener, LimpiarTerminal, Dibujo, EjecutarSeleccion,
-    SiguienteError, PararEnError, Guardar, CerrarEditor,
+    SiguienteError, PararEnError, Guardar, CerrarEditor, SiguientePestana, AnteriorPestana,
 }
 
 pub struct InfoComando {
@@ -49,7 +50,9 @@ pub const COMANDOS: &[InfoComando] = &[
     InfoComando { comando: Comando::SiguienteError, id: "errores.siguiente", titulo: "Ir al siguiente error (abre el editor)", atajo: "F8" },
     InfoComando { comando: Comando::PararEnError, id: "errores.parar", titulo: "Parar el proceso en el primer error", atajo: "" },
     InfoComando { comando: Comando::Guardar, id: "editor.guardar", titulo: "Editor: guardar", atajo: "Ctrl+S" },
-    InfoComando { comando: Comando::CerrarEditor, id: "editor.cerrar", titulo: "Editor: cerrar", atajo: "Esc en el editor" },
+    InfoComando { comando: Comando::CerrarEditor, id: "editor.cerrar", titulo: "Editor: cerrar la pestana", atajo: "Ctrl+W" },
+    InfoComando { comando: Comando::SiguientePestana, id: "editor.siguientePestana", titulo: "Editor: siguiente pestana", atajo: "Ctrl+Tab" },
+    InfoComando { comando: Comando::AnteriorPestana, id: "editor.anteriorPestana", titulo: "Editor: pestana anterior", atajo: "Ctrl+Shift+Tab" },
     InfoComando { comando: Comando::LimpiarTerminal, id: "terminal.limpiar", titulo: "Limpiar la terminal", atajo: "" },
     InfoComando { comando: Comando::Dibujo, id: "grafo.dibujo", titulo: "Dibujo del grafo: GPU retenido o CPU", atajo: "" },
     InfoComando { comando: Comando::Carriles, id: "vista.carriles", titulo: "Carriles: semaforo de rendimiento", atajo: "F12" },
@@ -70,7 +73,7 @@ pub const COMANDOS: &[InfoComando] = &[
 
 /// Teclas que entiende el nucleo; cada plataforma traduce las suyas a estas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tecla { G, L, H, Z, A, P, T, B, D, I, Tab, Inicio, F12, Coma, Retroceso, Enter, Escape, F5, F8, S, Arriba, Abajo, Izquierda, Acento }
+pub enum Tecla { G, L, H, Z, A, P, T, B, D, I, Tab, Inicio, F12, Coma, Retroceso, Enter, Escape, F5, F8, S, F, W, F3, Arriba, Abajo, Izquierda, Acento }
 
 /// Como el keybindings.json de VS Code: tecla + modificadores -> accion.
 pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: bool) -> Option<Accion> {
@@ -106,6 +109,14 @@ pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: b
         (Tecla::F5, _, _, _) => Comando::EjecutarSeleccion,
         (Tecla::F8, _, _, _) => Comando::SiguienteError,
         (Tecla::S, true, _, _) => Comando::Guardar,
+        (Tecla::W, true, _, _) => Comando::CerrarEditor,
+        (Tecla::Tab, true, false, _) => Comando::SiguientePestana,
+        (Tecla::Tab, true, true, _) => Comando::AnteriorPestana,
+        // Buscar: no son comandos de la tabla, son acciones del editor.
+        (Tecla::F, true, _, _) => return Some(Accion::Buscar(AccionBuscar::Abrir { reemplazar: false })),
+        (Tecla::H, true, _, _) => return Some(Accion::Buscar(AccionBuscar::Abrir { reemplazar: true })),
+        (Tecla::F3, _, true, _) => return Some(Accion::Buscar(AccionBuscar::Anterior)),
+        (Tecla::F3, _, false, _) => return Some(Accion::Buscar(AccionBuscar::Siguiente)),
         _ => return None,
     };
     Some(Accion::Comando(comando))

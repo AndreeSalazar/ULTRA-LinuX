@@ -16,3 +16,9 @@ Derivados aquí (no están tal cual en el repositorio de origen):
 
 Los iconos de Lucide usan `stroke="currentColor"`; el programa lo cambia por blanco
 al cargarlos y los tiñe con el color del tipo de archivo del tema.
+
+Los logos de lenguaje añadidos después (`hpp`, `cmake`, `cuda`, `objective-c`,
+`objective-cpp`, `clangd`, `meson`, `go`, `zig`, `shader` y el resto de la tabla del
+núcleo) vienen tal cual de la carpeta `icons/` de Material Icon Theme, rama `main`.
+Se revisaron antes de incluirlos: sin scripts, enlaces ni imágenes incrustadas, y una
+prueba lo vuelve a comprobar en cada build.

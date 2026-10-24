@@ -51,7 +51,8 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   **En vivo:** los procesos del play (de `/proc`) en una tarjeta sobre su nodo; los errores de
   rustc, panics, gcc y Python **marcan en rojo el nodo de su archivo**; y con **clic derecho** se
   abre el editor de código en la línea del error (F8 va al siguiente; Ctrl+S guarda sin pisar
-  cambios de fuera) ([en vivo](docs/ULTRA-CARPETAS.md#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)).
+  cambios de fuera), con **pestañas** y **buscar y reemplazar** (Ctrl+F / Ctrl+H). Los archivos de
+  código llevan **su logo** (Rust, C, C++, cabeceras, CMake, asm y 40 lenguajes más) ([en vivo](docs/ULTRA-CARPETAS.md#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)).
   **9 temas** (Neón BMO-X, TITAN Taller, Synthwave '84, Tokyo Night, Catppuccin, Rosé Pine, Kanagawa,
   Dracula, Nord) con contraste comprobado y panel de ajustes en Ctrl+, ([temas](docs/TEMAS-APPS.md)).
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y

@@ -85,11 +85,11 @@ fn clic_derecho_abre_el_editor_en_el_error() {
     reducir(&mut s, Accion::Termino(Some(101)));
     // Clic derecho en un archivo con error: se abre en su linea.
     assert_eq!(reducir(&mut s, Accion::AbrirEditor { id: "src/ship.rs".into(), linea: None }), vec![Efecto::LeerArchivo("src/ship.rs".into())]);
-    assert_eq!(s.editor.as_ref().unwrap().ir_a, Some(7));
+    assert_eq!(s.editor.activa().unwrap().ir_a, Some(7));
     reducir(&mut s, Accion::ArchivoLeido { id: "otro.rs".into(), resultado: Ok("x".into()) });
-    assert!(!s.editor.as_ref().unwrap().cargado, "solo se acepta lo pedido");
+    assert!(!s.editor.activa().unwrap().cargado, "solo se acepta lo pedido");
     reducir(&mut s, Accion::ArchivoLeido { id: "src/ship.rs".into(), resultado: Ok("fn main() {}\n".into()) });
-    assert!(s.editor.as_ref().unwrap().cargado);
+    assert!(s.editor.activa().unwrap().cargado);
     // Teclear no rehace el grafo; Ctrl+S guarda solo si hay cambios.
     assert!(reducir(&mut s, atajo(Tecla::S, true, false, false, false).unwrap()).is_empty());
     let antes = s.version_contenido;
@@ -97,21 +97,27 @@ fn clic_derecho_abre_el_editor_en_el_error() {
     assert_eq!(s.version_contenido, antes);
     assert_eq!(reducir(&mut s, atajo(Tecla::S, true, false, false, false).unwrap()),
                vec![Efecto::GuardarArchivo { id: "src/ship.rs".into(), texto: "fn main() { 1 }\n".into() }]);
-    // Con cambios sin guardar no se cambia de archivo ni se cierra a la primera.
-    assert!(reducir(&mut s, Accion::AbrirEditor { id: "src/main.rs".into(), linea: None }).is_empty());
-    let saltos = s.editor.as_ref().unwrap().saltos;
-    reducir(&mut s, Accion::AbrirEditor { id: "src/ship.rs".into(), linea: Some(7) });
-    assert_eq!(s.editor.as_ref().unwrap().saltos, saltos + 1, "pedir la misma linea otra vez vuelve a saltar");
-    assert_eq!(s.editor.as_ref().unwrap().id, "src/ship.rs");
+    // Con cambios sin guardar, otro archivo se abre en otra pestana (no se pierde nada).
+    assert_eq!(reducir(&mut s, Accion::AbrirEditor { id: "src/main.rs".into(), linea: None }), vec![Efecto::LeerArchivo("src/main.rs".into())]);
+    assert_eq!(s.editor.lista.len(), 2);
+    assert_eq!(s.editor.activa().unwrap().id, "src/main.rs");
+    // Volver a ship.rs no la relee: la trae al frente y salta.
+    let saltos = s.editor.lista[0].saltos;
+    assert!(reducir(&mut s, Accion::AbrirEditor { id: "src/ship.rs".into(), linea: Some(7) }).is_empty());
+    assert_eq!(s.editor.activa().unwrap().saltos, saltos + 1, "pedir la misma linea otra vez vuelve a saltar");
+    assert_eq!(s.editor.activa().unwrap().id, "src/ship.rs");
+    assert!(s.editor.activa().unwrap().sucio, "sus cambios siguen ahi");
     reducir(&mut s, Accion::Comando(Comando::CerrarEditor));
-    assert!(s.editor.is_some() && s.editor.as_ref().unwrap().cerrar_pedido);
+    assert!(s.editor.activa().unwrap().cerrar_pedido, "con cambios, la primera vez solo avisa");
     reducir(&mut s, Accion::Guardado { id: "src/ship.rs".into(), resultado: Ok(()) });
-    assert!(!s.editor.as_ref().unwrap().sucio);
-    reducir(&mut s, Accion::Comando(Comando::CerrarEditor));
-    assert!(s.editor.is_none());
+    assert!(!s.editor.activa().unwrap().sucio);
+    reducir(&mut s, atajo(Tecla::W, true, false, false, false).unwrap());
+    assert_eq!(s.editor.lista.len(), 1, "Ctrl+W cierra la pestana");
+    reducir(&mut s, Accion::CerrarPestana(0));
+    assert!(!s.editor.abierta());
     // En una carpeta, el clic derecho va a su primer error.
     assert_eq!(reducir(&mut s, Accion::AbrirEditor { id: "src".into(), linea: None }), vec![Efecto::LeerArchivo("src/ship.rs".into())]);
-    s.editor = None;
+    s.editor = Default::default();
     // Lo que no se listo, lo demasiado grande y las carpetas sin errores no abren nada.
     assert!(reducir(&mut s, Accion::AbrirEditor { id: "../../etc/passwd".into(), linea: None }).is_empty());
     assert!(reducir(&mut s, Accion::AbrirEditor { id: "src/enorme.rs".into(), linea: None }).is_empty());

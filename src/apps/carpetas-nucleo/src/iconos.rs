@@ -52,23 +52,110 @@ fn carpeta_material(nombre: &str) -> &'static str {
     else { "material/folder" }
 }
 
+/// Una fila por lenguaje o formato: extensiones, icono de Material y si es un **logo
+/// reconocible** (Rust, C, C++...). Los logos se ven tambien en el estilo Neon, porque
+/// un engranaje de Rust o una C azul se reconocen de un vistazo en el explorador.
+const POR_EXTENSION: &[(&[&str], &str, bool)] = &[
+    (&["rs"], "material/rust", true),
+    (&["c"], "material/c", true),
+    (&["h"], "material/h", true),
+    (&["cpp", "cc", "cxx", "c++", "cppm", "ixx"], "material/cpp", true),
+    (&["hpp", "hh", "hxx", "h++", "inl", "ipp", "tpp"], "material/hpp", true),
+    (&["cu", "cuh"], "material/cuda", true),
+    (&["m"], "material/objective-c", true),
+    (&["mm"], "material/objective-cpp", true),
+    (&["s", "asm", "nasm"], "material/assembly", true),
+    (&["zig"], "material/zig", true),
+    (&["go"], "material/go", true),
+    (&["py", "pyi", "pyw"], "material/python", true),
+    (&["java"], "material/java", true),
+    (&["kt", "kts"], "material/kotlin", true),
+    (&["cs"], "material/csharp", true),
+    (&["swift"], "material/swift", true),
+    (&["rb"], "material/ruby", true),
+    (&["php"], "material/php", true),
+    (&["hs"], "material/haskell", true),
+    (&["ml", "mli"], "material/ocaml", true),
+    (&["ex", "exs"], "material/elixir", true),
+    (&["erl", "hrl"], "material/erlang", true),
+    (&["scala", "sc"], "material/scala", true),
+    (&["jl"], "material/julia", true),
+    (&["r"], "material/r", true),
+    (&["dart"], "material/dart", true),
+    (&["js", "mjs", "cjs"], "material/javascript", true),
+    (&["ts", "mts", "cts"], "material/typescript", true),
+    (&["jsx"], "material/react", true),
+    (&["tsx"], "material/react_ts", true),
+    (&["vue"], "material/vue", true),
+    (&["svelte"], "material/svelte", true),
+    (&["lua"], "material/lua", true),
+    (&["sh", "bash", "zsh", "fish"], "material/console", true),
+    (&["ps1"], "material/powershell", true),
+    (&["v", "sv", "svh", "vh"], "material/verilog", true),
+    (&["wasm", "wat"], "material/webassembly", true),
+    (&["glsl", "vert", "frag", "comp", "geom", "tesc", "tese", "wgsl", "hlsl", "spv"], "material/shader", true),
+    (&["cmake"], "material/cmake", true),
+    (&["gradle"], "material/gradle", true),
+    (&["tf", "tfvars"], "material/terraform", true),
+    (&["hcl"], "material/hcl", true),
+    (&["proto"], "material/proto", true),
+    (&["graphql", "gql"], "material/graphql", true),
+    (&["nix"], "material/nix", true),
+    (&["sql"], "material/database", true),
+    (&["html", "htm"], "material/html", true),
+    (&["css"], "material/css", true),
+    (&["scss", "sass"], "material/sass", true),
+    (&["json", "jsonc"], "material/json", true),
+    (&["toml"], "material/toml", true),
+    (&["yml", "yaml"], "material/yaml", true),
+    (&["xml"], "material/xml", true),
+    (&["md", "markdown"], "material/markdown", true),
+    (&["diff", "patch"], "material/diff", true),
+    (&["pdf"], "material/pdf", false),
+    (&["txt"], "material/document", false),
+    (&["svg"], "material/svg", false),
+    (&["csv", "tsv"], "material/table", false),
+    (&["ttf", "otf", "woff", "woff2"], "material/font", false),
+    (&["pem", "key"], "material/key", false),
+    (&["crt", "cer"], "material/certificate", false),
+    (&["lock"], "material/lock", false),
+    (&["db", "sqlite"], "material/database", false),
+    (&["log"], "material/log", false),
+    (&["exe"], "material/exe", false),
+    (&["dll", "so"], "material/dll", false),
+    (&["ini", "conf", "cfg", "desktop"], "material/settings", false),
+];
+
+/// Nombres exactos que mandan sobre la extension (CMakeLists.txt no es un .txt cualquiera).
+const POR_NOMBRE: &[(&str, &str, bool)] = &[
+    ("Makefile", "material/makefile", true), ("GNUmakefile", "material/makefile", true),
+    ("CMakeLists.txt", "material/cmake", true), ("meson.build", "material/meson", true), ("meson_options.txt", "material/meson", true),
+    ("Dockerfile", "material/docker", true), (".gitignore", "material/git", true), (".gitattributes", "material/git", true),
+    (".gitmodules", "material/git", true), ("flake.nix", "material/nix", true), (".editorconfig", "material/editorconfig", true),
+    (".clangd", "material/clangd", true), (".clang-format", "material/clangd", true), (".clang-tidy", "material/clangd", true),
+    ("compile_commands.json", "material/clangd", true),
+    ("README", "material/readme", false), ("README.md", "material/readme", false), ("LEEME.md", "material/readme", false),
+    ("LICENSE", "material/license", false), ("LICENSE.md", "material/license", false), ("COPYING", "material/license", false),
+    ("Cargo.lock", "material/lock", false),
+];
+
+/// (clave de Material, es logo) por nombre o extension; None si no se conoce.
+fn conocido(nombre: &str) -> Option<(&'static str, bool)> {
+    if let Some((_, c, l)) = POR_NOMBRE.iter().find(|(n, _, _)| igual(nombre, n)) { return Some((c, *l)); }
+    // ".rs" o ".bashrc" son archivos ocultos sin extension, no codigo.
+    if !nombre.trim_start_matches('.').contains('.') { return None; }
+    let ext = extension(nombre);
+    POR_EXTENSION.iter().find(|(exts, _, _)| exts.iter().any(|e| igual(ext, e))).map(|(_, c, l)| (*c, *l))
+}
+
+/// Nombres exactos que son codigo o build (Makefile, CMakeLists.txt...).
+pub fn nombre_de_codigo(nombre: &str) -> bool { POR_NOMBRE.iter().any(|(n, _, logo)| *logo && igual(nombre, n)) }
+
+/// Es un archivo de codigo segun la tabla (para colorear y para el tipo).
+pub fn es_codigo(nombre: &str) -> bool { conocido(nombre).is_some_and(|(_, logo)| logo) }
+
 fn archivo_material(nombre: &str, tipo: Tipo) -> &'static str {
-    let especiales: &[(&str, &str)] = &[("README", "readme"), ("README.md", "readme"), ("LEEME.md", "readme"), ("LICENSE", "license"),
-        ("COPYING", "license"), ("Makefile", "makefile"), ("Dockerfile", "docker"), (".gitignore", "git"), (".gitattributes", "git"),
-        ("Cargo.lock", "lock"), ("flake.nix", "nix")];
-    for (n, icono) in especiales {
-        if igual(nombre, n) { return clave_material(icono); }
-    }
-    let ext = extension(nombre).to_ascii_lowercase();
-    let porext: &[(&str, &str)] = &[("rs", "rust"), ("c", "c"), ("h", "h"), ("cpp", "cpp"), ("cc", "cpp"), ("hpp", "cpp"), ("py", "python"),
-        ("js", "javascript"), ("ts", "typescript"), ("json", "json"), ("jsonc", "json"), ("toml", "toml"), ("lua", "lua"), ("sh", "console"),
-        ("bash", "console"), ("css", "css"), ("scss", "sass"), ("md", "markdown"), ("pdf", "pdf"), ("txt", "document"), ("svg", "svg"),
-        ("html", "html"), ("yml", "yaml"), ("yaml", "yaml"), ("xml", "xml"), ("csv", "table"), ("ttf", "font"), ("otf", "font"),
-        ("pem", "key"), ("key", "key"), ("lock", "lock"), ("db", "database"), ("sqlite", "database"), ("s", "assembly"), ("asm", "assembly"),
-        ("nix", "nix"), ("log", "log"), ("exe", "exe"), ("dll", "dll"), ("so", "dll"), ("ini", "settings"), ("conf", "settings"), ("desktop", "settings")];
-    for (e, icono) in porext {
-        if ext == *e { return clave_material(icono); }
-    }
+    if let Some((c, _)) = conocido(nombre) { return c; }
     match tipo {
         Tipo::Imagen => "material/image", Tipo::Video => "material/video", Tipo::Audio => "material/audio",
         Tipo::Comprimido => "material/zip", Tipo::Programa => "material/exe", Tipo::Documento => "material/document",
@@ -76,14 +163,9 @@ fn archivo_material(nombre: &str, tipo: Tipo) -> &'static str {
     }
 }
 
-/// Las claves salen siempre de esta tabla: nunca de texto del usuario.
-fn clave_material(icono: &str) -> &'static str {
-    const TODAS: &[&str] = &["material/readme", "material/license", "material/makefile", "material/docker", "material/git", "material/lock",
-        "material/nix", "material/rust", "material/c", "material/h", "material/cpp", "material/python", "material/javascript", "material/typescript",
-        "material/json", "material/toml", "material/lua", "material/console", "material/css", "material/sass", "material/markdown", "material/pdf",
-        "material/document", "material/svg", "material/html", "material/yaml", "material/xml", "material/table", "material/font", "material/key",
-        "material/database", "material/assembly", "material/log", "material/exe", "material/dll", "material/settings"];
-    TODAS.iter().copied().find(|c| &c[9..] == icono).unwrap_or("material/file")
+/// Todas las claves que puede pedir el nucleo (la plataforma comprueba que las tiene).
+pub fn claves() -> impl Iterator<Item = &'static str> {
+    POR_EXTENSION.iter().map(|x| x.1).chain(POR_NOMBRE.iter().map(|x| x.1))
 }
 
 fn lucide(nombre: &str, tipo: Tipo) -> &'static str {
@@ -105,10 +187,12 @@ fn lucide(nombre: &str, tipo: Tipo) -> &'static str {
     }
 }
 
-/// Clave del icono; vacia = dibujarlo con formas (estilo Neon).
+/// Clave del icono; vacia = dibujarlo con formas (estilo Neon para lo que no es codigo).
 pub fn icono(nombre: &str, tipo: Tipo, estilo: EstiloIconos) -> &'static str {
     match estilo {
-        EstiloIconos::Neon => "",
+        // Neon: formas dibujadas, salvo los logos de lenguaje, que se reconocen solos.
+        EstiloIconos::Neon if tipo == Tipo::Carpeta || tipo == Tipo::Enlace => "",
+        EstiloIconos::Neon => match conocido(nombre) { Some((c, true)) => c, _ => "" },
         EstiloIconos::Material if tipo == Tipo::Carpeta => carpeta_material(nombre),
         EstiloIconos::Material if tipo == Tipo::Enlace => "material/file",
         EstiloIconos::Material => archivo_material(nombre, tipo),

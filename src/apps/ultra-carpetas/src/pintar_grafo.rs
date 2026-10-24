@@ -170,10 +170,8 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
     let tam_letra = 12.5 * z;
     let icono_r = Rect::from_min_size(cab.min + Vec2::new(5.0 * z, 3.0 * z), Vec2::splat(16.0 * z));
     if !iconos.pintar(ui, n.icono, icono_r, col) {
-        // Estilo Neon: un cuadrado (carpeta) o una hoja (archivo) dibujados.
-        let k = icono_r.shrink(2.0 * z);
-        if n.tipo == Tipo::Carpeta { pintor.rect(k, 1.0, col.gamma_multiply(0.3), Stroke::new(1.2, c.texto), StrokeKind::Inside); }
-        else { pintor.rect(k.shrink2(Vec2::new(2.0 * z, 0.0)), 1.0, Color32::TRANSPARENT, Stroke::new(1.2, c.texto), StrokeKind::Inside); }
+        // Estilo Neon: carpeta o pagina dibujadas (los lenguajes ya traen su logo).
+        icono_dibujado(pintor, icono_r, n.tipo, c.texto, n.expandida == Some(true));
     }
     let mut titulo = n.nombre.clone();
     if titulo.chars().count() > 22 { titulo = titulo.chars().take(21).collect::<String>() + "…"; }
@@ -270,4 +268,36 @@ fn tarjeta_vivos(pintor: &egui::Painter, c: &Colores, arriba: Pos2, vv: &Vivos, 
 
 pub fn memoria(kb: u64) -> String {
     if kb >= 1024 * 1024 { format!("{:.1} GB", kb as f32 / 1048576.0) } else if kb >= 1024 { format!("{:.0} MB", kb as f32 / 1024.0) } else { format!("{kb} KB") }
+}
+
+/// Icono Neon dibujado con formas: carpeta con pestana (abierta si esta desplegada) o
+/// pagina con la esquina doblada. Nitido a cualquier tamano y sin depender de la fuente.
+pub fn icono_dibujado(p: &egui::Painter, caja: Rect, tipo: Tipo, col: Color32, abierta: bool) {
+    let r = caja.shrink(caja.width() * 0.08);
+    let (w, h) = (r.width(), r.height());
+    let trazo = Stroke::new((w * 0.08).clamp(1.0, 2.0), col);
+    if tipo == Tipo::Carpeta {
+        let arriba = r.min.y + h * 0.18;
+        let pestana = [r.min + Vec2::new(0.0, h * 0.18), r.min + Vec2::new(0.0, h * 0.05), r.min + Vec2::new(w * 0.38, h * 0.05),
+                       r.min + Vec2::new(w * 0.48, h * 0.18)];
+        p.add(egui::Shape::line(pestana.to_vec(), trazo));
+        let cuerpo = Rect::from_min_max(Pos2::new(r.min.x, arriba), Pos2::new(r.max.x, r.max.y - h * 0.08));
+        p.rect(cuerpo, 1.5, col.gamma_multiply(if abierta { 0.10 } else { 0.28 }), trazo, StrokeKind::Inside);
+        if abierta {
+            // Tapa abierta: un trapecio delante, como la carpeta abierta de los exploradores.
+            let tapa = vec![Pos2::new(r.min.x + w * 0.12, arriba + h * 0.28), Pos2::new(r.max.x + w * 0.04, arriba + h * 0.28),
+                            Pos2::new(r.max.x - w * 0.08, r.max.y - h * 0.08), Pos2::new(r.min.x, r.max.y - h * 0.08)];
+            p.add(egui::Shape::convex_polygon(tapa, col.gamma_multiply(0.35), trazo));
+        }
+    } else {
+        let pliegue = w * 0.32;
+        let x0 = r.min.x + w * 0.12;
+        let x1 = r.max.x - w * 0.12;
+        let hoja = vec![Pos2::new(x0, r.min.y), Pos2::new(x1 - pliegue, r.min.y), Pos2::new(x1, r.min.y + pliegue), Pos2::new(x1, r.max.y), Pos2::new(x0, r.max.y)];
+        p.add(egui::Shape::convex_polygon(hoja, col.gamma_multiply(0.10), trazo));
+        p.add(egui::Shape::line(vec![Pos2::new(x1 - pliegue, r.min.y), Pos2::new(x1 - pliegue, r.min.y + pliegue), Pos2::new(x1, r.min.y + pliegue)], trazo));
+        if tipo == Tipo::Enlace {
+            p.line_segment([Pos2::new(x0 + w * 0.12, r.max.y - h * 0.2), Pos2::new(x1 - w * 0.12, r.min.y + h * 0.5)], trazo);
+        }
+    }
 }
