@@ -8,7 +8,7 @@ fn e(nombre: &str, tipo: Tipo, tam: u64) -> Entrada { Entrada { nombre: nombre.i
 fn estado() -> Estado {
     let mut s = Estado { ancho: CELDA[0] * 3.0, ..Estado::default() };
     let entradas = vec![e("Juegos", Tipo::Carpeta, 0), e("kernel.rs", Tipo::Codigo, 900), e("foto.png", Tipo::Imagen, 5000), e("notas.txt", Tipo::Documento, 10)];
-    let ef = reducir(&mut s, Accion::Cargar { entradas, disposicion: Disposicion::default() });
+    let ef = reducir(&mut s, Accion::Cargar { nombre: "prueba".into(), entradas, disposicion: Disposicion::default() });
     assert!(matches!(ef.as_slice(), [Efecto::Guardar(_)]), "lo nuevo se coloca y se guarda");
     s
 }

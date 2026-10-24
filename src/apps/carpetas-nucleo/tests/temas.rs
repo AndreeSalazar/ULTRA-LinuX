@@ -5,7 +5,7 @@ use carpetas_nucleo::*;
 
 fn estado() -> Estado {
     let mut s = Estado { acento: [1, 2, 3], ..Estado::default() };
-    reducir(&mut s, Accion::Cargar { entradas: vec![Entrada { nombre: "a.png".into(), tipo: Tipo::Imagen, tam: 1 }], disposicion: Disposicion::default() });
+    reducir(&mut s, Accion::Cargar { nombre: "prueba".into(), entradas: vec![Entrada { nombre: "a.png".into(), tipo: Tipo::Imagen, tam: 1 }], disposicion: Disposicion::default() });
     s
 }
 

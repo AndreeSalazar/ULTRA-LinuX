@@ -5,6 +5,8 @@
 use crate::comandos::buscar;
 use crate::disposicion::{CELDA, ICONO};
 use crate::estado::Estado;
+use crate::grafo::{filas_arbol, nodos_y_cables, Cable, Camara, FilaArbol, Modo, NodoGrafo};
+use crate::iconos::icono;
 use crate::tema::{Tema, TEMAS};
 use crate::tipos::{Rgb, Tipo};
 use alloc::format;
@@ -15,7 +17,7 @@ use alloc::vec::Vec;
 pub enum Nodo {
     /// Un punto de rejilla en cada celda.
     Rejilla { paso: [f32; 2] },
-    Icono { nombre: String, pos: [f32; 2], tam: [f32; 2], tipo: Tipo, color: Rgb, seleccionado: bool, etiqueta: String },
+    Icono { nombre: String, pos: [f32; 2], tam: [f32; 2], tipo: Tipo, color: Rgb, seleccionado: bool, etiqueta: String, icono: &'static str },
     Banda { desde: [f32; 2], hasta: [f32; 2], color: Rgb },
 }
 
@@ -38,7 +40,13 @@ pub struct VistaAjustes {
 pub struct Vista {
     /// El tema ya resuelto (con el acento y el brillo que eligio el usuario).
     pub tema: Tema,
+    pub modo: Modo,
     pub ajustes: Option<VistaAjustes>,
+    /// Modo grafo: nodos, cables y camara.
+    pub grafo: Option<(Vec<NodoGrafo>, Vec<Cable>)>,
+    pub camara: Camara,
+    /// Explorador lateral (si esta visible).
+    pub arbol: Option<Vec<FilaArbol>>,
     pub nodos: Vec<Nodo>,
     /// Tamano del lienzo que ocupan los iconos.
     pub tam: [f32; 2],
@@ -58,7 +66,8 @@ pub fn vista(e: &Estado) -> Vista {
             entrada.nombre.rsplit_once('.').map(|(_, x)| x.to_uppercase()).filter(|x| x.len() <= 5).unwrap_or_default()
         };
         nodos.push(Nodo::Icono { nombre: entrada.nombre.clone(), pos: *p, tam: ICONO, tipo: entrada.tipo,
-                                 color: tema.color_tipo(entrada.tipo), seleccionado: e.seleccion.contains(&entrada.nombre), etiqueta });
+                                 color: tema.color_tipo(entrada.tipo), seleccionado: e.seleccion.contains(&entrada.nombre), etiqueta,
+                                 icono: icono(&entrada.nombre, entrada.tipo, e.ajustes.iconos) });
     }
     if let Some((desde, hasta)) = e.banda { nodos.push(Nodo::Banda { desde, hasta, color: tema.acento }); }
     let mut estado = format!("{} elementos · {} seleccionados", e.entradas.len(), e.seleccion.len());
@@ -74,5 +83,8 @@ pub fn vista(e: &Estado) -> Vista {
         brillo: tema.brillo,
         acento_escritorio: e.ajustes.acento_escritorio,
     });
-    Vista { tema, ajustes, nodos, tam, estado, paleta }
+    let modo = e.ajustes.modo;
+    let grafo = (modo == Modo::Grafo).then(|| nodos_y_cables(e, &tema));
+    let arbol = e.ajustes.explorador.then(|| filas_arbol(e, &tema));
+    Vista { tema, modo, ajustes, grafo, camara: e.camara, arbol, nodos, tam, estado, paleta }
 }

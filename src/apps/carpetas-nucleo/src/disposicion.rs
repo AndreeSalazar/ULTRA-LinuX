@@ -19,8 +19,11 @@ pub struct Disposicion {
     pub rejilla: bool,
     #[serde(default)]
     pub bloqueada: bool,
+    /// Posiciones que el usuario fijo a mano en el grafo (ruta relativa -> punto).
+    #[serde(default)]
+    pub grafo: BTreeMap<String, [f32; 2]>,
     #[serde(skip)]
-    historial: Vec<BTreeMap<String, [f32; 2]>>,
+    historial: Vec<(BTreeMap<String, [f32; 2]>, BTreeMap<String, [f32; 2]>)>,
 }
 
 /// Huella FNV-1a de 64 bits: nombre de archivo estable para guardar cada carpeta.
@@ -63,6 +66,7 @@ impl Disposicion {
         }
         let mut d: Disposicion = serde_json::from_slice(bytes).unwrap_or_default();
         d.posiciones.retain(|_, p| valido(p[0]) && valido(p[1]));
+        d.grafo.retain(|_, p| p.iter().all(|v| v.is_finite() && v.abs() <= LIMITE));
         d
     }
 
@@ -94,7 +98,7 @@ impl Disposicion {
     }
 
     pub fn recordar(&mut self) {
-        self.historial.push(self.posiciones.clone());
+        self.historial.push((self.posiciones.clone(), self.grafo.clone()));
         if self.historial.len() > MAX_HISTORIAL {
             self.historial.remove(0);
         }
@@ -102,7 +106,7 @@ impl Disposicion {
 
     pub fn deshacer(&mut self) -> bool {
         match self.historial.pop() {
-            Some(previas) => { self.posiciones = previas; true }
+            Some((previas, grafo)) => { self.posiciones = previas; self.grafo = grafo; true }
             None => false,
         }
     }
@@ -117,6 +121,17 @@ impl Disposicion {
             if let Some(p) = self.posiciones.get_mut(n) {
                 p[0] = (p[0] + delta[0]).clamp(0.0, LIMITE);
                 p[1] = (p[1] + delta[1]).clamp(0.0, LIMITE);
+            }
+        }
+    }
+
+    /// Mueve nodos del grafo (coordenadas del mundo; pueden ser negativas).
+    pub fn mover_grafo(&mut self, ids: &BTreeSet<String>, delta: [f32; 2]) {
+        if self.bloqueada || !delta[0].is_finite() || !delta[1].is_finite() { return; }
+        for id in ids {
+            if let Some(p) = self.grafo.get_mut(id) {
+                p[0] = (p[0] + delta[0]).clamp(-LIMITE, LIMITE);
+                p[1] = (p[1] + delta[1]).clamp(-LIMITE, LIMITE);
             }
         }
     }

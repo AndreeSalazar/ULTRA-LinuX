@@ -28,7 +28,9 @@ donde tú lo dejes y cada carpeta recuerda su orden.** Con control:
 | Retroceso, Atrás, Arriba y la ruta | Navegar; cada parte de la ruta es un botón |
 | Ctrl+A, Esc, F5 | Seleccionar todo, quitar la selección, volver a leer |
 | **Ctrl+Shift+P** | Paleta de comandos |
-| **Ctrl+,** | Ajustes y temas: 9 temas con vista previa ([guía](TEMAS-APPS.md)) |
+| **Ctrl+,** | Ajustes: temas con vista previa ([guía](TEMAS-APPS.md)), iconos y dirección del grafo |
+| **Tab** / **Ctrl+B** | Iconos ↔ grafo / mostrar u ocultar el explorador |
+| **D**, **Inicio**, **I**, **F12** | Blender ↔ Houdini, encuadrar, estilo de iconos, carriles |
 | **T** | Siguiente tema |
 | Alt+Izquierda | Volver a la carpeta anterior |
 
@@ -44,6 +46,84 @@ con `ultra-carpetas [carpeta]`. Thunar sigue en Super+E para copiar, mover o bor
 flechas y ejecuta con Enter; Esc cierra. Busca también por id (`carpetas.candado`).
 Cada botón, atajo y fila de la paleta es el mismo **comando**: una sola tabla
 (`COMANDOS` en el núcleo) con id, título y atajo.
+
+## Tres modos que se combinan: explorador, iconos y grafo
+
+![Grafo estilo Blender con explorador e iconos Material](maquetas/png/neon/carpetas-grafo-blender.png)
+
+*Captura real: tema TITAN Taller, iconos Material, grafo Blender con `assets` y `src`
+desplegados con doble clic. El explorador de la izquierda se abrió solo.*
+
+- **Explorador** (Ctrl+B): árbol lateral como el de VS Code y el de tu TITAN. El
+  triángulo despliega, el clic selecciona y el doble clic abre. Comparte las carpetas
+  desplegadas y la selección con el grafo: lo que abres en uno se abre en el otro.
+- **Iconos** (por defecto): iconos libres donde tú los dejes, con rejilla y candado.
+- **Grafo** (Tab): cada carpeta y archivo es un nodo, como en Blender y Houdini.
+  - **Dirección** (D o Ajustes): **Blender**, de izquierda a derecha, o **Houdini**, de
+    arriba abajo. Al cambiarla se vuelve al acomodo automático.
+  - **Nodos:** cabecera del color de su tipo (el tema decide), conectores de entrada y
+    salida, y cables curvos como los *noodles* de Blender. El botón `+`/`-` o el doble
+    clic despliega la carpeta en el propio grafo.
+  - **Peso:** cada nodo dice cuánto ocupa (sumando lo ya leído debajo). Su barra es la
+    parte de su carpeta que ocupa; en rojo, si pasa del 60 %. Así se ve de un vistazo
+    qué conviene limpiar u optimizar.
+  - **Ratón:** la rueda acerca y aleja sobre el puntero; el botón central o el derecho
+    mueve la vista; arrastrar un nodo lo fija a mano (Ctrl+Z deshace); arrastrar sobre el
+    fondo hace una banda de selección.
+  - **Teclas:** Inicio encuadra todo y Reacomodar vuelve al acomodo automático.
+- **En tiempo real:** la carpeta abierta y las desplegadas se vigilan (una vez por
+  segundo, en el hilo del disco). Lo nuevo aparece solo y lo borrado se va.
+
+![Grafo estilo Houdini con iconos Lucide y el semáforo de carriles](maquetas/png/neon/carpetas-grafo-houdini.png)
+
+## Iconos (I o Ajustes)
+
+| Estilo | Qué es |
+| --- | --- |
+| Neón | Dibujados con formas, como hasta ahora |
+| **Material** | Los iconos de archivos de VS Code ([Material Icon Theme](https://github.com/material-extensions/vscode-material-icon-theme), MIT): logos de Rust, C, Python, TOML…, y carpetas especiales (`src`, `docs`, Imágenes, Música, Descargas…) |
+| **Lucide** | Iconos de líneas ([Lucide](https://github.com/lucide-icons/lucide), ISC) teñidos con los colores del tema |
+
+Son 78 SVG incrustados en el programa, con sus licencias en
+`src/apps/ultra-carpetas/iconos/`. El programa nunca abre un SVG de fuera, así que
+el lector SVG (resvg) solo ve archivos conocidos. Una prueba comprueba que ninguno
+lleva scripts, enlaces externos ni imágenes incrustadas, y otra que cada icono que
+pide el núcleo existe.
+
+## Carriles con semáforo (F12)
+
+Cada parte del programa va en su carril, con presupuesto y límites, para que ninguna
+choque con otra ni haya que pelear después con la optimización. F12 muestra el
+último tiempo y el máximo de cada carril con su luz.
+
+| Carril | Verde hasta | Amarillo hasta | Qué consume y cómo se contiene |
+| --- | --- | --- | --- |
+| **Disco** | 20 ms | 200 ms | E/S, en **su propio hilo**: la interfaz nunca espera al disco. Respuestas viejas (de otra carpeta) se descartan por generación |
+| **Acomodo** | 1 ms | 4 ms | CPU, O(n log n) con n ≤ 600 nodos; solo se calcula si cambió el estado |
+| **Vista** | 1,5 ms | 5 ms | CPU y memoria: en caché por versión del estado |
+| **Pintado** | 6 ms | 12 ms | CPU (egui): solo se pinta lo que cae en pantalla; con poco zoom se omiten textos e iconos; solo se repinta con eventos |
+| **Iconos SVG** | 8 ms | 30 ms | CPU una vez por icono y tamaño; después es textura en la GPU |
+
+**Límites duros** (por diseño, no por suerte):
+
+- 5000 entradas por carpeta;
+- 600 nodos en el grafo;
+- 64 carpetas desplegadas, que son las que se vigilan;
+- 1 MiB por archivo de orden y 64 KiB de ajustes.
+
+**Seguridad en el carril de disco:**
+
+- Las rutas son relativas a la carpeta abierta y se validan dos veces: el núcleo solo
+  pide lo que leyó, y el hilo rechaza tramos vacíos, `.`, `..`, rutas absolutas y enlaces.
+- No se despliega a través de un enlace, para no salir de la carpeta ni entrar en bucles.
+- Nada pasa por una shell.
+
+Las primeras medidas en la pantalla virtual (no en tu PC) quedaron todas en verde:
+
+- disco, unos 65 µs;
+- acomodo, unos 40 µs;
+- vista, unos 70 µs;
+- pintado, unos 0,5 ms (el primer cuadro, con texturas, unos 7 ms).
 
 ## Seguridad
 

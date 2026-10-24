@@ -2,6 +2,8 @@
 //! Ajustes de la app (no por carpeta): tema, brillo y si usar el acento del escritorio.
 //! Como settings.json de VS Code, pero validado: lo desconocido vuelve al defecto.
 
+use crate::grafo::{Direccion, Modo};
+use crate::iconos::EstiloIconos;
 use crate::tema::{por_id, Tema, TEMAS};
 use crate::tipos::Rgb;
 use alloc::string::{String, ToString};
@@ -15,10 +17,18 @@ pub struct Ajustes {
     pub brillo: Option<bool>,
     /// Usar el acento de Personalizar en cualquier tema (en Neon BMO-X siempre).
     pub acento_escritorio: bool,
+    pub iconos: EstiloIconos,
+    pub direccion: Direccion,
+    pub modo: Modo,
+    /// Arbol lateral como el explorador de VS Code (Ctrl+B).
+    pub explorador: bool,
 }
 
 impl Default for Ajustes {
-    fn default() -> Self { Ajustes { tema: TEMAS[0].id.to_string(), brillo: None, acento_escritorio: false } }
+    fn default() -> Self {
+        Ajustes { tema: TEMAS[0].id.to_string(), brillo: None, acento_escritorio: false, iconos: EstiloIconos::Neon,
+                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true }
+    }
 }
 
 impl Ajustes {

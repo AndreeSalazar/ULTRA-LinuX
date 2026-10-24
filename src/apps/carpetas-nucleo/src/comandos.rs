@@ -10,6 +10,7 @@ pub enum Comando {
     Rejilla, Candado, Ocultos, Deshacer, Ordenar(Orden), SeleccionarTodo, LimpiarSeleccion,
     AbrirSeleccion, Subir, Atras, Releer, Paleta,
     Ajustes, SiguienteTema, Tema(u8), Brillo, AcentoEscritorio,
+    Modo, Explorador, Direccion, Encuadrar, Reacomodar, Iconos, Carriles,
 }
 
 pub struct InfoComando {
@@ -34,6 +35,13 @@ pub const COMANDOS: &[InfoComando] = &[
     InfoComando { comando: Comando::Atras, id: "carpetas.atras", titulo: "Volver a la carpeta anterior", atajo: "Alt+Izquierda" },
     InfoComando { comando: Comando::Releer, id: "carpetas.releer", titulo: "Volver a leer la carpeta", atajo: "F5" },
     InfoComando { comando: Comando::Paleta, id: "carpetas.paleta", titulo: "Paleta de comandos", atajo: "Ctrl+Shift+P" },
+    InfoComando { comando: Comando::Modo, id: "vista.modo", titulo: "Cambiar entre iconos y grafo de nodos", atajo: "Tab" },
+    InfoComando { comando: Comando::Explorador, id: "vista.explorador", titulo: "Mostrar u ocultar el explorador", atajo: "Ctrl+B" },
+    InfoComando { comando: Comando::Direccion, id: "grafo.direccion", titulo: "Grafo: Blender (izq-der) o Houdini (arriba-abajo)", atajo: "D" },
+    InfoComando { comando: Comando::Encuadrar, id: "grafo.encuadrar", titulo: "Grafo: encuadrar todo", atajo: "Inicio" },
+    InfoComando { comando: Comando::Reacomodar, id: "grafo.reacomodar", titulo: "Grafo: volver al acomodo automatico", atajo: "" },
+    InfoComando { comando: Comando::Iconos, id: "ajustes.iconos", titulo: "Estilo de iconos: Neon, Material o Lucide", atajo: "I" },
+    InfoComando { comando: Comando::Carriles, id: "vista.carriles", titulo: "Carriles: semaforo de rendimiento", atajo: "F12" },
     InfoComando { comando: Comando::Ajustes, id: "ajustes.abrir", titulo: "Abrir ajustes y temas", atajo: "Ctrl+," },
     InfoComando { comando: Comando::SiguienteTema, id: "ajustes.siguienteTema", titulo: "Siguiente tema", atajo: "T" },
     InfoComando { comando: Comando::Brillo, id: "ajustes.brillo", titulo: "Brillo neon: encender o apagar", atajo: "" },
@@ -51,7 +59,7 @@ pub const COMANDOS: &[InfoComando] = &[
 
 /// Teclas que entiende el nucleo; cada plataforma traduce las suyas a estas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tecla { G, L, H, Z, A, P, T, Coma, Retroceso, Enter, Escape, F5, Arriba, Abajo, Izquierda }
+pub enum Tecla { G, L, H, Z, A, P, T, B, D, I, Tab, Inicio, F12, Coma, Retroceso, Enter, Escape, F5, Arriba, Abajo, Izquierda }
 
 /// Como el keybindings.json de VS Code: tecla + modificadores -> accion.
 pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: bool) -> Option<Accion> {
@@ -68,6 +76,12 @@ pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: b
         (Tecla::P, true, true, _) => Comando::Paleta,
         (Tecla::Coma, true, _, _) => Comando::Ajustes,
         (Tecla::T, false, false, false) => Comando::SiguienteTema,
+        (Tecla::B, true, _, _) => Comando::Explorador,
+        (Tecla::Tab, false, false, false) => Comando::Modo,
+        (Tecla::D, false, false, false) => Comando::Direccion,
+        (Tecla::I, false, false, false) => Comando::Iconos,
+        (Tecla::Inicio, _, _, _) => Comando::Encuadrar,
+        (Tecla::F12, _, _, _) => Comando::Carriles,
         (Tecla::Z, true, _, _) => Comando::Deshacer,
         (Tecla::A, true, _, _) => Comando::SeleccionarTodo,
         (Tecla::Izquierda, _, _, true) => Comando::Atras,

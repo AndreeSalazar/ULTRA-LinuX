@@ -22,9 +22,12 @@
 extern crate alloc;
 
 pub mod ajustes;
+pub mod carriles;
 pub mod comandos;
 pub mod disposicion;
 pub mod estado;
+pub mod grafo;
+pub mod iconos;
 pub mod tema;
 pub mod tipos;
 pub mod vista;
@@ -36,3 +39,6 @@ pub use disposicion::{Disposicion, CELDA, ICONO};
 pub use estado::{reducir, Accion, AccionPaleta, Efecto, Entrada, Estado, Orden};
 pub use tipos::{legible, tipo_por_extension, Rgb, Tipo};
 pub use vista::{vista, Nodo, Vista, VistaAjustes, VistaPaleta};
+pub use grafo::{Cable, Camara, Direccion, FilaArbol, Modo, NodoGrafo, NODO};
+pub use iconos::EstiloIconos;
+pub use carriles::{luz, Carril, Luz, PRESUPUESTOS};
