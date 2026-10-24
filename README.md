@@ -75,6 +75,8 @@ con registro de Proton. La carga de partida se valida en el PC.
 [Reparación de DLL de Cyberpunk](docs/CYBERPUNK-DLL-2026-10-24.md): dos marcas
 de borrado del overlay ocultaban bibliotecas originales necesarias. Se
 apartaron con respaldo y se comprobó su lectura como usuario del escritorio.
+El seguimiento revisó 26 archivos PE y recuperó otras tres dependencias
+transitivas ocultas; la cadena local termina ahora sin faltantes detectados.
 
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza

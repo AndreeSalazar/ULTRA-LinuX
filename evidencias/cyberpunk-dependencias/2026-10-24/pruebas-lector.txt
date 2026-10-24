@@ -1,0 +1,13 @@
+test_path_traversal_import_rejected (__main__.Reader.test_path_traversal_import_rejected) ... ok
+test_static_and_delay_imports (__main__.Reader.test_static_and_delay_imports) ... ok
+test_system_dependency_is_outside_scope (__main__.Reader.test_system_dependency_is_outside_scope) ... ok
+test_transitive_graph_cycle_and_case_insensitive_local_names (__main__.Reader.test_transitive_graph_cycle_and_case_insensitive_local_names) ... ok
+test_transitive_whiteout_is_reported_and_recovery_clears_graph (__main__.Reader.test_transitive_whiteout_is_reported_and_recovery_clears_graph) ... ok
+test_truncated_pe_rejected (__main__.Reader.test_truncated_pe_rejected) ... ok
+test_unmapped_import_rva_rejected (__main__.Reader.test_unmapped_import_rva_rejected) ... ok
+test_unterminated_directory_rejected (__main__.Reader.test_unterminated_directory_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.032s
+
+OK

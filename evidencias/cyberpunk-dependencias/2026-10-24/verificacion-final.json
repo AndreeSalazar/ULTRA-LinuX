@@ -1,0 +1,31 @@
+{
+  "solo_lectura": true,
+  "red": false,
+  "archivos_pe_auditados": 26,
+  "dependencias_locales_ocultas": 0,
+  "dlls_sha256_conservados": [
+    {
+      "name": "ffx_backend_dx12_x64.dll",
+      "sha256": "bd2212b435cdd4b1bd66d36dde8e8f94de8cd728af8155848d86005a66a0657d"
+    },
+    {
+      "name": "ffx_fsr3_x64.dll",
+      "sha256": "042e083248869e106059e0d08a753dc29ce82122096cbd2a582127c83ab2a793"
+    },
+    {
+      "name": "ffx_fsr3upscaler_x64.dll",
+      "sha256": "fae7be78fe234ba2da3729fa7d9c65bdf513c31deeda5d95a28ac315fc1d7e0c"
+    },
+    {
+      "name": "ffx_opticalflow_x64.dll",
+      "sha256": "df5c692a58519d82a488b5a551093ac48f5eb17498f211bea2e3fde148635c2b"
+    },
+    {
+      "name": "ffx_frameinterpolation_x64.dll",
+      "sha256": "7f702b317fd411b6c529323937434041ed2d0544b1dd80a7d5ba00cefdfe5803"
+    }
+  ],
+  "targetExe": "/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe",
+  "disponible_bytes": 239092727808,
+  "partida_real_pendiente": true
+}

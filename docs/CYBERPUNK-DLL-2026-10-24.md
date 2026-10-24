@@ -49,3 +49,43 @@ detallado para identificar el siguiente fallo sin atribuirlo al kernel o a la
 GPU por suposición.
 
 [Evidencias sanitizadas](../evidencias/cyberpunk-dll/2026-10-24).
+
+## Seguimiento: dependencias transitivas de FSR
+
+La sesión de las 15:27 confirmó que el ajuste anterior persistió: Heroic
+ejecutó `bin/x64/Cyberpunk2077.exe` y las dos DLL recuperadas seguían presentes.
+Sin embargo, `ffx_fsr3_x64.dll` importa otras tres DLL que también estaban
+ocultas por marcas 0:0 de la capa superior:
+
+- `ffx_fsr3upscaler_x64.dll`
+- `ffx_opticalflow_x64.dll`
+- `ffx_frameinterpolation_x64.dll`
+
+La primera reparación corrigió las dependencias directas, pero no revisó su
+cadena transitiva; por eso persistía `c0000135`. El problema no era una imagen
+antigua: el SHA-256 de A: coincide con el sistema entregado.
+
+Se añadió `scripts/auditar_dll_pe.py`, lector estático de las tablas de
+importación normal y diferida del [formato PE de Microsoft](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format).
+Recorre únicamente dependencias locales de la misma carpeta provistas por la
+base y la capa superior. No ejecuta código, no resuelve las DLL de Windows de
+Proton ni las cargas dinámicas decididas durante la ejecución. Tampoco sustituye
+un montaje real de OverlayFS: la detección de ocultación cubre marcas de
+carácter 0:0 en esa carpeta, no todas las variantes de metadatos de OverlayFS.
+
+La auditoría recorrió **26 archivos PE** y encontró exactamente esas tres
+marcas. Se apartaron a otro respaldo privado, sin tocar las DLL originales:
+`/juegos/.ultra-reparaciones-cyberpunk-dependencias-20261024/`.
+La auditoría posterior terminó con **cero dependencias locales ocultas**.
+Un montaje de unión comprobó que UID1000 lee las tres DLL, y ext4 pasó
+`e2fsck -f -n`. Ocho pruebas con PE ficticios verificaron el lector, incluidos
+ciclos, dependencias transitivas, importaciones diferidas y entradas truncadas.
+Una nueva inspección independiente de solo lectura confirmó 26 PE sin
+dependencias locales ocultas y los hashes originales de las cinco DLL
+recuperadas entre ambas reparaciones.
+
+No se reconstruyó el kernel ni se reemplazó A: en esta reparación de datos.
+El arranque del juego y la partida siguen pendientes del PC con RTX. El
+resultado del lector no certifica todas las dependencias posibles en ejecución.
+
+[Evidencias de la cadena completa](../evidencias/cyberpunk-dependencias/2026-10-24).

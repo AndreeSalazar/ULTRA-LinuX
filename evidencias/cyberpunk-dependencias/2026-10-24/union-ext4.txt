@@ -1,0 +1,20 @@
+
+ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINAL-$((40+2))
+ultra:~# ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINA
+L-$((40+2))
+AUDITORIA-PE {"audited_local_pe": 26, "missing_local": [], "local_edges": [{"from": "Cyberpunk2077.exe", "to": "amd_ags_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "bink2w64.dll"}, {"from": "Cyberpunk2077.exe", "to": "dbghelp.dll"}, {"from": "Cyberpunk2077.exe", "to": "ffx_backend_dx12_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "ffx_fsr3_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "icuin.dll"}, {"from": "Cyberpunk2077.exe", "to": "icuuc.dll"}, {"from": "Cyberpunk2077.exe", "to": "libcurl.dll"}, {"from": "Cyberpunk2077.exe", "to": "libxell.dll"}, {"from": "Cyberpunk2077.exe", "to": "libxess.dll"}, {"from": "Cyberpunk2077.exe", "to": "libxess_fg.dll"}, {"from": "Cyberpunk2077.exe", "to": "oo2ext_7_win64.dll"}, {"from": "Cyberpunk2077.exe", "to": "PhysX3_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "PhysX3CharacterKinematic_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "PhysX3Common_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "PhysX3Cooking_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "PxFoundation_x64.dll"}, {"from": "Cyberpunk2077.exe", "to": "REDGalaxy64.dll"}, {"from": "Cyberpunk2077.exe", "to": "redlexer_native.dll"}, {"from": "Cyberpunk2077.exe", "to": "sl.interposer.dll"}, {"from": "sl.interposer.dll", "to": "dbghelp.dll"}, {"from": "dbghelp.dll", "to": "api-ms-win-downlevel-kernel32-l2-1-0.dll"}, {"from": "PhysX3Cooking_x64.dll", "to": "PhysX3Common_x64.dll"}, {"from": "PhysX3Cooking_x64.dll", "to": "PxFoundation_x64.dll"}, {"from": "PhysX3Common_x64.dll", "to": "PxFoundation_x64.dll"}, {"from": "PhysX3CharacterKinematic_x64.dll", "to": "PhysX3Common_x64.dll"}, {"from": "PhysX3CharacterKinematic_x64.dll", "to": "PxFoundation_x64.dll"}, {"from": "PhysX3_x64.dll", "to": "PhysX3Common_x64.dll"}, {"from": "PhysX3_x64.dll", "to": "PxFoundation_x64.dll"}, {"from": "oo2ext_7_win64.dll", "to": "dbghelp.dll"}, {"from": "icuuc.dll", "to": "icudt.dll"}, {"from": "icuin.dll", "to": "icuuc.dll"}, {"from": "ffx_fsr3_x64.dll", "to": "ffx_frameinterpolation_x64.dll"}, {"from": "ffx_fsr3_x64.dll", "to": "ffx_fsr3upscaler_x64.dll"}, {"from": "ffx_fsr3_x64.dll", "to": "ffx_opticalflow_x64.dll"}], "system_libraries_not_audited": true, "gameplay_tested": false}
+REPARACION {"restored_dlls": [{"name": "ffx_fsr3upscaler_x64.dll", "bytes": 195208, "sha256": "fae7be78fe234ba2da3729fa7d9c65bdf513c31deeda5d95a28ac315fc1d7e0c", "whiteout": true}, {"name": "ffx_opticalflow_x64.dll", "bytes": 179848, "sha256": "df5c692a58519d82a488b5a551093ac48f5eb17498f211bea2e3fde148635c2b", "whiteout": true}, {"name": "ffx_frameinterpolation_x64.dll", "bytes": 173192, "sha256": "7f702b317fd411b6c529323937434041ed2d0544b1dd80a7d5ba00cefdfe5803", "whiteout": true}], "whiteouts_backed_up": true, "configuration_backed_up": true, "targetExe": "/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe", "verboseLogs": true, "prefix_preserved": true, "base_unchanged": true, "gameplay_tested": false}
+DLL-VISIBLE-UID1000 ffx_fsr3upscaler_x64.dll
+DLL-VISIBLE-UID1000 ffx_opticalflow_x64.dll
+DLL-VISIBLE-UID1000 ffx_frameinterpolation_x64.dll
+HEROIC-EJECUTABLE-REAL-OK
+e2fsck 1.47.4 (6-Mar-2025)
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+ULTRA-DATOS: 108377/27172864 files (0.4% non-contiguous), 49207162/108670208 blocks
+DLL-REPARADAS-42
+RESULTADO-0
+FINAL-42
