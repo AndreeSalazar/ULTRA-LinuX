@@ -17,8 +17,12 @@ pub enum Carril {
     Iconos,
     /// Geometria del grafo para la GPU: la CPU la arma solo cuando cambia el contenido.
     Geometria,
-    /// Lineas que llegan de un proceso a la terminal.
+    /// Lineas que llegan de un proceso a la terminal (y el lector de errores).
     Terminal,
+    /// Muestras de /proc del proceso y sus hijos. En su propio hilo.
+    Procesos,
+    /// Pintar el editor de codigo (texto, numeros de linea, marcas de error).
+    Editor,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -48,7 +52,11 @@ pub const PRESUPUESTOS: &[Presupuesto] = &[
     Presupuesto { carril: Carril::Geometria, nombre: "Geometria", verde_us: 3_000, amarillo_us: 10_000,
                   que_consume: "CPU solo cuando cambia el grafo; mover y zoom solo mandan 16 bytes de camara a la GPU" },
     Presupuesto { carril: Carril::Terminal, nombre: "Terminal", verde_us: 1_000, amarillo_us: 5_000,
-                  que_consume: "Lineas de procesos; como mucho 512 por cuadro y 2000 guardadas" },
+                  que_consume: "Lineas de procesos y lector de errores; como mucho 512 por cuadro, 2000 guardadas, 500 errores" },
+    Presupuesto { carril: Carril::Procesos, nombre: "Procesos", verde_us: 5_000, amarillo_us: 50_000,
+                  que_consume: "Leer /proc cada 500 ms en su hilo (solo el grupo del proceso lanzado, max 64); no rehace la geometria" },
+    Presupuesto { carril: Carril::Editor, nombre: "Editor", verde_us: 4_000, amarillo_us: 10_000,
+                  que_consume: "CPU: egui teselar el texto visible; archivos de hasta 2 MiB; teclear no rehace el grafo" },
 ];
 
 pub fn presupuesto(c: Carril) -> &'static Presupuesto {
@@ -66,3 +74,6 @@ pub const MAX_NODOS: usize = crate::grafo::MAX_NODOS;
 pub const MAX_DESPLEGADAS: usize = 64;
 pub const MAX_JSON: usize = crate::disposicion::MAX_JSON;
 pub const MAX_LINEAS_POR_CUADRO: usize = 512;
+pub const MAX_PROCESOS: usize = crate::procesos::MAX_PROCESOS;
+pub const MAX_DIAGNOSTICOS: usize = crate::diagnosticos::MAX_DIAGNOSTICOS;
+pub const MAX_EDITOR: u64 = crate::editor::MAX_EDITOR;

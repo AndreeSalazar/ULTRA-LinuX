@@ -107,6 +107,14 @@ pub fn geometria(nodos: &[NodoGrafo], cables: &[Cable], t: &Tema, direccion: Dir
             m.borde([p[0] - 3.0, p[1] - 3.0], [max[0] + 3.0, max[1] + 3.0], 2.0, rgba(t.acento, 0.3));
             m.borde([p[0] - 6.0, p[1] - 6.0], [max[0] + 6.0, max[1] + 6.0], 2.0, rgba(t.acento, 0.12));
         }
+        // Error atrapado: anillo rojo (avisos: amarillo). Encima de la seleccion para que se vea.
+        if n.marcas.errores > 0 {
+            m.borde(p, max, 2.0, rgba(t.error, 1.0));
+            m.borde([p[0] - 4.0, p[1] - 4.0], [max[0] + 4.0, max[1] + 4.0], 3.0, rgba(t.error, 0.35));
+            m.borde([p[0] - 8.0, p[1] - 8.0], [max[0] + 8.0, max[1] + 8.0], 2.0, rgba(t.error, 0.14));
+        } else if n.marcas.avisos > 0 {
+            m.borde(p, max, 2.0, rgba(t.tipos[2], 1.0));
+        }
         let (entrada, salida) = match direccion {
             Direccion::Blender => ([p[0], p[1] + s[1] / 2.0], [max[0], p[1] + s[1] / 2.0]),
             Direccion::Houdini => ([p[0] + s[0] / 2.0, p[1]], [p[0] + s[0] / 2.0, max[1]]),
@@ -202,7 +210,7 @@ mod pruebas {
     use carpetas_nucleo::{Tipo, TEMAS};
 
     fn nodo(id: &str, pos: [f32; 2]) -> NodoGrafo {
-        NodoGrafo { id: id.into(), nombre: id.into(), tipo: Tipo::Carpeta, pos, tam: [210.0, 74.0], color: [255, 0, 0], icono: "", detalle: String::new(),
+        NodoGrafo { id: id.into(), nombre: id.into(), tipo: Tipo::Carpeta, pos, tam: [210.0, 74.0], color: [255, 0, 0], icono: "", detalle: String::new(), marcas: Default::default(),
                     peso: 0.5, expandida: Some(true), seleccionado: false, play: None }
     }
 
@@ -214,6 +222,22 @@ mod pruebas {
         assert!(cerca(a_gpu([100.0, 50.0]), [-1.0, 1.0]), "la esquina de la camara es arriba a la izquierda");
         assert!(cerca(a_gpu([500.0, 350.0]), [1.0, -1.0]), "800x600 px con zoom 2 son 400x300 de mundo");
         assert!(cerca(a_gpu([300.0, 200.0]), [0.0, 0.0]), "el centro del lienzo");
+    }
+
+    #[test]
+    fn un_error_pone_anillo_rojo_en_la_gpu() {
+        let t = TEMAS[0];
+        let limpio = geometria(&[nodo("a", [0.0, 0.0])], &[], &t, Direccion::Blender);
+        let mut n = nodo("a", [0.0, 0.0]);
+        n.marcas.errores = 2;
+        let con_error = geometria(&[n.clone()], &[], &t, Direccion::Blender);
+        let rojo = rgba(t.error, 1.0);
+        assert!(!limpio.iter().any(|v| v.color == rojo && v.pos[0] < 0.0));
+        assert!(con_error.iter().any(|v| v.color == rojo), "borde rojo");
+        assert!(con_error.iter().any(|v| v.pos[0] <= -7.0), "halo por fuera del nodo");
+        n.marcas.errores = 0;
+        n.marcas.avisos = 1;
+        assert!(geometria(&[n], &[], &t, Direccion::Blender).iter().any(|v| v.color == rgba(t.tipos[2], 1.0)), "aviso amarillo");
     }
 
     #[test]

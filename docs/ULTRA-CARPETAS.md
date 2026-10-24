@@ -26,7 +26,8 @@ donde tú lo dejes y cada carpeta recuerda su orden.** Con control:
 | Ordenar | Por nombre, tipo o tamaño, en rejilla (se puede deshacer) |
 | **H** — Ocultos | Muestra u oculta los archivos que empiezan por punto |
 | Retroceso, Atrás, Arriba y la ruta | Navegar; cada parte de la ruta es un botón |
-| Ctrl+A, Esc, F5 | Seleccionar todo, quitar la selección, volver a leer |
+| Ctrl+A, Esc, F5 | Seleccionar todo, quitar la selección, ejecutar (play) o volver a leer |
+| **Clic derecho**, **F8** | Editor de código en el error / siguiente error ([en vivo](#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)) |
 | **Ctrl+Shift+P** | Paleta de comandos |
 | **Ctrl+,** | Ajustes: temas con vista previa ([guía](TEMAS-APPS.md)), iconos y dirección del grafo |
 | **Tab** / **Ctrl+B** | Iconos ↔ grafo / mostrar u ocultar el explorador |
@@ -114,6 +115,88 @@ los iconos y, para la carpeta abierta, en la barra («Ejecutar: cargo run [F5]»
 Esto no es un emulador de terminal completo: no hay programas interactivos (`vim`,
 `htop`) ni tuberías. Para eso sigue `foot`.
 
+## En vivo: procesos, errores atrapados en los nodos y editor (clic derecho)
+
+![Un error de rustc marca nave.rs, src y la raíz en rojo; clic derecho abre el editor en la línea 9](maquetas/png/neon/carpetas-error-editor.png)
+
+Las tres capturas son del programa real en la pantalla virtual (Vulkan por software),
+con ratón y teclado simulados. Primero se ejecutó `cargo run` en un proyecto con un
+error a propósito. Después, clic derecho en el nodo rojo, corregir la línea en el
+editor, Ctrl+S y F5. Al final, otro proyecto que gasta CPU, para ver sus procesos.
+
+**Errores atrapados en los nodos, sin buscar números.** Mientras corre el proceso se
+lee su salida línea a línea:
+
+- rustc y cargo (`error[E0425]` y su `--> src/nave.rs:9:28`);
+- los panics de Rust (`thread 'main' panicked at src/nave.rs:42:13:`);
+- gcc y clang (`main.c:12:7: error:`);
+- los tracebacks de Python (`File "juego.py", line 8`).
+
+Cada error se pinta en el **nodo de su archivo**:
+
+- anillo rojo en la GPU (amarillo si es solo un aviso);
+- una insignia con la cuenta ("2 errores");
+- el mismo color y la insignia en el explorador y en el modo iconos;
+- las carpetas de encima cuentan lo que tienen dentro, así que el rojo sube hasta
+  la raíz;
+- si el archivo estaba dentro de una carpeta plegada, el camino **se despliega
+  solo** (una vez: si lo vuelves a plegar, se respeta).
+
+Pasa el ratón sobre un nodo para ver el primer mensaje.
+
+| Cómo | Qué hace |
+| --- | --- |
+| **Clic derecho** en un nodo, fila o icono | Abre el **editor** en la línea del error (en una carpeta, en su primer error) |
+| **F8** o el botón rojo de la barra | Va al siguiente error y lo abre en el editor |
+| Clic en una línea de la terminal | Las que apuntan a un archivo (`--> src/main.rs:3:5`) son enlaces |
+| **Ctrl+S** / **Esc** | Guardar / cerrar el editor (con cambios sin guardar, avisa y hay que pulsar Esc otra vez) |
+| Ajustes > Errores | **Parar el proceso en el primer error atrapado** (como «break on error») |
+
+![Arreglado: tras Ctrl+S y F5 compila, queda un aviso amarillo y el programa imprime su salida](maquetas/png/neon/carpetas-arreglado.png)
+
+**El editor** colorea el código con los colores de tu tema: Rust, C/C++/JS/WGSL,
+Python, shell y TOML. Muestra números de línea; las líneas con error llevan una
+franja roja y un punto, y el mensaje sale al pasar el ratón. Arriba está la lista
+de errores del archivo, con clic para saltar. Al volver a ejecutar, la lista se
+actualiza sola.
+
+**Reglas del editor:**
+
+- Abre solo archivos que el disco listó, de hasta 2 MiB y solo texto UTF-8 (un byte
+  NUL = binario, no se abre).
+- Ninguna ruta pasa por un enlace simbólico, ni en las carpetas de encima.
+- Se comprueba que el archivo abierto es el que se miró (dispositivo + inodo).
+- Guardar es atómico (temporal + `rename`) y conserva los permisos.
+- **Si el archivo cambió en disco** desde que lo abriste (otro editor, `git
+  checkout`), no lo pisa y te avisa.
+- Nunca guarda solo: solo con Ctrl+S o con el botón.
+
+![Procesos en vivo: motor al 99 % de CPU con su hijo sleep, leído de /proc; carriles en verde y 2 subidas a la GPU en 70 cuadros](maquetas/png/neon/carpetas-en-vivo.png)
+
+**Procesos en vivo.** Al darle a play, el nodo que se ejecuta lleva un borde verde y
+una tarjeta **EN VIVO**:
+
+- el árbol real de procesos (cargo → rustc → tu programa → sus hijos);
+- la CPU de cada uno, donde 100 % es un núcleo lleno y amarillo pasa del 90 %;
+- su memoria (RSS).
+
+Lo lee de `/proc` un hilo propio cada 500 ms. Solo mira el grupo de procesos del
+play (el mismo que para «Detener»), y como mucho 64 procesos. No es un monitor de
+todo el sistema: es tu programa y lo que lanza.
+
+`cargo run` no aparece como padre en la captura porque cargo, en Linux, se reemplaza
+por tu programa (`exec`); mientras compila, se ven cargo y sus rustc.
+
+**Sin rehacer nada de más.** La salida de la terminal, las muestras de `/proc` y
+teclear en el editor no rehacen la geometría del grafo. Solo un error nuevo en un
+nodo la rehace, porque el nodo cambia de color. En la captura hay 2 subidas a la GPU
+en 70 cuadros, con la terminal escribiendo y `/proc` muestreando.
+
+La terminal solo dibuja las filas que se ven (hasta 2000 guardadas). El texto
+coloreado del editor se guarda en caché por huella: un cuadro sin teclear no vuelve
+a colorear nada. Los archivos de más de 256 KiB se editan sin colores, para que el
+carril Editor siga en verde.
+
 ## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
 
 ![Terminal tras cargo run y carriles con 7 subidas a la GPU en 153 cuadros](maquetas/png/neon/carpetas-gpu-terminal.png)
@@ -176,7 +259,9 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 | **Acomodo** | 1 ms | 4 ms | CPU, O(n log n) con n ≤ 600 nodos; solo se calcula si cambió el estado |
 | **Vista** | 1,5 ms | 5 ms | CPU y memoria: en caché por versión del estado |
 | **Geometría** | 3 ms | 10 ms | CPU solo cuando cambia el grafo; mover y zoom solo mandan 16 bytes de cámara a la GPU |
-| **Terminal** | 1 ms | 5 ms | Líneas de procesos: como mucho 512 por cuadro y 2000 guardadas |
+| **Terminal** | 1 ms | 5 ms | Líneas de procesos y lector de errores: como mucho 512 por cuadro, 2000 guardadas y 500 errores |
+| **Procesos** | 5 ms | 50 ms | Leer `/proc` cada 500 ms en **su propio hilo**; solo el grupo del play, como mucho 64; no rehace la geometría |
+| **Editor** | 4 ms | 10 ms | CPU (egui): texto coloreado en caché por huella; sin colores por encima de 256 KiB; teclear no rehace el grafo |
 | **Pintado** | 6 ms | 12 ms | CPU (egui): solo se pinta lo que cae en pantalla; con poco zoom se omiten textos e iconos; solo se repinta con eventos |
 | **Iconos SVG** | 8 ms | 30 ms | CPU una vez por icono y tamaño; después es textura en la GPU |
 
@@ -185,7 +270,9 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 - 5000 entradas por carpeta;
 - 600 nodos en el grafo;
 - 64 carpetas desplegadas, que son las que se vigilan;
-- 1 MiB por archivo de orden y 64 KiB de ajustes.
+- 1 MiB por archivo de orden y 64 KiB de ajustes;
+- 2 MiB por archivo en el editor, 500 errores atrapados por ejecución y 64 procesos
+  en vivo.
 
 **Seguridad en el carril de disco:**
 
@@ -244,7 +331,12 @@ Las primeras medidas en la pantalla virtual (no en tu PC) quedaron todas en verd
 - **egui** dibuja la interfaz y **wgpu** habla con la GPU: **Vulkan** en Linux y
   Windows, Metal en macOS. Es el mismo código en todas partes, en Rust seguro y
   sin Vulkan crudo.
-- **Pruebas:** 9 en el núcleo, al estilo Redux (acción → estado + efectos): arrastre,
+- **Pruebas:** en el núcleo, además de las de abajo, las de errores (rustc, panics,
+  gcc, Python, rutas que salen de la carpeta, parar en el primer error), editor
+  (clic derecho, cambios sin guardar, F8), procesos en árbol y colores de código.
+  En la capa Linux: leer y guardar del editor (enlaces, binarios, permisos, cambios
+  de fuera), `/proc` con un grupo real y el anillo rojo en la geometría de la GPU.
+  Las de siempre: 9 en el núcleo, al estilo Redux (acción → estado + efectos): arrastre,
   rejilla, candado, deshacer, banda, abrir, paleta, JSON raro y vista. Hay 2 más en
   la capa Linux (listar carpetas y guardar en disco).
 - Toma tu acento de Personalizar y la letra Chakra Petch si está instalada. Cada
@@ -267,6 +359,9 @@ Si no hay Rust o no compila, avisa en amarillo y sigue Thunar. Corre desde
 
 ## Pendiente
 
-- Probarlo en Hyprland real con NVIDIA (aquí se probó con Vulkan por software).
+- Probarlo en Hyprland real con NVIDIA (aquí se probó con Vulkan por software). Los
+  tiempos de los carriles en la pantalla virtual no valen como medida de tu PC.
+- Editor: buscar y reemplazar, varias pestañas y comentarios `/* */` de varias líneas
+  coloreados enteros (ahora solo su primera línea).
 - Miniaturas de imágenes, renombrar y mover archivos de verdad (con confirmación y
   deshacer), varias ventanas y arrastrar entre carpetas.

@@ -28,12 +28,14 @@ pub struct Ajustes {
     /// Arbol lateral como el explorador de VS Code (Ctrl+B).
     pub explorador: bool,
     pub dibujo: Dibujo,
+    /// Detener el proceso con el primer error atrapado (como "break on error").
+    pub parar_en_error: bool,
 }
 
 impl Default for Ajustes {
     fn default() -> Self {
         Ajustes { tema: TEMAS[0].id.to_string(), brillo: None, acento_escritorio: false, iconos: EstiloIconos::Neon,
-                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true, dibujo: Dibujo::Gpu }
+                  direccion: Direccion::Blender, modo: Modo::Iconos, explorador: true, dibujo: Dibujo::Gpu, parar_en_error: false }
     }
 }
 

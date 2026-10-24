@@ -53,6 +53,9 @@ impl Proceso {
         Ok(Proceso { rx, grupo })
     }
 
+    /// Grupo de procesos (el pid del lanzado): para seguirlo en /proc.
+    pub fn grupo(&self) -> u32 { self.grupo }
+
     pub fn recoger(&self, maximo: usize) -> Vec<Mensaje> { self.rx.try_iter().take(maximo).collect() }
 
     /// SIGTERM a todo el grupo (sin shell: el programa `kill` con el grupo en negativo).

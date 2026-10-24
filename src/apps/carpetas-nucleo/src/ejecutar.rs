@@ -34,6 +34,8 @@ pub struct Terminal {
     pub abierta: bool,
     pub lineas: VecDeque<(String, bool)>,
     pub en_curso: Option<String>,
+    /// Carpeta (relativa) donde corre: el nodo que muestra los procesos en vivo.
+    pub carpeta: String,
 }
 
 impl Terminal {

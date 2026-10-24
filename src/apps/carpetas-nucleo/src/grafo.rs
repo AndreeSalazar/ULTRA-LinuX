@@ -46,6 +46,24 @@ pub struct NodoGrafo {
     pub seleccionado: bool,
     /// Boton de play: que arranca ("cargo run", "make"...).
     pub play: Option<String>,
+    /// Errores atrapados de la ultima ejecucion (en carpetas, todo lo de dentro).
+    pub marcas: Marcas,
+}
+
+/// Lo que se atrapo en la salida para un nodo: rojo con errores, amarillo con avisos.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Marcas {
+    pub errores: u32,
+    pub avisos: u32,
+    /// "src/main.rs:12 error[E0425]: ..." del primero (para el tooltip).
+    pub primero: Option<String>,
+}
+
+pub fn marcas(e: &Estado, id: &str) -> Marcas {
+    let (errores, avisos) = e.errores.conteo(id);
+    if errores + avisos == 0 { return Marcas::default(); }
+    let primero = e.errores.primero(id).map(|(f, d)| format!("{f}:{}:{}  {}", d.linea, d.columna, d.mensaje));
+    Marcas { errores, avisos, primero }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -62,6 +80,7 @@ pub struct FilaArbol {
     pub icono: &'static str,
     pub color: Rgb,
     pub play: Option<String>,
+    pub marcas: Marcas,
 }
 
 pub fn hijo(padre: &str, nombre: &str) -> String {
@@ -149,6 +168,7 @@ pub fn nodos_y_cables(e: &Estado, tema: &crate::tema::Tema) -> (Vec<NodoGrafo>, 
             expandida: (tipo == Tipo::Carpeta).then(|| id.is_empty() || e.expandidas.contains(id)),
             seleccionado: e.seleccion.contains(id),
             play: crate::ejecutar::lanzador(e, id).map(|l| l.titulo),
+            marcas: marcas(e, id),
         });
     }
     // Cables del padre al hijo: salida a la derecha (Blender) o abajo (Houdini).
@@ -181,7 +201,8 @@ pub fn filas_arbol(e: &Estado, tema: &crate::tema::Tema) -> Vec<FilaArbol> {
         FilaArbol { nombre: en.nombre.clone(), tipo: en.tipo, nivel: nivel - 1,
                     expandida: (en.tipo == Tipo::Carpeta).then(|| e.expandidas.contains(&id)),
                     seleccionado: e.seleccion.contains(&id), icono: icono(&en.nombre, en.tipo, e.ajustes.iconos),
-                    color: tema.color_tipo(en.tipo), play: crate::ejecutar::lanzador(e, &id).map(|l| l.titulo), id }
+                    color: tema.color_tipo(en.tipo), play: crate::ejecutar::lanzador(e, &id).map(|l| l.titulo),
+                    marcas: marcas(e, &id), id }
     }).collect()
 }
 

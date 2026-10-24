@@ -5,6 +5,9 @@
 use crate::ajustes::Ajustes;
 use crate::carriles::MAX_DESPLEGADAS;
 use crate::comandos::{buscar, Comando};
+use crate::diagnosticos::{self, Errores};
+use crate::editor::{Editor, MAX_EDITOR};
+use crate::procesos::{ProcesoVivo, MAX_PROCESOS};
 use crate::disposicion::{Disposicion, ICONO};
 use crate::ejecutar::{lanzador, partir_linea, Terminal};
 use crate::grafo::{acomodar, hijo, limites, Camara, Direccion, Modo, NODO};
@@ -67,6 +70,16 @@ pub enum Accion {
     /// Lo que va saliendo del proceso.
     Salida { linea: String, error: bool },
     Termino(Option<i32>),
+    /// Ruta absoluta de la carpeta abierta (para entender rutas absolutas de Python y gcc).
+    RutaRaiz(String),
+    /// Muestra de /proc: el proceso lanzado y sus hijos. No rehace la geometria.
+    Procesos(Vec<ProcesoVivo>),
+    /// Clic derecho: abrir el editor de codigo (en una carpeta, su primer error).
+    AbrirEditor { id: String, linea: Option<u32> },
+    ArchivoLeido { id: String, resultado: Result<String, String> },
+    /// El texto del editor cambio (no rehace la geometria).
+    Editar(String),
+    Guardado { id: String, resultado: Result<(), String> },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -85,6 +98,10 @@ pub enum Efecto {
     /// Lanzar un proceso: programa y argumentos sin shell, en una carpeta relativa.
     Ejecutar { titulo: String, carpeta: String, programa: String, args: Vec<String> },
     Detener,
+    /// Leer un archivo de texto para el editor (ruta relativa ya validada contra lo leido).
+    LeerArchivo(String),
+    /// Guardar el editor: escritura atomica en la plataforma.
+    GuardarArchivo { id: String, texto: String },
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -121,6 +138,13 @@ pub struct Estado {
     /// la GPU y la Vista se rehacen solo con esta.
     pub version_contenido: u64,
     pub terminal: Terminal,
+    /// Errores de la ultima ejecucion, por nodo.
+    pub errores: Errores,
+    pub raiz_absoluta: String,
+    /// Editor de codigo abierto (clic derecho).
+    pub editor: Option<Editor>,
+    /// El proceso en marcha y sus hijos (de /proc).
+    pub procesos: Vec<ProcesoVivo>,
 }
 
 impl Default for Estado {
@@ -129,7 +153,8 @@ impl Default for Estado {
                  ancho: 1100.0, lienzo: [1100.0, 700.0], acento: HIELO, arrastrando: false, banda: None, paleta: None,
                  ajustes: Ajustes::default(), panel_ajustes: false, carriles: false, arbol: BTreeMap::new(),
                  expandidas: BTreeSet::new(), camara: Camara::default(), version: 0, nombre_raiz: String::new(),
-                 version_contenido: 0, terminal: Terminal::default() }
+                 version_contenido: 0, terminal: Terminal::default(), errores: Errores::default(), raiz_absoluta: String::new(),
+                 editor: None, procesos: Vec::new() }
     }
 }
 
@@ -244,6 +269,30 @@ impl Estado {
                 self.ajustes.dibujo = match self.ajustes.dibujo { crate::ajustes::Dibujo::Gpu => crate::ajustes::Dibujo::Cpu, crate::ajustes::Dibujo::Cpu => crate::ajustes::Dibujo::Gpu };
                 vec![self.guardar_ajustes()]
             }
+            Comando::PararEnError => { self.ajustes.parar_en_error = !self.ajustes.parar_en_error; vec![self.guardar_ajustes()] }
+            Comando::SiguienteError => {
+                let lista: Vec<(String, u32)> = self.errores.por_nodo.iter().flat_map(|(k, v)| v.iter().map(move |d| (k.clone(), d.linea))).collect();
+                if lista.is_empty() { return vec![]; }
+                let i = self.errores.cursor % lista.len();
+                self.errores.cursor = i + 1;
+                let (id, linea) = lista[i].clone();
+                if self.entrada(&id).is_some() { self.seleccion = [id.clone()].into(); }
+                self.abrir_editor(&id, Some(linea))
+            }
+            Comando::Guardar => match &self.editor {
+                Some(ed) if ed.cargado && ed.sucio => vec![Efecto::GuardarArchivo { id: ed.id.clone(), texto: ed.texto.clone() }],
+                _ => vec![],
+            },
+            Comando::CerrarEditor => {
+                match &mut self.editor {
+                    Some(ed) if ed.sucio && !ed.cerrar_pedido => {
+                        ed.cerrar_pedido = true;
+                        ed.aviso = Some(String::from("Cambios sin guardar: Ctrl+S guarda; cerrar otra vez los descarta"));
+                    }
+                    _ => self.editor = None,
+                }
+                vec![]
+            }
             Comando::EjecutarSeleccion => match self.seleccion.iter().next() {
                 Some(id) if self.seleccion.len() == 1 => { let id = id.clone(); self.ejecutar(&id) }
                 _ if self.seleccion.is_empty() && lanzador(self, "").is_some() => self.ejecutar(""),
@@ -268,7 +317,64 @@ impl Estado {
         let donde = if carpeta.is_empty() { self.nombre_raiz.clone() } else { carpeta.clone() };
         self.terminal.escribir(&alloc::format!("$ {titulo}   (en {donde})"), false);
         self.terminal.en_curso = Some(titulo.clone());
+        self.terminal.carpeta = carpeta.clone();
+        self.errores.empezar(&carpeta);
+        self.procesos.clear();
         vec![Efecto::Ejecutar { titulo, carpeta, programa, args }]
+    }
+
+    /// El editor en un archivo leido (o en el primer error de una carpeta).
+    fn abrir_editor(&mut self, id: &str, linea: Option<u32>) -> Vec<Efecto> {
+        let tipo = if id.is_empty() { Some(Tipo::Carpeta) } else { self.entrada(id).map(|e| e.tipo) };
+        let (id, mut linea) = if tipo == Some(Tipo::Carpeta) {
+            match self.errores.primero(id) {
+                Some((f, d)) => (f.clone(), linea.or(Some(d.linea))),
+                None => return vec![],
+            }
+        } else {
+            (String::from(id), linea) // puede ser un error en un archivo aun sin leer
+        };
+        let Some(entrada) = self.entrada(&id) else {
+            self.terminal.escribir(&alloc::format!("{id}: su carpeta aun no se ha leido; despliegala y vuelve a intentar"), true);
+            return vec![];
+        };
+        if entrada.tipo == Tipo::Carpeta { return vec![]; }
+        if entrada.tam > MAX_EDITOR {
+            self.terminal.escribir(&alloc::format!("{id}: demasiado grande para el editor (max 2 MiB)"), true);
+            return vec![];
+        }
+        if linea.is_none() { linea = self.errores.de(&id).iter().find(|d| d.grave).or(self.errores.de(&id).first()).map(|d| d.linea); }
+        let carga = match &mut self.editor {
+            Some(ed) if ed.id == id => { ed.ir_a = linea.or(ed.ir_a); ed.saltos += 1; return vec![]; }
+            Some(ed) if ed.sucio => {
+                ed.aviso = Some(alloc::format!("Guarda (Ctrl+S) o descarta {} antes de abrir otro archivo", ed.id));
+                return vec![];
+            }
+            Some(ed) => ed.carga + 1,
+            None => 1,
+        };
+        self.editor = Some(Editor { id: id.clone(), ir_a: linea.or(Some(1)), saltos: 1, carga, ..Editor::default() });
+        vec![Efecto::LeerArchivo(id)]
+    }
+
+    /// Despliega las carpetas que llevan a un archivo con error (una vez por ejecucion:
+    /// si el usuario la pliega, no se vuelve a abrir sola).
+    fn desplegar_errores(&mut self) -> Vec<Efecto> {
+        let mut efectos = Vec::new();
+        let ids: Vec<String> = self.errores.por_nodo.iter().filter(|(_, v)| v.iter().any(|d| d.grave)).map(|(k, _)| k.clone()).collect();
+        for id in ids {
+            let mut camino = String::new();
+            for tramo in id.split('/').collect::<Vec<_>>().split_last().map(|(_, r)| r.to_vec()).unwrap_or_default() {
+                camino = hijo(&camino, tramo);
+                if self.entrada(&camino).map(|e| e.tipo) != Some(Tipo::Carpeta) { break; }
+                if !self.expandidas.contains(&camino) {
+                    if !self.errores.desplegadas.insert(camino.clone()) { break; }
+                    efectos.extend(self.expandir(&camino.clone()));
+                    break; // el resto, cuando llegue su contenido
+                }
+            }
+        }
+        efectos
     }
 
     fn poner_tema(&mut self, i: usize) -> Vec<Efecto> {
@@ -310,7 +416,10 @@ fn se_cruzan(a: ([f32; 2], [f32; 2]), b: ([f32; 2], [f32; 2])) -> bool {
 pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
     e.version = e.version.wrapping_add(1);
     // Mover la camara o cambiar el tamano no cambia lo que se dibuja: la GPU ya lo tiene.
-    if !matches!(accion, Accion::Desplazar(_) | Accion::Zoom { .. } | Accion::Lienzo(_) | Accion::Ancho(_)) {
+    // Tampoco la salida de un proceso, /proc o teclear en el editor: si de ahi sale un error
+    // nuevo en un nodo, se marca abajo a mano.
+    if !matches!(accion, Accion::Desplazar(_) | Accion::Zoom { .. } | Accion::Lienzo(_) | Accion::Ancho(_) | Accion::Salida { .. }
+                       | Accion::Procesos(_) | Accion::Editar(_) | Accion::RutaRaiz(_)) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
     }
     match accion {
@@ -341,7 +450,7 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             e.arbol.insert(ruta, entradas);
             let arbol = &e.arbol;
             e.seleccion.retain(|id| { let (p, n) = padre_de(id); arbol.get(p).is_some_and(|l| l.iter().any(|x| x.nombre == n)) });
-            vec![]
+            e.desplegar_errores()
         }
         Accion::Ancho(a) => { if a.is_finite() && a > 0.0 { e.ancho = a; } vec![] }
         Accion::Lienzo(t) => { if t.iter().all(|v| v.is_finite() && *v > 0.0) { e.lienzo = t; } vec![] }
@@ -432,13 +541,89 @@ pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                 None => vec![],
             }
         }
-        Accion::Salida { linea, error } => { e.terminal.escribir(&linea, error); vec![] }
+        Accion::Salida { linea, error } => {
+            e.terminal.escribir(&linea, error);
+            let leidos = diagnosticos::leer(&mut e.errores.lector, &linea);
+            e.notar_errores(leidos)
+        }
         Accion::Termino(codigo) => {
             let texto = match codigo { Some(0) => String::from("[termino bien]"), Some(c) => alloc::format!("[termino con codigo {c}]"), None => String::from("[detenido]") };
             e.terminal.escribir(&texto, codigo != Some(0));
             e.terminal.en_curso = None;
+            e.procesos.clear();
+            let quedan = diagnosticos::cerrar(&mut e.errores.lector);
+            let efectos = e.notar_errores(quedan);
+            if e.errores.total > 0 {
+                let (err, av) = e.errores.conteo("");
+                let archivos = e.errores.por_nodo.len() as u32;
+                let resumen = match (err, av) {
+                    (0, _) => diagnosticos::contar(av, "aviso", "avisos"),
+                    (_, 0) => diagnosticos::contar(err, "error", "errores"),
+                    _ => alloc::format!("{} y {}", diagnosticos::contar(err, "error", "errores"), diagnosticos::contar(av, "aviso", "avisos")),
+                };
+                let color = if err > 0 { "rojo" } else { "amarillo" };
+                e.terminal.escribir(&alloc::format!("{resumen} en {}: el nodo en {color} lo marca; clic derecho o F8 abre el editor en la linea",
+                    diagnosticos::contar(archivos, "archivo", "archivos")), err > 0);
+            }
+            efectos
+        }
+        Accion::RutaRaiz(r) => { e.raiz_absoluta = r.chars().take(4096).collect(); vec![] }
+        Accion::Procesos(mut lista) => {
+            if e.terminal.en_curso.is_some() { lista.truncate(MAX_PROCESOS); e.procesos = lista; }
             vec![]
         }
+        Accion::AbrirEditor { id, linea } => e.abrir_editor(&id, linea),
+        Accion::ArchivoLeido { id, resultado } => {
+            if let Some(ed) = &mut e.editor {
+                if ed.id == id && !ed.cargado {
+                    match resultado {
+                        Ok(t) => { ed.texto = t; ed.cargado = true; ed.carga += 1; }
+                        Err(m) => ed.aviso = Some(m),
+                    }
+                }
+            }
+            vec![]
+        }
+        Accion::Editar(t) => {
+            if let Some(ed) = &mut e.editor {
+                if ed.cargado && t != ed.texto {
+                    if t.len() as u64 > MAX_EDITOR { ed.aviso = Some(String::from("El texto pasa de 2 MiB: no se acepta")); return vec![]; }
+                    ed.texto = t;
+                    ed.sucio = true;
+                    ed.cerrar_pedido = false;
+                }
+            }
+            vec![]
+        }
+        Accion::Guardado { id, resultado } => {
+            if let Some(ed) = &mut e.editor {
+                if ed.id == id {
+                    match resultado {
+                        Ok(()) => { ed.sucio = false; ed.cerrar_pedido = false; ed.aviso = Some(String::from("Guardado. F5 para volver a ejecutar")); }
+                        Err(m) => ed.aviso = Some(m),
+                    }
+                }
+            }
+            vec![]
+        }
+    }
+}
+
+impl Estado {
+    /// Errores nuevos de la salida: se marcan en sus nodos y se despliega el camino.
+    fn notar_errores(&mut self, leidos: Vec<(String, crate::diagnosticos::Diagnostico)>) -> Vec<Efecto> {
+        if leidos.is_empty() { return vec![]; }
+        let raiz = self.raiz_absoluta.clone();
+        let (nuevo, grave) = self.errores.anotar(leidos, &raiz);
+        if !nuevo { return vec![]; }
+        self.version_contenido = self.version_contenido.wrapping_add(1); // el nodo cambia de color
+        let mut efectos = self.desplegar_errores();
+        if grave && self.ajustes.parar_en_error && self.terminal.en_curso.is_some() && !self.errores.parado {
+            self.errores.parado = true;
+            self.terminal.escribir("[parado en el primer error: Ajustes > Parar en el primer error]", true);
+            efectos.push(Efecto::Detener);
+        }
+        efectos
     }
 }
 

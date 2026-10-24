@@ -5,7 +5,7 @@
 use crate::comandos::buscar;
 use crate::disposicion::{CELDA, ICONO};
 use crate::estado::Estado;
-use crate::grafo::{filas_arbol, nodos_y_cables, Cable, Camara, FilaArbol, Modo, NodoGrafo};
+use crate::grafo::{filas_arbol, marcas, nodos_y_cables, Cable, Camara, FilaArbol, Marcas, Modo, NodoGrafo};
 use crate::iconos::icono;
 use crate::tema::{Tema, TEMAS};
 use crate::tipos::{Rgb, Tipo};
@@ -17,7 +17,7 @@ use alloc::vec::Vec;
 pub enum Nodo {
     /// Un punto de rejilla en cada celda.
     Rejilla { paso: [f32; 2] },
-    Icono { nombre: String, pos: [f32; 2], tam: [f32; 2], tipo: Tipo, color: Rgb, seleccionado: bool, etiqueta: String, icono: &'static str, play: Option<String> },
+    Icono { nombre: String, pos: [f32; 2], tam: [f32; 2], tipo: Tipo, color: Rgb, seleccionado: bool, etiqueta: String, icono: &'static str, play: Option<String>, marcas: Marcas },
     Banda { desde: [f32; 2], hasta: [f32; 2], color: Rgb },
 }
 
@@ -53,7 +53,8 @@ pub struct Vista {
     pub camara: Camara,
     /// Explorador lateral (si esta visible).
     pub arbol: Option<Vec<FilaArbol>>,
-    /// Terminal de abajo (si esta abierta): ultimas lineas y lo que esta en marcha.
+    /// Terminal de abajo (si esta abierta): foto de las ultimas lineas al hacer la Vista.
+    /// La salida de un proceso no rehace la Vista: para verla en vivo, leer Estado::terminal.
     pub terminal: Option<VistaTerminal>,
     /// Play de la carpeta abierta (si es un proyecto).
     pub play_raiz: Option<String>,
@@ -78,7 +79,8 @@ pub fn vista(e: &Estado) -> Vista {
         nodos.push(Nodo::Icono { nombre: entrada.nombre.clone(), pos: *p, tam: ICONO, tipo: entrada.tipo,
                                  color: tema.color_tipo(entrada.tipo), seleccionado: e.seleccion.contains(&entrada.nombre), etiqueta,
                                  icono: icono(&entrada.nombre, entrada.tipo, e.ajustes.iconos),
-                                 play: crate::ejecutar::lanzador(e, &entrada.nombre).map(|l| l.titulo) });
+                                 play: crate::ejecutar::lanzador(e, &entrada.nombre).map(|l| l.titulo),
+                                 marcas: marcas(e, &entrada.nombre) });
     }
     if let Some((desde, hasta)) = e.banda { nodos.push(Nodo::Banda { desde, hasta, color: tema.acento }); }
     let mut estado = format!("{} elementos · {} seleccionados", e.entradas.len(), e.seleccion.len());

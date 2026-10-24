@@ -10,14 +10,17 @@
 //! iconos SVG son solo los incrustados. Solo ordena la vista: nunca toca tus archivos.
 
 mod almacen;
+mod archivo;
 mod disco;
+mod editor_ui;
 mod entradas;
 mod gpu;
 mod pintar_grafo;
 mod proceso;
 mod svg;
+mod vivos;
 
-use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_DESPLEGADAS, MAX_ENTRADAS, MAX_LINEAS_POR_CUADRO, MAX_NODOS};
+use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_DESPLEGADAS, MAX_DIAGNOSTICOS, MAX_ENTRADAS, MAX_LINEAS_POR_CUADRO, MAX_NODOS, MAX_PROCESOS};
 use carpetas_nucleo::{atajo, reducir, vista, Accion, AccionPaleta, Comando, Dibujo, Direccion, Efecto, EstiloIconos, Estado, Modo, Nodo, Orden, Rgb,
                       Tecla, Tema, Tipo, Vista};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -44,7 +47,7 @@ fn acento() -> Rgb {
 
 /// Ultimo tiempo y maximo por carril, en microsegundos.
 #[derive(Default)]
-struct Medidas { ultimo: [u64; 7], maximo: [u64; 7] }
+struct Medidas { ultimo: [u64; 9], maximo: [u64; 9] }
 
 impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
@@ -69,12 +72,20 @@ struct App {
     tiempo_iconos: Cell<u64>,
     /// Hay wgpu: el grafo se dibuja con geometria retenida en la GPU.
     gpu_ok: bool,
-    geometria: Option<(u64, Arc<Vec<gpu::Vertice>>)>,
+    geometria: Option<Geometria>,
     subidas: Arc<AtomicU64>,
     cuadros: u64,
     proceso: Option<proceso::Proceso>,
     texto_terminal: String,
+    vivos: vivos::Muestreador,
+    editor: editor_ui::PanelEditor,
+    /// Huella del archivo abierto en el editor (para no pisar cambios de fuera).
+    huella: Option<archivo::Huella>,
 }
+
+/// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
+/// no (una linea de la terminal, un aviso), no se rehace ni se vuelve a subir.
+struct Geometria { version: u64, clave: u64, fuente: Arc<Vista>, vertices: Arc<Vec<gpu::Vertice>> }
 
 impl App {
     fn new(cc: &eframe::CreationContext<'_>, carpeta: PathBuf) -> Self {
@@ -82,11 +93,13 @@ impl App {
         let gpu_ok = gpu::instalar(cc.wgpu_render_state.as_ref());
         fuentes(&cc.egui_ctx);
         let ctx = cc.egui_ctx.clone();
+        let ctx_vivos = cc.egui_ctx.clone();
         let mut app = App {
             estado: Estado { acento: acento(), ..Estado::default() }, carpeta: PathBuf::new(), atras: Vec::new(), error: None, contexto: cc.egui_ctx.clone(),
             texto_paleta: String::new(), tema_aplicado: None, disco: Disco::nuevo(move || ctx.request_repaint()), generacion: 0,
             pendiente: None, vigiladas: Vec::new(), cache: None, medidas: Medidas::default(), iconos: svg::Iconos::nuevo(), tiempo_iconos: Cell::new(0),
             gpu_ok, geometria: None, subidas: Arc::new(AtomicU64::new(0)), cuadros: 0, proceso: None, texto_terminal: String::new(),
+            vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huella: None,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -131,11 +144,21 @@ impl App {
                 };
                 let ctx = self.contexto.clone();
                 match proceso::Proceso::lanzar(&dir, &programa, &args, move || ctx.request_repaint()) {
-                    Ok(p) => self.proceso = Some(p),
+                    Ok(p) => { self.vivos.seguir(Some(p.grupo())); self.proceso = Some(p); }
                     Err(e) => { self.despachar(Accion::Salida { linea: e, error: true }); self.despachar(Accion::Termino(None)); }
                 }
             }
             Efecto::Detener => { if let Some(p) = &self.proceso { p.detener(); } }
+            Efecto::LeerArchivo(rel) => {
+                let t = Instant::now();
+                let resultado = archivo::leer(&self.carpeta, &rel).map(|(texto, h)| { self.huella = Some(h); texto });
+                self.medidas.anotar(Carril::Disco, t.elapsed().as_micros() as u64);
+                self.despachar(Accion::ArchivoLeido { id: rel, resultado });
+            }
+            Efecto::GuardarArchivo { id, texto } => {
+                let resultado = archivo::guardar(&self.carpeta, &id, &texto, self.huella).map(|h| { self.huella = Some(h); });
+                self.despachar(Accion::Guardado { id, resultado });
+            }
             Efecto::Releer { .. } => {
                 for ruta in std::iter::once(String::new()).chain(self.estado.expandidas.iter().cloned()) {
                     self.disco.pedir(Pedido::Listar { generacion: self.generacion, base: self.carpeta.clone(), ruta, ocultos: self.estado.ocultos });
@@ -169,6 +192,7 @@ impl App {
                             let disposicion = almacen::cargar(&almacen::archivo_para(&almacen::base(), &self.carpeta));
                             let nombre = self.carpeta.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "/".into());
                             self.despachar(Accion::Cargar { nombre, entradas, disposicion });
+                            self.despachar(Accion::RutaRaiz(self.carpeta.to_string_lossy().into_owned()));
                         }
                         Err(e) => { self.error = Some(format!("No se pudo abrir {}: {e}", pedida.display())); self.vigiladas.clear(); self.vigilar(); }
                     }
@@ -209,19 +233,32 @@ impl App {
         v
     }
 
-    /// Geometria del grafo para la GPU: la CPU la arma solo si cambio el contenido.
-    fn retenido(&mut self, v: &Vista, tema: &Tema) -> Option<pintar_grafo::Retenido> {
+    /// Geometria del grafo para la GPU: la CPU la arma solo si cambio el grafo de verdad.
+    fn retenido(&mut self, v: &Arc<Vista>, tema: &Tema) -> Option<pintar_grafo::Retenido> {
         if !self.gpu_ok || self.estado.ajustes.dibujo != Dibujo::Gpu { return None; }
         let (nodos, cables) = v.grafo.as_ref()?;
-        let clave = self.estado.version_contenido;
-        if self.geometria.as_ref().map(|g| g.0) != Some(clave) {
-            let t = Instant::now();
-            let g = Arc::new(gpu::geometria(nodos, cables, tema, self.estado.ajustes.direccion));
-            self.medidas.anotar(Carril::Geometria, t.elapsed().as_micros() as u64);
-            self.geometria = Some((clave, g));
+        let version = self.estado.version_contenido;
+        let mismo = |g: &Geometria| g.version == version || (g.fuente.grafo == v.grafo && g.fuente.tema == v.tema);
+        match &mut self.geometria {
+            Some(g) if mismo(g) => { g.version = version; g.fuente = v.clone(); }
+            _ => {
+                let t = Instant::now();
+                let vertices = Arc::new(gpu::geometria(nodos, cables, tema, self.estado.ajustes.direccion));
+                self.medidas.anotar(Carril::Geometria, t.elapsed().as_micros() as u64);
+                let clave = self.geometria.as_ref().map(|g| g.clave + 1).unwrap_or(1);
+                self.geometria = Some(Geometria { version, clave, fuente: v.clone(), vertices });
+            }
         }
-        let (clave, g) = self.geometria.as_ref()?;
-        Some((*clave, g.clone(), self.subidas.clone()))
+        let g = self.geometria.as_ref()?;
+        Some((g.clave, g.vertices.clone(), self.subidas.clone()))
+    }
+
+    /// Lo que va midiendo /proc del proceso en marcha (su hilo manda una muestra cada 500 ms).
+    fn recoger_vivos(&mut self) {
+        if let Some(m) = self.vivos.recoger() {
+            self.medidas.anotar(Carril::Procesos, m.micros);
+            self.despachar(Accion::Procesos(m.procesos));
+        }
     }
 
     /// Lo que salio del proceso desde el ultimo cuadro (como mucho 512 lineas).
@@ -233,7 +270,7 @@ impl App {
         for m in mensajes {
             match m {
                 proceso::Mensaje::Linea(linea, error) => self.despachar(Accion::Salida { linea, error }),
-                proceso::Mensaje::Fin(codigo) => { self.proceso = None; self.despachar(Accion::Termino(codigo)); }
+                proceso::Mensaje::Fin(codigo) => { self.proceso = None; self.vivos.seguir(None); self.despachar(Accion::Termino(codigo)); }
             }
         }
         self.medidas.anotar(Carril::Terminal, t.elapsed().as_micros() as u64);
@@ -250,17 +287,27 @@ impl App {
 
     /// Teclas de egui -> teclas del nucleo -> accion (el "keybindings.json").
     fn teclado(&mut self, ctx: &egui::Context) {
-        const MAPA: [(Key, Tecla); 20] = [(Key::T, Tecla::T), (Key::Comma, Tecla::Coma), (Key::G, Tecla::G), (Key::L, Tecla::L), (Key::H, Tecla::H),
+        const MAPA: [(Key, Tecla); 24] = [(Key::S, Tecla::S), (Key::F8, Tecla::F8), (Key::T, Tecla::T), (Key::Comma, Tecla::Coma), (Key::G, Tecla::G), (Key::L, Tecla::L), (Key::H, Tecla::H),
             (Key::Z, Tecla::Z), (Key::A, Tecla::A), (Key::P, Tecla::P), (Key::B, Tecla::B), (Key::D, Tecla::D), (Key::I, Tecla::I), (Key::Tab, Tecla::Tab),
             (Key::Home, Tecla::Inicio), (Key::F12, Tecla::F12), (Key::Backspace, Tecla::Retroceso), (Key::Enter, Tecla::Enter),
-            (Key::Escape, Tecla::Escape), (Key::F5, Tecla::F5), (Key::ArrowUp, Tecla::Arriba), (Key::ArrowDown, Tecla::Abajo)];
-        let (m, mut pulsadas) = ctx.input(|i| (i.modifiers, MAPA.iter().filter(|(k, _)| i.key_pressed(*k)).map(|(_, t)| *t).collect::<Vec<_>>()));
-        if ctx.input(|i| i.key_pressed(Key::ArrowLeft)) { pulsadas.push(Tecla::Izquierda); }
-        if ctx.input(|i| i.key_pressed(Key::Backtick)) { pulsadas.push(Tecla::Acento); }
+            (Key::Escape, Tecla::Escape), (Key::F5, Tecla::F5), (Key::ArrowUp, Tecla::Arriba), (Key::ArrowDown, Tecla::Abajo),
+            (Key::ArrowLeft, Tecla::Izquierda), (Key::Backtick, Tecla::Acento)];
+        // Cada tecla con los modificadores de SU evento: si Ctrl se suelta en el mismo cuadro
+        // (tecleo rapido, macros), Ctrl+S sigue siendo Ctrl+S.
+        let pulsadas: Vec<(Tecla, egui::Modifiers)> = ctx.input(|i| i.events.iter().filter_map(|e| match e {
+            egui::Event::Key { key, pressed: true, modifiers, .. } => MAPA.iter().find(|(k, _)| k == key).map(|(_, t)| (*t, *modifiers)),
+            _ => None,
+        }).collect());
         // Escribiendo en la terminal: las letras son letras, no atajos (solo Ctrl, F y Esc).
         let escribiendo = ctx.egui_wants_keyboard_input() && self.estado.paleta.is_none();
-        for t in pulsadas {
-            if escribiendo && !m.command && !matches!(t, Tecla::F5 | Tecla::F12 | Tecla::Escape) { continue; }
+        for (t, m) in pulsadas {
+            // En el editor, Esc cierra el editor (con aviso si hay cambios sin guardar).
+            if t == Tecla::Escape && self.editor.foco && self.estado.paleta.is_none() { self.despachar(Accion::Comando(Comando::CerrarEditor)); continue; }
+            // Escribiendo (editor, terminal): Ctrl+Z, Ctrl+A y las letras son del texto. Solo pasan
+            // las teclas F, Esc y los Ctrl que no tienen sentido dentro de un texto.
+            let global = matches!(t, Tecla::F5 | Tecla::F8 | Tecla::F12 | Tecla::Escape)
+                || (m.command && matches!(t, Tecla::S | Tecla::P | Tecla::Acento | Tecla::B | Tecla::Coma));
+            if escribiendo && !global { continue; }
             if let Some(a) = atajo(t, m.command, m.shift, m.alt, self.estado.paleta.is_some()) { self.despachar(a); }
         }
     }
@@ -315,6 +362,17 @@ impl App {
             if let Some(titulo) = &play_raiz {
                 if ui.add(egui::Button::new(egui::RichText::new(format!("Ejecutar: {titulo} [F5]")).color(c.verde))).clicked() { acciones.push(Accion::Ejecutar(String::new())); }
             }
+            let (errores, avisos) = self.estado.errores.conteo("");
+            if errores + avisos > 0 {
+                use carpetas_nucleo::diagnosticos::contar;
+                let texto = match (errores, avisos) {
+                    (0, a) => format!("{} [F8]", contar(a, "aviso", "avisos")),
+                    (e, 0) => format!("{} [F8]", contar(e, "error", "errores")),
+                    (e, a) => format!("{} · {} [F8]", contar(e, "error", "errores"), contar(a, "aviso", "avisos")),
+                };
+                if ui.add(egui::Button::new(egui::RichText::new(texto).color(if errores > 0 { c.error } else { c.aviso }).strong()))
+                    .on_hover_text("Ir al siguiente error: abre el editor en la linea").clicked() { acciones.push(Accion::Comando(Comando::SiguienteError)); }
+            }
             if ui.selectable_label(self.estado.terminal.abierta, "Terminal [Ctrl+`]").clicked() { acciones.push(Accion::Comando(Comando::Terminal)); }
             if ui.button("Comandos [Ctrl+Shift+P]").clicked() { acciones.push(Accion::Comando(Comando::Paleta)); }
             if ui.selectable_label(self.estado.panel_ajustes, "Ajustes [Ctrl+,]").clicked() { acciones.push(Accion::Comando(Comando::Ajustes)); }
@@ -351,7 +409,12 @@ impl App {
                 if !self.pintar_icono(ui, f.icono, ic, color(f.color)) {
                     p.rect(ic.shrink(2.0), 1, if f.tipo == Tipo::Carpeta { color(f.color).gamma_multiply(0.35) } else { Color32::TRANSPARENT }, Stroke::new(1.2, color(f.color)), StrokeKind::Inside);
                 }
-                p.text(Pos2::new(ic.max.x + 6.0, fila.center().y), Align2::LEFT_CENTER, &f.nombre, FontId::proportional(13.0), if f.seleccionado { c.texto } else { c.tenue });
+                let col_nombre = if f.marcas.errores > 0 { c.error } else if f.marcas.avisos > 0 { c.aviso } else if f.seleccionado { c.texto } else { c.tenue };
+                p.text(Pos2::new(ic.max.x + 6.0, fila.center().y), Align2::LEFT_CENTER, &f.nombre, FontId::proportional(13.0), col_nombre);
+                let derecha = Pos2::new(fila.max.x - if f.play.is_some() { 26.0 } else { 4.0 }, fila.center().y - 8.5);
+                pintar_grafo::insignia(&p, c, derecha, &f.marcas);
+                if r.secondary_clicked() { acciones.push(Accion::AbrirEditor { id: f.id.clone(), linea: None }); }
+                if let Some(primero) = &f.marcas.primero { if r.hovered() { r.clone().on_hover_text(format!("{primero}\nclic derecho: abrir en el editor")); } }
                 if let Some(titulo) = &f.play {
                     let caja = Rect::from_center_size(Pos2::new(fila.max.x - 14.0, fila.center().y), Vec2::splat(16.0));
                     let rp = ui.interact(caja, ui.make_persistent_id(("arbol-play", &f.id)), Sense::click());
@@ -383,7 +446,7 @@ impl App {
                     let mut y = 0.0;
                     while y < tam.y { let mut x = 0.0; while x < tam.x { let p = origen + Vec2::new(x, y); if visible.contains(p) { pintor.circle_filled(p, 1.2, c.linea); } x += paso[0]; } y += paso[1]; }
                 }
-                Nodo::Icono { nombre, pos, tam, tipo, color: col, seleccionado, etiqueta, icono, play } => {
+                Nodo::Icono { nombre, pos, tam, tipo, color: col, seleccionado, etiqueta, icono, play, marcas } => {
                     let rect = Rect::from_min_size(origen + Vec2::new(pos[0], pos[1]), Vec2::new(tam[0], tam[1]));
                     if !visible.intersects(rect) { continue; } // carril de pintado: solo lo que se ve
                     let r = ui.interact(rect, ui.make_persistent_id(("icono", &self.carpeta, nombre)), Sense::click_and_drag());
@@ -396,6 +459,9 @@ impl App {
                     if r.hovered() || *seleccionado { marco(&pintor, c, rect, *seleccionado); }
                     if !self.pintar_icono(ui, icono, caja, color(*col)) { icono_neon(&pintor, rect, *tipo, color(*col), etiqueta); }
                     etiqueta_nombre(&pintor, c, rect, nombre, *seleccionado);
+                    if marcas.errores > 0 { pintor.rect_stroke(rect.expand(2.0), c.radio(), Stroke::new(2.0, c.error), StrokeKind::Outside); }
+                    pintar_grafo::insignia(&pintor, c, rect.right_top() + Vec2::new(4.0, -8.0), marcas);
+                    if r.secondary_clicked() { acciones.push(Accion::AbrirEditor { id: nombre.clone(), linea: None }); }
                     if let Some(titulo) = play {
                         let caja = Rect::from_min_size(rect.right_top() + Vec2::new(-22.0, 4.0), Vec2::splat(18.0));
                         let rp = ui.interact(caja, ui.make_persistent_id(("icono-play", nombre)), Sense::click());
@@ -405,7 +471,8 @@ impl App {
                         rp.on_hover_text(format!("Ejecutar: {titulo}"));
                     }
                     let tam_txt = self.estado.entradas.iter().find(|e| &e.nombre == nombre).map(|e| e.tam).unwrap_or(0);
-                    r.on_hover_text(format!("{nombre}\n{}", if *tipo == Tipo::Carpeta { "Carpeta".into() } else { legible(tam_txt) }));
+                    let error = marcas.primero.as_ref().map(|p| format!("\n\n{p}")).unwrap_or_default();
+                    r.on_hover_text(format!("{nombre}\n{}{error}\nclic derecho: abrir en el editor", if *tipo == Tipo::Carpeta { "Carpeta".into() } else { legible(tam_txt) }));
                 }
                 Nodo::Banda { desde, hasta, color: col } => {
                     let banda = Rect::from_two_pos(origen + Vec2::new(desde[0], desde[1]), origen + Vec2::new(hasta[0], hasta[1]));
@@ -513,20 +580,35 @@ impl App {
                     let mut propio = va.acento_escritorio;
                     if ui.checkbox(&mut propio, "Usar el acento del escritorio en cualquier tema").changed() { acciones.push(Accion::Comando(Comando::AcentoEscritorio)); }
                 });
+                ui.horizontal(|ui| {
+                    ui.label(egui::RichText::new("ERRORES").color(c.acento).strong());
+                    let mut parar = self.estado.ajustes.parar_en_error;
+                    if ui.checkbox(&mut parar, "Parar el proceso en el primer error atrapado").changed() { acciones.push(Accion::Comando(Comando::PararEnError)); }
+                });
             });
         });
         for a in acciones { self.despachar(a); }
     }
 
     /// Terminal de abajo, como la de VS Code: salida en vivo, parar, limpiar y una linea
-    /// para escribir comandos (sin shell: sin tuberias ni comodines).
-    fn terminal(&mut self, ui: &mut egui::Ui, v: &Vista, c: &Colores) {
-        let Some(t) = &v.terminal else { return };
+    /// para escribir comandos (sin shell: sin tuberias ni comodines). Lee el Estado en vivo
+    /// (la salida no rehace la Vista) y solo dibuja las filas que se ven. Las lineas que
+    /// apuntan a un archivo (--> src/main.rs:3:5) son enlaces: clic = editor en esa linea.
+    fn terminal(&mut self, ui: &mut egui::Ui, c: &Colores) {
         let mut acciones = Vec::new();
+        let t = &self.estado.terminal;
         ui.horizontal(|ui| {
             ui.label(egui::RichText::new("TERMINAL").color(c.acento).strong());
             match &t.en_curso {
-                Some(titulo) => { ui.label(egui::RichText::new(format!("en marcha: {titulo}")).color(c.verde)); if ui.button("Detener").clicked() { acciones.push(Accion::Comando(Comando::Detener)); } }
+                Some(titulo) => {
+                    ui.label(egui::RichText::new(format!("en marcha: {titulo}")).color(c.verde));
+                    if !self.estado.procesos.is_empty() {
+                        let (cpu, mem) = carpetas_nucleo::procesos::totales(&self.estado.procesos);
+                        ui.label(egui::RichText::new(format!("· {} procesos · CPU {cpu:.0}% · {}", self.estado.procesos.len(), pintar_grafo::memoria(mem)))
+                            .color(c.tenue).monospace().size(11.5));
+                    }
+                    if ui.button("Detener").clicked() { acciones.push(Accion::Comando(Comando::Detener)); }
+                }
                 None => { ui.label(egui::RichText::new("sin procesos").color(c.tenue)); }
             }
             ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
@@ -535,13 +617,26 @@ impl App {
             });
         });
         let alto = (ui.available_height() - 30.0).max(40.0);
-        egui::ScrollArea::vertical().max_height(alto).auto_shrink([false, false]).stick_to_bottom(true).show(ui, |ui| {
-            for (linea, error) in &t.lineas {
+        let fila = ui.fonts_mut(|f| f.row_height(&FontId::monospace(12.0))) + ui.spacing().item_spacing.y;
+        let (base, raiz) = (self.estado.errores.base.clone(), self.estado.raiz_absoluta.clone());
+        egui::ScrollArea::vertical().max_height(alto).auto_shrink([false, false]).stick_to_bottom(true)
+            .show_rows(ui, fila, t.lineas.len(), |ui, rango| {
+            for (linea, error) in t.lineas.range(rango) {
                 // stderr no siempre es un error (cargo escribe ahi su progreso): rojo solo si lo parece.
                 let minus = linea.to_lowercase();
                 let grave = minus.contains("error") || minus.contains("panicked") || minus.contains("fatal") || minus.starts_with("[termino con");
                 let col = if *error && grave { c.error } else if *error { c.aviso } else if linea.starts_with("$ ") { c.acento } else { c.texto };
-                ui.label(egui::RichText::new(linea).monospace().size(12.0).color(col));
+                let destino = carpetas_nucleo::diagnosticos::ubicacion(linea)
+                    .and_then(|(ruta, l, _)| carpetas_nucleo::diagnosticos::resolver(&ruta, &base, &raiz).map(|id| (id, l)));
+                match destino {
+                    Some((id, l)) => {
+                        let texto = egui::RichText::new(linea).monospace().size(12.0).color(c.acento).underline();
+                        if ui.add(egui::Label::new(texto).sense(Sense::click())).on_hover_text(format!("abrir {id} en la linea {l}")).clicked() {
+                            acciones.push(Accion::AbrirEditor { id, linea: Some(l) });
+                        }
+                    }
+                    None => { ui.label(egui::RichText::new(linea).monospace().size(12.0).color(col)); }
+                }
             }
         });
         ui.horizontal(|ui| {
@@ -563,7 +658,8 @@ impl App {
             egui::Frame::new().fill(c.panel).stroke(Stroke::new(1.0, c.linea)).corner_radius(c.radio()).inner_margin(10.0).show(ui, |ui| {
                 ui.set_width(430.0);
                 ui.label(egui::RichText::new("CARRILES // SEMAFORO  (F12)").color(c.acento).strong());
-                for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Geometria, Carril::Pintado, Carril::Iconos, Carril::Terminal] {
+                for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Geometria, Carril::Pintado, Carril::Iconos, Carril::Terminal,
+                               Carril::Procesos, Carril::Editor] {
                     let p = presupuesto(carril);
                     let (u, m) = (self.medidas.ultimo[carril as usize], self.medidas.maximo[carril as usize]);
                     let foco = match luz(carril, u) { Luz::Verde => Color32::from_rgb(61, 255, 154), Luz::Amarillo => Color32::from_rgb(252, 238, 10), Luz::Rojo => Color32::from_rgb(255, 42, 79) };
@@ -576,8 +672,10 @@ impl App {
                 let nodos = v.grafo.as_ref().map(|g| g.0.len()).unwrap_or(0);
                 ui.label(egui::RichText::new(format!("nodos {nodos}/{MAX_NODOS} · desplegadas {}/{MAX_DESPLEGADAS} · entradas {}/{MAX_ENTRADAS} · iconos SVG {}",
                     self.estado.expandidas.len(), self.estado.entradas.len(), self.iconos.cantidad())).color(c.tenue).size(11.0));
+                ui.label(egui::RichText::new(format!("procesos {}/{MAX_PROCESOS} · errores atrapados {}/{MAX_DIAGNOSTICOS} · lineas terminal {}",
+                    self.estado.procesos.len(), self.estado.errores.total, self.estado.terminal.lineas.len())).color(c.tenue).size(11.0));
                 let modo = match (self.gpu_ok, self.estado.ajustes.dibujo) { (true, Dibujo::Gpu) => "GPU retenido", (false, _) => "CPU (sin wgpu)", _ => "CPU" };
-                let vertices = self.geometria.as_ref().map(|g| g.1.len()).unwrap_or(0);
+                let vertices = self.geometria.as_ref().map(|g| g.vertices.len()).unwrap_or(0);
                 ui.label(egui::RichText::new(format!("grafo: {modo} · {vertices} vertices · subidas a la GPU {} en {} cuadros",
                     self.subidas.load(Ordering::Relaxed), self.cuadros)).color(c.tenue).size(11.0))
                     .on_hover_text("Cada subida es cuando el grafo cambio de verdad. Mover o hacer zoom solo manda 16 bytes de camara.");
@@ -679,6 +777,7 @@ impl eframe::App for App {
         self.cuadros += 1;
         self.recoger();
         self.recoger_proceso();
+        self.recoger_vivos();
         self.teclado(&ctx);
         if self.estado.panel_ajustes && ctx.input(|i| i.key_pressed(Key::Escape)) { self.despachar(Accion::Comando(Comando::Ajustes)); }
         let tema = self.estado.ajustes.tema(self.estado.acento);
@@ -696,9 +795,20 @@ impl eframe::App for App {
                 });
             });
         });
-        if v.terminal.is_some() {
+        if self.estado.terminal.abierta {
             egui::Panel::bottom("terminal").resizable(true).default_size(220.0)
-                .frame(egui::Frame::new().fill(c.fondo).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.terminal(ui, &v, &c));
+                .frame(egui::Frame::new().fill(c.fondo).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.terminal(ui, &c));
+        }
+        if self.estado.editor.is_some() {
+            let mut acciones = Vec::new();
+            let mut micros = 0;
+            egui::Panel::right("editor").resizable(true).default_size(620.0).min_size(320.0)
+                .frame(egui::Frame::new().fill(c.panel).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea)))
+                .show(ui, |ui| micros = self.editor.pintar(ui, &self.estado, &c, &mut acciones));
+            self.medidas.anotar(Carril::Editor, micros);
+            for a in acciones { self.despachar(a); }
+        } else {
+            self.editor.foco = false;
         }
         if v.arbol.is_some() {
             egui::Panel::left("explorador").resizable(true).default_size(250.0)
@@ -709,7 +819,9 @@ impl eframe::App for App {
                 let mut acciones = Vec::new();
                 let lienzo = self.estado.lienzo;
                 let retenido = self.retenido(&v, &tema);
-                pintar_grafo::grafo(ui, &v, self.estado.camara, retenido, &self.iconos, &c, self.estado.ajustes.direccion, lienzo, &mut acciones);
+                let t = &self.estado.terminal;
+                let vivos = t.en_curso.as_deref().map(|titulo| pintar_grafo::Vivos { id: &t.carpeta, titulo, procesos: &self.estado.procesos });
+                pintar_grafo::grafo(ui, &v, self.estado.camara, retenido, &self.iconos, &c, self.estado.ajustes.direccion, lienzo, vivos, &mut acciones);
                 for a in acciones { self.despachar(a); }
             } else {
                 egui::ScrollArea::both().auto_shrink([false, false]).show(ui, |ui| self.iconos_libres(ui, &v, &c));

@@ -12,6 +12,7 @@ pub enum Comando {
     Ajustes, SiguienteTema, Tema(u8), Brillo, AcentoEscritorio,
     Modo, Explorador, Direccion, Encuadrar, Reacomodar, Iconos, Carriles,
     Terminal, Detener, LimpiarTerminal, Dibujo, EjecutarSeleccion,
+    SiguienteError, PararEnError, Guardar, CerrarEditor,
 }
 
 pub struct InfoComando {
@@ -45,6 +46,10 @@ pub const COMANDOS: &[InfoComando] = &[
     InfoComando { comando: Comando::EjecutarSeleccion, id: "terminal.ejecutar", titulo: "Ejecutar lo seleccionado (play)", atajo: "F5" },
     InfoComando { comando: Comando::Terminal, id: "terminal.mostrar", titulo: "Mostrar u ocultar la terminal", atajo: "Ctrl+`" },
     InfoComando { comando: Comando::Detener, id: "terminal.detener", titulo: "Detener el proceso", atajo: "Ctrl+C en terminal" },
+    InfoComando { comando: Comando::SiguienteError, id: "errores.siguiente", titulo: "Ir al siguiente error (abre el editor)", atajo: "F8" },
+    InfoComando { comando: Comando::PararEnError, id: "errores.parar", titulo: "Parar el proceso en el primer error", atajo: "" },
+    InfoComando { comando: Comando::Guardar, id: "editor.guardar", titulo: "Editor: guardar", atajo: "Ctrl+S" },
+    InfoComando { comando: Comando::CerrarEditor, id: "editor.cerrar", titulo: "Editor: cerrar", atajo: "Esc en el editor" },
     InfoComando { comando: Comando::LimpiarTerminal, id: "terminal.limpiar", titulo: "Limpiar la terminal", atajo: "" },
     InfoComando { comando: Comando::Dibujo, id: "grafo.dibujo", titulo: "Dibujo del grafo: GPU retenido o CPU", atajo: "" },
     InfoComando { comando: Comando::Carriles, id: "vista.carriles", titulo: "Carriles: semaforo de rendimiento", atajo: "F12" },
@@ -65,7 +70,7 @@ pub const COMANDOS: &[InfoComando] = &[
 
 /// Teclas que entiende el nucleo; cada plataforma traduce las suyas a estas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tecla { G, L, H, Z, A, P, T, B, D, I, Tab, Inicio, F12, Coma, Retroceso, Enter, Escape, F5, Arriba, Abajo, Izquierda, Acento }
+pub enum Tecla { G, L, H, Z, A, P, T, B, D, I, Tab, Inicio, F12, Coma, Retroceso, Enter, Escape, F5, F8, S, Arriba, Abajo, Izquierda, Acento }
 
 /// Como el keybindings.json de VS Code: tecla + modificadores -> accion.
 pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: bool) -> Option<Accion> {
@@ -99,6 +104,8 @@ pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: b
         (Tecla::Enter, false, false, false) => Comando::AbrirSeleccion,
         (Tecla::Escape, false, false, false) => Comando::LimpiarSeleccion,
         (Tecla::F5, _, _, _) => Comando::EjecutarSeleccion,
+        (Tecla::F8, _, _, _) => Comando::SiguienteError,
+        (Tecla::S, true, _, _) => Comando::Guardar,
         _ => return None,
     };
     Some(Accion::Comando(comando))
