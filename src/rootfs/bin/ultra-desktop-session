@@ -8,6 +8,7 @@ keyrings="${XDG_DATA_HOME:-$HOME/.local/share}/keyrings"
 mkdir -p "$keyrings"
 chmod 0700 "$keyrings"
 children=()
+ultra-espacio vigilar > /dev/null 2>&1 & children+=("$!")
 finish() {
     wpctl status > "$XDG_RUNTIME_DIR/ultra-audio-estado.txt" 2>&1 || true
     for pid in "${children[@]}"; do kill "$pid" 2>/dev/null || true; done

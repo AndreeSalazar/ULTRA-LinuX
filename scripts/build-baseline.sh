@@ -23,7 +23,7 @@ case $perfil in
                # /dev/fb0, so the init can draw the ULTRA logo on the firmware screen.
                FB_DEVICE
                # Arch's system as a root: EROFS below, a writable layer in memory on top.
-               OVERLAY_FS USER_NS)
+               OVERLAY_FS USER_NS MEMCG CFS_BANDWIDTH CGROUP_PIDS)
         modules_list=(R8169 SND_HDA_INTEL SND_HDA_GENERIC SND_HDA_CODEC_REALTEK SND_HDA_CODEC_HDMI SND_USB_AUDIO SENSORS_K10TEMP)
         # No boot loader: the firmware runs the kernel directly, so its arguments live inside it.
         # The last console becomes /dev/console; init starts a shell on every active console.
@@ -39,6 +39,7 @@ case $perfil in
         required=(KFENCE KASAN KASAN_GENERIC UBSAN UBSAN_BOUNDS PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR) ;;
     *) echo "ROJO: perfil desconocido $perfil"; exit 1 ;;
 esac
+if [[ $perfil = generico || $perfil = pc ]]; then required+=(MEMCG CFS_BANDWIDTH CGROUP_PIDS); fi
 if [[ $perfil = pc ]]; then
     # generico tuned for this project's Ryzen 5 5600X: Zen 3 only, by design. The workshop
     # VM runs with -cpu host, so -march=native here is the real CPU. Guardians stay intact:
@@ -249,7 +250,7 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render,audio -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-medir-recursos ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-eventos-kernel; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-medir-recursos ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-eventos-kernel ultra-preparar-limites; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
@@ -275,7 +276,7 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
     sudo install -d -m 0755 "$sistema/usr/lib/locale"

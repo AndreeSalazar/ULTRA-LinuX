@@ -39,6 +39,11 @@ y en el PC. Hasta entonces, la última captura real es la de Núcleo:
 [Propuesta y maquetas](docs/PROPUESTA-ESCRITORIO.md) ·
 [Tema Núcleo anterior](docs/TEMA-NUCLEO.md).
 
+[Espacio y aplicaciones](docs/ESPACIO-Y-APLICACIONES.md): Super+Esc abre el
+administrador para cerrar procesos y limitar CPU/RAM. El sistema distingue
+cache recuperable, espacio ext4 y tamaño del contenedor de Windows, y evita
+acumular generaciones antiguas de bibliotecas sin revision.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.

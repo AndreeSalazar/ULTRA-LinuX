@@ -34,6 +34,7 @@ if [[ $action == warframe-diagnostico ]]; then
     action=warframe
 fi
 if [[ $action == estado ]]; then
+    ultra-espacio estado
     printf 'ULTRA / Juegos: montajes y espacio\nHOME=%s\n' "$HOME"
     printf '\n[DISCOS: visibles al kernel; no implica biblioteca registrada en Steam]\n'
     lsblk -e 7 -o NAME,TYPE,FSTYPE,SIZE,MOUNTPOINTS || true
@@ -87,19 +88,23 @@ if [[ $action == steam || $action == warframe ]]; then
 fi
 case $action in
     steam)
+        ultra-espacio permitir-juegos || exit 1
         exec ultra-hud ejecutar steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     warframe)
+        ultra-espacio permitir-juegos || exit 1
         if ! ultra-bibliotecas buscar-steam 230410; then
             notify-send 'Warframe: biblioteca no encontrada' 'Selecciona su carpeta Steam desde Discos y carpetas; cierra Steam y vuelve a abrirlo.' || true
             exit 1
         fi
         exec ultra-hud ejecutar steam steam://rungameid/230410 >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     gog)
+        ultra-espacio permitir-juegos || exit 1
         if ! ultra-gog-cyberpunk > "$HOME/.cache/ultra/gog-cyberpunk.log" 2>&1; then
             notify-send 'GOG / Cyberpunk: revisar importacion' 'Consulta Registros de juegos. Si Heroic estaba abierto, cierralo y abre GOG otra vez.' || true
         fi
         exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
     cyberpunk)
+        ultra-espacio permitir-juegos || exit 1
         game=/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe
         [[ -f $game ]] || { notify-send 'Cyberpunk no encontrado' 'No se encontró el ejecutable GOG en D:.'; exit 1; }
         cd /juegos/Cyberpunk2077/bin/x64

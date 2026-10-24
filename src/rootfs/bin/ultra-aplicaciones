@@ -1,0 +1,142 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Own-process manager: pidfds, CPU/RAM cgroups; never root or disk deletion."""
+import curses
+import os
+from pathlib import Path
+import signal
+import re
+import time
+
+PROC=Path('/proc'); CG=Path('/sys/fs/cgroup/ultra-usuario')
+CRITICAL={'Hyprland','start-hyprland','dbus-daemon','pipewire','pipewire-pulse','wireplumber','waybar','mako','ultra-cliente'}
+def read(path):
+    try: return path.read_text()[:65536]
+    except OSError: return ''
+def processes():
+    rows=[]
+    for path in PROC.iterdir():
+        if not path.name.isdecimal(): continue
+        try:
+            if path.stat().st_uid!=1000: continue
+            raw=read(path/'stat'); stop=raw.rindex(')'); values=raw[stop+2:].split()
+            name=''.join(c for c in raw[raw.index('(')+1:stop] if c.isprintable())[:40]
+            rows.append(dict(pid=int(path.name),name=name,ppid=int(values[1]),start=int(values[19]),
+                             ticks=int(values[11])+int(values[12]),rss=max(0,int(values[21]))*os.sysconf('SC_PAGE_SIZE')))
+        except (ValueError,IndexError,OSError): pass
+    return rows[:4096]
+def protected(rows):
+    table={r['pid']:r for r in rows}; result={r['pid'] for r in rows if r['name'] in CRITICAL}
+    pid=os.getpid()
+    while pid in table and pid not in result:
+        result.add(pid); pid=table[pid]['ppid']
+    return result
+def checked_fd(row):
+    fd=os.pidfd_open(row['pid'])
+    try:
+        now=next((p for p in processes() if p['pid']==row['pid']),None)
+        if not now or now['start']!=row['start'] or row['pid'] in protected(processes()): raise ValueError('Proceso cambiado o protegido')
+        signal.pidfd_send_signal(fd,0)
+        return fd
+    except BaseException: os.close(fd); raise
+def close(row,force=False):
+    fd=checked_fd(row)
+    try: signal.pidfd_send_signal(fd,signal.SIGKILL if force else signal.SIGTERM)
+    finally: os.close(fd)
+def limit(row,memory,cpu):
+    if memory not in ('536870912','1073741824','2147483648','4294967296','8589934592','max'): raise ValueError('RAM invalida')
+    if cpu not in ('25000','50000','100000','200000','max'): raise ValueError('CPU invalida')
+    fd=checked_fd(row)
+    try:
+        if not CG.is_dir() or CG.is_symlink(): raise ValueError('Controladores no disponibles')
+        group=CG/f"app-{row['pid']}-{row['start']}"; group.mkdir(exist_ok=True)
+        (group/'memory.max').write_text(memory)
+        (group/'memory.high').write_text(str(int(memory)*9//10) if memory!='max' else 'max')
+        (group/'cpu.max').write_text(cpu+' 100000')
+        (group/'pids.max').write_text('2048')
+        rows=processes(); wanted={row['pid']}
+        for _ in range(32):
+            new={p['pid'] for p in rows if p['ppid'] in wanted}; before=len(wanted); wanted|=new
+            if len(wanted)==before: break
+        forbidden=protected(rows)
+        for item in rows:
+            if item['pid'] not in wanted or item['pid'] in forbidden: continue
+            child=checked_fd(item)
+            try:
+                # Signals use stable pidfds. Migration itself accepts a numeric
+                # PID: stop and recheck identity, then resume what we stopped.
+                status=read(PROC/str(item['pid'])/'status')
+                already_stopped='State:\tT' in status or 'State:\tt' in status
+                if not already_stopped: signal.pidfd_send_signal(child,signal.SIGSTOP)
+                try:
+                    current=next((p for p in processes() if p['pid']==item['pid']),None)
+                    if not current or current['start']!=item['start']: continue
+                    (group/'cgroup.procs').write_text(str(item['pid']))
+                finally:
+                    if not already_stopped:
+                        try: signal.pidfd_send_signal(child,signal.SIGCONT)
+                        except ProcessLookupError: pass
+            finally: os.close(child)
+        return group
+    finally: os.close(fd)
+def memory():
+    out={}
+    for line in read(PROC/'meminfo').splitlines():
+        p=line.replace(':','').split()
+        if len(p)>1 and p[1].isdecimal(): out[p[0]]=int(p[1])
+    return out
+def prune():
+    if not CG.is_dir():return
+    for path in CG.glob('app-*'):
+        if not re.fullmatch(r'app-[0-9]+-[0-9]+',path.name):continue
+        try:
+            if path.stat().st_uid==1000 and 'populated 0' in read(path/'cgroup.events'):path.rmdir()
+        except OSError:pass
+def panel(win):
+    index=0; old={}; last=time.monotonic(); msg=''; win.timeout(1000)
+    def confirm(text):
+        win.erase(); win.addnstr(0,0,text+' [s/N]',win.getmaxyx()[1]-1);win.refresh();win.timeout(-1)
+        ok=win.getch() in (ord('s'),ord('S'));win.timeout(1000);return ok
+    def choose(title,options):
+        win.erase();win.addstr(0,0,title)
+        for i,(label,value) in enumerate(options):win.addstr(i+2,0,str(i+1)+': '+label)
+        win.refresh();win.timeout(-1);key=win.getch()-ord('1');win.timeout(1000)
+        return options[key][1] if 0<=key<len(options) else None
+    while True:
+        prune()
+        now=time.monotonic(); rows=processes(); guard=protected(rows)
+        for r in rows:
+            prev=old.get((r['pid'],r['start']));r['cpu']=100*(r['ticks']-prev)/os.sysconf('SC_CLK_TCK')/(now-last) if prev is not None and now>last else 0
+        old={(r['pid'],r['start']):r['ticks'] for r in rows};last=now
+        rows=sorted(rows,key=lambda r:r['rss'],reverse=True);index=min(index,max(0,len(rows)-1));mem=memory();h,w=win.getmaxyx()
+        win.erase()
+        header=['ULTRA / ADMINISTRADOR DE APLICACIONES',
+          'Flechas: elegir | C: cerrar | K: forzar | L: limitar arbol | Esc: salir',
+          f"RAM disponible {mem.get('MemAvailable',0)/2**20:.2f} GiB / {mem.get('MemTotal',0)/2**20:.2f} GiB; cache {mem.get('Cached',0)/2**20:.2f} GiB (recuperable en parte)",
+          'RSS no es RAM exclusiva. CPU 100% = un nucleo. * = proceso protegido.',msg,
+          ' PID       CPU%     RSS MiB   NOMBRE']
+        for y,text in enumerate(header[:h-1]):win.addnstr(y,0,text,max(1,w-1))
+        start=max(0,index-max(0,h-8)//2)
+        for y,r in enumerate(rows[start:start+max(0,h-7)],6):
+            win.addnstr(y,0,f"{'*' if r['pid'] in guard else ' '} {r['pid']:7} {r['cpu']:7.1f} {r['rss']/2**20:10.1f}   {r['name']}",max(1,w-1),curses.A_REVERSE if start+y-6==index else 0)
+        win.refresh();key=win.getch()
+        if key in (27,ord('q')):return
+        if key==curses.KEY_DOWN:index+=1
+        elif key==curses.KEY_UP:index=max(0,index-1)
+        elif rows and key in (ord('c'),ord('k'),ord('l')):
+            r=rows[index]
+            try:
+                if r['pid'] in guard:raise ValueError('Proceso del escritorio protegido')
+                if key in (ord('c'),ord('k')):
+                    if confirm(f"{'Forzar' if key==ord('k') else 'Cerrar'} PID {r['pid']} {r['name']}? Puede perder trabajo sin guardar"):
+                        close(r,key==ord('k'));msg='Senal enviada al proceso seleccionado'
+                else:
+                    ram=choose('Limite RAM del arbol (puede terminar la app si se agota)',[(s,str(v*1024**2)) for s,v in [('512 MiB',512),('1 GiB',1024),('2 GiB',2048),('4 GiB',4096),('8 GiB',8192)]]+[('Sin limite adicional','max')])
+                    cpu=choose('CPU: 100% = un nucleo',[('25%','25000'),('50%','50000'),('100%','100000'),('200%','200000'),('Sin limite adicional','max')]) if ram else None
+                    if cpu and confirm('Aplicar al proceso y descendientes actuales? RAM previa puede seguir cargada al grupo anterior'):
+                        limit(r,ram,cpu)
+                        msg='Limites aplicados: RAM '+(f'{int(ram)/2**30:g} GiB' if ram!='max' else 'sin extra')+' / CPU '+(f'{int(cpu)/1000:g}% de un nucleo' if cpu!='max' else 'libre')+' / hasta 2048 hilos'
+            except (OSError,ValueError) as e:msg=str(e)[:180]
+if __name__=='__main__':
+    if os.geteuid()!=1000:raise SystemExit('Abrir como usuario del escritorio')
+    curses.wrapper(panel)
