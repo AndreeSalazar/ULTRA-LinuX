@@ -265,8 +265,15 @@ Son la salida real del generador, no una captura del sistema.
 - Cuadrícula neón en el suelo que avanza hacia ti.
 - Reflejos del neón y de los coches en el suelo mojado.
 - Coches voladores: luces blancas que vienen y rojas que se van.
-- El aro del autor en 3D: dos anillos que giran sobre la avenida, con la mitad de
-  atrás más tenue y un halo detrás.
+- **La esfera del autor** sobre la avenida ([primer plano](maquetas/png/neon/esfera-3d.mp4)):
+  - núcleo de energía que late, del acento al blanco;
+  - malla 3D de 6 meridianos y 5 paralelos, inclinada 23 grados, que gira: la mitad de
+    atrás va tenue y el núcleo la tapa;
+  - tres órbitas inclinadas (acento, cyan y violeta) con un satélite cada una y su estela;
+  - una banda de escaneo blanca que sube y baja por la esfera;
+  - un anillo HUD de 72 marcas con corchetes cyan y un arco rojo que barre;
+  - tu firma «EDDI SALAZAR · BMO-X · ULTRA LINUX» girando por el arco de arriba;
+  - un halo en capas y un haz de luz que baja hasta la ciudad, tapado por los edificios.
 - Lluvia en tres capas: la cercana, larga y rápida; la lejana, fina y lenta.
 - Bloom: el neón se desenfoca y se suma para que brille, y los edificios tapan el
   brillo de lo que hay detrás.

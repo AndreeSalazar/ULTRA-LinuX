@@ -36,6 +36,11 @@ def main():
             c0, c1 = fv.ciudad3d(320, 180, acento, 0.0).convert('RGB'), fv.ciudad3d(320, 180, acento, 1.0).convert('RGB')
             assert ImageChops.difference(c0, c1).getbbox() is None, 'la ciudad 3D salta'
             assert ImageChops.difference(c0, fv.ciudad3d(320, 180, acento, .3).convert('RGB')).getbbox() is not None
+            # Continuidad: justo antes de cerrar el bucle la imagen ya casi es la del inicio (sin salto visible).
+            casi = fv.ciudad3d(320, 180, acento, 1 - 1e-4).convert('RGB')
+            distintos = sum(1 for v in ImageChops.difference(c0, casi).convert('L').getdata() if v > 40)
+            # Un salto real (camara, edificios) cambia mas del 30 %; la lluvia moviendose una fraccion de pixel, menos del 1 %.
+            assert distintos < 320 * 180 * .01, f'salto visible al cerrar el bucle: {distintos} pixeles'
         g3, q3 = fv.crear3d('#5ad8ff', tmp / 'c3d.gif', tam=(160, 90), cuadros=4)
         assert Image.open(g3).n_frames == 4 and Image.open(q3).size == (160, 90)
         # 2. crear: GIF en bucle con su cuadro quieto.

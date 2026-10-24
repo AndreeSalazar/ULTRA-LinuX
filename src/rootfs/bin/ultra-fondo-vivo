@@ -143,8 +143,146 @@ def _niebla(color, z, cielo=(26, 10, 40)):
     return tuple(round(c * (1 - k) + s * k) for c, s in zip(color, cielo))
 
 
+FUENTES_ESFERA = ('/usr/share/fonts/ultra-neon/ChakraPetch-Bold.ttf', '/usr/share/fonts/TTF/DejaVuSans-Bold.ttf',
+                  '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', str(HOME / '.local/share/fonts/ChakraPetch-Bold.ttf'))
+FIRMA = 'EDDI SALAZAR · BMO-X · ULTRA LINUX · '
+
+
+def _fuente(tam):
+    from PIL import ImageFont
+    for ruta in FUENTES_ESFERA:
+        try: return ImageFont.truetype(ruta, tam)
+        except OSError: continue
+    try: return ImageFont.load_default(tam)
+    except TypeError: return ImageFont.load_default()
+
+
+def _girar(p, inclinacion, giro):
+    """Gira p alrededor de Y (giro) y despues lo inclina alrededor de X."""
+    x, y, z = p
+    x, z = x * math.cos(giro) + z * math.sin(giro), -x * math.sin(giro) + z * math.cos(giro)
+    y, z = y * math.cos(inclinacion) - z * math.sin(inclinacion), y * math.sin(inclinacion) + z * math.cos(inclinacion)
+    return x, y, z
+
+
+def _esfera(d, b, W, H, acento, colores, t, cx, cy, radio):
+    """La esfera del autor: haz, halo, HUD, firma, anillos, malla 3D, nucleo, escaneo y satelites.
+    Todo gira vueltas enteras (o simetrias exactas) por bucle: t=1 == t=0."""
+    tau = 2 * math.pi
+    pulso = .5 + .5 * math.sin(tau * t)
+    eps = radio * 1e-6
+    tenue = lambda c, k: tuple(round(v * k) for v in c)
+    blanco = (255, 255, 255)
+    claro = tuple(min(255, c + (255 - c) * 6 // 10) for c in acento)
+
+    def proy(p):
+        esc = 1 / (1 + p[2] / (radio * 7))
+        return (cx + p[0] * esc, cy + p[1] * esc)
+
+    # 1. Haz de luz que baja hasta la ciudad (los edificios lo tapan despues).
+    base_y = H * .60
+    for i, (ancho, k) in enumerate(((radio * .22, .10), (radio * .10, .22), (radio * .03, .55))):
+        b.rectangle([cx - ancho, cy + radio * .3, cx + ancho, base_y], fill=tenue(acento, k * (.8 + .4 * pulso)))
+    d.line([(cx, cy + radio * .35), (cx, base_y)], fill=tenue(claro, .5), width=max(1, round(radio / 60)))
+    # 2. Halo en capas.
+    for paso in range(7):
+        r_h = radio * (2.1 - paso * .17) * (1 + .03 * pulso)
+        b.ellipse([cx - r_h, cy - r_h, cx + r_h, cy + r_h], fill=tenue(acento, .035 + paso * .022))
+    # 3. Anillo HUD: 72 marcas (una larga cada 6) que avanza un tramo largo por bucle.
+    r_hud = radio * 1.42
+    giro_hud = math.radians(30) * t
+    for i in range(72):
+        ang = giro_hud + tau * i / 72
+        largo = radio * (.10 if i % 6 == 0 else .045)
+        a = (cx + r_hud * math.cos(ang), cy + r_hud * math.sin(ang))
+        c = (cx + (r_hud + largo) * math.cos(ang), cy + (r_hud + largo) * math.sin(ang))
+        d.line([a, c], fill=tenue(acento if i % 6 else claro, .55 if i % 6 else .9), width=1 if i % 6 else 2)
+    # Corchetes fijos en las cuatro diagonales y un arco que barre.
+    r_c = radio * 1.62
+    for k in range(4):
+        ini = 45 + 90 * k - 12
+        d.arc([cx - r_c, cy - r_c, cx + r_c, cy + r_c], ini, ini + 24, fill=tenue(colores['cyan'], .8), width=2)
+        b.arc([cx - r_c, cy - r_c, cx + r_c, cy + r_c], ini, ini + 24, fill=tenue(colores['cyan'], .35), width=5)
+    barrido = math.degrees(tau * t)
+    d.arc([cx - r_hud * .97, cy - r_hud * .97, cx + r_hud * .97, cy + r_hud * .97], barrido, barrido + 50, fill=tenue(colores['rojo'], .8), width=2)
+    # 4. Tu firma alrededor: el texto va dos veces, asi media vuelta por bucle cierra exacto.
+    fuente = _fuente(max(9, round(radio * .115)))
+    texto = FIRMA * 2
+    r_txt = radio * 1.27
+    for i, letra in enumerate(texto):
+        ang = tau * i / len(texto) + math.pi * t - math.pi / 2  # se lee en sentido horario
+        x, y = cx + r_txt * math.cos(ang), cy + r_txt * math.sin(ang)
+        # Solo el arco de arriba: alli las letras rectas se leen de izquierda a derecha; se apagan al bajar.
+        arriba = -math.sin(ang)
+        if arriba < .15: continue
+        d.text((x, y), letra, font=fuente, fill=tenue(claro, min(.9, (arriba - .15) * 2.2)), anchor='mm')
+    # 5. Anillos orbitales en 3D (detras y delante se separan para que el nucleo los tape).
+    orbitas = [(radio * 1.08, math.radians(72), tau * t, acento, 3), (radio * 1.0, math.radians(-58), -tau * t + .6, colores['cyan'], 2),
+               (radio * 1.16, math.radians(15), tau * t * 2, colores['violeta'], 1)]
+    traseros, delanteros = [], []
+    for r_o, incl, giro, tono, grosor in orbitas:
+        puntos = [_girar((r_o * math.cos(tau * i / 180), 0.0, r_o * math.sin(tau * i / 180)), incl, giro) for i in range(181)]
+        for i in range(180):
+            if (i // 9) % 4 == 3: continue  # trazos: periodo de 36 pasos = 72 grados
+            seg = (puntos[i], puntos[i + 1], tono, grosor)
+            (traseros if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps else delanteros).append(seg)
+    # 6. Malla de la esfera: 6 meridianos y 5 paralelos, inclinada 23 grados, una vuelta por bucle.
+    r_s = radio * .62
+    giro_s, incl_s = tau * t, math.radians(23)
+    for m in range(6):
+        lon = math.pi * m / 6
+        puntos = [_girar((r_s * math.sin(tau * i / 72) * math.cos(lon), r_s * math.cos(tau * i / 72), r_s * math.sin(tau * i / 72) * math.sin(lon)), incl_s, giro_s) for i in range(73)]
+        for i in range(72):
+            seg = (puntos[i], puntos[i + 1], acento, 1)
+            (traseros if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps else delanteros).append(seg)
+    for lat in (-60, -30, 0, 30, 60):
+        rad = math.radians(lat)
+        puntos = [_girar((r_s * math.cos(rad) * math.cos(tau * i / 72), r_s * math.sin(rad), r_s * math.cos(rad) * math.sin(tau * i / 72)), incl_s, giro_s) for i in range(73)]
+        for i in range(72):
+            seg = (puntos[i], puntos[i + 1], colores['cyan'] if lat == 0 else acento, 2 if lat == 0 else 1)
+            (traseros if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps else delanteros).append(seg)
+
+    def trazar(segmentos, k):
+        for p1, p2, tono, grosor in segmentos:
+            a, c = proy(p1), proy(p2)
+            b.line([a, c], fill=tenue(tono, k * .5), width=grosor + 2)
+            d.line([a, c], fill=tenue(tono, k), width=grosor)
+
+    trazar(traseros, .35)
+    # 7. Nucleo de energia que late: del acento oscuro al blanco.
+    r_n = radio * .34 * (1 + .07 * pulso)
+    for paso in range(10):
+        k = paso / 9
+        rr = r_n * (1 - .85 * k)
+        col = tuple(round(a * (.25 + .75 * k) + 255 * k ** 3 * .8) for a in acento)
+        col = tuple(min(255, v) for v in col)
+        d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=col)
+        b.ellipse([cx - rr * 1.3, cy - rr * 1.3, cx + rr * 1.3, cy + rr * 1.3], fill=tenue(col, .35))
+    trazar(delanteros, 1.0)
+    # 8. Banda de escaneo: un paralelo brillante que sube y baja por la esfera.
+    rad = math.radians(70) * math.sin(tau * t)
+    puntos = [_girar((r_s * math.cos(rad) * math.cos(tau * i / 72), r_s * math.sin(rad), r_s * math.cos(rad) * math.sin(tau * i / 72)), incl_s, 0.0) for i in range(73)]
+    for i in range(72):
+        if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps: continue
+        a, c = proy(puntos[i]), proy(puntos[i + 1])
+        b.line([a, c], fill=claro, width=5); d.line([a, c], fill=blanco, width=2)
+    # 9. Satelites con estela sobre las orbitas (2, 3 y 1 vueltas por bucle).
+    for (r_o, incl, giro, tono, _), vueltas, fase in zip(orbitas, (2, 3, 1), (0.0, 2.1, 4.2)):
+        for paso in range(8, -1, -1):
+            th = fase + tau * vueltas * t - paso * .07
+            p = _girar((r_o * math.cos(th), 0.0, r_o * math.sin(th)), incl, giro)
+            x, y = proy(p)
+            atras = p[2] > eps
+            tam = max(1.0, radio * (.045 if paso == 0 else .025 * (1 - paso / 10)))
+            luz = (.4 if atras else 1.0) * (1 - paso / 10)
+            col = blanco if paso == 0 and not atras else tono
+            b.ellipse([x - tam * 2, y - tam * 2, x + tam * 2, y + tam * 2], fill=tenue(tono, luz * .6))
+            d.ellipse([x - tam, y - tam, x + tam, y + tam], fill=tenue(col, luz))
+
+
 def ciudad3d(W, H, acento, t):
     from PIL import Image, ImageDraw, ImageFilter
+    t %= 1.0  # todo es periodico; asi t=1 cae exacto en t=0 sin restos de coma flotante
     colores = dict(acento=acento, cyan=(0, 240, 255), rojo=(255, 42, 79), violeta=(192, 59, 255), amarillo=(252, 238, 10))
     img = Image.new('RGB', (W, H), (6, 5, 10))
     d = ImageDraw.Draw(img)
@@ -163,28 +301,8 @@ def ciudad3d(W, H, acento, t):
         ancho = azar.randint(20, 70); alto = azar.randint(20, 140) * H / 1080
         d.rectangle([x, hy - alto, x + ancho, hy], fill=(18, 9, 30))
         x += ancho + azar.randint(0, 6)
-    # Aro del autor en 3D: dos anillos que giran en el cielo.
-    # Sobre la avenida, donde queda el cielo abierto, con un halo detras.
-    cx, cy, radio = W * .5, H * .25, W * .075
-    for paso in range(6):
-        r_h = radio * (1.9 - paso * .15)
-        b.ellipse([cx - r_h, cy - r_h, cx + r_h, cy + r_h], fill=tuple(round(v * (.04 + paso * .025)) for v in acento))
-    # Una vuelta completa por bucle: media vuelta no deja los trazos en su sitio.
-    for eje, fase, grosor, tono in (('y', 2 * math.pi * t, 3, acento), ('x', -2 * math.pi * t + .6, 2, colores['cyan'])):
-        puntos = []
-        for i in range(181):
-            th = 2 * math.pi * i / 180
-            px, py, pz = radio * math.cos(th), radio * math.sin(th), 0.0
-            if eje == 'y': px, pz = px * math.cos(fase), px * math.sin(fase)
-            else: py, pz = py * math.cos(fase), py * math.sin(fase)
-            esc = 1 / (1 + pz / (radio * 6))
-            puntos.append((cx + px * esc, cy + py * esc, pz))
-        for i in range(180):
-            if (i // 10) % 3 == 2: continue  # trazos, con el mismo patron cada 180 grados
-            a, c = puntos[i], puntos[i + 1]
-            luz = .45 if a[2] > radio * 1e-6 else 1.0  # la mitad de atras se apaga (umbral: sin(2*pi) no es 0 exacto)
-            col = tuple(round(v * luz) for v in tono)
-            b.line([a[:2], c[:2]], fill=col, width=grosor + 2); d.line([a[:2], c[:2]], fill=col, width=max(1, grosor - 1))
+    # La esfera del autor sobre la avenida, donde queda el cielo abierto.
+    _esfera(d, b, W, H, acento, colores, t, W * .5, H * .215, W * .078)
     # Suelo: cuadricula neon que avanza hacia la camara.
     d.rectangle([0, hy, W, H], fill=(5, 3, 10))
     S = D3 / 2

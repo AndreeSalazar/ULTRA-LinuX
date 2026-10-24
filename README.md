@@ -34,7 +34,8 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   de la barra para cerrar o frenar lo que más consume. **Tu imagen, viva**: cualquier fondo tuyo
   (por ejemplo, los oficiales de Cyberpunk 2077 de GOG) con lluvia, barrido y glitch.
 - **Ciudad 3D**: la cámara vuela por una avenida neón con edificios, reflejos, coches
-  voladores, lluvia con profundidad y el aro del autor girando en 3D. Se calcula una vez
+  voladores, lluvia con profundidad y la esfera del autor: núcleo que late, malla 3D, órbitas
+  con satélites, HUD y tu firma girando ([primer plano](docs/maquetas/png/neon/esfera-3d.mp4)). Se calcula una vez
   en tu PC y se queda quieta en juegos ([hielo](docs/maquetas/png/neon/ciudad-3d-hielo.mp4),
   [rojo](docs/maquetas/png/neon/ciudad-3d-rojo.mp4)).
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y
