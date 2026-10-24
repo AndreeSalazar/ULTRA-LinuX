@@ -31,7 +31,7 @@ if [[ $mode == menu ]]; then
             discos) title='Discos / CYAN'; accent=00f0ffff
                 rows=('Panel de discos y preparacion' 'Carpetas guardadas' 'Windows NVMe (solo lectura)' 'Explorar discos (solo lectura)' 'Volver a categorias');;
             juegos) title='Juegos / ROJO'; accent=ff2a4fff
-                rows=('Steam' 'GOG / Heroic' 'Importar juegos GOG' 'Warframe / Steam' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Espacio y estado de juegos' 'Volver a categorias');;
+                rows=('Steam' 'GOG / Heroic' 'Importar juegos GOG' 'Warframe / Steam' 'Cyberpunk 2077' 'Cyberpunk / recuperacion y diagnostico' 'Revisar bibliotecas de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Espacio y estado de juegos' 'Volver a categorias');;
             pantalla) title='Pantalla / VERDE'; accent=3dff9aff
                 rows=('Resolucion, Hz y escala' 'Informe Vulkan y OpenGL' 'Cubo Vulkan' 'Cubo Vulkan con validacion' 'Volver a categorias');;
             audio) title='Audio / VIOLETA'; accent=c03bffff
@@ -79,6 +79,7 @@ if [[ $mode == menu ]]; then
         'Importar juegos GOG') exec ultra-bibliotecas importar-gog;;
         'Warframe / Steam') exec ultra-juegos warframe;;
         'Cyberpunk 2077') exec ultra-juegos cyberpunk;;
+        'Cyberpunk / recuperacion y diagnostico') exec ultra-juegos cyberpunk-directo;;
         'Revisar bibliotecas de juegos') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Juegos y consumo en vivo') exec foot --title='ULTRA / Juegos en vivo' ultra-juegos-vivo panel;;
         'FPS y HUD') exec ultra-hud menu;;

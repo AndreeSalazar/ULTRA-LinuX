@@ -68,6 +68,10 @@ el contenedor anterior de C: se conserva para recuperación.
 Personal trasladados al ext4 y verificados por SHA-256. Heroic mantiene su ruta,
 sus cambios y sus partidas; el original de D: se retiró con autorización del autor.
 
+[Acceso Cyberpunk corregido](docs/CYBERPUNK-LANZADOR-2026-10-24.md): el menú
+usa la configuración de Heroic; el modo UMU separado queda como recuperación
+con registro de Proton. La carga de partida se valida en el PC.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.

@@ -24,7 +24,14 @@ release=$(cat kernelrelease.txt)
 kernel_before=$(sha256sum bzImage-tiny64)
 sudo install -m 0755 "$lab/rootfs/bin/ultra-preparar-juegos" "$stage/usr/local/libexec/ultra-preparar-juegos"
 sudo install -m 0644 "$lab/rootfs/desktop/juegos.conf" "$stage/etc/ultra/juegos.conf"
-sha256sum "$lab/rootfs/bin/ultra-preparar-juegos" "$lab/rootfs/desktop/juegos.conf" "$0" > almacen-nativo-fuentes.sha256
+for helper in ultra-juegos ultra-gog-cyberpunk ultra-ambiente; do
+    sudo install -m 0755 "$lab/rootfs/bin/$helper" "$stage/usr/local/bin/$helper"
+done
+sudo install -m 0644 "$lab/rootfs/desktop/ultra-cyberpunk.desktop" "$stage/usr/share/applications/ultra-cyberpunk.desktop"
+sudo install -m 0644 "$lab/rootfs/desktop/ultra-cyberpunk.desktop" "$stage/etc/ultra/ultra-cyberpunk.desktop"
+sha256sum "$lab/rootfs/bin/ultra-preparar-juegos" "$lab/rootfs/desktop/juegos.conf" \
+    "$lab/rootfs/bin/ultra-juegos" "$lab/rootfs/bin/ultra-gog-cyberpunk" \
+    "$lab/rootfs/bin/ultra-ambiente" "$lab/rootfs/desktop/ultra-cyberpunk.desktop" "$0" > almacen-nativo-fuentes.sha256
 sudo install -m 0644 almacen-nativo-fuentes.sha256 "$stage/etc/ultra/almacen-nativo-fuentes.sha256"
 sudo mkfs.erofs --quiet -zlzma,level=6 -T 0 sistema-nativo.erofs "$stage"
 sudo chown "$(id -u):$(id -g)" sistema-nativo.erofs

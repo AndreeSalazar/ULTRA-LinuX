@@ -1,0 +1,11 @@
+{
+  "sistema_sha256": "E6B2169EBC24582AEB2B9A7F5B3F4E3B0357F0666B7980BCAAFD7963C3EF7F5B",
+  "kernel_sha256": "E2242E375F3F508C535F18CF684A573D1D5664350A6199742EE9F0AB1891C8F7",
+  "datos_sha256": "1C864301DEE434CC18E38E6AB0338C35B5BDC531E9E05FEA2DD7E6A442F815F9",
+  "datos_preservados": true,
+  "qa_verdes": 186,
+  "qa_rojos": 0,
+  "fixtures_lanzador": 4,
+  "fixtures_registro": 9,
+  "carga_partida_hardware_pendiente": true
+}

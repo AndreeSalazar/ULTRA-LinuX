@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=Cyberpunk 2077 - GOG en D
-Comment=Proton y partidas en ext4; archivos originales con capa de escritura separada
+Name=Cyberpunk 2077 - GOG / Heroic
+Comment=Usa el Proton y el prefijo configurados en Heroic; almacenamiento Linux persistente
 Exec=/usr/local/bin/ultra-juegos cyberpunk
 Icon=ultra-cyberpunk
 Terminal=false

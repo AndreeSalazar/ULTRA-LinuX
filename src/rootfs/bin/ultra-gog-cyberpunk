@@ -34,7 +34,7 @@ def read_json(path, limit=LIMIT):
 
 def game_metadata():
     if GAME.resolve() != GAME or not GAME.is_dir():
-        raise ValueError('Cyberpunk no esta preparado: revisa el disco Personal')
+        raise ValueError('Cyberpunk no esta preparado: revisa el montaje /juegos/Cyberpunk2077')
     exe = GAME/'bin/x64/Cyberpunk2077.exe'
     if exe.resolve() != exe or not exe.is_file() or exe.stat().st_size < 2:
         raise ValueError('falta el ejecutable real de Cyberpunk')
@@ -93,8 +93,6 @@ def atomic(path, value):
 
 def register():
     metadata = game_metadata()
-    if heroic_running():
-        raise ValueError('cierra Heroic y vuelve a abrir GOG para registrar Cyberpunk')
     store = HOME/'.config/heroic/gog_store'
     store.mkdir(parents=True, exist_ok=True, mode=0o700)
     if store.resolve() != store:

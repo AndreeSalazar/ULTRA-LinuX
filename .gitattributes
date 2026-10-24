@@ -84,3 +84,4 @@ evidencias/limpieza-main/** text eol=lf whitespace=-blank-at-eol
 evidencias/limpieza-main/**/*.png binary
 evidencias/almacen-nativo/** text eol=lf whitespace=-blank-at-eol
 evidencias/cyberpunk-nativo/** text eol=lf whitespace=-blank-at-eol
+evidencias/cyberpunk-lanzador/** text eol=lf whitespace=-blank-at-eol

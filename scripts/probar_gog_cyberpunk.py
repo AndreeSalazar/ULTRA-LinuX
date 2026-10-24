@@ -57,6 +57,11 @@ class Import(unittest.TestCase):
     def test_running_client_blocks_writes(self):
         with patch.object(app,'heroic_running',return_value=True),self.assertRaises(ValueError): app.register()
         self.assertFalse(self.file.exists())
+    def test_running_client_can_launch_already_registered_without_writes(self):
+        app.register(); before=(self.file.read_bytes(),self.file.stat().st_mtime_ns)
+        with patch.object(app,'heroic_running',return_value=True):
+            self.assertIn('ya reconocido',app.register())
+        self.assertEqual(before,(self.file.read_bytes(),self.file.stat().st_mtime_ns))
     def test_malformed_store_untouched(self):
         self.file.write_text('{')
         with self.assertRaises(ValueError): app.register()

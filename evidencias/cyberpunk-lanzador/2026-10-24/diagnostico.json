@@ -1,0 +1,12 @@
+{
+  "inspeccion_solo_lectura": true,
+  "red": false,
+  "almacenamiento_disponible_bytes": 247335059456,
+  "registro_cyberpunk_correcto": true,
+  "ruta_instalada": "/juegos/Cyberpunk2077",
+  "acceso_anterior_prefijo": "~/Juegos/prefijos/cyberpunk2077",
+  "heroic_prefijo": "~/Games/Heroic/Prefixes/Cyberpunk 2077",
+  "evidencia_de_causa_final": false,
+  "juego_en_hardware_pendiente": true,
+  "disponible_segunda_inspeccion_bytes": 239122628608
+}
