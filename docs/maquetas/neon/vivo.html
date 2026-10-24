@@ -407,7 +407,7 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
     <button data-a="bloquear">Bloquear<kbd>Alt+L</kbd></button>
     <button data-a="efectos" id="b-efectos">Efectos: vivos<kbd>Alt+A</kbd></button>
     <button data-a="perfil">Perfil del autor<kbd>Alt+I</kbd></button>
-    <button data-a="acento" id="b-acento">Acento: amarillo<kbd>Alt+K</kbd></button>
+    <button data-a="acento" id="b-acento">Acento: hielo<kbd>Alt+K</kbd></button>
     <button data-a="ayuda">Atajos<kbd>Alt+H</kbd></button>
   </div>
   <div class="nota">Escritorios: Alt+1…5 · Cerrar ventana: Alt+Q · En el bloqueo, escribe cualquier clave y pulsa Enter.</div>
@@ -746,8 +746,8 @@ function contenido(app) {
       <div class="rejilla">${[['steamapps', 'archivos'], ['Warframe', 'archivos'], ['shadercache', 'archivos'], ['compatdata', 'archivos'], ['libraryfolders.vdf', 'editor']].map(([n, i], k) => `<div class="archivo ${k ? '' : 'sel'}">${ic(i, k ? CY : AM)}${n}</div>`).join('')}</div></div>`;
   if (app === 'editor') return `<div class="gtk-cab">Mousepad <span class="sep">//</span> <span class="sub">paleta.json</span><span class="bts"><span></span><span data-cerrar></span></span></div>
     <div class="editor"><div><i>1</i><span class="gr">{</span></div><div><i>2</i>  <span class="cy">"nombre"</span>: <span class="am">"Neón"</span>,</div>
-    <div class="act"><i>3</i>  <span class="cy">"amarillo"</span>: <span class="am">"#fcee0a"</span>,<span class="cursor"></span></div><div><i>4</i>  <span class="cy">"rojo"</span>: <span class="am">"#ff2a4f"</span>,</div>
-    <div><i>5</i>  <span class="cy">"cyan"</span>: <span class="am">"#00f0ff"</span>,</div><div><i>6</i>  <span class="cy">"bordes"</span>: <span class="am">"amarillo → rojo → cyan"</span>,</div>
+    <div class="act"><i>3</i>  <span class="cy">"acento"</span>: <span class="am">"#5ad8ff"</span>,<span class="cursor"></span></div><div><i>4</i>  <span class="cy">"rojo"</span>: <span class="am">"#ff2a4f"</span>,</div>
+    <div><i>5</i>  <span class="cy">"cyan"</span>: <span class="am">"#00f0ff"</span>,</div><div><i>6</i>  <span class="cy">"bordes"</span>: <span class="am">"hielo → rojo → cyan"</span>,</div>
     <div><i>7</i>  <span class="cy">"animacion_borde"</span>: <span class="am">"giro 6 s"</span></div><div><i>8</i><span class="gr">}</span></div></div>`;
   if (app === 'navegador') return `<div class="nav-barra"><span style="color:${CY}">◀ ▶ ⟳</span><div class="url"><b>●</b>file:///etc/ultra/inicio.html</div></div>
     <div class="web"><h2>ULTRA // INICIO</h2><p>Página local de pruebas del sistema. Comprueba la GPU, abre la tienda de juegos o consulta los atajos del escritorio.</p>
@@ -893,14 +893,14 @@ function aviso(titulo, texto, o = {}) {
 
 /* ---------- Menu (fuzzel) ---------- */
 const MENU = {
-  raiz: { t: 'BMO-X', ac: AM, f: [['Aplicaciones', 'navegador', AM, 'apps'], ['Discos y bibliotecas', 'discos', CY, 'discos'], ['Juegos', 'juegos', RO, 'juegos'], ['Pantalla y gráficos', 'pantalla', VE, 'pantalla'], ['Audio', 'audio', VI, 'audio'], ['Ambiente', 'ambiente', CY, 'ambiente'], ['Sistema y ayuda', 'ajustes', AM, 'sistema']] },
+  raiz: { t: 'BMO-X', ac: AM, f: [['Aplicaciones', 'navegador', AM, 'apps'], ['Discos y bibliotecas', 'discos', CY, 'discos'], ['Juegos', 'juegos', RO, 'juegos'], ['Pantalla y gráficos', 'pantalla', VE, 'pantalla'], ['Audio', 'audio', VI, 'audio'], ['Ambiente', 'ambiente', '#fcee0a', 'ambiente'], ['Sistema y ayuda', 'ajustes', '#ff7a90', 'sistema']] },
   apps: { t: 'APLICACIONES', ac: AM, f: [['Terminal', 'terminal', () => abrir('terminal')], ['Archivos', 'archivos', () => enfocarOAbrir('archivos')], ['Editor', 'editor', () => enfocarOAbrir('editor')], ['Navegador Brave', 'navegador', () => enfocarOAbrir('navegador')]] },
   discos: { t: 'DISCOS', ac: CY, f: [['Panel de discos', 'discos', () => demo('Panel de discos', 'Aquí se abriría ultra-discos panel a pantalla completa.')], ['Windows NVMe (solo lectura)', 'discos', () => demo('Windows NVMe', 'Se montaría /windows en solo lectura.')], ['Explorar discos', 'archivos', () => enfocarOAbrir('archivos')]] },
   juegos: { t: 'JUEGOS', ac: RO, f: [['Steam', 'juegos', () => juego('Steam')], ['GOG / Heroic', 'juegos', () => juego('Heroic')], ['Warframe / Steam', 'juegos', () => juego('Warframe')], ['Cyberpunk 2077', 'juegos', () => juego('Cyberpunk 2077')], ['Juegos y consumo en vivo', 'equipo', () => enfocarOAbrir('equipo')], ['FPS y HUD', 'pantalla', () => demo('MangoHud', 'Shift derecho+F12 muestra u oculta el HUD dentro del juego.')]] },
   pantalla: { t: 'PANTALLA', ac: VE, f: [['Resolución, Hz y escala', 'pantalla', () => demo('Pantallas', 'Se abriría ultra-pantallas con confirmación de 20 s.')], ['Informe Vulkan y OpenGL', 'pantalla', () => abrirTerminalCon('red')], ['Cubo Vulkan', 'pantalla', () => demo('Cubo Vulkan', 'Prueba gráfica en una ventana nueva.')]] },
   audio: { t: 'AUDIO', ac: VI, f: [['Salidas y volumen', 'audio', () => aviso('Audio', 'Salida: interfaz USB · 100 %.', { icono: 'audio' })], ['Subir volumen', 'audio', () => aviso('Volumen 105 %', 'Amplificación opcional activa.', { icono: 'audio' })], ['Silencio', 'audio', () => aviso('Silencio', 'Audio maestro silenciado.', { icono: 'audio', critica: true })]] },
-  ambiente: { t: 'AMBIENTE', ac: CY, f: [['Efectos vivos', 'ambiente', () => efectos(true)], ['Efectos reducidos', 'ambiente', () => efectos(false)], ['Limpiar avisos', 'ambiente', () => { $('#avisos').innerHTML = ''; }]] },
-  sistema: { t: 'SISTEMA', ac: AM, f: [['Equipo en vivo', 'equipo', () => enfocarOAbrir('equipo')], ['Atajos', 'ayuda', () => ayuda()], ['Bloquear sesión', 'candado', () => bloquear()]] }
+  ambiente: { t: 'AMBIENTE', ac: '#fcee0a', f: [['Efectos vivos', 'ambiente', () => efectos(true)], ['Efectos reducidos', 'ambiente', () => efectos(false)], ['Limpiar avisos', 'ambiente', () => { $('#avisos').innerHTML = ''; }]] },
+  sistema: { t: 'SISTEMA', ac: '#ff7a90', f: [['Equipo en vivo', 'equipo', () => enfocarOAbrir('equipo')], ['Atajos', 'ayuda', () => ayuda()], ['Bloquear sesión', 'candado', () => bloquear()]] }
 };
 const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 function filasMenu() {
@@ -1105,7 +1105,7 @@ function cambiarAcento(forzar) {
   document.body.classList.toggle('hielo', hielo);
   $('#b-acento').firstChild.textContent = 'Acento: ' + (hielo ? 'hielo' : 'amarillo');
   Fondo.reconstruir();
-  aviso(hielo ? 'Acento hielo' : 'Acento amarillo', hielo ? 'Negro y azul hielo: el estilo del autor.' : 'Amarillo neón: el acento original de Neón.', { icono: 'ambiente', dur: 3000 });
+  aviso(hielo ? 'Acento hielo' : 'Acento amarillo', hielo ? 'Negro y azul hielo: el acento principal, estilo del autor.' : 'Amarillo neón: el acento alternativo.', { icono: 'ambiente', dur: 3000 });
 }
 
 /* ---------- Efectos ---------- */
@@ -1167,10 +1167,11 @@ async function recorrido() {
     if (S.juego) salirJuego();
     cerrarTodo(); if (S.especial) rapida();
     if (!S.vivo) efectos(true);
+    if (!document.body.classList.contains('hielo')) cambiarAcento(true);
     irA(4);
     await rotulo('FONDO', 'lluvia, letreros, aro y haces de luz en vivo', 2600);
     irA(2);
-    await rotulo('BORDE', 'la ventana activa gira amarillo → rojo → cyan', 2200);
+    await rotulo('BORDE', 'la ventana activa gira hielo → rojo → cyan', 2200);
     rotulo('SUPER+ESPACIO', 'centro BMO-X', 1400); abrirMenu(); await espera(900);
     for (const k of ['ArrowUp', 'ArrowUp']) { tecla({ key: k }); await espera(380); }
     tecla({ key: 'Enter' }); await espera(900);
@@ -1184,11 +1185,10 @@ async function recorrido() {
     rotulo('SUPER+SHIFT+S', 'captura de región', 1500); await captura(); await espera(2200);
     rotulo('JUEGO', 'barra y dock se apartan; MangoHud', 1800); juego('Warframe'); await espera(5000); salirJuego(); await espera(1400);
     rotulo('PERFIL', 'Eddi Salazar, autor de ULTRA LinuX', 2600); perfil(); await espera(3200); cerrarTodo(); await espera(400);
-    rotulo('ACENTO HIELO', 'el estilo del autor', 2400); cambiarAcento(true); await espera(3600);
+    rotulo('ALT+K', 'acento alternativo amarillo', 2400); cambiarAcento(false); await espera(3400); cambiarAcento(true); await espera(1200);
     rotulo('SUPER+L', 'bloqueo hyprlock', 1500); bloquear(); await espera(1600);
     for (let i = 0; i < 6; i++) { teclaBloqueo({ key: 'x' }); await espera(170); }
-    await espera(400); teclaBloqueo({ key: 'Enter' }); await espera(2400);
-    cambiarAcento(false); await espera(1500);
+    await espera(400); teclaBloqueo({ key: 'Enter' }); await espera(2600);
   } finally { enRecorrido = false; boton.textContent = '▶ Recorrido'; }
 }
 
@@ -1202,6 +1202,7 @@ document.querySelectorAll('#controles button').forEach(b => b.onclick = () => { 
 const pruebaAutor = new Image();
 pruebaAutor.onload = () => { S.autorImg = true; barra(); marcarEscritorios(); reloj(); if (S.foco[S.ws]) enfocar(S.foco[S.ws]); };
 pruebaAutor.src = 'autor.png';
+document.body.classList.add('hielo');
 barra(); dock(); capas();
 abrir('navegador', { ws: 1, sinAnim: true });
 abrir('terminal', { ws: 3, sinAnim: true, guion: 'red' });
@@ -1215,6 +1216,6 @@ setTimeout(() => aviso(`Bienvenido, ${AUTOR.corto}`, 'BMO-X // Neón listo. Puls
 if (reducir) { S.vivo = false; document.body.classList.add('sobrio'); $('#b-efectos').firstChild.textContent = 'Efectos: reducidos'; }
 Fondo.iniciar();
 if (location.hash === '#recorrido') setTimeout(recorrido, 900);
-if (location.hash === '#hielo') setTimeout(() => cambiarAcento(true), 300);
+if (location.hash === '#amarillo') setTimeout(() => cambiarAcento(false), 300);
 })();
 </script>

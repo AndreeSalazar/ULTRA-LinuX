@@ -637,7 +637,25 @@ def check_hyprland(conn, failures):
         mon.sendall(b'sendkey esc\n')
         time.sleep(.4)
         transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo JUEGOS-CERRADO-$((10+8))', 'JUEGOS-CERRADO-18')], failures)
-        for number, color in enumerate(['00d4e8','2de2b8','76ff58','5298ff','ffc857','c49aff','ff657a'], 1):
+        colores = ['5ad8ff','00f0ff','ff2a4f','3dff9a','c03bff','fcee0a','ff7a90']
+        def contar(path, color):
+            target = tuple(int(color[i:i+2],16) for i in (0,2,4))
+            with Image.open(path).convert('RGB') as shot:
+                return sum(count for count, rgb in shot.getcolors(shot.width*shot.height)
+                           if max(abs(a-b) for a,b in zip(rgb,target)) < 7)
+        # El fondo Neon usa los mismos colores: se compara contra el escritorio sin menu.
+        base_capture = pathlib.Path(tempfile.gettempdir()) / 'ultra-categoria-base.png'
+        base_capture.unlink(missing_ok=True)
+        mon.sendall(f'screendump {base_capture} -f png\n'.encode())
+        for _ in range(50):
+            try:
+                from PIL import Image
+                with Image.open(base_capture) as shot: shot.verify()
+                break
+            except (OSError, SyntaxError): time.sleep(.1)
+        else: raise ValueError('captura base de categorias incompleta')
+        base_pixels = {color: contar(base_capture, color) for color in colores}
+        for number, color in enumerate(colores, 1):
             mon.sendall(b'sendkey meta_l-spc\n'); time.sleep(.7)
             mon.sendall(f'sendkey {number}\n'.encode()); time.sleep(.15)
             mon.sendall(b'sendkey ret\n'); time.sleep(1)
@@ -651,10 +669,7 @@ def check_hyprland(conn, failures):
                     break
                 except (OSError, SyntaxError): time.sleep(.1)
             else: raise ValueError('captura de categoria incompleta')
-            with Image.open(category_capture).convert('RGB') as shot:
-                target = tuple(int(color[i:i+2],16) for i in (0,2,4))
-                pixels = sum(count for count, rgb in shot.getcolors(shot.width*shot.height)
-                             if max(abs(a-b) for a,b in zip(rgb,target)) < 7)
+            pixels = contar(category_capture, color) - base_pixels[color]
             expect(pixels > 40, f'Categoria {number}: color propio visible')
             shutil.copyfile(category_capture,LOG.with_name(LOG.stem+f'-categoria-{number}.png'))
             mon.sendall(b'sendkey esc\n'); time.sleep(.7)  # Submenu -> root.

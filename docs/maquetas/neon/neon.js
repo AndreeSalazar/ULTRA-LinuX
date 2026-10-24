@@ -1,5 +1,5 @@
 // Piezas de las maquetas BMO-X / Neon. Usa APP, MINI, app() y mini() de ../comun.js.
-const AM = '#fcee0a', RO = '#ff2a4f', CY = '#00f0ff', TX = '#ece9dc', T2 = '#a19eae';
+const AM = '#5ad8ff', RO = '#ff2a4f', CY = '#00f0ff', TX = '#ece9dc', T2 = '#a19eae';
 
 function barra(o = {}) {
   const esc = (o.escritorios || [[1, 'ocupado'], [2, 'activo'], [3, 'ocupado'], [4, ''], [5, '']])

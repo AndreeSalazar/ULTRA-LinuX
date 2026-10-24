@@ -36,7 +36,7 @@
   <div class="caja">
     <h2>COLORES<small>//01</small></h2>
     <div class="muestras" id="muestras"></div>
-    <div class="nota">Amarillo = foco y acciones. Cyan = datos. Rojo = alertas, apagar y cortes. Verde y violeta solo en terminal y categorías.</div>
+    <div class="nota">Hielo = foco y acciones (acento principal; el amarillo queda como alternativa). Cyan = datos. Rojo = alertas, apagar y cortes. Verde y violeta solo en terminal y categorías.</div>
   </div>
   <div class="caja">
     <h2>TIPOGRAFÍA<small>//02</small></h2>
@@ -82,8 +82,8 @@
 <script>
 const colores = [
   ['negro', '#06050a', 'fondo'], ['panel', '#0f0e16', 'ventanas'], ['línea', '#2a2733', 'bordes'], ['texto', '#ece9dc', 'principal'],
-  ['amarillo', '#fcee0a', 'foco, acción'], ['cyan', '#00f0ff', 'datos'], ['rojo', '#ff2a4f', 'alerta, apagar'], ['texto-2', '#a19eae', 'secundario'],
-  ['verde', '#3dff9a', 'ok, RAM'], ['violeta', '#c03bff', 'audio'], ['amarillo-2', '#c9be08', 'ocupado'], ['cyan-2', '#0aa3ad', 'bordes datos'],
+  ['hielo', '#5ad8ff', 'foco, acción'], ['cyan', '#00f0ff', 'datos'], ['rojo', '#ff2a4f', 'alerta, apagar'], ['texto-2', '#a19eae', 'secundario'],
+  ['verde', '#3dff9a', 'ok, RAM'], ['violeta', '#c03bff', 'audio'], ['amarillo', '#fcee0a', 'acento alternativo'], ['cyan-2', '#0aa3ad', 'bordes datos'],
 ];
 document.getElementById('muestras').innerHTML = colores.map(([n, h, r]) => `<div class="m"><i style="background:${h};${h === '#06050a' ? 'outline:1px solid #3b3747' : ''}"></i><div><b>${n}</b>${h} · ${r}</div></div>`).join('');
 document.getElementById('apps').innerHTML = `<div class="app">${app('editor', CY)}</div><div class="app abierta">${app('archivos', CY)}</div><div class="app abierta foco">${app('terminal', AM)}</div>`;

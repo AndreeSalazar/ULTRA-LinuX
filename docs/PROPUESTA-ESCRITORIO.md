@@ -1,7 +1,8 @@
 # Propuesta de escritorio BMO-X: Neón y Núcleo 2
 
-2026-10-24, America/Lima. **Estado: propuesta con maquetas. No hay nada
-instalado en ninguna imagen ni probado en QEMU ni en el PC.**
+2026-10-24, America/Lima. **Estado:** Neón con acento hielo ya está en el
+código del escritorio ([TEMA-NEON.md](TEMA-NEON.md)); falta reconstruir y
+probar en QEMU y en el PC. El resto de ideas siguen siendo propuesta.
 
 Esta página reúne la revisión del escritorio Núcleo y las ideas para mejorar su
 apariencia y su uso diario. Hay dos estilos con las mismas funciones:
@@ -161,8 +162,8 @@ El fondo animado es lo único con coste continuo. Propuesta:
   en `ultra-info`.
 - **Tu imagen:** para usarla, guárdala como `docs/maquetas/neon/autor.png`. El
   prototipo la detecta y la pone en lugar del emblema.
-- **Acento Hielo:** Alt+K cambia el amarillo por el azul hielo `#5ad8ff` en
-  toda la interfaz y en el fondo.
+- **Acento Hielo:** el azul hielo `#5ad8ff` es el acento principal. Alt+K
+  cambia al amarillo, que queda como alternativa.
 
 
 ## Maquetas Núcleo 2
@@ -276,7 +277,7 @@ Es la referencia para generar todos los archivos de tema desde un solo
 
 ### A. Coherencia visual
 
-- [ ] Elegir el estilo: Neón (propuesta principal) o Núcleo 2, y el acento: amarillo o hielo.
+- [x] Estilo elegido: Neón con acento hielo. Aplicado al código del escritorio; falta verificarlo en QEMU y en el PC ([TEMA-NEON.md](TEMA-NEON.md)).
 - [ ] Decidir el fondo animado (RING 0) y aplicar las animaciones nativas de Hyprland de la tabla.
 - [ ] `paleta.json` como fuente única. Un script generaría `hyprland.lua`
       (colores), `waybar.css`, `gtk.css`, `mako.conf`, `fuzzel.ini`,

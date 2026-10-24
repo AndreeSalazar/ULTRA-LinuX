@@ -223,7 +223,7 @@ if [[ -n $cmdline ]]; then
         -e '/^DownloadUser/d' -e '/^#\[multilib\]/,+1s/^#//' /etc/pacman.conf > "$art/pacman-sistema.conf"
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
-    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu util-linux shadow
+    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu ttf-jetbrains-mono util-linux shadow
         hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata chrony swaybg librsvg
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
@@ -266,6 +266,11 @@ if [[ -n $cmdline ]]; then
     sudo install -m 0644 "$lab/rootfs/desktop/"* "$sistema/etc/ultra/"
     sudo pacman -S --noconfirm --needed librsvg xorg-xcursorgen > "$art/tema-herramientas.log" 2>&1
     sudo python "$lab/rootfs/crear-tema.py" "$sistema"
+    # Tema Neon: Rajdhani y Chakra Petch (OFL) viajan con el proyecto; JetBrains Mono viene de Arch.
+    sudo install -d -m 0755 "$sistema/usr/share/fonts/ultra-neon" "$sistema/usr/share/licenses/ultra-neon"
+    sudo install -m 0644 "$lab/rootfs/fuentes/"*.ttf "$sistema/usr/share/fonts/ultra-neon/"
+    sudo install -m 0644 "$lab/rootfs/fuentes/"OFL-*.txt "$sistema/usr/share/licenses/ultra-neon/"
+    sudo chroot "$sistema" /usr/bin/fc-cache -f > /dev/null
     sudo install -m 0644 "$art/sistema-paquetes.txt" "$sistema/etc/ultra/sistema-paquetes.txt"
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"

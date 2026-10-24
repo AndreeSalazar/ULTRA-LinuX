@@ -9,8 +9,8 @@
   --panel-2: #16141f;
   --linea: #2a2733;
   --linea-2: #3b3747;
-  --amarillo: #fcee0a;
-  --amarillo-2: #c9be08;
+  --amarillo: #5ad8ff;
+  --amarillo-2: #2b9fd0;
   --rojo: #ff2a4f;
   --cyan: #00f0ff;
   --cyan-2: #0aa3ad;
@@ -35,7 +35,7 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 
 /* ---------- Barra ---------- */
 .barra { position: absolute; top: 0; left: 0; right: 0; height: 40px; z-index: 20; display: flex; align-items: stretch;
-  background: rgba(6, 5, 10, .92); border-bottom: 2px solid var(--amarillo); box-shadow: 0 2px 18px rgba(252, 238, 10, .12);
+  background: rgba(6, 5, 10, .92); border-bottom: 2px solid var(--amarillo); box-shadow: 0 2px 18px rgba(90, 216, 255, .12);
   font: 600 15px/1 var(--titulo); letter-spacing: 1px; text-transform: uppercase; }
 .barra .grupo { display: flex; align-items: center; }
 .barra .der { margin-left: auto; }
@@ -69,13 +69,13 @@ svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-widt
 .app { position: relative; width: 58px; height: 52px; display: grid; place-items: center; background: var(--panel); border: 1px solid var(--linea); clip-path: var(--corte-chico); }
 .app svg { width: 32px; height: 32px; }
 .app.abierta::after { content: ""; position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); width: 14px; height: 3px; background: var(--amarillo-2); }
-.app.foco { border-color: var(--amarillo); background: #1b1906; }
+.app.foco { border-color: var(--amarillo); background: #06161d; }
 .app.foco::after { width: 30px; background: var(--amarillo); }
 .dock .linea { width: 2px; height: 34px; background: var(--linea-2); margin: 0 4px; transform: skewX(-20deg); }
 
 /* ---------- Ventanas (Hyprland: sin barras de titulo, rounding 0) ---------- */
 .ventana { position: absolute; z-index: 10; background: rgba(8, 7, 12, .985); }
-.ventana.activa { border: 2px solid; border-image: linear-gradient(135deg, var(--amarillo), var(--rojo) 70%, var(--cyan)) 1; box-shadow: 0 0 24px rgba(252, 238, 10, .22); }
+.ventana.activa { border: 2px solid; border-image: linear-gradient(135deg, var(--amarillo), var(--rojo) 70%, var(--cyan)) 1; box-shadow: 0 0 24px rgba(90, 216, 255, .22); }
 .ventana.inactiva { border: 2px solid var(--linea); filter: brightness(.82) saturate(.8); }
 .dentro { width: 100%; height: 100%; overflow: hidden; position: relative; }
 .term { font: 15px/1.6 var(--mono); padding: 16px 20px; color: var(--texto); white-space: pre; }

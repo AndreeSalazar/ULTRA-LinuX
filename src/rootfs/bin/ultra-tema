@@ -7,7 +7,7 @@ from pathlib import Path
 import tempfile
 
 HOME=Path(os.environ['HOME'])
-VERSION='nucleo-1'
+VERSION='neon-1'
 FILES={'foot/foot.ini':'foot.ini','fuzzel/fuzzel.ini':'fuzzel.ini',
        'gtk-3.0/gtk.css':'gtk.css','gtk-3.0/settings.ini':'gtk-settings.ini',
        'gtk-4.0/gtk.css':'gtk.css','gtk-4.0/settings.ini':'gtk-settings.ini'}

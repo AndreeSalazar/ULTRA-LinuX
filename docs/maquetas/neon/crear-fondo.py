@@ -4,12 +4,20 @@
 
 Semilla fija: la misma salida en cada ejecucion. Sin descargas ni fuentes
 externas; los letreros usan DejaVu Sans Condensed, ya incluida en el sistema.
-Uso: python3 crear-fondo.py [ancho alto] > fondo-neon.svg
+Uso: python3 crear-fondo.py [ancho alto] [--acento hielo|amarillo|#RRGGBB] > fondo.svg
 """
+import argparse
 import random
-import sys
+import re
 
-W, H = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) == 3 else (1920, 1080)
+opciones = argparse.ArgumentParser()
+opciones.add_argument('tam', nargs='*', type=int)
+opciones.add_argument('--acento', default='hielo')
+args = opciones.parse_args()
+W, H = args.tam if len(args.tam) == 2 else (1920, 1080)
+ACENTO = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a'}.get(args.acento, args.acento)
+if not re.fullmatch(r'#[0-9a-fA-F]{6}', ACENTO):
+    raise SystemExit('acento invalido: use hielo, amarillo o #RRGGBB')
 HORIZONTE = int(H * 0.70)
 rnd = random.Random(2077)
 out = []
@@ -18,7 +26,7 @@ p = out.append
 p(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">')
 p('<title>BMO-X / Neon · ciudad nocturna original</title>')
 p('<desc>Arte estatico. Los letreros y ventanas son decoracion, no datos del equipo.</desc>')
-p('''<defs>
+p(f'''<defs>
 <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
  <stop offset="0" stop-color="#040309"/><stop offset=".45" stop-color="#0b0816"/>
  <stop offset=".62" stop-color="#2a0a1e"/><stop offset=".70" stop-color="#4a0d24"/>
@@ -27,11 +35,11 @@ p('''<defs>
 <radialGradient id="brillo" cx=".5" cy="1" r=".8"><stop offset="0" stop-color="#ff2a4f" stop-opacity=".45"/><stop offset="1" stop-color="#ff2a4f" stop-opacity="0"/></radialGradient>
 <linearGradient id="reflejo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff2a4f" stop-opacity=".10"/><stop offset="1" stop-color="#ff2a4f" stop-opacity="0"/></linearGradient>
 <pattern id="lineas" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 .5h4" stroke="#000" stroke-opacity=".28"/></pattern>
-<pattern id="peligro" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="11" height="22" fill="#fcee0a"/><rect x="11" width="11" height="22" fill="#0a0710"/></pattern>
+<pattern id="peligro" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="11" height="22" fill="{ACENTO}"/><rect x="11" width="11" height="22" fill="#0a0710"/></pattern>
 <filter id="neon" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 <filter id="suave"><feGaussianBlur stdDeviation="3"/></filter>
 <linearGradient id="haz" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#00f0ff" stop-opacity=".16"/><stop offset="1" stop-color="#00f0ff" stop-opacity="0"/></linearGradient>
-<linearGradient id="haz2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fcee0a" stop-opacity=".10"/><stop offset="1" stop-color="#fcee0a" stop-opacity="0"/></linearGradient>
+<linearGradient id="haz2" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="{ACENTO}" stop-opacity=".10"/><stop offset="1" stop-color="{ACENTO}" stop-opacity="0"/></linearGradient>
 <radialGradient id="bruma" cx=".8" cy=".1" r=".6"><stop offset="0" stop-color="#5a1a6e" stop-opacity=".35"/><stop offset="1" stop-color="#5a1a6e" stop-opacity="0"/></radialGradient>
 </defs>''')
 p(f'<rect width="{W}" height="{H}" fill="url(#cielo)"/>')
@@ -63,13 +71,13 @@ for color, alto_min, alto_max, ancho_min, ancho_max, luz in capas:
         for fy in range(top + 10, HORIZONTE - 8, 14):
             for fx in range(x + 6, x + ancho - 8, 11):
                 if rnd.random() < luz:
-                    tono = rnd.choices(["#fcee0a", "#00f0ff", "#ff2a4f", "#f6e7c1"], [5, 3, 1, 3])[0]
+                    tono = rnd.choices([ACENTO, "#00f0ff", "#ff2a4f", "#f6e7c1"], [5, 3, 1, 3])[0]
                     p(f'<rect x="{fx}" y="{fy}" width="5" height="6" fill="{tono}" opacity="{rnd.uniform(.25, .8):.2f}"/>')
         x += ancho + rnd.randint(0, 14)
 
 # Letreros verticales con brillo.
 p('<g id="letreros">')
-letreros = [(int(W * .085), "ULTRA", "#fcee0a"), (int(W * .87), "BMO-X", "#00f0ff"), (int(W * .78), "24H", "#ff2a4f")]
+letreros = [(int(W * .085), "ULTRA", ACENTO), (int(W * .87), "BMO-X", "#00f0ff"), (int(W * .78), "24H", "#ff2a4f")]
 for lx, texto, color in letreros:
     ly = HORIZONTE - int(H * .40)
     alto = len(texto) * 42 + 20
@@ -98,12 +106,17 @@ for _ in range(260):
 
 # Placa amarilla inferior izquierda: firma del tema.
 px, py = 0, H - 150
-p(f'<path d="M{px} {py}H{px + 520}L{px + 470} {py + 70}H{px}Z" fill="#fcee0a"/>')
+p(f'<path d="M{px} {py}H{px + 520}L{px + 470} {py + 70}H{px}Z" fill="{ACENTO}"/>')
 p(f'<path d="M{px} {py + 78}H{px + 440}L{px + 425} {py + 98}H{px}Z" fill="url(#peligro)"/>')
 p(f'<text x="{px + 34}" y="{py + 48}" font-family="DejaVu Sans Condensed, DejaVu Sans, sans-serif" font-weight="bold" font-size="36" letter-spacing="6" fill="#0a0710">ULTRA LINUX</text>')
 p(f'<text x="{px + 378}" y="{py + 48}" font-family="DejaVu Sans Mono, monospace" font-size="15" fill="#0a0710">//BMO-X</text>')
-p(f'<text x="{px + 34}" y="{py + 128}" font-family="DejaVu Sans Mono, monospace" font-size="13" letter-spacing="3" fill="#fcee0a" opacity=".7">SYS.01 · NEON · PERSONAL SYSTEM</text>')
+p(f'<text x="{px + 34}" y="{py + 128}" font-family="DejaVu Sans Mono, monospace" font-size="13" letter-spacing="3" fill="{ACENTO}" opacity=".7">SYS.01 · NEON · EDDI SALAZAR</text>')
 
+# Aro del autor sobre la ciudad (en el escritorio animado gira).
+ax, ay = int(W * .65), int(H * .23)
+p(f'<g fill="none" stroke="#5ad8ff" filter="url(#neon)"><circle cx="{ax}" cy="{ay}" r="170" stroke-width="3" stroke-dasharray="120 14 40 14 220 22" opacity=".38"/>'
+  f'<circle cx="{ax}" cy="{ay}" r="150" stroke-dasharray="3 9" opacity=".22"/>'
+  f'<path d="M{ax - 200} {ay}h24M{ax + 176} {ay}h24M{ax} {ay - 200}v24M{ax} {ay + 176}v24" stroke-width="2" opacity=".45"/></g>')
 # Esquinas de HUD.
 c = 36
 for x0, y0, dx, dy in [(24, 24, 1, 1), (W - 24, 24, -1, 1), (W - 24, H - 24, -1, -1)]:

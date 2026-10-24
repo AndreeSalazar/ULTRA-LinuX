@@ -23,12 +23,12 @@ kernel_before=$(sha256sum bzImage-tiny64)
 rm -f build-complete
 if [[ $modo == completo ]]; then
 sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
-    -S --needed --noconfirm papirus-icon-theme otf-font-awesome mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
+    -S --needed --noconfirm papirus-icon-theme otf-font-awesome ttf-jetbrains-mono mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
 if sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -Q woff2-font-awesome >/dev/null 2>&1; then
     sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -R --noconfirm woff2-font-awesome
 fi
 fi
-{ find "$lab/rootfs/bin" "$lab/rootfs/desktop" -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum;
+{ find "$lab/rootfs/bin" "$lab/rootfs/desktop" "$lab/rootfs/fuentes" -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum;
   sha256sum "$lab/actualizar-escritorio.sh"; } > fuentes-escritorio.sha256
 sudo install -m 0644 "$lab/rootfs/desktop/"* "$art/sistema-a/etc/ultra/"
 sudo install -m 0644 fuentes-escritorio.sha256 "$art/sistema-a/etc/ultra/escritorio-fuentes.sha256"
@@ -47,6 +47,13 @@ for helper in "$lab/rootfs/bin/"*; do
     done
 done
 sudo install -m 0644 "$lab/rootfs/desktop/"*.desktop "$art/sistema-a/usr/share/applications/"
+# Tema Neon: fuentes OFL del proyecto, iconos y cursores recoloreados, cache de fuentes.
+sudo install -d -m 0755 "$art/sistema-a/usr/share/fonts/ultra-neon" "$art/sistema-a/usr/share/licenses/ultra-neon"
+sudo install -m 0644 "$lab/rootfs/fuentes/"*.ttf "$art/sistema-a/usr/share/fonts/ultra-neon/"
+sudo install -m 0644 "$lab/rootfs/fuentes/"OFL-*.txt "$art/sistema-a/usr/share/licenses/ultra-neon/"
+sudo pacman -S --noconfirm --needed librsvg xorg-xcursorgen > /dev/null
+sudo python "$lab/rootfs/crear-tema.py" "$art/sistema-a"
+sudo chroot "$art/sistema-a" /usr/bin/fc-cache -f > /dev/null
 if [[ -d $art/sistema-a/etc/wireplumber/wireplumber.conf.d ]]; then
     sudo install -m 0644 "$lab/rootfs/desktop/wireplumber-usb.conf" "$art/sistema-a/etc/wireplumber/wireplumber.conf.d/51-ultra-usb.conf"
 fi
