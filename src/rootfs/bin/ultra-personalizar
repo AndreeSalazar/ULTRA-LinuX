@@ -19,6 +19,7 @@ import tempfile
 HOME = Path(os.environ.get('HOME', '/home/ultra'))
 CONF = HOME / '.config/ultra'
 ESTADO = CONF / 'personal.json'
+PERFILES_DIR = CONF / 'perfiles'
 TEMA = CONF / 'tema-personal'
 ETC = Path('/etc/ultra')
 CREAR_FONDO = Path('/usr/local/libexec/ultra-crear-fondo')
@@ -29,7 +30,7 @@ ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo':
            'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
 OPCIONES = {
     'acento': list(ACENTOS) + ['propio'],
-    'fondo': ['neon', 'nucleo', 'imagen', 'liso'],
+    'fondo': ['neon', 'demonio', 'nucleo', 'imagen', 'liso'],
     'efectos': ['vivos', 'reducidos'],
     'borde': ['gira', 'quieto'],
     'huecos': ['compacto', 'normal', 'amplio'],
@@ -57,6 +58,16 @@ TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde d
                animacion='Animacion al abrir', velocidad='Velocidad de animaciones', desenfoque='Desenfoque',
                posicion='Posicion de la barra', dock='Dock', reloj='Reloj', avisos='Posicion de avisos',
                letra='Letra de la interfaz')
+# Perfiles de un toque: se parte del defecto y se cambian solo estas claves.
+PERFILES = {
+    'neon-hielo': {},
+    'demonio': dict(acento='rojo', fondo='demonio', borde='gira', esquinas='rectas', desenfoque='ligero', inactivas='92'),
+    'sobrio': dict(efectos='reducidos', borde='quieto', desenfoque='no', velocidad='rapida'),
+    'minimal': dict(dock='oculto', barra='compacta', huecos='compacto', grosor='1', reloj='24h'),
+    'juego': dict(efectos='reducidos', borde='quieto', desenfoque='no', dock='oculto', avisos='arriba-centro', inactivas='100'),
+}
+NOMBRE_PERFIL = re.compile(r'[a-z0-9][a-z0-9-]{0,23}')
+MAX_PERFILES = 16
 GRUPOS = [('Colores y fondo', ['acento', 'fondo']),
           ('Ventanas', ['borde', 'grosor', 'esquinas', 'huecos', 'inactivas']),
           ('Animaciones y efectos', ['efectos', 'animacion', 'velocidad', 'desenfoque']),
@@ -105,7 +116,13 @@ def leer_estado():
         return estado, False
     except (OSError, ValueError):
         return estado, True
-    if not isinstance(crudo, dict): return estado, True
+    return validar(crudo), True
+
+
+def validar(crudo):
+    """Solo claves y valores conocidos; lo demas vuelve al defecto."""
+    estado = dict(DEFECTO)
+    if not isinstance(crudo, dict): return estado
     for clave, opciones in OPCIONES.items():
         valor = crudo.get(clave)
         if valor in opciones and valor != 'propio': estado[clave] = valor
@@ -113,7 +130,7 @@ def leer_estado():
     if estado['fondo'] == 'imagen':
         if imagen_valida(crudo.get('imagen')): estado['imagen'] = crudo['imagen']
         else: estado['fondo'] = 'neon'
-    return estado, True
+    return estado
 
 
 def carpeta_segura(path):
@@ -206,6 +223,8 @@ def generar(estado):
                  FUZZEL_INI=TEMA / 'fuzzel.ini', FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
     if estado['fondo'] == 'nucleo':
         rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
+    elif estado['fondo'] == 'demonio':
+        rutas['FONDO'] = ETC / 'wallpaper-demonio.png'
     elif estado['fondo'] == 'imagen' and imagen_valida(estado['imagen']):
         rutas['FONDO'] = Path(estado['imagen'])
     elif estado['fondo'] == 'liso':
@@ -333,6 +352,45 @@ def poner(clave, valor):
     return estado
 
 
+# ---------- Perfiles ----------
+def perfiles_propios():
+    try:
+        if PERFILES_DIR.is_symlink(): return []
+        return sorted(p.stem for p in PERFILES_DIR.glob('*.json') if NOMBRE_PERFIL.fullmatch(p.stem) and not p.is_symlink())[:MAX_PERFILES]
+    except OSError:
+        return []
+
+
+def perfil_estado(nombre):
+    if nombre in PERFILES:
+        estado = dict(DEFECTO); estado.update(PERFILES[nombre]); return estado
+    if not NOMBRE_PERFIL.fullmatch(nombre or '') or nombre not in perfiles_propios(): raise ValueError(f'perfil desconocido: {nombre}')
+    try:
+        return validar(json.loads((PERFILES_DIR / f'{nombre}.json').read_text()[:65536]))
+    except (OSError, ValueError) as error:
+        raise ValueError(f'perfil danado: {nombre}') from error
+
+
+def perfil_aplicar(nombre):
+    estado = perfil_estado(nombre)
+    guardar(estado)
+    return estado
+
+
+def perfil_guardar(nombre):
+    if not NOMBRE_PERFIL.fullmatch(nombre or '') or nombre in PERFILES:
+        raise ValueError('nombre de perfil: minusculas, numeros y guiones, hasta 24, distinto de los de fabrica')
+    if nombre not in perfiles_propios() and len(perfiles_propios()) >= MAX_PERFILES:
+        raise ValueError(f'ya hay {MAX_PERFILES} perfiles guardados; borra alguno')
+    estado, _ = leer_estado()
+    escribir(PERFILES_DIR / f'{nombre}.json', json.dumps({k: estado[k] for k in DEFECTO}, ensure_ascii=False, indent=1) + '\n')
+
+
+def perfil_borrar(nombre):
+    if nombre not in perfiles_propios(): raise ValueError(f'perfil desconocido: {nombre}')
+    (PERFILES_DIR / f'{nombre}.json').unlink()
+
+
 # ---------- Menu con fuzzel ----------
 def elegir(filas, titulo, acento, indice=0, escribir_libre=False):
     color = acento[1:] + 'ff'
@@ -352,13 +410,40 @@ def avisar(texto):
     ejecutar('notify-send', '--app-name=ULTRA', '--icon=preferences-desktop-theme', 'BMO-X / Personalizar', texto)
 
 
+def menu_perfiles(acento):
+    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'juego': 'Juego'}
+    while True:
+        propios = perfiles_propios()
+        filas = [f'Aplicar: {t}' for t in fabrica.values()] + [f'Aplicar: {n} (tuyo)' for n in propios]
+        filas += ['Guardar el actual como...'] + (['Borrar un perfil tuyo'] if propios else []) + ['← volver']
+        eleccion = elegir(filas, 'PERFILES', acento)
+        eleccion = eleccion.strip() if eleccion is not None else None
+        if eleccion is None or eleccion == '← volver': return
+        try:
+            if eleccion == 'Guardar el actual como...':
+                nombre = elegir([], 'NOMBRE (minusculas)', acento, escribir_libre=True)
+                if not nombre: continue
+                perfil_guardar(nombre.strip()); avisar(f'Perfil guardado: {nombre.strip()}')
+            elif eleccion == 'Borrar un perfil tuyo':
+                nombre = elegir(propios + ['← volver'], 'BORRAR', acento)
+                if nombre and nombre.strip() in propios:
+                    perfil_borrar(nombre.strip()); avisar(f'Perfil borrado: {nombre.strip()}')
+            elif eleccion.startswith('Aplicar: '):
+                texto = eleccion[len('Aplicar: '):].removesuffix(' (tuyo)')
+                nombre = next((k for k, v in fabrica.items() if v == texto), texto)
+                aplicar(perfil_aplicar(nombre)); avisar(f'Perfil aplicado: {texto}')
+                acento = color_acento(leer_estado()[0])
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            avisar(str(error))
+
+
 def menu():
     grupo = None
     while True:
         estado, _ = leer_estado()
         acento = color_acento(estado)
         if grupo is None:
-            filas = [g for g, _ in GRUPOS] + ['Restablecer todo', 'Cerrar']
+            filas = ['Perfiles'] + [g for g, _ in GRUPOS] + ['Restablecer todo', 'Cerrar']
             eleccion = elegir(filas, 'PERSONALIZAR', acento)
             eleccion = eleccion.strip() if eleccion is not None else None
             if eleccion is None or eleccion == 'Cerrar': return
@@ -366,6 +451,8 @@ def menu():
                 if elegir(['No, volver', 'Si, restablecer todo'], 'RESTABLECER', acento) == 'Si, restablecer todo':
                     restablecer(); avisar('Escritorio restablecido al tema Neon hielo.')
                 continue
+            if eleccion == 'Perfiles':
+                menu_perfiles(acento); continue
             grupo = next((g for g in GRUPOS if g[0] == eleccion), None)
             continue
         claves = grupo[1]
@@ -428,7 +515,13 @@ def main():
     elif accion == 'poner' and len(sys.argv) == 4:
         aplicar(poner(sys.argv[2], sys.argv[3]))
     elif accion == 'restablecer': restablecer()
-    else: raise ValueError('uso: ultra-personalizar menu|poner CLAVE VALOR|restablecer|rutas|hyprland|acento|lanzador')
+    elif accion == 'perfiles':
+        for nombre in list(PERFILES) + perfiles_propios(): print(nombre)
+    elif accion == 'perfil' and len(sys.argv) == 4 and sys.argv[2] in ('aplicar', 'guardar', 'borrar'):
+        if sys.argv[2] == 'aplicar': aplicar(perfil_aplicar(sys.argv[3]))
+        elif sys.argv[2] == 'guardar': perfil_guardar(sys.argv[3])
+        else: perfil_borrar(sys.argv[3])
+    else: raise ValueError('uso: ultra-personalizar menu|poner CLAVE VALOR|perfil aplicar|guardar|borrar NOMBRE|perfiles|restablecer|rutas|hyprland|acento|lanzador')
 
 
 if __name__ == '__main__':

@@ -98,6 +98,26 @@ def main():
         assert 'animations={enabled=true}' in lua and 'blur={enabled=false' in lua
         assert (runtime / 'ultra-efectos').read_text().strip() == 'sobrio'
         correr('poner', 'efectos', 'vivos')
+        # Perfiles: de fabrica, propios, nombres invalidos y borrado.
+        _, cmds = correr('perfil', 'aplicar', 'demonio')
+        estado = json.loads((home / '.config/ultra/personal.json').read_text())
+        assert estado['acento'] == 'rojo' and estado['fondo'] == 'demonio' and estado['dock'] == 'visible'
+        assert ['swaybg', '-i', str(RAIZ / 'src/rootfs/desktop/wallpaper-demonio.png'), '-m', 'fill'] in cmds
+        correr('perfil', 'aplicar', 'minimal')
+        assert [b['name'] for b in json.loads((tema / 'waybar.jsonc').read_text())] == ['hud']
+        correr('perfil', 'guardar', 'mi-noche')
+        assert 'mi-noche' in correr('perfiles')[0].split()
+        correr('perfil', 'aplicar', 'neon-hielo')
+        correr('perfil', 'aplicar', 'mi-noche')
+        assert json.loads((home / '.config/ultra/personal.json').read_text())['dock'] == 'oculto'
+        for args in (('perfil', 'guardar', 'Mal Nombre'), ('perfil', 'guardar', '../fuera'), ('perfil', 'guardar', 'demonio'),
+                     ('perfil', 'aplicar', 'no-existe'), ('perfil', 'borrar', 'demonio')):
+            correr(*args, ok=False)
+        (home / '.config/ultra/perfiles/roto.json').write_text('{"acento": "$(rm)", "dock": "oculto"}')
+        correr('perfil', 'aplicar', 'roto')
+        assert json.loads((home / '.config/ultra/personal.json').read_text())['acento'] == 'hielo'
+        correr('perfil', 'borrar', 'mi-noche'); assert 'mi-noche' not in correr('perfiles')[0].split()
+        correr('perfil', 'aplicar', 'neon-hielo')
         # Color propio en hex y fondos Nucleo, liso e imagen propia.
         correr('poner', 'acento', '#12AB34')
         assert '#12ab34' in (tema / 'waybar.css').read_text()

@@ -103,6 +103,8 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
 .win.activa { opacity: 1; }
 .borde-quieto .win.activa { animation: none; }
 .fondo-liso #fondo { opacity: 0; }
+.fondo-demonio #fondo { opacity: 0; }
+.fondo-demonio .escena { background: #000 url('wallpaper-demonio.png') center / cover; }
 .esq-suaves .win, .esq-suaves .win-in { border-radius: 6px; }
 .esq-redondas .win, .esq-redondas .win-in { border-radius: 12px; }
 .barra-abajo .barra { top: auto; bottom: 0; border-bottom: 0; border-top: 2px solid var(--amarillo); }
@@ -343,13 +345,13 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
 @keyframes rotar { to { transform: rotate(360deg); } }
 @keyframes barrer { to { background-position: 0 40px; } }
 /* Personalizar (ultra-personalizar) */
-.personal { position: absolute; left: 50%; top: 70px; z-index: 44; width: 860px; padding: 24px 28px 20px; background: rgba(6, 5, 10, .97); border: 2px solid var(--amarillo);
+.personal { position: absolute; left: 50%; top: 52px; z-index: 44; width: 860px; padding: 24px 28px 20px; background: rgba(6, 5, 10, .97); border: 2px solid var(--amarillo);
   box-shadow: 0 0 40px var(--brillo), 0 30px 80px rgba(0, 0, 0, .7); transform: translate(-50%, -20px); opacity: 0; pointer-events: none; transition: transform .22s var(--curva), opacity .18s, border-color .2s;
   clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%); }
 .personal.ver { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
 .personal h3 { margin: 0 0 4px; font: 700 26px var(--titulo); letter-spacing: 5px; color: var(--amarillo); }
 .personal .sub { font: 12px var(--mono); color: var(--texto-3); margin-bottom: 16px; }
-.personal .fila-p { display: grid; grid-template-columns: 230px 1fr; gap: 14px; align-items: center; padding: 9px 0; border-top: 1px solid var(--linea); }
+.personal .fila-p { display: grid; grid-template-columns: 230px 1fr; gap: 14px; align-items: center; padding: 7px 0; border-top: 1px solid var(--linea); }
 .personal .fila-p > span { font: 700 14px var(--titulo); letter-spacing: 2px; text-transform: uppercase; color: var(--texto-2); }
 .personal .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .personal button { font: 700 13px var(--titulo); letter-spacing: 1.5px; text-transform: uppercase; color: var(--texto); background: var(--panel); border: 1px solid var(--linea-2); padding: 7px 11px; cursor: pointer; clip-path: var(--corte-chico); transition: border-color .15s, background .15s, color .15s; }
@@ -635,7 +637,7 @@ const Fondo = (() => {
   }
 
   function bucle(t) {
-    if (activo && S.vivo && !S.juego && PER.fondo !== 'liso') {
+    if (activo && S.vivo && !S.juego && PER.fondo === 'neon') {
       const dt = Math.min(t - ultimo, 100);
       if (dt >= 32) { cuadro(t, dt); ultimo = t; }
     }
@@ -1149,7 +1151,7 @@ function cambiarAcento(forzar) {
 const ACENTOS = { hielo: '#5ad8ff', amarillo: '#fcee0a', cyan: '#00f0ff', rojo: '#ff2a4f', verde: '#3dff9a', violeta: '#c03bff', coral: '#ff7a90', blanco: '#ece9dc' };
 const PER = { acento: '#5ad8ff', fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal', esquinas: 'rectas', posicion: 'arriba', dock: 'visible', reloj: '24h' };
 const OPC = [
-  ['fondo', 'Fondo', [['neon', 'Neón animado'], ['liso', 'Color liso']]],
+  ['fondo', 'Fondo', [['neon', 'Neón animado'], ['demonio', 'Demonio'], ['liso', 'Color liso']]],
   ['borde', 'Borde de la activa', [['gira', 'Gira'], ['quieto', 'Quieto']]],
   ['huecos', 'Huecos', [['compacto', 'Compacto'], ['normal', 'Normal'], ['amplio', 'Amplio']]],
   ['grosor', 'Grosor del borde', [['1', '1 px'], ['2', '2 px'], ['3', '3 px']]],
@@ -1179,6 +1181,7 @@ function aplicarPersonal() {
   const b = document.body;
   b.classList.toggle('borde-quieto', PER.borde === 'quieto');
   b.classList.toggle('fondo-liso', PER.fondo === 'liso');
+  b.classList.toggle('fondo-demonio', PER.fondo === 'demonio');
   b.style.setProperty('--grosor', PER.grosor + 'px');
   b.style.setProperty('--inactiva', String(+PER.inactivas / 100));
   const [letra, tamReloj] = { compacta: [13, 19], normal: [15, 23], grande: [17, 27] }[PER.barra];
@@ -1189,14 +1192,31 @@ function aplicarPersonal() {
   reloj();
   for (let n = 1; n <= 5; n++) disponer(n);
 }
+const PERFILES_P = {
+  'Neón hielo': [ACENTOS.hielo, {}],
+  'Demonio': [ACENTOS.rojo, { fondo: 'demonio', borde: 'gira', esquinas: 'rectas', inactivas: '92' }],
+  'Sobrio': [ACENTOS.hielo, { borde: 'quieto' }, false],
+  'Minimal': [ACENTOS.hielo, { dock: 'oculto', barra: 'compacta', huecos: 'compacto', grosor: '1' }],
+  'Juego': [ACENTOS.hielo, { borde: 'quieto', dock: 'oculto', inactivas: '100' }, false],
+};
+const BASE_P = { fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal', esquinas: 'rectas', posicion: 'arriba', dock: 'visible', reloj: '24h' };
+function aplicarPerfil(nombre) {
+  const [acento, cambios, vivos = true] = PERFILES_P[nombre];
+  Object.assign(PER, BASE_P, cambios); aplicarPersonal(); aplicarAcento(acento, false);
+  if (S.vivo !== vivos) efectos(vivos);
+  aviso('Perfil ' + nombre, 'Aplicado de un toque. En el sistema: Super+Shift+P > Perfiles.', { icono: 'ambiente', dur: 2600 });
+  pintarPersonal();
+}
 function pintarPersonal() {
   const colores = Object.entries(ACENTOS).map(([k, v]) => `<button class="color ${PER.acento === v ? 'on' : ''}" data-acento="${v}" title="${k}" aria-label="Acento ${k}" style="background:${v}"></button>`).join('');
   $('#personal').innerHTML = `<h3>PERSONALIZAR</h3><div class="sub">ultra-personalizar · Super+Shift+P en el sistema real · se guarda en ~/.config/ultra/personal.json</div>
+    <div class="fila-p"><span>Perfil</span><div class="chips">${Object.keys(PERFILES_P).map(n => `<button data-perfil="${n}">${n}</button>`).join('')}</div></div>
     <div class="fila-p"><span>Acento</span><div class="chips">${colores}<input type="color" id="p-propio" value="${PER.acento}" aria-label="Acento propio"></div></div>
     ${OPC.map(([k, t, ops]) => `<div class="fila-p"><span>${t}</span><div class="chips">${ops.map(([v, n]) => `<button class="${PER[k] === v ? 'on' : ''}" data-k="${k}" data-v="${v}">${n}</button>`).join('')}</div></div>`).join('')}
     <div class="fila-p"><span>Efectos</span><div class="chips"><button class="${S.vivo ? 'on' : ''}" data-ef="1">Vivos</button><button class="${S.vivo ? '' : 'on'}" data-ef="0">Reducidos</button></div></div>
     <div class="pie-p"><span>El sistema real añade: fondo Núcleo, imagen propia, cursor, animación y velocidad, desenfoque, avisos y letra.</span><button data-reset="1">Restablecer</button></div>`;
   $('#personal').querySelectorAll('[data-acento]').forEach(e => e.onclick = () => aplicarAcento(e.dataset.acento));
+  $('#personal').querySelectorAll('[data-perfil]').forEach(e => e.onclick = () => aplicarPerfil(e.dataset.perfil));
   $('#p-propio').oninput = e => aplicarAcento(e.target.value, false);
   $('#personal').querySelectorAll('[data-k]').forEach(e => e.onclick = () => { PER[e.dataset.k] = e.dataset.v; aplicarPersonal(); pintarPersonal(); });
   $('#personal').querySelectorAll('[data-ef]').forEach(e => e.onclick = () => { efectos(e.dataset.ef === '1'); pintarPersonal(); });

@@ -16,6 +16,9 @@ SUPER + Space       Centro BMO-X: aplicaciones y ambiente
 SUPER + Shift + A   Alternar efectos vivos / reducidos
 SUPER + Shift + P   Personalizar: colores, fondo, ventanas, barra, dock, avisos y letra
 SUPER + Shift + I   Guardar incidente: eventos del kernel, memoria y registros del momento
+Impr Pant           Captura de la pantalla activa (se copia y se guarda en ~/Imágenes/Capturas)
+SUPER + Shift + S   Captura de una region; Esc cancela
+SUPER + Impr Pant   Captura de la ventana activa
 SUPER + C           Limpiar notificaciones
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo

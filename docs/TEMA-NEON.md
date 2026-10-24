@@ -69,7 +69,7 @@ la luna de la barra.
 | Opción | Valores |
 | --- | --- |
 | Acento | hielo, amarillo, cyan, rojo, verde, violeta, coral, blanco o un hex propio (`#RRGGBB`) |
-| Fondo | Neón con el acento elegido, Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
+| Fondo | Neón con el acento elegido, **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
 | Efectos | vivos o reducidos |
 | Borde de la ventana activa | gira o quieto |
 | Huecos entre ventanas | compacto, normal o amplio |
@@ -87,7 +87,27 @@ la luna de la barra.
 | Posición de avisos | arriba a la derecha, arriba al centro o abajo a la derecha; esquivan barra y dock |
 | Letra de la interfaz | Neón (Rajdhani y Chakra Petch), Chakra Petch, mono (JetBrains Mono) o clásica (DejaVu Sans) |
 
-El menú se agrupa en cinco apartados: Colores y fondo, Ventanas, Animaciones y
+### Perfiles de un toque
+
+**Super+Shift+P > Perfiles** cambia muchas opciones a la vez:
+
+| Perfil | Qué cambia |
+| --- | --- |
+| Neón hielo | Todo al tema de fábrica |
+| Demonio | Acento rojo, fondo Demonio, borde que gira, inactivas al 92 % |
+| Sobrio | Efectos reducidos, borde quieto, sin desenfoque, animaciones rápidas |
+| Minimal | Sin dock, barra compacta, huecos compactos, borde de 1 px |
+| Juego | Efectos reducidos, borde quieto, sin desenfoque ni dock, avisos arriba al centro |
+
+**Guardar el actual como…** crea un perfil tuyo en `~/.config/ultra/perfiles/`
+(minúsculas, números y guiones, hasta 24 caracteres y 16 perfiles). Se valida
+igual que `personal.json`: un perfil dañado vuelve a valores seguros. Por
+terminal: `ultra-personalizar perfil aplicar|guardar|borrar NOMBRE`.
+
+El fondo Demonio sale de `scripts/crear_fondo_demonio.py`, que genera
+`src/rootfs/desktop/wallpaper-demonio.png` a partir de tu Tux.
+
+El menú se agrupa en Perfiles y cinco apartados: Colores y fondo, Ventanas, Animaciones y
 efectos, Barra y dock, y Avisos, letra y cursor.
 
 Super+Shift+A sigue alternando los efectos. Con personalización guardada,
@@ -112,6 +132,19 @@ Cómo funciona:
 real y comandos de sesión falsos: generación, aplicación, rechazos, valores
 dañados, menú y restablecimiento. El [prototipo](maquetas/neon/vivo.html) tiene el
 mismo panel (Alt+U) para ver cada opción antes de construir la imagen.
+
+## Capturas de pantalla
+
+| Atajo | Captura |
+| --- | --- |
+| Impr Pant | Pantalla activa |
+| Super+Shift+S | Región; el recuadro usa tu acento y Esc cancela |
+| Super+Impr Pant | Ventana activa |
+
+`ultra-captura` (grim, slurp y wl-clipboard) guarda en `~/Imágenes/Capturas/`,
+copia la imagen al portapapeles y avisa con la miniatura. Valida la geometría
+que devuelve `slurp` antes de usarla. `scripts/probar_captura.py` lo prueba con
+herramientas falsas.
 
 ## Rust
 
