@@ -235,7 +235,7 @@ if [[ -n $cmdline ]]; then
         # Rust para el usuario: rustup instala las versiones en el home persistente; gcc enlaza.
         rustup gcc git pkgconf
         # Capturas de pantalla.
-        grim slurp wl-clipboard)
+        grim slurp wl-clipboard cliphist)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -280,7 +280,7 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
     sudo install -d -m 0755 "$sistema/usr/lib/locale"

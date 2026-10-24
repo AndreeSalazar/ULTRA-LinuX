@@ -7,9 +7,10 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+import time
 
 RAIZ = Path(__file__).resolve().parents[1]
-FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'pkill', 'notify-send', 'ultra-ambiente')
+FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'makoctl', 'pkill', 'notify-send', 'pw-play', 'ultra-ambiente')
 
 
 def main():
@@ -19,6 +20,8 @@ def main():
         (home / 'Imágenes').mkdir(parents=True); bin_.mkdir()
         (home / '.config/gtk-3.0').mkdir(parents=True)
         (home / '.config/gtk-3.0/settings.ini').write_text('[Settings]\ngtk-cursor-theme-size=28\n')
+        foot = home / '.config/foot/foot.ini'; foot.parent.mkdir(parents=True)
+        foot.write_text((RAIZ / 'src/rootfs/desktop/foot.ini').read_text())
         for nombre in FALSOS:
             falso = bin_ / nombre
             falso.write_text(f'#!/bin/bash\nprintf "%s\\0" {nombre} "$@" >> {llamadas}; printf "\\n" >> {llamadas}\n')
@@ -28,15 +31,20 @@ def main():
             .replace("ETC = Path('/etc/ultra')", f"ETC = Path({str(RAIZ / 'src/rootfs/desktop')!r})")
             .replace("CREAR_FONDO = Path('/usr/local/libexec/ultra-crear-fondo')", f"CREAR_FONDO = Path({str(RAIZ / 'src/rootfs/bin/ultra-crear-fondo')!r})")
             .replace("['/usr/bin/python', str(CREAR_FONDO)", f"[{sys.executable!r}, '-I', str(CREAR_FONDO)")
-            .replace('if os.geteuid() != 1000:', 'if False:'))
+            .replace('if os.geteuid() != 1000:', 'if False:')
+            # Hora simulada para el fondo auto y vigilar sin esperas.
+            .replace('import time\n', "import time\nHORAS = [int(h) for h in os.environ.get('HORAS_PRUEBA', '12').split(',')]\n", 1)
+            .replace('hora = time.localtime().tm_hour if hora is None else hora', 'hora = HORAS.pop(0) if hora is None else hora')
+            .replace("elif accion == 'vigilar': vigilar()", "elif accion == 'vigilar': vigilar(intervalo=0, vueltas=3)"))
         runtime = tmp / 'run'; runtime.mkdir(mode=0o700)
         entorno = dict(os.environ, HOME=str(home), PATH=f'{bin_}:{os.environ["PATH"]}', XDG_RUNTIME_DIR=str(runtime),
                        HYPRLAND_INSTANCE_SIGNATURE='prueba', WAYLAND_DISPLAY='wayland-prueba')
         entorno.pop('ULTRA_EFECTOS', None)
 
-        def correr(*args, ok=True):
+        def correr(*args, ok=True, **extra):
             llamadas.write_text('')
-            r = subprocess.run([sys.executable, '-I', str(herramienta), *args], env=entorno, capture_output=True, text=True, timeout=120)
+            r = subprocess.run([sys.executable, '-I', str(herramienta), *args], env=dict(entorno, **extra), capture_output=True, text=True, timeout=120)
+            time.sleep(.15)  # Lo lanzado en segundo plano (swaybg, pw-play) termina de anotar.
             assert (r.returncode == 0) == ok, (args, r.returncode, r.stderr)
             return r.stdout, [l.split('\0')[:-1] for l in llamadas.read_text().splitlines() if l]
 
@@ -138,11 +146,48 @@ def main():
         (home / '.config/ultra/personal.json').write_text(json.dumps(dict(acento='$(rm -rf ~)', huecos='9999', fondo='imagen', imagen='/etc/shadow')))
         rutas = correr('rutas')[0]
         assert '#5ad8ff' in (tema / 'waybar.css').read_text() and f'FONDO={RAIZ / "src/rootfs/desktop/wallpaper.svg"}' in rutas
+        # Terminal: seleccion y cursor siguen al acento; la paleta del usuario no se toca.
+        correr('poner', 'acento', 'rojo')
+        texto = foot.read_text()
+        assert 'selection-background=ff2a4f' in texto and 'cursor=000000 ff2a4f' in texto and 'bright4=5ad8ff' in texto
+        # Fondo auto: Neon de dia (con el acento), Demonio de noche; vigilar cambia al pasar la hora.
+        correr('poner', 'fondo', 'auto')
+        assert f'FONDO={tema / "fondo.svg"}' in correr('rutas', HORAS_PRUEBA='12')[0]
+        assert f'FONDO={RAIZ / "src/rootfs/desktop/wallpaper-demonio.png"}' in correr('rutas', HORAS_PRUEBA='22')[0]
+        _, cmds = correr('vigilar', HORAS_PRUEBA='18,18,19,19')
+        assert ['swaybg', '-i', str(RAIZ / 'src/rootfs/desktop/wallpaper-demonio.png'), '-m', 'fill'] in cmds
+        _, cmds = correr('vigilar', HORAS_PRUEBA='12,12,12')
+        assert not any(c[0] == 'swaybg' for c in cmds)
+        (runtime / 'ultra-modo-juego').write_text('activo\n')
+        _, cmds = correr('vigilar', HORAS_PRUEBA='18,18,19,19')
+        assert not any(c[0] == 'swaybg' for c in cmds), 'en juego el fondo espera'
+        (runtime / 'ultra-modo-juego').unlink()
+        # Sonidos propios: solo eventos conocidos y se pueden apagar.
+        _, cmds = correr('sonar', 'captura')
+        assert ['pw-play', '--volume=0.6', str(RAIZ / 'src/rootfs/desktop/sonido-captura.wav')] in cmds
+        correr('sonar', '../../etc/passwd', ok=False)
+        correr('poner', 'sonidos', 'no')
+        assert not any(c[0] == 'pw-play' for c in correr('sonar', 'captura')[1])
+        # Modo juego: todo quieto y avisos en no molestar; al salir vuelve al modo guardado.
+        (runtime / 'ultra-efectos').write_text('vivo\n')
+        _, cmds = correr('juego', 'entrar')
+        lua = next(c for c in cmds if c[:2] == ['hyprctl', 'eval'])[2]
+        assert 'animations={enabled=false}' in lua and 'blur={enabled=false' in lua and 'leaf="borderangle",enabled=false' in lua
+        assert ['makoctl', 'mode', '-a', 'do-not-disturb'] in cmds and (runtime / 'ultra-modo-juego').exists()
+        assert (runtime / 'ultra-efectos').read_text().strip() == 'vivo'
+        _, cmds = correr('juego', 'salir')
+        lua = next(c for c in cmds if c[:2] == ['hyprctl', 'eval'])[2]
+        assert 'animations={enabled=true}' in lua and ['makoctl', 'mode', '-r', 'do-not-disturb'] in cmds
+        assert not (runtime / 'ultra-modo-juego').exists()
+        correr('poner', 'modojuego', 'no')
+        assert not any(c[:2] == ['hyprctl', 'eval'] for c in correr('juego', 'entrar')[1])
+        correr('juego', 'otro', ok=False)
         # Restablecer: borra solo lo propio y vuelve al tema del sistema.
         _, cmds = correr('restablecer')
         assert not (home / '.config/ultra/personal.json').exists() and not (tema / 'waybar.css').exists()
         assert ['waybar', '-c', str(RAIZ / 'src/rootfs/desktop/waybar.jsonc'), '-s', str(RAIZ / 'src/rootfs/desktop/waybar.css')] in cmds
         assert not (tema / 'waybar.jsonc').exists()
+        assert 'selection-background=5ad8ff' in foot.read_text() and 'cursor=000000 5ad8ff' in foot.read_text()
         assert imagen.exists() and correr('rutas')[0] == ''
         # Menu: un fuzzel falso elige Acento > verde, Huecos > compacto y Cerrar.
         cola = tmp / 'cola'; cola.write_text('\n'.join(['Colores y fondo', 'Acento: hielo', '  verde', '← volver',

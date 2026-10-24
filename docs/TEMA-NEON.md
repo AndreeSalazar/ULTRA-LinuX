@@ -69,7 +69,7 @@ la luna de la barra.
 | Opción | Valores |
 | --- | --- |
 | Acento | hielo, amarillo, cyan, rojo, verde, violeta, coral, blanco o un hex propio (`#RRGGBB`) |
-| Fondo | Neón con el acento elegido, **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
+| Fondo | Neón con el acento elegido, **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
 | Efectos | vivos o reducidos |
 | Borde de la ventana activa | gira o quieto |
 | Huecos entre ventanas | compacto, normal o amplio |
@@ -86,6 +86,11 @@ la luna de la barra.
 | Reloj | 24 h, 12 h o con segundos |
 | Posición de avisos | arriba a la derecha, arriba al centro o abajo a la derecha; esquivan barra y dock |
 | Letra de la interfaz | Neón (Rajdhani y Chakra Petch), Chakra Petch, mono (JetBrains Mono) o clásica (DejaVu Sans) |
+| Sonidos del sistema | sí o no |
+| Modo juego automático | auto o no |
+
+El acento también llega a la terminal: la selección y el cursor de foot cambian
+en las terminales que abras después. El resto de tu `foot.ini` no se toca.
 
 ### Perfiles de un toque
 
@@ -107,8 +112,8 @@ terminal: `ultra-personalizar perfil aplicar|guardar|borrar NOMBRE`.
 El fondo Demonio sale de `scripts/crear_fondo_demonio.py`, que genera
 `src/rootfs/desktop/wallpaper-demonio.png` a partir de tu Tux.
 
-El menú se agrupa en Perfiles y cinco apartados: Colores y fondo, Ventanas, Animaciones y
-efectos, Barra y dock, y Avisos, letra y cursor.
+El menú se agrupa en Perfiles y seis apartados: Colores y fondo, Ventanas, Animaciones y
+efectos, Barra y dock, Avisos, letra y cursor, y Sonido y juegos.
 
 Super+Shift+A sigue alternando los efectos. Con personalización guardada,
 `ultra-ambiente` vuelve a aplicar tu desenfoque, esquinas y animaciones para el
@@ -145,6 +150,65 @@ mismo panel (Alt+U) para ver cada opción antes de construir la imagen.
 copia la imagen al portapapeles y avisa con la miniatura. Valida la geometría
 que devuelve `slurp` antes de usarla. `scripts/probar_captura.py` lo prueba con
 herramientas falsas.
+
+## Avisos y portapapeles
+
+| Atajo | Qué hace |
+| --- | --- |
+| Super+C | Cierra todos los avisos |
+| Super+Shift+N | Recupera el último aviso cerrado (`makoctl restore`); repetir trae más, hasta 10 |
+| Super+Shift+V | Historial del portapapeles: elegir una entrada la vuelve a copiar; también borra todo |
+
+`ultra-portapapeles` guarda hasta 200 copias con `cliphist` en `$XDG_RUNTIME_DIR`,
+que está en RAM: el historial desaparece al cerrar la sesión o apagar y nunca
+toca el disco. Las copias que una app marca como sensibles (por ejemplo, un gestor
+de contraseñas) no se guardan. Las dos acciones también están en Super+Espacio >
+Ambiente. `scripts/probar_portapapeles.py` lo prueba con herramientas falsas.
+
+## Sonidos
+
+Cuatro sonidos propios, sintetizados por `scripts/crear_sonidos.py` (sin muestras
+de terceros), en `/etc/ultra/sonido-*.wav`:
+
+| Sonido | Cuándo |
+| --- | --- |
+| `inicio` | Tres notas que suben al iniciar sesión |
+| `captura` | Obturador al guardar una captura |
+| `critico` | Dos pulsos graves con un aviso crítico (mako `on-notify`) |
+| `juego` | Barrido que baja al entrar en modo juego |
+
+Los reproduce `ultra-personalizar sonar EVENTO` con `pw-play` al 60 %. Se apagan
+en Personalizar > Sonido y juegos.
+
+## Modo juego automático
+
+`ultra-modo-juego` arranca con la sesión y escucha los eventos de Hyprland. Cuando
+la ventana activa es un juego en pantalla completa (clase `steam_app_N` de Proton,
+un `.exe` de Wine o Heroic, o `gamescope`):
+
+- apaga animaciones, desenfoque, sombras y el borde que gira (`ultra-personalizar juego entrar`);
+- pone mako en no molestar: los avisos normales se guardan en el historial y los
+  críticos se siguen viendo;
+- el fondo automático espera a que termines para cambiar.
+
+Al cambiar de ventana, quitar la pantalla completa o cerrar el juego, todo vuelve
+al modo que tenías (vivo o sobrio). La barra no se toca: en pantalla completa
+Hyprland ya la tapa. Se apaga en Personalizar > Sonido y juegos > Modo juego: no.
+`scripts/probar_modo_juego.py` lo prueba con un Hyprland falso que emite eventos.
+
+**Sin medir todavía**: no hay datos de que esto suba FPS o quite tirones. Lo que sí
+hace es dejar al compositor sin trabajo de efectos mientras juegas. Para saber si
+ayuda, compara con `ultra-diagnostico-juego` con el modo en `auto` y en `no`.
+
+**Fondo animado**: no está. Necesitaría `mpvpaper` o `swww` con un video en bucle
+renderizado antes, y gastaría GPU todo el tiempo fuera de los juegos. Si se hace,
+el modo juego sería el lugar para pausarlo.
+
+## Iconos de apps
+
+`crear-tema.py` dibuja iconos propios en el mismo estilo para Steam, Heroic/GOG,
+Cyberpunk 2077, discos, tema, cámara y aviso. Antes Steam y GOG compartían el
+mando genérico.
 
 ## Rust
 

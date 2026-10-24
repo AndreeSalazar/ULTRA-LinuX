@@ -37,7 +37,7 @@ if [[ $mode == menu ]]; then
             audio) title='Audio / VIOLETA'; accent=c03bffff
                 rows=('Salidas y volumen por aplicacion' 'Subir volumen' 'Bajar volumen' 'Silencio' 'Volumen 100%' 'Amplificar 125%' 'Amplificar 150%' 'Amplificar 200%' 'Amplificar 300%' 'Amplificar 400%' 'Amplificar 500%' 'Volver a categorias');;
             ambiente) title='Ambiente / AMARILLO'; accent=fcee0aff
-                rows=('Personalizar escritorio' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Volver a categorias');;
+                rows=('Personalizar escritorio' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Recuperar ultimo aviso' 'Historial del portapapeles' 'Volver a categorias');;
             sistema) title='Sistema / CORAL'; accent=ff7a90ff
                 rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Guardar incidente' 'Abrir incidentes' 'Volver a categorias');;
             *) exit 2;;
@@ -94,6 +94,8 @@ if [[ $mode == menu ]]; then
         'Efectos vivos') mode=vivo;;
         'Efectos reducidos') mode=sobrio;;
         'Limpiar notificaciones') exec makoctl dismiss -a;;
+        'Recuperar ultimo aviso') exec makoctl restore;;
+        'Historial del portapapeles') exec ultra-portapapeles menu;;
         'Personalizar escritorio') exec ultra-personalizar menu;;
         'Ayuda y atajos') exec foot /usr/bin/less /etc/ultra/AYUDA.txt;;
         'Equipo en vivo') exec foot --title='ULTRA / Equipo en vivo' watch -n 2 ultra-equipo texto;;

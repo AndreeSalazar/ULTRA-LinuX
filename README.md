@@ -26,8 +26,11 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   bloques de píxeles, glitch rojo y línea de escaneo, en 1,2 s y sin borrar la consola
   ([intro](docs/INTRO-ARRANQUE.md), [vista previa](docs/maquetas/png/neon/intro-arranque.mp4)).
 - **Personalizar** (Super+Shift+P): perfiles de un toque (Neón hielo, Demonio, Sobrio, Minimal,
-  Juego y los tuyos), fondo Demonio con tu Tux y 18 opciones de colores, ventanas, animaciones,
-  barra, dock, avisos y letra ([detalle](docs/TEMA-NEON.md)). **Capturas**: Impr Pant,
+  Juego y los tuyos), fondo Demonio con tu Tux, fondo según la hora y 20 opciones de colores,
+  ventanas, animaciones, barra, dock, avisos, letra y sonidos ([detalle](docs/TEMA-NEON.md)).
+  La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa
+  se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+Shift+V)
+  con historial en RAM; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,
   Super+Shift+S y Super+Impr Pant. **Incidentes** (Super+Shift+I):
   foto de lo que se cruzó cuando algo falla ([detalle](docs/INCIDENTES.md)).
 - **Perfil del autor**: módulo **EDDI** en la barra, emblema propio

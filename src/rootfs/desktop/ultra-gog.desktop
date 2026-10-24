@@ -3,6 +3,6 @@ Type=Application
 Name=GOG - Heroic
 Comment=GOG, Epic y Amazon con Heroic
 Exec=/usr/local/bin/ultra-juegos gog
-Icon=applications-games
+Icon=heroic
 Terminal=false
 Categories=Game;

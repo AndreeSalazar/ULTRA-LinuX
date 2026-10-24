@@ -19,7 +19,7 @@ def main():
             'wl-copy': 'printf "wl-copy %s %s\\n" "$*" "$(head -c4 | od -An -tx1 | tr -d " ")" >> REG',
             'hyprctl': 'if [[ $2 == activewindow ]]; then echo \'{"at":[10,20],"size":[300,200]}\'; else echo \'[{"name":"DP-1","focused":true}]\'; fi',
             'notify-send': 'printf "aviso %s\\n" "$*" >> REG',
-            'ultra-personalizar': 'echo ff2a4fff',
+            'ultra-personalizar': 'printf "personalizar %s\\n" "$*" >> REG; [[ $1 != acento ]] || echo ff2a4fff',
         }
         for nombre, cuerpo in falsos.items():
             (bin_ / nombre).write_text('#!/bin/bash\n' + cuerpo.replace('REG', str(reg)).replace('TMP', str(tmp)) + '\n')
@@ -40,6 +40,7 @@ def main():
         assert archivo.parent == home / 'Imágenes/Capturas' and archivo.read_bytes() == b'\x89PNG'
         assert '-c ff2a4fff' in llamadas and '-g 100,200 640x480' in llamadas and 'wl-copy --type image/png 89504e47' in llamadas
         assert oct(archivo.stat().st_mode & 0o777) == '0o600'
+        assert 'personalizar sonar captura' in llamadas
         _, llamadas = correr('ventana'); assert '-g 10,20 300x200' in llamadas
         _, llamadas = correr('pantalla'); assert 'grim -o DP-1' in llamadas
         (tmp / 'cancelar').touch()

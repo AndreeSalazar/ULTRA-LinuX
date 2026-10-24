@@ -28,13 +28,22 @@ symbols={
  'text-editor':'<path d="m15 31 16-18 5 5-16 18-7 2Z"/><path d="m28 17 5 5M12 39h25"/>',
  'audio-volume-high':'<path d="M11 20h6l8-7v23l-8-7h-6Z"/><path d="M30 19q6 5 0 10m5-15q11 10 0 20"/>',
  'video-display':'<rect x="10" y="12" width="29" height="22" rx="2"/><path d="m18 26 5-8 6 11 4-6m-9 11v5m-7 0h14"/>',
+ # Iconos propios para apps y avisos de ULTRA (Neon).
+ 'steam':'<circle cx="31" cy="17" r="7"/><circle cx="31" cy="17" r="2.5"/><circle cx="17" cy="31" r="5"/><path d="m9 27 8 4 9-10"/>',
+ 'heroic':'<path d="M24 7 37 12v10c0 9-5.5 15-13 19-7.5-4-13-10-13-19V12Z"/><path d="M29 20h-7v9h7v-4h-3"/>',
+ 'ultra-cyberpunk':'<path d="M7 19h34l-5 11H12Z"/><path d="M14 24h7m6 0h7"/><path d="M24 30v9m-7 0h14"/>',
+ 'drive-harddisk':'<ellipse cx="24" cy="14" rx="13" ry="5"/><path d="M11 14v20c0 3 6 5 13 5s13-2 13-5V14"/><path d="M11 24c0 3 6 5 13 5s13-2 13-5"/>',
+ 'preferences-desktop-theme':'<path d="M24 8a16 16 0 1 0 0 32c3 0 3-4 1-6s0-5 3-5h5c4 0 7-3 7-7 0-8-7-14-16-14Z"/><circle cx="16" cy="21" r="2"/><circle cx="24" cy="15" r="2"/><circle cx="32" cy="21" r="2"/>',
+ 'camera-photo':'<path d="M9 17h7l3-4h10l3 4h7v20H9Z"/><circle cx="24" cy="26" r="6"/>',
+ 'dialog-warning':'<path d="M24 9 41 38H7Z"/><path d="M24 20v9m0 4v1"/>',
 }
 for name,shape in symbols.items():
     svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><path d="M6 3h31l8 8v29l-5 5H8l-5-5V6Z" fill="#05070b" stroke="#2a2733"/><path d="M7 5h28" stroke="#ff2a4f"/><g fill="none" stroke="#5ad8ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{shape}</g><path d="M9 43h14" stroke="#00f0ff"/></svg>'
     (icons/(name+'.svg')).write_text(svg)
 for alias,target in {'user-home':'folder','folder-documents':'folder','folder-download':'folder',
                      'folder-games':'applications-games','brave-desktop':'web-browser',
-                     'steam':'applications-games','heroic':'applications-games'}.items():
+                     'brave-browser':'web-browser','preferences-desktop-display':'video-display',
+                     'edit-paste':'text-editor','media-floppy':'drive-harddisk'}.items():
     enlace(icons/(alias+'.svg'),target+'.svg')
 cursors=theme/'cursors'; cursors.mkdir(exist_ok=True)
 shapes={

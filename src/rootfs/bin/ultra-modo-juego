@@ -1,0 +1,110 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Modo juego automatico para UID 1000.
+
+Escucha los eventos de Hyprland (socket2). Cuando la ventana activa es un juego
+en pantalla completa, llama a `ultra-personalizar juego entrar`: sin animaciones,
+desenfoque, sombras ni borde que gira, y avisos en no molestar. Al salir del
+juego (cerrarlo, cambiar de ventana o quitar la pantalla completa) lo deshace.
+Se apaga en Personalizar > Sonido y juegos. Sin root, red ni shell.
+
+Juego = clase steam_app_<n> (Proton), gamescope o un .exe (Wine, Heroic).
+"""
+import json
+import os
+from pathlib import Path
+import re
+import signal
+import socket
+import subprocess
+import sys
+import time
+
+JUEGO = re.compile(r'(steam_app_[0-9]+|gamescope|.+\.exe)', re.I)
+EVENTOS = {'fullscreen', 'activewindow', 'activewindowv2', 'closewindow', 'workspace', 'workspacev2', 'focusedmon'}
+
+
+def es_juego(ventana):
+    if not isinstance(ventana, dict): return False
+    clase = ventana.get('class') or ventana.get('initialClass') or ''
+    pantalla = ventana.get('fullscreen')
+    completa = pantalla is True or (isinstance(pantalla, int) and not isinstance(pantalla, bool) and pantalla > 0)
+    return completa and isinstance(clase, str) and len(clase) <= 128 and JUEGO.fullmatch(clase) is not None
+
+
+def ventana_activa():
+    try:
+        salida = subprocess.run(['hyprctl', '-j', 'activewindow'], capture_output=True, timeout=5, check=False).stdout
+        return json.loads(salida or b'{}')
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return {}
+
+
+def personalizar(accion):
+    try:
+        subprocess.run(['ultra-personalizar', 'juego', accion], stdin=subprocess.DEVNULL, capture_output=True, timeout=20, check=False)
+    except (OSError, subprocess.SubprocessError):
+        pass
+    print(time.strftime('%H:%M:%S'), 'modo juego:', accion, flush=True)
+
+
+def ruta_socket():
+    firma = os.environ.get('HYPRLAND_INSTANCE_SIGNATURE', '')
+    runtime = os.environ.get('XDG_RUNTIME_DIR', '')
+    if not re.fullmatch(r'[A-Za-z0-9_.-]{1,128}', firma) or not runtime: raise ValueError('sin sesion de Hyprland')
+    return Path(runtime) / 'hypr' / firma / '.socket2.sock'
+
+
+class Vigia:
+    def __init__(self):
+        self.activo = False
+
+    def evaluar(self):
+        juego = es_juego(ventana_activa())
+        if juego != self.activo:
+            personalizar('entrar' if juego else 'salir')
+            self.activo = juego
+
+    def salir(self, *_):
+        if self.activo: personalizar('salir')
+        sys.exit(0)
+
+    def escuchar(self, ruta):
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+            s.connect(str(ruta))
+            self.evaluar()
+            resto = b''
+            while True:
+                datos = s.recv(65536)
+                if not datos: return
+                resto += datos
+                *lineas, resto = resto.split(b'\n')
+                resto = resto[-65536:]
+                if any(linea.split(b'>>', 1)[0].decode(errors='replace') in EVENTOS for linea in lineas):
+                    self.evaluar()
+
+
+def main():
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    ruta = ruta_socket()
+    vigia = Vigia()
+    signal.signal(signal.SIGTERM, vigia.salir)
+    signal.signal(signal.SIGINT, vigia.salir)
+    reintentos = int(os.environ.get('ULTRA_MODO_JUEGO_REINTENTOS', '12'))
+    fallos = 0
+    while True:
+        try:
+            vigia.escuchar(ruta); fallos = 0
+        except OSError:
+            fallos += 1
+        # Hyprland se cerro o se reinicio: deshacer y reintentar un rato.
+        if vigia.activo:
+            personalizar('salir'); vigia.activo = False
+        if fallos > reintentos: return
+        time.sleep(float(os.environ.get('ULTRA_MODO_JUEGO_ESPERA', '5')))
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError) as error:
+        print('MODO JUEGO:', error, file=sys.stderr); sys.exit(1)

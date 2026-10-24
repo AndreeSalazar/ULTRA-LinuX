@@ -82,6 +82,8 @@ def main():
     os.umask(0o077)
     destino = capturar(sys.argv[1] if len(sys.argv) > 1 else 'region')
     if destino:
+        try: correr(['ultra-personalizar', 'sonar', 'captura'], timeout=5)
+        except (OSError, subprocess.SubprocessError): pass
         avisar('Captura guardada', f'~/Imágenes/Capturas/{destino.name} · copiada al portapapeles', icono=str(destino))
         print(destino)
 
