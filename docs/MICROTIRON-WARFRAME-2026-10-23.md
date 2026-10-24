@@ -54,6 +54,10 @@ banderas de optimizacion, intervalos de red o politica de energia sin evidencia.
 
 ## Prueba corta preparada, sin reconstruir ULTRA
 
+El nuevo [modo integrado de diagnostico](DIAGNOSTICO-WARFRAME.md) prepara esta
+captura desde Super+J y añade recursos, hilos y eventos del kernel. La opcion
+manual siguiente sigue disponible para imagenes anteriores.
+
 En Steam, Warframe > Propiedades > Opciones de lanzamiento, si el campo esta
 vacio, se puede usar temporalmente:
 

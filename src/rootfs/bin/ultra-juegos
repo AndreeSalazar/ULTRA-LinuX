@@ -4,8 +4,8 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 action=${1:-menu}
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Steam' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'GOG / Heroic' 'Importar juegos GOG' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' |
-        fuzzel --dmenu --prompt='Juegos /' --lines=12) || exit 0
+    choice=$(printf '%s\n' 'Steam' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'GOG / Heroic' 'Importar juegos GOG' 'Cyberpunk 2077' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Warframe / diagnostico' 'Warframe / panel de recursos' 'Warframe / capturas guardadas' |
+        fuzzel --dmenu --prompt='Juegos /' --lines=15) || exit 0
     case $choice in
         Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
         'Importar juegos GOG') exec ultra-bibliotecas importar-gog;;
@@ -17,8 +17,21 @@ if [[ $action == menu ]]; then
         'Registros de juegos') exec foot --hold /usr/local/bin/ultra-juegos registros;;
         'Juegos y consumo en vivo') exec foot --title='ULTRA / Juegos en vivo' ultra-juegos-vivo panel;;
         'FPS y HUD') exec ultra-hud menu;;
+        'Warframe / diagnostico') action=warframe-diagnostico;;
+        'Warframe / panel de recursos') exec foot --title='ULTRA / Warframe diagnostico' ultra-diagnostico-juego panel;;
+        'Warframe / capturas guardadas') exec ultra-diagnostico-juego registros;;
         *) exit 0;;
     esac
+fi
+if [[ $action == warframe-diagnostico ]]; then
+    if pgrep -u 1000 -x steam >/dev/null; then
+        notify-send 'Warframe / diagnostico' 'Cierra Steam y vuelve a elegir este modo para que el juego reciba el HUD de captura.' || true
+        exit 1
+    fi
+    ultra-diagnostico-juego preparar || exit 1
+    export ULTRA_DIAGNOSTICO_HUD=1 DXVK_HUD=compiler
+    notify-send 'Warframe / diagnostico' 'En el escenario: Super+F11 graba recursos 2 min; Shift izquierdo+F2 graba cuadros. Cierra Steam al terminar este modo.' || true
+    action=warframe
 fi
 if [[ $action == estado ]]; then
     printf 'ULTRA / Juegos: montajes y espacio\nHOME=%s\n' "$HOME"

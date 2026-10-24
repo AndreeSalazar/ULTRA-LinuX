@@ -22,6 +22,12 @@ Consulta [evidencia, límites y uso](docs/BIBLIOTECAS-AUDIO-2026-10-23.md).
 consumo CPU/RAM/GPU. MangoHud presenta FPS y tiempos de cuadro dentro del juego,
 con registros CSV locales. El catálogo Steam/GOG se revisa durante toda la sesión.
 
+[Diagnóstico de Warframe](docs/DIAGNOSTICO-WARFRAME.md): captura de dos minutos
+con CPU, memoria, I/O y estados de hilos del juego, además de presión del sistema,
+discos, red, GPU y eventos del kernel. Super+F11 inicia recursos;
+Super+Ctrl+F11 abre el panel. Los tiempos de cuadro se registran aparte con
+Shift izquierdo+F2, tras abrir «Warframe / diagnóstico» en Super+J.
+
 [Cyberpunk de Personal en Heroic](docs/GOG-CYBERPUNK-2026-10-23.md): el perfil PC
 registra sus archivos GOG ya montados al abrir GOG desde el menú, sin volver a
 descargar el juego ni depender de elegir manualmente el disco Personal.

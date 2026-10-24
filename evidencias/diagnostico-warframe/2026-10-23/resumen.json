@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-23",
+  "timezone": "America/Lima",
+  "profile": "pc",
+  "kernel_build": 43,
+  "checks": {
+    "component": 12,
+    "boot_green": 172,
+    "boot_red": 0
+  },
+  "measurement": {
+    "recursos_ficticios": {
+      "scope": "proceso ficticio en QEMU, no Warframe",
+      "samples": 4,
+      "cpu_peak_pct": 98.98,
+      "threads_peak": 1
+    },
+    "cuadros_software": {
+      "scope": "glxgears software, no RTX ni Warframe",
+      "rows": 297,
+      "frametime_ms": {
+        "p50": 8.962,
+        "p95": 10.3191,
+        "p99": 11.0068,
+        "maximum": 11.435
+      }
+    }
+  },
+  "installed": {
+    "datos_intactos": true,
+    "kernel_coincide": true,
+    "sistema_coincide": true,
+    "datos_sha256": "476979CB599CE1C7100D7ECE5A15230FBC8972CA965338E530231F9DFED72ADD",
+    "kernel_sha256": "FB2E8D8AF3FA3366AB1462CEDD7953669B3233E8067CB136A0101AA374F05644",
+    "sistema_sha256": "45CBA620C29FE92F1A66657DEA0272CE9E1C1E9FAF381752D3133043D8EFCEC6"
+  },
+  "generic_rebuilt": false,
+  "limits": [
+    "QEMU software; no Warframe ni RTX fisica medidos",
+    "Primera prueba corregida para entrar en el namespace de montajes del escritorio",
+    "NVIDIA conserva 11674 avisos SRSO de objtool; no corregidos por este monitor",
+    "No prueba ni corrige aun la causa del microtiron nativo"
+  ],
+  "sources_lf_sha256": {
+    "src/rootfs/bin/ultra-diagnostico-juego": "03738ade3f2f69b9524512526ec220dc475411a69f3598385c970c76b3dd455f",
+    "src/rootfs/bin/ultra-eventos-kernel": "21faed940af88a2d1dc4395629de55bb9cdff5ee20ecc751f19bb759bdd24de2",
+    "src/rootfs/bin/ultra-juegos-vivo": "02354f5d7ee334c39cce53ba4ccd55fa796e74f775934d8a5c0a5c772a5bc985",
+    "src/rootfs/bin/ultra-sesion": "d4f624f7a50fc2a72e9a82bdea12d59c8308ff001d1a4c88a92d832a5b38c81f",
+    "src/rootfs/bin/ultra-informe-gpu": "d61ae8f9239b03f1f795fb487ef4d897b1fb0addf7828e19ab95c7da239ee241",
+    "src/rootfs/bin/ultra-hud": "2ec1327aec2d7ed2d8e1de30e8164d0b8a131014173564f7177e6c7924448ccc",
+    "src/rootfs/bin/ultra-juegos": "29cd633cc7c9efaf4d331474eeddd5ab9d9fa7d6bc3bd592a93a7c2f5ab78df8",
+    "src/rootfs/desktop/hyprland.lua": "1e5d299f552568ccdbf704c3bdd6ad0585d0e237678278fa18abf3dfb63100a9",
+    "scripts/build-baseline.sh": "163b49c2b14ec1062b56fab6e3315cac1d54e378460e8e5eee09330206d7100d",
+    "scripts/probar_arranque.py": "aaac3b3b6ac997a49a0b30f74cf8a97048d966193371c024c886ff87c3f65a1b",
+    "scripts/probar_diagnostico_warframe.py": "ecb512aa33f48348bf3b75304458ca397b2170449937a374378e414a30d8d768",
+    "scripts/banco_diagnostico_warframe.py": "092a21a10a523613d6b09421c491fa45aaf47e05fc89b9c19d19d72138a56083"
+  }
+}

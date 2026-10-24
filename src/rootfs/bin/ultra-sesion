@@ -13,17 +13,21 @@ exec 9>/run/ultra-escritorio/lock
 flock -n 9 || { echo 'ROJO [SESION]: ya hay una sesion de ULTRA'; exit 1; }
 seat_pid=''
 meter_pid=''
+kernel_pid=''
+frames_mounted=0
 cleanup() {
     if [[ -n $meter_pid ]]; then
         touch /run/ultra-escritorio/medicion.stop
         wait "$meter_pid" 2>/dev/null || true
     fi
     if [[ -n $seat_pid ]]; then kill "$seat_pid" 2>/dev/null || true; wait "$seat_pid" 2>/dev/null || true; fi
+    if [[ -n $kernel_pid ]]; then kill "$kernel_pid" 2>/dev/null || true; wait "$kernel_pid" 2>/dev/null || true; fi
 }
 finish() {
     result=$?
     cleanup
     /usr/bin/bash /usr/local/libexec/ultra-informe-gpu "$mode" "$compositor" "$result" || echo 'AMARILLO [GPU]: no se pudo guardar el informe'
+    if ((frames_mounted)); then umount /run/ultra-cuadros || echo 'AMARILLO [DIAGNOSTICO]: cuadros en RAM aun en uso; se conservan hasta apagar'; fi
 }
 trap finish EXIT
 trap 'exit 130' INT
@@ -78,6 +82,13 @@ else
     renderer=pixman
 fi
 install -d -m 0700 -o 1000 -g 1000 /run/user/1000 || exit 1
+if [[ ! -L /run/ultra-cuadros ]] && ! mountpoint -q /run/ultra-cuadros; then
+    install -d -m 0700 -o 0 -g 0 /run/ultra-cuadros
+    if mount -t tmpfs -o size=64M,mode=0700,uid=1000,gid=1000,nosuid,nodev,noexec ultra-cuadros /run/ultra-cuadros; then frames_mounted=1; fi
+fi
+setpriv --no-new-privs --bounding-set=-all,+syslog --inh-caps=-all --ambient-caps=-all \
+    /usr/bin/python -I /usr/local/libexec/ultra-eventos-kernel > /run/ultra-escritorio/kernel-eventos.log 2>&1 9>&- &
+kernel_pid=$!
 seatd -u ultra -g ultra -l info > /run/ultra-escritorio/seatd.log 2>&1 9>&- &
 seat_pid=$!
 ready=0

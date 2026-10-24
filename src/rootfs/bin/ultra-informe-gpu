@@ -64,6 +64,13 @@ tmp=$out.$$
         cat /run/ultra-escritorio/medicion.log
     else printf 'NA: la sesion no llego a iniciar el observador\n'; fi
     printf '\n[KERNEL: GPU y audio, ultimas 70 coincidencias]\n'
+    printf '\n[DIAGNOSTICO WARFRAME: resumen acotado, sin registros privados]\n'
+    if mountpoint -q /juegos; then
+        setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs --bounding-set=-all --inh-caps=-all --ambient-caps=-all \
+            /usr/bin/env HOME=/juegos/usuarios/ultra /usr/bin/timeout -k 1 12 /usr/local/bin/ultra-diagnostico-juego exportar 2>/dev/null | head -c 131072
+        printf '\n'
+    fi
+    printf '\n[KERNEL: GPU y audio, ultimas 70 coincidencias]\n'
     dmesg | grep -Ei 'NVRM|nvidia|drm|snd_hda|snd_usb|snd-usb|USB Audio|usbaudio' | tail -n 70
     printf '\n[LANZAMIENTO DEL CLIENTE: puede faltar si la preparacion fallo]\n'
     [[ ! -r /run/ultra-escritorio/ultima.log ]] || tail -n 160 /run/ultra-escritorio/ultima.log

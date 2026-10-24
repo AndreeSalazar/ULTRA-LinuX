@@ -1,0 +1,78 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Root-only, one-way kernel event reader. Exports numeric categories, no IPC."""
+import json
+import os
+from pathlib import Path
+import re
+import signal
+import stat
+import subprocess
+import tempfile
+import time
+
+ROOT = Path('/run/ultra-kernel')
+
+
+def event(line):
+    stamp=re.match(r'^\[\s*([0-9]+(?:\.[0-9]+)?)\]',line)
+    if not stamp: return None
+    result=dict(kernel_s=float(stamp[1]),type=None,pid=None,code=None)
+    xid=re.search(r'\bNVRM: Xid .*?:\s*([0-9]+),\s*pid=([0-9]+)',line)
+    if xid:
+        result.update(type='nvidia_xid',code=int(xid[1]),pid=int(xid[2]))
+    elif re.search(r'\btype=1326\b',line):
+        result['type']='seccomp_audit'
+        for key in ('pid','syscall'):
+            match=re.search(r'\b'+key+r'=([0-9]+)',line)
+            if match: result['pid' if key=='pid' else 'code']=int(match[1])
+    elif re.search(r'Out of memory:|oom-kill:|Killed process [0-9]+',line):
+        result['type']='oom'
+    elif re.search(r'EXT4-fs error|I/O error|Buffer I/O error|nvme.*(?:timeout|reset controller)',line,re.I):
+        result['type']='storage_error'
+    return result if result['type'] else None
+
+
+def publish(events,status):
+    fd,name=tempfile.mkstemp(prefix='.eventos-',dir=ROOT)
+    try:
+        with os.fdopen(fd,'w',encoding='utf-8') as f:
+            os.fchmod(f.fileno(),0o644)
+            json.dump(dict(schema=1,status=status,pid=os.getpid(),updated=time.time(),
+                           events=events[-64:],scope='Eventos categoricos; sin trazado de todas las esperas o permisos'),f)
+        os.replace(name,ROOT/'eventos.json')
+    finally:
+        if os.path.exists(name): os.unlink(name)
+
+
+def main():
+    if os.geteuid()!=0 or len(__import__('sys').argv)!=1: raise ValueError('lector reservado al supervisor')
+    ROOT.mkdir(mode=0o755,exist_ok=True)
+    s=ROOT.lstat()
+    if not stat.S_ISDIR(s.st_mode) or s.st_uid!=0 or s.st_mode&0o022:
+        raise ValueError('directorio de eventos inseguro')
+    events=[]
+    def stop(*_): raise SystemExit(0)
+    signal.signal(signal.SIGTERM,stop); signal.signal(signal.SIGINT,stop)
+    child=subprocess.Popen(['/usr/bin/dmesg','--follow-new','--time-format=raw'],
+                           stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True)
+    try:
+        publish(events,'escuchando')
+        while True:
+            line=child.stdout.readline(8193)
+            if not line: break
+            if len(line)>8192:
+                while line and not line.endswith('\n'): line=child.stdout.readline(8193)
+                continue
+            item=event(line)
+            if item:
+                events=(events+[item])[-64:]; publish(events,'escuchando')
+        publish(events,'no_disponible')
+    finally:
+        child.terminate()
+        try: child.wait(timeout=2)
+        except subprocess.TimeoutExpired: child.kill(); child.wait(timeout=2)
+        publish(events,'detenido')
+
+
+if __name__=='__main__': main()

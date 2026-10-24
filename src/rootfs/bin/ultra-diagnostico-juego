@@ -1,0 +1,448 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Bounded UID1000 Warframe recorder. One-second resources, separate frame CSV.
+
+No packet contents, addresses, credentials, command lines or game modifications.
+Global GPU/network/pressure/disk metrics are explicitly not exclusive to a game.
+"""
+import csv
+import datetime
+import importlib.machinery
+import importlib.util
+import json
+import math
+import os
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+
+HOME=Path(os.environ.get('HOME','/home/ultra'))
+PROC=Path('/proc')
+RUNTIME=Path('/run/user/1000/ultra-diagnostico')
+ARCHIVE=HOME/'.cache/ultra/diagnostico-warframe'
+KERNEL=Path('/run/ultra-kernel/eventos.json')
+FRAMES=Path('/run/ultra-cuadros')
+GAME='steam:230410'
+MAX_RESOURCE=16*1024**2
+MAX_FRAMES=32*1024**2
+
+
+def load_live():
+    loader=importlib.machinery.SourceFileLoader('ultra_live','/usr/local/bin/ultra-juegos-vivo')
+    spec=importlib.util.spec_from_loader(loader.name,loader)
+    module=importlib.util.module_from_spec(spec); loader.exec_module(module)
+    return module
+
+
+def read(path,limit=65536):
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    with os.fdopen(fd,'rb') as f:
+        if not stat.S_ISREG(os.fstat(f.fileno()).st_mode): raise ValueError('entrada no regular')
+        raw=f.read(limit+1)
+    if len(raw)>limit: raise ValueError('entrada grande')
+    return raw.decode('utf-8',errors='replace')
+
+
+def safe_dir(path):
+    # Same unprivileged user throughout; refuse redirected persistent/runtime paths.
+    if path.resolve()!=path: raise ValueError('carpeta de diagnostico redirigida')
+    path.mkdir(parents=True,exist_ok=True,mode=0o700)
+    if path.resolve()!=path or path.stat().st_uid!=os.geteuid(): raise ValueError('carpeta de otro usuario')
+
+
+def atomic(path,data):
+    fd,name=tempfile.mkstemp(prefix='.diag-',dir=path.parent)
+    try:
+        with os.fdopen(fd,'w',encoding='utf-8') as f:
+            os.fchmod(f.fileno(),0o600); json.dump(data,f,allow_nan=False)
+            f.write('\n')
+        os.replace(name,path)
+    finally:
+        if os.path.exists(name): os.unlink(name)
+
+
+def delta(current,previous):
+    return current-previous if previous is not None and current is not None and current>=previous else None
+
+
+def rate(current,previous,elapsed):
+    change=delta(current,previous)
+    return round(change/elapsed,3) if change is not None and elapsed>0 else None
+
+
+def context():
+    out=dict(network={},disks={},pressure={},vm={},transport={},uptime_s=None)
+    try: out['uptime_s']=float(read(PROC/'uptime').split()[0])
+    except (OSError,ValueError,IndexError): pass
+    try:
+        for line in read(PROC/'net/dev').splitlines()[2:]:
+            name,_,raw=line.partition(':'); name=name.strip(); values=raw.split()
+            if name=='lo' or not re.fullmatch(r'[A-Za-z0-9_.-]{1,32}',name) or len(values)<16: continue
+            if len(out['network'])>=32: break
+            out['network'][name]=dict(rx_bytes=int(values[0]),tx_bytes=int(values[8]),
+                rx_errors=int(values[2]),tx_errors=int(values[10]),rx_dropped=int(values[3]),tx_dropped=int(values[11]))
+    except (OSError,ValueError): pass
+    try:
+        lines=read(PROC/'net/snmp').splitlines()
+        allowed={'Tcp':{'RetransSegs','InErrs','AttemptFails','EstabResets'},'Udp':{'InErrors','RcvbufErrors','SndbufErrors'}}
+        for head,values in zip(lines[::2],lines[1::2]):
+            h=head.split(); v=values.split()
+            protocol=h[0].rstrip(':') if h else ''
+            if protocol not in allowed or not v or v[0]!=h[0] or len(h)!=len(v): continue
+            for name,value in zip(h[1:],v[1:]):
+                if name in allowed[protocol] and value.isdecimal(): out['transport'][protocol+'.'+name]=int(value)
+    except (OSError,ValueError): pass
+    try:
+        for line in read(PROC/'diskstats').splitlines():
+            fields=line.split()
+            if len(fields)<14 or not re.fullmatch(r'[A-Za-z0-9_-]{1,32}',fields[2]): continue
+            if len(out['disks'])>=64: break
+            out['disks'][':'.join(fields[:3])]=list(map(int,fields[3:14]))
+    except (OSError,ValueError): pass
+    for resource in ('cpu','memory','io'):
+        try:
+            for kind,total in re.findall(r'^(some|full) .*\btotal=([0-9]+)$',read(PROC/'pressure'/resource),re.M):
+                if resource!='cpu' or kind!='full': out['pressure'][resource+'.'+kind]=int(total)
+        except (OSError,ValueError): pass
+    try:
+        out['vm']={key:int(value) for key,value in re.findall(r'^(pswpin|pswpout|pgmajfault|oom_kill) ([0-9]+)$',read(PROC/'vmstat'),re.M)}
+    except (OSError,ValueError): pass
+    return out
+
+
+def context_rates(current,previous,elapsed):
+    before=previous or {}
+    result=dict(network_global={},disks_global={},pressure_global={},vm_global_delta={},transport_global_delta={})
+    for name,row in current['network'].items():
+        old=before.get('network',{}).get(name,{})
+        result['network_global'][name]=dict(rx_Bps=rate(row['rx_bytes'],old.get('rx_bytes'),elapsed),
+            tx_Bps=rate(row['tx_bytes'],old.get('tx_bytes'),elapsed),
+            **{k:delta(row[k],old.get(k)) for k in ('rx_errors','tx_errors','rx_dropped','tx_dropped')})
+    for name,row in current['disks'].items():
+        old=before.get('disks',{}).get(name)
+        # Sector counters in diskstats always use 512 bytes. Do not sum layers.
+        r=delta(row[0],old[0]) if old else None; w=delta(row[4],old[4]) if old else None
+        rt=delta(row[3],old[3]) if old else None; wt=delta(row[7],old[7]) if old else None
+        busy=rate(row[9],old[9] if old else None,elapsed)
+        result['disks_global'][name]=dict(read_Bps=rate(row[2]*512,old[2]*512 if old else None,elapsed),
+            write_Bps=rate(row[6]*512,old[6]*512 if old else None,elapsed),in_flight=row[8],
+            read_mean_ms=rt/r if r and rt is not None else None,
+            write_mean_ms=wt/w if w and wt is not None else None,
+            busy_approx_pct=busy/10 if busy is not None else None)
+    for key,value in current['pressure'].items():
+        change=delta(value,before.get('pressure',{}).get(key))
+        result['pressure_global'][key]=round(100*change/(elapsed*1e6),4) if change is not None and elapsed>0 and change<=elapsed*1e6 else None
+    result['vm_global_delta']={k:delta(v,before.get('vm',{}).get(k)) for k,v in current['vm'].items()}
+    result['transport_global_delta']={k:delta(v,before.get('transport',{}).get(k)) for k,v in current.get('transport',{}).items()}
+    return result
+
+
+def threads(live,processes,previous,elapsed):
+    raw={}; rows=[]; total=0
+    for process in processes[:64]:
+        try:
+            parent=PROC/str(process['pid'])
+            if live.parse_stat(read(parent/'stat',8192))['start']!=process['start']: continue
+            local_rows=[]; local_raw={}
+            entries=(PROC/str(process['pid'])/'task').iterdir()
+            for path in entries:
+                if total>=512: break
+                total+=1
+                try:
+                    if not path.name.isdecimal(): continue
+                    item=live.parse_stat(read(path/'stat',8192))
+                    key=f"{process['pid']}:{path.name}:{item['start']}"
+                    previous_tick=previous.get(key)
+                    cpu=rate(item['ticks'],previous_tick,elapsed)
+                    cpu=cpu*100/os.sysconf('SC_CLK_TCK') if cpu is not None else None
+                    try: wait=read(path/'wchan',256).strip()
+                    except (OSError,ValueError): wait=None
+                    if not wait or wait=='0' or not re.fullmatch(r'[A-Za-z0-9_]{1,128}',wait): wait=None
+                    if live.parse_stat(read(path/'stat',8192))['start']!=item['start']: continue
+                    local_raw[key]=item['ticks']
+                    local_rows.append(dict(pid=process['pid'],tid=int(path.name),name=item['name'],
+                                     state=item['state'],cpu_pct=cpu,wait_channel=wait))
+                except (OSError,ValueError,IndexError): continue
+            if live.parse_stat(read(parent/'stat',8192))['start']==process['start']:
+                raw.update(local_raw); rows.extend(local_rows)
+        except (OSError,ValueError,IndexError): continue
+    return raw,dict(top=sorted(rows,key=lambda p:p['cpu_pct'] or 0,reverse=True)[:8],
+                    observed=len(rows),uninterruptible=sum(r['state']=='D' for r in rows),
+                    limited=total>=512 or len(processes)>64)
+
+
+def game_rates(current,previous,elapsed):
+    rows=[p for p in current['processes'] if p.get('game_id')==GAME]
+    old={(p['pid'],p['start']):p for p in (previous or {}).get('processes',[])}
+    result=next((dict(g) for g in current['games'] if g['id']==GAME),None)
+    if result is None: return rows,None
+    for source,target in (('io_read_Bps','read_Bps'),('io_write_Bps','write_Bps')):
+        values=[p.get(source) for p in rows]
+        result[target]=sum(values) if values and all(v is not None for v in values) else None
+    for key in ('minor_faults','major_faults'):
+        values=[delta(p.get(key),old.get((p['pid'],p['start']),{}).get(key)) for p in rows]
+        result[key+'_delta']=sum(values) if values and all(v is not None for v in values) else None
+    return rows,result
+
+
+def kernel_events():
+    try:
+        data=json.loads(read(KERNEL,32768))
+        events=[]
+        for row in data.get('events',[])[-64:]:
+            if row.get('type') not in ('nvidia_xid','seccomp_audit','oom','storage_error'): continue
+            stamp=row.get('kernel_s')
+            if not isinstance(stamp,(int,float)) or not math.isfinite(stamp) or stamp<0: continue
+            events.append(dict(type=row['type'],kernel_s=stamp,
+                pid=row.get('pid') if isinstance(row.get('pid'),int) else None,
+                code=row.get('code') if isinstance(row.get('code'),int) else None))
+        return dict(status=data.get('status') if data.get('status') in ('escuchando','detenido','no_disponible') else 'NA',events=events)
+    except (OSError,ValueError,TypeError,AttributeError): return dict(status='NA',events=[])
+
+
+def frame_summary(path):
+    values=[]; peaks=[]; invalid=0; rows=0
+    if path.stat().st_size>MAX_FRAMES: raise ValueError('CSV excede limite')
+    header=None
+    with path.open(newline='',encoding='utf-8',errors='replace') as f:
+        for row in csv.reader(f):
+            if header is None:
+                if 'frametime' in row and 'fps' in row: header={v:i for i,v in enumerate(row)}
+                continue
+            rows+=1
+            if rows>200000: raise ValueError('demasiadas filas CSV')
+            try:
+                value=float(row[header['frametime']]); elapsed=float(row[header['elapsed']])/1e9
+                if not math.isfinite(value) or not math.isfinite(elapsed) or value<=0 or elapsed<0: raise ValueError()
+                values.append(value)
+                if value>33.333: peaks.append(dict(elapsed_csv_s=elapsed,frametime_ms=value))
+                peaks=sorted(peaks,key=lambda r:r['frametime_ms'],reverse=True)[:16]
+            except (ValueError,KeyError,IndexError): invalid+=1
+    ordered=sorted(values)
+    def q(p): return ordered[max(0,math.ceil(len(ordered)*p)-1)] if ordered else None
+    return dict(file=path.name,rows=len(values),invalid_rows=invalid,
+                frametime_ms=dict(p50=q(.5),p95=q(.95),p99=q(.99),maximum=max(values) if values else None),
+                slowest=peaks,scope='CSV MangoHud; elapsed relativo al inicio del CSV, no al observador')
+
+
+def collect_frames(session):
+    summaries=[]; total=0; skipped=0
+    try: start_wall=json.loads(read(session/'inicio.json',4096))['wall_time']
+    except (OSError,ValueError,KeyError): return dict(files=[],skipped=0,snapshot=True)
+    for index,path in enumerate(sorted(FRAMES.glob('*.csv'))):
+        if index>=16: skipped+=1; break
+        if path.is_symlink() or not re.fullmatch(r'Warframe[^/]{0,150}\.csv',path.name,re.I) or path.name.endswith('_summary.csv'): continue
+        size=path.stat().st_size
+        if total+size>MAX_FRAMES or len(summaries)>=4: skipped+=1; continue
+        if path.stat().st_mtime < start_wall-5: continue
+        try:
+            target=session/path.name
+            # Frames may still be written: explicitly record that this is a snapshot.
+            source_fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+            with os.fdopen(source_fd,'rb') as source:
+                target_fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW|os.O_NONBLOCK,0o600)
+                with os.fdopen(target_fd,'wb') as dest:
+                    if not stat.S_ISREG(os.fstat(source.fileno()).st_mode) or not stat.S_ISREG(os.fstat(dest.fileno()).st_mode):
+                        raise ValueError('CSV no regular')
+                    remaining=size
+                    while remaining:
+                        block=source.read(min(65536,remaining))
+                        if not block: break
+                        dest.write(block); remaining-=len(block)
+            os.chmod(target,0o600)
+            summaries.append(frame_summary(target)); total+=target.stat().st_size
+        except (OSError,ValueError): skipped+=1
+    return dict(files=summaries,skipped=skipped,snapshot=True)
+
+
+def latest_session():
+    data=json.loads(read(RUNTIME/'estado.json',524288))
+    name=data.get('session','')
+    if not re.fullmatch(r'sesion-[0-9]{1,24}',name): raise ValueError('sesion no valida')
+    path=ARCHIVE/name
+    if path.resolve()!=path or not path.is_dir(): raise ValueError('captura ausente o redirigida')
+    return path,data
+
+
+def record(live,duration=120):
+    import fcntl
+    safe_dir(RUNTIME); safe_dir(ARCHIVE)
+    with (RUNTIME/'captura.lock').open('a') as lock:
+        try: fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        except BlockingIOError: return
+        captures=list(ARCHIVE.glob('sesion-*'))
+        if len(captures)>=3: raise ValueError('Ya hay tres capturas. Abre Registros y retira las que no necesites.')
+        session=ARCHIVE/('sesion-'+str(time.time_ns())); safe_dir(session)
+        atomic(session/'inicio.json',dict(wall_time=time.time(),monotonic=time.monotonic()))
+        stop=RUNTIME/'detener'; stop.unlink(missing_ok=True)
+        previous=None; old_context=None; old_threads={}; gpu=None; gpu_at=-10
+        last=dict(schema=1,session=session.name,running=False)
+        begin=time.monotonic(); deadline=begin+min(120,max(1,duration)); size=0; index=0
+        with (session/'recursos.jsonl').open('x',encoding='utf-8') as log:
+            os.chmod(session/'recursos.jsonl',0o600)
+            while time.monotonic()<deadline and not stop.exists():
+                started=time.monotonic(); current=live.sample(previous,measure_pss=index%10==0)
+                elapsed=current['monotonic']-previous['monotonic'] if previous else 0
+                ctx=context(); processes,game=game_rates(current,previous,elapsed)
+                old_threads,thread_info=threads(live,processes,old_threads,elapsed)
+                if started-gpu_at>=2:
+                    gpu=live.gpu_sample(); gpu_at=time.monotonic()
+                last=dict(schema=1,running=True,session=session.name,updated=time.time(),monotonic=current['monotonic'],
+                    uptime_s=ctx['uptime_s'],elapsed_s=round(started-begin,3),remaining_s=max(0,round(deadline-started)),
+                    game=game,threads=thread_info,cpu_system_pct=current['cpu_system_pct'],ram_system_MiB=current['ram_used_MiB'],
+                    process_limit=current['limited'],pss_requested=index%10==0,gpu_global=gpu,gpu_age_s=max(0,started-gpu_at),
+                    kernel=kernel_events(),**context_rates(ctx,old_context,elapsed))
+                try: last['free_GiB']=round(shutil.disk_usage(HOME).free/2**30,2)
+                except OSError: last['free_GiB']=None
+                last['observer_ms']=round((time.monotonic()-started)*1000,3)
+                encoded=json.dumps(last,allow_nan=False)+'\n'
+                if size+len(encoded.encode())>MAX_RESOURCE:
+                    last['limit_reached']=True; break
+                log.write(encoded); log.flush(); size+=len(encoded.encode())
+                atomic(RUNTIME/'estado.json',last)
+                previous=current; old_context=ctx; index+=1
+                time.sleep(max(.05,1-(time.monotonic()-started)))
+        last.update(running=False,samples=index,finished=time.time(),frames=collect_frames(session))
+        atomic(RUNTIME/'estado.json',last); atomic(session/'resumen.json',last)
+
+
+def prepare():
+    if HOME!=Path('/juegos/usuarios/ultra'): raise ValueError('se requiere almacenamiento persistente')
+    safe_dir(RUNTIME); safe_dir(ARCHIVE)
+    if FRAMES.resolve()!=FRAMES or not FRAMES.is_dir() or FRAMES.stat().st_uid!=1000:
+        raise ValueError('falta el almacenamiento de cuadros en RAM; vuelve a entrar al escritorio')
+    # No autostart: the user starts the frame logger at the scenario with Shift+F2.
+    raw=read(Path('/etc/ultra/MangoHud.conf'))
+    target=RUNTIME/'MangoHud.conf'
+    fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_TRUNC|os.O_NOFOLLOW,0o600)
+    with os.fdopen(fd,'w') as f:
+        f.write(raw+'\nlog_interval=0\nlog_duration=120\npermit_upload=0\nproc_vram\n')
+        f.write('output_folder='+str(FRAMES)+'\n')
+
+
+def export():
+    session,data=latest_session()
+    if data.get('running'):
+        (RUNTIME/'detener').touch()
+        for _ in range(50):
+            time.sleep(.1); session,data=latest_session()
+            if not data.get('running'): break
+    if not data.get('running'): data['frames']=collect_frames(session)
+    data['kernel_final']=kernel_events()
+    atomic(session/'resumen.json',data)
+    # Latest bounded summary only, not raw process files or credentials.
+    print(json.dumps(data,allow_nan=False))
+
+
+def display(data):
+    def n(value,unit=''): return 'NA' if value is None else str(round(value,2))+unit
+    game=data.get('game') or {}
+    rows=['ULTRA / WARFRAME / DIAGNOSTICO',
+          'F2: grabar 2 min | M: marcar tiron | S: detener | Esc: cerrar (captura sigue)',
+          'Estado: '+('grabando' if data.get('running') else 'ultima captura / detenido')+' | faltan '+str(data.get('remaining_s','NA'))+' s',
+          'Aviso: '+str(data.get('error','sin avisos')),
+          'CPU juego: '+n(game.get('cpu_pct'),'%')+' (100% = un nucleo) | procesos '+str(len(game.get('pids',[]))),
+          'RAM juego RSS: '+n(game.get('rss_bytes',0)/2**20 if game else None,' MiB')+' | PSS: '+n(game.get('pss_bytes')/2**20 if game.get('pss_bytes') is not None else None,' MiB')+' (cada 10 muestras)',
+          'Disco juego R/W: '+n(game.get('read_Bps'),' B/s')+' / '+n(game.get('write_Bps'),' B/s'),
+          'Faults por intervalo minor/major: '+str(game.get('minor_faults_delta'))+' / '+str(game.get('major_faults_delta')),
+          'CPU sistema: '+n(data.get('cpu_system_pct'),'%')+' | RAM sistema: '+n(data.get('ram_system_MiB'),' MiB')+' | libre Linux: '+n(data.get('free_GiB'),' GiB'),
+          'Observador: '+n(data.get('observer_ms'),' ms')+' | hilos D: '+str(data.get('threads',{}).get('uninterruptible','NA')),
+          'HILOS DEL GRUPO (estado/canal de espera no identifica una causa por si solo):']
+    for row in data.get('threads',{}).get('top',[]):
+        rows.append(str(row['tid'])+' '+row['name']+' '+row['state']+' CPU '+n(row['cpu_pct'],'%')+' espera '+str(row['wait_channel']))
+    rows+=['GPU GLOBAL (no exclusiva del juego):']
+    for row in data.get('gpu_global') or []:
+        rows.append(row['name']+' uso '+n(row['use_pct'],'%')+' VRAM '+n(row['vram_MiB'],' MiB')+' '+n(row['temp_C'],' C'))
+    if not data.get('gpu_global'): rows.append('NA: consulta NVIDIA no disponible; HUD mide dentro del juego')
+    rows+=['RED GLOBAL (sin atribucion de bytes o RTT a Warframe):']
+    for name,row in data.get('network_global',{}).items(): rows.append(name+' RX/TX '+n(row['rx_Bps'],' B/s')+' / '+n(row['tx_Bps'],' B/s'))
+    rows.append('TCP/UDP globales (no del juego): '+str(data.get('transport_global_delta',{})))
+    rows+=['DISCOS GLOBALES (no sumar loop/particion/disco):']
+    for name,row in data.get('disks_global',{}).items():
+        if row.get('read_Bps') or row.get('write_Bps') or row.get('in_flight'):
+            rows.append(name+' R/W '+n(row['read_Bps'],' B/s')+'/'+n(row['write_Bps'],' B/s')+' media R/W '+n(row['read_mean_ms'],' ms')+'/'+n(row['write_mean_ms'],' ms'))
+    rows+=['PRESION GLOBAL: '+str(data.get('pressure_global',{})),
+           'KERNEL: '+data.get('kernel',{}).get('status','NA')+' | Xid/errores/denegaciones auditadas:']
+    for row in data.get('kernel',{}).get('events',[])[-8:]: rows.append(str(row))
+    rows+=['CUADROS: Shift izquierdo+F2 en el juego; registro 120 s en RAM si abriste Warframe en modo diagnostico.',
+           'No mide todas las esperas GPU ni todos los permisos. Ausente es NA; no prueba causa del tiron.']
+    return rows
+
+
+def panel():
+    import curses,textwrap
+    def screen(win):
+        offset=0; win.timeout(1000)
+        if curses.has_colors():
+            curses.start_color(); curses.use_default_colors(); curses.init_pair(1,curses.COLOR_CYAN,-1)
+        while True:
+            try: data=json.loads(read(RUNTIME/'estado.json',524288)); rows=display(data)
+            except (OSError,ValueError): rows=display({})+['Pulsa F2 para iniciar una captura mientras Warframe esta abierto.']
+            h,w=win.getmaxyx(); lines=[p for row in rows for p in (textwrap.wrap(row,max(1,w-2)) or [''])]
+            offset=min(offset,max(0,len(lines)-max(1,h-1))); win.erase()
+            for y,line in enumerate(lines[offset:offset+max(1,h-1)]):
+                try: win.addnstr(y,0,line,max(1,w-1),curses.color_pair(1) if y==0 and curses.has_colors() else 0)
+                except curses.error: pass
+            win.refresh(); key=win.getch()
+            if key in (27,ord('q')): return
+            if key==curses.KEY_F2: start()
+            elif key in (ord('m'),ord('M')):
+                try: mark()
+                except (OSError,ValueError): pass
+            elif key in (ord('s'),ord('S')): (RUNTIME/'detener').touch()
+            elif key==curses.KEY_DOWN: offset+=1
+            elif key==curses.KEY_UP: offset=max(0,offset-1)
+            elif key==curses.KEY_NPAGE: offset+=max(1,h-2)
+            elif key==curses.KEY_PPAGE: offset=max(0,offset-max(1,h-2))
+    curses.wrapper(screen)
+
+
+def notify(message):
+    subprocess.run(['/usr/bin/notify-send','Warframe / diagnostico',message],check=False,timeout=3)
+
+
+def start():
+    safe_dir(RUNTIME); safe_dir(ARCHIVE)
+    if len(list(ARCHIVE.glob('sesion-*')))>=3:
+        notify('Hay tres capturas guardadas. Abre Registros y retira las que no necesites.'); return
+    subprocess.Popen(['/usr/bin/python',str(Path(__file__).resolve()),'grabar'],
+                     stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+    notify('Captura solicitada: 2 minutos. En el juego, Shift izquierdo+F2 graba cuadros. Super+Shift+F11 marca el tiron.')
+
+
+def mark():
+    session,data=latest_session()
+    path=session/'marcas.jsonl'
+    if path.exists() and path.stat().st_size>=16384: raise ValueError('limite de marcas')
+    fd=os.open(path,os.O_WRONLY|os.O_APPEND|os.O_CREAT|os.O_NOFOLLOW,0o600)
+    with os.fdopen(fd,'w') as f: f.write(json.dumps(dict(monotonic=time.monotonic(),utc=time.time(),type='marca_manual'))+'\n')
+    notify('Momento marcado; la reaccion manual no identifica el cuadro exacto.')
+
+
+def main():
+    if os.geteuid()!=1000: raise ValueError('abrir como usuario del escritorio')
+    os.umask(0o077)
+    action=sys.argv[1] if len(sys.argv)>1 else 'panel'
+    if action=='preparar': prepare()
+    elif action=='iniciar': start()
+    elif action=='grabar': record(load_live())
+    elif action=='panel': safe_dir(RUNTIME); panel()
+    elif action=='marcar': mark()
+    elif action=='detener': safe_dir(RUNTIME); (RUNTIME/'detener').touch()
+    elif action=='exportar': export()
+    elif action=='registros': safe_dir(ARCHIVE); subprocess.Popen(['/usr/bin/thunar',str(ARCHIVE)])
+    else: raise ValueError('accion de diagnostico desconocida')
+
+
+if __name__=='__main__':
+    try: main()
+    except (OSError,ValueError,subprocess.SubprocessError) as error:
+        if len(sys.argv)>1 and sys.argv[1]=='grabar':
+            try: atomic(RUNTIME/'estado.json',dict(running=False,error=str(error),updated=time.time()))
+            except OSError: pass
+        print('DIAGNOSTICO:',str(error),file=sys.stderr); sys.exit(1)

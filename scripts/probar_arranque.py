@@ -801,6 +801,49 @@ def check_hyprland(conn, failures):
             except (OSError, SyntaxError): time.sleep(.1)
         else: raise ValueError('captura del fondo incompleta')
         shutil.copyfile(background, LOG.with_name(LOG.stem + '-fondo.png'))
+        if '--diagnostico-warframe' in sys.argv:
+            # The desktop has a private mount namespace (ultra-raiz). A plain
+            # chroot from the serial console cannot see its new frame tmpfs.
+            # Join that namespace before dropping every user capability.
+            user_diag='ultra-entrar /usr/bin/nsenter --target $(pidof Hyprland) --mount --root --wd -- /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all --inh-caps=-all --ambient-caps=-all /usr/bin/env HOME=/juegos/usuarios/ultra XDG_RUNTIME_DIR=/run/user/1000 '
+            transcript += run(conn,[(user_diag+'/usr/local/bin/ultra-diagnostico-juego preparar; echo DIAG-PREPARADO-$?', 'DIAG-PREPARADO-0')],failures)
+            source=(ROOT/'scripts/banco_diagnostico_warframe.py').read_bytes()
+            encoded=base64.b64encode(source).decode()
+            conn.sendall(b': > /arch/tmp/diag-probe.b64; echo DIAG-CARGA-$((40+2))\n')
+            transcript += response('DIAG-CARGA-42')
+            for offset in range(0,len(encoded),192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/diag-probe.b64; echo DIAG-CARGA-$((40+2))\n").encode())
+                transcript += response('DIAG-CARGA-42')
+            conn.sendall(b'busybox base64 -d /arch/tmp/diag-probe.b64 > /arch/tmp/diag-probe.py; echo DIAG-CARGA-$((40+2))\n')
+            transcript += response('DIAG-CARGA-42')
+            conn.sendall((user_diag+'/usr/bin/python /tmp/diag-probe.py resources; echo DIAG-RECURSOS-RC-$?; echo DIAG-RESULTADO-$((40+2))\n').encode())
+            result=response('DIAG-RESULTADO-42',timeout=30); transcript+=result
+            for marker,label in [('DIAG-KERNEL-SYSLOG-42','lector kernel con capacidad SYSLOG y canal de salida numerico'),
+                                 ('DIAG-RAM-64M-42','cuadros en tmpfs de 64 MiB con restricciones'),
+                                 ('DIAG-RECURSOS-UID1000-42','grupo ficticio AppID230410 con CPU/hilos reales y sin exportar secretos'),
+                                 ('DIAG-RECURSOS-RC-0','captura de recursos acotada termina correctamente')]:
+                expect(marker in result,'Diagnostico: '+label)
+            code='hl.exec_cmd("ULTRA_DIAGNOSTICO_HUD=1 MANGOHUD_CONFIG=read_cfg,autostart_log=1,log_duration=3 ultra-hud opengl timeout -k 1 7 glxgears")'
+            conn.sendall(('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code)+'; echo DIAG-GL-$((40+2))\n').encode())
+            transcript+=response('DIAG-GL-42'); time.sleep(9)
+            conn.sendall((user_diag+'/usr/bin/python /tmp/diag-probe.py frames; echo DIAG-CUADROS-RC-$?; echo DIAG-RESULTADO-$((40+2))\n').encode())
+            result=response('DIAG-RESULTADO-42',timeout=20); transcript+=result
+            expect('DIAG-CUADROS-OPENGL-42' in result,'Diagnostico: CSV por cuadro real de OpenGL software')
+            expect('DIAG-CSV-ARCHIVADO-42' in result and 'DIAG-CUADROS-RC-0' in result,'Diagnostico: resumen y copia acotada del CSV de prueba')
+            mon.sendall(b'sendkey meta_l-ctrl-f11\n'); time.sleep(1)
+            panel=wait_apps(lambda apps:any(a.get('title')=='ULTRA / Warframe diagnostico' for a in apps))
+            expect(bool(panel),'Diagnostico: Super+Ctrl+F11 abre el panel de recursos')
+            if panel:
+                target=pathlib.Path(tempfile.gettempdir())/'ultra-diagnostico-panel.png'
+                target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot: shot.verify()
+                        break
+                    except (OSError,SyntaxError): time.sleep(.1)
+                else: raise ValueError('captura del diagnostico incompleta')
+                shutil.copyfile(target,LOG.with_name(LOG.stem+'-diagnostico.png'))
         finished_auto = False
         for _ in range(65):
             conn.sendall(b'grep -q \'"running": false\' /arch/juegos/usuarios/ultra/.cache/ultra/discos/automatico.json && echo DISCOS-FIN-$((9+4)); echo DISCOS-QUERY-$((9+5))\n')

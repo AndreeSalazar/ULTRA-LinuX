@@ -25,7 +25,7 @@ case $action in
     ejecutar|opengl) (( $# )) || exit 2;;
     *) exit 2;;
 esac
-if [[ -e $state ]]; then
+if [[ -e $state && ${ULTRA_DIAGNOSTICO_HUD:-0} != 1 ]]; then
     export MANGOHUD=0
     exec "$@"
 fi
@@ -40,5 +40,8 @@ if [[ ! -e $config ]]; then
     trap - EXIT
 fi
 export MANGOHUD=1 MANGOHUD_CONFIGFILE="$config"
+if [[ ${ULTRA_DIAGNOSTICO_HUD:-0} == 1 && -f /run/user/1000/ultra-diagnostico/MangoHud.conf ]]; then
+    export MANGOHUD_CONFIGFILE=/run/user/1000/ultra-diagnostico/MangoHud.conf
+fi
 if [[ $action == opengl ]]; then exec mangohud "$@"; fi
 exec "$@"

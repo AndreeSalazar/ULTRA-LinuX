@@ -147,7 +147,8 @@ def parse_stat(raw):
         raise ValueError('stat incompleto')
     fields = raw[end+2:].split()
     return dict(name=text(raw[raw.index('(')+1:end], 64), ticks=int(fields[11])+int(fields[12]),
-                start=int(fields[19]), rss=max(0, int(fields[21]))*os.sysconf('SC_PAGE_SIZE'))
+                start=int(fields[19]), rss=max(0, int(fields[21]))*os.sysconf('SC_PAGE_SIZE'),
+                state=fields[0], minor_faults=int(fields[7]), major_faults=int(fields[9]))
 
 
 def game_identity(raw):
@@ -171,7 +172,7 @@ def game_identity(raw):
     return None, ''
 
 
-def sample(previous=None, now=None):
+def sample(previous=None, now=None, measure_pss=True):
     now = time.monotonic() if now is None else now
     elapsed = now-previous['monotonic'] if previous else 0
     state = dict(monotonic=now, updated=time.time(), cpu_system_pct=None, ram_used_MiB=None,
@@ -235,6 +236,8 @@ def sample(previous=None, now=None):
                     else:
                         group['cpu_pct'] += item['cpu_pct']
                     try:
+                        if not measure_pss:
+                            raise ValueError('PSS no solicitado en esta muestra')
                         raw = read(path/'smaps_rollup', 16384).decode()
                         match = re.search(r'^Pss:\s+(\d+) kB$', raw, re.M)
                         if not match:

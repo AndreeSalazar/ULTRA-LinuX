@@ -1,0 +1,22 @@
+test_gog_registered_and_discovered_are_distinct (__main__.Live.test_gog_registered_and_discovered_are_distinct) ... ok
+test_identity_allowlist (__main__.Live.test_identity_allowlist) ... ok
+test_rates_memory_and_pid_reuse_not_fps_guesses (__main__.Live.test_rates_memory_and_pid_reuse_not_fps_guesses) ... ok
+test_registration_fingerprint_changes_with_manifests (__main__.Live.test_registration_fingerprint_changes_with_manifests) ... ok
+test_steam_install_update_remove_live (__main__.Live.test_steam_install_update_remove_live) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.016s
+
+OK
+test_frame_parser_ignores_system_identity_and_invalid_numbers (__main__.Diagnostic.test_frame_parser_ignores_system_identity_and_invalid_numbers) ... ok
+test_game_cpu_io_faults_and_pid_reuse (__main__.Diagnostic.test_game_cpu_io_faults_and_pid_reuse) ... ok
+test_global_rates_units_and_missing_values (__main__.Diagnostic.test_global_rates_units_and_missing_values) ... ok
+test_kernel_events_do_not_export_text_or_addresses (__main__.Diagnostic.test_kernel_events_do_not_export_text_or_addresses) ... ok
+test_record_bounded_and_no_privacy_leak (__main__.Diagnostic.test_record_bounded_and_no_privacy_leak) ... ok
+test_thread_cpu_survives_missing_wait_channel (__main__.Diagnostic.test_thread_cpu_survives_missing_wait_channel) ... ok
+test_three_captures_limit_preserves_existing_data (__main__.Diagnostic.test_three_captures_limit_preserves_existing_data) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 2.016s
+
+OK
