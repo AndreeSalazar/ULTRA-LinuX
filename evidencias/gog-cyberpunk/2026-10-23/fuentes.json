@@ -1,0 +1,6 @@
+{
+  "heroic_version": "2.22.4",
+  "installed_schema": "https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/blob/v2.22.4/src/backend/storeManagers/gog/library.ts",
+  "schema_types": "https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/blob/v2.22.4/src/common/types.ts",
+  "scope": "Registro local validado con fixtures; cuenta personal y juego en GPU fisica pendientes."
+}

@@ -1,0 +1,26 @@
+test_idempotent_registration_does_not_rewrite (__main__.Import.test_idempotent_registration_does_not_rewrite) ... ok
+test_malformed_store_untouched (__main__.Import.test_malformed_store_untouched) ... ok
+test_non_pe_stub_rejected (__main__.Import.test_non_pe_stub_rejected) ... ok
+test_repair_windows_path_and_preserve_other_entries_settings (__main__.Import.test_repair_windows_path_and_preserve_other_entries_settings) ... ok
+test_running_client_blocks_writes (__main__.Import.test_running_client_blocks_writes) ... ok
+test_symlink_executable_or_store_rejected (__main__.Import.test_symlink_executable_or_store_rejected) ... ok
+test_unmatched_product_rejected (__main__.Import.test_unmatched_product_rejected) ... ok
+test_verified_base_and_dlc_import_without_auth_or_copy (__main__.Import.test_verified_base_and_dlc_import_without_auth_or_copy) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.019s
+
+OK
+test_cyberpunk_import_does_not_require_manual_personal_selection (__main__.Discovery.test_cyberpunk_import_does_not_require_manual_personal_selection) ... ok
+test_gog_uses_prepared_folder_without_account_writes (__main__.Discovery.test_gog_uses_prepared_folder_without_account_writes) ... ok
+test_installed_plus_update_flags_registered (__main__.Discovery.test_installed_plus_update_flags_registered) ... ok
+test_no_symbolic_or_deep_search (__main__.Discovery.test_no_symbolic_or_deep_search) ... ok
+test_parent_and_multiple_steam_libraries (__main__.Discovery.test_parent_and_multiple_steam_libraries) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.012s
+
+OK
+STEAM: biblioteca Games/Steam; juegos con manifiesto instalado: 1
+  Test
+STEAM: 1 bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad

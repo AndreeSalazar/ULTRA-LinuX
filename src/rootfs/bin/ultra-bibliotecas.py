@@ -742,10 +742,17 @@ def import_gog():
     user_config()
     active = [r for r in read_json(CATALOG).get('folders', [])
               if r.get('status') == 'activa' and r.get('kind') == 'folder']
-    if not active:
+    cyberpunk = Path('/juegos/Cyberpunk2077')
+    ready = (cyberpunk/'goggame-1423049311.info').is_file() and (cyberpunk/'bin/x64/Cyberpunk2077.exe').is_file()
+    if not active and not ready:
         raise ValueError('Elige primero la carpeta GOG en Discos y bibliotecas y vuelve a entrar al escritorio.')
-    item = choose('Carpeta para importar en Heroic', [(r['relative'], r) for r in active])
+    rows = [('Cyberpunk 2077 / GOG / disco Personal', 'cyberpunk-gog')] if ready else []
+    rows.extend((r['relative'], r) for r in active)
+    item = choose('Carpeta para importar en Heroic', rows)
     if item is None:
+        return
+    if item == 'cyberpunk-gog':
+        subprocess.Popen(['/usr/local/bin/ultra-juegos', 'gog'])
         return
     expected = TARGETS/selection(item)['id']
     if item.get('path') != str(expected) or not expected.is_dir():

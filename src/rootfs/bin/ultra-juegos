@@ -50,7 +50,7 @@ if [[ $action == estado ]]; then
 fi
 if [[ $action == registros ]]; then
     printf 'Ultimas lineas de lanzadores. No se exportan sesiones ni cuentas.\n'
-    for name in steam steam-bibliotecas cyberpunk; do
+    for name in steam steam-bibliotecas cyberpunk gog-cyberpunk; do
         file=$HOME/.cache/ultra/$name.log
         if [[ -f $file ]]; then printf '\n[%s]\n' "$name"; tail -n 60 -- "$file"; fi
     done
@@ -81,7 +81,11 @@ case $action in
             exit 1
         fi
         exec ultra-hud ejecutar steam steam://rungameid/230410 >> "$HOME/.cache/ultra/steam.log" 2>&1;;
-    gog) exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
+    gog)
+        if ! ultra-gog-cyberpunk > "$HOME/.cache/ultra/gog-cyberpunk.log" 2>&1; then
+            notify-send 'GOG / Cyberpunk: revisar importacion' 'Consulta Registros de juegos. Si Heroic estaba abierto, cierralo y abre GOG otra vez.' || true
+        fi
+        exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
     cyberpunk)
         game=/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe
         [[ -f $game ]] || { notify-send 'Cyberpunk no encontrado' 'No se encontró el ejecutable GOG en D:.'; exit 1; }

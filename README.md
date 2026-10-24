@@ -22,6 +22,10 @@ Consulta [evidencia, límites y uso](docs/BIBLIOTECAS-AUDIO-2026-10-23.md).
 consumo CPU/RAM/GPU. MangoHud presenta FPS y tiempos de cuadro dentro del juego,
 con registros CSV locales. El catálogo Steam/GOG se revisa durante toda la sesión.
 
+[Cyberpunk de Personal en Heroic](docs/GOG-CYBERPUNK-2026-10-23.md): el perfil PC
+registra sus archivos GOG ya montados al abrir GOG desde el menú, sin volver a
+descargar el juego ni depender de elegir manualmente el disco Personal.
+
 ## ¿Es una distro?
 
 **Sí: una distribución Linux personal y experimental.** Integra un kernel Linux

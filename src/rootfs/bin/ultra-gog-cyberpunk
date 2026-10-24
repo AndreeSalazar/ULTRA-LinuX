@@ -1,0 +1,144 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Import the verified, already mounted GOG Cyberpunk files into Heroic 2.22.4.
+
+Offline installed-game metadata only. No credentials, catalogue ownership,
+downloads, game files, prefixes or saves are changed.
+"""
+import json
+import os
+from pathlib import Path
+import re
+import stat
+import subprocess
+import sys
+import tempfile
+
+HOME = Path('/juegos/usuarios/ultra')
+GAME = Path('/juegos/Cyberpunk2077')
+APP = '1423049311'
+VERSION = Path('/etc/ultra/heroic-version')
+LIMIT = 2*1024*1024
+
+
+def read_json(path, limit=LIMIT):
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise ValueError('metadatos no regulares')
+        raw = stream.read(limit+1)
+    if len(raw) > limit:
+        raise ValueError('metadatos demasiado grandes')
+    return json.loads(raw)
+
+
+def game_metadata():
+    if GAME.resolve() != GAME or not GAME.is_dir():
+        raise ValueError('Cyberpunk no esta preparado: revisa el disco Personal')
+    exe = GAME/'bin/x64/Cyberpunk2077.exe'
+    if exe.resolve() != exe or not exe.is_file() or exe.stat().st_size < 2:
+        raise ValueError('falta el ejecutable real de Cyberpunk')
+    with exe.open('rb') as stream:
+        if stream.read(2) != b'MZ':
+            raise ValueError('ejecutable Cyberpunk no valido')
+    info = read_json(GAME/f'goggame-{APP}.info', 262144)
+    if not isinstance(info, dict) or str(info.get('gameId')) != APP or str(info.get('rootGameId')) != APP:
+        raise ValueError('la carpeta no corresponde a Cyberpunk GOG')
+    build = str(info.get('buildId', ''))
+    if not re.fullmatch(r'[0-9]{1,30}', build):
+        raise ValueError('falta el identificador de compilacion GOG')
+    dlcs = []
+    for index, path in enumerate(sorted(GAME.glob('goggame-*.info'))):
+        if index >= 64:
+            raise ValueError('demasiados productos GOG en la carpeta')
+        data = read_json(path, 262144)
+        appid = str(data.get('gameId', ''))
+        if str(data.get('rootGameId')) == APP and appid != APP and re.fullmatch(r'[0-9]{1,20}', appid):
+            dlcs.append(appid)
+    languages = info.get('languages', [])
+    language = languages[0] if isinstance(languages, list) and languages else info.get('language', 'en-US')
+    if not isinstance(language, str) or not re.fullmatch(r'[A-Za-z-]{2,32}', language):
+        raise ValueError('idioma GOG invalido')
+    # Field names and root-directory executable follow Heroic v2.22.4's
+    # GOGLibraryManager.importGame. buildId is the local version fallback.
+    return dict(appName=APP, install_path=str(GAME), executable=str(GAME),
+                is_dlc=False, version=build, platform='windows', buildId=build,
+                language=language, installedDLCs=sorted(set(dlcs)), installedWithDLCs=bool(dlcs))
+
+
+def heroic_running():
+    for index, proc in enumerate(Path('/proc').glob('[0-9]*')):
+        if index >= 8192:
+            raise ValueError('demasiados procesos para comprobar Heroic')
+        try:
+            if proc.stat().st_uid == 1000 and (proc/'exe').resolve() == Path('/opt/heroic/heroic'):
+                return True
+        except (OSError, RuntimeError):
+            continue
+    return False
+
+
+def atomic(path, value):
+    fd, name = tempfile.mkstemp(prefix='.ultra-gog-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+            os.fchmod(stream.fileno(), 0o600)
+            json.dump(value, stream, ensure_ascii=False)
+            stream.write('\n'); stream.flush(); os.fsync(stream.fileno())
+        os.replace(name, path)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
+def register():
+    metadata = game_metadata()
+    if heroic_running():
+        raise ValueError('cierra Heroic y vuelve a abrir GOG para registrar Cyberpunk')
+    store = HOME/'.config/heroic/gog_store'
+    store.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if store.resolve() != store:
+        raise ValueError('configuracion Heroic redirigida')
+    path = store/'installed.json'
+    data = read_json(path) if path.exists() or path.is_symlink() else {'installed': []}
+    if not isinstance(data, dict) or not isinstance(data.get('installed'), list) or len(data['installed']) > 2048:
+        raise ValueError('formato Heroic desconocido; se conserva')
+    rows = data['installed']
+    matches = [r for r in rows if isinstance(r, dict) and str(r.get('appName')) == APP]
+    if len(matches) > 1:
+        raise ValueError('registros Cyberpunk duplicados; se conservan')
+    previous = matches[0] if matches else {}
+    if all(previous.get(k) == v for k, v in metadata.items() if k != 'version'):
+        return 'Cyberpunk GOG ya reconocido en su carpeta preparada'
+    if heroic_running():
+        raise ValueError('Heroic se abrio durante la preparacion; vuelve a intentarlo cerrado')
+    backup = path.with_name('installed.json.ultra-antes-cyberpunk')
+    if path.exists() and not backup.exists():
+        # A single bounded metadata backup; never read auth.json or tokens.
+        with backup.open('x', encoding='utf-8') as stream:
+            os.chmod(backup, 0o600); json.dump(data, stream); stream.write('\n')
+    entry = dict(previous, **metadata)
+    data['installed'] = [r for r in rows if r is not previous]+[entry]
+    atomic(path, data)
+    return 'Cyberpunk GOG registrado: archivos existentes; sin descargar el juego'
+
+
+def main():
+    if os.geteuid() != 1000 or Path(os.environ.get('HOME', '')) != HOME:
+        raise ValueError('se requiere el usuario del escritorio con home persistente')
+    if VERSION.read_text().strip() != '2.22.4':
+        raise ValueError('version Heroic no compatible; usar su importador')
+    for path, kind in ((HOME.parents[1], 'ext4'), (GAME, 'overlay')):
+        result = subprocess.run(['/usr/bin/findmnt', '-n', '-o', 'FSTYPE', '--mountpoint', str(path)],
+                                check=True, text=True, capture_output=True, timeout=3)
+        if result.stdout.strip() != kind:
+            raise ValueError('montaje persistente o carpeta de juego no disponible')
+    print(register())
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('GOG / Cyberpunk:', error, file=sys.stderr)
+        sys.exit(1)

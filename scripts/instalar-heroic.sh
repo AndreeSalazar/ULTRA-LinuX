@@ -20,6 +20,8 @@ sudo install -d -m 0755 "$sistema/opt/heroic"
 sudo bsdtar --no-same-owner --strip-components 1 -xf "$archive" -C "$sistema/opt/heroic"
 sudo chown -R 0:0 "$sistema/opt/heroic"
 sudo chmod 0755 "$sistema/opt/heroic/chrome-sandbox"
+sudo install -d -m 0755 "$sistema/etc/ultra"
+printf '%s\n' "$version" | sudo tee "$sistema/etc/ultra/heroic-version" >/dev/null
 sudo chroot "$sistema" /usr/bin/ldd /opt/heroic/heroic | tee "$art/heroic-bibliotecas.txt"
 ! grep -q 'not found' "$art/heroic-bibliotecas.txt"
 printf 'version=%s\nurl=%s\nsha256=%s\nsandbox=sin desactivar; setuid desactivado; apertura pendiente de prueba\n' "$version" "$url" "$sha" > "$art/heroic-origen.txt"

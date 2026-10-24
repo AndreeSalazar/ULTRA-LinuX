@@ -1,0 +1,19 @@
+{
+  "perfil": "pc",
+  "construccion": 41,
+  "heroic": "2.22.4",
+  "pruebas_componentes": 13,
+  "arranque_verdes": 164,
+  "arranque_rojos": 0,
+  "ext4_overlay_ficticios": true,
+  "cuentas_personales_en_pruebas": false,
+  "GPU_fisica_probada": false,
+  "datos_A_conservados": true,
+  "kernel_A_sha256": "407EF9A91B48C86AE9F72271DC629853F1CBE59055B98A604290A522DA690F6E",
+  "sistema_A_sha256": "74194FB598A756B62DEC072BF6BAA1493DA8B3ECA89BC8F4A28D46A823CFA67C",
+  "datos_A_sha256": "476979CB599CE1C7100D7ECE5A15230FBC8972CA965338E530231F9DFED72ADD",
+  "helper_sha256": "085215EFC502D08CE7D65DC6716C959471E3F277C20C5E18D8E42CB54A501897",
+  "original_Cyberpunk_D_presente": true,
+  "reconocimiento_cuenta_personal_pendiente": true,
+  "perfil_generico_reconstruido": false
+}

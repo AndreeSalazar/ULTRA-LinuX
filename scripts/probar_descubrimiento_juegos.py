@@ -13,6 +13,16 @@ spec.loader.exec_module(lib)
 
 
 class Discovery(unittest.TestCase):
+    def test_cyberpunk_import_does_not_require_manual_personal_selection(self):
+        with patch.object(lib,'user_config',return_value=[]), \
+                patch.object(lib,'read_json',return_value=dict(folders=[])), \
+                patch.object(lib.Path,'is_file',return_value=True), \
+                patch.object(lib,'choose',return_value='cyberpunk-gog') as chooser, \
+                patch.object(lib.subprocess,'Popen') as launch:
+            lib.import_gog()
+            self.assertIn('Cyberpunk',chooser.call_args.args[1][0][0])
+            launch.assert_called_once_with(['/usr/local/bin/ultra-juegos','gog'])
+
     def test_gog_uses_prepared_folder_without_account_writes(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
