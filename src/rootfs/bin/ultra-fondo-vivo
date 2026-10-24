@@ -7,7 +7,7 @@ fondo estatico (Neon con tu acento, o Demonio): lluvia que cae, el aro del autor
 que gira y pulsa, letreros que parpadean, una linea de escaneo y un corte glitch.
 Lo reproduce con awww (antes swww). Sin awww ni swww se queda el fondo estatico.
 
-    ultra-fondo-vivo poner neon|demonio [#RRGGBB]
+    ultra-fondo-vivo poner neon|demonio|ciudad3d [#RRGGBB]
     ultra-fondo-vivo poner imagen #RRGGBB ~/Imágenes/mi-fondo.jpg   (anima tu propia imagen)
     ultra-fondo-vivo pausar | seguir     (modo juego: cuadro quieto / animado)
     ultra-fondo-vivo parar
@@ -99,6 +99,211 @@ def cuadro(base, acento, t, semilla=2077, propio=False):
             franja = img.crop((0, top, W, top + alto))
             img.paste(franja, (g_azar.choice((-1, 1)) * g_azar.randint(int(12 * k) or 3, int(60 * k) or 12), top))
     return img
+
+
+# ---------- Ciudad 3D (perspectiva real, pre-renderizada) ----------
+# La camara vuela por una avenida. Todo se mueve un numero entero de periodos por
+# bucle (edificios cada P*D, cuadricula cada S, coches cada VUELTA_COCHE): t=1 == t=0.
+D3, P3, LARGO3, AVENIDA, ALTURA_CAM, LEJOS, CERCA = 16.0, 4, 11.0, 13.0, 9.0, 260.0, 1.2
+CUADROS_3D = 64  # 64 cuadros a ~12 por segundo: 5,3 s
+
+
+def _azar_edificio(lado, j):
+    """Propiedades fijas por (lado, j mod P): asi el bucle cierra."""
+    azar = random.Random(f'{lado}-{j % P3}-2077')
+    alto = azar.choice((8, 12, 16, 22, 30, 40, 54))
+    ancho = azar.uniform(6, 13)
+    ventanas = [(fila, col) for fila in range(int(alto / 2.4)) for col in range(int(LARGO3 / 1.8)) if azar.random() < .32]
+    frente = [(fila, col) for fila in range(int(alto / 2.4)) for col in range(int(ancho / 1.8)) if azar.random() < .28]
+    letrero = azar.random() < .55
+    tono = azar.choice(('acento', 'cyan', 'rojo', 'acento', 'violeta'))
+    return alto, ancho, ventanas, frente, letrero, tono, azar.randrange(1 << 30)
+
+
+def _proyectar(W, H, x, y, z):
+    f = .72 * W
+    return (W * .5 + f * x / z, H * .60 + f * (ALTURA_CAM - y) / z)
+
+
+def _recortar(poligono):
+    """Sutherland-Hodgman contra el plano z = CERCA."""
+    salida = []
+    for i, actual in enumerate(poligono):
+        previo = poligono[i - 1]
+        dentro_a, dentro_p = actual[2] >= CERCA, previo[2] >= CERCA
+        if dentro_a != dentro_p:
+            k = (CERCA - previo[2]) / (actual[2] - previo[2])
+            salida.append(tuple(previo[n] + k * (actual[n] - previo[n]) for n in range(3)))
+        if dentro_a: salida.append(actual)
+    return salida
+
+
+def _niebla(color, z, cielo=(26, 10, 40)):
+    k = min(1.0, max(0.0, (z - 20) / (LEJOS - 20))) ** .8
+    return tuple(round(c * (1 - k) + s * k) for c, s in zip(color, cielo))
+
+
+def ciudad3d(W, H, acento, t):
+    from PIL import Image, ImageDraw, ImageFilter
+    colores = dict(acento=acento, cyan=(0, 240, 255), rojo=(255, 42, 79), violeta=(192, 59, 255), amarillo=(252, 238, 10))
+    img = Image.new('RGB', (W, H), (6, 5, 10))
+    d = ImageDraw.Draw(img)
+    brillo = Image.new('RGB', (W, H), (0, 0, 0))  # lo que brilla: se desenfoca y se suma (bloom)
+    b = ImageDraw.Draw(brillo)
+    hy = H * .60
+    # Cielo: negro arriba, purpura con un poco del acento en el horizonte.
+    for y in range(int(hy) + 2):
+        k = (y / hy) ** 1.5  # bruma de la ciudad: sube del horizonte
+        r_, g_, b_ = (round(6 + (34 + a * .12) * k) for a in acento)
+        d.line([(0, y), (W, y)], fill=(r_ + round(18 * k), g_, b_ + round(36 * k)))
+    # Skyline lejano fijo (sin paralaje: esta en el infinito).
+    azar = random.Random(7)
+    x = 0
+    while x < W:
+        ancho = azar.randint(20, 70); alto = azar.randint(20, 140) * H / 1080
+        d.rectangle([x, hy - alto, x + ancho, hy], fill=(18, 9, 30))
+        x += ancho + azar.randint(0, 6)
+    # Aro del autor en 3D: dos anillos que giran en el cielo.
+    # Sobre la avenida, donde queda el cielo abierto, con un halo detras.
+    cx, cy, radio = W * .5, H * .25, W * .075
+    for paso in range(6):
+        r_h = radio * (1.9 - paso * .15)
+        b.ellipse([cx - r_h, cy - r_h, cx + r_h, cy + r_h], fill=tuple(round(v * (.04 + paso * .025)) for v in acento))
+    # Una vuelta completa por bucle: media vuelta no deja los trazos en su sitio.
+    for eje, fase, grosor, tono in (('y', 2 * math.pi * t, 3, acento), ('x', -2 * math.pi * t + .6, 2, colores['cyan'])):
+        puntos = []
+        for i in range(181):
+            th = 2 * math.pi * i / 180
+            px, py, pz = radio * math.cos(th), radio * math.sin(th), 0.0
+            if eje == 'y': px, pz = px * math.cos(fase), px * math.sin(fase)
+            else: py, pz = py * math.cos(fase), py * math.sin(fase)
+            esc = 1 / (1 + pz / (radio * 6))
+            puntos.append((cx + px * esc, cy + py * esc, pz))
+        for i in range(180):
+            if (i // 10) % 3 == 2: continue  # trazos, con el mismo patron cada 180 grados
+            a, c = puntos[i], puntos[i + 1]
+            luz = .45 if a[2] > radio * 1e-6 else 1.0  # la mitad de atras se apaga (umbral: sin(2*pi) no es 0 exacto)
+            col = tuple(round(v * luz) for v in tono)
+            b.line([a[:2], c[:2]], fill=col, width=grosor + 2); d.line([a[:2], c[:2]], fill=col, width=max(1, grosor - 1))
+    # Suelo: cuadricula neon que avanza hacia la camara.
+    d.rectangle([0, hy, W, H], fill=(5, 3, 10))
+    S = D3 / 2
+    desplazado = t * P3 * D3
+    n = math.ceil((CERCA + desplazado) / S)
+    while True:
+        z = n * S - desplazado
+        if z > LEJOS: break
+        if z >= CERCA:
+            y = _proyectar(W, H, 0, 0, z)[1]
+            col = _niebla(tuple(round(v * .55) for v in colores['rojo']), z, (5, 3, 10))
+            d.line([(0, y), (W, y)], fill=col, width=1)
+        n += 1
+    for k in range(-30, 31):
+        xs = k * 4.0
+        a, c = _proyectar(W, H, xs, 0, CERCA), _proyectar(W, H, xs, 0, LEJOS)
+        d.line([a, c], fill=(40, 12, 50) if abs(k) > 1 else tuple(round(v * .5) for v in acento), width=1)
+    # Edificios a los dos lados, del mas lejano al mas cercano.
+    caras = []
+    j0 = math.floor((CERCA - LARGO3 + desplazado) / D3) - 1
+    for lado in (-1, 1):
+        j = j0
+        while True:
+            zf = j * D3 - desplazado + 8
+            if zf > LEJOS: break
+            if zf + LARGO3 > CERCA: caras.append((zf, lado, j))
+            j += 1
+    for zf, lado, j in sorted(caras, key=lambda c: -c[0]):
+        alto, ancho, ventanas, frente, letrero, tono, semilla = _azar_edificio(lado, j)
+        xi = lado * AVENIDA; xe = lado * (AVENIDA + ancho)
+        color_neon = colores[tono]
+        # Cara lateral (mira a la avenida) y cara frontal.
+        lateral = [(xi, 0, zf), (xi, 0, zf + LARGO3), (xi, alto, zf + LARGO3), (xi, alto, zf)]
+        frontal = [(xi, 0, zf), (xe, 0, zf), (xe, alto, zf), (xi, alto, zf)]
+        for poligono, base in ((lateral, (14, 11, 24)), (frontal, (9, 7, 16))):
+            recortado = _recortar(poligono)
+            if len(recortado) >= 3:
+                zc = max(CERCA, sum(p[2] for p in recortado) / len(recortado))
+                plano = [_proyectar(W, H, *p) for p in recortado]
+                d.polygon(plano, fill=_niebla(base, zc))
+                b.polygon(plano, fill=(0, 0, 0))  # el edificio tapa el brillo de lo que hay detras
+        # Ventanas encendidas.
+        for (fila, col) in ventanas:
+            z1 = zf + .5 + col * 1.8
+            if z1 < CERCA: continue
+            y1 = 1 + fila * 2.4
+            quad = [_proyectar(W, H, xi, y1, z1), _proyectar(W, H, xi, y1, z1 + 1.0), _proyectar(W, H, xi, y1 + 1.3, z1 + 1.0), _proyectar(W, H, xi, y1 + 1.3, z1)]
+            if abs(quad[1][0] - quad[0][0]) < .6: continue
+            tono_v = (colores['amarillo'] if (fila + col + semilla) % 7 == 0 else colores['cyan'] if (fila * col + semilla) % 5 == 0
+                      else color_neon if (fila + semilla) % 4 == 0 else (150, 140, 190))
+            luz_v = _niebla(tuple(round(v * .55) for v in tono_v), z1)
+            d.polygon(quad, fill=luz_v)
+            b.polygon(quad, fill=tuple(v // 3 for v in luz_v))
+        if zf >= CERCA:
+            for (fila, col) in frente:
+                x1 = xi + lado * (.6 + col * 1.8); y1 = 1 + fila * 2.4
+                if abs(x1 - xi) > ancho - 1: continue
+                quad = [_proyectar(W, H, x1, y1, zf), _proyectar(W, H, x1 + lado, y1, zf), _proyectar(W, H, x1 + lado, y1 + 1.3, zf), _proyectar(W, H, x1, y1 + 1.3, zf)]
+                d.polygon(quad, fill=_niebla((70, 62, 96) if (fila + col + semilla) % 3 else tuple(round(v * .5) for v in color_neon), zf))
+            # Borde de neon en la esquina que da a la avenida y en el techo.
+            col = _niebla(color_neon, zf, (0, 0, 0))
+            arista = [_proyectar(W, H, xi, 0, zf), _proyectar(W, H, xi, alto, zf)]
+            techo = [_proyectar(W, H, xi, alto, zf), _proyectar(W, H, xi, alto, zf + LARGO3)]
+            grosor = max(1, round(60 / zf))
+            for capa, g in ((b, grosor + 3), (d, grosor)):
+                capa.line(arista, fill=col, width=g); capa.line(techo, fill=col, width=g)
+            # Reflejo en el suelo mojado: la arista bajo el suelo, tenue.
+            reflejo = [_proyectar(W, H, xi, 0, zf), _proyectar(W, H, xi, -alto * .45, zf)]
+            tenue = tuple(round(v * .28) for v in col)
+            d.line(reflejo, fill=tenue, width=grosor); b.line(reflejo, fill=tuple(v // 2 for v in tenue), width=grosor + 2)
+            # Letrero vertical en la cara lateral, cerca del frente.
+            if letrero and zf > 3:
+                y0, y1 = alto * .35, min(alto - 2, alto * .35 + 12)
+                panel = [_proyectar(W, H, xi, y0, zf + 1), _proyectar(W, H, xi, y0, zf + 3), _proyectar(W, H, xi, y1, zf + 3), _proyectar(W, H, xi, y1, zf + 1)]
+                b.polygon(panel, fill=col); d.polygon(panel, outline=col, fill=tuple(round(v * .35) for v in col))
+                for fila in range(5):  # letras como barras de luz
+                    yy = y0 + 1.2 + fila * (y1 - y0 - 2) / 5
+                    d.line([_proyectar(W, H, xi, yy, zf + 1.6), _proyectar(W, H, xi, yy, zf + 2.4)], fill=col, width=max(1, grosor))
+    # Coches voladores: luces que vienen (blancas) y que se van (rojas).
+    VUELTA_COCHE = 240.0
+    for i, (carril, altura, sentido) in enumerate(((-2.2, 11, -1), (2.0, 15, 1), (-1.0, 21, 1), (2.8, 9, -1), (0.5, 26, -1))):
+        z = (i * 53.0 + sentido * -t * VUELTA_COCHE) % VUELTA_COCHE + CERCA + 2
+        if z > LEJOS or z < 14: continue  # muy cerca taparia media pantalla
+        luz = (255, 245, 230) if sentido < 0 else colores['rojo']
+        a, c = _proyectar(W, H, carril, altura, z), _proyectar(W, H, carril, altura, z + 4)
+        g = max(1, round(40 / z))
+        b.line([a, c], fill=luz, width=g + 4); d.line([a, c], fill=luz, width=g)
+        # Su reflejo en el suelo.
+        ra, rc = _proyectar(W, H, carril, -altura, z), _proyectar(W, H, carril, -altura, z + 4)
+        d.line([ra, rc], fill=tuple(v // 5 for v in luz), width=g)
+    # Bloom: lo que brilla se desenfoca y se suma.
+    from PIL import ImageChops
+    img = ImageChops.add(img, brillo.filter(ImageFilter.GaussianBlur(radius=max(2, W // 240))))
+    img = ImageChops.add(img, brillo.filter(ImageFilter.GaussianBlur(radius=max(4, W // 90))), scale=1.6)
+    # Lluvia con profundidad: tres capas, la cercana larga y rapida.
+    capa = Image.new('RGBA', (W, H), (0, 0, 0, 0)); dl = ImageDraw.Draw(capa)
+    claro = tuple(min(255, c + (255 - c) * 6 // 10) for c in acento)
+    azar = random.Random(2077); k = W / 1920
+    for cantidad, (largo0, largo1), vueltas, alfa, ancho in ((260, (8, 16), 1, 40, 1), (140, (18, 34), 2, 60, 1), (40, (50, 90), 3, 70, 2)):
+        for _ in range(cantidad):
+            x0, y0, largo = azar.uniform(0, W), azar.uniform(0, H), azar.uniform(largo0, largo1) * k
+            y = (y0 + vueltas * t * (H + largo)) % (H + largo) - largo
+            x = (x0 - (y - y0) / 5) % W
+            dl.line([(x, y), (x - largo / 5, y + largo)], fill=claro + (alfa,), width=max(1, round(ancho * k)))
+    return Image.alpha_composite(img.convert('RGBA'), capa)
+
+
+def crear3d(acento_hex, salida, tam=(1920, 1080), cuadros=CUADROS_3D):
+    from PIL import Image
+    acento = rgb(acento_hex)
+    marcos = [ciudad3d(tam[0], tam[1], acento, i / cuadros) for i in range(cuadros)]
+    paleta = marcos[len(marcos) // 2].convert('RGB').quantize(colors=224, method=Image.Quantize.MEDIANCUT)
+    gif = [m.convert('RGB').quantize(palette=paleta, dither=Image.Dither.NONE) for m in marcos]
+    salida = Path(salida); salida.parent.mkdir(parents=True, exist_ok=True)
+    tmp = salida.with_name('.' + salida.name + '.tmp')
+    gif[0].save(tmp, format='GIF', save_all=True, append_images=gif[1:], duration=MS, loop=0, disposal=1, optimize=False)
+    os.replace(tmp, salida)
+    quieto = salida.with_suffix('.png'); marcos[0].convert('RGB').save(quieto)
+    return salida, quieto
 
 
 def cubrir(img, tam):
@@ -196,6 +401,8 @@ def preparar(variante, acento, imagen=None):
         elif variante == 'imagen' and imagen.suffix.lower() == '.svg':
             subprocess.run(['rsvg-convert', '-w', '1920', '-o', str(base), str(imagen)], capture_output=True, timeout=120, check=True)
         elif variante == 'imagen': shutil.copyfile(imagen, base)
+        elif variante == 'ciudad3d':
+            crear3d(acento, gif); return gif
         else: base_neon(acento, base)
         crear(base, acento, gif, propio=variante == 'imagen')
     return gif
@@ -211,7 +418,7 @@ def limpiar_viejas(maximo=6):
 
 
 def poner(variante, acento, imagen=None):
-    if variante not in ('neon', 'demonio', 'imagen') or not es_hex(acento): raise ValueError('uso: poner neon|demonio|imagen #RRGGBB [RUTA]')
+    if variante not in ('neon', 'demonio', 'imagen', 'ciudad3d') or not es_hex(acento): raise ValueError('uso: poner neon|demonio|ciudad3d|imagen #RRGGBB [RUTA]')
     if variante == 'imagen':
         imagen = imagen_valida(imagen)
         if not imagen: raise ValueError('imagen no valida: PNG, JPG, WEBP o SVG propios en ~/Imágenes o ~/Pictures')

@@ -31,6 +31,13 @@ def main():
         a, b = rgb(0.0), rgb(1.0)
         assert ImageChops.difference(a.crop((0, 4, 480, 262)), b.crop((0, 4, 480, 262))).getbbox() is None, 'el bucle salta'
         assert ImageChops.difference(a, rgb(.5)).getbbox() is not None, 'no se mueve'
+        # 1b. Ciudad 3D: el bucle cierra (camara, cuadricula, coches, aro y lluvia) y se mueve.
+        for acento in ((90, 216, 255), (255, 42, 79)):
+            c0, c1 = fv.ciudad3d(320, 180, acento, 0.0).convert('RGB'), fv.ciudad3d(320, 180, acento, 1.0).convert('RGB')
+            assert ImageChops.difference(c0, c1).getbbox() is None, 'la ciudad 3D salta'
+            assert ImageChops.difference(c0, fv.ciudad3d(320, 180, acento, .3).convert('RGB')).getbbox() is not None
+        g3, q3 = fv.crear3d('#5ad8ff', tmp / 'c3d.gif', tam=(160, 90), cuadros=4)
+        assert Image.open(g3).n_frames == 4 and Image.open(q3).size == (160, 90)
         # 2. crear: GIF en bucle con su cuadro quieto.
         r = subprocess.run([sys.executable, '-I', str(FUENTE), 'crear', str(RAIZ / 'src/rootfs/desktop/wallpaper-demonio.png'),
                             '#ff2a4f', str(tmp / 'mini.gif'), '--tam', '192x108', '--cuadros', '6'], capture_output=True, text=True, timeout=60)

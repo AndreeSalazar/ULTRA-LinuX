@@ -31,7 +31,7 @@ ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo':
            'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
 OPCIONES = {
     'acento': list(ACENTOS) + ['propio'],
-    'fondo': ['neon', 'demonio', 'vivo', 'vivo-demonio', 'auto', 'nucleo', 'imagen', 'imagen-viva', 'liso'],
+    'fondo': ['neon', 'demonio', 'vivo', 'vivo-demonio', 'ciudad-3d', 'auto', 'nucleo', 'imagen', 'imagen-viva', 'liso'],
     'efectos': ['vivos', 'reducidos'],
     'borde': ['gira', 'quieto'],
     'huecos': ['compacto', 'normal', 'amplio'],
@@ -66,6 +66,8 @@ TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde d
 PERFILES = {
     'neon-hielo': {},
     'demonio': dict(acento='rojo', fondo='demonio', borde='gira', esquinas='rectas', desenfoque='ligero', inactivas='92'),
+    # Todo vivo: ciudad 3D, sonidos, tarjetas y borde que gira.
+    'ciudad-3d': dict(fondo='ciudad-3d', borde='gira', sonidos='si', tarjetas='visibles', desenfoque='ligero', inactivas='92'),
     'sobrio': dict(efectos='reducidos', borde='quieto', desenfoque='no', velocidad='rapida'),
     'minimal': dict(dock='oculto', barra='compacta', huecos='compacto', grosor='1', reloj='24h'),
     'juego': dict(efectos='reducidos', borde='quieto', desenfoque='no', dock='oculto', avisos='arriba-centro', inactivas='100'),
@@ -262,6 +264,10 @@ def rutas_fondo(estado, hora=None):
     acento = color_acento(estado)
     fondo = fondo_efectivo(estado, hora)
     rutas = dict(FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    if fondo == 'ciudad-3d':
+        # Ciudad 3D pre-renderizada: el Neon quieto hasta que el bucle esta listo.
+        rutas.update(VIVO='ciudad3d', VIVO_ACENTO=acento)
+        fondo = 'neon'
     if fondo in ('vivo', 'vivo-demonio'):
         # Se arranca con el estatico y ultra-fondo-vivo lo cambia por el animado cuando esta listo.
         variante = 'demonio' if fondo == 'vivo-demonio' else 'neon'
@@ -558,7 +564,7 @@ def avisar(texto):
 
 
 def menu_perfiles(acento):
-    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'juego': 'Juego'}
+    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'ciudad-3d': 'Ciudad 3D', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'juego': 'Juego'}
     while True:
         propios = perfiles_propios()
         filas = [f'Aplicar: {t}' for t in fabrica.values()] + [f'Aplicar: {n} (tuyo)' for n in propios]

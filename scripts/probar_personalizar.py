@@ -24,7 +24,8 @@ def main():
         foot.write_text((RAIZ / 'src/rootfs/desktop/foot.ini').read_text())
         for nombre in FALSOS:
             falso = bin_ / nombre
-            falso.write_text(f'#!/bin/bash\nprintf "%s\\0" {nombre} "$@" >> {llamadas}; printf "\\n" >> {llamadas}\n')
+            # Una sola escritura por llamada: varios falsos en segundo plano no mezclan sus lineas.
+            falso.write_text(f'#!/bin/bash\nprintf "%s\\0" {nombre} "$@" $\'\\n\' >> {llamadas}\n')
             falso.chmod(0o755)
         herramienta = tmp / 'ultra-personalizar'
         herramienta.write_text(fuente
@@ -44,9 +45,16 @@ def main():
         def correr(*args, ok=True, **extra):
             llamadas.write_text('')
             r = subprocess.run([sys.executable, '-I', str(herramienta), *args], env=dict(entorno, **extra), capture_output=True, text=True, timeout=120)
-            time.sleep(.15)  # Lo lanzado en segundo plano (swaybg, pw-play) termina de anotar.
+            # Lo lanzado en segundo plano (swaybg, pw-play, tarjetas) anota tarde: esperar a que el registro se quede quieto.
+            previo, quieto = None, 0
+            for _ in range(60):
+                time.sleep(.05)
+                actual = llamadas.read_text()
+                quieto = quieto + 1 if actual == previo else 0
+                if quieto >= 4: break
+                previo = actual
             assert (r.returncode == 0) == ok, (args, r.returncode, r.stderr)
-            return r.stdout, [l.split('\0')[:-1] for l in llamadas.read_text().splitlines() if l]
+            return r.stdout, [l.lstrip('\0').split('\0')[:-1] for l in llamadas.read_text().splitlines() if l.strip('\0')]
 
         tema = home / '.config/ultra/tema-personal'
         # Sin elecciones: no genera nada y el escritorio usa /etc/ultra.
@@ -111,6 +119,10 @@ def main():
         estado = json.loads((home / '.config/ultra/personal.json').read_text())
         assert estado['acento'] == 'rojo' and estado['fondo'] == 'demonio' and estado['dock'] == 'visible'
         assert ['swaybg', '-i', str(RAIZ / 'src/rootfs/desktop/wallpaper-demonio.png'), '-m', 'fill'] in cmds
+        _, cmds = correr('perfil', 'aplicar', 'ciudad-3d')
+        estado = json.loads((home / '.config/ultra/personal.json').read_text())
+        assert estado['fondo'] == 'ciudad-3d' and estado['tarjetas'] == 'visibles' and estado['sonidos'] == 'si'
+        assert ['ultra-fondo-vivo', 'poner', 'ciudad3d', '#5ad8ff'] in cmds
         correr('perfil', 'aplicar', 'minimal')
         assert [b['name'] for b in json.loads((tema / 'waybar.jsonc').read_text())] == ['hud']
         correr('perfil', 'guardar', 'mi-noche')
@@ -169,6 +181,9 @@ def main():
         assert 'VIVO=neon' in rutas and 'VIVO_ACENTO=#ff2a4f' in rutas
         _, cmds = correr('poner', 'fondo', 'vivo-demonio')
         assert ['ultra-fondo-vivo', 'poner', 'demonio', '#ff2a4f'] in cmds
+        _, cmds = correr('poner', 'fondo', 'ciudad-3d')
+        assert ['ultra-fondo-vivo', 'poner', 'ciudad3d', '#ff2a4f'] in cmds
+        assert 'VIVO=ciudad3d' in correr('rutas')[0]
         _, cmds = correr('poner', 'fondo', 'neon')
         assert ['ultra-fondo-vivo', 'parar'] in cmds
         # Tu imagen animada: primero quieta y luego con lluvia y escaneo.

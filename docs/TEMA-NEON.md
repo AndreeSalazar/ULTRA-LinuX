@@ -69,7 +69,7 @@ la luna de la barra.
 | Opción | Valores |
 | --- | --- |
 | Acento | hielo, amarillo, cyan, rojo, verde, violeta, coral, blanco o un hex propio (`#RRGGBB`) |
-| Fondo | Neón con el acento elegido, **vivo** o **vivo-demonio** (animados), **imagen-viva** (tu imagen animada), **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
+| Fondo | Neón con el acento elegido, **ciudad-3d** (vuelo en 3D), **vivo** o **vivo-demonio** (animados), **imagen-viva** (tu imagen animada), **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
 | Efectos | vivos o reducidos |
 | Borde de la ventana activa | gira o quieto |
 | Huecos entre ventanas | compacto, normal o amplio |
@@ -101,6 +101,7 @@ en las terminales que abras después. El resto de tu `foot.ini` no se toca.
 | --- | --- |
 | Neón hielo | Todo al tema de fábrica |
 | Demonio | Acento rojo, fondo Demonio, borde que gira, inactivas al 92 % |
+| Ciudad 3D | Fondo ciudad-3d, sonidos, tarjetas, borde que gira, desenfoque ligero, inactivas al 92 % |
 | Sobrio | Efectos reducidos, borde quieto, sin desenfoque, animaciones rápidas |
 | Minimal | Sin dock, barra compacta, huecos compactos, borde de 1 px |
 | Juego | Efectos reducidos, borde quieto, sin desenfoque ni dock, avisos arriba al centro |
@@ -250,6 +251,39 @@ ya decodificados, pero Hyprland recibe una imagen nueva 12 veces por segundo
 mientras estás en el escritorio. Compáralo con `ultra-diagnostico-juego` con el
 fondo `neon` y con `vivo`. `scripts/probar_fondo_vivo.py` comprueba que el bucle
 cierra sin salto, la caché por acento, la pausa y el caso sin awww.
+
+### Ciudad 3D
+
+**Fondo: ciudad-3d** (o el perfil **Ciudad 3D**). La cámara vuela por una avenida
+entre edificios, con perspectiva real. Vista previa:
+[hielo](maquetas/png/neon/ciudad-3d-hielo.mp4) y [rojo](maquetas/png/neon/ciudad-3d-rojo.mp4).
+Son la salida real del generador, no una captura del sistema.
+
+- Edificios a los dos lados con ventanas encendidas y aristas de neón de tu acento,
+  cyan, rojo o violeta.
+- Letreros verticales en las fachadas y niebla que apaga lo lejano.
+- Cuadrícula neón en el suelo que avanza hacia ti.
+- Reflejos del neón y de los coches en el suelo mojado.
+- Coches voladores: luces blancas que vienen y rojas que se van.
+- El aro del autor en 3D: dos anillos que giran sobre la avenida, con la mitad de
+  atrás más tenue y un halo detrás.
+- Lluvia en tres capas: la cercana, larga y rápida; la lejana, fina y lenta.
+- Bloom: el neón se desenfoca y se suma para que brille, y los edificios tapan el
+  brillo de lo que hay detrás.
+
+**Es 3D pre-renderizado, no en tiempo real.** Un motor 3D dibujando todo el rato
+ocuparía la GPU siempre, como un juego en segundo plano, y eso va contra cero
+microtirones. Este se calcula una vez en tu PC con Pillow: 64 cuadros, unos 22 s,
+25 MB en `~/.cache/ultra/fondo-vivo/`. Luego `awww` lo reproduce como el fondo vivo
+y en los juegos se queda quieto.
+
+Para que el bucle de 5,3 s cierre sin salto, todo avanza un número entero de
+periodos: la cámara, 4 edificios (el patrón de edificios se repite cada 4); la
+cuadrícula, 8 líneas; los coches, una vuelta; el aro, una vuelta. La prueba
+compara el cuadro 0 con el 1 píxel a píxel; así encontró un salto real del aro.
+
+Las ventanas de Hyprland no pueden ser 3D: Hyprland solo las mueve, escala y
+desvanece en 2D. El 3D está en el fondo, y las ventanas y las tarjetas flotan encima.
 
 ### Tu imagen, viva
 

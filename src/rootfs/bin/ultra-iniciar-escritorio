@@ -18,7 +18,7 @@ done < <(timeout 60 ultra-personalizar rutas 2>> "$XDG_RUNTIME_DIR/ultra-persona
 if [[ $fondo_modo == color ]]; then swaybg -c "$fondo" & else swaybg -i "$fondo" -m fill & fi
 # Fondo animado: el estatico queda hasta que el bucle esta listo (la primera vez se genera).
 case $vivo in
-    neon|demonio) ultra-fondo-vivo poner "$vivo" "$vivo_acento" >> "$XDG_RUNTIME_DIR/ultra-fondo-vivo.log" 2>&1 & ;;
+    neon|demonio|ciudad3d) ultra-fondo-vivo poner "$vivo" "$vivo_acento" >> "$XDG_RUNTIME_DIR/ultra-fondo-vivo.log" 2>&1 & ;;
     imagen) ultra-fondo-vivo poner imagen "$vivo_acento" "$vivo_imagen" >> "$XDG_RUNTIME_DIR/ultra-fondo-vivo.log" 2>&1 & ;;
 esac
 waybar -c "$barras" -s "$estilo" &

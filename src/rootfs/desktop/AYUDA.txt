@@ -61,6 +61,8 @@ Sonidos, modo juego, fondo vivo y fondo segun la hora se eligen en SUPER + Shift
 Cada elemento tiene su sonido: ventanas, escritorios, menus, avisos, volumen,
 capturas y procesos. Sonidos: basicos deja solo los avisos importantes.
 Fondo vivo: lluvia, aro que gira y letreros que fallan; quieto durante juegos.
+Fondo ciudad-3d (o perfil Ciudad 3D): vuelo en 3D por una avenida neon; la primera
+vez tarda unos 20 s en prepararse y mientras se ve el fondo Neon.
 Fondo imagen-viva: anima tu propia imagen de ~/Imágenes (lluvia, barrido, glitch).
 Tarjetas (SUPER + F9): CPU, RAM, GPU, red, discos y temperatura; clic en CPU o RAM
 para ver y cerrar lo que mas consume.
