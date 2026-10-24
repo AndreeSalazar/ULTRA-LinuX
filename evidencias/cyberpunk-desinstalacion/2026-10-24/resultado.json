@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "date": "2026-10-24",
+  "snapshot_passed": true,
+  "native_recovery_passed": true,
+  "current_base_files": 4991,
+  "current_upper_files": 0,
+  "current_upper_whiteouts": 0,
+  "available_bytes": 249555849216,
+  "independent_inspection_readonly": true,
+  "game_configs_unchanged": true,
+  "gameplay_tested": false
+}

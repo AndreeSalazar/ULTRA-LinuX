@@ -87,6 +87,11 @@ la vista Windows conserva ahora prefijos, cachés y runtimes Linux. Se recuperó
 el entorno anterior de Warframe y se unificó el prefijo de Cyberpunk; la
 pantalla negra de este último sigue pendiente de comprobación en el PC.
 
+[Recuperación tras desinstalación incompleta](docs/CYBERPUNK-DESINSTALACION-2026-10-24.md):
+se respaldó una capa con 49 marcas de borrado y se recuperó el acceso a los
+4.991 archivos. Esto corrige su ocultamiento, no acredita resolver el fallo
+anterior de arranque del juego.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.
@@ -259,20 +264,20 @@ software sigue disponible si falla la ruta NVIDIA.
 | `pc` | Configuración Zen 3 para el Ryzen 5 5600X y módulos NVIDIA compilados para su kernel |
 
 Los sistemas se empaquetan en EROFS de solo lectura. `A:\ULTRA\datos.ext4`
-conserva el estado del arranque por separado. El archivo ordinario de 16 GiB
-`D:\ULTRA-juegos.ext4` se conserva como copia anterior. El almacenamiento activo
-se amplia a **96 GiB** en `C:\Espacio para Linux\ULTRA-juegos.ext4` y aporta
+conserva el estado del arranque por separado. El almacenamiento activo es la
+partición **ext4 ULTRA-DATOS**, antes F:, montada en `/juegos`. El archivo de
+**96 GiB** `C:\Espacio para Linux\ULTRA-juegos.ext4` es una copia anterior,
+no el almacenamiento activo. La partición aporta
 el home persistente en `/juegos/usuarios/ultra`,
 las configuraciones, clientes, partidas y prefijos. Sin él, el escritorio puede
 funcionar con un home temporal en RAM; los lanzadores de juegos evitan descargar allí.
 
-Cyberpunk de Windows se presenta mediante una capa overlay: la instalación de
-`D:\Cyberpunk 2077` se lee como base y las escrituras van al ext4 separado.
-No se reparticionan discos. C: se monta de forma privada para escribir en el
-contenedor; `/windows` y el selector de discos lo presentan con un bind de solo
-lectura. Esto reemplaza la proteccion del dispositivo completo cuando el
-contenedor esta en C:. El apagado desmonta overlay, ext4 y su NTFS en ese orden.
-La imagen viva contiene datos personales: no se sustituye por una imagen
+Cyberpunk reside en esa partición Linux: una base privada y una capa overlay
+de escritura forman `/juegos/Cyberpunk2077`. Ya no depende de la antigua copia
+de D:. Windows se presenta en solo lectura. La base protegida y la vista que
+Heroic modifica son distintas: desinstalar desde esa vista puede ocultar los
+archivos de la base mediante marcas de borrado. No equivale a liberar la base.
+El almacenamiento vivo contiene datos personales: no se sustituye por una imagen
 vacía durante una actualización ni se utiliza en las pruebas desechables.
 
 El [cambio de almacenamiento](docs/ALMACENAMIENTO-C.md) responde a un informe
