@@ -1,0 +1,2 @@
+{"disposable_fixture_directories_removed": ["ultra-bibliotecas-er360er1", "ultra-bibliotecas-7f_4a4if"], "personal_data_touched": false}
+{"generated_stage_removed": true, "stage_allocated_bytes": 5260181504, "final_erofs_preserved": true, "trim": "/: 13.7 GiB (14697537536 bytes) trimmed"}

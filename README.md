@@ -69,7 +69,7 @@ Personal trasladados al ext4 y verificados por SHA-256. Heroic mantiene su ruta,
 sus cambios y sus partidas; el original de D: se retiró con autorización del autor.
 
 [Acceso Cyberpunk corregido](docs/CYBERPUNK-LANZADOR-2026-10-24.md): el menú
-usa la configuración de Heroic; el modo UMU separado queda como recuperación
+usa la configuración de Heroic; el modo UMU queda como recuperación
 con registro de Proton. La carga de partida se valida en el PC.
 
 [Reparación de DLL de Cyberpunk](docs/CYBERPUNK-DLL-2026-10-24.md): dos marcas
@@ -81,6 +81,11 @@ transitivas ocultas; la cadena local termina ahora sin faltantes detectados.
 [Heroic primero](docs/HEROIC-PRIMERO-2026-10-24.md): el acceso abre el gestor
 para revisar actualizaciones. Al pulsar Jugar, se abre REDlauncher y después
 el juego; la recuperación directa sigue disponible.
+
+[Continuidad de Steam y perfiles](docs/CONTINUIDAD-JUEGOS-2026-10-24.md): renovar
+la vista Windows conserva ahora prefijos, cachés y runtimes Linux. Se recuperó
+el entorno anterior de Warframe y se unificó el prefijo de Cyberpunk; la
+pantalla negra de este último sigue pendiente de comprobación en el PC.
 
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza

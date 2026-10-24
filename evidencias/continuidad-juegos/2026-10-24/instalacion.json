@@ -1,0 +1,11 @@
+{
+  "system_sha256": "26E2896BCACC0AB7B0D123FB67DEAC31A0C13F5B210E8A4B1FBD185ED455CD03",
+  "kernel_sha256": "E2242E375F3F508C535F18CF684A573D1D5664350A6199742EE9F0AB1891C8F7",
+  "datos_sha256": "6F3E3D3D5E0071CD745003E7602BE94EC7200DC68E86230D68FD77290E677AFE",
+  "datos_preservados": true,
+  "qa_arranque_verde": 152,
+  "qa_arranque_rojo": 0,
+  "banco_montajes_linux": 13,
+  "fuentes_incluidas": 8,
+  "pantalla_negra_cyberpunk_pendiente": true
+}

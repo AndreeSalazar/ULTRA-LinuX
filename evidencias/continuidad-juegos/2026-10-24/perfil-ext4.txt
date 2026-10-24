@@ -1,0 +1,15 @@
+
+ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINAL-$((40+2))
+ultra:~# ultra-entrar /usr/bin/bash /tmp/repair.sh; echo RESULTADO-$?; echo FINA
+L-$((40+2))
+PERFIL-COMPLETADO {"cyberpunk_prefix_unified": true, "save_conflict_detected": false, "heroic_saves_count": 0, "working_saves_count": 0, "old_prefix_preserved": true, "redlauncher_preserved": true, "proton_log_enabled": true, "config_directory_fsynced": true, "black_screen_fixed_not_proven": true}
+e2fsck 1.47.4 (6-Mar-2025)
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+ULTRA-DATOS: 130458/27172864 files (0.5% non-contiguous), 51882341/108670208 blocks
+PERFIL-CYBERPUNK-42
+RESULTADO-0
+FINAL-42

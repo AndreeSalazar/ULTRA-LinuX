@@ -1,0 +1,9 @@
+{
+  "snapshot_only": true,
+  "physical_source_readonly": true,
+  "warframe_config_sha256": "cefb1ed6baaaade39422ba5bd39b35c451cffbd7ebabc56a851fb5f30540de11",
+  "sniper_StateFlags": "4",
+  "sniper_run_present": true,
+  "proton_present": true,
+  "backup_present": true
+}

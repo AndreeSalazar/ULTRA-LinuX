@@ -32,7 +32,7 @@ def passed(label):
 
 def user_write(path, text):
     subprocess.run(['setpriv', '--reuid=1000', '--regid=1000', '--clear-groups',
-                    'python', '-c', 'from pathlib import Path; import sys; Path(sys.argv[1]).write_text(sys.argv[2])',
+                    'python', '-c', 'from pathlib import Path; import sys; p=Path(sys.argv[1]); p.parent.mkdir(parents=True,exist_ok=True); p.write_text(sys.argv[2])',
                     str(path), text], check=True)
 
 
@@ -60,7 +60,8 @@ try:
         os.chown(path, 1000, 1000)
     subprocess.run(['mount', '-o', 'remount,ro,nosuid,nodev,noexec', str(source)], check=True)
     image = root/'datos.ext4'
-    with image.open('wb') as stream: stream.truncate(256*1024*1024)
+    # Sparse file: enough virtual space for the production 4-GiB free-space guard.
+    with image.open('wb') as stream: stream.truncate(8*1024*1024*1024)
     subprocess.run(['mkfs.ext4', '-q', '-F', str(image)], check=True)
     subprocess.run(['mount', '-o', 'loop,nosuid,nodev', str(image), str(data)], check=True)
     mod.PRIVATE = data/'privado'
@@ -79,6 +80,10 @@ try:
     assert (folder/'juego.exe').read_text() == 'ORIGINAL' and not (folder/'nuevo.txt').exists()
     passed('UID1000 escribe la capa ext4 sin modificar origen protegido')
     user_write(target/'steamapps/compatdata/linux.txt', 'PREFIJO')
+    user_write(target/'steamapps/shadercache/linux.txt', 'CACHE LINUX')
+    runtime_manifest='"AppState" { "appid" "1493710" "name" "Proton Experimental" "StateFlags" "4" "buildid" "123" "installdir" "Proton - Experimental" }'
+    user_write(target/'steamapps/appmanifest_1493710.acf', runtime_manifest)
+    user_write(target/'steamapps/common/Proton - Experimental/proton', 'RUNTIME LINUX')
     passed('Steam puede crear metadatos y prefijos sobre ext4')
     subprocess.run(['umount', str(target)], check=True)
     target = Path(mod.prepare_folder(item, volume))
@@ -101,8 +106,37 @@ try:
     archives = list(mod.PRIVATE.glob(item['id']+'.anterior-*'))
     assert len(archives) == 1
     assert (archives[0]/'upper/nuevo.txt').read_text() == 'PERSISTENTE'
-    assert (archives[0]/'upper/steamapps/compatdata/linux.txt').read_text() == 'PREFIJO'
-    passed('cambio Windows activa vista limpia y conserva capa y prefijos antiguos')
+    assert (target/'steamapps/compatdata/linux.txt').read_text() == 'PREFIJO'
+    assert (target/'steamapps/shadercache/linux.txt').read_text() == 'CACHE LINUX'
+    assert not (target/'steamapps/compatdata/windows.txt').exists()
+    assert not (archives[0]/'upper/steamapps/compatdata').exists()
+    passed('cambio Windows conserva prefijos y cache Linux activos sin revelar datos Windows')
+    assert (target/'steamapps/common/Proton - Experimental/proton').read_text() == 'RUNTIME LINUX'
+    assert (target/'steamapps/appmanifest_1493710.acf').read_text() == runtime_manifest
+    passed('Proton completo y su manifiesto sobreviven al cambio de generacion sin descargar otra copia')
+    bad_old, bad_new = data/'old-malicioso', data/'new-seguro'
+    for store in (bad_old, bad_new):
+        mod.checked_dir(store, 0o700)
+        for suffix in ('upper', 'upper/steamapps'):
+            p=store/suffix; p.mkdir(mode=0o755); os.chown(p,1000,1000)
+    old_apps=bad_old/'upper/steamapps'; new_apps=bad_new/'upper/steamapps'
+    (old_apps/'compatdata').mkdir(); os.chown(old_apps/'compatdata',1000,1000)
+    (old_apps/'compatdata/canary').write_text('CONSERVAR');os.chown(old_apps/'compatdata/canary',1000,1000)
+    (old_apps/'appmanifest_1493710.acf').write_text(runtime_manifest);os.chown(old_apps/'appmanifest_1493710.acf',1000,1000)
+    (old_apps/'common').mkdir(); os.chown(old_apps/'common',1000,1000)
+    (old_apps/'common/Proton - Experimental').symlink_to('/etc',target_is_directory=True)
+    try: mod.retain_linux_state(bad_old,bad_new)
+    except OSError: pass
+    else: raise AssertionError('runtime simbolico admitido')
+    assert (old_apps/'compatdata/canary').read_text()=='CONSERVAR'
+    assert not (new_apps/'compatdata').exists()
+    passed('runtime simbolico se rechaza antes de mover prefijos; sin recorrido root de enlaces')
+    (old_apps/'appmanifest_1493710.acf').write_text(runtime_manifest.replace('Proton - Experimental','../escape'))
+    try: mod.retain_linux_state(bad_old,bad_new)
+    except ValueError: pass
+    else: raise AssertionError('ruta de runtime con escape admitida')
+    assert (old_apps/'compatdata/canary').is_file()
+    passed('manifiesto con escape se rechaza sin alterar prefijos')
     for relative in ('privado-root', 'privado-root/hijo-publico'):
         item = mod.selection({'uuid':'1111-ABCD', 'relative':relative, 'kind':'folder'})
         try:

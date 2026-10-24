@@ -1,0 +1,149 @@
+{
+  "antes_runtimes": [
+    {
+      "library": "5f9b020e65d5dfb89025",
+      "name": "Steam Linux Runtime 3.0 (sniper)",
+      "appid": "1628350",
+      "StateFlags": "1026",
+      "buildid": "0",
+      "installdir": "SteamLinuxRuntime_sniper",
+      "present": true,
+      "proton_script": false,
+      "runtime_script": false,
+      "manifest_mtime": 1792877113.369398
+    },
+    {
+      "library": "5f9b020e65d5dfb89025",
+      "name": "Steam Linux Runtime 4.0",
+      "appid": "4183110",
+      "StateFlags": "4",
+      "buildid": "26116036",
+      "installdir": "SteamLinuxRuntime_4",
+      "present": true,
+      "proton_script": false,
+      "runtime_script": true,
+      "manifest_mtime": 1792876911.7390566
+    },
+    {
+      "library": "5f9b020e65d5dfb89025",
+      "name": "Proton Experimental",
+      "appid": "1493710",
+      "StateFlags": "4",
+      "buildid": "25936768",
+      "installdir": "Proton - Experimental",
+      "present": true,
+      "proton_script": true,
+      "runtime_script": false,
+      "manifest_mtime": 1792877111.6894786
+    },
+    {
+      "library": "5f9b020e65d5dfb89025.anterior-1792854260472306994",
+      "name": "Steam Linux Runtime 3.0 (sniper)",
+      "appid": "1628350",
+      "StateFlags": "4",
+      "buildid": "26116003",
+      "installdir": "SteamLinuxRuntime_sniper",
+      "present": true,
+      "proton_script": false,
+      "runtime_script": true,
+      "manifest_mtime": 1792778069.1439764
+    },
+    {
+      "library": "5f9b020e65d5dfb89025.anterior-1792854260472306994",
+      "name": "Steam Linux Runtime 4.0",
+      "appid": "4183110",
+      "StateFlags": "4",
+      "buildid": "26116036",
+      "installdir": "SteamLinuxRuntime_4",
+      "present": true,
+      "proton_script": false,
+      "runtime_script": true,
+      "manifest_mtime": 1792776922.3937075
+    },
+    {
+      "library": "5f9b020e65d5dfb89025.anterior-1792854260472306994",
+      "name": "Proton Experimental",
+      "appid": "1493710",
+      "StateFlags": "4",
+      "buildid": "25936768",
+      "installdir": "Proton - Experimental",
+      "present": true,
+      "proton_script": true,
+      "runtime_script": false,
+      "manifest_mtime": 1792777007.1064417
+    }
+  ],
+  "despues_runtimes_activos": [
+    {
+      "library": "5f9b020e65d5dfb89025",
+      "name": "Steam Linux Runtime 3.0 (sniper)",
+      "appid": "1628350",
+      "StateFlags": "4",
+      "buildid": "26116003",
+      "installdir": "SteamLinuxRuntime_sniper",
+      "present": true,
+      "proton_script": false,
+      "runtime_script": true,
+      "manifest_mtime": 1792778069.1439764
+    },
+    {
+      "library": "5f9b020e65d5dfb89025",
+      "name": "Steam Linux Runtime 4.0",
+      "appid": "4183110",
+      "StateFlags": "4",
+      "buildid": "26116036",
+      "installdir": "SteamLinuxRuntime_4",
+      "present": true,
+      "proton_script": false,
+      "runtime_script": true,
+      "manifest_mtime": 1792876911.7390566
+    },
+    {
+      "library": "5f9b020e65d5dfb89025",
+      "name": "Proton Experimental",
+      "appid": "1493710",
+      "StateFlags": "4",
+      "buildid": "25936768",
+      "installdir": "Proton - Experimental",
+      "present": true,
+      "proton_script": true,
+      "runtime_script": false,
+      "manifest_mtime": 1792877111.6894786
+    }
+  ],
+  "warframe_ajustes": [
+    {
+      "name": "EE.cfg",
+      "bytes": 27515,
+      "mtime": 1792850155.10986,
+      "sha256": "cefb1ed6baaaade39422ba5bd39b35c451cffbd7ebabc56a851fb5f30540de11"
+    },
+    {
+      "name": "Editor.cfg",
+      "bytes": 488,
+      "mtime": 1792777386.776742,
+      "sha256": "a9d7bd052c7457235d742c43b708cba9bb0b3a99d920fe9319cc1ca38a8f6c29"
+    }
+  ],
+  "heroic_config": [
+    {
+      "targetExe": "/juegos/Cyberpunk2077/REDprelauncher.exe",
+      "verboseLogs": true,
+      "wineVersion": {
+        "bin": "/juegos/usuarios/ultra/.local/share/Steam/compatibilitytools.d/GE-Proton11-11-x86_64/proton",
+        "name": "GE-Proton11-11-x86_64",
+        "type": "proton"
+      },
+      "winePrefix": "/juegos/usuarios/ultra/Juegos/prefijos/cyberpunk2077",
+      "ignoreGameUpdates": false
+    }
+  ],
+  "partidas_conteos": {
+    "recuperacion": 0,
+    "heroic": 0
+  },
+  "partidas_en_conflicto": false,
+  "inspeccion_final_solo_lectura": true,
+  "red": false,
+  "pantalla_negra_resuelta_no_demostrado": true
+}

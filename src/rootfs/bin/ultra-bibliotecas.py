@@ -155,6 +155,100 @@ def rotate_changed_store(store, identity):
     archive = store.with_name(store.name+'.anterior-'+str(time.time_ns()))
     store.rename(archive)
     print('CAPA CONSERVADA:', archive.name, '; origen actualizado, se crea una vista limpia')
+    return archive
+
+
+def retain_linux_state(archive, store):
+    """Move Linux-only state into a fresh generation; never carry game overlays.
+
+    All traversal uses pinned directories and no-follow opens. Runtime manifests
+    are bounded data, never commands. Called before the new view is exposed.
+    """
+    flags = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+    opened = []
+    def directory(parent, name):
+        fd = os.open(name, flags, dir_fd=parent)
+        opened.append(fd)
+        s = os.fstat(fd)
+        if s.st_uid != 1000 or s.st_mode & 0o022:
+            raise ValueError('estado Linux con permisos inesperados')
+        return fd
+    def absent(fd, name):
+        try: os.stat(name, dir_fd=fd, follow_symlinks=False)
+        except FileNotFoundError: return
+        raise ValueError('destino Linux ya ocupado; se conserva')
+    try:
+        for path in (archive, store):
+            checked_dir(path, 0o700)
+        old_root = os.open(archive, flags); opened.append(old_root)
+        new_root = os.open(store, flags); opened.append(new_root)
+        old_upper = directory(old_root, 'upper'); new_upper = directory(new_root, 'upper')
+        old_apps = directory(old_upper, 'steamapps'); new_apps = directory(new_upper, 'steamapps')
+        plans = []
+        for name in ('compatdata', 'shadercache'):
+            try: fd = directory(old_apps, name)
+            except FileNotFoundError: continue
+            absent(new_apps, name)
+            plans.append((name, fd))
+        runtimes = []
+        old_common = None
+        names = []
+        with os.scandir(old_apps) as entries:
+            for entry in entries:
+                if len(names) >= 2048: raise ValueError('demasiados metadatos en la capa Linux')
+                names.append(entry.name)
+        for name in sorted(names):
+            if not re.fullmatch(r'appmanifest_[0-9]{1,10}\.acf', name): continue
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=old_apps)
+            with os.fdopen(fd, 'rb') as stream:
+                info = os.fstat(stream.fileno())
+                if not stat.S_ISREG(info.st_mode) or info.st_uid != 1000:
+                    raise ValueError('manifiesto Linux no regular o propietario distinto')
+                raw = stream.read(LIMIT+1)
+            if len(raw) > LIMIT: raise ValueError('manifiesto Linux demasiado grande')
+            row = parse_vdf(raw.decode('utf-8-sig')).get('AppState', {})
+            title = row.get('name', '') if isinstance(row, dict) else ''
+            if not isinstance(title, str) or not title.startswith(('Proton', 'Steam Linux Runtime')): continue
+            appid, folder = row.get('appid', ''), row.get('installdir', '')
+            if (not isinstance(appid, str) or name != f'appmanifest_{appid}.acf'
+                    or not appid.isdecimal() or not str(row.get('StateFlags', '')).isdecimal()
+                    or not int(row['StateFlags']) & 4 or not str(row.get('buildid', '')).isdecimal()
+                    or int(row['buildid']) == 0): continue
+            if (not isinstance(folder, str) or not folder or folder in ('.', '..')
+                    or any(c in folder for c in '/\\\0\n\r')):
+                raise ValueError('ruta de runtime invalida')
+            if old_common is None: old_common = directory(old_apps, 'common')
+            fd = directory(old_common, folder)
+            absent(new_apps, name)
+            runtimes.append((name, folder, fd, raw))
+        new_common = None
+        if runtimes:
+            os.mkdir('common', 0o755, dir_fd=new_apps)
+            os.chown('common', 1000, 1000, dir_fd=new_apps, follow_symlinks=False)
+            new_common = directory(new_apps, 'common')
+        def move(name, src, dst, fd):
+            absent(dst, name)
+            expected = os.fstat(fd)
+            current = os.stat(name, dir_fd=src, follow_symlinks=False)
+            if (current.st_dev, current.st_ino) != (expected.st_dev, expected.st_ino):
+                raise ValueError('estado Linux cambio durante la preparacion')
+            os.rename(name, name, src_dir_fd=src, dst_dir_fd=dst)
+            current = os.stat(name, dir_fd=dst, follow_symlinks=False)
+            if (current.st_dev, current.st_ino) != (expected.st_dev, expected.st_ino):
+                raise ValueError('estado Linux redirigido; revisar sin borrar')
+        for name, fd in plans:
+            os.setxattr(fd, 'trusted.overlay.opaque', b'y')
+            move(name, old_apps, new_apps, fd)
+        for name, folder, fd, raw in runtimes:
+            move(folder, old_common, new_common, fd)
+            target = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=new_apps)
+            with os.fdopen(target, 'wb') as stream:
+                os.fchown(stream.fileno(), 1000, 1000)
+                stream.write(raw); stream.flush(); os.fsync(stream.fileno())
+        os.fsync(new_apps)
+        print('ESTADO LINUX CONSERVADO:', len(plans), 'directorios de prefijos/cache;', len(runtimes), 'runtimes')
+    finally:
+        for fd in reversed(opened): os.close(fd)
 
 
 def checked_dir(path, mode=0o755):
@@ -344,7 +438,7 @@ def prepare_folder(item, volume):
     try:
         version = signature(alias, item['kind'])
         identity = {**item, 'version': version}
-        rotate_changed_store(store, identity)
+        previous = rotate_changed_store(store, identity)
         if store.exists() or store.is_symlink():
             checked_dir(store, 0o700)
             state = read_json(store/'source.json')
@@ -363,8 +457,11 @@ def prepare_folder(item, volume):
                 apps = store/'upper/steamapps'
                 apps.mkdir(mode=0o755)
                 os.chown(apps, 1000, 1000)
+                if previous is not None:
+                    retain_linux_state(previous, store)
                 for child in ('compatdata', 'shadercache'):
                     directory = apps/child
+                    if directory.exists(): continue
                     directory.mkdir(mode=0o700)
                     os.chown(directory, 1000, 1000)
                     os.setxattr(directory, 'trusted.overlay.opaque', b'y')
@@ -422,6 +519,12 @@ def read_vdf(path):
     """Bounded KeyValues reader; reject ambiguous input instead of losing fields."""
     with path.open('r', encoding='utf-8-sig') as stream:
         raw = stream.read(LIMIT+1)
+    if len(raw.encode()) > LIMIT:
+        raise ValueError('metadatos Steam demasiado grandes')
+    return parse_vdf(raw)
+
+
+def parse_vdf(raw):
     if len(raw.encode()) > LIMIT:
         raise ValueError('metadatos Steam demasiado grandes')
     tokens, pos = [], 0
