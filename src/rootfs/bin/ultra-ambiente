@@ -39,7 +39,7 @@ if [[ $mode == menu ]]; then
             ambiente) title='Ambiente / AMARILLO'; accent=fcee0aff
                 rows=('Personalizar escritorio' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Volver a categorias');;
             sistema) title='Sistema / CORAL'; accent=ff7a90ff
-                rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Volver a categorias');;
+                rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Guardar incidente' 'Abrir incidentes' 'Volver a categorias');;
             *) exit 2;;
         esac
         if ! choice=$(pick "${rows[@]}"); then
@@ -99,6 +99,8 @@ if [[ $mode == menu ]]; then
         'Equipo en vivo') exec foot --title='ULTRA / Equipo en vivo' watch -n 2 ultra-equipo texto;;
         'Administrador de aplicaciones') exec foot --fullscreen --title='ULTRA / Aplicaciones' ultra-aplicaciones;;
         'Limpiar registros ULTRA antiguos') exec foot --hold ultra-espacio limpiar;;
+        'Guardar incidente') exec ultra-incidente guardar;;
+        'Abrir incidentes') exec ultra-incidente abrir;;
         *) exit 0;;
     esac
 fi
@@ -114,5 +116,7 @@ case $mode in
     *) printf 'Uso: ultra-ambiente menu|alternar|vivo|sobrio\n' >&2; exit 2;;
 esac
 hyprctl eval "hl.config({animations={enabled=$enabled},decoration={blur={enabled=$enabled},shadow={enabled=$enabled}}})" >/dev/null
+# Con personalizacion guardada, vuelve a poner su desenfoque, esquinas y animaciones para este modo.
+ultra-personalizar hyprland "$mode" >/dev/null 2>&1 || true
 printf '%s\n' "$mode" > "$state"
 notify-send --app-name=ULTRA --icon=preferences-desktop-theme 'BMO-X / Ambiente' "$message" || true

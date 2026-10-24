@@ -37,12 +37,41 @@ OPCIONES = {
     'cursor': ['24', '28', '32', '48'],
     'barra': ['compacta', 'normal', 'grande'],
     'inactivas': ['100', '92', '85'],
+    'esquinas': ['rectas', 'suaves', 'redondas'],
+    'animacion': ['emergente', 'deslizar', 'zoom'],
+    'velocidad': ['rapida', 'normal', 'lenta'],
+    'desenfoque': ['ligero', 'fuerte', 'no'],
+    'posicion': ['arriba', 'abajo'],
+    'dock': ['visible', 'oculto'],
+    'reloj': ['24h', '12h', 'segundos'],
+    'avisos': ['arriba-derecha', 'arriba-centro', 'abajo-derecha'],
+    'letra': ['neon', 'petch', 'mono', 'clasica'],
 }
 DEFECTO = dict(acento='hielo', fondo='neon', imagen='', efectos='vivos', borde='gira', huecos='normal',
-               grosor='2', cursor='28', barra='normal', inactivas='100')
+               grosor='2', cursor='28', barra='normal', inactivas='100', esquinas='rectas', animacion='emergente',
+               velocidad='normal', desenfoque='ligero', posicion='arriba', dock='visible', reloj='24h',
+               avisos='arriba-derecha', letra='neon')
 TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde de la ventana activa',
                huecos='Huecos entre ventanas', grosor='Grosor del borde', cursor='Tamano del cursor',
-               barra='Tamano de la barra', inactivas='Opacidad de ventanas inactivas')
+               barra='Tamano de la barra', inactivas='Opacidad de ventanas inactivas', esquinas='Esquinas',
+               animacion='Animacion al abrir', velocidad='Velocidad de animaciones', desenfoque='Desenfoque',
+               posicion='Posicion de la barra', dock='Dock', reloj='Reloj', avisos='Posicion de avisos',
+               letra='Letra de la interfaz')
+GRUPOS = [('Colores y fondo', ['acento', 'fondo']),
+          ('Ventanas', ['borde', 'grosor', 'esquinas', 'huecos', 'inactivas']),
+          ('Animaciones y efectos', ['efectos', 'animacion', 'velocidad', 'desenfoque']),
+          ('Barra y dock', ['posicion', 'barra', 'dock', 'reloj']),
+          ('Avisos, letra y cursor', ['avisos', 'letra', 'cursor'])]
+ESQUINAS = {'rectas': 0, 'suaves': 6, 'redondas': 12}
+DESENFOQUE = {'ligero': (3, 1), 'fuerte': (8, 3), 'no': (3, 1)}
+VELOCIDAD = {'rapida': .6, 'normal': 1.0, 'lenta': 1.6}
+ESTILO = {'emergente': 'popin 90%', 'deslizar': 'slide', 'zoom': 'popin 60%'}
+RELOJ = {'24h': '{:%H:%M}', '12h': '{:%I:%M %p}', 'segundos': '{:%H:%M:%S}'}
+# Familia de la barra, de los avisos (mako) y del lanzador (fuzzel).
+LETRAS = {'neon': ('"Rajdhani", "DejaVu Sans Condensed"', 'Chakra Petch', 'JetBrains Mono'),
+          'petch': ('"Chakra Petch", "DejaVu Sans"', 'Chakra Petch', 'Chakra Petch'),
+          'mono': ('"JetBrains Mono", "DejaVu Sans Mono"', 'JetBrains Mono', 'JetBrains Mono'),
+          'clasica': ('"DejaVu Sans"', 'DejaVu Sans', 'DejaVu Sans')}
 HUECOS = {'compacto': (3, 6), 'normal': (6, 12), 'amplio': (10, 24)}
 BARRA = {'compacta': (13, 19), 'normal': (15, 23), 'grande': (17, 27)}
 IMAGENES = ('Imágenes', 'Pictures')
@@ -138,11 +167,43 @@ def generar(estado):
     # Una sola pasada: un cambio no debe volver a tocar el resultado de otro.
     tamanos = {'15': letra, '17': letra + 2, '23': reloj}
     css = re.sub(r'font-size: (15|17|23)px', lambda m: f'font-size: {tamanos[m.group(1)]}px', css)
-    escribir(TEMA / 'waybar.css', css)
-    escribir(TEMA / 'mako.conf', recolorear((ETC / 'mako.conf').read_text(), acento))
-    escribir(TEMA / 'fuzzel.ini', recolorear((ETC / 'fuzzel.ini').read_text(), acento))
-    rutas = dict(WAYBAR_CSS=TEMA / 'waybar.css', MAKO_CONF=TEMA / 'mako.conf', FUZZEL_INI=TEMA / 'fuzzel.ini',
-                 FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    barra_familia, aviso_familia, lanzador_familia = LETRAS[estado['letra']]
+    css = css.replace('"Rajdhani", "DejaVu Sans Condensed"', barra_familia)
+    if estado['letra'] != 'neon': css = css.replace('"Chakra Petch", "DejaVu Sans"', barra_familia)
+    abajo, con_dock = estado['posicion'] == 'abajo', estado['dock'] == 'visible'
+    lineas = []
+    for linea in css.splitlines():
+        # Barra abajo: su linea de acento pasa arriba; el dock sube y la suya pasa abajo.
+        if abajo and linea.startswith('window#waybar.hud > box'):
+            linea = linea.replace('border-bottom: 2px solid', 'border-top: 2px solid').replace('0 2px 14px', '0 -2px 14px')
+        if abajo and linea.startswith('window#waybar.dock > box'):
+            linea = linea.replace('border-top: 2px solid', 'border-bottom: 2px solid').replace('0 -2px 14px', '0 2px 14px')
+        lineas.append(linea)
+    escribir(TEMA / 'waybar.css', '\n'.join(lineas) + '\n')
+    barras = json.loads((ETC / 'waybar.jsonc').read_text())
+    hud = next(b for b in barras if b.get('name') == 'hud')
+    hud['clock']['format'] = RELOJ[estado['reloj']]
+    if estado['reloj'] == 'segundos': hud['clock']['interval'] = 1
+    if abajo: hud['position'] = 'bottom'
+    final = [hud]
+    if con_dock:
+        dock = next(b for b in barras if b.get('name') == 'dock')
+        if abajo:
+            dock['position'] = 'top'; dock['margin-top'] = dock.pop('margin-bottom', 12)
+        final.append(dock)
+    final += [b for b in barras if b.get('name') not in ('hud', 'dock')]
+    escribir(TEMA / 'waybar.jsonc', json.dumps(final, ensure_ascii=False, indent=2) + '\n')
+    mako = recolorear((ETC / 'mako.conf').read_text(), acento).replace('font=Chakra Petch 11', f'font={aviso_familia} 11')
+    ancla = {'arriba-derecha': 'top-right', 'arriba-centro': 'top-center', 'abajo-derecha': 'bottom-right'}[estado['avisos']]
+    arriba = 90 if (abajo and con_dock) else (12 if abajo else 48)
+    debajo = 52 if abajo else (90 if con_dock else 12)
+    mako = re.sub(r'^anchor=.*$', f'anchor={ancla}', mako, flags=re.M)
+    mako = re.sub(r'^outer-margin=.*$', f'outer-margin={arriba},0,{debajo}', mako, flags=re.M)
+    escribir(TEMA / 'mako.conf', mako)
+    escribir(TEMA / 'fuzzel.ini', recolorear((ETC / 'fuzzel.ini').read_text(), acento)
+             .replace('font=JetBrains Mono:size=12', f'font={lanzador_familia}:size=12'))
+    rutas = dict(WAYBAR_CSS=TEMA / 'waybar.css', WAYBAR_JSON=TEMA / 'waybar.jsonc', MAKO_CONF=TEMA / 'mako.conf',
+                 FUZZEL_INI=TEMA / 'fuzzel.ini', FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
     if estado['fondo'] == 'nucleo':
         rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
     elif estado['fondo'] == 'imagen' and imagen_valida(estado['imagen']):
@@ -165,15 +226,31 @@ def rutas_sesion():
     return generar(estado)
 
 
-def lua_hyprland(estado):
+def modo_efectos(estado, modo=None):
+    """vivo o sobrio: el que pide ultra-ambiente, o el guardado; el modo software siempre es sobrio."""
+    if modo in ('vivo', 'sobrio'): return modo
+    if os.environ.get('ULTRA_EFECTOS') == 'sobrio': return 'sobrio'
+    return 'vivo' if estado['efectos'] == 'vivos' else 'sobrio'
+
+
+def lua_hyprland(estado, modo=None):
     acento = color_acento(estado)[1:]
     dentro, fuera = HUECOS[estado['huecos']]
     opacidad = int(estado['inactivas']) / 100
+    vivo = modo_efectos(estado, modo) == 'vivo'
+    tam, pasadas = DESENFOQUE[estado['desenfoque']]
+    si = lambda v: 'true' if v else 'false'
     lua = ('hl.config({general={gaps_in=%d,gaps_out=%d,border_size=%s,col={active_border={colors={"rgba(%sff)","rgba(ff2a4fff)","rgba(00f0ffff)"},angle=45}}},'
-           'decoration={inactive_opacity=%.2f,shadow={color="rgba(%s40)"}}})'
-           % (dentro, fuera, estado['grosor'], acento, opacidad, acento))
-    lua += ';hl.animation({leaf="borderangle",enabled=%s,speed=60,bezier="lineal",style="loop"})' % (
-        'true' if estado['borde'] == 'gira' else 'false')
+           'decoration={rounding=%d,inactive_opacity=%.2f,shadow={enabled=%s,color="rgba(%s40)"},blur={enabled=%s,size=%d,passes=%d}},'
+           'animations={enabled=%s}})'
+           % (dentro, fuera, estado['grosor'], acento, ESQUINAS[estado['esquinas']], opacidad, si(vivo), acento,
+              si(vivo and estado['desenfoque'] != 'no'), tam, pasadas, si(vivo)))
+    factor = VELOCIDAD[estado['velocidad']]
+    for hoja, base, estilo in (('windows', 4, ESTILO[estado['animacion']]), ('windowsOut', 2, 'popin 94%'), ('windowsMove', 3.5, None),
+                               ('fade', 2, None), ('layers', 2.5, 'slide'), ('workspaces', 4, 'slide')):
+        lua += ';hl.animation({leaf="%s",enabled=true,speed=%.1f,bezier="ultraEase"%s})' % (
+            hoja, base * factor, f',style="{estilo}"' if estilo else '')
+    lua += ';hl.animation({leaf="borderangle",enabled=%s,speed=60,bezier="lineal",style="loop"})' % si(estado['borde'] == 'gira')
     return lua
 
 
@@ -199,11 +276,16 @@ def cursor_gtk(tamano):
         if nuevo != texto: escribir(path, nuevo)
 
 
-def aplicar_hyprland(estado):
+def aplicar_hyprland(estado, modo=None):
+    """Con modo (lo pide ultra-ambiente) no cambia el estado de efectos guardado."""
     if not os.environ.get('HYPRLAND_INSTANCE_SIGNATURE'): return
-    ejecutar('hyprctl', 'eval', lua_hyprland(estado))
+    ejecutar('hyprctl', 'eval', lua_hyprland(estado, modo))
     ejecutar('hyprctl', 'setcursor', 'ULTRA-Nucleo', estado['cursor'])
-    ejecutar('ultra-ambiente', 'vivo' if estado['efectos'] == 'vivos' else 'sobrio')
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    if modo is None and runtime and Path(runtime).is_dir():
+        # Para que Super+Shift+A alterne desde el modo que se acaba de aplicar.
+        try: escribir(Path(runtime) / 'ultra-efectos', modo_efectos(estado) + '\n')
+        except (OSError, ValueError): pass
 
 
 def aplicar(estado, reiniciar=True):
@@ -215,14 +297,14 @@ def aplicar(estado, reiniciar=True):
     if rutas['FONDO_MODO'] == 'color': lanzar('swaybg', '-c', str(rutas['FONDO']))
     else: lanzar('swaybg', '-i', str(rutas['FONDO']), '-m', 'fill')
     ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar')
-    lanzar('waybar', '-c', str(ETC / 'waybar.jsonc'), '-s', str(rutas['WAYBAR_CSS']))
+    lanzar('waybar', '-c', str(rutas['WAYBAR_JSON']), '-s', str(rutas['WAYBAR_CSS']))
     ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako')
     lanzar('mako', '--config', str(rutas['MAKO_CONF']))
     return rutas
 
 
 def restablecer():
-    for nombre in ('waybar.css', 'mako.conf', 'fuzzel.ini', 'fondo.svg'):
+    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg'):
         try: (TEMA / nombre).unlink()
         except FileNotFoundError: pass
     try: ESTADO.unlink()
@@ -271,18 +353,27 @@ def avisar(texto):
 
 
 def menu():
+    grupo = None
     while True:
         estado, _ = leer_estado()
         acento = color_acento(estado)
-        claves = list(OPCIONES)
-        filas = [f'{TITULOS[c]}: {estado[c]}' for c in claves] + ['Restablecer todo', 'Cerrar']
-        eleccion = elegir(filas, 'PERSONALIZAR', acento)
-        eleccion = eleccion.strip() if eleccion is not None else None
-        if eleccion is None or eleccion == 'Cerrar': return
-        if eleccion == 'Restablecer todo':
-            if elegir(['No, volver', 'Si, restablecer todo'], 'RESTABLECER', acento) == 'Si, restablecer todo':
-                restablecer(); avisar('Escritorio restablecido al tema Neon hielo.')
+        if grupo is None:
+            filas = [g for g, _ in GRUPOS] + ['Restablecer todo', 'Cerrar']
+            eleccion = elegir(filas, 'PERSONALIZAR', acento)
+            eleccion = eleccion.strip() if eleccion is not None else None
+            if eleccion is None or eleccion == 'Cerrar': return
+            if eleccion == 'Restablecer todo':
+                if elegir(['No, volver', 'Si, restablecer todo'], 'RESTABLECER', acento) == 'Si, restablecer todo':
+                    restablecer(); avisar('Escritorio restablecido al tema Neon hielo.')
+                continue
+            grupo = next((g for g in GRUPOS if g[0] == eleccion), None)
             continue
+        claves = grupo[1]
+        filas = [f'{TITULOS[c]}: {estado[c]}' for c in claves] + ['← volver']
+        eleccion = elegir(filas, grupo[0].upper(), acento)
+        eleccion = eleccion.strip() if eleccion is not None else None
+        if eleccion is None or eleccion == '← volver':
+            grupo = None; continue
         clave = claves[filas.index(eleccion)] if eleccion in filas[:len(claves)] else None
         if clave is None: continue
         opciones = OPCIONES[clave]
@@ -324,7 +415,8 @@ def main():
         for clave, valor in rutas_sesion().items(): print(f'{clave}={valor}')
     elif accion == 'hyprland':
         estado, existe = leer_estado()
-        if existe: aplicar_hyprland(estado)
+        modo = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] in ('vivo', 'sobrio') else None
+        if existe: aplicar_hyprland(estado, modo)
     elif accion == 'acento':
         estado, existe = leer_estado()
         if existe: print(color_acento(estado)[1:] + 'ff')

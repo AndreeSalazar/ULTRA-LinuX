@@ -14,7 +14,8 @@ SUPER + Shift + E   Abrir Windows NVMe en solo lectura (/windows)
 SUPER + H           Esta ayuda
 SUPER + Space       Centro BMO-X: aplicaciones y ambiente
 SUPER + Shift + A   Alternar efectos vivos / reducidos
-SUPER + Shift + P   Personalizar: acento, fondo, borde, huecos, cursor y barra
+SUPER + Shift + P   Personalizar: colores, fondo, ventanas, barra, dock, avisos y letra
+SUPER + Shift + I   Guardar incidente: eventos del kernel, memoria y registros del momento
 SUPER + C           Limpiar notificaciones
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo

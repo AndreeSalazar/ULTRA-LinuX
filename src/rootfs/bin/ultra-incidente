@@ -1,0 +1,218 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Foto acotada de un incidente para UID 1000: que se cruzo cuando algo fallo.
+
+Guarda en ~/.cache/ultra/incidentes/incidente-<fecha>/ un resumen JSON y las
+ultimas lineas de registros elegidos. Solo lectura del sistema, sin root ni red.
+No copia cuentas, registros de conexion, variables de entorno ni lineas de comando;
+tapa correos y valores con forma de token. Revisar antes de compartir.
+"""
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+PROC = Path('/proc')
+EVENTOS = Path('/run/ultra-kernel/eventos.json')
+CARPETA = HOME / '.cache/ultra/incidentes'
+MAX_INCIDENTES = 8
+MAX_REGISTRO = 256 * 1024
+LINEAS = 200
+# Registros permitidos: lanzadores de ULTRA y el registro de contenido de Steam (verificacion).
+REGISTROS = {
+    'steam': HOME / '.cache/ultra/steam.log',
+    'steam-bibliotecas': HOME / '.cache/ultra/steam-bibliotecas.log',
+    'cyberpunk': HOME / '.cache/ultra/cyberpunk.log',
+    'gog-cyberpunk': HOME / '.cache/ultra/gog-cyberpunk.log',
+    'steam-content_log': HOME / '.local/share/Steam/logs/content_log.txt',
+    'steam-stderr': HOME / '.local/share/Steam/logs/stderr.txt',
+}
+TAPAR = [
+    (re.compile(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}'), '[correo]'),
+    (re.compile(r'(?i)\b(token|password|passwd|secret|auth|cookie|session)(\w*)\s*[=:]\s*\S+'), r'\1\2=[tapado]'),
+    (re.compile(r'\b[A-Za-z0-9+/_-]{40,}={0,2}'), '[largo-tapado]'),
+]
+
+
+def leer(path, limite=65536):
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as f:
+        if not stat.S_ISREG(os.fstat(f.fileno()).st_mode): raise ValueError('no regular')
+        return f.read(limite).decode('utf-8', errors='replace')
+
+
+def cola(path):
+    """Ultimas LINEAS de un archivo regular propio, leyendo como mucho MAX_REGISTRO del final."""
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as f:
+        info = os.fstat(f.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid(): raise ValueError('registro ajeno o no regular')
+        f.seek(max(0, info.st_size - MAX_REGISTRO))
+        texto = f.read(MAX_REGISTRO).decode('utf-8', errors='replace')
+    lineas = texto.splitlines()[-LINEAS:]
+    for patron, reemplazo in TAPAR:
+        lineas = [patron.sub(reemplazo, l) for l in lineas]
+    return '\n'.join(lineas) + '\n'
+
+
+def eventos_kernel():
+    try:
+        datos = json.loads(leer(EVENTOS, 65536))
+    except (OSError, ValueError):
+        return dict(estado='no_disponible', eventos=[])
+    salida = []
+    for e in datos.get('events', [])[-64:]:
+        if e.get('type') not in ('nvidia_xid', 'seccomp_audit', 'oom', 'storage_error'): continue
+        fila = dict(tipo=e['type'])
+        for clave in ('kernel_s', 'pid', 'code'):
+            if isinstance(e.get(clave), (int, float)): fila[clave] = e[clave]
+        if fila['tipo'] == 'seccomp_audit' and 'code' in fila: fila['syscall'] = fila.pop('code')
+        if isinstance(fila.get('pid'), int):
+            try: fila['proceso'] = leer(PROC / str(fila['pid']) / 'comm', 64).strip()[:32]
+            except (OSError, ValueError): fila['proceso'] = None
+        salida.append(fila)
+    estado = datos.get('status') if datos.get('status') in ('escuchando', 'detenido', 'no_disponible') else 'NA'
+    return dict(estado=estado, eventos=salida)
+
+
+def memoria():
+    datos = {}
+    try:
+        for linea in leer(PROC / 'meminfo').splitlines():
+            clave, _, valor = linea.partition(':')
+            if clave in ('MemTotal', 'MemAvailable', 'SwapTotal', 'SwapFree', 'Dirty', 'Writeback'):
+                datos[clave + '_MiB'] = round(int(valor.split()[0]) / 1024)
+    except (OSError, ValueError, IndexError): pass
+    return datos
+
+
+def presion():
+    datos = {}
+    for recurso in ('cpu', 'memory', 'io'):
+        try:
+            for tipo, media in re.findall(r'^(some|full) avg10=([0-9.]+)', leer(PROC / 'pressure' / recurso), re.M):
+                datos[f'{recurso}.{tipo}.avg10'] = float(media)
+        except (OSError, ValueError): pass
+    return datos
+
+
+def montajes():
+    """Solo /juegos, la capa de escritura y Windows: punto, tipo y si es de solo lectura."""
+    filas = []
+    try:
+        for linea in leer(PROC / 'self/mountinfo', 262144).splitlines():
+            campos = linea.split(' - ')
+            if len(campos) != 2: continue
+            antes, despues = campos[0].split(), campos[1].split()
+            punto = antes[4] if len(antes) > 4 else ''
+            if not re.match(r'^/(juegos|windows|discos)(/|$)', punto): continue
+            filas.append(dict(punto=punto[:200], tipo=despues[0] if despues else None,
+                              solo_lectura='ro' in antes[5].split(',') if len(antes) > 5 else None))
+            if len(filas) >= 32: break
+    except (OSError, ValueError, IndexError): pass
+    return filas
+
+
+def espacio():
+    datos = {}
+    for nombre, ruta in (('home', HOME), ('juegos', Path('/juegos'))):
+        try:
+            uso = shutil.disk_usage(ruta)
+            datos[nombre + '_libre_GiB'] = round(uso.free / 2**30, 2)
+        except OSError:
+            datos[nombre + '_libre_GiB'] = None
+    return datos
+
+
+def procesos():
+    """Los 12 procesos propios con mas memoria: nombre, estado y RSS. Sin lineas de comando."""
+    filas = []
+    for path in PROC.iterdir():
+        if not path.name.isdecimal(): continue
+        try:
+            if path.stat().st_uid != os.geteuid(): continue
+            crudo = leer(path / 'stat', 8192); fin = crudo.rindex(')')
+            nombre = ''.join(c for c in crudo[crudo.index('(') + 1:fin] if c.isprintable())[:32]
+            valores = crudo[fin + 2:].split()
+            filas.append(dict(pid=int(path.name), nombre=nombre, estado=valores[0],
+                              rss_MiB=round(int(valores[21]) * os.sysconf('SC_PAGE_SIZE') / 2**20)))
+        except (OSError, ValueError, IndexError): continue
+    return sorted(filas, key=lambda f: f['rss_MiB'], reverse=True)[:12]
+
+
+def escribir(path, texto):
+    fd, nombre = tempfile.mkstemp(prefix='.incidente-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as f:
+            os.fchmod(f.fileno(), 0o600); f.write(texto)
+        os.replace(nombre, path)
+    finally:
+        if os.path.exists(nombre): os.unlink(nombre)
+
+
+def carpeta_segura(path):
+    path.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if path.is_symlink() or path.resolve() != path or path.stat().st_uid != os.geteuid():
+        raise ValueError('carpeta de incidentes redirigida')
+
+
+def guardar(nota=''):
+    carpeta_segura(CARPETA)
+    if len(list(CARPETA.glob('incidente-*'))) >= MAX_INCIDENTES:
+        raise ValueError(f'Ya hay {MAX_INCIDENTES} incidentes. Abre la carpeta y retira los que no necesites.')
+    marca = time.strftime('%Y%m%d-%H%M%S', time.gmtime())
+    destino = CARPETA / f'incidente-{marca}'
+    destino.mkdir(mode=0o700)
+    (destino / 'registros').mkdir(mode=0o700)
+    guardados, ausentes = [], []
+    for nombre, ruta in REGISTROS.items():
+        try:
+            escribir(destino / 'registros' / f'{nombre}.txt', cola(ruta)); guardados.append(nombre)
+        except (OSError, ValueError):
+            ausentes.append(nombre)
+    try: uptime = float(leer(PROC / 'uptime').split()[0])
+    except (OSError, ValueError, IndexError): uptime = None
+    resumen = dict(schema=1, utc=marca, uptime_s=uptime, nota=nota[:500], kernel=eventos_kernel(),
+                   memoria=memoria(), presion_avg10=presion(), espacio=espacio(), montajes=montajes(),
+                   procesos=procesos(), registros=dict(guardados=guardados, ausentes=ausentes),
+                   alcance='Foto del momento; no demuestra la causa por si sola. Registros recortados y con correos/tokens tapados.')
+    escribir(destino / 'resumen.json', json.dumps(resumen, ensure_ascii=False, indent=1) + '\n')
+    return destino, resumen
+
+
+def avisar(titulo, texto, critico=False):
+    try:
+        subprocess.run(['notify-send', '--app-name=ULTRA', '--icon=dialog-warning'] + (['--urgency=critical'] if critico else []) +
+                       [titulo, texto], timeout=3, check=False, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError): pass
+
+
+def main():
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    os.umask(0o077)
+    accion = sys.argv[1] if len(sys.argv) > 1 else 'guardar'
+    if accion == 'guardar':
+        destino, resumen = guardar(' '.join(sys.argv[2:]))
+        eventos = resumen['kernel']['eventos']
+        tipos = sorted({e['tipo'] for e in eventos})
+        avisar('Incidente guardado', f'{destino.name}: {len(eventos)} eventos del kernel'
+               + (f' ({", ".join(tipos)})' if tipos else '') + f', {len(resumen["registros"]["guardados"])} registros. Revísalo antes de compartir.')
+        print(destino)
+    elif accion == 'abrir':
+        carpeta_segura(CARPETA); subprocess.Popen(['thunar', str(CARPETA)])
+    else:
+        raise ValueError('uso: ultra-incidente [guardar [nota]]|abrir')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        avisar('Incidente no guardado', str(error), critico=True)
+        print('INCIDENTE:', error, file=sys.stderr); sys.exit(1)

@@ -77,6 +77,22 @@ la luna de la barra.
 | Tamaño del cursor | 24, 28, 32 o 48 px |
 | Tamaño de la barra | compacta, normal o grande |
 | Opacidad de ventanas inactivas | 100 %, 92 % u 85 % |
+| Esquinas | rectas, suaves (6 px) o redondas (12 px) |
+| Animación al abrir | emergente, deslizar o zoom |
+| Velocidad de animaciones | rápida, normal o lenta |
+| Desenfoque | ligero, fuerte o no |
+| Posición de la barra | arriba o abajo (con la barra abajo, el dock sube) |
+| Dock | visible u oculto |
+| Reloj | 24 h, 12 h o con segundos |
+| Posición de avisos | arriba a la derecha, arriba al centro o abajo a la derecha; esquivan barra y dock |
+| Letra de la interfaz | Neón (Rajdhani y Chakra Petch), Chakra Petch, mono (JetBrains Mono) o clásica (DejaVu Sans) |
+
+El menú se agrupa en cinco apartados: Colores y fondo, Ventanas, Animaciones y
+efectos, Barra y dock, y Avisos, letra y cursor.
+
+Super+Shift+A sigue alternando los efectos. Con personalización guardada,
+`ultra-ambiente` vuelve a aplicar tu desenfoque, esquinas y animaciones para el
+modo elegido, en vez de pisarlos.
 
 Cómo funciona:
 

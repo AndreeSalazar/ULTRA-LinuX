@@ -103,6 +103,12 @@ body { margin: 0; background: #030206; color: var(--texto); font-family: var(--u
 .win.activa { opacity: 1; }
 .borde-quieto .win.activa { animation: none; }
 .fondo-liso #fondo { opacity: 0; }
+.esq-suaves .win, .esq-suaves .win-in { border-radius: 6px; }
+.esq-redondas .win, .esq-redondas .win-in { border-radius: 12px; }
+.barra-abajo .barra { top: auto; bottom: 0; border-bottom: 0; border-top: 2px solid var(--amarillo); }
+.barra-abajo .dock { bottom: auto; top: 14px; clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%, 0 calc(100% - 14px)); border-top: 0; border-bottom: 2px solid var(--amarillo); }
+.barra-abajo .avisos { top: auto; bottom: 54px; flex-direction: column-reverse; }
+.dock-oculto .dock { visibility: hidden; }
 .fondo-liso .escena { background: #06050a; }
 .win.abriendo { animation: abrir .42s var(--curva) both; }
 .win.cerrando { animation: cerrar .18s ease-in both; pointer-events: none; }
@@ -673,9 +679,14 @@ function barra() {
 const lima = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: false });
 const limaDia = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'short', day: '2-digit', month: 'short' });
 const limaLargo = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', weekday: 'long', day: 'numeric', month: 'long' });
+const lima12 = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Lima', hour: '2-digit', minute: '2-digit', hour12: true });
+const limaSeg = new Intl.DateTimeFormat('es-PE', { timeZone: 'America/Lima', second: '2-digit' });
 function reloj() {
   const d = new Date(), [h, m] = lima.format(d).split(':');
-  $('#reloj').innerHTML = `${h}<i>:</i>${m}`;
+  const modo = typeof PER === 'undefined' ? '24h' : PER.reloj;
+  if (modo === '12h') { const [hm, ap] = lima12.format(d).split(' '); const [h12, m12] = hm.split(':'); $('#reloj').innerHTML = `${h12}<i>:</i>${m12} <small style="font-size:.6em">${ap}</small>`; }
+  else if (modo === 'segundos') $('#reloj').innerHTML = `${h}<i>:</i>${m}<i>:</i>${limaSeg.format(d).padStart(2, '0')}`;
+  else $('#reloj').innerHTML = `${h}<i>:</i>${m}`;
   $('#fecha').textContent = limaDia.format(d).replace(/\./g, '').toUpperCase() + ' · LIMA';
   const bh = $('#bl-hora'); if (bh) bh.textContent = `${h}:${m}`;
 }
@@ -736,7 +747,11 @@ function dockEstado() {
 const NOMBRE = { terminal: 'foot', archivos: 'Archivos', editor: 'Mousepad', navegador: 'Brave', equipo: 'Equipo en vivo', juegos: 'Juegos' };
 const SUB = { terminal: '~/proyectos/ULTRA-LinuX', archivos: 'Juegos', editor: 'paleta.json', navegador: 'Inicio ULTRA', equipo: 'SYS.MONITOR' };
 const HUECOS = { compacto: [3, 6], normal: [6, 12], amplio: [10, 24] };
-const area = () => { const o = HUECOS[PER.huecos][1]; return { x: o, y: 42 + o, w: 1920 - 2 * o, h: 1080 - (42 + o) - 96 }; };
+const area = () => {
+  const o = HUECOS[PER.huecos][1], dock = PER.dock === 'visible' ? 84 : 0, abajo = PER.posicion === 'abajo';
+  const arriba = abajo ? dock : 42, debajo = abajo ? 42 : dock;
+  return { x: o, y: arriba + o, w: 1920 - 2 * o, h: 1080 - arriba - debajo - 2 * o };
+};
 const ventana = id => S.wins.find(w => w.id === id);
 function capas() {
   $('#capas').innerHTML = [1, 2, 3, 4, 5].map(n => `<div class="capa" id="capa-${n}"></div>`).join('');
@@ -1132,7 +1147,7 @@ function cambiarAcento(forzar) {
 
 /* ---------- Personalizar (mismo modelo que ultra-personalizar) ---------- */
 const ACENTOS = { hielo: '#5ad8ff', amarillo: '#fcee0a', cyan: '#00f0ff', rojo: '#ff2a4f', verde: '#3dff9a', violeta: '#c03bff', coral: '#ff7a90', blanco: '#ece9dc' };
-const PER = { acento: '#5ad8ff', fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal' };
+const PER = { acento: '#5ad8ff', fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal', esquinas: 'rectas', posicion: 'arriba', dock: 'visible', reloj: '24h' };
 const OPC = [
   ['fondo', 'Fondo', [['neon', 'Neón animado'], ['liso', 'Color liso']]],
   ['borde', 'Borde de la activa', [['gira', 'Gira'], ['quieto', 'Quieto']]],
@@ -1140,6 +1155,10 @@ const OPC = [
   ['grosor', 'Grosor del borde', [['1', '1 px'], ['2', '2 px'], ['3', '3 px']]],
   ['inactivas', 'Ventanas inactivas', [['100', 'Opacas'], ['92', '92 %'], ['85', '85 %']]],
   ['barra', 'Barra', [['compacta', 'Compacta'], ['normal', 'Normal'], ['grande', 'Grande']]],
+  ['esquinas', 'Esquinas', [['rectas', 'Rectas'], ['suaves', 'Suaves'], ['redondas', 'Redondas']]],
+  ['posicion', 'Posición de la barra', [['arriba', 'Arriba'], ['abajo', 'Abajo']]],
+  ['dock', 'Dock', [['visible', 'Visible'], ['oculto', 'Oculto']]],
+  ['reloj', 'Reloj', [['24h', '24 h'], ['12h', '12 h'], ['segundos', 'Con segundos']]],
 ];
 const mezcla = (hex, otro, peso) => '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - peso) + parseInt(otro.slice(i, i + 2), 16) * peso).toString(16).padStart(2, '0')).join('');
 function aplicarAcento(hex, avisar = true) {
@@ -1162,8 +1181,12 @@ function aplicarPersonal() {
   b.classList.toggle('fondo-liso', PER.fondo === 'liso');
   b.style.setProperty('--grosor', PER.grosor + 'px');
   b.style.setProperty('--inactiva', String(+PER.inactivas / 100));
-  const [letra, reloj] = { compacta: [13, 19], normal: [15, 23], grande: [17, 27] }[PER.barra];
-  b.style.setProperty('--barra-letra', letra + 'px'); b.style.setProperty('--barra-reloj', reloj + 'px');
+  const [letra, tamReloj] = { compacta: [13, 19], normal: [15, 23], grande: [17, 27] }[PER.barra];
+  b.style.setProperty('--barra-letra', letra + 'px'); b.style.setProperty('--barra-reloj', tamReloj + 'px');
+  b.classList.remove('esq-suaves', 'esq-redondas'); if (PER.esquinas !== 'rectas') b.classList.add('esq-' + PER.esquinas);
+  b.classList.toggle('barra-abajo', PER.posicion === 'abajo');
+  b.classList.toggle('dock-oculto', PER.dock === 'oculto');
+  reloj();
   for (let n = 1; n <= 5; n++) disponer(n);
 }
 function pintarPersonal() {
@@ -1172,12 +1195,12 @@ function pintarPersonal() {
     <div class="fila-p"><span>Acento</span><div class="chips">${colores}<input type="color" id="p-propio" value="${PER.acento}" aria-label="Acento propio"></div></div>
     ${OPC.map(([k, t, ops]) => `<div class="fila-p"><span>${t}</span><div class="chips">${ops.map(([v, n]) => `<button class="${PER[k] === v ? 'on' : ''}" data-k="${k}" data-v="${v}">${n}</button>`).join('')}</div></div>`).join('')}
     <div class="fila-p"><span>Efectos</span><div class="chips"><button class="${S.vivo ? 'on' : ''}" data-ef="1">Vivos</button><button class="${S.vivo ? '' : 'on'}" data-ef="0">Reducidos</button></div></div>
-    <div class="pie-p"><span>El sistema real añade: fondo Núcleo, imagen propia y tamaño del cursor.</span><button data-reset="1">Restablecer</button></div>`;
+    <div class="pie-p"><span>El sistema real añade: fondo Núcleo, imagen propia, cursor, animación y velocidad, desenfoque, avisos y letra.</span><button data-reset="1">Restablecer</button></div>`;
   $('#personal').querySelectorAll('[data-acento]').forEach(e => e.onclick = () => aplicarAcento(e.dataset.acento));
   $('#p-propio').oninput = e => aplicarAcento(e.target.value, false);
   $('#personal').querySelectorAll('[data-k]').forEach(e => e.onclick = () => { PER[e.dataset.k] = e.dataset.v; aplicarPersonal(); pintarPersonal(); });
   $('#personal').querySelectorAll('[data-ef]').forEach(e => e.onclick = () => { efectos(e.dataset.ef === '1'); pintarPersonal(); });
-  $('#personal [data-reset]').onclick = () => { Object.assign(PER, { fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal' }); aplicarPersonal(); aplicarAcento('#5ad8ff'); if (!S.vivo) efectos(true); pintarPersonal(); };
+  $('#personal [data-reset]').onclick = () => { Object.assign(PER, { fondo: 'neon', borde: 'gira', huecos: 'normal', grosor: '2', inactivas: '100', barra: 'normal', esquinas: 'rectas', posicion: 'arriba', dock: 'visible', reloj: '24h' }); aplicarPersonal(); aplicarAcento('#5ad8ff'); if (!S.vivo) efectos(true); pintarPersonal(); };
 }
 function personalizar() {
   const ver = !$('#personal').classList.contains('ver');
