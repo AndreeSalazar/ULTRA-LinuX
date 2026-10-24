@@ -27,6 +27,17 @@ pub fn cargar(ruta: &Path) -> Disposicion {
     fs::read(ruta).map(|b| Disposicion::de_json(&b)).unwrap_or_default()
 }
 
+pub fn archivo_ajustes(base: &Path) -> PathBuf { base.join("ajustes.json") }
+
+/// Ajustes de la app (tema, brillo); con las mismas reglas que el orden.
+pub fn cargar_ajustes(ruta: &Path) -> carpetas_nucleo::Ajustes {
+    let Ok(meta) = fs::symlink_metadata(ruta) else { return Default::default() };
+    if !meta.file_type().is_file() || meta.len() > 64 * 1024 {
+        return Default::default();
+    }
+    fs::read(ruta).map(|b| carpetas_nucleo::Ajustes::de_json(&b)).unwrap_or_default()
+}
+
 /// Escritura atomica: temporal 0600 y rename. La carpeta no puede ser un enlace.
 pub fn guardar(ruta: &Path, json: &str) -> std::io::Result<()> {
     let carpeta = ruta.parent().ok_or_else(|| std::io::Error::other("ruta sin carpeta"))?;

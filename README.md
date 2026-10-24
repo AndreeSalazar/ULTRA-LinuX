@@ -42,6 +42,8 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   el Windows antiguo, con rejilla, candado y deshacer; cada carpeta recuerda su orden y nunca
   toca tus archivos. Arquitectura como React + Redux con paleta de comandos como VS Code, y
   el núcleo es `no_std`: compila para bare-metal, listo para BMO-X ([detalle](docs/ULTRA-CARPETAS.md)).
+  **9 temas** (Neón BMO-X, TITAN Taller, Synthwave '84, Tokyo Night, Catppuccin, Rosé Pine, Kanagawa,
+  Dracula, Nord) con contraste comprobado y panel de ajustes en Ctrl+, ([temas](docs/TEMAS-APPS.md)).
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y
   temperatura, con anillos y gráficas en vivo ([captura con eww real](docs/maquetas/png/neon/tarjetas-eww.png)).
   La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa

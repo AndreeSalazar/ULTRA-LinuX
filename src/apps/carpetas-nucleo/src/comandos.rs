@@ -9,6 +9,7 @@ use alloc::vec::Vec;
 pub enum Comando {
     Rejilla, Candado, Ocultos, Deshacer, Ordenar(Orden), SeleccionarTodo, LimpiarSeleccion,
     AbrirSeleccion, Subir, Atras, Releer, Paleta,
+    Ajustes, SiguienteTema, Tema(u8), Brillo, AcentoEscritorio,
 }
 
 pub struct InfoComando {
@@ -33,11 +34,24 @@ pub const COMANDOS: &[InfoComando] = &[
     InfoComando { comando: Comando::Atras, id: "carpetas.atras", titulo: "Volver a la carpeta anterior", atajo: "Alt+Izquierda" },
     InfoComando { comando: Comando::Releer, id: "carpetas.releer", titulo: "Volver a leer la carpeta", atajo: "F5" },
     InfoComando { comando: Comando::Paleta, id: "carpetas.paleta", titulo: "Paleta de comandos", atajo: "Ctrl+Shift+P" },
+    InfoComando { comando: Comando::Ajustes, id: "ajustes.abrir", titulo: "Abrir ajustes y temas", atajo: "Ctrl+," },
+    InfoComando { comando: Comando::SiguienteTema, id: "ajustes.siguienteTema", titulo: "Siguiente tema", atajo: "T" },
+    InfoComando { comando: Comando::Brillo, id: "ajustes.brillo", titulo: "Brillo neon: encender o apagar", atajo: "" },
+    InfoComando { comando: Comando::AcentoEscritorio, id: "ajustes.acento", titulo: "Usar el acento del escritorio", atajo: "" },
+    InfoComando { comando: Comando::Tema(0), id: "tema.neon-bmox", titulo: "Tema: Neon BMO-X", atajo: "" },
+    InfoComando { comando: Comando::Tema(1), id: "tema.titan-taller", titulo: "Tema: TITAN Taller", atajo: "" },
+    InfoComando { comando: Comando::Tema(2), id: "tema.synthwave-84", titulo: "Tema: Synthwave '84", atajo: "" },
+    InfoComando { comando: Comando::Tema(3), id: "tema.tokyo-night", titulo: "Tema: Tokyo Night", atajo: "" },
+    InfoComando { comando: Comando::Tema(4), id: "tema.catppuccin-mocha", titulo: "Tema: Catppuccin Mocha", atajo: "" },
+    InfoComando { comando: Comando::Tema(5), id: "tema.rose-pine", titulo: "Tema: Rose Pine", atajo: "" },
+    InfoComando { comando: Comando::Tema(6), id: "tema.kanagawa", titulo: "Tema: Kanagawa", atajo: "" },
+    InfoComando { comando: Comando::Tema(7), id: "tema.dracula", titulo: "Tema: Dracula", atajo: "" },
+    InfoComando { comando: Comando::Tema(8), id: "tema.nord", titulo: "Tema: Nord", atajo: "" },
 ];
 
 /// Teclas que entiende el nucleo; cada plataforma traduce las suyas a estas.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Tecla { G, L, H, Z, A, P, Retroceso, Enter, Escape, F5, Arriba, Abajo, Izquierda }
+pub enum Tecla { G, L, H, Z, A, P, T, Coma, Retroceso, Enter, Escape, F5, Arriba, Abajo, Izquierda }
 
 /// Como el keybindings.json de VS Code: tecla + modificadores -> accion.
 pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: bool) -> Option<Accion> {
@@ -52,6 +66,8 @@ pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: b
     }
     let comando = match (tecla, ctrl, shift, alt) {
         (Tecla::P, true, true, _) => Comando::Paleta,
+        (Tecla::Coma, true, _, _) => Comando::Ajustes,
+        (Tecla::T, false, false, false) => Comando::SiguienteTema,
         (Tecla::Z, true, _, _) => Comando::Deshacer,
         (Tecla::A, true, _, _) => Comando::SeleccionarTodo,
         (Tecla::Izquierda, _, _, true) => Comando::Atras,

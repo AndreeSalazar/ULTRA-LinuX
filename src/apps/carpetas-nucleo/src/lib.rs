@@ -21,14 +21,18 @@
 
 extern crate alloc;
 
+pub mod ajustes;
 pub mod comandos;
 pub mod disposicion;
 pub mod estado;
+pub mod tema;
 pub mod tipos;
 pub mod vista;
 
+pub use ajustes::Ajustes;
+pub use tema::{Tema, TEMAS};
 pub use comandos::{atajo, buscar, Comando, InfoComando, Tecla, COMANDOS};
 pub use disposicion::{Disposicion, CELDA, ICONO};
 pub use estado::{reducir, Accion, AccionPaleta, Efecto, Entrada, Estado, Orden};
 pub use tipos::{legible, tipo_por_extension, Rgb, Tipo};
-pub use vista::{vista, Nodo, Vista, VistaPaleta};
+pub use vista::{vista, Nodo, Vista, VistaAjustes, VistaPaleta};

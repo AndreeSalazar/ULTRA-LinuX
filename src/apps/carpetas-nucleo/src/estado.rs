@@ -2,11 +2,13 @@
 //! Estado, acciones y el reducer: la unica forma de cambiar el estado.
 //! El reducer no hace E/S: devuelve Efectos y la plataforma los ejecuta.
 
+use crate::ajustes::Ajustes;
 use crate::comandos::{buscar, Comando};
+use crate::tema::TEMAS;
 use crate::disposicion::{Disposicion, ICONO};
 use crate::tipos::{Rgb, Tipo, HIELO};
 use alloc::collections::BTreeSet;
-use alloc::string::String;
+use alloc::string::{String, ToString};
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -25,6 +27,8 @@ pub enum AccionPaleta { Abrir, Cerrar, Escribir(String), Mover(i32), Aceptar, El
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Accion {
+    /// Ajustes leidos al arrancar.
+    CargarAjustes(Ajustes),
     /// Carpeta nueva: lo leido del disco y el orden guardado (ya convertido desde JSON).
     Cargar { entradas: Vec<Entrada>, disposicion: Disposicion },
     /// La misma carpeta cambio en disco.
@@ -46,6 +50,8 @@ pub enum Accion {
 pub enum Efecto {
     /// Guardar el orden de esta carpeta (texto JSON).
     Guardar(String),
+    /// Guardar los ajustes de la app (texto JSON).
+    GuardarAjustes(String),
     AbrirArchivo(String),
     EntrarCarpeta(String),
     Subir,
@@ -70,12 +76,15 @@ pub struct Estado {
     pub arrastrando: bool,
     pub banda: Option<([f32; 2], [f32; 2])>,
     pub paleta: Option<Paleta>,
+    pub ajustes: Ajustes,
+    pub panel_ajustes: bool,
 }
 
 impl Default for Estado {
     fn default() -> Self {
         Estado { entradas: Vec::new(), disp: Disposicion::default(), seleccion: BTreeSet::new(), ocultos: false,
-                 ancho: 1100.0, acento: HIELO, arrastrando: false, banda: None, paleta: None }
+                 ancho: 1100.0, acento: HIELO, arrastrando: false, banda: None, paleta: None,
+                 ajustes: Ajustes::default(), panel_ajustes: false }
     }
 }
 
@@ -121,8 +130,22 @@ impl Estado {
             Comando::Subir => vec![Efecto::Subir],
             Comando::Atras => vec![Efecto::Atras],
             Comando::Releer => vec![Efecto::Releer { ocultos: self.ocultos }],
-            Comando::Paleta => { self.paleta = Some(Paleta::default()); vec![] }
+            Comando::Paleta => { self.paleta = Some(Paleta::default()); self.panel_ajustes = false; vec![] }
+            Comando::Ajustes => { self.panel_ajustes = !self.panel_ajustes; self.paleta = None; vec![] }
+            Comando::SiguienteTema => { let i = (self.ajustes.indice() + 1) % TEMAS.len(); self.poner_tema(i) }
+            Comando::Tema(i) => if (i as usize) < TEMAS.len() { self.poner_tema(i as usize) } else { vec![] },
+            Comando::Brillo => {
+                let actual = self.ajustes.tema(self.acento).brillo;
+                self.ajustes.brillo = Some(!actual);
+                vec![Efecto::GuardarAjustes(self.ajustes.a_json())]
+            }
+            Comando::AcentoEscritorio => { self.ajustes.acento_escritorio = !self.ajustes.acento_escritorio; vec![Efecto::GuardarAjustes(self.ajustes.a_json())] }
         }
+    }
+
+    fn poner_tema(&mut self, i: usize) -> Vec<Efecto> {
+        self.ajustes.tema = TEMAS[i].id.to_string();
+        vec![Efecto::GuardarAjustes(self.ajustes.a_json())]
     }
 
     fn sincronizar(&mut self) -> Vec<Efecto> {
@@ -142,6 +165,7 @@ fn se_cruzan(a: ([f32; 2], [f32; 2]), b: ([f32; 2], [f32; 2])) -> bool {
 /// El reducer: (estado, accion) -> estado nuevo + efectos. Puro: sin E/S, sin reloj.
 pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
     match accion {
+        Accion::CargarAjustes(a) => { e.ajustes = a; vec![] }
         Accion::Cargar { entradas, disposicion } => {
             e.entradas = entradas;
             e.disp = disposicion;

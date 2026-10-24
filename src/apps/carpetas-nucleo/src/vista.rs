@@ -5,6 +5,7 @@
 use crate::comandos::buscar;
 use crate::disposicion::{CELDA, ICONO};
 use crate::estado::Estado;
+use crate::tema::{Tema, TEMAS};
 use crate::tipos::{Rgb, Tipo};
 use alloc::format;
 use alloc::string::String;
@@ -26,7 +27,18 @@ pub struct VistaPaleta {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct VistaAjustes {
+    /// (id, nombre, descripcion, muestras, elegido)
+    pub temas: Vec<(&'static str, &'static str, &'static str, [Rgb; 5], bool)>,
+    pub brillo: bool,
+    pub acento_escritorio: bool,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Vista {
+    /// El tema ya resuelto (con el acento y el brillo que eligio el usuario).
+    pub tema: Tema,
+    pub ajustes: Option<VistaAjustes>,
     pub nodos: Vec<Nodo>,
     /// Tamano del lienzo que ocupan los iconos.
     pub tam: [f32; 2],
@@ -35,6 +47,7 @@ pub struct Vista {
 }
 
 pub fn vista(e: &Estado) -> Vista {
+    let tema = e.ajustes.tema(e.acento);
     let mut nodos = Vec::new();
     if e.disp.rejilla { nodos.push(Nodo::Rejilla { paso: CELDA }); }
     let mut tam = [0.0f32, 0.0f32];
@@ -45,9 +58,9 @@ pub fn vista(e: &Estado) -> Vista {
             entrada.nombre.rsplit_once('.').map(|(_, x)| x.to_uppercase()).filter(|x| x.len() <= 5).unwrap_or_default()
         };
         nodos.push(Nodo::Icono { nombre: entrada.nombre.clone(), pos: *p, tam: ICONO, tipo: entrada.tipo,
-                                 color: entrada.tipo.color(e.acento), seleccionado: e.seleccion.contains(&entrada.nombre), etiqueta });
+                                 color: tema.color_tipo(entrada.tipo), seleccionado: e.seleccion.contains(&entrada.nombre), etiqueta });
     }
-    if let Some((desde, hasta)) = e.banda { nodos.push(Nodo::Banda { desde, hasta, color: e.acento }); }
+    if let Some((desde, hasta)) = e.banda { nodos.push(Nodo::Banda { desde, hasta, color: tema.acento }); }
     let mut estado = format!("{} elementos · {} seleccionados", e.entradas.len(), e.seleccion.len());
     if e.disp.rejilla { estado.push_str(" · rejilla"); }
     if e.disp.bloqueada { estado.push_str(" · candado puesto"); }
@@ -56,5 +69,10 @@ pub fn vista(e: &Estado) -> Vista {
         texto: p.texto.clone(),
         filas: buscar(&p.texto).iter().enumerate().map(|(i, c)| (c.titulo, c.atajo, i == p.elegido)).collect(),
     });
-    Vista { nodos, tam, estado, paleta }
+    let ajustes = e.panel_ajustes.then(|| VistaAjustes {
+        temas: TEMAS.iter().enumerate().map(|(i, t)| (t.id, t.nombre, t.descripcion, t.muestras(), i == e.ajustes.indice())).collect(),
+        brillo: tema.brillo,
+        acento_escritorio: e.ajustes.acento_escritorio,
+    });
+    Vista { tema, ajustes, nodos, tam, estado, paleta }
 }

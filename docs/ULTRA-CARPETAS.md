@@ -28,6 +28,8 @@ donde tú lo dejes y cada carpeta recuerda su orden.** Con control:
 | Retroceso, Atrás, Arriba y la ruta | Navegar; cada parte de la ruta es un botón |
 | Ctrl+A, Esc, F5 | Seleccionar todo, quitar la selección, volver a leer |
 | **Ctrl+Shift+P** | Paleta de comandos |
+| **Ctrl+,** | Ajustes y temas: 9 temas con vista previa ([guía](TEMAS-APPS.md)) |
+| **T** | Siguiente tema |
 | Alt+Izquierda | Volver a la carpeta anterior |
 
 Se abre con **Super+Ctrl+E**, en **Super+Espacio > Aplicaciones > Carpetas BMO-X** o
