@@ -1,0 +1,8 @@
+No errors were found on the image.
+495473/1048576 = 47.25% allocated, 4.99% fragmented, 0.00% compressed clusters
+Image end offset: 59773222912
+No errors were found on the image.
+202847/1048576 = 19.34% allocated, 49.20% fragmented, 45.98% compressed clusters
+Image end offset: 10635116544
+Images are identical.
+COMPACTADO original=59773222912 compacto=10635116544; falta verificar arranque antes de retirar original temporal

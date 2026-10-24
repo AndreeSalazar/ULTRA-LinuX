@@ -1,0 +1,6 @@
+SINTAXIS_PS_OK: construir-kernel.ps1
+SINTAXIS_PY_OK: limpiar-taller-compilacion.py, probar_arranque.py, taller_qemu.py
+BASH_SINTAXIS_OK: build-baseline.sh, comprobado en el taller
+RECHAZO_FUERA_TALLER_OK: python -O scripts/limpiar-taller-compilacion.py --aplicar => salida 1, sin mutaciones
+ESTADO_CACHE_LIMPIA: salida 0
+DESCARGAR_CACHE_LIMPIA: salida 2 esperada

@@ -85,7 +85,7 @@ def start(accel="whpx"):
     clock=['-accel','whpx','-cpu','host'] if accel=='whpx' else ['-accel','tcg,thread=single','-icount','shift=auto','-cpu','qemu64']
     http_log=(VM/'http.log').open('ab')
     server=subprocess.Popen([sys.executable,'-m','http.server','18765','--bind','127.0.0.1','--directory',str(VM/'public')],stdout=http_log,stderr=subprocess.STDOUT,creationflags=HIDDEN)
-    args=[str(QEMU/'qemu-system-x86_64.exe'),'-name','Linux Reconstruido - taller GCC','-machine','pc',*clock,'-smp','4','-m','4096','-drive',f'file={VM/"taller.qcow2"},format=qcow2,if=virtio','-drive',f'file={VM/"seed.iso"},format=raw,media=cdrom,readonly=on','-device','virtio-net-pci,netdev=net0','-netdev','user,id=net0,hostfwd=tcp:127.0.0.1:12222-:22','-qmp','tcp:127.0.0.1:14444,server=on,wait=off','-serial',f'file:{VM/"serial.log"}','-display','none']
+    args=[str(QEMU/'qemu-system-x86_64.exe'),'-name','Linux Reconstruido - taller GCC','-machine','pc',*clock,'-smp','4','-m','4096','-drive',f'file={VM/"taller.qcow2"},format=qcow2,if=virtio,discard=unmap,detect-zeroes=unmap','-drive',f'file={VM/"seed.iso"},format=raw,media=cdrom,readonly=on','-device','virtio-net-pci,netdev=net0','-netdev','user,id=net0,hostfwd=tcp:127.0.0.1:12222-:22','-qmp','tcp:127.0.0.1:14444,server=on,wait=off','-serial',f'file:{VM/"serial.log"}','-display','none']
     log=(VM/'qemu.log').open('ab')
     try:proc=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT,creationflags=HIDDEN)
     except Exception:server.terminate();raise

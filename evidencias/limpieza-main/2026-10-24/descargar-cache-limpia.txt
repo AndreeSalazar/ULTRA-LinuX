@@ -1,0 +1,1 @@
+AMARILLO [CACHE-LIMPIA]: discos de prueba retirados tras la instalacion. Usa los artefactos locales conservados o vuelve a Compilar.

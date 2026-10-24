@@ -1,0 +1,5311 @@
+{
+  "applied": true,
+  "targets": [
+    {
+      "path": "/home/builder/linux-reconstruido/build/x86_64-pc",
+      "allocated_bytes": 1221267456,
+      "directory": true,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/build/x86_64-generico",
+      "allocated_bytes": 1211510784,
+      "directory": true,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/build/tiny64-baseline",
+      "allocated_bytes": 232189952,
+      "directory": true,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/build/tiny64-vigia",
+      "allocated_bytes": 500916224,
+      "directory": true,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/build/nvidia-open",
+      "allocated_bytes": 332464128,
+      "directory": true,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-a",
+      "allocated_bytes": 5260095488,
+      "directory": true,
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/modulos",
+      "allocated_bytes": 40583168,
+      "directory": true,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/ultra-esp.img",
+      "allocated_bytes": 2021101568,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo.img",
+      "allocated_bytes": 2092290048,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-doble.img",
+      "allocated_bytes": 3390906368,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/build-complete",
+      "allocated_bytes": 0,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/generico/sistema-a",
+      "allocated_bytes": 3395170304,
+      "directory": true,
+      "uid": 0,
+      "gid": 0
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/generico/modulos",
+      "allocated_bytes": 4489216,
+      "directory": true,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/generico/ultra-esp.img",
+      "allocated_bytes": 1329508352,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/generico/disco-bmo.img",
+      "allocated_bytes": 1370095616,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/generico/build-complete",
+      "allocated_bytes": 0,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/produccion/build-complete",
+      "allocated_bytes": 0,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/vigia/build-complete",
+      "allocated_bytes": 0,
+      "directory": false,
+      "uid": 1000,
+      "gid": 1000
+    }
+  ],
+  "package_cache": [
+    {
+      "path": "/var/cache/pacman/pkg/systemd-libs-262.1-1-x86_64.pkg.tar.zst",
+      "bytes": 1507473
+    },
+    {
+      "path": "/var/cache/pacman/pkg/systemd-libs-262.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/curl-8.23.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1372375
+    },
+    {
+      "path": "/var/cache/pacman/pkg/curl-8.23.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libarchive-3.8.10-1-x86_64.pkg.tar.zst",
+      "bytes": 602031
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libarchive-3.8.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/systemd-262.1-1-x86_64.pkg.tar.zst",
+      "bytes": 11203908
+    },
+    {
+      "path": "/var/cache/pacman/pkg/systemd-262.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-7.2.11.arch1-1-x86_64.pkg.tar.zst",
+      "bytes": 168950404
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-7.2.11.arch1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/openssh-10.6p1-2-x86_64.pkg.tar.zst",
+      "bytes": 1504248
+    },
+    {
+      "path": "/var/cache/pacman/pkg/openssh-10.6p1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pacman-7.1.0.r9.g54d9411-3-x86_64.pkg.tar.zst",
+      "bytes": 993348
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pacman-7.1.0.r9.g54d9411-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/systemd-sysvcompat-262.1-1-x86_64.pkg.tar.zst",
+      "bytes": 6696
+    },
+    {
+      "path": "/var/cache/pacman/pkg/systemd-sysvcompat-262.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/m4-1.4.21-2-x86_64.pkg.tar.zst",
+      "bytes": 281037
+    },
+    {
+      "path": "/var/cache/pacman/pkg/m4-1.4.21-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ncurses-6.6-2-x86_64.pkg.tar.zst",
+      "bytes": 1226662
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ncurses-6.6-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/db5.3-5.3.28-7-x86_64.pkg.tar.zst",
+      "bytes": 1320537
+    },
+    {
+      "path": "/var/cache/pacman/pkg/db5.3-5.3.28-7-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-5.42.3-1-x86_64.pkg.tar.zst",
+      "bytes": 21490115
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-5.42.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/autoconf-2.73-1-any.pkg.tar.zst",
+      "bytes": 668651
+    },
+    {
+      "path": "/var/cache/pacman/pkg/autoconf-2.73-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/automake-1.19-1-any.pkg.tar.zst",
+      "bytes": 659935
+    },
+    {
+      "path": "/var/cache/pacman/pkg/automake-1.19-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/openssl-3.6.5-1-x86_64.pkg.tar.zst",
+      "bytes": 5783344
+    },
+    {
+      "path": "/var/cache/pacman/pkg/openssl-3.6.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bison-3.8.2-8-x86_64.pkg.tar.zst",
+      "bytes": 784715
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bison-3.8.2-8-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libelf-0.196-1-x86_64.pkg.tar.zst",
+      "bytes": 733210
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libelf-0.196-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xxhash-0.8.4-1-x86_64.pkg.tar.zst",
+      "bytes": 108215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xxhash-0.8.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cpio-2.15-3-x86_64.pkg.tar.zst",
+      "bytes": 234991
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cpio-2.15-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/elfutils-0.196-1-x86_64.pkg.tar.zst",
+      "bytes": 711053
+    },
+    {
+      "path": "/var/cache/pacman/pkg/elfutils-0.196-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/boost-libs-1.92.0-1-x86_64.pkg.tar.zst",
+      "bytes": 6460100
+    },
+    {
+      "path": "/var/cache/pacman/pkg/boost-libs-1.92.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-3.14.8-1-x86_64.pkg.tar.zst",
+      "bytes": 14203452
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-3.14.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gc-8.2.12-1-x86_64.pkg.tar.zst",
+      "bytes": 241204
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gc-8.2.12-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/guile-3.0.11-1-x86_64.pkg.tar.zst",
+      "bytes": 8798834
+    },
+    {
+      "path": "/var/cache/pacman/pkg/guile-3.0.11-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdb-common-18.1-1-x86_64.pkg.tar.zst",
+      "bytes": 125689
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdb-common-18.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/source-highlight-3.1.9-19-x86_64.pkg.tar.zst",
+      "bytes": 723615
+    },
+    {
+      "path": "/var/cache/pacman/pkg/source-highlight-3.1.9-19-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdb-18.1-1-x86_64.pkg.tar.zst",
+      "bytes": 8577127
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdb-18.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/debugedit-5.3-2-x86_64.pkg.tar.zst",
+      "bytes": 52845
+    },
+    {
+      "path": "/var/cache/pacman/pkg/debugedit-5.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fakeroot-1:1.37.2-3-x86_64.pkg.tar.zst",
+      "bytes": 79236
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fakeroot-1:1.37.2-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/flex-2.6.4-6-x86_64.pkg.tar.zst",
+      "bytes": 301900
+    },
+    {
+      "path": "/var/cache/pacman/pkg/flex-2.6.4-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libisl-0.28-1-x86_64.pkg.tar.zst",
+      "bytes": 980886
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libisl-0.28-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmpc-1.4.1-1-x86_64.pkg.tar.zst",
+      "bytes": 94077
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmpc-1.4.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcc-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 60743018
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcc-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/groff-1.24.2-1-x86_64.pkg.tar.zst",
+      "bytes": 2549540
+    },
+    {
+      "path": "/var/cache/pacman/pkg/groff-1.24.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtool-2.6.2-5-x86_64.pkg.tar.zst",
+      "bytes": 439406
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtool-2.6.2-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/make-4.4.1-3-x86_64.pkg.tar.zst",
+      "bytes": 529562
+    },
+    {
+      "path": "/var/cache/pacman/pkg/make-4.4.1-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/patch-2.8-1-x86_64.pkg.tar.zst",
+      "bytes": 87289
+    },
+    {
+      "path": "/var/cache/pacman/pkg/patch-2.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pkgconf-3.0.7-1-x86_64.pkg.tar.zst",
+      "bytes": 124485
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pkgconf-3.0.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/texinfo-7.3-1-x86_64.pkg.tar.zst",
+      "bytes": 2226205
+    },
+    {
+      "path": "/var/cache/pacman/pkg/texinfo-7.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/which-2.25-1-x86_64.pkg.tar.zst",
+      "bytes": 16798
+    },
+    {
+      "path": "/var/cache/pacman/pkg/which-2.25-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/base-devel-1-2-any.pkg.tar.zst",
+      "bytes": 2100
+    },
+    {
+      "path": "/var/cache/pacman/pkg/base-devel-1-2-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bc-1.08.2-1-x86_64.pkg.tar.zst",
+      "bytes": 94205
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bc-1.08.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pahole-1:1.32-1-x86_64.pkg.tar.zst",
+      "bytes": 375076
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pahole-1:1.32-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-error-0.17030-3-any.pkg.tar.zst",
+      "bytes": 21635
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-error-0.17030-3-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-timedate-2.35-1-any.pkg.tar.zst",
+      "bytes": 63820
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-timedate-2.35-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-mailtools-2.22-3-any.pkg.tar.zst",
+      "bytes": 59900
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-mailtools-2.22-3-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zlib-ng-2.3.3-1-x86_64.pkg.tar.zst",
+      "bytes": 114796
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zlib-ng-2.3.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/git-2.56.0-1-x86_64.pkg.tar.zst",
+      "bytes": 7788783
+    },
+    {
+      "path": "/var/cache/pacman/pkg/git-2.56.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rsync-3.5.1-3-x86_64.pkg.tar.zst",
+      "bytes": 435763
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rsync-3.5.1-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fmt-12.2.0-1-x86_64.pkg.tar.zst",
+      "bytes": 204993
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fmt-12.2.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hiredis-1.4.1-1-x86_64.pkg.tar.zst",
+      "bytes": 88136
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hiredis-1.4.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpciaccess-0.19-1-x86_64.pkg.tar.zst",
+      "bytes": 22129
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpciaccess-0.19-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hwloc-2.15.0-1-x86_64.pkg.tar.zst",
+      "bytes": 600020
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hwloc-2.15.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/onetbb-2023.1.0-1-x86_64.pkg.tar.zst",
+      "bytes": 410054
+    },
+    {
+      "path": "/var/cache/pacman/pkg/onetbb-2023.1.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libblake3-1.8.7-1-x86_64.pkg.tar.zst",
+      "bytes": 30005
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libblake3-1.8.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ccache-4.14.1-1-x86_64.pkg.tar.zst",
+      "bytes": 710287
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ccache-4.14.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cppdap-1.58.0-3-x86_64.pkg.tar.zst",
+      "bytes": 345375
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cppdap-1.58.0-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hicolor-icon-theme-0.18-1-any.pkg.tar.zst",
+      "bytes": 13337
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hicolor-icon-theme-0.18-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jsoncpp-1.9.8-1-x86_64.pkg.tar.zst",
+      "bytes": 184519
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jsoncpp-1.9.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libuv-1.52.1-2-x86_64.pkg.tar.zst",
+      "bytes": 272333
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libuv-1.52.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rhash-1.4.6-1-x86_64.pkg.tar.zst",
+      "bytes": 186560
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rhash-1.4.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cmake-4.4.4-1-x86_64.pkg.tar.zst",
+      "bytes": 15649106
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cmake-4.4.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ninja-1.13.2-3-x86_64.pkg.tar.zst",
+      "bytes": 177532
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ninja-1.13.2-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/busybox-1.36.1-4-x86_64.pkg.tar.zst",
+      "bytes": 872623
+    },
+    {
+      "path": "/var/cache/pacman/pkg/busybox-1.36.1-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libunwind-1.8.3-1-x86_64.pkg.tar.zst",
+      "bytes": 134569
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libunwind-1.8.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/strace-7.2-1-x86_64.pkg.tar.zst",
+      "bytes": 554150
+    },
+    {
+      "path": "/var/cache/pacman/pkg/strace-7.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mtools-1:4.0.49-1-x86_64.pkg.tar.zst",
+      "bytes": 218437
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mtools-1:4.0.49-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bubblewrap-0.13.1-1-x86_64.pkg.tar.zst",
+      "bytes": 41315
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bubblewrap-0.13.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/man-pages-6.19-1-any.pkg.tar.zst",
+      "bytes": 5955752
+    },
+    {
+      "path": "/var/cache/pacman/pkg/man-pages-6.19-1-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpipeline-1.5.8-1-x86_64.pkg.tar.zst",
+      "bytes": 41723
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpipeline-1.5.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/less-1:710-1-x86_64.pkg.tar.zst",
+      "bytes": 172837
+    },
+    {
+      "path": "/var/cache/pacman/pkg/less-1:710-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/man-db-2.13.1-2-x86_64.pkg.tar.zst",
+      "bytes": 1204534
+    },
+    {
+      "path": "/var/cache/pacman/pkg/man-db-2.13.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdeflate-1.26-1-x86_64.pkg.tar.zst",
+      "bytes": 65298
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdeflate-1.26-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/erofs-utils-1.9.4-1-x86_64.pkg.tar.zst",
+      "bytes": 177395
+    },
+    {
+      "path": "/var/cache/pacman/pkg/erofs-utils-1.9.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/z3-4.16.0-1-x86_64.pkg.tar.zst",
+      "bytes": 10045716
+    },
+    {
+      "path": "/var/cache/pacman/pkg/z3-4.16.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-z3-solver-4.16.0-1-x86_64.pkg.tar.zst",
+      "bytes": 283331
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-z3-solver-4.16.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iana-etc-20260617-1-any.pkg.tar.zst",
+      "bytes": 411435
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iana-etc-20260617-1-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/filesystem-2025.10.12-1-any.pkg.tar.zst",
+      "bytes": 15479
+    },
+    {
+      "path": "/var/cache/pacman/pkg/filesystem-2025.10.12-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-api-headers-7.3-1-x86_64.pkg.tar.zst",
+      "bytes": 1599600
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-api-headers-7.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tzdata-2026e-1-x86_64.pkg.tar.zst",
+      "bytes": 312965
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tzdata-2026e-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glibc-2.44+r50+g1848099f063e-1-x86_64.pkg.tar.zst",
+      "bytes": 10879104
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glibc-2.44+r50+g1848099f063e-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgcc-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 81949
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgcc-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libstdc++-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 883125
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libstdc++-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/readline-8.3.6-1-x86_64.pkg.tar.zst",
+      "bytes": 424891
+    },
+    {
+      "path": "/var/cache/pacman/pkg/readline-8.3.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bash-5.3.20-1-x86_64.pkg.tar.zst",
+      "bytes": 2001850
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bash-5.3.20-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/acl-2.4.0-1-x86_64.pkg.tar.zst",
+      "bytes": 150821
+    },
+    {
+      "path": "/var/cache/pacman/pkg/acl-2.4.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/attr-2.6.0-1-x86_64.pkg.tar.zst",
+      "bytes": 74207
+    },
+    {
+      "path": "/var/cache/pacman/pkg/attr-2.6.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gmp-6.3.0-3-x86_64.pkg.tar.zst",
+      "bytes": 453294
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gmp-6.3.0-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zlib-1:1.3.2-4-x86_64.pkg.tar.zst",
+      "bytes": 86278
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zlib-1:1.3.2-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sqlite-3.54.0-1-x86_64.pkg.tar.zst",
+      "bytes": 2505466
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sqlite-3.54.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/util-linux-libs-2.42.4-1-x86_64.pkg.tar.zst",
+      "bytes": 542399
+    },
+    {
+      "path": "/var/cache/pacman/pkg/util-linux-libs-2.42.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/e2fsprogs-1.47.4-1-x86_64.pkg.tar.zst",
+      "bytes": 1296838
+    },
+    {
+      "path": "/var/cache/pacman/pkg/e2fsprogs-1.47.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/keyutils-1.6.3-4-x86_64.pkg.tar.zst",
+      "bytes": 104718
+    },
+    {
+      "path": "/var/cache/pacman/pkg/keyutils-1.6.3-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdbm-1.26-2-x86_64.pkg.tar.zst",
+      "bytes": 260430
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdbm-1.26-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/brotli-1.2.0-1-x86_64.pkg.tar.zst",
+      "bytes": 407149
+    },
+    {
+      "path": "/var/cache/pacman/pkg/brotli-1.2.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xz-5.8.4-1-x86_64.pkg.tar.zst",
+      "bytes": 856380
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xz-5.8.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lz4-1:1.10.0-2-x86_64.pkg.tar.zst",
+      "bytes": 160028
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lz4-1:1.10.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zstd-1.5.7-3-x86_64.pkg.tar.zst",
+      "bytes": 527400
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zstd-1.5.7-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsasl-2.1.28-5-x86_64.pkg.tar.zst",
+      "bytes": 150083
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsasl-2.1.28-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libldap-2.7.1-1-x86_64.pkg.tar.zst",
+      "bytes": 294465
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libldap-2.7.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libevent-2.1.13-2-x86_64.pkg.tar.zst",
+      "bytes": 298430
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libevent-2.1.13-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libverto-0.3.2-6-x86_64.pkg.tar.zst",
+      "bytes": 19195
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libverto-0.3.2-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lmdb-0.9.35-1-x86_64.pkg.tar.zst",
+      "bytes": 115659
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lmdb-0.9.35-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/krb5-1.22.2-1-x86_64.pkg.tar.zst",
+      "bytes": 1407071
+    },
+    {
+      "path": "/var/cache/pacman/pkg/krb5-1.22.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcap-ng-0.9.6-1-x86_64.pkg.tar.zst",
+      "bytes": 72214
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcap-ng-0.9.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/audit-4.2.1-1-x86_64.pkg.tar.zst",
+      "bytes": 414714
+    },
+    {
+      "path": "/var/cache/pacman/pkg/audit-4.2.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcrypt-4.5.2-1-x86_64.pkg.tar.zst",
+      "bytes": 94258
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcrypt-4.5.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtirpc-1.3.8-1-x86_64.pkg.tar.zst",
+      "bytes": 181209
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtirpc-1.3.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnsl-2.0.1-2-x86_64.pkg.tar.zst",
+      "bytes": 22606
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnsl-2.0.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pambase-20260616-1-any.pkg.tar.zst",
+      "bytes": 3386
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pambase-20260616-1-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgpg-error-1.61-1-x86_64.pkg.tar.zst",
+      "bytes": 282578
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgpg-error-1.61-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 309
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgcrypt-1.12.4-1-x86_64.pkg.tar.zst",
+      "bytes": 770063
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgcrypt-1.12.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pam-1.7.3-1-x86_64.pkg.tar.zst",
+      "bytes": 621467
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pam-1.7.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcap-2.78-1-x86_64.pkg.tar.zst",
+      "bytes": 854184
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcap-2.78-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/coreutils-9.12-2-x86_64.pkg.tar.zst",
+      "bytes": 3075958
+    },
+    {
+      "path": "/var/cache/pacman/pkg/coreutils-9.12-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bzip2-1.0.8-6-x86_64.pkg.tar.zst",
+      "bytes": 59786
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sed-4.10-2-x86_64.pkg.tar.zst",
+      "bytes": 220815
+    },
+    {
+      "path": "/var/cache/pacman/pkg/grep-3.12-2-x86_64.pkg.tar.zst",
+      "bytes": 241270
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bzip2-1.0.8-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sed-4.10-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pcre2-10.49-1-x86_64.pkg.tar.zst",
+      "bytes": 1781740
+    },
+    {
+      "path": "/var/cache/pacman/pkg/grep-3.12-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pcre2-10.49-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glib2-2.90.1-1-x86_64.pkg.tar.zst",
+      "bytes": 5369371
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glib2-2.90.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/util-linux-2.42.4-1-x86_64.pkg.tar.zst",
+      "bytes": 6684541
+    },
+    {
+      "path": "/var/cache/pacman/pkg/util-linux-2.42.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ttf-dejavu-2.37+18+g9b5d1b2f-8-any.pkg.tar.zst",
+      "bytes": 2734601
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ttf-dejavu-2.37+18+g9b5d1b2f-8-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/spirv-tools-1:1.4.363.0-1-x86_64.pkg.tar.zst",
+      "bytes": 2221392
+    },
+    {
+      "path": "/var/cache/pacman/pkg/spirv-tools-1:1.4.363.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libx11-1.8.14-1-x86_64.pkg.tar.zst",
+      "bytes": 2120220
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libx11-1.8.14-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/icu-78.3-1-x86_64.pkg.tar.zst",
+      "bytes": 12272670
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gnutls-3.8.13-3-x86_64.pkg.tar.zst",
+      "bytes": 1924864
+    },
+    {
+      "path": "/var/cache/pacman/pkg/icu-78.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gnutls-3.8.13-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mesa-1:26.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 14156046
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hwdata-0.412-1-any.pkg.tar.zst",
+      "bytes": 1783601
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mesa-1:26.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/leancrypto-1.9.1-1-x86_64.pkg.tar.zst",
+      "bytes": 1607376
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hwdata-0.412-1-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/harfbuzz-14.6.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1428793
+    },
+    {
+      "path": "/var/cache/pacman/pkg/leancrypto-1.9.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/harfbuzz-14.6.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/kbd-2.10.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1341125
+    },
+    {
+      "path": "/var/cache/pacman/pkg/kbd-2.10.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/shadow-4.20.0.arch1-1-x86_64.pkg.tar.zst",
+      "bytes": 1232280
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcb-1.17.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1019918
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xkeyboard-config-2.48-1-any.pkg.tar.zst",
+      "bytes": 910202
+    },
+    {
+      "path": "/var/cache/pacman/pkg/shadow-4.20.0.arch1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcb-1.17.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xkeyboard-config-2.48-1-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cryptsetup-2.8.8-1-x86_64.pkg.tar.zst",
+      "bytes": 886302
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cryptsetup-2.8.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxml2-2.15.4-1-x86_64.pkg.tar.zst",
+      "bytes": 822191
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libjpeg-turbo-3.2.0-2-x86_64.pkg.tar.zst",
+      "bytes": 615715
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libunistring-1.4.2-1-x86_64.pkg.tar.zst",
+      "bytes": 746290
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxml2-2.15.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/freetype2-2.15.0-1-x86_64.pkg.tar.zst",
+      "bytes": 593190
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libjpeg-turbo-3.2.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libunistring-1.4.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/freetype2-2.15.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/findutils-4.11.0-1-x86_64.pkg.tar.zst",
+      "bytes": 539114
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libp11-kit-0.26.5-1-x86_64.pkg.tar.zst",
+      "bytes": 533456
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nettle-4.0-1-x86_64.pkg.tar.zst",
+      "bytes": 468859
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wlroots0.20-0.20.2-1-x86_64.pkg.tar.zst",
+      "bytes": 543055
+    },
+    {
+      "path": "/var/cache/pacman/pkg/findutils-4.11.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libp11-kit-0.26.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nettle-4.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/file-5.48-1-x86_64.pkg.tar.zst",
+      "bytes": 463924
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wlroots0.20-0.20.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtiff-4.7.2-2-x86_64.pkg.tar.zst",
+      "bytes": 422932
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fontconfig-2:2.18.3-2-x86_64.pkg.tar.zst",
+      "bytes": 419159
+    },
+    {
+      "path": "/var/cache/pacman/pkg/file-5.48-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtiff-4.7.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fontconfig-2:2.18.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-mozilla-3.131-1-x86_64.pkg.tar.zst",
+      "bytes": 391549
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lua54-5.4.9-1-x86_64.pkg.tar.zst",
+      "bytes": 376407
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-mozilla-3.131-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdrm-2.4.134-1-x86_64.pkg.tar.zst",
+      "bytes": 367774
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-1.16.2-1-x86_64.pkg.tar.zst",
+      "bytes": 354453
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lua54-5.4.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdrm-2.4.134-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-1.16.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/foot-1.28.0-2-x86_64.pkg.tar.zst",
+      "bytes": 348352
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libwebp-1.6.0-2-x86_64.pkg.tar.zst",
+      "bytes": 339664
+    },
+    {
+      "path": "/var/cache/pacman/pkg/foot-1.28.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libglvnd-1.7.0-3-x86_64.pkg.tar.zst",
+      "bytes": 333994
+    },
+    {
+      "path": "/var/cache/pacman/pkg/device-mapper-2.03.43-2-x86_64.pkg.tar.zst",
+      "bytes": 322472
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libwebp-1.6.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libglvnd-1.7.0-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pixman-0.46.4-1-x86_64.pkg.tar.zst",
+      "bytes": 291455
+    },
+    {
+      "path": "/var/cache/pacman/pkg/device-mapper-2.03.43-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxkbcommon-1.13.2-1-x86_64.pkg.tar.zst",
+      "bytes": 288147
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pixman-0.46.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libssh2-1.11.1-7-x86_64.pkg.tar.zst",
+      "bytes": 265862
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpng-1.6.59-1-x86_64.pkg.tar.zst",
+      "bytes": 265171
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxkbcommon-1.13.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libssh2-1.11.1-7-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/p11-kit-0.26.5-1-x86_64.pkg.tar.zst",
+      "bytes": 261660
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpng-1.6.59-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorgproto-2026.1-1-any.pkg.tar.zst",
+      "bytes": 249666
+    },
+    {
+      "path": "/var/cache/pacman/pkg/p11-kit-0.26.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lcms2-2.19.1-1-x86_64.pkg.tar.zst",
+      "bytes": 237258
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorgproto-2026.1-1-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libinput-1.32.0-1-x86_64.pkg.tar.zst",
+      "bytes": 236501
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lcms2-2.19.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libngtcp2-1.25.0-1-x86_64.pkg.tar.zst",
+      "bytes": 227814
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libinput-1.32.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-icd-loader-1.4.363.0-1-x86_64.pkg.tar.zst",
+      "bytes": 191476
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libngtcp2-1.25.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libwacom-2.20.0-1-x86_64.pkg.tar.zst",
+      "bytes": 190475
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-icd-loader-1.4.363.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wayland-1.26.0-1-x86_64.pkg.tar.zst",
+      "bytes": 153145
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libwacom-2.20.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-broker-37-3-x86_64.pkg.tar.zst",
+      "bytes": 150097
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wayland-1.26.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wayland-protocols-1.49-1-any.pkg.tar.zst",
+      "bytes": 141908
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-broker-37-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lm_sensors-1:3.6.2-1-x86_64.pkg.tar.zst",
+      "bytes": 136777
+    },
+    {
+      "path": "/var/cache/pacman/pkg/expat-2.9.0-1-x86_64.pkg.tar.zst",
+      "bytes": 136637
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wayland-protocols-1.49-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/llvm-libs-23.1.3-3-x86_64.pkg.tar.zst",
+      "bytes": 43460937
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtasn1-4.21.0-1-x86_64.pkg.tar.zst",
+      "bytes": 136141
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lm_sensors-1:3.6.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/expat-2.9.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libidn2-2.3.8-1-x86_64.pkg.tar.zst",
+      "bytes": 135360
+    },
+    {
+      "path": "/var/cache/pacman/pkg/llvm-libs-23.1.3-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtasn1-4.21.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-proto-1.17.0-4-any.pkg.tar.zst",
+      "bytes": 133206
+    },
+    {
+      "path": "/var/cache/pacman/pkg/kmod-34.2-1-x86_64.pkg.tar.zst",
+      "bytes": 133390
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libidn2-2.3.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdisplay-info-0.3.0-1-x86_64.pkg.tar.zst",
+      "bytes": 124625
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libedit-20260512_3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 120327
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-proto-1.17.0-4-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/kmod-34.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxext-1.3.7-1-x86_64.pkg.tar.zst",
+      "bytes": 107586
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdisplay-info-0.3.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libedit-20260512_3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnghttp2-1.70.0-1-x86_64.pkg.tar.zst",
+      "bytes": 101532
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libseccomp-2.6.0-1-x86_64.pkg.tar.zst",
+      "bytes": 97566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxext-1.3.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fcft-3.3.3-1-x86_64.pkg.tar.zst",
+      "bytes": 91656
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gzip-1.15-1-x86_64.pkg.tar.zst",
+      "bytes": 95787
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnghttp2-1.70.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libseccomp-2.6.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpsl-0.21.5-2-x86_64.pkg.tar.zst",
+      "bytes": 88860
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gzip-1.15-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/graphite-1:1.3.15-1-x86_64.pkg.tar.zst",
+      "bytes": 86864
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnghttp3-1.18.0-1-x86_64.pkg.tar.zst",
+      "bytes": 85025
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpsl-0.21.5-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libutf8proc-2.12.0-1-x86_64.pkg.tar.zst",
+      "bytes": 80236
+    },
+    {
+      "path": "/var/cache/pacman/pkg/graphite-1:1.3.15-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnghttp3-1.18.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/popt-1.19-2-x86_64.pkg.tar.zst",
+      "bytes": 78173
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libutf8proc-2.12.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/json-c-0.19-1-x86_64.pkg.tar.zst",
+      "bytes": 64992
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libevdev-1.14.0-1-x86_64.pkg.tar.zst",
+      "bytes": 61733
+    },
+    {
+      "path": "/var/cache/pacman/pkg/popt-1.19-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libffi-3.8.0-1-x86_64.pkg.tar.zst",
+      "bytes": 56862
+    },
+    {
+      "path": "/var/cache/pacman/pkg/json-c-0.19-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libevdev-1.14.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jbigkit-2.2-1-x86_64.pkg.tar.zst",
+      "bytes": 56852
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fcft-3.3.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libffi-3.8.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsysprof-capture-51.0-1-x86_64.pkg.tar.zst",
+      "bytes": 54925
+    },
+    {
+      "path": "/var/cache/pacman/pkg/seatd-0.9.3-1-x86_64.pkg.tar.zst",
+      "bytes": 40320
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jbigkit-2.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgudev-238-4-x86_64.pkg.tar.zst",
+      "bytes": 29422
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsysprof-capture-51.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-wm-0.4.2-2-x86_64.pkg.tar.zst",
+      "bytes": 33792
+    },
+    {
+      "path": "/var/cache/pacman/pkg/seatd-0.9.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxdmcp-1.1.5-2-x86_64.pkg.tar.zst",
+      "bytes": 27949
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgudev-238-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-wm-0.4.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxdmcp-1.1.5-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mtdev-1.1.7-1-x86_64.pkg.tar.zst",
+      "bytes": 17246
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxxf86vm-1.1.7-1-x86_64.pkg.tar.zst",
+      "bytes": 16030
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mtdev-1.1.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-errors-1.0.1-2-x86_64.pkg.tar.zst",
+      "bytes": 13450
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxxf86vm-1.1.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxau-1.0.12-1-x86_64.pkg.tar.zst",
+      "bytes": 11633
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-errors-1.0.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-utils-20240618-1-any.pkg.tar.zst",
+      "bytes": 11071
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cage-0.3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 26305
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxau-1.0.12-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-renderutil-0.3.10-2-x86_64.pkg.tar.zst",
+      "bytes": 9522
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-utils-20240618-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxshmfence-1.3.3-1-x86_64.pkg.tar.zst",
+      "bytes": 6113
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libliftoff-0.5.0-1-x86_64.pkg.tar.zst",
+      "bytes": 19996
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-renderutil-0.3.10-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-broker-units-37-3-x86_64.pkg.tar.zst",
+      "bytes": 2542
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxshmfence-1.3.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/default-cursors-3-1-any.pkg.tar.zst",
+      "bytes": 2372
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-broker-units-37-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-units-37-3-x86_64.pkg.tar.zst",
+      "bytes": 2296
+    },
+    {
+      "path": "/var/cache/pacman/pkg/default-cursors-3-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-20240618-1-any.pkg.tar.zst",
+      "bytes": 2135
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-units-37-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-20240618-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cage-0.3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libliftoff-0.5.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dkms-3.4.4-1-any.pkg.tar.zst",
+      "bytes": 51842
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dkms-3.4.4-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/eglexternalplatform-1.2.1-1-any.pkg.tar.zst",
+      "bytes": 7665
+    },
+    {
+      "path": "/var/cache/pacman/pkg/eglexternalplatform-1.2.1-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-wayland-4:1.1.24-1-x86_64.pkg.tar.zst",
+      "bytes": 40309
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-wayland-4:1.1.24-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 118
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-wayland2-1.0.2-1-x86_64.pkg.tar.zst",
+      "bytes": 40264
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-wayland2-1.0.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-gbm-1.1.4-1-x86_64.pkg.tar.zst",
+      "bytes": 13738
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-gbm-1.1.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-x11-1.0.6-1-x86_64.pkg.tar.zst",
+      "bytes": 42079
+    },
+    {
+      "path": "/var/cache/pacman/pkg/egl-x11-1.0.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-1.16.2-2-x86_64.pkg.tar.zst",
+      "bytes": 368744
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dbus-1.16.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxrender-0.9.13-1-x86_64.pkg.tar.zst",
+      "bytes": 30862
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxrender-0.9.13-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cairo-1.18.6-1-x86_64.pkg.tar.zst",
+      "bytes": 712052
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cairo-1.18.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprutils-0.14.2-1-x86_64.pkg.tar.zst",
+      "bytes": 221405
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprutils-0.14.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/aquamarine-0.15.1-1-x86_64.pkg.tar.zst",
+      "bytes": 469302
+    },
+    {
+      "path": "/var/cache/pacman/pkg/aquamarine-0.15.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glslang-1:1.4.363.0-1-x86_64.pkg.tar.zst",
+      "bytes": 2727204
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glslang-1:1.4.363.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprlang-0.6.8-5-x86_64.pkg.tar.zst",
+      "bytes": 118367
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprlang-0.6.8-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dav1d-1.5.4-1-x86_64.pkg.tar.zst",
+      "bytes": 688949
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dav1d-1.5.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/giflib-6.1.3-2-x86_64.pkg.tar.zst",
+      "bytes": 103824
+    },
+    {
+      "path": "/var/cache/pacman/pkg/giflib-6.1.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gperftools-2.18.1-1-x86_64.pkg.tar.zst",
+      "bytes": 515780
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gperftools-2.18.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtest-1.18.0-1-x86_64.pkg.tar.zst",
+      "bytes": 408829
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtest-1.18.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/highway-1.4.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1245399
+    },
+    {
+      "path": "/var/cache/pacman/pkg/highway-1.4.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libjxl-0.12.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1947638
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libjxl-0.12.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glycin-2.2.3-1-x86_64.pkg.tar.zst",
+      "bytes": 4268695
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glycin-2.2.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/shared-mime-info-2.5.1-2-x86_64.pkg.tar.zst",
+      "bytes": 783722
+    },
+    {
+      "path": "/var/cache/pacman/pkg/shared-mime-info-2.5.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdk-pixbuf2-2.44.8-1-x86_64.pkg.tar.zst",
+      "bytes": 509116
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gdk-pixbuf2-2.44.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fribidi-1.0.17-1-x86_64.pkg.tar.zst",
+      "bytes": 76358
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fribidi-1.0.17-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdatrie-0.2.14-1-x86_64.pkg.tar.zst",
+      "bytes": 112102
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdatrie-0.2.14-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libthai-0.1.30-1-x86_64.pkg.tar.zst",
+      "bytes": 276504
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libthai-0.1.30-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxft-2.3.9-1-x86_64.pkg.tar.zst",
+      "bytes": 61873
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxft-2.3.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pango-1:1.58.2-1-x86_64.pkg.tar.zst",
+      "bytes": 452759
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pango-1:1.58.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/librsvg-2:2.63.3-1-x86_64.pkg.tar.zst",
+      "bytes": 2454572
+    },
+    {
+      "path": "/var/cache/pacman/pkg/librsvg-2:2.63.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libzip-1.11.4-1-x86_64.pkg.tar.zst",
+      "bytes": 263160
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libzip-1.11.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tomlplusplus-3.4.0-2-x86_64.pkg.tar.zst",
+      "bytes": 176261
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tomlplusplus-3.4.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprcursor-0.1.13-7-x86_64.pkg.tar.zst",
+      "bytes": 227391
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprcursor-0.1.13-7-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprgraphics-0.5.1-4-x86_64.pkg.tar.zst",
+      "bytes": 91662
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprgraphics-0.5.1-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/abseil-cpp-20260817.0-2-x86_64.pkg.tar.zst",
+      "bytes": 1414389
+    },
+    {
+      "path": "/var/cache/pacman/pkg/abseil-cpp-20260817.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iniparser-4.3.2-1-x86_64.pkg.tar.zst",
+      "bytes": 19614
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iniparser-4.3.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprtoolkit-0.6.0-1-x86_64.pkg.tar.zst",
+      "bytes": 529401
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprtoolkit-0.6.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pugixml-1.16-1-x86_64.pkg.tar.zst",
+      "bytes": 117777
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pugixml-1.16-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprwire-0.3.1-3-x86_64.pkg.tar.zst",
+      "bytes": 203146
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprwire-0.3.1-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfixes-6.0.2-1-x86_64.pkg.tar.zst",
+      "bytes": 14237
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfixes-6.0.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcomposite-0.4.7-1-x86_64.pkg.tar.zst",
+      "bytes": 11961
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcomposite-0.4.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcursor-1.2.3-1-x86_64.pkg.tar.zst",
+      "bytes": 33749
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcursor-1.2.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lua-5.5.1-1-x86_64.pkg.tar.zst",
+      "bytes": 400516
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lua-5.5.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/muparser-2.3.5-2-x86_64.pkg.tar.zst",
+      "bytes": 177560
+    },
+    {
+      "path": "/var/cache/pacman/pkg/muparser-2.3.5-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/re2-2:2025.11.05-6-x86_64.pkg.tar.zst",
+      "bytes": 238303
+    },
+    {
+      "path": "/var/cache/pacman/pkg/re2-2:2025.11.05-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-0.4.1-2-x86_64.pkg.tar.zst",
+      "bytes": 11912
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-0.4.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-image-0.4.1-3-x86_64.pkg.tar.zst",
+      "bytes": 17724
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-image-0.4.1-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-keysyms-0.4.1-5-x86_64.pkg.tar.zst",
+      "bytes": 7729
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xcb-util-keysyms-0.4.1-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libepoxy-1.5.10-3-x86_64.pkg.tar.zst",
+      "bytes": 312656
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libepoxy-1.5.10-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-fonts-encodings-1.1.0-2-any.pkg.tar.zst",
+      "bytes": 582430
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-fonts-encodings-1.1.0-2-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libfontenc-1.1.9-1-x86_64.pkg.tar.zst",
+      "bytes": 15752
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libfontenc-1.1.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfont2-2.0.9-1-x86_64.pkg.tar.zst",
+      "bytes": 99822
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfont2-2.0.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxkbfile-1.2.0-1-x86_64.pkg.tar.zst",
+      "bytes": 77719
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxkbfile-1.2.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xkbcomp-1.5.0-1-x86_64.pkg.tar.zst",
+      "bytes": 93470
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xkbcomp-1.5.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxrandr-1.5.5-1-x86_64.pkg.tar.zst",
+      "bytes": 28139
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxrandr-1.5.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-setxkbmap-1.3.5-1-x86_64.pkg.tar.zst",
+      "bytes": 14149
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-setxkbmap-1.3.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-server-common-21.1.25-2-x86_64.pkg.tar.zst",
+      "bytes": 28329
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-server-common-21.1.25-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcvt-0.1.3-1-x86_64.pkg.tar.zst",
+      "bytes": 11031
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcvt-0.1.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libei-1.6.0-2-x86_64.pkg.tar.zst",
+      "bytes": 117619
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libei-1.6.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdecor-0.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 46413
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdecor-0.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xwayland-24.1.14-1-x86_64.pkg.tar.zst",
+      "bytes": 1031411
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xwayland-24.1.14-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/resvg-0.48.1-1-x86_64.pkg.tar.zst",
+      "bytes": 3713730
+    },
+    {
+      "path": "/var/cache/pacman/pkg/resvg-0.48.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuzzel-1.15.0-1-x86_64.pkg.tar.zst",
+      "bytes": 139663
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuzzel-1.15.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dconf-51.0-1-x86_64.pkg.tar.zst",
+      "bytes": 114086
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dconf-51.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gsettings-system-schemas-51.0-1-any.pkg.tar.zst",
+      "bytes": 6242
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gsettings-system-schemas-51.0-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-fonts-51.0-2-any.pkg.tar.zst",
+      "bytes": 2276345
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-fonts-51.0-2-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gsettings-desktop-schemas-51.0-1-any.pkg.tar.zst",
+      "bytes": 907739
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gsettings-desktop-schemas-51.0-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxi-1.8.4-1-x86_64.pkg.tar.zst",
+      "bytes": 75634
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxi-1.8.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxtst-1.2.6-1-x86_64.pkg.tar.zst",
+      "bytes": 27132
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxtst-1.2.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xprop-1.2.8-1-x86_64.pkg.tar.zst",
+      "bytes": 26380
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xprop-1.2.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/at-spi2-core-2.62.1-1-x86_64.pkg.tar.zst",
+      "bytes": 606627
+    },
+    {
+      "path": "/var/cache/pacman/pkg/at-spi2-core-2.62.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsigc++-2.12.2-1-x86_64.pkg.tar.zst",
+      "bytes": 69648
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsigc++-2.12.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glibmm-2.66.10-1-x86_64.pkg.tar.zst",
+      "bytes": 1057374
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glibmm-2.66.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/atkmm-2.28.5-2-x86_64.pkg.tar.zst",
+      "bytes": 105709
+    },
+    {
+      "path": "/var/cache/pacman/pkg/atkmm-2.28.5-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cairomm-1.14.6-1-x86_64.pkg.tar.zst",
+      "bytes": 92668
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cairomm-1.14.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bluez-libs-5.87-2-x86_64.pkg.tar.zst",
+      "bytes": 95069
+    },
+    {
+      "path": "/var/cache/pacman/pkg/bluez-libs-5.87-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pps-tools-1.0.3-2-x86_64.pkg.tar.zst",
+      "bytes": 11642
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pps-tools-1.0.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gpsd-3.27.5-1-x86_64.pkg.tar.zst",
+      "bytes": 1203561
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gpsd-3.27.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-icon-theme-legacy-46.2-3-any.pkg.tar.zst",
+      "bytes": 2275676
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-icon-theme-legacy-46.2-3-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-cursors-51.0-1-any.pkg.tar.zst",
+      "bytes": 368330
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-cursors-51.0-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-icon-theme-51.0-1-any.pkg.tar.zst",
+      "bytes": 202148
+    },
+    {
+      "path": "/var/cache/pacman/pkg/adwaita-icon-theme-51.0-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/desktop-file-utils-0.28-1-x86_64.pkg.tar.zst",
+      "bytes": 43566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/desktop-file-utils-0.28-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iso-codes-4.20.1-1-any.pkg.tar.zst",
+      "bytes": 3777898
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iso-codes-4.20.1-1-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcloudproviders-0.4.1-1-x86_64.pkg.tar.zst",
+      "bytes": 48535
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcloudproviders-0.4.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcolord-1.4.8-2-x86_64.pkg.tar.zst",
+      "bytes": 190198
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcolord-1.4.8-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdaemon-0.14-6-x86_64.pkg.tar.zst",
+      "bytes": 19660
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdaemon-0.14-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/avahi-1:0.9rc5-2-x86_64.pkg.tar.zst",
+      "bytes": 435520
+    },
+    {
+      "path": "/var/cache/pacman/pkg/avahi-1:0.9rc5-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcups-2:2.4.20-1-x86_64.pkg.tar.zst",
+      "bytes": 290140
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcups-2:2.4.20-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxdamage-1.1.7-1-x86_64.pkg.tar.zst",
+      "bytes": 7465
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxdamage-1.1.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxinerama-1.1.6-1-x86_64.pkg.tar.zst",
+      "bytes": 10229
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxinerama-1.1.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/json-glib-1.10.8-1-x86_64.pkg.tar.zst",
+      "bytes": 177781
+    },
+    {
+      "path": "/var/cache/pacman/pkg/json-glib-1.10.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/duktape-2.7.0-7-x86_64.pkg.tar.zst",
+      "bytes": 180479
+    },
+    {
+      "path": "/var/cache/pacman/pkg/duktape-2.7.0-7-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libproxy-0.5.12-1-x86_64.pkg.tar.zst",
+      "bytes": 30478
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libproxy-0.5.12-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glib-networking-1:2.90.0-1-x86_64.pkg.tar.zst",
+      "bytes": 154682
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glib-networking-1:2.90.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsoup3-3.8.0-1-x86_64.pkg.tar.zst",
+      "bytes": 435644
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsoup3-3.8.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libstemmer-3.1.1-1-x86_64.pkg.tar.zst",
+      "bytes": 152084
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libstemmer-3.1.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tinysparql-3.12.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1113070
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tinysparql-3.12.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk-update-icon-cache-1:4.24.1-1-x86_64.pkg.tar.zst",
+      "bytes": 18140
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk-update-icon-cache-1:4.24.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk3-1:3.24.52-2-x86_64.pkg.tar.zst",
+      "bytes": 9365862
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk3-1:3.24.52-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk-layer-shell-0.10.1-1-x86_64.pkg.tar.zst",
+      "bytes": 76446
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk-layer-shell-0.10.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pangomm-2.46.5-1-x86_64.pkg.tar.zst",
+      "bytes": 99698
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pangomm-2.46.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtkmm3-3.24.11-1-x86_64.pkg.tar.zst",
+      "bytes": 1473150
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtkmm3-3.24.11-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-topology-conf-1.2.5.1-4-any.pkg.tar.zst",
+      "bytes": 13830
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-topology-conf-1.2.5.1-4-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-ucm-conf-1.2.16.1-1-any.pkg.tar.zst",
+      "bytes": 134369
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-ucm-conf-1.2.16.1-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-lib-1.2.16.1-1-x86_64.pkg.tar.zst",
+      "bytes": 540042
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-lib-1.2.16.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsamplerate-0.2.2-3-x86_64.pkg.tar.zst",
+      "bytes": 1396674
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsamplerate-0.2.2-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/opus-1.6.1-1-x86_64.pkg.tar.zst",
+      "bytes": 3451036
+    },
+    {
+      "path": "/var/cache/pacman/pkg/opus-1.6.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jack2-1.9.22-2-x86_64.pkg.tar.zst",
+      "bytes": 483134
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jack2-1.9.22-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdbusmenu-glib-18.10.20180917-2-x86_64.pkg.tar.zst",
+      "bytes": 92583
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdbusmenu-glib-18.10.20180917-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdbusmenu-gtk3-18.10.20180917-2-x86_64.pkg.tar.zst",
+      "bytes": 50164
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libdbusmenu-gtk3-18.10.20180917-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmpdclient-2.27-1-x86_64.pkg.tar.zst",
+      "bytes": 87594
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmpdclient-2.27-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpipewire-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 1558566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpipewire-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libasyncns-1:0.8+r3+g68cd5af-3-x86_64.pkg.tar.zst",
+      "bytes": 17309
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libasyncns-1:0.8+r3+g68cd5af-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libogg-1.3.6-1-x86_64.pkg.tar.zst",
+      "bytes": 202092
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libogg-1.3.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/flac-1.5.0-1-x86_64.pkg.tar.zst",
+      "bytes": 343225
+    },
+    {
+      "path": "/var/cache/pacman/pkg/flac-1.5.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mpg123-1.33.7-1-x86_64.pkg.tar.zst",
+      "bytes": 470959
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mpg123-1.33.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lame-4.0-1-x86_64.pkg.tar.zst",
+      "bytes": 319710
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lame-4.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libvorbis-1.3.7-4-x86_64.pkg.tar.zst",
+      "bytes": 186353
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libvorbis-1.3.7-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsndfile-1.2.2-4-x86_64.pkg.tar.zst",
+      "bytes": 321153
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsndfile-1.2.2-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpulse-17.0+r134+g77d25a1e6-1-x86_64.pkg.tar.zst",
+      "bytes": 424269
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpulse-17.0+r134+g77d25a1e6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libwireplumber-0.5.18-1-x86_64.pkg.tar.zst",
+      "bytes": 318388
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libwireplumber-0.5.18-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/playerctl-2.4.1-5-x86_64.pkg.tar.zst",
+      "bytes": 82971
+    },
+    {
+      "path": "/var/cache/pacman/pkg/playerctl-2.4.1-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sndio-1.10.0-1-x86_64.pkg.tar.zst",
+      "bytes": 129936
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sndio-1.10.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/spdlog-1.17.0-2-x86_64.pkg.tar.zst",
+      "bytes": 165141
+    },
+    {
+      "path": "/var/cache/pacman/pkg/spdlog-1.17.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libplist-2.7.0-3-x86_64.pkg.tar.zst",
+      "bytes": 169160
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libplist-2.7.0-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libimobiledevice-glue-1.3.2-1-x86_64.pkg.tar.zst",
+      "bytes": 37483
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libimobiledevice-glue-1.3.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtatsu-1.0.5-1-x86_64.pkg.tar.zst",
+      "bytes": 18090
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtatsu-1.0.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libusbmuxd-2.1.1-2-x86_64.pkg.tar.zst",
+      "bytes": 28669
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libusbmuxd-2.1.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libimobiledevice-1.4.0-2-x86_64.pkg.tar.zst",
+      "bytes": 689875
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libimobiledevice-1.4.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/polkit-128-1-x86_64.pkg.tar.zst",
+      "bytes": 437644
+    },
+    {
+      "path": "/var/cache/pacman/pkg/polkit-128-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/upower-1.91.5-1-x86_64.pkg.tar.zst",
+      "bytes": 176808
+    },
+    {
+      "path": "/var/cache/pacman/pkg/upower-1.91.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/waybar-0.15.0-3-x86_64.pkg.tar.zst",
+      "bytes": 867317
+    },
+    {
+      "path": "/var/cache/pacman/pkg/waybar-0.15.0-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtksourceview4-4.8.4-2-x86_64.pkg.tar.zst",
+      "bytes": 992206
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtksourceview4-4.8.4-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mousepad-0.7.0-1-x86_64.pkg.tar.zst",
+      "bytes": 461283
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mousepad-0.7.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libexif-0.6.26-1-x86_64.pkg.tar.zst",
+      "bytes": 540159
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libexif-0.6.26-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnotify-0.8.9-1-x86_64.pkg.tar.zst",
+      "bytes": 42255
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnotify-0.8.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfce4util-4.20.1-1-x86_64.pkg.tar.zst",
+      "bytes": 145462
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfce4util-4.20.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xfconf-4.20.0-2-x86_64.pkg.tar.zst",
+      "bytes": 188394
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xfconf-4.20.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libice-1.1.2-1-x86_64.pkg.tar.zst",
+      "bytes": 80999
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libice-1.1.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsm-1.2.6-1-x86_64.pkg.tar.zst",
+      "bytes": 46693
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsm-1.2.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/startup-notification-0.12-9-x86_64.pkg.tar.zst",
+      "bytes": 19347
+    },
+    {
+      "path": "/var/cache/pacman/pkg/startup-notification-0.12-9-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgtop-2.41.3-2-x86_64.pkg.tar.zst",
+      "bytes": 198793
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgtop-2.41.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfce4ui-4.20.2-1-x86_64.pkg.tar.zst",
+      "bytes": 400803
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxfce4ui-4.20.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/exo-4.20.0-2-x86_64.pkg.tar.zst",
+      "bytes": 331860
+    },
+    {
+      "path": "/var/cache/pacman/pkg/exo-4.20.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/thunar-4.20.10-1-x86_64.pkg.tar.zst",
+      "bytes": 1636095
+    },
+    {
+      "path": "/var/cache/pacman/pkg/thunar-4.20.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnl-3.12.0-1-x86_64.pkg.tar.zst",
+      "bytes": 434678
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtsan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 472183
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libasan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 533471
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnl-3.12.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libtsan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libasan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgfortran-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 948773
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libhwasan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 281695
+    },
+    {
+      "path": "/var/cache/pacman/pkg/liblsan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 233817
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgomp-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 236404
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgfortran-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libhwasan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libgomp-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/liblsan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mpdecimal-4.0.1-3-x86_64.pkg.tar.zst",
+      "bytes": 105687
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libquadmath-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 170466
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libubsan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 211475
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libbsd-0.12.2-2-x86_64.pkg.tar.zst",
+      "bytes": 167385
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libquadmath-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mpdecimal-4.0.1-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libubsan-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libbsd-0.12.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lzo-2.10-5-x86_64.pkg.tar.zst",
+      "bytes": 89912
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libobjc-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 38476
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libusb-1.0.30-1-x86_64.pkg.tar.zst",
+      "bytes": 82411
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lzo-2.10-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libobjc-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libatomic-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 14372
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcc-libs-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 2730
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libatomic-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcc-libs-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmd-1.3.0-1-x86_64.pkg.tar.zst",
+      "bytes": 61753
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libusb-1.0.30-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmd-1.3.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-5.44.0-1-x86_64.pkg.tar.zst",
+      "bytes": 22001771
+    },
+    {
+      "path": "/var/cache/pacman/pkg/perl-5.44.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/swaybg-1.2.2-1-x86_64.pkg.tar.zst",
+      "bytes": 15691
+    },
+    {
+      "path": "/var/cache/pacman/pkg/swaybg-1.2.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpcap-1.11.0-1-x86_64.pkg.tar.zst",
+      "bytes": 318914
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iptables-1:1.8.13-1-x86_64.pkg.tar.zst",
+      "bytes": 431248
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nftables-1:1.1.7-3-x86_64.pkg.tar.zst",
+      "bytes": 464449
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpcap-1.11.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iptables-1:1.8.13-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iproute2-7.2.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1243859
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nftables-1:1.1.7-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nss-3.131-1-x86_64.pkg.tar.zst",
+      "bytes": 1808100
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libbpf-1.7.0-1-x86_64.pkg.tar.zst",
+      "bytes": 273925
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dhcpcd-10.5.2-1-x86_64.pkg.tar.zst",
+      "bytes": 232104
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iproute2-7.2.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nspr-4.40-1-x86_64.pkg.tar.zst",
+      "bytes": 206580
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nss-3.131-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libbpf-1.7.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/dhcpcd-10.5.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jansson-2.15.1-1-x86_64.pkg.tar.zst",
+      "bytes": 94532
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nspr-4.40-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnftnl-1.3.2-1-x86_64.pkg.tar.zst",
+      "bytes": 79235
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnfnetlink-1.0.2-2-x86_64.pkg.tar.zst",
+      "bytes": 17437
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnetfilter_conntrack-1.1.1-1-x86_64.pkg.tar.zst",
+      "bytes": 52011
+    },
+    {
+      "path": "/var/cache/pacman/pkg/jansson-2.15.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmnl-1.0.5-2-x86_64.pkg.tar.zst",
+      "bytes": 11477
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnftnl-1.3.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnfnetlink-1.0.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnetfilter_conntrack-1.1.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmnl-1.0.5-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-firmware-whence-20260916-1-any.pkg.tar.zst",
+      "bytes": 46416
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ethtool-1:7.1-1-x86_64.pkg.tar.zst",
+      "bytes": 308249
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-firmware-whence-20260916-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ethtool-1:7.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-firmware-realtek-20260916-1-any.pkg.tar.zst",
+      "bytes": 7473171
+    },
+    {
+      "path": "/var/cache/pacman/pkg/linux-firmware-realtek-20260916-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mako-1.11.0-1-x86_64.pkg.tar.zst",
+      "bytes": 57656
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mako-1.11.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/woff2-font-awesome-7.3.1-1-any.pkg.tar.zst",
+      "bytes": 263927
+    },
+    {
+      "path": "/var/cache/pacman/pkg/woff2-font-awesome-7.3.1-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/papirus-icon-theme-20260801-1-any.pkg.tar.zst",
+      "bytes": 22815424
+    },
+    {
+      "path": "/var/cache/pacman/pkg/papirus-icon-theme-20260801-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/otf-font-awesome-7.3.1-1-any.pkg.tar.zst",
+      "bytes": 319748
+    },
+    {
+      "path": "/var/cache/pacman/pkg/otf-font-awesome-7.3.1-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-icu-78.3-1-x86_64.pkg.tar.zst",
+      "bytes": 11389120
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-icu-78.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-gcc-libs-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst",
+      "bytes": 11341393
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-gcc-libs-16.2.1+r23+gd564253eb6c8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-mesa-1:26.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 14029180
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-mesa-1:26.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glibc-2.44+r50+g1848099f063e-1-x86_64.pkg.tar.zst",
+      "bytes": 3794395
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glibc-2.44+r50+g1848099f063e-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-opus-1.6.1-1-x86_64.pkg.tar.zst",
+      "bytes": 3414006
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-opus-1.6.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/steam-1.0.0.87-3-x86_64.pkg.tar.zst",
+      "bytes": 20371240
+    },
+    {
+      "path": "/var/cache/pacman/pkg/steam-1.0.0.87-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gst-plugins-bad-libs-1.28.8-1-x86_64.pkg.tar.zst",
+      "bytes": 3340233
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk4-1:4.24.1-1-x86_64.pkg.tar.zst",
+      "bytes": 9951829
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fftw-3.3.11-1-x86_64.pkg.tar.zst",
+      "bytes": 2799340
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gst-plugins-bad-libs-1.28.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtk4-1:4.24.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zenity-4.2.2-1-x86_64.pkg.tar.zst",
+      "bytes": 2777105
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fftw-3.3.11-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zenity-4.2.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gst-plugins-base-libs-1.28.8-1-x86_64.pkg.tar.zst",
+      "bytes": 2575578
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-swrast-1:26.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 2438629
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gst-plugins-base-libs-1.28.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gstreamer-1.28.8-1-x86_64.pkg.tar.zst",
+      "bytes": 2213366
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-swrast-1:26.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-vulkan-swrast-1:26.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 2450106
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gstreamer-1.28.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-vulkan-swrast-1:26.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-openssl-1:3.6.5-1-x86_64.pkg.tar.zst",
+      "bytes": 2178147
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-spirv-tools-1:1.4.363.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1829594
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-openssl-1:3.6.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtkmm-4.0-4.24.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1612557
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-audio-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 1367037
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-spirv-tools-1:1.4.363.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gtkmm-4.0-4.24.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-audio-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libfdk-aac-3.0.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1360737
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpipewire-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 1324080
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libfdk-aac-3.0.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glib2-2.90.1-1-x86_64.pkg.tar.zst",
+      "bytes": 1289579
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-utils-1.2.16-1-x86_64.pkg.tar.zst",
+      "bytes": 1250985
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpipewire-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glib2-2.90.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-utils-1.2.16-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nss-3.131-1-x86_64.pkg.tar.zst",
+      "bytes": 1221781
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmysofa-1.3.5-1-x86_64.pkg.tar.zst",
+      "bytes": 1166594
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nss-3.131-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-llvm-libs-1:23.1.3-1-x86_64.pkg.tar.zst",
+      "bytes": 44729174
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-systemd-262.1-1-x86_64.pkg.tar.zst",
+      "bytes": 980711
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glibmm-2.68-2.90.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1131938
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libmysofa-1.3.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-llvm-libs-1:23.1.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnm-1.58.1-2-x86_64.pkg.tar.zst",
+      "bytes": 953387
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-systemd-262.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glibmm-2.68-2.90.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-gnutls-3.8.13-3-x86_64.pkg.tar.zst",
+      "bytes": 861088
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnm-1.58.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libadwaita-1:1.10.0-1-x86_64.pkg.tar.zst",
+      "bytes": 841979
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-krb5-1.22.2-1-x86_64.pkg.tar.zst",
+      "bytes": 820252
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-sqlite-3.54.0-1-x86_64.pkg.tar.zst",
+      "bytes": 808049
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-gnutls-3.8.13-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libadwaita-1:1.10.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tar-1.35-5-x86_64.pkg.tar.zst",
+      "bytes": 783624
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-krb5-1.22.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-sqlite-3.54.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libx11-1.8.13-1-x86_64.pkg.tar.zst",
+      "bytes": 634902
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-pipewire-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 724276
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tar-1.35-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/webrtc-audio-processing-1-1.3-6-x86_64.pkg.tar.zst",
+      "bytes": 560285
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libunistring-1.4.2-1-x86_64.pkg.tar.zst",
+      "bytes": 577540
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libx11-1.8.13-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-pipewire-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-pcre2-10.49-1-x86_64.pkg.tar.zst",
+      "bytes": 545191
+    },
+    {
+      "path": "/var/cache/pacman/pkg/webrtc-audio-processing-1-1.3-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libunistring-1.4.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxml2-2.15.4-1-x86_64.pkg.tar.zst",
+      "bytes": 524192
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libgcrypt-1.12.4-1-x86_64.pkg.tar.zst",
+      "bytes": 521574
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-pcre2-10.49-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vmaf-3.2.1-1-x86_64.pkg.tar.zst",
+      "bytes": 507549
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-tools-1.4.363.0-1-x86_64.pkg.tar.zst",
+      "bytes": 481773
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxml2-2.15.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libgcrypt-1.12.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libnm-1.58.1-2-x86_64.pkg.tar.zst",
+      "bytes": 475405
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vmaf-3.2.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-tools-1.4.363.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xdg-desktop-portal-1.22.1-2-x86_64.pkg.tar.zst",
+      "bytes": 459195
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-curl-8.23.0-1-x86_64.pkg.tar.zst",
+      "bytes": 466213
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libnm-1.58.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-p11-kit-0.26.5-1-x86_64.pkg.tar.zst",
+      "bytes": 457856
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xdg-desktop-portal-1.22.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-curl-8.23.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-util-linux-2.42.4-1-x86_64.pkg.tar.zst",
+      "bytes": 444449
+    },
+    {
+      "path": "/var/cache/pacman/pkg/spandsp-0.0.6-7-x86_64.pkg.tar.zst",
+      "bytes": 433470
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-p11-kit-0.26.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-freetype2-2.15.0-1-x86_64.pkg.tar.zst",
+      "bytes": 426219
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-alsa-lib-1.2.16.1-1-x86_64.pkg.tar.zst",
+      "bytes": 408388
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-util-linux-2.42.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/spandsp-0.0.6-7-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-freetype2-2.15.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/umu-launcher-1.4.4-1-x86_64.pkg.tar.zst",
+      "bytes": 390841
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-alsa-lib-1.2.16.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/orc-0.4.44-1-x86_64.pkg.tar.zst",
+      "bytes": 357190
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sound-theme-freedesktop-0.8-6-any.pkg.tar.zst",
+      "bytes": 377411
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-cbor2-6.1.5-1-x86_64.pkg.tar.zst",
+      "bytes": 351150
+    },
+    {
+      "path": "/var/cache/pacman/pkg/orc-0.4.44-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sound-theme-freedesktop-0.8-6-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/umu-launcher-1.4.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/diffutils-3.12-2-x86_64.pkg.tar.zst",
+      "bytes": 350156
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-cbor2-6.1.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 565
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-brotli-1.2.0-2-x86_64.pkg.tar.zst",
+      "bytes": 348002
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nettle-4.0-2-x86_64.pkg.tar.zst",
+      "bytes": 341444
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-zstd-1.5.7-2-x86_64.pkg.tar.zst",
+      "bytes": 332140
+    },
+    {
+      "path": "/var/cache/pacman/pkg/diffutils-3.12-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-brotli-1.2.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libelf-0.196-2-x86_64.pkg.tar.zst",
+      "bytes": 331958
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nettle-4.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-zstd-1.5.7-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnice-0.1.24-1-x86_64.pkg.tar.zst",
+      "bytes": 329988
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wireplumber-0.5.18-1-x86_64.pkg.tar.zst",
+      "bytes": 314986
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libelf-0.196-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-xlib-0.33-7-any.pkg.tar.zst",
+      "bytes": 301607
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 286514
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libnice-0.1.24-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wireplumber-0.5.18-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-gmp-6.3.0-2-x86_64.pkg.tar.zst",
+      "bytes": 283522
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-xlib-0.33-7-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/liburing-2.15-1-x86_64.pkg.tar.zst",
+      "bytes": 272523
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-gmp-6.3.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/psmisc-23.7-2-x86_64.pkg.tar.zst",
+      "bytes": 264013
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-urllib3-2.8.0-1-any.pkg.tar.zst",
+      "bytes": 261555
+    },
+    {
+      "path": "/var/cache/pacman/pkg/liburing-2.15-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-e2fsprogs-1.47.4-1-x86_64.pkg.tar.zst",
+      "bytes": 229665
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-urllib3-2.8.0-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-ncurses-6.6-2-x86_64.pkg.tar.zst",
+      "bytes": 226234
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-e2fsprogs-1.47.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/psmisc-23.7-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pavucontrol-1:6.2-2-x86_64.pkg.tar.zst",
+      "bytes": 225728
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-ncurses-6.6-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-pulse-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 223009
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pavucontrol-1:6.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libva-2.24.1-1-x86_64.pkg.tar.zst",
+      "bytes": 210646
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpulse-17.0+r98+gb096704c0-1-x86_64.pkg.tar.zst",
+      "bytes": 260119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-pulse-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libglvnd-1.7.0-1-x86_64.pkg.tar.zst",
+      "bytes": 207516
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libva-2.24.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libngtcp2-1.25.0-1-x86_64.pkg.tar.zst",
+      "bytes": 201806
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libglvnd-1.7.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxcb-1.17.0-1-x86_64.pkg.tar.zst",
+      "bytes": 200803
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libngtcp2-1.25.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-vulkan-icd-loader-1.4.363.0-1-x86_64.pkg.tar.zst",
+      "bytes": 181149
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxcb-1.17.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libsndfile-1.2.2-3-x86_64.pkg.tar.zst",
+      "bytes": 222904
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpulse-17.0+r98+gb096704c0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-vulkan-icd-loader-1.4.363.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libldap-2.7.1-1-x86_64.pkg.tar.zst",
+      "bytes": 171119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libsndfile-1.2.2-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-fontconfig-2:2.18.3-1-x86_64.pkg.tar.zst",
+      "bytes": 170119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libvorbis-1.3.7-4-x86_64.pkg.tar.zst",
+      "bytes": 177476
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-flac-1.5.0-1-x86_64.pkg.tar.zst",
+      "bytes": 171784
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libldap-2.7.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-fontconfig-2:2.18.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lsof-4.99.7-1-x86_64.pkg.tar.zst",
+      "bytes": 158295
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pciutils-3.15.0-1-x86_64.pkg.tar.zst",
+      "bytes": 153666
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lv2-1.18.10-2-x86_64.pkg.tar.zst",
+      "bytes": 158049
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libvorbis-1.3.7-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lsof-4.99.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-flac-1.5.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pciutils-3.15.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lv2-1.18.10-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuse3-3.18.3-1-x86_64.pkg.tar.zst",
+      "bytes": 146742
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libdrm-2.4.134-1-x86_64.pkg.tar.zst",
+      "bytes": 146496
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpng-1.6.59-1-x86_64.pkg.tar.zst",
+      "bytes": 134063
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gupnp-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 132129
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-dbus-1.16.2-1-x86_64.pkg.tar.zst",
+      "bytes": 128318
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuse3-3.18.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libdrm-2.4.134-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpng-1.6.59-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gupnp-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-dbus-1.16.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libssh2-1.11.1-5-x86_64.pkg.tar.zst",
+      "bytes": 123119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/liblc3-1.1.3-2-x86_64.pkg.tar.zst",
+      "bytes": 122066
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pangomm-2.48-2.58.0-1-x86_64.pkg.tar.zst",
+      "bytes": 121271
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nspr-4.40-1-x86_64.pkg.tar.zst",
+      "bytes": 117473
+    },
+    {
+      "path": "/var/cache/pacman/pkg/usbutils-019-1-x86_64.pkg.tar.zst",
+      "bytes": 111405
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libssh2-1.11.1-5-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/liblc3-1.1.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pangomm-2.48-2.58.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nspr-4.40-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/usbutils-019-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-xz-5.8.4-1-x86_64.pkg.tar.zst",
+      "bytes": 111295
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xdg-desktop-portal-gtk-1.15.3-2-x86_64.pkg.tar.zst",
+      "bytes": 109595
+    },
+    {
+      "path": "/var/cache/pacman/pkg/graphene-1.10.8-2-x86_64.pkg.tar.zst",
+      "bytes": 108568
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cairomm-1.16-1.18.1-1-x86_64.pkg.tar.zst",
+      "bytes": 94788
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libva-2.24.1-1-x86_64.pkg.tar.zst",
+      "bytes": 94745
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-xz-5.8.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xdg-desktop-portal-gtk-1.15.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/graphene-1.10.8-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cairomm-1.16-1.18.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libva-2.24.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-plugins-1:1.2.12-6-x86_64.pkg.tar.zst",
+      "bytes": 91556
+    },
+    {
+      "path": "/var/cache/pacman/pkg/numactl-2.0.19-1-x86_64.pkg.tar.zst",
+      "bytes": 84828
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcanberra-1:0.30+r2+gc0620e4-6-x86_64.pkg.tar.zst",
+      "bytes": 84505
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libdisplay-info-0.3.0-1-x86_64.pkg.tar.zst",
+      "bytes": 80659
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-expat-2.9.0-1-x86_64.pkg.tar.zst",
+      "bytes": 77943
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-plugins-1:1.2.12-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/numactl-2.0.19-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libcanberra-1:0.30+r2+gc0620e4-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libdisplay-info-0.3.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-expat-2.9.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libgpg-error-1.61-1-x86_64.pkg.tar.zst",
+      "bytes": 77270
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tdb-1.4.15-2-x86_64.pkg.tar.zst",
+      "bytes": 76990
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcrypt-compat-4.5.2-1-x86_64.pkg.tar.zst",
+      "bytes": 76905
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxcrypt-compat-4.5.2-1-x86_64.pkg.tar.zst",
+      "bytes": 76730
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxcrypt-4.5.2-1-x86_64.pkg.tar.zst",
+      "bytes": 75470
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libgpg-error-1.61-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tdb-1.4.15-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxcrypt-compat-4.5.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxcrypt-compat-4.5.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxcrypt-4.5.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libnghttp3-1.18.0-1-x86_64.pkg.tar.zst",
+      "bytes": 71253
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libnghttp2-1.70.0-1-x86_64.pkg.tar.zst",
+      "bytes": 69825
+    },
+    {
+      "path": "/var/cache/pacman/pkg/serd-0.32.10-1-x86_64.pkg.tar.zst",
+      "bytes": 66547
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lilv-0.28.0-1-x86_64.pkg.tar.zst",
+      "bytes": 66412
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-alsa-plugins-1.2.12-1-x86_64.pkg.tar.zst",
+      "bytes": 65341
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libnghttp3-1.18.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libnghttp2-1.70.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/serd-0.32.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lilv-0.28.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-alsa-plugins-1.2.12-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gssdp-1.6.6-1-x86_64.pkg.tar.zst",
+      "bytes": 62037
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-wayland-1.26.0-1-x86_64.pkg.tar.zst",
+      "bytes": 59230
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-mesa-implicit-layers-1:26.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 57169
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpsl-0.21.5-1-x86_64.pkg.tar.zst",
+      "bytes": 56865
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gssdp-1.6.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-wayland-1.26.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-mesa-implicit-layers-1:26.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpsl-0.21.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-vulkan-mesa-implicit-layers-1:26.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 55341
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libidn2-2.3.8-1-x86_64.pkg.tar.zst",
+      "bytes": 55103
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsigc++-3.0-3.8.1-1-x86_64.pkg.tar.zst",
+      "bytes": 53200
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sbc-2.2-1-x86_64.pkg.tar.zst",
+      "bytes": 51117
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-vulkan-mesa-implicit-layers-1:26.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-pyzstd-0.20.0-1-x86_64.pkg.tar.zst",
+      "bytes": 57270
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libidn2-2.3.8-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsigc++-3.0-3.8.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sbc-2.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-zlib-1.3.2-1-x86_64.pkg.tar.zst",
+      "bytes": 49917
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-pyzstd-0.20.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xdg-user-dirs-0.20-1-x86_64.pkg.tar.zst",
+      "bytes": 47603
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zix-0.8.2-1-x86_64.pkg.tar.zst",
+      "bytes": 45532
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-json-c-0.19-1-x86_64.pkg.tar.zst",
+      "bytes": 39785
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-zlib-1.3.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xdg-user-dirs-0.20-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xrandr-1.5.4-1-x86_64.pkg.tar.zst",
+      "bytes": 38519
+    },
+    {
+      "path": "/var/cache/pacman/pkg/zix-0.8.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-json-c-0.19-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libtasn1-4.21.0-1-x86_64.pkg.tar.zst",
+      "bytes": 38324
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libldac-2.0.2.6-1-x86_64.pkg.tar.zst",
+      "bytes": 37955
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xrandr-1.5.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sord-0.16.22-1-x86_64.pkg.tar.zst",
+      "bytes": 37647
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxv-1.0.13-1-x86_64.pkg.tar.zst",
+      "bytes": 35784
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libtasn1-4.21.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libldac-2.0.2.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sord-0.16.22-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxkbcommon-x11-1.13.2-1-x86_64.pkg.tar.zst",
+      "bytes": 33374
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxv-1.0.13-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-bzip2-1.0.8-4-x86_64.pkg.tar.zst",
+      "bytes": 33182
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-six-1.17.0-3-any.pkg.tar.zst",
+      "bytes": 29097
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gupnp-igd-1.6.0-2-x86_64.pkg.tar.zst",
+      "bytes": 29058
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxkbcommon-x11-1.13.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-card-profiles-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 28929
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-bzip2-1.0.8-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-six-1.17.0-3-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gupnp-igd-1.6.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxext-1.3.7-1-x86_64.pkg.tar.zst",
+      "bytes": 27254
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-card-profiles-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-xxhash-4.0.1-1-x86_64.pkg.tar.zst",
+      "bytes": 24486
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-lm_sensors-1:3.6.2-2-x86_64.pkg.tar.zst",
+      "bytes": 23343
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxext-1.3.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libffi-3.8.0-1-x86_64.pkg.tar.zst",
+      "bytes": 21320
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-xxhash-4.0.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-lm_sensors-1:3.6.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sratom-0.6.22-1-x86_64.pkg.tar.zst",
+      "bytes": 20953
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libffi-3.8.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 118
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libfreeaptx-0.2.2-1-x86_64.pkg.tar.zst",
+      "bytes": 19485
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ministream-0.99.1-1-x86_64.pkg.tar.zst",
+      "bytes": 18583
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libogg-1.3.6-1-x86_64.pkg.tar.zst",
+      "bytes": 24939
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpciaccess-0.19-1-x86_64.pkg.tar.zst",
+      "bytes": 18323
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libfreeaptx-0.2.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/sratom-0.6.22-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ministream-0.99.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpciaccess-0.19-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libebur128-1.2.6-2-x86_64.pkg.tar.zst",
+      "bytes": 17895
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxss-1.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 14444
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libebur128-1.2.6-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxdmcp-1.1.5-1-x86_64.pkg.tar.zst",
+      "bytes": 10542
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libogg-1.3.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxss-1.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxdmcp-1.1.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libasyncns-1:0.8+r3+g68cd5af-3-x86_64.pkg.tar.zst",
+      "bytes": 10829
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxfixes-6.0.2-1-x86_64.pkg.tar.zst",
+      "bytes": 10218
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxxf86vm-1.1.7-1-x86_64.pkg.tar.zst",
+      "bytes": 9783
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lsb-release-2.0.r55.a25a4fc-1-any.pkg.tar.zst",
+      "bytes": 9044
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-keyutils-1.6.3-4-x86_64.pkg.tar.zst",
+      "bytes": 8528
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxfixes-6.0.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxxf86vm-1.1.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lsb-release-2.0.r55.a25a4fc-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-keyutils-1.6.3-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxss-1.2.5-1-x86_64.pkg.tar.zst",
+      "bytes": 7158
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxau-1.0.12-1-x86_64.pkg.tar.zst",
+      "bytes": 6956
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-xcb-util-keysyms-0.4.1-2-x86_64.pkg.tar.zst",
+      "bytes": 6167
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxinerama-1.1.6-1-x86_64.pkg.tar.zst",
+      "bytes": 5875
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxss-1.2.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libasyncns-1:0.8+r3+g68cd5af-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxau-1.0.12-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-xcb-util-keysyms-0.4.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxinerama-1.1.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/steam-devices-1.0.0.87-3-x86_64.pkg.tar.zst",
+      "bytes": 5655
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-alsa-1:1.6.9-1-x86_64.pkg.tar.zst",
+      "bytes": 5411
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxshmfence-1.3.3-1-x86_64.pkg.tar.zst",
+      "bytes": 5271
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuse-common-3.18.3-1-x86_64.pkg.tar.zst",
+      "bytes": 2837
+    },
+    {
+      "path": "/var/cache/pacman/pkg/steam-devices-1.0.0.87-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-alsa-1:1.6.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxshmfence-1.3.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuse-common-3.18.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuse2-2.9.9-6-x86_64.pkg.tar.zst",
+      "bytes": 123373
+    },
+    {
+      "path": "/var/cache/pacman/pkg/fuse2-2.9.9-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libntfs-3g-2026.9.28-1-x86_64.pkg.tar.zst",
+      "bytes": 232869
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libntfs-3g-2026.9.28-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ntfs-3g-2026.9.28-1-x86_64.pkg.tar.zst",
+      "bytes": 64777
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ntfs-3g-2026.9.28-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ntfsprogs-2026.9.28-1-x86_64.pkg.tar.zst",
+      "bytes": 298904
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ntfsprogs-2026.9.28-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxi-1.8.3-1-x86_64.pkg.tar.zst",
+      "bytes": 30784
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxi-1.8.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxtst-1.2.5-2-x86_64.pkg.tar.zst",
+      "bytes": 11079
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxrender-0.9.12-1-x86_64.pkg.tar.zst",
+      "bytes": 19157
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxtst-1.2.5-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gawk-5.4.1-1-x86_64.pkg.tar.zst",
+      "bytes": 1553071
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxrandr-1.5.5-1-x86_64.pkg.tar.zst",
+      "bytes": 18062
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxrender-0.9.12-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gawk-5.4.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxrandr-1.5.5-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mpfr-4.2.2-1-x86_64.pkg.tar.zst",
+      "bytes": 447319
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mpfr-4.2.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libelf-0.197-1-x86_64.pkg.tar.zst",
+      "bytes": 734261
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nss-3.131.1-1-x86_64.pkg.tar.zst",
+      "bytes": 1221861
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iproute2-7.3.0-1-x86_64.pkg.tar.zst",
+      "bytes": 1247634
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libelf-0.197-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nss-3.131.1-1-x86_64.pkg.tar.zst",
+      "bytes": 1808278
+    },
+    {
+      "path": "/var/cache/pacman/pkg/iproute2-7.3.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nss-3.131.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gperftools-2.19-1-x86_64.pkg.tar.zst",
+      "bytes": 536927
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nss-3.131.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-mozilla-3.131.1-1-x86_64.pkg.tar.zst",
+      "bytes": 388455
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libelf-0.197-1-x86_64.pkg.tar.zst",
+      "bytes": 333524
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gperftools-2.19-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ethtool-1:7.2-1-x86_64.pkg.tar.zst",
+      "bytes": 312228
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-mozilla-3.131.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libelf-0.197-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ethtool-1:7.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/llvm-libs-23.1.3-4-x86_64.pkg.tar.zst",
+      "bytes": 43461249
+    },
+    {
+      "path": "/var/cache/pacman/pkg/llvm-libs-23.1.3-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-headers-1:1.4.363.0-1-any.pkg.tar.zst",
+      "bytes": 1901792
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-headers-1:1.4.363.0-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-validation-layers-1.4.363.0-1-x86_64.pkg.tar.zst",
+      "bytes": 9236457
+    },
+    {
+      "path": "/var/cache/pacman/pkg/vulkan-validation-layers-1.4.363.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mesa-utils-9.0.0-7-x86_64.pkg.tar.zst",
+      "bytes": 155227
+    },
+    {
+      "path": "/var/cache/pacman/pkg/mesa-utils-9.0.0-7-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/procps-ng-4.0.7-1-x86_64.pkg.tar.zst",
+      "bytes": 1023957
+    },
+    {
+      "path": "/var/cache/pacman/pkg/procps-ng-4.0.7-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gperftools-2.19.1-1-x86_64.pkg.tar.zst",
+      "bytes": 589416
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gperftools-2.19.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcr-3.41.2-2-x86_64.pkg.tar.zst",
+      "bytes": 751198
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcr-3.41.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcr-4-4.4.1-1-x86_64.pkg.tar.zst",
+      "bytes": 575069
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gcr-4-4.4.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gnome-keyring-1:51.1-1-x86_64.pkg.tar.zst",
+      "bytes": 757098
+    },
+    {
+      "path": "/var/cache/pacman/pkg/gnome-keyring-1:51.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsecret-0.21.8.2-1-x86_64.pkg.tar.zst",
+      "bytes": 180540
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libsecret-0.21.8.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tpm2-tss-4.2.0-2-x86_64.pkg.tar.zst",
+      "bytes": 1042609
+    },
+    {
+      "path": "/var/cache/pacman/pkg/tpm2-tss-4.2.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nss-3.132-1-x86_64.pkg.tar.zst",
+      "bytes": 1221656
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpipewire-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 1324926
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-audio-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 1365996
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpipewire-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 1558769
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-nss-3.132-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nss-3.132-1-x86_64.pkg.tar.zst",
+      "bytes": 1808091
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libpipewire-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-audio-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libpipewire-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-pipewire-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 724324
+    },
+    {
+      "path": "/var/cache/pacman/pkg/nss-3.132-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 286540
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-mozilla-3.132-1-x86_64.pkg.tar.zst",
+      "bytes": 388399
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-pulse-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 223553
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-pipewire-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprutils-0.14.3-1-x86_64.pkg.tar.zst",
+      "bytes": 222737
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ca-certificates-mozilla-3.132-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-pulse-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-card-profiles-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 28965
+    },
+    {
+      "path": "/var/cache/pacman/pkg/hyprutils-0.14.3-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-alsa-1:1.6.10-1-x86_64.pkg.tar.zst",
+      "bytes": 5432
+    },
+    {
+      "path": "/var/cache/pacman/pkg/alsa-card-profiles-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pipewire-alsa-1:1.6.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/chrony-4.9-1-x86_64.pkg.tar.zst",
+      "bytes": 389467
+    },
+    {
+      "path": "/var/cache/pacman/pkg/chrony-4.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glycin-2.2.4-1-x86_64.pkg.tar.zst",
+      "bytes": 4259019
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glycin-2.2.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/brotli-1.2.1-1-x86_64.pkg.tar.zst",
+      "bytes": 414192
+    },
+    {
+      "path": "/var/cache/pacman/pkg/brotli-1.2.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/aom-3.15.2-1-x86_64.pkg.tar.zst",
+      "bytes": 3112240
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-fonttools-4.67.0-1-x86_64.pkg.tar.zst",
+      "bytes": 3230571
+    },
+    {
+      "path": "/var/cache/pacman/pkg/aom-3.15.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-fonttools-4.67.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lapack-3.12.1-2-x86_64.pkg.tar.zst",
+      "bytes": 5059573
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lapack-3.12.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/svt-av1-4.2.0-1-x86_64.pkg.tar.zst",
+      "bytes": 2071166
+    },
+    {
+      "path": "/var/cache/pacman/pkg/svt-av1-4.2.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/qhull-2020.2-6-x86_64.pkg.tar.zst",
+      "bytes": 1311188
+    },
+    {
+      "path": "/var/cache/pacman/pkg/qhull-2020.2-6-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rav1e-0.8.1-3-x86_64.pkg.tar.zst",
+      "bytes": 1658941
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rav1e-0.8.1-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-matplotlib-3.11.2-1-x86_64.pkg.tar.zst",
+      "bytes": 7391373
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-matplotlib-3.11.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxt-1.3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 540271
+    },
+    {
+      "path": "/var/cache/pacman/pkg/openjpeg2-2.5.4-1-x86_64.pkg.tar.zst",
+      "bytes": 917105
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glfw-1:3.5.1-1-x86_64.pkg.tar.zst",
+      "bytes": 426493
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxt-1.3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-pillow-13.0.0-1-x86_64.pkg.tar.zst",
+      "bytes": 986480
+    },
+    {
+      "path": "/var/cache/pacman/pkg/openjpeg2-2.5.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glfw-1:3.5.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-pillow-13.0.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-numpy-2.5.4-1-x86_64.pkg.tar.zst",
+      "bytes": 8516340
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-numpy-2.5.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glew-2.3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 403643
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glew-2.3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-contourpy-1.4.0-1-x86_64.pkg.tar.zst",
+      "bytes": 279057
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-dateutil-2.9.0-8-any.pkg.tar.zst",
+      "bytes": 323657
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libavif-1.4.2-1-x86_64.pkg.tar.zst",
+      "bytes": 322252
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-contourpy-1.4.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-pyparsing-3.3.3-1-any.pkg.tar.zst",
+      "bytes": 270764
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-dateutil-2.9.0-8-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libavif-1.4.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libyuv-r2921+644251f25-1-x86_64.pkg.tar.zst",
+      "bytes": 269130
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-pyparsing-3.3.3-1-any.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libyuv-r2921+644251f25-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/blas-3.12.1-2-x86_64.pkg.tar.zst",
+      "bytes": 255598
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-packaging-26.3-1-any.pkg.tar.zst",
+      "bytes": 263904
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxkbcommon-1.13.2-1-x86_64.pkg.tar.zst",
+      "bytes": 170787
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-packaging-26.3-1-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/blas-3.12.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glew-2.3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 167567
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxkbcommon-1.13.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libimagequant-4.4.1-2-x86_64.pkg.tar.zst",
+      "bytes": 271926
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glew-2.3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxt-1.3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 158464
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libimagequant-4.4.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glu-9.0.3-2-x86_64.pkg.tar.zst",
+      "bytes": 143671
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxmu-1.3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 78356
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxt-1.3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cblas-3.12.1-2-x86_64.pkg.tar.zst",
+      "bytes": 58348
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-glu-9.0.3-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libxmu-1.3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-kiwisolver-1.5.1-1-x86_64.pkg.tar.zst",
+      "bytes": 56797
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cblas-3.12.1-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxmu-1.3.1-1-x86_64.pkg.tar.zst",
+      "bytes": 47669
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libice-1.1.2-1-x86_64.pkg.tar.zst",
+      "bytes": 41962
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-kiwisolver-1.5.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libxmu-1.3.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libice-1.1.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-cycler-0.12.1-4-any.pkg.tar.zst",
+      "bytes": 17694
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libsm-1.2.6-1-x86_64.pkg.tar.zst",
+      "bytes": 15594
+    },
+    {
+      "path": "/var/cache/pacman/pkg/python-cycler-0.12.1-4-any.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libsm-1.2.6-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glu-9.0.3-3-x86_64.pkg.tar.zst",
+      "bytes": 160043
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libraqm-0.11.0-1-x86_64.pkg.tar.zst",
+      "bytes": 40283
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glu-9.0.3-3-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libraqm-0.11.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libldap-2.7.2-1-x86_64.pkg.tar.zst",
+      "bytes": 171465
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glib-networking-1:2.90.1-1-x86_64.pkg.tar.zst",
+      "bytes": 156027
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libldap-2.7.2-2-x86_64.pkg.tar.zst",
+      "bytes": 294932
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-libldap-2.7.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/glib-networking-1:2.90.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/libldap-2.7.2-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 215
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-brotli-1.2.1-1-x86_64.pkg.tar.zst",
+      "bytes": 348057
+    },
+    {
+      "path": "/var/cache/pacman/pkg/librsvg-2:2.63.4-1-x86_64.pkg.tar.zst",
+      "bytes": 2463949
+    },
+    {
+      "path": "/var/cache/pacman/pkg/lib32-brotli-1.2.1-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/librsvg-2:2.63.4-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xcursorgen-1.0.9-1-x86_64.pkg.tar.zst",
+      "bytes": 9729
+    },
+    {
+      "path": "/var/cache/pacman/pkg/xorg-xcursorgen-1.0.9-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 310
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pkgconf-3.0.10-1-x86_64.pkg.tar.zst",
+      "bytes": 124866
+    },
+    {
+      "path": "/var/cache/pacman/pkg/pkgconf-3.0.10-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cliphist-1:0.7.0-2-x86_64.pkg.tar.zst",
+      "bytes": 916948
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wl-clipboard-1:2.3.0-1-x86_64.pkg.tar.zst",
+      "bytes": 31757
+    },
+    {
+      "path": "/var/cache/pacman/pkg/cliphist-1:0.7.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ttf-jetbrains-mono-2.304-2-any.pkg.tar.zst",
+      "bytes": 834412
+    },
+    {
+      "path": "/var/cache/pacman/pkg/grim-1.5.0-2-x86_64.pkg.tar.zst",
+      "bytes": 19381
+    },
+    {
+      "path": "/var/cache/pacman/pkg/wl-clipboard-1:2.3.0-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/grim-1.5.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/slurp-1.5.0-2-x86_64.pkg.tar.zst",
+      "bytes": 18788
+    },
+    {
+      "path": "/var/cache/pacman/pkg/ttf-jetbrains-mono-2.304-2-any.pkg.tar.zst.sig",
+      "bytes": 119
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rustup-1.29.2-1-x86_64.pkg.tar.zst",
+      "bytes": 3797363
+    },
+    {
+      "path": "/var/cache/pacman/pkg/slurp-1.5.0-2-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/rustup-1.29.2-1-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    },
+    {
+      "path": "/var/cache/pacman/pkg/binutils-2.47-4-x86_64.pkg.tar.zst",
+      "bytes": 8594742
+    },
+    {
+      "path": "/var/cache/pacman/pkg/binutils-2.47-4-x86_64.pkg.tar.zst.sig",
+      "bytes": 566
+    }
+  ],
+  "preserved": [
+    "kernel",
+    "lab",
+    "experimentos no reconocidos",
+    "configuraciones guardadas",
+    "paquetes fijados NVIDIA/Hyprland/MangoHud",
+    "kernels, EROFS y manifiestos finales"
+  ],
+  "configuration_backup": "/home/builder/linux-reconstruido/lab/configuraciones-antes-limpieza-20261024-083052",
+  "trim": "/: 30.5 GiB (32786370560 bytes) trimmed"
+}

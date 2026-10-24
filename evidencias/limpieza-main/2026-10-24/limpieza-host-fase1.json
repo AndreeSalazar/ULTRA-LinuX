@@ -1,0 +1,37 @@
+[
+  {
+    "path": "build/pc/ultra-esp.img",
+    "bytes": 2032140288,
+    "reason": "imagen de compilacion o fixture regenerable; fuera de respaldos"
+  },
+  {
+    "path": "build/pc/disco-bmo-doble.img",
+    "bytes": 3387949056,
+    "reason": "imagen de compilacion o fixture regenerable; fuera de respaldos"
+  },
+  {
+    "path": "build/generico/ultra-esp.img",
+    "bytes": 1445986304,
+    "reason": "imagen de compilacion o fixture regenerable; fuera de respaldos"
+  },
+  {
+    "path": "build/generico/diag-hyprland.img",
+    "bytes": 689963008,
+    "reason": "imagen de compilacion o fixture regenerable; fuera de respaldos"
+  },
+  {
+    "path": "build/generico/disco-bmo-debug.img",
+    "bytes": 486539264,
+    "reason": "imagen de compilacion o fixture regenerable; fuera de respaldos"
+  },
+  {
+    "path": "build/warframe/windows.img",
+    "bytes": 268435456,
+    "reason": "imagen de compilacion o fixture regenerable; fuera de respaldos"
+  },
+  {
+    "path": "build/juegos/windows.img",
+    "bytes": 268435456,
+    "reason": "imagen de compilacion o fixture regenerable; fuera de respaldos"
+  }
+]

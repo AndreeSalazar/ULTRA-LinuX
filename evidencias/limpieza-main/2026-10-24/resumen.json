@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-24",
+  "source_commit": "0f330f1b7c38e2056ee0b5f97912f0ba88e453c8",
+  "profile": "pc",
+  "build_number": 47,
+  "qemu_checks_passed": 186,
+  "qemu_checks_failed": 0,
+  "feature_banks": 6,
+  "administrator_tests": 5,
+  "installed_on": "A: FAT32",
+  "physical_pc_test_pending": true,
+  "generic_recovery_preserved": true,
+  "before_bytes": {
+    "build": 172665285557,
+    "vm": 60660470794,
+    "privado": 87712,
+    "upstream": 299686050,
+    "herramientas": 408711896
+  },
+  "after_bytes": {
+    "build": 164296129250,
+    "vm": 11564372686,
+    "privado": 87712,
+    "upstream": 299686050,
+    "herramientas": 408711896
+  },
+  "net_freed_bytes": 57465254415,
+  "protected_backups": [
+    {
+      "path": "build/respaldo-limpieza-20261023/ULTRA-juegos-C-antes.ext4",
+      "bytes": 103079215104,
+      "preserved": true
+    },
+    {
+      "path": "build/respaldo-capa-20261024/5f9b020e65d5dfb89025.anterior-1792758815349198139.tar.zst",
+      "bytes": 30075082803,
+      "preserved": true
+    },
+    {
+      "path": "build/almacen-ampliado/ULTRA-juegos-respaldo.ext4",
+      "bytes": 17179869184,
+      "preserved": true
+    },
+    {
+      "path": "build/respaldo-antes-psi-9dd71f3/disco-bmo-doble.img",
+      "bytes": 3231711232,
+      "preserved": true
+    }
+  ],
+  "compaction": {
+    "before_bytes": 59773222912,
+    "after_bytes": 10635116544,
+    "logical_contents_identical": true,
+    "original_check": true,
+    "compacted_check": true,
+    "temporary_original": "vm/taller-antes-compactar-main-20261024.qcow2",
+    "new_workshop_boot_verified": true,
+    "temporary_original_removed": true,
+    "final_workshop_bytes": 10677125120
+  },
+  "installation": {
+    "files": [
+      {
+        "file": "A:/EFI/ULTRA/ULTRA-PC.EFI",
+        "sha256": "E2242E375F3F508C535F18CF684A573D1D5664350A6199742EE9F0AB1891C8F7",
+        "matches": true
+      },
+      {
+        "file": "A:/ULTRA/sistema-7.3.0-rc7-pc-g32c52ec87d62.erofs",
+        "sha256": "F6CA568B9B40E9DDAB0B74A057AC62B11D6674588A584F4D066685E1D41D311C",
+        "matches": true
+      }
+    ],
+    "datos_ext4_sha256": "F2AFD3EC9A39FA51961298725868FDE9633FDD088238F5A5D601BA8F06AA174A",
+    "datos_unchanged": true,
+    "filesystem": "FAT32"
+  },
+  "remaining_issue": "NVIDIA: avisos SRSO preexistentes; no corregidos en esta limpieza"
+}

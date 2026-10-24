@@ -80,3 +80,5 @@ evidencias/cxx/grafica-0d1596f6c6b94a07b502babaa99d9052/** text eol=lf whitespac
 src/rootfs/fuentes/*.ttf binary
 src/rootfs/**/*.png binary
 src/rootfs/**/*.wav binary
+evidencias/limpieza-main/** text eol=lf whitespace=-blank-at-eol
+evidencias/limpieza-main/**/*.png binary

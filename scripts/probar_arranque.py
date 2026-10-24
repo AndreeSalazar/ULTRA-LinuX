@@ -259,13 +259,16 @@ def check_window(conn, failures):
     """W2: the first Wayland window, seen on the emulated screen and closed with its keyboard.
 
     ultra-escritorio starts udevd, seatd and cage with foot. foot paints the whole screen
-    with its background (#050a12); then "exit" typed on the PS/2 keyboard must reach foot
+    with its configured background; then "exit" typed on the PS/2 keyboard must reach foot
     through udev, libinput and Wayland, and cage must end cleanly.
     """
     t = ''
     conn.sendall(b'ultra-escritorio --auto > /tmp/escritorio.log 2>&1 &\n')
     t += read_until(conn, 'ultra:', 10)
     tmp = pathlib.Path(tempfile.gettempdir())
+    colors=re.findall(r'^background=([0-9a-fA-F]{6})\s*$',(ROOT/'src/rootfs/desktop/foot.ini').read_text(),re.M)
+    if len(colors)!=1:raise ValueError('color de fondo foot ausente o ambiguo')
+    background=tuple(int(colors[0][i:i+2],16) for i in (0,2,4))
     share, png = 0.0, tmp / 'ultra-ventana.png'
     try:
         mon = socket.create_connection(('127.0.0.1', PORT + 1), timeout=5)
@@ -280,7 +283,7 @@ def check_window(conn, failures):
             time.sleep(0.3)
             pixels = (tmp / 'ultra-ventana.ppm').read_bytes().split(maxsplit=4)[4]
             foot = sum(1 for i in range(0, len(pixels) - 2, 3)
-                       if all(abs(pixels[i + k] - (5, 10, 18)[k]) <= 6 for k in range(3)))
+                       if all(abs(pixels[i + k] - background[k]) <= 6 for k in range(3)))
             share = foot / max(1, len(pixels) // 3)
             if share > 0.6: break
         shutil.copyfile(png, LOG.with_name(LOG.stem + '-ventana.png'))

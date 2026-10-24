@@ -1,0 +1,4 @@
+ActiveState=inactive
+SubState=dead
+ExecMainStatus=0
+AMARILLO [CACHE-LIMPIA]: no hay arbol de compilacion local en el taller; fuentes y artefactos finales conservados

@@ -40,13 +40,17 @@ El tema real ya está en el código del escritorio: Hyprland, Waybar, fuzzel,
 mako, GTK, foot, MangoHud, fondo, iconos y cursores. Las fuentes Rajdhani y
 Chakra Petch (OFL) viajan con el proyecto.
 
-El GIF y el video salen del prototipo en el navegador, no de una captura del
-sistema. Falta reconstruir las imágenes y pasar las pruebas de arranque en QEMU
-y en el PC. Hasta entonces, la última captura real es la de Núcleo:
+El GIF y el video salen del prototipo en el navegador. El perfil PC con Neón
+ya fue reconstruido, pasó 186 comprobaciones de arranque en QEMU y se instaló
+en A: FAT32 el 24 de octubre de 2026, conservando los datos y el perfil genérico
+de recuperación. Queda comprobar esta compilación en el PC físico.
 
-![Escritorio BMO-X Nucleo en QEMU: cyan, morado y verde metalico oscuro](evidencias/tema-nucleo/2026-10-23/escritorio.png)
+![Escritorio BMO-X Neón real en QEMU, compilación PC del 24 de octubre](evidencias/limpieza-main/2026-10-24/escritorio.png)
 
-[Tema Neón: uso, animaciones y verificación pendiente](docs/TEMA-NEON.md) ·
+[Compilación, pruebas y limpieza del taller](docs/LIMPIEZA-COMPILACION-2026-10-24.md):
+se conservan las fuentes, configuraciones, imágenes finales y respaldos personales.
+
+[Tema Neón: uso, animaciones y verificación](docs/TEMA-NEON.md) ·
 [Propuesta y maquetas](docs/PROPUESTA-ESCRITORIO.md) ·
 [Tema Núcleo anterior](docs/TEMA-NUCLEO.md).
 

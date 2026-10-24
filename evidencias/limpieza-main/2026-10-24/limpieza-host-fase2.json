@@ -1,0 +1,17 @@
+[
+  {
+    "path": "build/pc/ultra-esp.img",
+    "bytes": 2136997888,
+    "reason": "salida regenerable despues de prueba e instalacion; imagen BMO principal conservada"
+  },
+  {
+    "path": "build/pc/disco-bmo-doble.img",
+    "bytes": 3492806656,
+    "reason": "salida regenerable despues de prueba e instalacion; imagen BMO principal conservada"
+  },
+  {
+    "path": "build/pc/disco-bmo-prueba.img",
+    "bytes": 3492806656,
+    "reason": "salida regenerable despues de prueba e instalacion; imagen BMO principal conservada"
+  }
+]

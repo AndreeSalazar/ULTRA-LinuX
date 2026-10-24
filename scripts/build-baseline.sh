@@ -60,7 +60,7 @@ user="$base/build/init-c-$perfil"
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
 mkdir -p "$out" "$user" "$art"
 [[ -d "$out/init" || ! -e "$out/init" ]] || rm -f "$out/init"
-rm -f "$art/build-complete"
+rm -f "$art/build-complete" "$art/compilacion-limpiada.json"
 exec > >(tee "$out/build.log") 2>&1
 trap 'echo "ROJO: build fallo en linea $LINENO"' ERR
 expected=32c52ec87d6245ee2d12ed5dd509e40062939b50

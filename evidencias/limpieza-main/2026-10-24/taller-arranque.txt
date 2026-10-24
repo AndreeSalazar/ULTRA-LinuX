@@ -1,0 +1,10 @@
+linux-reconstruido-taller
+gcc (GCC) 16.2.1 20260810
+32c52ec87d6245ee2d12ed5dd509e40062939b50
+FUENTE_OK
+CONFIG_OK
+CONFIG_MEMCG=y
+CONFIG_CFS_BANDWIDTH=y
+CONFIG_CGROUP_PIDS=y
+-rw-r--r-- 1 builder builder   18756608 Oct 24 08:05 /home/builder/linux-reconstruido/artifacts/pc/bzImage-tiny64
+-rw-r--r-- 1 builder builder 1934143488 Oct 24 08:10 /home/builder/linux-reconstruido/artifacts/pc/sistema-a.erofs

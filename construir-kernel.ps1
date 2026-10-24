@@ -54,10 +54,14 @@ if($Accion -eq 'Compilar'){
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia del rootfs incompleta.'}
     Invoke-Guest ('if systemctl is-active --quiet linux-reconstruido-build; then echo "La compilacion ya esta en curso"; else sudo systemctl reset-failed linux-reconstruido-build 2>/dev/null || true; sudo systemd-run --collect --unit=linux-reconstruido-build --uid=builder --setenv=HOME=/home/builder /bin/bash /home/builder/linux-reconstruido/lab/build-baseline.sh '+$Perfil+'; fi')
 }elseif($Accion -eq 'Estado'){
-    Invoke-Guest ('systemctl show linux-reconstruido-build -p ActiveState -p SubState -p ExecMainStatus; tail -n 20 /home/builder/linux-reconstruido/build/'+$dirs[$Perfil]+'/build.log')
+    Invoke-Guest ('systemctl show linux-reconstruido-build -p ActiveState -p SubState -p ExecMainStatus; if test -f /home/builder/linux-reconstruido/build/'+$dirs[$Perfil]+'/build.log; then tail -n 20 /home/builder/linux-reconstruido/build/'+$dirs[$Perfil]+'/build.log; else echo "AMARILLO [CACHE-LIMPIA]: no hay arbol de compilacion local en el taller; fuentes y artefactos finales conservados"; fi')
 }elseif($Accion -eq 'Descargar'){
     # Name the reason: a build still running is not a failed build.
-    $ready=& ssh.exe -i $key -p 12222 -o BatchMode=yes -o ConnectTimeout=30 -o KexAlgorithms=curve25519-sha256 -o $known builder@127.0.0.1 ('if test -f /home/builder/linux-reconstruido/artifacts/'+$Perfil+'/build-complete; then echo listo; elif systemctl is-active --quiet linux-reconstruido-build; then echo compilando; else echo falta; fi')
+    $ready=& ssh.exe -i $key -p 12222 -o BatchMode=yes -o ConnectTimeout=30 -o KexAlgorithms=curve25519-sha256 -o $known builder@127.0.0.1 ('if test -f /home/builder/linux-reconstruido/artifacts/'+$Perfil+'/build-complete; then echo listo; elif systemctl is-active --quiet linux-reconstruido-build; then echo compilando; elif test -f /home/builder/linux-reconstruido/artifacts/'+$Perfil+'/compilacion-limpiada.json; then echo limpio; else echo falta; fi')
+    if($ready -eq 'limpio'){
+        Write-Host 'AMARILLO [CACHE-LIMPIA]: discos de prueba retirados tras la instalacion. Usa los artefactos locales conservados o vuelve a Compilar.' -ForegroundColor Yellow
+        exit 2
+    }
     if($ready -eq 'compilando'){
         Write-Host "AMARILLO [COMPILANDO]: el kernel $Perfil todavia se esta compilando; no se descarga un kernel a medias." -ForegroundColor Yellow
         Write-Host "Vuelve a mirar con: .\construir-kernel.ps1 -Accion Estado -Perfil $Perfil"

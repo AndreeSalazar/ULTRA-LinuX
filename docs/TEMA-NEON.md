@@ -254,6 +254,14 @@ Lo que solo existe en el prototipo:
 
 ## Verificación pendiente
 
+Actualización del 24/10/2026: el perfil **PC**, compilación 47, pasó las
+186 comprobaciones de arranque y escritorio en QEMU y se instaló en A: FAT32.
+La captura real y las pruebas específicas de intro, personalización, capturas,
+portapapeles y modo juego están en el
+[informe de entrega](LIMPIEZA-COMPILACION-2026-10-24.md).
+La validación en el PC físico y la reconstrucción del perfil genérico siguen
+pendientes; el genérico anterior se conserva para recuperación.
+
 1. En el taller: `scripts/actualizar-escritorio.sh generico completo`.
 2. Arranque en QEMU con las pruebas de escritorio y `--tema-nucleo`. Las pruebas
    se actualizaron así:
