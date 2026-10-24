@@ -113,6 +113,9 @@ def pick(labels,prompt,color):
     except (OSError,subprocess.SubprocessError): return None
     choice=r.stdout.rstrip('\n')
     return choice if r.returncode==0 and choice in labels else None
+def sound(event):
+    try: subprocess.run(['ultra-personalizar','sonar',event],capture_output=True,timeout=5)
+    except (OSError,subprocess.SubprocessError): pass
 def notify(text,critical=False):
     try: subprocess.run(['notify-send','--app-name=ULTRA','--icon=dialog-warning']+(['--urgency=critical'] if critical else [])+['BMO-X / Procesos',text],capture_output=True,timeout=5)
     except (OSError,subprocess.SubprocessError): pass
@@ -120,7 +123,7 @@ ACTIONS=[('Cerrar (le pide salir; puede guardar)','close'),('Forzar cierre (no g
          ('Limitar a 50% de un nucleo','cpu'),('Limitar a 2 GiB de RAM','ram'),('Cancelar',None)]
 def quick(order):
     """Clic en CPU o RAM de la barra: lo que mas consume y que hacer con ello. Los del escritorio no salen."""
-    rows=sample(); guard=protected(rows)
+    sound('menu'); rows=sample(); guard=protected(rows)
     rows=sorted((r for r in rows if r['pid'] not in guard),key=(lambda r:r['cpu']) if order=='cpu' else (lambda r:r['rss']),reverse=True)[:15]
     color=accent()
     labels=[f"{r['cpu']:6.1f}%  {r['rss']/2**20:8.0f} MiB  {r['name']}  [{r['pid']}]" for r in rows]
@@ -134,10 +137,10 @@ def quick(order):
     if not action: return
     if action in ('close','kill') and pick(['No, volver',f"Si, {label.split(' (')[0].lower()} {r['name']}"],'CONFIRMAR','ff2a4fff') in (None,'No, volver'): return
     try:
-        if action in ('close','kill'): close(r,action=='kill'); notify(f"Senal enviada a {r['name']} [{r['pid']}]")
-        elif action=='cpu': limit(r,'max','50000'); notify(f"{r['name']}: CPU limitada a 50% de un nucleo")
-        else: limit(r,'2147483648','max'); notify(f"{r['name']}: RAM limitada a 2 GiB")
-    except (OSError,ValueError) as e: notify(str(e)[:180],True)
+        if action in ('close','kill'): close(r,action=='kill'); sound('proceso'); notify(f"Senal enviada a {r['name']} [{r['pid']}]")
+        elif action=='cpu': limit(r,'max','50000'); sound('proceso'); notify(f"{r['name']}: CPU limitada a 50% de un nucleo")
+        else: limit(r,'2147483648','max'); sound('proceso'); notify(f"{r['name']}: RAM limitada a 2 GiB")
+    except (OSError,ValueError) as e: sound('error'); notify(str(e)[:180])
 def panel(win,order='ram'):
     index=0; old={}; last=time.monotonic(); msg=''; win.timeout(1000)
     def confirm(text):

@@ -28,6 +28,10 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
 - **Personalizar** (Super+Shift+P): perfiles de un toque (Neón hielo, Demonio, Sobrio, Minimal,
   Juego y los tuyos), fondo Demonio con tu Tux, fondo según la hora y 20 opciones de colores,
   ventanas, animaciones, barra, dock, avisos, letra y sonidos ([detalle](docs/TEMA-NEON.md)).
+  **Fondo vivo**: lluvia, aro que gira y letreros que fallan, con tu acento o tu Tux, quieto en
+  juegos ([Neón](docs/maquetas/png/neon/fondo-vivo-neon.mp4), [Demonio](docs/maquetas/png/neon/fondo-vivo-demonio.mp4)).
+  **Un sonido propio por elemento** ([escuchar](docs/maquetas/sonidos-bmox.ogg)). Clic en CPU o RAM
+  de la barra para cerrar o frenar lo que más consume.
   La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa
   se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+Shift+V)
   con historial en RAM; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,

@@ -69,7 +69,7 @@ la luna de la barra.
 | Opción | Valores |
 | --- | --- |
 | Acento | hielo, amarillo, cyan, rojo, verde, violeta, coral, blanco o un hex propio (`#RRGGBB`) |
-| Fondo | Neón con el acento elegido, **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
+| Fondo | Neón con el acento elegido, **vivo** o **vivo-demonio** (animados), **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
 | Efectos | vivos o reducidos |
 | Borde de la ventana activa | gira o quieto |
 | Huecos entre ventanas | compacto, normal o amplio |
@@ -86,7 +86,7 @@ la luna de la barra.
 | Reloj | 24 h, 12 h o con segundos |
 | Posición de avisos | arriba a la derecha, arriba al centro o abajo a la derecha; esquivan barra y dock |
 | Letra de la interfaz | Neón (Rajdhani y Chakra Petch), Chakra Petch, mono (JetBrains Mono) o clásica (DejaVu Sans) |
-| Sonidos del sistema | sí o no |
+| Sonidos del sistema | sí, básicos o no |
 | Modo juego automático | auto o no |
 
 El acento también llega a la terminal: la selección y el cursor de foot cambian
@@ -182,18 +182,85 @@ Ambiente. `scripts/probar_portapapeles.py` lo prueba con herramientas falsas.
 
 ## Sonidos
 
-Cuatro sonidos propios, sintetizados por `scripts/crear_sonidos.py` (sin muestras
-de terceros), en `/etc/ultra/sonido-*.wav`:
+Cada elemento del escritorio tiene un sonido propio, sintetizado por
+`scripts/crear_sonidos.py` (sin muestras de terceros) y guardado en
+`/etc/ultra/sonido-*.wav`. Escúchalos todos seguidos en
+[`sonidos-bmox.ogg`](maquetas/sonidos-bmox.ogg), en el orden de esta tabla.
 
-| Sonido | Cuándo |
-| --- | --- |
-| `inicio` | Tres notas que suben al iniciar sesión |
-| `captura` | Obturador al guardar una captura |
-| `critico` | Dos pulsos graves con un aviso crítico (mako `on-notify`) |
-| `juego` | Barrido que baja al entrar en modo juego |
+| Sonido | Cuándo | Cómo suena |
+| --- | --- | --- |
+| `inicio` | Al iniciar sesión | Tres notas que suben |
+| `ventana-abrir` | Se abre una ventana | Chirrido corto que sube, con grano glitch |
+| `ventana-cerrar` | Se cierra una ventana | El chirrido que cae |
+| `escritorio` | Cambias de escritorio | Soplido de aire y un tic |
+| `menu` | Centro BMO-X, Personalizar y clic en CPU/RAM | Arpegio digital de tres pasos |
+| `aviso` | Llega un aviso normal | Ping de dos notas altas |
+| `volumen` | Teclas de volumen | Tic seco |
+| `portapapeles` | Recuperas algo del historial | Doble clic |
+| `captura` | Guardas una captura | Obturador |
+| `proceso` | Cierras o limitas un proceso, o borras el historial | Golpe grave con crujido |
+| `error` | Algo falla en un menú | Zumbido cuadrado doble |
+| `critico` | Aviso crítico | Dos pulsos graves |
+| `juego` / `juego-salir` | Entras o sales del modo juego | Barrido que baja / que sube |
 
-Los reproduce `ultra-personalizar sonar EVENTO` con `pw-play` al 60 %. Se apagan
-en Personalizar > Sonido y juegos.
+Los reproduce `ultra-personalizar sonar EVENTO` con `pw-play`. Los de ventanas,
+escritorio, menú, volumen y portapapeles van más bajos (35–50 %); el resto al 60 %.
+
+- **Sonidos: sí**: todos.
+- **Sonidos: básicos**: solo los que avisan de algo (inicio, aviso, crítico,
+  captura, proceso, error y modo juego); ventanas, escritorios y menús callan.
+- **Sonidos: no**: ninguno.
+- **En un juego**: solo suenan crítico, volumen, captura, proceso, error y modo juego.
+
+Las ventanas y los escritorios suenan desde `ultra-modo-juego`, que ya escucha los
+eventos de Hyprland; si se abren varias ventanas a la vez, suena una sola. Los
+avisos suenan con `on-notify` de mako según su tipo.
+
+## Fondo vivo
+
+**Personalizar > Colores y fondo > Fondo: vivo** (ciudad Neón con tu acento) o
+**vivo-demonio** (tu Tux). Vista previa:
+[Neón](maquetas/png/neon/fondo-vivo-neon.mp4) y
+[Demonio](maquetas/png/neon/fondo-vivo-demonio.mp4). Son la salida real del
+generador, pero no una captura del sistema funcionando.
+
+Es un bucle de 4 s a 12 cuadros por segundo:
+
+- lluvia que cae (cada gota da 1, 2 o 3 vueltas por bucle, así nunca salta);
+- el aro del autor gira un cuarto de vuelta y su brillo pulsa;
+- los letreros 24H y BMO-X fallan como neón viejo;
+- una línea de escaneo baja y, una vez por bucle, un corte glitch.
+
+Cómo funciona:
+
+- `ultra-fondo-vivo` lo genera **en tu PC** la primera vez (unos 5–10 s) con
+  Pillow, a partir del fondo estático y tu acento, y lo guarda en
+  `~/.cache/ultra/fondo-vivo/` (unos 16–18 MB). No va en el repo ni en la imagen.
+- Mientras se genera queda el fondo estático; cuando está listo, `awww` (antes
+  `swww`) lo reproduce y se cierra `swaybg`.
+- **En un juego** se cambia por su primer cuadro, quieto, y vuelve a moverse al salir.
+- Cambiar de acento genera otro bucle; elegir otro fondo para `awww`.
+- **Sin awww ni swww** se queda el fondo estático, sin error. Los scripts de
+  build intentan instalar `awww` y luego `swww`; no pude confirmar cuál está hoy
+  en los repositorios oficiales, así que el build avisa en amarillo si no hay ninguno.
+
+**Sin medir:** el coste en CPU y GPU no está medido. `awww` guarda los cuadros
+ya decodificados, pero Hyprland recibe una imagen nueva 12 veces por segundo
+mientras estás en el escritorio. Compáralo con `ultra-diagnostico-juego` con el
+fondo `neon` y con `vivo`. `scripts/probar_fondo_vivo.py` comprueba que el bucle
+cierra sin salto, la caché por acento, la pausa y el caso sin awww.
+
+## Barra con vida
+
+- El escritorio activo late con un brillo de tu acento.
+- **EDDI** brilla y se apaga despacio.
+- La línea de la barra pasa de tu acento al cyan y vuelve, como el borde de las ventanas.
+- CPU y RAM se iluminan al pasar el ratón, porque se pueden clicar.
+- Los botones del dock brillan al pasar el ratón.
+
+Con **Efectos: reducidos** en Personalizar la barra se queda quieta; solo
+parpadean las alertas (CPU al 80 % y escritorio urgente). GTK redibuja la barra
+mientras haya animaciones; en pantalla completa Hyprland la tapa.
 
 ## Modo juego automático
 
@@ -202,6 +269,7 @@ la ventana activa es un juego en pantalla completa (clase `steam_app_N` de Proto
 un `.exe` de Wine o Heroic, o `gamescope`):
 
 - apaga animaciones, desenfoque, sombras y el borde que gira (`ultra-personalizar juego entrar`);
+- deja quieto el fondo vivo;
 - pone mako en no molestar: los avisos normales se guardan en el historial y los
   críticos se siguen viendo;
 - el fondo automático espera a que termines para cambiar.
@@ -214,10 +282,6 @@ Hyprland ya la tapa. Se apaga en Personalizar > Sonido y juegos > Modo juego: no
 **Sin medir todavía**: no hay datos de que esto suba FPS o quite tirones. Lo que sí
 hace es dejar al compositor sin trabajo de efectos mientras juegas. Para saber si
 ayuda, compara con `ultra-diagnostico-juego` con el modo en `auto` y en `no`.
-
-**Fondo animado**: no está. Necesitaría `mpvpaper` o `swww` con un video en bucle
-renderizado antes, y gastaría GPU todo el tiempo fuera de los juegos. Si se hace,
-el modo juego sería el lugar para pausarlo.
 
 ## Iconos de apps
 
@@ -255,17 +319,15 @@ Lo que solo existe en el prototipo:
 
 - el corte glitch al abrir ventanas;
 - la barra de tiempo de los avisos;
-- Equipo en vivo con tarjetas (necesitaría eww);
-- el fondo animado.
+- Equipo en vivo con tarjetas (necesitaría eww).
 
 ## Para RING 0
 
 - **Borde que gira:** obliga a Hyprland a redibujar mientras haya un borde visible.
   En pantalla completa no hay borde. Si se prefiere un escritorio quieto, basta
   con quitar la línea `borderangle` de `hyprland.lua`.
-- **Fondo animado** (lluvia, letreros, aro): no está en el sistema real; sigue
-  `swaybg` con el SVG fijo. Activarlo sería decisión de RING 0, pausándolo en
-  juegos y en pantalla completa.
+- **Fondo vivo**: opcional y apagado de fábrica (el fondo por defecto sigue
+  siendo el SVG fijo con `swaybg`). Se queda quieto en juegos. Su coste está sin medir.
 
 ## Verificación pendiente
 

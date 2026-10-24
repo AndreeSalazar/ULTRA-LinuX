@@ -5,6 +5,7 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 mode=${1:-menu}
 if [[ $mode == menu ]]; then
+    ultra-personalizar sonar menu > /dev/null 2>&1 &
     category=raiz
     remembered="${XDG_RUNTIME_DIR:?}/ultra-categoria"
     previous=apps

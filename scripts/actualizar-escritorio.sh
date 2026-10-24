@@ -23,7 +23,12 @@ kernel_before=$(sha256sum bzImage-tiny64)
 rm -f build-complete
 if [[ $modo == completo ]]; then
 sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
-    -S --needed --noconfirm papirus-icon-theme otf-font-awesome ttf-jetbrains-mono rustup gcc git pkgconf grim slurp wl-clipboard cliphist mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
+    -S --needed --noconfirm papirus-icon-theme otf-font-awesome ttf-jetbrains-mono rustup gcc git pkgconf grim slurp wl-clipboard cliphist python-pillow mako libnotify gawk procps-ng lib32-libxtst lib32-libxrandr mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
+for motor in awww swww; do
+    sudo pacman --config "$art/pacman-sistema.conf" --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" \
+        -S --needed --noconfirm "$motor" > /dev/null 2>&1 && { echo "VERDE [FONDO VIVO]: $motor"; break; }
+    echo "AMARILLO [FONDO VIVO]: $motor no esta en los repositorios"
+done
 if sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -Q woff2-font-awesome >/dev/null 2>&1; then
     sudo pacman --root "$art/sistema-a" --dbpath "$art/sistema-a/var/lib/pacman" -R --noconfirm woff2-font-awesome
 fi
@@ -37,7 +42,7 @@ sudo install -m 0755 "$lab/rootfs/bin/ultra-hyprland" "$art/sistema-a/usr/local/
 for helper in ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-crear-fondo ultra-preparar-limites; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/libexec/$helper"
 done
-for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas ultra-pantallas ultra-discos ultra-personalizar ultra-aplicaciones ultra-espacio ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego; do
+for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas ultra-pantallas ultra-discos ultra-personalizar ultra-aplicaciones ultra-espacio ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego ultra-fondo-vivo; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/bin/$helper"
 done
 for helper in "$lab/rootfs/bin/"*; do

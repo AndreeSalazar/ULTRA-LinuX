@@ -57,7 +57,10 @@ con confirmacion. Sin home persistente se pierden al apagar.
 Modo juego: con un juego en pantalla completa (Steam/Proton, .exe o gamescope)
 se apagan animaciones, desenfoque, sombras y el borde que gira, y los avisos
 quedan en silencio salvo los criticos. Al salir del juego todo vuelve.
-Sonidos, modo juego y fondo segun la hora se eligen en SUPER + Shift + P.
+Sonidos, modo juego, fondo vivo y fondo segun la hora se eligen en SUPER + Shift + P.
+Cada elemento tiene su sonido: ventanas, escritorios, menus, avisos, volumen,
+capturas y procesos. Sonidos: basicos deja solo los avisos importantes.
+Fondo vivo: lluvia, aro que gira y letreros que fallan; quieto durante juegos.
 Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 
 Si D: y ULTRA-juegos.ext4 estan disponibles, el home es persistente en ext4.

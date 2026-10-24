@@ -7,14 +7,17 @@ dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSI
 [[ -z ${DISPLAY:-} ]] || dbus-update-activation-environment DISPLAY
 hyprctl setcursor ULTRA-Nucleo 28 || echo 'AMARILLO [CURSOR]: se conserva el cursor disponible'
 # Personalizacion del usuario (ultra-personalizar); sin ella, el tema del sistema.
-fondo=/etc/ultra/wallpaper.svg fondo_modo=fill estilo=/etc/ultra/waybar.css barras=/etc/ultra/waybar.jsonc avisos=/etc/ultra/mako.conf
+fondo=/etc/ultra/wallpaper.svg fondo_modo=fill vivo= vivo_acento=#5ad8ff estilo=/etc/ultra/waybar.css barras=/etc/ultra/waybar.jsonc avisos=/etc/ultra/mako.conf
 while IFS='=' read -r clave valor; do
     case $clave in
         FONDO) fondo=$valor;; FONDO_MODO) fondo_modo=$valor;;
         WAYBAR_CSS) estilo=$valor;; WAYBAR_JSON) barras=$valor;; MAKO_CONF) avisos=$valor;;
+        VIVO) vivo=$valor;; VIVO_ACENTO) vivo_acento=$valor;;
     esac
 done < <(timeout 60 ultra-personalizar rutas 2>> "$XDG_RUNTIME_DIR/ultra-personalizar.log" || true)
 if [[ $fondo_modo == color ]]; then swaybg -c "$fondo" & else swaybg -i "$fondo" -m fill & fi
+# Fondo animado: el estatico queda hasta que el bucle esta listo (la primera vez se genera).
+[[ $vivo != neon && $vivo != demonio ]] || ultra-fondo-vivo poner "$vivo" "$vivo_acento" >> "$XDG_RUNTIME_DIR/ultra-fondo-vivo.log" 2>&1 &
 waybar -c "$barras" -s "$estilo" &
 mako --config "$avisos" &
 ultra-personalizar hyprland >> "$XDG_RUNTIME_DIR/ultra-personalizar.log" 2>&1 &

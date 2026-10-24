@@ -10,7 +10,7 @@ import tempfile
 import time
 
 RAIZ = Path(__file__).resolve().parents[1]
-FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'makoctl', 'pkill', 'notify-send', 'pw-play', 'ultra-ambiente')
+FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'makoctl', 'pkill', 'notify-send', 'pw-play', 'ultra-ambiente', 'ultra-fondo-vivo')
 
 
 def main():
@@ -162,6 +162,33 @@ def main():
         _, cmds = correr('vigilar', HORAS_PRUEBA='18,18,19,19')
         assert not any(c[0] == 'swaybg' for c in cmds), 'en juego el fondo espera'
         (runtime / 'ultra-modo-juego').unlink()
+        # Fondo vivo: arranca el estatico y pide el animado con tu acento; otro fondo lo para.
+        _, cmds = correr('poner', 'fondo', 'vivo')
+        assert ['ultra-fondo-vivo', 'poner', 'neon', '#ff2a4f'] in cmds, cmds
+        rutas = correr('rutas')[0]
+        assert 'VIVO=neon' in rutas and 'VIVO_ACENTO=#ff2a4f' in rutas
+        _, cmds = correr('poner', 'fondo', 'vivo-demonio')
+        assert ['ultra-fondo-vivo', 'poner', 'demonio', '#ff2a4f'] in cmds
+        _, cmds = correr('poner', 'fondo', 'neon')
+        assert ['ultra-fondo-vivo', 'parar'] in cmds
+        # Efectos reducidos: la barra deja de latir; las alertas siguen.
+        correr('poner', 'efectos', 'reducidos')
+        css = (tema / 'waybar.css').read_text()
+        assert 'animation: latido' not in css and 'animation: linea' not in css and 'animation: alerta' in css
+        correr('poner', 'efectos', 'vivos')
+        assert 'animation: latido' in (tema / 'waybar.css').read_text()
+        # Cada elemento tiene su sonido y su volumen; 'basicos' calla los de ventanas.
+        _, cmds = correr('sonar', 'ventana-abrir')
+        assert ['pw-play', '--volume=0.35', str(RAIZ / 'src/rootfs/desktop/sonido-ventana-abrir.wav')] in cmds
+        correr('poner', 'sonidos', 'basicos')
+        assert not any(c[0] == 'pw-play' for c in correr('sonar', 'ventana-abrir')[1])
+        assert any(c[0] == 'pw-play' for c in correr('sonar', 'aviso')[1])
+        correr('poner', 'sonidos', 'si')
+        # En juego callan ventanas y avisos; lo critico suena.
+        (runtime / 'ultra-modo-juego').write_text('activo\n')
+        assert not any(c[0] == 'pw-play' for c in correr('sonar', 'escritorio')[1] + correr('sonar', 'aviso')[1])
+        assert any(c[0] == 'pw-play' for c in correr('sonar', 'critico')[1])
+        (runtime / 'ultra-modo-juego').unlink()
         # Sonidos propios: solo eventos conocidos y se pueden apagar.
         _, cmds = correr('sonar', 'captura')
         assert ['pw-play', '--volume=0.6', str(RAIZ / 'src/rootfs/desktop/sonido-captura.wav')] in cmds
@@ -174,10 +201,12 @@ def main():
         lua = next(c for c in cmds if c[:2] == ['hyprctl', 'eval'])[2]
         assert 'animations={enabled=false}' in lua and 'blur={enabled=false' in lua and 'leaf="borderangle",enabled=false' in lua
         assert ['makoctl', 'mode', '-a', 'do-not-disturb'] in cmds and (runtime / 'ultra-modo-juego').exists()
+        assert ['ultra-fondo-vivo', 'pausar'] in cmds
         assert (runtime / 'ultra-efectos').read_text().strip() == 'vivo'
         _, cmds = correr('juego', 'salir')
         lua = next(c for c in cmds if c[:2] == ['hyprctl', 'eval'])[2]
         assert 'animations={enabled=true}' in lua and ['makoctl', 'mode', '-r', 'do-not-disturb'] in cmds
+        assert ['ultra-fondo-vivo', 'seguir'] in cmds
         assert not (runtime / 'ultra-modo-juego').exists()
         correr('poner', 'modojuego', 'no')
         assert not any(c[:2] == ['hyprctl', 'eval'] for c in correr('juego', 'entrar')[1])
@@ -185,7 +214,7 @@ def main():
         # Restablecer: borra solo lo propio y vuelve al tema del sistema.
         _, cmds = correr('restablecer')
         assert not (home / '.config/ultra/personal.json').exists() and not (tema / 'waybar.css').exists()
-        assert ['waybar', '-c', str(RAIZ / 'src/rootfs/desktop/waybar.jsonc'), '-s', str(RAIZ / 'src/rootfs/desktop/waybar.css')] in cmds
+        assert ['waybar', '-c', str(RAIZ / 'src/rootfs/desktop/waybar.jsonc'), '-s', str(RAIZ / 'src/rootfs/desktop/waybar.css')] in cmds, cmds
         assert not (tema / 'waybar.jsonc').exists()
         assert 'selection-background=5ad8ff' in foot.read_text() and 'cursor=000000 5ad8ff' in foot.read_text()
         assert imagen.exists() and correr('rutas')[0] == ''

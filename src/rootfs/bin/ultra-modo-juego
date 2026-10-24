@@ -9,6 +9,9 @@ juego (cerrarlo, cambiar de ventana o quitar la pantalla completa) lo deshace.
 Se apaga en Personalizar > Sonido y juegos. Sin root, red ni shell.
 
 Juego = clase steam_app_<n> (Proton), gamescope o un .exe (Wine, Heroic).
+
+Tambien da voz a las ventanas: abrir, cerrar y cambiar de escritorio suenan con
+`ultra-personalizar sonar` (que respeta la opcion de sonidos y calla en juego).
 """
 import json
 import os
@@ -22,6 +25,8 @@ import time
 
 JUEGO = re.compile(r'(steam_app_[0-9]+|gamescope|.+\.exe)', re.I)
 EVENTOS = {'fullscreen', 'activewindow', 'activewindowv2', 'closewindow', 'workspace', 'workspacev2', 'focusedmon'}
+SONIDOS = {'openwindow': 'ventana-abrir', 'closewindow': 'ventana-cerrar', 'workspace': 'escritorio'}
+PAUSA_SONIDO = .12  # Varias ventanas a la vez suenan una sola vez.
 
 
 def es_juego(ventana):
@@ -55,9 +60,24 @@ def ruta_socket():
     return Path(runtime) / 'hypr' / firma / '.socket2.sock'
 
 
+def sonar(evento):
+    try:
+        subprocess.Popen(['ultra-personalizar', 'sonar', evento], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+    except OSError:
+        pass
+
+
 class Vigia:
     def __init__(self):
         self.activo = False
+        self.ultimo_sonido = 0.0
+
+    def sonido(self, nombres):
+        evento = next((SONIDOS[n] for n in nombres if n in SONIDOS), None)
+        ahora = time.monotonic()
+        if evento and ahora - self.ultimo_sonido >= PAUSA_SONIDO:
+            self.ultimo_sonido = ahora; sonar(evento)
 
     def evaluar(self):
         juego = es_juego(ventana_activa())
@@ -80,7 +100,9 @@ class Vigia:
                 resto += datos
                 *lineas, resto = resto.split(b'\n')
                 resto = resto[-65536:]
-                if any(linea.split(b'>>', 1)[0].decode(errors='replace') in EVENTOS for linea in lineas):
+                nombres = [linea.split(b'>>', 1)[0].decode(errors='replace') for linea in lineas]
+                self.sonido(nombres)
+                if any(n in EVENTOS for n in nombres):
                     self.evaluar()
 
 

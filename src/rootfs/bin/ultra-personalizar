@@ -31,7 +31,7 @@ ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo':
            'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
 OPCIONES = {
     'acento': list(ACENTOS) + ['propio'],
-    'fondo': ['neon', 'demonio', 'auto', 'nucleo', 'imagen', 'liso'],
+    'fondo': ['neon', 'demonio', 'vivo', 'vivo-demonio', 'auto', 'nucleo', 'imagen', 'liso'],
     'efectos': ['vivos', 'reducidos'],
     'borde': ['gira', 'quieto'],
     'huecos': ['compacto', 'normal', 'amplio'],
@@ -48,7 +48,7 @@ OPCIONES = {
     'reloj': ['24h', '12h', 'segundos'],
     'avisos': ['arriba-derecha', 'arriba-centro', 'abajo-derecha'],
     'letra': ['neon', 'petch', 'mono', 'clasica'],
-    'sonidos': ['si', 'no'],
+    'sonidos': ['si', 'basicos', 'no'],
     'modojuego': ['auto', 'no'],
 }
 DEFECTO = dict(acento='hielo', fondo='neon', imagen='', efectos='vivos', borde='gira', huecos='normal',
@@ -92,7 +92,13 @@ BARRA = {'compacta': (13, 19), 'normal': (15, 23), 'grande': (17, 27)}
 IMAGENES = ('Imágenes', 'Pictures')
 # Fondo auto: Neon de dia, Demonio de noche (hora local).
 DIA = range(7, 19)
-SONIDOS = ('inicio', 'captura', 'critico', 'juego')
+# Un sonido propio por elemento. 'basicos' deja solo los que avisan de algo.
+SONIDOS = ('inicio', 'captura', 'critico', 'juego', 'juego-salir', 'ventana-abrir', 'ventana-cerrar', 'escritorio',
+           'aviso', 'menu', 'volumen', 'portapapeles', 'proceso', 'error')
+BASICOS = {'inicio', 'captura', 'critico', 'juego', 'juego-salir', 'aviso', 'proceso', 'error'}
+# Durante un juego solo suenan los que importan.
+EN_JUEGO = {'critico', 'juego', 'juego-salir', 'volumen', 'proceso', 'error', 'captura'}
+VOLUMEN_SONIDO = {'ventana-abrir': .35, 'ventana-cerrar': .35, 'escritorio': .4, 'menu': .45, 'volumen': .5, 'portapapeles': .45}
 FOOT = HOME / '.config/foot/foot.ini'
 EXTENSIONES = ('.png', '.jpg', '.jpeg', '.svg')
 
@@ -203,6 +209,9 @@ def generar(estado):
             linea = linea.replace('border-bottom: 2px solid', 'border-top: 2px solid').replace('0 2px 14px', '0 -2px 14px')
         if abajo and linea.startswith('window#waybar.dock > box'):
             linea = linea.replace('border-top: 2px solid', 'border-bottom: 2px solid').replace('0 -2px 14px', '0 2px 14px')
+        if abajo and linea.startswith('@keyframes linea'): linea = linea.replace('border-bottom-color', 'border-top-color')
+        # Efectos reducidos: la barra queda quieta; solo parpadean las alertas.
+        if estado['efectos'] == 'reducidos': linea = re.sub(r' animation: (latido|aura|linea) [^;]*;', '', linea)
         lineas.append(linea)
     escribir(TEMA / 'waybar.css', '\n'.join(lineas) + '\n')
     barras = json.loads((ETC / 'waybar.jsonc').read_text())
@@ -244,6 +253,11 @@ def rutas_fondo(estado, hora=None):
     acento = color_acento(estado)
     fondo = fondo_efectivo(estado, hora)
     rutas = dict(FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    if fondo in ('vivo', 'vivo-demonio'):
+        # Se arranca con el estatico y ultra-fondo-vivo lo cambia por el animado cuando esta listo.
+        variante = 'demonio' if fondo == 'vivo-demonio' else 'neon'
+        rutas.update(VIVO=variante, VIVO_ACENTO=acento)
+        fondo = variante
     if fondo == 'nucleo':
         rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
     elif fondo == 'demonio':
@@ -350,6 +364,8 @@ def poner_fondo(rutas):
     ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg')
     if rutas['FONDO_MODO'] == 'color': lanzar('swaybg', '-c', str(rutas['FONDO']))
     else: lanzar('swaybg', '-i', str(rutas['FONDO']), '-m', 'fill')
+    if rutas.get('VIVO'): lanzar('ultra-fondo-vivo', 'poner', rutas['VIVO'], rutas['VIVO_ACENTO'])
+    else: ejecutar('ultra-fondo-vivo', 'parar')
 
 
 def aplicar(estado, reiniciar=True):
@@ -377,6 +393,7 @@ def restablecer():
     terminal_acento(BASE)
     aplicar_hyprland(estado)
     if os.environ.get('WAYLAND_DISPLAY'):
+        ejecutar('ultra-fondo-vivo', 'parar')
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg'); lanzar('swaybg', '-i', str(ETC / 'wallpaper.svg'), '-m', 'fill')
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar'); lanzar('waybar', '-c', str(ETC / 'waybar.jsonc'), '-s', str(ETC / 'waybar.css'))
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako'); lanzar('mako', '--config', str(ETC / 'mako.conf'))
@@ -408,8 +425,11 @@ def sonar(evento):
     if evento not in SONIDOS: raise ValueError(f'sonido desconocido: {evento}')
     estado, _ = leer_estado()
     archivo = ETC / f'sonido-{evento}.wav'
-    if estado['sonidos'] != 'si' or archivo.is_symlink() or not archivo.is_file(): return
-    lanzar('pw-play', '--volume=0.6', str(archivo))
+    if estado['sonidos'] == 'no' or (estado['sonidos'] == 'basicos' and evento not in BASICOS): return
+    if archivo.is_symlink() or not archivo.is_file(): return
+    base = runtime()
+    if base and evento not in EN_JUEGO and (base / 'ultra-modo-juego').exists(): return
+    lanzar('pw-play', f'--volume={VOLUMEN_SONIDO.get(evento, .6)}', str(archivo))
 
 
 def juego(accion):
@@ -423,6 +443,7 @@ def juego(accion):
         aplicar_hyprland(estado, 'juego')
         ejecutar('makoctl', 'mode', '-a', 'do-not-disturb')
         if marca: escribir(marca, 'activo\n')
+        lanzar('ultra-fondo-vivo', 'pausar')
         sonar('juego')
     elif accion == 'salir':
         modo = None
@@ -437,6 +458,8 @@ def juego(accion):
         if marca:
             try: marca.unlink()
             except FileNotFoundError: pass
+        lanzar('ultra-fondo-vivo', 'seguir')
+        if estado['modojuego'] == 'auto': sonar('juego-salir')
     else:
         raise ValueError('uso: ultra-personalizar juego entrar|salir')
 
@@ -542,10 +565,11 @@ def menu_perfiles(acento):
                 aplicar(perfil_aplicar(nombre)); avisar(f'Perfil aplicado: {texto}')
                 acento = color_acento(leer_estado()[0])
         except (OSError, ValueError, subprocess.SubprocessError) as error:
-            avisar(str(error))
+            avisar(str(error)); sonar('error')
 
 
 def menu():
+    sonar('menu')
     grupo = None
     while True:
         estado, _ = leer_estado()
@@ -598,7 +622,7 @@ def menu():
             aplicar(estado)
             avisar(f'{TITULOS[clave]}: {estado[clave]}')
         except (OSError, ValueError, subprocess.SubprocessError) as error:
-            avisar(str(error))
+            avisar(str(error)); sonar('error')
 
 
 def main():
