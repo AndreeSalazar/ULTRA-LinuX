@@ -78,3 +78,4 @@ evidencias/cxx/grafica-dda73a32cc2c47e58334738e13d38c1b/** text eol=lf whitespac
 evidencias/cxx/grafica-0d1596f6c6b94a07b502babaa99d9052/** text eol=lf whitespace=-blank-at-eol
 # Fuentes OFL del tema Neon: binarias, sin conversion de finales de linea.
 src/rootfs/fuentes/*.ttf binary
+src/rootfs/**/*.png binary
