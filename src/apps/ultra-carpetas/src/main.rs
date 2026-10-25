@@ -19,6 +19,7 @@ mod entradas;
 mod git;
 mod gpu;
 mod indice;
+mod museo_ui;
 mod paneles;
 mod pintar_grafo;
 mod proceso;
@@ -979,10 +980,11 @@ impl eframe::App for App {
             .frame(egui::Frame::new().fill(c.fondo).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| self.actividad(ui, &c));
         if v.arbol.is_some() {
             let lateral = self.estado.lateral;
-            egui::Panel::left("explorador").resizable(true).default_size(if lateral == carpetas_nucleo::estado::Lateral::Buscar { 340.0 } else { 260.0 })
+            egui::Panel::left("explorador").resizable(true).default_size(if lateral == carpetas_nucleo::estado::Lateral::Explorador { 260.0 } else { 360.0 })
                 .frame(egui::Frame::new().fill(c.panel).inner_margin(8.0).stroke(Stroke::new(1.0, c.linea))).show(ui, |ui| match lateral {
                     carpetas_nucleo::estado::Lateral::Explorador => self.explorador(ui, &v, &c),
                     carpetas_nucleo::estado::Lateral::Buscar => self.panel_buscar(ui, &c),
+                    carpetas_nucleo::estado::Lateral::Museo => self.panel_museo(ui, &c),
                 });
         }
         egui::CentralPanel::default().frame(egui::Frame::new().fill(c.fondo)).show(ui, |ui| {

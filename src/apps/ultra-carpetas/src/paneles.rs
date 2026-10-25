@@ -11,7 +11,7 @@ use eframe::egui::{self, text::LayoutJob, Align, Align2, Color32, FontId, Pos2, 
 
 /// Iconos de la barra de actividad, dibujados con formas (nitidos y sin fuentes).
 #[derive(Clone, Copy, PartialEq)]
-pub enum Icono { Explorador, Buscar, IrA, Grafo, Ciudad, Terminal, Carriles, Ajustes }
+pub enum Icono { Explorador, Buscar, IrA, Grafo, Ciudad, Museo, Terminal, Carriles, Ajustes }
 
 pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
     let c = caja.center();
@@ -44,6 +44,14 @@ pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
                 p.rect_stroke(Rect::from_min_max(Pos2::new(c.x + x, suelo - h), Pos2::new(c.x + x + w, suelo)), 0, t, StrokeKind::Middle);
             }
             p.line_segment([Pos2::new(c.x - 10.0, suelo), Pos2::new(c.x + 11.0, suelo)], t);
+        }
+        Icono::Museo => {
+            // Un museo: frontón y tres columnas sobre la base.
+            p.line_segment([c + Vec2::new(-10.0, -4.0), c + Vec2::new(0.0, -10.0)], t);
+            p.line_segment([c + Vec2::new(0.0, -10.0), c + Vec2::new(10.0, -4.0)], t);
+            p.line_segment([c + Vec2::new(-10.0, -4.0), c + Vec2::new(10.0, -4.0)], t);
+            for x in [-6.5, 0.0, 6.5] { p.line_segment([c + Vec2::new(x, -2.0), c + Vec2::new(x, 6.0)], Stroke::new(2.2, col)); }
+            p.line_segment([c + Vec2::new(-11.0, 8.5), c + Vec2::new(11.0, 8.5)], Stroke::new(2.0, col));
         }
         Icono::Terminal => {
             p.rect_stroke(Rect::from_center_size(c, Vec2::new(20.0, 15.0)), 2, t, StrokeKind::Middle);
@@ -80,7 +88,8 @@ impl App {
         let lateral = e.ajustes.explorador;
         let modo = e.ajustes.modo;
         let pasos = |destino: Modo| -> usize { let i = |m: Modo| match m { Modo::Iconos => 0, Modo::Grafo => 1, Modo::Ciudad => 2 }; (i(destino) + 3 - i(modo)) % 3 };
-        let botones: [(Icono, bool, &str, Accion); 6] = [
+        let museo = lateral && e.lateral == Lateral::Museo;
+        let botones: [(Icono, bool, &str, Accion); 7] = [
             (Icono::Explorador, lateral && e.lateral == Lateral::Explorador, "Explorador [Ctrl+B]",
              if lateral && e.lateral == Lateral::Explorador { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Explorador) }),
             (Icono::Buscar, lateral && e.lateral == Lateral::Buscar, "Buscar en el proyecto [Ctrl+Shift+F]",
@@ -90,11 +99,21 @@ impl App {
             (Icono::Grafo, modo == Modo::Grafo, "Grafo de nodos [Tab]", if modo == Modo::Grafo { Accion::Comando(Comando::Encuadrar) } else { Accion::Comando(Comando::Modo) }),
             (Icono::Ciudad, modo == Modo::Ciudad, "Ciudad 3D: carpetas = distritos, archivos = edificios (huella = tamano, altura = lineas) [Tab]",
              Accion::Comando(Comando::Ciudad)),
+            (Icono::Museo, museo, "SUPER GRAFO // Museo: fallo conectado, causa probable y las fichas de C, C++ y ASM que aparecen en tu codigo [A: aislar]",
+             if museo { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Museo) }),
             (Icono::Terminal, e.terminal.abierta, "Terminal [Ctrl+`]", Accion::Comando(Comando::Terminal)),
         ];
         ui.add_space(4.0);
+        let hay_fallo = e.conectado.fallos > 0;
         for (icono, activo, ayuda, accion) in botones {
-            if self.boton_actividad(ui, c, icono, activo).on_hover_text(ayuda).clicked() {
+            let r = self.boton_actividad(ui, c, icono, activo);
+            if icono == Icono::Museo && hay_fallo {
+                // Punto rojo con nucleo blanco: algo falla.
+                let q = r.rect.right_top() + Vec2::new(-11.0, 10.0);
+                ui.painter().circle_filled(q, 4.5, c.error);
+                ui.painter().circle_filled(q, 1.8, Color32::WHITE);
+            }
+            if r.on_hover_text(ayuda).clicked() {
                 // El boton de grafo lleva a esa vista desde cualquiera (Tab va en orden).
                 if icono == Icono::Grafo && modo != Modo::Grafo { for _ in 0..pasos(Modo::Grafo) { acciones.push(Accion::Comando(Comando::Modo)); } } else { acciones.push(accion); }
             }

@@ -9,7 +9,7 @@
 //! - Textos, iconos y botones siguen en egui por encima (sus texturas ya estan en la GPU).
 
 use bytemuck::{Pod, Zeroable};
-use carpetas_nucleo::{Camara, Cable, Direccion, NodoGrafo, Tema};
+use carpetas_nucleo::{Camara, Cable, ClaseCable, Direccion, NodoGrafo, Rol, Tema};
 use eframe::egui_wgpu::{self, wgpu, CallbackResources, CallbackTrait, ScreenDescriptor};
 use eframe::wgpu::util::DeviceExt;
 use std::sync::Arc;
@@ -82,18 +82,33 @@ pub fn geometria(nodos: &[NodoGrafo], cables: &[Cable], t: &Tema, direccion: Dir
     // Cables: Bezier cubicas en 24 tramos (los "noodles" de Blender).
     for c in cables {
         let (a, b) = (c.desde, c.hasta);
-        let (c1, c2) = match direccion {
-            Direccion::Blender => { let d = ((b[0] - a[0]).abs() * 0.5).max(40.0); ([a[0] + d, a[1]], [b[0] - d, b[1]]) }
-            Direccion::Houdini => { let d = ((b[1] - a[1]).abs() * 0.5).max(30.0); ([a[0], a[1] + d], [b[0], b[1] - d]) }
+        let (c1, c2) = match (direccion, c.vuelta) {
+            (Direccion::Blender, false) => { let d = ((b[0] - a[0]).abs() * 0.5).max(40.0); ([a[0] + d, a[1]], [b[0] - d, b[1]]) }
+            (Direccion::Houdini, false) => { let d = ((b[1] - a[1]).abs() * 0.5).max(30.0); ([a[0], a[1] + d], [b[0], b[1] - d]) }
+            // Arco por fuera: los dos puntos de control hacia el mismo lado.
+            (Direccion::Blender, true) => { let d = 50.0 + (b[1] - a[1]).abs() * 0.3; ([a[0].max(b[0]) + d, a[1]], [a[0].max(b[0]) + d, b[1]]) }
+            (Direccion::Houdini, true) => { let d = 50.0 + (b[0] - a[0]).abs() * 0.3; ([a[0], a[1].max(b[1]) + d], [b[0], a[1].max(b[1]) + d]) }
         };
         let punto = |t: f32| {
             let u = 1.0 - t;
             let (k0, k1, k2, k3) = (u * u * u, 3.0 * u * u * t, 3.0 * u * t * t, t * t * t);
             [k0 * a[0] + k1 * c1[0] + k2 * c2[0] + k3 * b[0], k0 * a[1] + k1 * c1[1] + k2 * c2[1] + k3 * b[1]]
         };
-        let color = rgba(c.color, 0.85);
-        let mut previo = punto(0.0);
-        for i in 1..=24 { let p = punto(i as f32 / 24.0); m.linea(previo, p, 2.0, color); previo = p; }
+        // Fallo: rojo neon con nucleo blanco (halo ancho, trazo rojo, hilo blanco).
+        let capas: &[(f32, [f32; 4])] = match c.clase {
+            ClaseCable::Arbol => &[(2.0, rgba(c.color, 0.85))],
+            ClaseCable::Fallo => &[(8.0, rgba(t.error, 0.16)), (3.6, rgba(t.error, 0.92)), (1.2, [1.0, 1.0, 1.0, 0.95])],
+            ClaseCable::Dependencia => &[(5.0, rgba(c.color, 0.18)), (2.0, rgba(c.color, 0.95))],
+        };
+        for (grosor, color) in capas {
+            let mut previo = punto(0.0);
+            for i in 1..=24 { let p = punto(i as f32 / 24.0); m.linea(previo, p, *grosor, *color); previo = p; }
+        }
+        if c.clase != ClaseCable::Arbol {
+            // Punta: hacia quien lo usa (por donde viaja el fallo).
+            m.circulo(b, 6.0, rgba(if c.clase == ClaseCable::Fallo { t.error } else { c.color }, 1.0));
+            m.circulo(b, 2.5, [1.0, 1.0, 1.0, 1.0]);
+        }
     }
     // Nodos: cuerpo, borde, cabecera del color de su tipo, conectores y barra de peso.
     for n in nodos {
@@ -122,6 +137,7 @@ pub fn geometria(nodos: &[NodoGrafo], cables: &[Cable], t: &Tema, direccion: Dir
         } else if n.marcas.avisos > 0 {
             m.borde(p, max, 2.0, rgba(t.tipos[2], 1.0));
         }
+        anillos_de_rol(&mut m, n, t, p, max);
         let (entrada, salida) = match direccion {
             Direccion::Blender => ([p[0], p[1] + s[1] / 2.0], [max[0], p[1] + s[1] / 2.0]),
             Direccion::Houdini => ([p[0] + s[0] / 2.0, p[1]], [p[0] + s[0] / 2.0, max[1]]),
@@ -137,6 +153,35 @@ pub fn geometria(nodos: &[NodoGrafo], cables: &[Cable], t: &Tema, direccion: Dir
         }
     }
     m.0
+}
+
+/// SUPER GRAFO: el papel en el fallo conectado. Causa: rojo neon en tres capas con borde
+/// blanco dentro (lo que mas se ve). Falla: rojo y blanco. Arrastra: rojo suave. Base: blanco fino.
+fn anillos_de_rol(m: &mut Malla, n: &NodoGrafo, t: &Tema, p: [f32; 2], max: [f32; 2]) {
+    let blanco = |a: f32| [1.0, 1.0, 1.0, a];
+    let fuera = |k: f32| ([p[0] - k, p[1] - k], [max[0] + k, max[1] + k]);
+    match n.rol {
+        Some(Rol::Causa) => {
+            for (k, g, a) in [(16.0, 5.0, 0.10), (10.0, 4.0, 0.24), (5.0, 3.0, 0.60)] { let (a0, a1) = fuera(k); m.borde(a0, a1, g, rgba(t.error, a)); }
+            let (a0, a1) = fuera(2.0);
+            m.borde(a0, a1, 2.5, rgba(t.error, 1.0));
+            m.borde(p, max, 2.0, blanco(1.0));
+        }
+        Some(Rol::Falla) => {
+            let (a0, a1) = fuera(5.0);
+            m.borde(a0, a1, 3.0, rgba(t.error, 0.35));
+            let (a0, a1) = fuera(1.5);
+            m.borde(a0, a1, 2.0, rgba(t.error, 1.0));
+            m.borde(p, max, 1.0, blanco(0.9));
+        }
+        Some(Rol::Arrastra) => {
+            let (a0, a1) = fuera(4.0);
+            m.borde(a0, a1, 3.0, rgba(t.error, 0.14));
+            m.borde(p, max, 1.5, rgba(t.error, 0.8));
+        }
+        Some(Rol::Base) => m.borde(p, max, 1.5, blanco(0.75)),
+        None => {}
+    }
 }
 
 // ---------- GPU ----------
@@ -264,7 +309,7 @@ mod pruebas {
     fn geometria_completa_y_solo_triangulos() {
         let t = TEMAS[0];
         let nodos = [nodo("", [0.0, 0.0]), nodo("a", [300.0, 0.0])];
-        let cables = [Cable { desde: [210.0, 37.0], hasta: [300.0, 37.0], color: [0, 255, 0], clase: Default::default() }];
+        let cables = [Cable { desde: [210.0, 37.0], hasta: [300.0, 37.0], color: [0, 255, 0], clase: Default::default(), vuelta: false }];
         let g = geometria(&nodos, &cables, &t, Direccion::Blender);
         assert_eq!(g.len() % 3, 0);
         assert!(g.len() > 1000 && g.len() < 40_000, "{} vertices", g.len());

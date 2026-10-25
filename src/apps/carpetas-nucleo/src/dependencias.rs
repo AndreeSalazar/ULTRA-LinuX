@@ -339,11 +339,13 @@ pub const MAX_ARISTAS: usize = 4_000;
 pub const MAX_CAUSAS: usize = 300;
 
 /// Conecta los fallos: quien es causa probable, quien es consecuencia y que arrastran.
-/// `fallos`: archivos con errores del compilador o sospechas del museo.
+/// `fallos`: archivos con errores del compilador o sospechas del museo. `propios`: los que
+/// fallan por algo escrito en ellos mismos (el museo): siempre son causa, aunque usen otro
+/// que falla. Un error del compilador si puede venir de lo que se incluye.
 ///
 /// Un recorrido para todos: lo que usa (directa o indirectamente) algun archivo que falla
 /// es "consecuencia" si tambien falla; los que fallan y no usan nada que falle son causas.
-pub fn conectar(dep: &Dependencias, fallos: &BTreeSet<String>) -> Conexion {
+pub fn conectar(dep: &Dependencias, fallos: &BTreeSet<String>, propios: &BTreeSet<String>) -> Conexion {
     let mut c = Conexion::default();
     if fallos.is_empty() { return c; }
     let ids: BTreeSet<u32> = fallos.iter().filter_map(|f| dep.id(f)).collect();
@@ -355,7 +357,7 @@ pub fn conectar(dep: &Dependencias, fallos: &BTreeSet<String>) -> Conexion {
     let mut causas = Vec::new();
     for f in fallos {
         match dep.id(f) {
-            Some(i) if usan_fallo.contains_key(&i) => { c.roles.insert(f.clone(), Rol::Falla); }
+            Some(i) if usan_fallo.contains_key(&i) && !propios.contains(f) => { c.roles.insert(f.clone(), Rol::Falla); }
             _ => { c.roles.insert(f.clone(), Rol::Causa); causas.push(Causa { ruta: f.clone(), explica: 0, arrastra: 0 }); }
         }
     }

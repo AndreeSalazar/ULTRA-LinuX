@@ -100,7 +100,11 @@ pub fn marcas(e: &Estado, id: &str) -> Marcas {
 pub enum ClaseCable { #[default] Arbol, Fallo, Dependencia }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Cable { pub desde: [f32; 2], pub hasta: [f32; 2], pub color: Rgb, pub clase: ClaseCable }
+pub struct Cable {
+    pub desde: [f32; 2], pub hasta: [f32; 2], pub color: Rgb, pub clase: ClaseCable,
+    /// Los dos extremos en la misma columna: el cable sale y entra por el mismo lado (un arco).
+    pub vuelta: bool,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FilaArbol {
@@ -312,7 +316,7 @@ pub fn nodos_y_cables(e: &Estado, tema: &crate::tema::Tema) -> (Vec<NodoGrafo>, 
             Direccion::Blender => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [n.pos[0], n.pos[1] + NODO[1] / 2.0]),
             Direccion::Houdini => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [n.pos[0] + NODO[0] / 2.0, n.pos[1]]),
         };
-        cables.push(Cable { desde, hasta, color: n.color, clase: ClaseCable::Arbol });
+        cables.push(Cable { desde, hasta, color: n.color, clase: ClaseCable::Arbol, vuelta: false });
     }
     conectar_nodos(e, tema, &lista, &mut nodos, &mut cables);
     (nodos, cables)
@@ -355,6 +359,8 @@ fn conectar_nodos(e: &Estado, tema: &crate::tema::Tema, lista: &[Visible], nodos
         n.rol = *r;
         n.atenuado = aislado && r.is_none();
     }
+    // Aislado: el arbol de carpetas pasa a segundo plano; mandan los cables del fallo.
+    if aislado { for k in cables.iter_mut() { k.color = [k.color[0] / 4, k.color[1] / 4, k.color[2] / 4]; } }
     let (clase, color) = if c.modo == M::Fallos { (ClaseCable::Fallo, tema.error) } else { (ClaseCable::Dependencia, tema.acento) };
     let mut hechos: alloc::collections::BTreeSet<(usize, usize)> = alloc::collections::BTreeSet::new();
     for (a, b) in &c.conexion.aristas {
@@ -363,11 +369,14 @@ fn conectar_nodos(e: &Estado, tema: &crate::tema::Tema, lista: &[Visible], nodos
         if desde == hasta || !hechos.insert((desde, hasta)) { continue; }
         if hechos.len() > MAX_CABLES_FALLO { break; }
         let (p, q) = (nodos[desde].pos, nodos[hasta].pos);
-        let (d, h) = match e.ajustes.direccion {
-            Direccion::Blender => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0], q[1] + NODO[1] / 2.0]),
-            Direccion::Houdini => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1]]),
+        // Si el destino no queda despues del origen (misma columna o detras), arco por fuera.
+        let (d, h, vuelta) = match e.ajustes.direccion {
+            Direccion::Blender if q[0] < p[0] + NODO[0] + 30.0 => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0] + NODO[0], q[1] + NODO[1] / 2.0], true),
+            Direccion::Blender => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0], q[1] + NODO[1] / 2.0], false),
+            Direccion::Houdini if q[1] < p[1] + NODO[1] + 30.0 => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1] + NODO[1]], true),
+            Direccion::Houdini => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1]], false),
         };
-        cables.push(Cable { desde: d, hasta: h, color, clase });
+        cables.push(Cable { desde: d, hasta: h, color, clase, vuelta });
     }
 }
 

@@ -9,7 +9,7 @@
 use crate::{color, Colores};
 use bytemuck::{Pod, Zeroable};
 use carpetas_nucleo::ciudad::{color_calor, color_lenguaje, leyenda_lenguajes, lineas_de, Altura, ArchivoCiudad, Ciudad, Color as ColorCiudad, Edificio, TERRAZA};
-use carpetas_nucleo::{legible, Accion, Comando, Estado};
+use carpetas_nucleo::{legible, Accion, Comando, Estado, Rol};
 use eframe::egui::{self, Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use eframe::egui_wgpu::{self, wgpu, CallbackResources, CallbackTrait, ScreenDescriptor};
 use eframe::wgpu::util::DeviceExt;
@@ -120,8 +120,10 @@ fn color_edificio(e: &Edificio, modo: ColorCiudad, estado: &Estado, c: &Colores)
             [mezcla(a.r(), 70.0), mezcla(a.g(), 76.0), mezcla(a.b(), 98.0)]
         }
         ColorCiudad::Salud => {
+            // Errores atrapados y sospechas del museo (exacto = rojo, revisar = amarillo).
             let (err, av) = estado.errores.conteo(&e.ruta);
-            if err > 0 { [235, 70, 80] } else if av > 0 { [230, 175, 60] } else { [70, 185, 110] }
+            let (exactas, revisar) = estado.analisis.conteo(&e.ruta);
+            if err + exactas > 0 { [235, 70, 80] } else if av + revisar > 0 { [230, 175, 60] } else { [70, 185, 110] }
         }
         ColorCiudad::Busqueda => {
             if estado.proyecto.conteo(&e.ruta) > 0 { let a = c.acento; [a.r(), a.g(), a.b()] } else { [58, 62, 74] }
@@ -132,7 +134,7 @@ fn color_edificio(e: &Edificio, modo: ColorCiudad, estado: &Estado, c: &Colores)
 /// Lo que se recuerda entre cuadros: la ciudad armada, sus instancias y la camara.
 #[derive(Default)]
 pub struct Vista3 {
-    clave: Option<(u64, Altura, ColorCiudad, carpetas_nucleo::ciudad::Huella, usize, u64, usize, [u8; 3], u64)>,
+    clave: Option<(u64, Altura, ColorCiudad, carpetas_nucleo::ciudad::Huella, usize, u64, usize, [u8; 3], u64, (u64, u64, Option<String>), u64)>,
     pub ciudad: Arc<Ciudad>,
     instancias: Arc<Vec<Instancia>>,
     version_gpu: u64,
@@ -146,8 +148,9 @@ impl Vista3 {
     /// Rehace la ciudad y sus instancias si cambio algo que se ve (no la camara).
     pub fn preparar(&mut self, e: &Estado, c: &Colores) {
         let a = c.acento;
-        let clave = (e.ciudad.version, e.ajustes.altura_ciudad, e.ajustes.color_ciudad, e.ajustes.huella_ciudad, e.errores.total, e.proyecto.generacion, e.proyecto.total, [a.r(), a.g(), a.b()], e.historia.version);
-        if self.clave == Some(clave) { return; }
+        let clave = (e.ciudad.version, e.ajustes.altura_ciudad, e.ajustes.color_ciudad, e.ajustes.huella_ciudad, e.errores.total, e.proyecto.generacion, e.proyecto.total, [a.r(), a.g(), a.b()], e.historia.version,
+                     e.conectado.clave.clone(), e.analisis.version);
+        if self.clave.as_ref() == Some(&clave) { return; }
         let t = std::time::Instant::now();
         let medida = |r: &str| match e.ajustes.altura_ciudad {
             Altura::Errores => { let (x, y) = e.errores.conteo(r); x * 3 + y }
@@ -165,7 +168,16 @@ impl Vista3 {
             v.push(Instancia { suelo: d.rect, alto: [d.base - TERRAZA, TERRAZA], color: rgba(col, 1.0) });
         }
         for b in &ciudad.edificios {
-            v.push(Instancia { suelo: b.rect, alto: [b.base, b.altura], color: rgba(color_edificio(b, e.ajustes.color_ciudad, e, c), 1.0) });
+            let col = match (e.aislar.is_some(), e.conectado.conexion.roles.get(&b.ruta)) {
+                // SUPER GRAFO aislado: blanco la causa, rojo neon lo que falla, rojo oscuro lo que arrastra.
+                (true, Some(Rol::Causa)) => [255, 255, 255],
+                (true, Some(Rol::Falla)) => [255, 42, 79],
+                (true, Some(Rol::Arrastra)) => [150, 32, 52],
+                (true, Some(Rol::Base)) => [190, 196, 212],
+                (true, None) => [34, 36, 44],
+                _ => color_edificio(b, e.ajustes.color_ciudad, e, c),
+            };
+            v.push(Instancia { suelo: b.rect, alto: [b.base, b.altura], color: rgba(col, 1.0) });
         }
         if self.raiz_vista != ciudad.raiz { self.camara = Camara3::default(); self.raiz_vista = ciudad.raiz.clone(); }
         self.ciudad = Arc::new(ciudad);
@@ -367,6 +379,11 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
             t += &if h.veces == 0 { "\nsin cambios en la historia leida".to_string() }
                   else { format!("\n{} en git · ultimo {} · {}", carpetas_nucleo::diagnosticos::contar(h.veces, "cambio", "cambios"),
                                  carpetas_nucleo::historia::hace(h.ultimo, e.historia.ahora), carpetas_nucleo::diagnosticos::contar(h.autores as u32, "autor", "autores")) };
+        }
+        if let Some(rol) = e.conectado.conexion.roles.get(&b.ruta) { t += "\n"; t += crate::pintar_grafo::texto_rol(*rol); }
+        if let Some((_, s)) = e.analisis.primera(&b.ruta) {
+            let titulo = carpetas_nucleo::museo::ficha(s.ficha).map(|f| f.titulo).unwrap_or("");
+            t += &format!("\nMuseo {} · {titulo} (linea {}): {}", s.ficha, s.linea, s.motivo);
         }
         t += if b.bloque { "\nclic: enfocar este bloque" } else { "\nclic: mostrar en el explorador · clic derecho: editor" };
         ficha(&pintor, rect, p, &t, c);

@@ -9,7 +9,7 @@
 //! 2 GiB o 60 s en total. Si corta, lo dice (`truncado`).
 
 use crate::indice::leer_texto;
-use carpetas_nucleo::analisis::ResultadoAnalisis;
+use carpetas_nucleo::analisis::{ResultadoAnalisis, MARCA_ESTUDIO};
 use carpetas_nucleo::dependencias::{referencias, resolver, sigue, Referencia, Rutas};
 use carpetas_nucleo::museo::{analizar as museo, idioma, Sospecha};
 use carpetas_nucleo::proyecto::Indice;
@@ -101,7 +101,19 @@ pub fn analizar(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool + S
     }
     aristas.sort_unstable();
     aristas.dedup();
-    ResultadoAnalisis { rutas: nombres, aristas, sospechas, archivos, bytes, truncado: truncado.load(Ordering::Relaxed), micros: t.elapsed().as_micros() as u64 }
+    // Casos de estudio: una carpeta (o una de arriba) con CASOS-MUSEO.txt. Sin seguir enlaces.
+    let mut marcadas: HashMap<String, bool> = HashMap::new();
+    let mut estudio = Vec::new();
+    for (ruta, _) in &sospechas {
+        let mut d = ruta.as_str();
+        while let Some((arriba, _)) = d.rsplit_once('/') {
+            d = arriba;
+            let marcada = *marcadas.entry(d.to_string())
+                .or_insert_with(|| std::fs::symlink_metadata(base.join(d).join(MARCA_ESTUDIO)).is_ok_and(|m| m.is_file()));
+            if marcada { estudio.push(ruta.clone()); break; }
+        }
+    }
+    ResultadoAnalisis { rutas: nombres, aristas, sospechas, archivos, bytes, truncado: truncado.load(Ordering::Relaxed), micros: t.elapsed().as_micros() as u64, estudio }
 }
 
 #[cfg(test)]
@@ -121,6 +133,28 @@ mod pruebas {
         // Las minas del laboratorio del guardian son a proposito: el museo las ve.
         assert!(r.sospechas.iter().any(|(ruta, v)| ruta.ends_with("minas-compilacion/division-constante.c") && v.iter().any(|s| s.ficha == "UB-002")));
         assert!(r.sospechas.iter().any(|(ruta, v)| ruta == "ASM/laboratorio/abi.S" && v.iter().any(|s| s.ficha == "ASM-002")));
+        // ...y saben que son a proposito (CASOS-MUSEO.txt).
+        assert!(r.estudio.iter().any(|x| x == "ASM/laboratorio/abi.S"));
+        assert!(r.estudio.iter().any(|x| x.starts_with("src/apps/carpetas-nucleo/tests/datos/museo/")));
         assert!(!r.truncado);
+    }
+
+    /// Medida sobre una carpeta real: ULTRA_MUSEO_DIR=/ruta cargo test --release medir -- --ignored --nocapture
+    #[test]
+    #[ignore]
+    fn medir_en_carpeta() {
+        let raiz = std::path::PathBuf::from(std::env::var("ULTRA_MUSEO_DIR").expect("ULTRA_MUSEO_DIR"));
+        let t = Instant::now();
+        let (i, _) = crate::indice::indexar(&raiz, false);
+        let ti = t.elapsed();
+        let r = analizar(&i, &raiz, &|| true);
+        let mut d = carpetas_nucleo::analisis::EstadoAnalisis::default();
+        let (n_rutas, n_aristas) = (r.rutas.len(), r.aristas.len());
+        let t2 = Instant::now();
+        d.llegar(r.clone());
+        let c = carpetas_nucleo::analisis::conectar_estado(&Default::default(), &d, None);
+        eprintln!("indice {} rutas en {ti:?}; museo {} archivos, {:.1} MiB en {} ms; {n_rutas} rutas con {n_aristas} aristas; {} sospechas (+{} a proposito); conectar {:?}: {} causas, {} papeles",
+                  i.len(), r.archivos, r.bytes as f64 / 1048576.0, r.micros / 1000, d.total, d.total_estudio, t2.elapsed(), c.1.causas.len(), c.1.roles.len());
+        for causa in c.1.causas.iter().take(5) { eprintln!("  causa {} explica {} lo usan {}", causa.ruta, causa.explica, causa.arrastra); }
     }
 }

@@ -23,12 +23,21 @@ pub struct ResultadoAnalisis {
     /// Se corto por el presupuesto (bytes o tiempo): no se leyo todo.
     pub truncado: bool,
     pub micros: u64,
+    /// Archivos con sospechas que estan en una carpeta marcada con CASOS-MUSEO.txt (codigo
+    /// malo a proposito: minas, casos de estudio): se ensenan, pero no son fallos.
+    pub estudio: Vec<String>,
 }
+
+/// El archivo que marca una carpeta de casos de estudio (codigo malo a proposito).
+pub const MARCA_ESTUDIO: &str = "CASOS-MUSEO.txt";
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct EstadoAnalisis {
     pub dep: Dependencias,
     pub sospechas: BTreeMap<String, Vec<Sospecha>>,
+    /// Las de los casos de estudio (a proposito): solo para leer en el panel.
+    pub estudio: BTreeMap<String, Vec<Sospecha>>,
+    pub total_estudio: u32,
     pub listo: bool,
     pub archivos: u64,
     pub bytes: u64,
@@ -41,8 +50,12 @@ pub struct EstadoAnalisis {
 impl EstadoAnalisis {
     pub fn llegar(&mut self, r: ResultadoAnalisis) {
         self.dep = Dependencias::nuevo(r.rutas, &r.aristas);
-        self.total = r.sospechas.iter().map(|(_, v)| v.len() as u32).sum();
-        self.sospechas = r.sospechas.into_iter().filter(|(_, v)| !v.is_empty()).collect();
+        let estudio: BTreeSet<String> = r.estudio.into_iter().collect();
+        let (casos, reales): (Vec<_>, Vec<_>) = r.sospechas.into_iter().filter(|(_, v)| !v.is_empty()).partition(|(k, _)| estudio.contains(k));
+        self.total = reales.iter().map(|(_, v)| v.len() as u32).sum();
+        self.total_estudio = casos.iter().map(|(_, v)| v.len() as u32).sum();
+        self.sospechas = reales.into_iter().collect();
+        self.estudio = casos.into_iter().collect();
         self.archivos = r.archivos;
         self.bytes = r.bytes;
         self.truncado = r.truncado;
@@ -72,11 +85,17 @@ impl EstadoAnalisis {
     }
 
     /// Las sospechas agrupadas por ficha (para el panel del museo), por id de ficha.
-    pub fn por_ficha(&self) -> BTreeMap<&'static str, Vec<(&String, &Sospecha)>> {
-        let mut m: BTreeMap<&'static str, Vec<(&String, &Sospecha)>> = BTreeMap::new();
-        for (r, v) in &self.sospechas { for s in v { m.entry(s.ficha).or_default().push((r, s)); } }
-        m
-    }
+    pub fn por_ficha(&self) -> BTreeMap<&'static str, Vec<(&String, &Sospecha)>> { agrupar(&self.sospechas) }
+    pub fn estudio_por_ficha(&self) -> BTreeMap<&'static str, Vec<(&String, &Sospecha)>> { agrupar(&self.estudio) }
+}
+
+fn agrupar(mapa: &BTreeMap<String, Vec<Sospecha>>) -> BTreeMap<&'static str, Vec<(&String, &Sospecha)>> {
+    let mut m: BTreeMap<&'static str, Vec<(&String, &Sospecha)>> = BTreeMap::new();
+    for (r, v) in mapa { for s in v { m.entry(s.ficha).or_default().push((r, s)); } }
+    m
+}
+
+impl EstadoAnalisis {
 }
 
 /// Que se esta conectando.
@@ -129,7 +148,10 @@ pub fn conectar_estado(errores: &Errores, analisis: &EstadoAnalisis, aislado: Op
             (Modo::Alrededor(String::from(id)), c, n)
         }
         _ if f.is_empty() => (Modo::Ninguno, Conexion::default(), 0),
-        _ => (Modo::Fallos, conectar(&analisis.dep, &f), n),
+        _ => {
+            let propios: BTreeSet<String> = analisis.sospechas.keys().cloned().collect();
+            (Modo::Fallos, conectar(&analisis.dep, &f, &propios), n)
+        }
     }
 }
 

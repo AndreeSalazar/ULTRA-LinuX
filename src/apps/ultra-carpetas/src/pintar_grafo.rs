@@ -8,7 +8,7 @@
 use crate::gpu::{uniforme, Lienzo, Vertice};
 use crate::svg::Iconos;
 use crate::Colores;
-use carpetas_nucleo::{Accion, Camara, Direccion, Marcas, Nodo, NodoGrafo, ProcesoVivo, Tipo, Vista};
+use carpetas_nucleo::{Accion, Camara, ClaseCable, Direccion, Marcas, Nodo, NodoGrafo, ProcesoVivo, Rol, Tipo, Vista};
 use std::sync::{atomic::AtomicU64, Arc};
 
 /// Geometria retenida para la GPU: (clave, vertices, contador de subidas).
@@ -86,12 +86,22 @@ pub fn grafo(ui: &mut egui::Ui, v: &Vista, cam: Camara, gpu: Option<Retenido>, i
     for cable in cables.iter().filter(|_| !en_gpu) {
         let (a, b) = (a_pantalla(cable.desde), a_pantalla(cable.hasta));
         if !visible.contains(a) && !visible.contains(b) && !visible.intersects(Rect::from_two_pos(a, b)) { continue; }
-        let (c1, c2) = match direccion {
-            Direccion::Blender => { let d = ((b.x - a.x).abs() * 0.5).max(40.0 * z); (a + Vec2::new(d, 0.0), b - Vec2::new(d, 0.0)) }
-            Direccion::Houdini => { let d = ((b.y - a.y).abs() * 0.5).max(30.0 * z); (a + Vec2::new(0.0, d), b - Vec2::new(0.0, d)) }
+        let (c1, c2) = match (direccion, cable.vuelta) {
+            (Direccion::Blender, false) => { let d = ((b.x - a.x).abs() * 0.5).max(40.0 * z); (a + Vec2::new(d, 0.0), b - Vec2::new(d, 0.0)) }
+            (Direccion::Houdini, false) => { let d = ((b.y - a.y).abs() * 0.5).max(30.0 * z); (a + Vec2::new(0.0, d), b - Vec2::new(0.0, d)) }
+            (Direccion::Blender, true) => { let x = a.x.max(b.x) + 50.0 * z + (b.y - a.y).abs() * 0.3; (Pos2::new(x, a.y), Pos2::new(x, b.y)) }
+            (Direccion::Houdini, true) => { let y = a.y.max(b.y) + 50.0 * z + (b.x - a.x).abs() * 0.3; (Pos2::new(a.x, y), Pos2::new(b.x, y)) }
         };
-        let col = color(cable.color).gamma_multiply(0.85);
-        pintor.add(CubicBezierShape::from_points_stroke([a, c1, c2, b], false, Color32::TRANSPARENT, Stroke::new((2.0 * z).clamp(1.0, 3.0), col)));
+        let capas: Vec<(f32, Color32)> = match cable.clase {
+            ClaseCable::Arbol => vec![((2.0 * z).clamp(1.0, 3.0), color(cable.color).gamma_multiply(0.85))],
+            ClaseCable::Fallo => vec![((8.0 * z).clamp(3.0, 10.0), c.error.gamma_multiply(0.16)), ((3.6 * z).clamp(1.5, 5.0), c.error), ((1.2 * z).clamp(0.8, 2.0), Color32::WHITE)],
+            ClaseCable::Dependencia => vec![((5.0 * z).clamp(2.0, 7.0), color(cable.color).gamma_multiply(0.18)), ((2.0 * z).clamp(1.0, 3.0), color(cable.color))],
+        };
+        for (g, col) in capas { pintor.add(CubicBezierShape::from_points_stroke([a, c1, c2, b], false, Color32::TRANSPARENT, Stroke::new(g, col))); }
+        if cable.clase != ClaseCable::Arbol {
+            pintor.circle_filled(b, (6.0 * z).max(3.0), if cable.clase == ClaseCable::Fallo { c.error } else { color(cable.color) });
+            pintor.circle_filled(b, (2.5 * z).max(1.5), Color32::WHITE);
+        }
     }
     for n in nodos {
         let r = Rect::from_min_size(a_pantalla(n.pos), Vec2::new(n.tam[0] * z, n.tam[1] * z));
@@ -121,6 +131,37 @@ pub fn grafo(ui: &mut egui::Ui, v: &Vista, cam: Camara, gpu: Option<Retenido>, i
 
 #[allow(clippy::too_many_arguments)]
 fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, iconos: &Iconos, c: &Colores, direccion: Direccion, en_gpu: bool, acciones: &mut Vec<Accion>) {
+    if !en_gpu { anillos_de_rol(pintor, c, n, r); }
+    nodo_dentro(ui, pintor, n, r, z, iconos, c, direccion, en_gpu, acciones);
+    // Aislado y sin conexion: apagado (por encima del cuerpo de la GPU y del texto).
+    if n.atenuado { pintor.rect_filled(r.expand(10.0 * z), 0, c.fondo.gamma_multiply(0.78)); }
+}
+
+/// Lo mismo que la GPU (gpu::anillos_de_rol) cuando se dibuja en la CPU.
+fn anillos_de_rol(p: &egui::Painter, c: &Colores, n: &NodoGrafo, r: Rect) {
+    let anillo = |k: f32, g: f32, col: Color32| { p.rect_stroke(r.expand(k), 0, Stroke::new(g, col), StrokeKind::Outside); };
+    match n.rol {
+        Some(Rol::Causa) => { anillo(14.0, 5.0, c.error.gamma_multiply(0.10)); anillo(8.0, 4.0, c.error.gamma_multiply(0.24)); anillo(3.0, 3.0, c.error.gamma_multiply(0.6));
+                              anillo(0.5, 2.5, c.error); anillo(-2.0, 2.0, Color32::WHITE); }
+        Some(Rol::Falla) => { anillo(4.0, 3.0, c.error.gamma_multiply(0.35)); anillo(0.5, 2.0, c.error); anillo(-1.0, 1.0, Color32::WHITE.gamma_multiply(0.9)); }
+        Some(Rol::Arrastra) => { anillo(3.0, 3.0, c.error.gamma_multiply(0.14)); anillo(0.0, 1.5, c.error.gamma_multiply(0.8)); }
+        Some(Rol::Base) => anillo(0.0, 1.5, Color32::WHITE.gamma_multiply(0.75)),
+        None => {}
+    }
+}
+
+/// Que significa el papel, para la ficha emergente.
+pub fn texto_rol(rol: Rol) -> &'static str {
+    match rol {
+        Rol::Causa => "SUPER GRAFO: causa probable (falla y nada de lo que usa falla)",
+        Rol::Falla => "SUPER GRAFO: falla, pero usa algo que tambien falla (probable consecuencia)",
+        Rol::Arrastra => "SUPER GRAFO: usa algo que falla; se puede romper con el",
+        Rol::Base => "SUPER GRAFO: lo usa lo aislado (de aqui puede venir el problema)",
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn nodo_dentro(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, iconos: &Iconos, c: &Colores, direccion: Direccion, en_gpu: bool, acciones: &mut Vec<Accion>) {
     let col = color(n.color);
     let resp = ui.interact(r, ui.make_persistent_id(("nodo", &n.id)), Sense::click_and_drag());
     if !n.raiz {
@@ -169,7 +210,16 @@ fn nodo(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z: f32, i
     let editable = n.tipo != Tipo::Carpeta || n.grupo.is_some() || n.marcas.errores + n.marcas.avisos > 0;
     let tooltip = |base: String| {
         let pista = if editable { "\nclic derecho: abrir en el editor" } else if n.tipo == Tipo::Carpeta && !n.raiz { "\nE o la diana: enfocar esta carpeta" } else { "" };
-        match &n.marcas.primero { Some(p) => format!("{base}\n\n{p}{pista}"), None => format!("{base}{pista}") }
+        let mut t = base;
+        if let Some(rol) = n.rol { t.push_str("\n\n"); t.push_str(texto_rol(rol)); }
+        if let Some(p) = &n.marcas.primero { t.push_str("\n\n"); t.push_str(p); }
+        if let Some(m) = &n.marcas.museo {
+            t.push_str("\n\n");
+            t.push_str(m);
+            if n.marcas.museo_total() > 1 { t.push_str(&format!("\n(+{} mas en el panel Museo)", n.marcas.museo_total() - 1)); }
+        }
+        t.push_str(pista);
+        t
     };
     if z < 0.45 {
         // Lejos: sin iconos ni detalle, pero el nombre en letra fija y legible si cabe.
@@ -257,6 +307,7 @@ pub fn triangulo_play(pintor: &egui::Painter, caja: Rect, color: Color32) {
 pub fn insignia(pintor: &egui::Painter, c: &Colores, derecha: Pos2, m: &Marcas) -> f32 {
     let mut x = derecha.x;
     for (n, fondo, letra, uno, varios) in [(m.coincidencias, c.acento, c.sobre_acento, "resultado", "resultados"), (m.avisos, c.aviso, c.fondo, "aviso", "avisos"),
+                                           (m.museo_total(), Color32::WHITE, c.error, "museo", "museo"),
                                            (m.errores, c.error, Color32::WHITE, "error", "errores")] {
         if n == 0 { continue; }
         let t = carpetas_nucleo::diagnosticos::contar(n, uno, varios);

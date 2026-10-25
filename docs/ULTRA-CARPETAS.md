@@ -427,6 +427,97 @@ así que todas las alturas son iguales. Los nombres, carpetas, porcentajes de ar
 y lenguajes son los de verdad. En un Chromium completo, las alturas y huellas
 saldrían de sus líneas y bytes reales.
 
+## SUPER GRAFO: el museo en tu código y el fallo conectado
+
+Con un proyecto gigante el problema no es ver un error, es saber **de dónde viene** y
+**hasta dónde llega**. El SUPER GRAFO junta tres cosas:
+
+1. **El museo en tu código.** Las fichas del [museo de C, C++ y ASM](../Museo/README.md) y del
+   [banco de C](MUSEO-UB.md) (38 fichas, generadas desde sus catálogos con
+   `scripts/fichas-carpetas.py`; `--comprobar` falla si se desfasan) buscan su patrón en el
+   código del proyecto. Hay 28 con detector:
+   - **C:** `free(p + 1)`, VLA.
+   - **C++:** `string_view` sobre un temporal, referencia a un `vector` que crece, `new[]`
+     con `delete`, `volatile` entre hilos, `f(i++, i++)`.
+   - **UB:** `INT_MAX + 1`, `/ 0`, `1 << 31` en C, `a[4]` y `for (i = 0; i <= N; …)`,
+     devolver `&local`, alias y alineación, `i = i++`, `isdigit(*s)`, `va_arg(ap, char)`,
+     `setjmp`, `*(int *)0`, `strncpy` sin el cero final, `memcpy` solapado,
+     `volatile` con hilos.
+   - **ASM:** pila desalineada al `call`, registros de la ABI sin guardar, clobbers que
+     faltan (`cpuid` sin rbx), `asm("" ::: "memory")` como si fuera una barrera de la
+     CPU, `div` sin preparar rdx.
+2. **Quién usa a quién.** `#include`, `mod`/`use` de Rust, `import` de Python y
+   `%include`/`.include` de ASM, resueltos contra el índice del proyecto.
+3. **El fallo conectado.** Con los errores del compilador y las sospechas del museo:
+   - **Causa probable:** falla y nada de lo que usa falla. Rojo neón en tres capas con
+     borde blanco dentro.
+   - **Falla:** consecuencia probable, porque usa algo que también falla. Rojo y blanco.
+   - **Arrastra:** usa algo que falla y se puede romper con él. Rojo suave.
+   - Una sospecha del museo está escrita en el propio archivo: ese archivo siempre es
+     causa propia. Solo un error del compilador puede ser consecuencia de otro archivo.
+   - **Cables rojos con un hilo blanco** van de lo que falla a quien lo usa.
+
+![Demo: util.h (1 << 31) es la causa probable y arrastra a red/ y main.c; disco.c falla por su cuenta (free(p + 1)); solo.c queda limpio](maquetas/png/neon/carpetas-super-grafo.png)
+
+**Aislar (A o el botón del panel).** Apaga todo lo que no está conectado con los
+fallos. Con algo seleccionado, aísla ese archivo, grupo o carpeta: lo que usa en blanco y
+quien lo usa en rojo suave. En la Ciudad pasa lo mismo: la causa en blanco, lo que falla en
+rojo neón y lo que arrastra en rojo oscuro.
+
+![Aislado: solo queda lo conectado con el fallo](maquetas/png/neon/carpetas-super-grafo-aislado.png)
+![La Ciudad aislada: disco.c (causa propia) en blanco, lo que arrastra en rojo oscuro](maquetas/png/neon/carpetas-super-grafo-ciudad.png)
+
+**Panel Museo** (el icono del museo en la barra de la izquierda; lleva un punto rojo si
+algo falla):
+
+- Arriba, las causas probables: «explica N» dice cuántos de los que fallan dependen de
+  ella y «lo usan M», a cuántos archivos llega.
+- Debajo, cada ficha con su **regla**, su **control válido**, su **límite** y su
+  **referencia**, y los sitios exactos. Clic en un sitio: se abre el editor en esa línea.
+- Las insignias blancas con letras rojas («3 museo») salen en los nodos y en el
+  explorador.
+
+![Este repositorio: nada falla en el código real; las 51 sospechas son las minas y los casos a propósito, aparte](maquetas/png/neon/carpetas-museo-repo.png)
+
+**Casos de estudio a propósito.** Una carpeta con `CASOS-MUSEO.txt` (aquí: el
+laboratorio del guardián, `ASM/laboratorio` y los casos de prueba del museo) tiene código
+malo **a propósito**. Sus sospechas se enseñan aparte, en «Casos de estudio», pero no
+cuentan como fallos ni se conectan. Borrar el archivo hace que vuelvan a contar.
+
+**Cómo se comprobó que detecta bien:**
+
+- Cada ficha con detector tiene su carpeta en `carpetas-nucleo/tests/datos/museo/` con
+  `mal.*`, el patrón más corto, y `bien.*`, el control válido de la ficha. La prueba exige
+  que `mal` salte con esa ficha y que `bien` no salte con ninguna.
+- **Este repositorio:** salta en las minas a propósito del laboratorio (`minas.c`,
+  `minas-compilacion/`) y en las tres funciones malas de `ASM/laboratorio/abi.S`
+  (`ultra_abi_bad`, `ultra_abi_bad_alignment`). No salta en las buenas
+  (`ultra_abi_probe`, `ultra_abi_good`).
+- **Chromium real** (`base/` y `third_party/zlib`: 3 179 archivos de C, C++ y ASM, 25 MiB):
+  - Revisé a mano cada sospecha y corregí los falsos positivos que salieron: nombres
+    repetidos entre funciones, `CheckedNumeric % 0`, el `cpuid` que guarda rbx con
+    `xchg`, `it = v.erase(it)`, ramas `if`/`else`, `volatile` local y `std::set`.
+  - Quedan 15 sospechas. Entre ellas hay aciertos, como el iterador invalidado que
+    Chromium prueba a propósito con `EXPECT_DCHECK_DEATH` o `isdigit(argv[..][0])`.
+- **Carril Museo en Chromium `base/`:** 3 324 archivos (25,7 MiB) en 1,6 s en su hilo y
+  16 312 dependencias resueltas. Conectar los fallos tarda 7 ms. La causa número 1 es
+  `base/numerics/safe_conversions_impl.h` (`*(volatile char*)0`, un fallo provocado a
+  propósito): «explica 9 · lo usan 2 524».
+
+**Límites:**
+
+- Es análisis **léxico**: no compila, no evalúa `#ifdef` ni macros y no ve tipos.
+  «Exacto» quiere decir que lo escrito es el patrón de la ficha; «revisar», que depende
+  de tipos, valores o dialecto.
+- Fichas sin detector, porque sin compilar no se verían con honestidad: UB-006, UB-010,
+  UB-013, UB-016, UB-019, UB-020, ASM-006 y las NOUB.
+- Las rutas de `-I` del compilador no se conocen: un `#include <x.h>` se resuelve por la
+  raíz o por el final de la ruta (el más cercano a quien lo incluye).
+- El ASM de 16 o 32 bits (arranque) no se juzga con la ABI de 64 bits. Una función sin
+  `ret` ni salto de cola, como `_start`, tampoco.
+- Presupuesto: archivos de hasta 2 MiB, 2 GiB o 60 s en total. Si corta, el panel y F12
+  lo dicen.
+
 ## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
 
 ![Terminal tras cargo run y carriles con 7 subidas a la GPU en 153 cuadros](maquetas/png/neon/carpetas-gpu-terminal.png)
@@ -528,6 +619,7 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 | **Índice** | 50 ms | 300 ms | Ctrl+P: puntuar nombres en su hilo, repartido entre los núcleos; recorrer el disco (1 s en Chromium) va aparte, solo al abrir |
 | **Búsqueda** | 2 s | 10 s | Texto dentro de los archivos en su hilo, cancelable; lotes cada 100 ms; se salta lo binario |
 | **Git** | 2 s | 15 s | `git log` en su hilo, solo lectura; como mucho 20 000 commits, 30 s y 256 MiB |
+| **Museo** | 3 s | 20 s | Museo y dependencias en su hilo (todos los núcleos), solo lectura: archivos de hasta 2 MiB, como mucho 2 GiB o 60 s |
 | **Ciudad** | 30 ms | 150 ms | Treemap e instancias solo al cambiar los datos; girar la cámara manda 80 bytes. Los datos salen del hilo del índice (F12 muestra cuánto) |
 
 **Límites duros** (por diseño, no por suerte):
@@ -564,6 +656,9 @@ Las primeras medidas en la pantalla virtual (no en tu PC) quedaron todas en verd
   a una carpeta se abre como carpeta. Lee como mucho 5000 entradas por carpeta.
 - Si algo aparece o desaparece en la carpeta, lo nuevo va a la primera celda libre
   sin mover lo que ya ordenaste, y lo borrado se olvida.
+- El SUPER GRAFO solo lee: abre archivos regulares (nunca enlaces) de hasta 2 MiB, no
+  compila ni ejecuta nada, y una referencia con `..` que sale de la carpeta abierta se
+  descarta.
 
 ## Cómo está hecho: como React, con el núcleo listo para BMO-X
 
@@ -629,8 +724,9 @@ Si no hay Rust o no compila, avisa en amarillo y sigue Thunar. Corre desde
 - Editor: expresiones regulares en la búsqueda y comentarios `/* */` de varias
   líneas coloreados enteros (ahora solo su primera línea).
 - Ciudad: el treemap de Chromium entero (~55 ms) queda en amarillo; partirlo en
-  trozos o en un hilo lo dejaría en verde. Altura por complejidad (como CodeCity) y
-  cables de dependencias (`use`/`#include`) para ver qué archivo es central.
+  trozos o en un hilo lo dejaría en verde. Altura por complejidad (como CodeCity).
+- SUPER GRAFO: leer `compile_commands.json` para las rutas `-I` reales y conectar los
+  errores de cada unidad; más fichas con detector cuando haya forma honesta de verlas.
 - El índice se rehace al abrir la carpeta, con H u «Volver a indexar». Cambios
   posteriores en carpetas plegadas no se ven en Ctrl+P hasta reindexar.
 - Miniaturas de imágenes, renombrar y mover archivos de verdad (con confirmación y

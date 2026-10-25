@@ -55,7 +55,7 @@ fn conecta_el_fallo_y_aisla_la_causa() {
     assert_eq!(d.aristas, 5);
     assert_eq!(d.usa("main.c").collect::<Vec<_>>(), ["util.h"], "sin aristas repetidas");
     let fallos: BTreeSet<String> = ["util.h", "main.c", "red.c", "solo.c"].iter().map(|x| x.to_string()).collect();
-    let c = conectar(&d, &fallos);
+    let c = conectar(&d, &fallos, &BTreeSet::new());
     assert_eq!(c.causas[0].ruta, "util.h");
     assert_eq!(c.causas[0].explica, 2, "main.c y red.c fallan por util.h");
     assert_eq!(c.roles["util.h"], Rol::Causa);
@@ -64,6 +64,11 @@ fn conecta_el_fallo_y_aisla_la_causa() {
     assert_eq!(c.roles["app.c"], Rol::Arrastra, "usa main.c, que usa util.h");
     assert!(!c.roles.contains_key("base.h"));
     assert!(c.aristas.contains(&("main.c".into(), "util.h".into())));
+    // Con una sospecha del museo en main.c, main.c es causa propia (no consecuencia de util.h).
+    let propios: BTreeSet<String> = ["main.c".to_string()].into();
+    let c2 = conectar(&d, &fallos, &propios);
+    assert_eq!(c2.roles["main.c"], Rol::Causa);
+    assert_eq!(c2.roles["red.c"], Rol::Falla);
     // Aislar un archivo: lo que usa y quien lo usa.
     let a = aislar(&d, "util.h");
     assert_eq!(a.roles["base.h"], Rol::Base);

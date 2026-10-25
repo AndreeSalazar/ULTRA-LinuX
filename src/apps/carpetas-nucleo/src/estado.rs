@@ -111,6 +111,8 @@ pub enum Accion {
     Analisis(crate::analisis::ResultadoAnalisis),
     /// Aislar: None apaga; Some("") los fallos; Some(id) lo que rodea a ese nodo.
     Aislar(Option<String>),
+    /// Revelar un archivo y abrirlo en el editor en esa linea (sospecha del museo).
+    IrALinea { id: String, linea: u32 },
 }
 
 /// La historia de git de la carpeta abierta.
@@ -156,7 +158,7 @@ impl Revelar {
 
 /// Que muestra el panel de la izquierda.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Lateral { #[default] Explorador, Buscar }
+pub enum Lateral { #[default] Explorador, Buscar, Museo }
 
 /// Estado del indice de todo el proyecto (lo lleva la plataforma en su hilo).
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -1000,6 +1002,10 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         }
         Accion::Analisis(r) => { e.analisis.llegar(r); vec![] }
         Accion::Aislar(a) => { e.aislar = a; vec![] }
+        Accion::IrALinea { id, linea } => {
+            e.revelar = Some(Revelar { editor: true, linea: Some(linea), ..Revelar::a(&id) });
+            e.avanzar_revelar()
+        }
         Accion::LineasListas { contadas } => { e.indice.lineas = contadas; e.indice.lineas_listas = true; e.indice.version += 1; vec![] }
         Accion::DatosCiudad { generacion, raiz, archivos } => {
             if generacion == e.ciudad.generacion {
