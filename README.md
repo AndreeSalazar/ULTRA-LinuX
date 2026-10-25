@@ -8,6 +8,14 @@
 
 ## Escritorio BMO-X // Neón
 
+**Eficiencia CPU:** [perfiles reversibles y sensores separados](docs/ENERGIA-CPU-PERFILES-2026-10-25.md).
+Super+F8 permite elegir Eficiente (90 % del máximo previo), Fresco (80 %) u
+Original. Son límites de frecuencia, no porcentajes de vatios ahorrados; pueden
+reducir FPS. Se incluye lectura RAPL cuando el equipo la admite, CPU/GPU/disco
+identificados y suspensión de monitores de fondo durante el juego.
+Instalado en A: (perfil PC) y verificado con 201 comprobaciones QEMU; falta
+medir el ahorro y la temperatura con el Ryzen físico a los mismos FPS.
+
 <p align="center">
   <img src="evidencias/main-integrado/2026-10-25/carpetas.png" alt="ULTRA Carpetas real sobre Hyprland, probado en QEMU con carpetas de ejemplo" width="1000">
 </p>
@@ -312,6 +320,7 @@ Super es la tecla Windows. En la consola, `e` abre el menú con flechas y Enter.
 | Super + E / N | Archivos / editor |
 | Super + Ctrl + E | ULTRA Carpetas: iconos, grafo, ciudad y editor |
 | Super + F9 | Mostrar u ocultar las tarjetas del equipo con eww |
+| Super + F8 | Perfil CPU Eficiente/Fresco/Original y estado de temperatura/potencia |
 | Super + Shift + P | Personalizar colores, efectos y fondo |
 | Super + B / G | Brave / diagnóstico GPU del navegador |
 | Super + Shift + G | Informe OpenGL/Vulkan y cubo con validación opcional |

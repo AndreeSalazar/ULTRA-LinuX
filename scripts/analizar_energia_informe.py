@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import re
 import statistics
+import math
 from datetime import datetime
 
 
@@ -18,6 +19,29 @@ def resumen(values):
 
 
 def analizar(text):
+    potencia_cpu = []
+    temperatura_cpu = []
+    perfiles = set()
+    reloj_energia = []
+    block = re.search(r'^\[CPU: temperatura etiquetada, perfil y RAPL; ultimas 300 muestras\]\s*\n(.*?)^\[/CPU ENERGIA\]', text, re.M | re.S)
+    if block:
+        try:
+            data = json.loads(block[1])
+            if isinstance(data, list) and len(data) <= 300:
+                for sample in data:
+                    if not isinstance(sample, dict): continue
+                    t = sample.get('monotonic_s')
+                    if isinstance(t, (int,float)) and math.isfinite(t): reloj_energia.append(t)
+                    value = sample.get('cpu_paquete_W')
+                    if not isinstance(value, bool) and isinstance(value, (int,float)) and math.isfinite(value) and 0 <= value < 10000:
+                        potencia_cpu.append(value)
+                    thermal = sample.get('termica')
+                    value = thermal.get('cpu_C') if isinstance(thermal, dict) else None
+                    if not isinstance(value, bool) and isinstance(value, (int,float)) and math.isfinite(value) and -40 <= value <= 150:
+                        temperatura_cpu.append(value)
+                    if sample.get('perfil') in ('original','eficiente','fresco','sin_soporte'):
+                        perfiles.add(sample['perfil'])
+        except (ValueError, TypeError): pass
     samples = []
     current = None
     processes = set()
@@ -84,7 +108,10 @@ def analizar(text):
             "gpu_pct": resumen([s['gpu_pct'] for s in samples if 'gpu_pct' in s]),
             "gpu_C": resumen([s['gpu_C'] for s in samples if 'gpu_C' in s]),
             "vram_MiB": resumen([s['vram_MiB'] for s in samples if 'vram_MiB' in s]),
-            "cpu_W": None, "motivo_cpu_W": "El observador actual no captura energia CPU; no se infiere desde porcentaje, frecuencia ni GPU.",
+            "cpu_W": resumen(potencia_cpu),
+            "cpu_temperatura_C": resumen(temperatura_cpu), "perfiles_energia_observados": sorted(perfiles),
+            "ventana_energia_cpu_monotonic_s": [min(reloj_energia),max(reloj_energia)] if reloj_energia else None,
+            "motivo_cpu_W": "Muestras RAPL del paquete; media de observaciones, no energia total integrada." if potencia_cpu else "No hay muestras RAPL CPU validas; no se infiere desde porcentaje, frecuencia ni GPU.",
             "politicas": {p: {k: sorted(v) for k, v in values.items()} for p, values in policies.items()},
             "procesos_observados": sorted(processes),
             "primera_muestra_utc": samples[0]['utc'] if samples else None,

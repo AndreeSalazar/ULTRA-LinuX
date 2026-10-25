@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 set -euo pipefail
 [[ $(id -u) == 1000 && -n ${WAYLAND_DISPLAY:-} ]] || exit 1
+ultra-energia iniciar || echo 'AMARILLO [CPU]: no se pudo solicitar el perfil energetico'
 # PID 1 is our C init, not systemd. Update this session bus without --systemd.
 dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_RUNTIME_DIR HYPRLAND_INSTANCE_SIGNATURE
 [[ -z ${DISPLAY:-} ]] || dbus-update-activation-environment DISPLAY

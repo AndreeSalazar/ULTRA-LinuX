@@ -1,0 +1,14 @@
+test_cpu_no_confunde_nvme_gpu_ni_placa (__main__.Energia.test_cpu_no_confunde_nvme_gpu_ni_placa) ... ok
+test_fallo_parcial_revierte_cambios_previos (__main__.Energia.test_fallo_parcial_revierte_cambios_previos) ... ok
+test_otro_controlador_no_se_pisa_al_restaurar (__main__.Energia.test_otro_controlador_no_se_pisa_al_restaurar) ... ok
+test_perfiles_restauran_y_no_cambian_minimo (__main__.Energia.test_perfiles_restauran_y_no_cambian_minimo) ... ok
+test_peticion_rechaza_symlink_fifo_y_perfiles_desconocidos (__main__.Energia.test_peticion_rechaza_symlink_fifo_y_perfiles_desconocidos) ... ok
+test_rapl_julios_del_intervalo_y_tiempo_monotonico (__main__.Energia.test_rapl_julios_del_intervalo_y_tiempo_monotonico) ... ok
+test_rechaza_limite_inferior_al_minimo (__main__.Energia.test_rechaza_limite_inferior_al_minimo) ... ok
+test_sin_epp_disponible_no_inventa_soporte (__main__.Energia.test_sin_epp_disponible_no_inventa_soporte) ... ok
+test_sin_politicas_y_perfil_invalido (__main__.Energia.test_sin_politicas_y_perfil_invalido) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.006s
+
+OK

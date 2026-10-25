@@ -16,7 +16,7 @@ export CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-2}
 sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q nvidia-utils lib32-nvidia-utils > "$art/main-nvidia-antes.txt" 2>/dev/null || [[ $perfil != pc ]]
 # Los proyectos C/C++ necesitan las cabeceras que la imagen reducida omitía.
 sed 's@usr/include/\*@@g' "$art/pacman-sistema.conf" > "$art/pacman-main.conf"
-runtime=(rustup gcc git pkgconf gtk3 gtk-layer-shell libdbusmenu-gtk3 python-pillow vulkan-swrast)
+runtime=(rustup gcc git pkgconf gtk3 gtk-layer-shell libdbusmenu-gtk3 python-pillow vulkan-swrast perf)
 sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \
     -S --needed --noconfirm --ignore nvidia-utils,lib32-nvidia-utils "${runtime[@]}" > "$art/main-runtime.log" 2>&1
 sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \
@@ -52,6 +52,10 @@ done
 for helper in ultra-fondo-vivo ultra-tarjetas; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$stage/usr/local/bin/$helper"
 done
+sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$stage/usr/local/bin/ultra-energia"
+for helper in ultra-cpu-control ultra_termica.py; do
+    sudo install -m 0755 "$lab/rootfs/bin/$helper" "$stage/usr/local/libexec/$helper"
+done
 sudo install -d "$stage/usr/share/fonts/ultra-neon" "$stage/usr/share/licenses/ultra-neon"
 sudo install -m 0644 "$lab/rootfs/fuentes/"*.ttf "$stage/usr/share/fonts/ultra-neon/"
 sudo install -m 0644 "$lab/rootfs/fuentes/"OFL-*.txt "$stage/usr/share/licenses/ultra-neon/"
@@ -67,6 +71,7 @@ for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarje
     [[ $(readlink -f "$base/src/rootfs") == "$lab/rootfs" ]] || { echo 'ROJO: banco apunta a otras fuentes rootfs'; exit 1; }
     python "$lab/$test.py" > "$art/main-$test.log" 2>&1
 done
+python "$lab/probar_energia_cpu.py" > "$art/main-probar_energia_cpu.log" 2>&1
 { find "$lab/rootfs" "$base/src/apps" -type f ! -path '*/target/*' ! -path '*/__pycache__/*' -print0 | sort -z | xargs -0 sha256sum;
   sha256sum "$lab/actualizar-main.sh" "$lab/instalar-eww.sh" "$lab/instalar-carpetas.sh"; } > "$art/main-integracion-fuentes.sha256"
 sudo install -m 0644 "$art/main-integracion-fuentes.sha256" "$stage/etc/ultra/main-integracion-fuentes.sha256"

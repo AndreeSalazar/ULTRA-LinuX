@@ -960,10 +960,23 @@ def check_hyprland(conn, failures):
             if tarjetas_visibles():
                 # Con eww: las tarjetas abren al iniciar; Super+F9 las oculta y las vuelve a mostrar.
                 expect(True,'Nucleo: tarjetas eww abiertas al iniciar')
-                mon.sendall(b'sendkey meta_l-f9\n'); time.sleep(1.5)
-                expect(not tarjetas_visibles(),'Nucleo: Super+F9 oculta las tarjetas')
-                mon.sendall(b'sendkey meta_l-f9\n'); time.sleep(2)
-                equipment=tarjetas_visibles()
+                mon.sendall(b'sendkey meta_l-f9\n')
+                deadline=time.monotonic()+15
+                ocultas=False
+                while time.monotonic()<deadline:
+                    ocultas=not tarjetas_visibles()
+                    if ocultas: break
+                    time.sleep(.25)
+                expect(ocultas,'Nucleo: Super+F9 oculta las tarjetas')
+                mon.sendall(b'sendkey meta_l-f9\n')
+                deadline=time.monotonic()+15
+                equipment=False
+                while time.monotonic()<deadline:
+                    equipment=tarjetas_visibles()
+                    if equipment: break
+                    time.sleep(.25)
+                if not equipment:
+                    transcript += run(conn, [('head -c 4096 /arch/run/user/1000/ultra-tarjetas.log; echo TARJETAS-LOG-$((50+2))', 'TARJETAS-LOG-52')], failures)
                 expect(equipment,'Nucleo: Super+F9 vuelve a mostrar las tarjetas')
             else:
                 # Sin eww: Super+F9 abre la version de texto.
@@ -980,6 +993,26 @@ def check_hyprland(conn, failures):
                     except (OSError,SyntaxError): time.sleep(.1)
                 else: raise ValueError('captura de equipo incompleta')
                 shutil.copyfile(target,LOG.with_name(LOG.stem+'-equipo.png'))
+        if '--energia' in sys.argv:
+            transcript += run(conn, [('ultra-entrar /usr/bin/perf --version', 'perf version')], failures)
+            probe = "import json,os,stat; from pathlib import Path; p=Path('/run/ultra-energia/estado.json'); d=json.loads(p.read_text()); assert p.stat().st_uid==0 and not p.stat().st_mode&0o022; assert d['solicitado']=='eficiente'; assert d['cpu_paquete_W'] is None; print('ENERGIA-ESTADO-VERIFICADO')"
+            transcript += run(conn, [('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/bin/python -c '+shlex.quote(probe), 'ENERGIA-ESTADO-VERIFICADO')], failures)
+            mon.sendall(b'sendkey meta_l-f8\n')
+            transcript += run(conn, [("for i in $(seq 1 50); do for p in $(pidof fuzzel); do if grep -aqF 'Energia CPU /' /proc/$p/cmdline; then echo ENERGIA-MENU-$((70+1)); break 2; fi; done; sleep .1; done", 'ENERGIA-MENU-71')], failures)
+            time.sleep(1)
+            target=pathlib.Path(tempfile.gettempdir())/'ultra-energia-menu.png'; target.unlink(missing_ok=True)
+            mon.sendall(f'screendump {target} -f png\n'.encode())
+            for _ in range(50):
+                try:
+                    with Image.open(target) as shot: shot.verify()
+                    break
+                except (OSError,SyntaxError): time.sleep(.1)
+            else: raise ValueError('captura energia incompleta')
+            shutil.copyfile(target, LOG.with_name(LOG.stem+'-energia.png'))
+            mon.sendall(b'sendkey esc\n')
+            for perfil in ('original', 'fresco', 'eficiente'):
+                probe = "import json; from pathlib import Path; assert json.loads(Path('/run/ultra-energia/estado.json').read_text())['solicitado']=="+repr(perfil)+"; print('ENERGIA-PERFIL-VERIFICADO')"
+                transcript += run(conn, [('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/local/bin/ultra-energia '+perfil+'; sleep 3; ultra-entrar /usr/bin/python -c '+shlex.quote(probe), 'ENERGIA-PERFIL-VERIFICADO')], failures)
         if '--carpetas' in sys.argv:
             transcript += run(conn, [('mkdir -p /arch/home/ultra/Proyectos /arch/home/ultra/Juegos /arch/home/ultra/Museo /arch/home/ultra/Documentos; chown 1000:1000 /arch/home/ultra/Proyectos /arch/home/ultra/Juegos /arch/home/ultra/Museo /arch/home/ultra/Documentos; echo CARPETAS-DATOS-$((50+2))', 'CARPETAS-DATOS-52')], failures)
             conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval \'hl.exec_cmd("ultra-tarjetas parar")\'; echo CARPETAS-INICIO-$((50+3))\n')
@@ -1047,6 +1080,9 @@ def check_hyprland(conn, failures):
         transcript += response('HYPR-SINC-7')
         transcript += run(conn, [('echo HYPR-$(grep -c "hyprland termino (salida 0)" /tmp/hyprland-session.log)', 'HYPR-1'),
                                 ('test ! -S /arch/run/seatd.sock && echo HYPR-SEATD-LIMPIO', 'HYPR-SEATD-LIMPIO')], failures)
+        if '--energia' in sys.argv:
+            probe = "import json; from pathlib import Path; d=json.loads(Path('/run/ultra-energia/estado.json').read_text()); assert d['perfil']=='sesion_cerrada'; assert d['errores']==[]; print('ENERGIA-CIERRE-LIMPIO')"
+            transcript += run(conn, [('ultra-entrar /usr/bin/python -c '+shlex.quote(probe), 'ENERGIA-CIERRE-LIMPIO')], failures)
     finally:
         mon.close()
     return transcript

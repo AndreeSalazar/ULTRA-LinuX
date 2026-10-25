@@ -1,0 +1,72 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Preferencia del usuario; el supervisor root valida unicamente tres nombres."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+PERFILES = ('eficiente', 'fresco', 'original')
+
+
+def preferencia():
+    path = Path.home()/'.config/ultra/energia.json'
+    try:
+        if not path.is_symlink() and path.stat().st_size < 4096:
+            value = json.loads(path.read_text()).get('perfil')
+            if value in PERFILES: return value
+    except (OSError, ValueError, AttributeError):
+        pass
+    return 'eficiente'
+
+
+def elegir(perfil, guardar=True):
+    if os.geteuid() != 1000 or perfil not in PERFILES:
+        raise ValueError('usuario o perfil no permitido')
+    runtime = Path('/run/user/1000')
+    info = runtime.lstat()
+    if runtime.is_symlink() or info.st_uid != 1000:
+        raise ValueError('runtime no disponible')
+    path = runtime/'ultra-cpu-perfil'
+    temporal = runtime/'ultra-cpu-perfil.tmp'
+    fd = os.open(temporal, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, 'w') as f: f.write(perfil+'\n')
+    os.replace(temporal, path)
+    if guardar:
+        conf = Path.home()/'.config/ultra/energia.json'
+        conf.parent.mkdir(parents=True, exist_ok=True)
+        temporal = conf.with_suffix('.tmp')
+        fd = os.open(temporal, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(fd, 'w') as f: json.dump({'perfil': perfil}, f)
+        os.replace(temporal, conf)
+    if guardar:
+        try:
+            subprocess.run(['notify-send', 'Energia CPU', perfil+' solicitado; consulta Estado para confirmar'],
+                           check=False, timeout=2)
+        except (OSError, subprocess.SubprocessError): pass
+
+
+def main():
+    action = sys.argv[1] if len(sys.argv)>1 else 'menu'
+    if action == 'iniciar': elegir(preferencia(), guardar=False); return
+    if action in PERFILES: elegir(action); return
+    if action == 'estado':
+        try: data=json.loads(Path('/run/ultra-energia/estado.json').read_text())
+        except (OSError, ValueError): data={'estado':'supervisor no disponible'}
+        print(json.dumps(data, ensure_ascii=False, indent=2)); return
+    if action != 'menu': raise ValueError('uso: ultra-energia menu|estado|eficiente|fresco|original')
+    labels = {'Eficiente: maximo 90% y EPP ahorro (puede reducir FPS)': 'eficiente',
+              'Fresco: maximo 80% y EPP ahorro fuerte (puede reducir FPS)': 'fresco',
+              'Original: restaurar limites anteriores': 'original',
+              'Estado: temperatura CPU, potencia y limites efectivos': 'estado'}
+    r=subprocess.run(['fuzzel','--dmenu','--only-match','--no-sort','--width=72','--lines=4',
+                      '--prompt=Energia CPU / '], input='\n'.join(labels)+'\n', text=True, capture_output=True, check=False)
+    selected=labels.get(r.stdout.strip()) if r.returncode==0 else None
+    if selected == 'estado': os.execvp('foot',['foot','--hold','--title=ULTRA / Energia CPU','ultra-energia','estado'])
+    elif selected: elegir(selected)
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError) as error: print('ENERGIA:',error,file=sys.stderr); sys.exit(1)

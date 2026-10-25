@@ -466,6 +466,7 @@ def juego(accion):
         ejecutar('makoctl', 'mode', '-a', 'do-not-disturb')
         if marca: escribir(marca, 'activo\n')
         lanzar('ultra-fondo-vivo', 'pausar')
+        ejecutar('ultra-tarjetas', 'suspender')
         sonar('juego')
     elif accion == 'salir':
         modo = None
@@ -481,6 +482,7 @@ def juego(accion):
             try: marca.unlink()
             except FileNotFoundError: pass
         lanzar('ultra-fondo-vivo', 'seguir')
+        ejecutar('ultra-tarjetas', 'reanudar')
         if estado['modojuego'] == 'auto': sonar('juego-salir')
     else:
         raise ValueError('uso: ultra-personalizar juego entrar|salir')

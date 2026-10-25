@@ -1,0 +1,59 @@
+{
+  "alcance": "QEMU: prueba de flujo de datos, no rendimiento o potencia fisicos",
+  "datos": {
+    "cpu": 100.0,
+    "nucleos": [
+      100.0
+    ],
+    "ghz": 3.7,
+    "ram": {
+      "total": 3.8,
+      "usada": 0.5,
+      "pct": 12.3,
+      "swap": 0.0,
+      "swap_pct": 0.0
+    },
+    "gpu": {
+      "nombre": "sin datos",
+      "pct": 0.0,
+      "vram": 0,
+      "vram_total": 0,
+      "temp": null,
+      "vatios": null
+    },
+    "temp": 0,
+    "hay_temp": false,
+    "termica": {
+      "cpu_C": null,
+      "cpu_sensor": null,
+      "gpu_C": null,
+      "disco_C": 0,
+      "sensores": [],
+      "hay_disco": false
+    },
+    "energia": {
+      "perfil": "sin_soporte",
+      "vatios": 0,
+      "hay_vatios": false
+    },
+    "bajada": "0 B/s",
+    "subida": "0 B/s",
+    "red_pct": 0.0,
+    "raiz": {
+      "pct": 0.1,
+      "libre": 1.9,
+      "total": 1.9
+    },
+    "home": {
+      "pct": 0.1,
+      "libre": 1.9,
+      "total": 1.9
+    },
+    "top": {
+      "nombre": "glycin-svg",
+      "pct": 40
+    },
+    "juego": false,
+    "activo": "00h 00m"
+  }
+}

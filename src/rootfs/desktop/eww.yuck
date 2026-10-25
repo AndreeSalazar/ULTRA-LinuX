@@ -3,7 +3,7 @@
 ;; Datos: ultra-tarjetas datos (un JSON cada 2 s; 10 s durante un juego).
 ;; Clic en CPU o RAM: lo que mas consume (ultra-aplicaciones rapido). Super+F9 muestra u oculta.
 
-(deflisten d :initial '{"cpu":0,"nucleos":[],"ghz":0,"ram":{"total":0,"usada":0,"pct":0,"swap":0,"swap_pct":0},"gpu":{"nombre":"--","pct":0,"vram":0,"vram_total":0,"temp":null,"vatios":null},"temp":0,"hay_temp":false,"bajada":"--","subida":"--","red_pct":0,"raiz":{"pct":0,"libre":0,"total":0},"home":{"pct":0,"libre":0,"total":0},"top":{"nombre":"--","pct":0},"juego":false,"activo":"--"}'
+(deflisten d :initial '{"cpu":0,"nucleos":[],"ghz":0,"ram":{"total":0,"usada":0,"pct":0,"swap":0,"swap_pct":0},"gpu":{"nombre":"--","pct":0,"vram":0,"vram_total":0,"temp":null,"vatios":null},"temp":0,"hay_temp":false,"termica":{"cpu_C":null,"cpu_sensor":null,"gpu_C":null,"disco_C":0,"hay_disco":false},"energia":{"perfil":"sin supervisor","vatios":0,"hay_vatios":false},"bajada":"--","subida":"--","red_pct":0,"raiz":{"pct":0,"libre":0,"total":0},"home":{"pct":0,"libre":0,"total":0},"top":{"nombre":"--","pct":0},"juego":false,"activo":"--"}'
   `ultra-tarjetas datos`)
 (defvar abierto false)
 (defpoll hora :interval "1s" :initial "--:--:--" `date +%H:%M:%S`)
@@ -42,7 +42,7 @@
       (label :class "hora" :halign "end" :show-truncated false :text hora))
     (label :class "subtitulo" :halign "start" :show-truncated false :text "EDDI SALAZAR · ACTIVO ${d.activo}${d.juego ? ' · MODO JUEGO' : ''}")
     (tarjeta :clase "cpu" :titulo "CPU" :valor "${round(d.cpu, 0)}%" :pct {d.cpu}
-             :detalle "${d.ghz} GHz · ${arraylength(d.nucleos)} nucleos · clic: procesos"
+             :detalle "${d.ghz} GHz · ${d.energia.perfil} · ${d.energia.hay_vatios ? '${d.energia.vatios} W' : 'W: NA'}"
              :accion "ultra-aplicaciones rapido cpu &")
     (nucleos)
     (tarjeta :clase "ram" :titulo "RAM" :valor "${d.ram.usada} / ${d.ram.total} GiB" :pct {d.ram.pct}
@@ -57,7 +57,9 @@
     (box :class "fila" :orientation "h" :space-evenly true :spacing 8
       (mini :clase "disco" :titulo "LIBRE /" :valor "${d.raiz.libre} GiB" :pct {d.raiz.pct})
       (mini :clase "home" :titulo "LIBRE HOME" :valor "${d.home.libre} GiB" :pct {d.home.pct})
-      (mini :clase "temp" :titulo "TEMP" :valor {d.hay_temp ? "${d.temp}°C" : "sin sensor"} :pct {d.hay_temp ? d.temp : 0}))
+      (mini :clase "temp" :titulo "CPU °C" :valor {d.hay_temp ? "${d.temp}°C" : "sin sensor"} :pct {d.hay_temp ? d.temp : 0}))
+    (label :class "subtitulo" :halign "start" :show-truncated false
+           :text "CPU: ${d.termica.cpu_sensor != 'null' ? d.termica.cpu_sensor : 'NA'} · Disco: ${d.termica.hay_disco ? '${d.termica.disco_C}°C' : 'NA'} · Super+F8 energia")
     (eventbox :onclick "ultra-aplicaciones rapido cpu &" :cursor "pointer" :class "clic"
       (box :class "pie" :orientation "h" :space-evenly false
         (label :class "etiqueta" :show-truncated false :text "MAS CPU")

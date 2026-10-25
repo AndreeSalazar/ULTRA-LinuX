@@ -224,7 +224,7 @@ if [[ -n $cmdline ]]; then
         -e '/^DownloadUser/d' -e '/^#\[multilib\]/,+1s/^#//' /etc/pacman.conf > "$art/pacman-sistema.conf"
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
-    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu ttf-jetbrains-mono util-linux shadow
+    arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu ttf-jetbrains-mono util-linux shadow perf
         hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata chrony swaybg librsvg
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
@@ -293,6 +293,8 @@ if [[ -n $cmdline ]]; then
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
     for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$sistema/usr/local/bin/ultra-energia"
+    for helper in ultra-cpu-control ultra_termica.py; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
     sudo install -d -m 0755 "$sistema/usr/lib/locale"

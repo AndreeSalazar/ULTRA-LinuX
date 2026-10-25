@@ -96,3 +96,5 @@ evidencias/main-integrado/**/*.png binary
 docs/MAIN-INTEGRADO-2026-10-25.md text eol=lf
 docs/ENERGIA-CPU-INVESTIGACION-2026-10-25.md text eol=lf
 evidencias/energia-cpu/** text eol=lf
+evidencias/energia-cpu/**/*.png binary
+docs/ENERGIA-CPU-PERFILES-2026-10-25.md text eol=lf

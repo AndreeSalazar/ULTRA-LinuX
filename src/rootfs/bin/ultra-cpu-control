@@ -1,0 +1,216 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Supervisor de sesion: cpufreq acotado y reversible; sin comandos del usuario."""
+from collections import deque
+import json
+import math
+import os
+from pathlib import Path
+import queue
+import re
+import runpy
+import signal
+import stat
+import subprocess
+import threading
+import time
+
+temperaturas = runpy.run_path(str(Path(__file__).with_name('ultra_termica.py')))['temperaturas']
+PERFILES = {'eficiente': (.9, 'balance_power'), 'fresco': (.8, 'power'), 'original': (1, None)}
+
+
+def leer(path):
+    return path.read_text()[:4096].strip()
+
+
+def peticion(path, uid=1000):
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        try:
+            info = os.fstat(fd)
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != uid or info.st_size > 32:
+                return None
+            value = os.read(fd, 33).decode('ascii').strip()
+            return value if value in PERFILES else None
+        finally:
+            os.close(fd)
+    except (OSError, UnicodeError):
+        return None
+
+
+class Control:
+    def __init__(self, root):
+        self.base = {}
+        self.propios = {}
+        self.perfil = 'original'
+        for p in sorted(root.glob('policy*'))[:64]:
+            if not re.fullmatch(r'policy[0-9]+', p.name):
+                continue
+            try:
+                minimo = int(leer(p / 'scaling_min_freq'))
+                maximo = int(leer(p / 'scaling_max_freq'))
+                if not 0 < minimo <= maximo <= 10000000:
+                    continue
+                values = {'scaling_max_freq': str(maximo)}
+                if (p / 'energy_performance_preference').exists():
+                    values['energy_performance_preference'] = leer(p / 'energy_performance_preference')
+                self.base[p] = values
+            except (OSError, ValueError):
+                continue
+
+    def restaurar(self):
+        errores = []
+        for (p, key), propio in list(self.propios.items()):
+            try:
+                actual = leer(p / key)
+                if actual == propio:
+                    (p / key).write_text(self.base[p][key])
+                elif actual != self.base[p][key]:
+                    errores.append(f'{p.name}/{key}: cambio externo; se conserva')
+                del self.propios[p, key]
+            except OSError:
+                errores.append(f'{p.name}/{key}: no se pudo restaurar')
+        self.perfil = 'error_restauracion' if self.propios else 'original'
+        return errores
+
+    def aplicar(self, perfil):
+        if perfil not in PERFILES:
+            raise ValueError('perfil no permitido')
+        errores = self.restaurar()
+        if errores or perfil == 'original':
+            return errores
+        cambios = []
+        ratio, epp = PERFILES[perfil]
+        try:
+            for p, original in self.base.items():
+                # No elevar un limite anterior ni modificar el minimo/governor.
+                minimo = int(leer(p / 'scaling_min_freq'))
+                limite = int(int(original['scaling_max_freq']) * ratio)
+                if limite < minimo or leer(p / 'scaling_max_freq') != original['scaling_max_freq']:
+                    raise ValueError(f'{p.name}: rango cambiado o incompatible')
+                cambios.append((p, 'scaling_max_freq', str(limite)))
+                if 'energy_performance_preference' in original:
+                    if leer(p / 'energy_performance_preference') != original['energy_performance_preference']:
+                        raise ValueError(f'{p.name}: EPP cambiado por otro controlador')
+                    disponibles = leer(p / 'energy_performance_available_preferences').split()
+                    if epp in disponibles:
+                        cambios.append((p, 'energy_performance_preference', epp))
+            for p, key, value in cambios:
+                self.propios[p, key] = value
+                (p / key).write_text(value)
+                self.propios[p, key] = leer(p / key)
+            self.perfil = perfil if self.base else 'sin_soporte'
+        except (OSError, ValueError) as error:
+            errores.append(str(error)[:160])
+            errores.extend(self.restaurar())
+        return errores
+
+
+def potencia_perf(linea, anterior=0.0):
+    """perf -I informa julios DEL intervalo; no son acumulados ni W de proceso."""
+    fields = [v.strip() for v in linea.split(';')]
+    if len(fields) < 6 or fields[2] != 'Joules' or fields[3] != 'power/energy-pkg/':
+        raise ValueError('evento o unidad no compatible')
+    t, julios = float(fields[0]), float(fields[1])
+    porcentaje = float(fields[5].strip('%'))
+    if not all(math.isfinite(v) for v in (t, julios, porcentaje)) or not 0 < t-anterior <= 10 or julios < 0 or porcentaje < 99:
+        raise ValueError('muestra incompleta o multiplexada')
+    return t, round(julios/(t-anterior), 3)
+
+
+def atomico(path, data, mode=0o644):
+    temporal = path.with_suffix('.tmp')
+    with temporal.open('w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False)
+        f.write('\n')
+    os.chmod(temporal, mode)
+    os.replace(temporal, path)
+
+
+def main():
+    if os.geteuid() != 0:
+        raise SystemExit('Supervisor reservado a la preparacion de sesion')
+    publico = Path('/run/ultra-energia')
+    publico.mkdir(mode=0o755, exist_ok=True)
+    info = publico.lstat()
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise SystemExit('Directorio de estado inseguro')
+    control = Control(Path('/sys/devices/system/cpu/cpufreq'))
+    stop = threading.Event()
+    for signo in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(signo, lambda *_: stop.set())
+    historial = deque(maxlen=300)
+    mensajes = queue.Queue(maxsize=16)
+    proc = None
+    error_perf = 'No disponible: falta perf o PMU energy-pkg'
+    if Path('/sys/bus/event_source/devices/power/events/energy-pkg').is_file():
+        try:
+            proc = subprocess.Popen(['/usr/bin/perf', 'stat', '-a', '-I', '1000', '-x', ';',
+                                     '-e', 'power/energy-pkg/', '--', '/usr/bin/sleep', '86400'],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True,
+                                    env={'PATH': '/usr/bin', 'LC_ALL': 'C'}, start_new_session=True)
+            def recoger():
+                previo = 0.0
+                for line in iter(lambda: proc.stderr.readline(4096), ''):
+                    if 'energy-pkg' not in line and 'Permission' not in line:
+                        continue
+                    try:
+                        previo, vatios = potencia_perf(line, previo)
+                        item = (vatios, time.monotonic(), None)
+                    except ValueError:
+                        try:
+                            t = float(line.split(';')[0])
+                            if math.isfinite(t) and t > previo: previo = t
+                        except ValueError: pass
+                        item = (None, time.monotonic(), 'PMU sin lectura valida; revisar permisos/soporte')
+                    # Se parsean TODOS los intervalos antes de descartar estados viejos.
+                    if mensajes.full():
+                        try: mensajes.get_nowait()
+                        except queue.Empty: pass
+                    mensajes.put_nowait(item)
+            threading.Thread(target=recoger, daemon=True).start()
+        except OSError:
+            pass
+    ultimo = None
+    recibido = 0.0
+    solicitado = None
+    errores = []
+    max_cpu = None
+    try:
+        while not stop.is_set():
+            nuevo = peticion('/run/user/1000/ultra-cpu-perfil')
+            if nuevo and nuevo != solicitado:
+                errores = control.aplicar(nuevo)
+                solicitado = nuevo
+            while not mensajes.empty():
+                ultimo, recibido, error_perf = mensajes.get_nowait()
+            ahora = time.monotonic()
+            termica = temperaturas()
+            temp = termica['cpu_C']
+            if temp is not None: max_cpu = max(temp, max_cpu if max_cpu is not None else temp)
+            estado = {'version': 1, 'perfil': control.perfil, 'solicitado': solicitado,
+                      'monotonic_s': round(ahora, 3), 'termica': termica, 'cpu_max_C': max_cpu,
+                      'cpu_paquete_W': ultimo if ahora-recibido < 5 else None,
+                      'energia_fuente': 'perf RAPL package; todos los sockets',
+                      'energia_error': error_perf if ahora-recibido < 5 else 'Sin muestra reciente',
+                      'politicas': {p.name: {key: leer(p/key) for key in values} for p, values in control.base.items()},
+                      'errores': errores[:16]}
+            atomico(publico/'estado.json', estado)
+            historial.append({k: estado[k] for k in ('monotonic_s', 'perfil', 'cpu_max_C', 'cpu_paquete_W', 'errores')} |
+                             {'termica': {k: termica[k] for k in ('cpu_C', 'cpu_sensor', 'gpu_C', 'disco_C')}})
+            if int(ahora) // 20 != int(ahora-2) // 20:
+                atomico(Path('/run/ultra-escritorio/cpu-energia.json'), list(historial), 0o600)
+            stop.wait(2)
+    finally:
+        errores = control.restaurar()
+        if proc:
+            try: os.killpg(proc.pid, signal.SIGTERM)
+            except ProcessLookupError: pass
+            try: proc.wait(timeout=3)
+            except subprocess.TimeoutExpired: os.killpg(proc.pid, signal.SIGKILL); proc.wait()
+        atomico(Path('/run/ultra-escritorio/cpu-energia.json'), list(historial), 0o600)
+        atomico(publico/'estado.json', {'version': 1, 'perfil': 'sesion_cerrada', 'errores': errores})
+
+
+if __name__ == '__main__':
+    main()

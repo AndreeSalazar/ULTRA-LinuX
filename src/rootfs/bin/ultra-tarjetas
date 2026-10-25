@@ -12,9 +12,12 @@ Solo lee /proc, /sys y, si existe, nvidia-smi. Sin eww, Super+F9 abre la version
 de texto (foot + ultra-equipo).
 """
 import json
+import fcntl
 import os
 from pathlib import Path
 import re
+import runpy
+import signal
 import shutil
 import subprocess
 import sys
@@ -27,6 +30,9 @@ PERSONAL = HOME / '.config/ultra/personal.json'
 TEMA_EWW = HOME / '.config/ultra/tema-personal/eww'
 PROC, SYS = Path(os.environ.get('ULTRA_PROC', '/proc')), Path(os.environ.get('ULTRA_SYS', '/sys'))
 VENTANA = 'tarjetas'
+modulo_termica = Path(__file__).with_name('ultra_termica.py')
+if not modulo_termica.is_file(): modulo_termica = Path('/usr/local/libexec/ultra_termica.py')
+temperaturas = runpy.run_path(str(modulo_termica))['temperaturas']
 
 
 def leer(ruta, limite=65536):
@@ -97,14 +103,20 @@ def disco(ruta):
 
 
 def temperatura():
-    """La mas alta de hwmon (CPU, GPU o NVMe), en grados."""
-    mayor = None
-    for chip in sorted((SYS / 'class/hwmon').glob('hwmon*'))[:32]:
-        for sensor in sorted(chip.glob('temp*_input'))[:16]:
-            try: grados = int(leer(sensor, 64).strip()) / 1000
-            except ValueError: continue
-            if 0 < grados < 130 and (mayor is None or grados > mayor): mayor = grados
-    return round(mayor) if mayor is not None else None
+    """Solo CPU identificada; NVMe o GPU nunca sustituyen al sensor CPU."""
+    return temperaturas(SYS)['cpu_C']
+
+
+def energia():
+    salida = dict(perfil='sin supervisor', vatios=0, hay_vatios=False)
+    try:
+        data = json.loads(leer(Path('/run/ultra-energia/estado.json')))
+        salida['perfil'] = data.get('perfil', 'no disponible')
+        value = data.get('cpu_paquete_W')
+        if time.monotonic()-data.get('monotonic_s', 0) < 10 and isinstance(value, (int, float)) and 0 <= value < 10000:
+            salida.update(vatios=round(value, 1), hay_vatios=True)
+    except (ValueError, TypeError, AttributeError): pass
+    return salida
 
 
 def gpu_amd():
@@ -121,15 +133,22 @@ class Nvidia:
     """nvidia-smi en bucle (-l 2): un solo proceso, sin lanzar uno nuevo cada vez."""
     CAMPOS = 'name,utilization.gpu,memory.used,memory.total,temperature.gpu,power.draw'
 
-    def __init__(self):
+    def __init__(self, intervalo=2):
         self.ultimo = None
+        self.proc = None
         if not shutil.which('nvidia-smi'): return
         try:
-            self.proc = subprocess.Popen(['nvidia-smi', f'--query-gpu={self.CAMPOS}', '--format=csv,noheader,nounits', '-l', '2'],
+            self.proc = subprocess.Popen(['nvidia-smi', f'--query-gpu={self.CAMPOS}', '--format=csv,noheader,nounits', '-l', str(intervalo)],
                                          stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, text=True)
         except OSError:
             return
         threading.Thread(target=self.leer, daemon=True).start()
+
+    def cerrar(self):
+        if self.proc and self.proc.poll() is None:
+            self.proc.terminate()
+            try: self.proc.wait(timeout=3)
+            except subprocess.TimeoutExpired: self.proc.kill(); self.proc.wait()
 
     def leer(self):
         for linea in self.proc.stdout:
@@ -182,7 +201,15 @@ def legible(bps):
 
 
 def datos(vueltas=None, intervalo=2.0):
-    nvidia = Nvidia()
+    lento = en_juego()
+    nvidia = Nvidia(10 if lento else 2)
+    try:
+        _datos(nvidia, vueltas, intervalo)
+    finally:
+        nvidia.cerrar()
+
+
+def _datos(nvidia, vueltas, intervalo):
     cpu_a, red_a, proc_a, t_a = tiempos_cpu(), red(), procesos(), time.monotonic()
     tope_red = 1.0
     while vueltas is None or vueltas > 0:
@@ -194,11 +221,15 @@ def datos(vueltas=None, intervalo=2.0):
         tope_red = max(tope_red * .97, bajada, subida, 1.0)  # escala que se adapta y baja despacio
         gpu = nvidia.ultimo or gpu_amd() or dict(nombre='sin datos', pct=0.0, vram=0, vram_total=0, temp=None, vatios=None)
         raiz, home = disco('/'), disco(str(HOME))
-        temp = temperatura()
+        termica = temperaturas(SYS)
+        temp = termica['cpu_C']
+        termica['hay_disco'] = termica['disco_C'] is not None
+        if termica['disco_C'] is None: termica['disco_C'] = 0
         segundos = actividad()
         estado = dict(
             cpu=cpu.get('cpu', 0.0), nucleos=[cpu[k] for k in sorted((k for k in cpu if k != 'cpu'), key=lambda k: int(k[3:]))][:64],
             ghz=frecuencia(), ram=memoria(), gpu=gpu, temp=temp if temp is not None else 0, hay_temp=temp is not None,
+            termica=termica, energia=energia(),
             bajada=legible(bajada), subida=legible(subida), red_pct=round(100 * max(bajada, subida) / tope_red, 1),
             raiz=raiz or dict(pct=0, libre=0, total=0), home=home or dict(pct=0, libre=0, total=0),
             top=mas_cpu(proc_a, proc_b, dt), juego=en_juego(),
@@ -224,17 +255,31 @@ def carpeta():
     return ETC
 
 
-def eww(*args, timeout=10):
-    try: return subprocess.run(['eww', '--config', str(carpeta()), *args], stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=timeout, check=False)
+def eww(*args, timeout=10, config=None):
+    try: return subprocess.run(['eww', '--config', str(config or carpeta()), *args], stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=timeout, check=False)
     except (OSError, subprocess.SubprocessError): return None
 
 
+def configuraciones():
+    preferida = carpeta()
+    return [preferida] + [p for p in (ETC, TEMA_EWW) if p != preferida and (p/'eww.yuck').is_file() and not p.is_symlink()]
+
+
 def abierta():
-    r = eww('active-windows')
-    return r is not None and r.returncode == 0 and any(l.split(':')[0].strip() == VENTANA for l in r.stdout.splitlines())
+    for config in configuraciones():
+        r = eww('active-windows', config=config)
+        if r is not None and r.returncode == 0 and any(l.split(':')[0].strip().lstrip('*') == VENTANA for l in r.stdout.splitlines()):
+            return True
+    return False
+
+
+def detener():
+    for config in configuraciones(): eww('kill', config=config)
 
 
 def abrir():
+    for config in configuraciones():
+        if config != carpeta(): eww('kill', config=config)
     r = eww('ping', timeout=3)
     if r is None or r.returncode != 0:
         subprocess.Popen(['eww', '--config', str(carpeta()), 'daemon'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
@@ -249,12 +294,20 @@ def abrir():
 
 
 def cerrar():
-    eww('update', 'abierto=false'); time.sleep(.35); eww('close', VENTANA)
+    for config in configuraciones():
+        r = eww('ping', config=config, timeout=2)
+        if r is None or r.returncode != 0: continue
+        eww('update', 'abierto=false', config=config)
+        time.sleep(.35)
+        eww('close', VENTANA, config=config)
+    detener()  # Cierra tambien reloj, deflisten y el sondeo de NVIDIA.
 
 
-def main():
+def ejecutar_accion():
     accion = sys.argv[1] if len(sys.argv) > 1 else 'alternar'
-    if accion == 'datos': datos(); return
+    if accion == 'datos':
+        signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
+        datos(); return
     if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
     if not shutil.which('eww'):
         if accion == 'alternar':
@@ -266,12 +319,34 @@ def main():
         cerrar() if abierta() else abrir()
     elif accion == 'recargar':
         # El daemon lee la carpeta al arrancar: se reinicia para tomar el nuevo acento.
-        eww('kill')
+        detener()
         if activas(): abrir()
     elif accion == 'parar':
-        eww('kill')
+        detener()
+    elif accion == 'suspender':
+        if abierta():
+            Path(os.environ['XDG_RUNTIME_DIR'], 'ultra-tarjetas-juego').write_text('reanudar\n')
+            cerrar()
+    elif accion == 'reanudar':
+        marca = Path(os.environ['XDG_RUNTIME_DIR'], 'ultra-tarjetas-juego')
+        if marca.is_file() and not marca.is_symlink():
+            marca.unlink()
+            if activas(): abrir()
     else:
         raise ValueError('uso: ultra-tarjetas datos|iniciar|alternar|recargar|parar')
+
+
+def main():
+    if len(sys.argv)>1 and sys.argv[1]=='datos':
+        ejecutar_accion(); return
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    base=Path(os.environ.get('XDG_RUNTIME_DIR',str(HOME/'.cache/ultra')))
+    base.mkdir(parents=True,exist_ok=True)
+    fd=os.open(base/'ultra-tarjetas.lock',os.O_CREAT|os.O_RDWR|os.O_NOFOLLOW,0o600)
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX)
+        ejecutar_accion()
+    finally: os.close(fd)
 
 
 if __name__ == '__main__':

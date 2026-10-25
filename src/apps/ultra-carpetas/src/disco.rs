@@ -65,7 +65,9 @@ impl Disco {
             let mut vigilando: Option<(u64, PathBuf, bool, BTreeMap<String, Option<SystemTime>>)> = None;
             let mut revisado = Instant::now();
             loop {
-                match rx_pedidos.recv_timeout(Duration::from_millis(250)) {
+                // Sin carpetas vigiladas no hay nada que recalcular periodicamente.
+                // Un pedido despierta el hilo de inmediato; vigilando, revisar a 1 Hz.
+                match rx_pedidos.recv_timeout(if vigilando.is_some() { Duration::from_secs(1) } else { Duration::from_secs(3600) }) {
                     Ok(Pedido::Listar { generacion, base, ruta, ocultos }) => {
                         let (resultado, micros) = listar_medido(&base, &ruta, ocultos);
                         if tx_respuestas.send(Listado { generacion, base, ruta, resultado, micros }).is_err() { return; }

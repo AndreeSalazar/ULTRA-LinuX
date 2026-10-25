@@ -40,7 +40,7 @@ if [[ $mode == menu ]]; then
             ambiente) title='Ambiente / AMARILLO'; accent=fcee0aff
                 rows=('Personalizar escritorio' 'Efectos vivos' 'Efectos reducidos' 'Limpiar notificaciones' 'Recuperar ultimo aviso' 'Historial del portapapeles' 'Volver a categorias');;
             sistema) title='Sistema / CORAL'; accent=ff7a90ff
-                rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Guardar incidente' 'Abrir incidentes' 'Volver a categorias');;
+                rows=('Ayuda y atajos' 'RAM, GPU y espacio' 'Energia y temperatura CPU' 'Estado del audio' 'Registros de juegos' 'Equipo en vivo' 'Administrador de aplicaciones' 'Limpiar registros ULTRA antiguos' 'Guardar incidente' 'Abrir incidentes' 'Volver a categorias');;
             *) exit 2;;
         esac
         if ! choice=$(pick "${rows[@]}"); then
@@ -94,6 +94,7 @@ if [[ $mode == menu ]]; then
         'Amplificar 200%') exec ultra-audio boost200;; 'Amplificar 300%') exec ultra-audio boost300;;
         'Amplificar 400%') exec ultra-audio boost400;; 'Amplificar 500%') exec ultra-audio boost500;;
         'Estado del audio') exec foot --hold /usr/local/bin/ultra-audio estado;;
+        'Energia y temperatura CPU') exec ultra-energia menu;;
         'Efectos vivos') mode=vivo;;
         'Efectos reducidos') mode=sobrio;;
         'Limpiar notificaciones') exec makoctl dismiss -a;;

@@ -14,8 +14,10 @@ flock -n 9 || { echo 'ROJO [SESION]: ya hay una sesion de ULTRA'; exit 1; }
 seat_pid=''
 meter_pid=''
 kernel_pid=''
+energia_pid=''
 frames_mounted=0
 cleanup() {
+    if [[ -n $energia_pid ]]; then kill "$energia_pid" 2>/dev/null || true; wait "$energia_pid" 2>/dev/null || true; fi
     if [[ -n $meter_pid ]]; then
         touch /run/ultra-escritorio/medicion.stop
         wait "$meter_pid" 2>/dev/null || true
@@ -82,6 +84,8 @@ else
     renderer=pixman
 fi
 install -d -m 0700 -o 1000 -g 1000 /run/user/1000 || exit 1
+/usr/bin/python -I /usr/local/libexec/ultra-cpu-control > /run/ultra-escritorio/cpu-control.log 2>&1 9>&- &
+energia_pid=$!
 if [[ ! -L /run/ultra-cuadros ]] && ! mountpoint -q /run/ultra-cuadros; then
     install -d -m 0700 -o 0 -g 0 /run/ultra-cuadros
     if mount -t tmpfs -o size=64M,mode=0700,uid=1000,gid=1000,nosuid,nodev,noexec ultra-cuadros /run/ultra-cuadros; then frames_mounted=1; fi

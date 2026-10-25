@@ -1,0 +1,14 @@
+{
+  "Archivos": [
+    {
+      "Archivo": "build/energia-cpu-pc/disco-bmo-prueba.img",
+      "Bytes": 2197815296
+    },
+    {
+      "Archivo": "build/energia-cpu-pc/ovmf-vars-prueba.fd",
+      "Bytes": 540672
+    }
+  ],
+  "RespaldosConservados": true,
+  "CacheCompilacionConservada": true
+}

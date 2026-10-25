@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-only
 import unittest
+import json
 from analizar_energia_informe import analizar
 
 
 class EnergiaInforme(unittest.TestCase):
+    def test_lector_nuevo_con_cpu_rapl_y_temperatura_etiquetada(self):
+        samples = [{'monotonic_s':100,'cpu_paquete_W':30.5,'termica':{'cpu_C':80},'perfil':'eficiente'},
+                   {'monotonic_s':102,'cpu_paquete_W':None,'termica':{'cpu_C':91},'perfil':'fresco'}]
+        result=analizar('[CPU: temperatura etiquetada, perfil y RAPL; ultimas 300 muestras]\n'+json.dumps(samples)+'\n[/CPU ENERGIA]\n')
+        self.assertEqual(result['cpu_W']['media'],30.5)
+        self.assertEqual(result['cpu_temperatura_C']['max'],91)
+        self.assertEqual(result['perfiles_energia_observados'],['eficiente','fresco'])
+        self.assertEqual(result['ventana_energia_cpu_monotonic_s'],[100,102])
     def test_delta_no_suma_guest_otra_vez_y_detecta_salto_hora(self):
         data = ('muestra_utc=2026-10-25T00:00:00Z\n'
                 'CPU_contadores cpu 10 0 10 80 0 0 0 0 1000 0\n'
