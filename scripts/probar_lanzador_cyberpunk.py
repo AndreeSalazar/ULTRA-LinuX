@@ -17,11 +17,16 @@ class Launch(unittest.TestCase):
         self.game.parent.mkdir(parents=True); self.game.write_bytes(b'MZ-fixture')
         self.bin=self.root/'bin';self.bin.mkdir()
         self.record=self.root/'record'
-        self.env=dict(os.environ,HOME=str(self.home),PATH=f'{self.bin}:'+os.environ['PATH'],RECORD=str(self.record),WINEPREFIX='preserved-sentinel')
+        self.trace=self.root/'trace'
+        self.env=dict(os.environ,HOME=str(self.home),PATH=f'{self.bin}:'+os.environ['PATH'],RECORD=str(self.record),TRACE=str(self.trace),WINEPREFIX='preserved-sentinel')
         for name,body in {
             'id':'echo 1000', 'mountpoint':'exit 0',
             'df':"printf 'Filesystem 1024-blocks Used Available Capacity Mounted on\\nfixture 99999999 0 99999999 0 /fixture\\n'",
             'notify-send':':', 'ultra-espacio':'exit 0',
+            'pgrep':'exit 1',
+            'ultra-diagnostico-juego':'printf "diagnostico:%s\\n" "$1" >> "$TRACE"',
+            'ultra-bibliotecas':'printf "bibliotecas:%s\\n" "$1" >> "$TRACE"; if [[ $1 == registrar-steam ]]; then exit ${STEAM_REGISTER_RESULT:-0}; fi',
+            'steam':'printf "steam\\n" >> "$TRACE"; printf "%s\\n" "$@" > "$RECORD"',
             'ultra-gog-cyberpunk':'exit ${REGISTER_RESULT:-0}',
             'ultra-hud':'shift; exec "$@"',
             'heroic':'printf "%s\\n" "$WINEPREFIX" "$@" > "$RECORD"',
@@ -52,5 +57,21 @@ class Launch(unittest.TestCase):
         self.assertEqual(rows[0],str(self.home/'Juegos/prefijos/cyberpunk2077'))
         self.assertEqual(rows[1],'1')
         self.assertIn('codigo 17',(self.home/'.cache/ultra/cyberpunk.log').read_text())
+    def test_warframe_diagnostic_starts_before_library_work_and_steam(self):
+        result=self.run_action('warframe-diagnostico');self.assertEqual(result.returncode,0,result.stderr)
+        rows=self.trace.read_text().splitlines()
+        self.assertEqual(rows,['diagnostico:preparar','diagnostico:iniciar',
+                               'bibliotecas:registrar-steam','bibliotecas:buscar-steam','steam'])
+        self.assertEqual(self.record.read_text().strip(),'steam://rungameid/230410')
+    def test_normal_warframe_has_no_extra_observer_and_registration_warning_keeps_launch(self):
+        self.env['STEAM_REGISTER_RESULT']='1'
+        result=self.run_action('warframe');self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(self.trace.read_text().splitlines(),
+                         ['bibliotecas:registrar-steam','bibliotecas:buscar-steam','steam'])
+    def test_busy_writer_is_reported_without_starting_steam_during_vdf_update(self):
+        self.env['STEAM_REGISTER_RESULT']='75'
+        result=self.run_action('warframe');self.assertEqual(result.returncode,75,result.stderr)
+        self.assertFalse(self.record.exists())
+        self.assertEqual(self.trace.read_text().splitlines(),['bibliotecas:registrar-steam'])
 
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -1,0 +1,22 @@
+PASS: registra biblioteca y juegos en config y steamapps; conserva originales, otros campos y respaldo; es idempotente
+PASS: completa indice vacio de biblioteca ya registrada sin perder campos ni duplicarla
+STEAM: ya abierto; se conservan sus bibliotecas sin esperar al registro
+PASS: Steam abierto impide cambios
+STEAM: ya abierto; se conservan sus bibliotecas sin esperar al registro
+PASS: bloqueo real ocupado no retiene el arranque; Steam abierto sale antes de adquirirlo; VDF intacto
+STEAM: ya abierto; cierra Steam completamente para registrar nuevas bibliotecas
+PASS: Steam que aparece durante la adquisicion impide la escritura
+PASS: VDF incompleto, ambiguo, desconocido y excesivo rechazado
+RESULTADO: pruebas de registro Steam correctas; no acredita reconocimiento por un cliente autenticado
+test_busy_writer_is_reported_without_starting_steam_during_vdf_update (__main__.Launch.test_busy_writer_is_reported_without_starting_steam_during_vdf_update) ... ok
+test_missing_game_does_not_start_client_or_download (__main__.Launch.test_missing_game_does_not_start_client_or_download) ... ok
+test_normal_opens_manager_without_launching_game_or_second_prefix (__main__.Launch.test_normal_opens_manager_without_launching_game_or_second_prefix) ... ok
+test_normal_warframe_has_no_extra_observer_and_registration_warning_keeps_launch (__main__.Launch.test_normal_warframe_has_no_extra_observer_and_registration_warning_keeps_launch) ... ok
+test_recovery_records_failure_and_diagnostic_without_replacing_prefix (__main__.Launch.test_recovery_records_failure_and_diagnostic_without_replacing_prefix) ... ok
+test_registration_failure_opens_manager_without_automatic_launch (__main__.Launch.test_registration_failure_opens_manager_without_automatic_launch) ... ok
+test_warframe_diagnostic_starts_before_library_work_and_steam (__main__.Launch.test_warframe_diagnostic_starts_before_library_work_and_steam) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.105s
+
+OK

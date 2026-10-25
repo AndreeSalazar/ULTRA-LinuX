@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise real metadata writes in a disposable home, without Steam accounts."""
 import contextlib
+import fcntl
 import importlib.util
 import io
 import json
@@ -61,6 +62,25 @@ with tempfile.TemporaryDirectory() as temp:
         m.register_steam()
     assert path.read_bytes() == first
     print('PASS: Steam abierto impide cambios')
+    lockfile = m.HOME/'.cache/ultra/registro-steam.lock'
+    with lockfile.open('a') as held:
+        fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        with patch.object(m,'user_config',return_value=[]), patch.object(m.subprocess,'run',return_value=subprocess.CompletedProcess([],0)):
+            assert m.register_steam() is False
+        assert path.read_bytes() == first
+        with patch.object(m,'user_config',return_value=[]), patch.object(m.subprocess,'run',return_value=subprocess.CompletedProcess([],1)):
+            try:
+                m.register_steam()
+            except ValueError as error:
+                assert 'ocupado' in str(error)
+            else:
+                raise AssertionError('no rechazo el bloqueo ocupado')
+        assert path.read_bytes() == first
+    print('PASS: bloqueo real ocupado no retiene el arranque; Steam abierto sale antes de adquirirlo; VDF intacto')
+    with patch.object(m,'user_config',return_value=[]), patch.object(m.subprocess,'run',side_effect=[subprocess.CompletedProcess([],1),subprocess.CompletedProcess([],0)]):
+        assert m.register_steam() is False
+    assert path.read_bytes() == first
+    print('PASS: Steam que aparece durante la adquisicion impide la escritura')
     for bad in ('"libraryfolders" {', '"a" "x" "a" "y"', '"a" { "b" "c" }}', '"a" unquoted', 'x'*(m.LIMIT+1)):
         path.write_text(bad)
         try:

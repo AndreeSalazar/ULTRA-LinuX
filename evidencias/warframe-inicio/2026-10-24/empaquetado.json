@@ -1,0 +1,62 @@
+{
+  "base_desktop_commit": "f14d12d",
+  "full_new_main_integrated": false,
+  "targeted_sources": [
+    "src/rootfs/bin/ultra-bibliotecas.py",
+    "src/rootfs/bin/ultra-juegos"
+  ],
+  "source_files_verified": 9,
+  "sources": [
+    {
+      "path": "src/rootfs/bin/ultra-preparar-juegos",
+      "source": "f14d12d",
+      "sha256": "028740dc687330538802f59c254da28c42c3a0e20585fa34e19b8097a4c9e7f2"
+    },
+    {
+      "path": "src/rootfs/desktop/juegos.conf",
+      "source": "f14d12d",
+      "sha256": "55921e83cf25e472995164d61668d58fa1823adcd7f948f091e78f13f590405c"
+    },
+    {
+      "path": "src/rootfs/desktop/hyprland.lua",
+      "source": "f14d12d",
+      "sha256": "668b3ffc6ce5354cb6d1c679ecfc1c568e3a8dcf0f7d9d113ed92fd4a55616b7"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-juegos",
+      "source": "working-tree-targeted-fix",
+      "sha256": "b3d9d9985314af883d13ee8256d077c2ca7d3ea0919debc514bf8a7c5b9a85b5"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-gog-cyberpunk",
+      "source": "f14d12d",
+      "sha256": "61f5d417a2a7dcdfd14e8245c4d5f8f359198e9c742b9079661844867d0fd5d9"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-ambiente",
+      "source": "f14d12d",
+      "sha256": "207509bd5083b330644c40fc3d4c5e1b41183c38c910ed638691c80bed90e51d"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-bibliotecas.py",
+      "source": "working-tree-targeted-fix",
+      "sha256": "e56c869ed6bbbc2b4b675f16863fd6fb5aaf89abc1b2fef46dbeca8ca1e1a82b"
+    },
+    {
+      "path": "src/rootfs/desktop/ultra-cyberpunk.desktop",
+      "source": "f14d12d",
+      "sha256": "1896e0184da91790b5c3e405c1b8d7ffd07cd9ba2c4bbf355fba9f98bcf81e33"
+    },
+    {
+      "path": "scripts/actualizar-almacen-nativo.sh",
+      "source": "f14d12d",
+      "sha256": "940e8577b4525396be30c9bc04afa9d007851f1f348c41fda47b40ca39d0625d"
+    }
+  ],
+  "artifacts": {
+    "sistema-a.erofs": "a01aadbe174e15e23fb266a2cdbede435ee15bace36bb146dd474ad3a8c56df2",
+    "disco-bmo.img": "9dfef220615a15fe3b67df17066e527d7df798b049eb680fdb821e6dc5b8bcce",
+    "bzImage-tiny64": "e2242e375f3f508c535f18cf684a573d1d5664350a6199742ee9f0ab1891c8f7",
+    "almacen-nativo-fuentes.sha256": "ab5fb2865ffcc60c2d86b026df46c4d08a7f148a6c57e23326508acb5f9c6ee8"
+  }
+}

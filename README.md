@@ -131,6 +131,11 @@ una partida de Cyberpunk. La corrección de escritorio selecciona cursor
 compuesto con NVIDIA y abre REDlauncher flotante y centrado en cada sesión.
 La comprobación visual en la RTX y la medición de vatios siguen pendientes.
 
+[Arranque de Warframe](docs/WARFRAME-INICIO-2026-10-24.md): el acceso evita
+esperar al registro si Steam ya está abierto y avisa si otra revisión está
+escribiendo las bibliotecas. El modo de diagnóstico solicita capturar antes
+del lanzador; la causa física del tirón aún requiere esa medición.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.

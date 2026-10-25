@@ -30,8 +30,11 @@ if [[ $action == warframe-diagnostico ]]; then
         exit 1
     fi
     ultra-diagnostico-juego preparar || exit 1
+    # Incluye las esperas previas al lanzador. Solo en el modo elegido por el
+    # usuario; el arranque normal no activa un observador adicional.
+    ultra-diagnostico-juego iniciar || true
     export ULTRA_DIAGNOSTICO_HUD=1 DXVK_HUD=compiler
-    notify-send 'Warframe / diagnostico' 'En el escenario: Super+F11 graba recursos 2 min; Shift izquierdo+F2 graba cuadros. Cierra Steam al terminar este modo.' || true
+    notify-send 'Warframe / diagnostico' 'Captura de recursos solicitada antes de Steam (2 min). Super+Shift+F11 marca la pausa; Shift izquierdo+F2 graba cuadros. Cierra Steam al terminar este modo.' || true
     action=warframe
 fi
 if [[ $action == estado ]]; then
@@ -83,7 +86,12 @@ if [[ ! $available_kib =~ ^[0-9]+$ ]] || ((available_kib < 2097152)); then
 fi
 mkdir -p "$HOME/.cache/ultra"
 if [[ $action == steam || $action == warframe ]]; then
-    if ! ultra-bibliotecas registrar-steam > "$HOME/.cache/ultra/steam-bibliotecas.log" 2>&1; then
+    registro_rc=0
+    ultra-bibliotecas registrar-steam > "$HOME/.cache/ultra/steam-bibliotecas.log" 2>&1 || registro_rc=$?
+    if (( registro_rc == 75 )); then
+        notify-send 'Steam: revision en curso' 'Otra tarea esta registrando bibliotecas. Espera a que termine y vuelve a abrir; no se iniciara Steam durante esa escritura.' || true
+        exit 75
+    elif (( registro_rc != 0 )); then
         notify-send 'Steam: revisar bibliotecas' 'No se completo el registro automatico. Consulta Registros de juegos.' || true
     fi
 fi

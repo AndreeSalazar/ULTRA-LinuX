@@ -606,23 +606,40 @@ def find_steam_app(appid):
     raise ValueError('juego sin manifiesto y carpeta en las bibliotecas activas; revisa el selector de discos')
 
 
+class SteamRegistryBusy(ValueError):
+    """Otra tarea puede estar escribiendo VDF; no lanzar un cliente nuevo aun."""
+
+
 def register_steam():
     import fcntl
     user_config()
+    # El lanzador no debe esperar al registro de otra tarea si Steam ya existe.
+    # La comprobacion se repite bajo el bloqueo para conservar la proteccion
+    # frente a un Steam que arranque entre ambas operaciones.
+    if steam_is_running():
+        print('STEAM: ya abierto; se conservan sus bibliotecas sin esperar al registro')
+        return False
     lockdir = HOME / '.cache/ultra'
     lockdir.mkdir(mode=0o700, parents=True, exist_ok=True)
     with (lockdir/'registro-steam.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            raise SteamRegistryBusy('registro Steam ocupado por otra revision; espera a que termine y vuelve a abrir') from None
         return _register_steam()
 
 
-def _register_steam():
+def steam_is_running():
     active = subprocess.run(['pgrep', '-u', '1000', '-x', 'steam'], stdout=subprocess.DEVNULL)
-    if active.returncode == 0:
+    if active.returncode not in (0, 1):
+        raise ValueError('no se pudo comprobar si Steam esta cerrado')
+    return active.returncode == 0
+
+
+def _register_steam():
+    if steam_is_running():
         print('STEAM: ya abierto; cierra Steam completamente para registrar nuevas bibliotecas')
         return False
-    if active.returncode != 1:
-        raise ValueError('no se pudo comprobar si Steam esta cerrado')
     catalog = read_json(CATALOG)
     root = HOME/'.local/share/Steam'
     root.mkdir(parents=True, exist_ok=True)
@@ -919,6 +936,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
+    except SteamRegistryBusy as error:
+        print('BIBLIOTECAS:', error, file=sys.stderr)
+        sys.exit(75)  # EX_TEMPFAIL: el lanzador debe evitar una carrera con VDF.
     except (OSError, ValueError, subprocess.SubprocessError) as error:
         print('BIBLIOTECAS:', error, file=sys.stderr)
         if os.geteuid() == 1000 and os.environ.get('WAYLAND_DISPLAY'):
