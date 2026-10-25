@@ -1,0 +1,60 @@
+   Compiling ultra-carpetas v0.1.0 (/home/builder/linux-reconstruido/src/apps/ultra-carpetas)
+    Finished `release` profile [optimized] target(s) in 30.97s
+     Running unittests src/main.rs (/var/tmp/ultra-main-work/cache/carpetas-target/release/deps/ultra_carpetas-dd03befd0a526a5c)
+
+running 53 tests
+test almacen::pruebas::guardar_y_cargar_en_disco ... ok
+test analisis::pruebas::medir_en_carpeta ... ignored
+test archivo::pruebas::enlaces_binarios_y_rutas_raras ... ok
+test analisis::pruebas::la_cache_binaria_va_y_vuelve_y_rechaza_lo_roto ... ok
+test casm_taller::pruebas::taller_de_este_repositorio ... ok
+test ciudad3d::pruebas::camara_mira_al_objetivo_y_el_rayo_central_lo_toca ... ok
+test ciudad3d::pruebas_tiempo::cada_edificio_sabe_cuando_nacio ... ok
+test ciudad3d::pruebas_tiempo::el_tiempo_solo_corre_con_la_cronologia_puesta ... ok
+test ciudad3d::pruebas_tiempo::la_instancia_lleva_su_nacimiento_en_44_bytes ... ok
+test compilacion::pruebas::lee_el_archivo_y_saca_las_bases ... ok
+test compilacion::pruebas::no_importa_plugins_salidas_ni_opciones_del_backend ... ok
+test compilacion::pruebas::parte_ordenes_de_shell ... ok
+test compilacion::pruebas::solo_flags_seguras_y_rutas_absolutas ... ok
+test analisis::pruebas::la_cache_solo_relee_lo_que_cambio_y_las_i_de_compile_commands_resuelven ... ok
+test consultas::pruebas::el_compilador_de_cada_orden ... ok
+test consultas::pruebas::el_control_no_tiene_ciclos ... ok
+test archivo::pruebas::leer_guardar_y_conservar_permisos ... ok
+test consultas::pruebas::gcc_confirma_el_museo_y_entra_en_el_fallo ... ok
+test consultas::pruebas::gcc_deps_no_mide_si_faltan_cabeceras_generadas ... ok
+test analisis::pruebas::analiza_este_repositorio ... ok
+test consultas::pruebas::las_consultas_contestan_exacto_y_con_tope ... ok
+test consultas::pruebas::lee_el_sarif_de_gcc ... ok
+test consultas::pruebas::los_guardianes_revisan_guardan_y_vuelven_a_revisar_solos ... ok
+test consultas::pruebas::clang_revisa_lo_que_compila_clang_y_da_el_camino_entre_archivos ... ok
+test consultas::pruebas::si_cambia_una_cabecera_el_guardian_revisa_a_quien_la_usa ... ok
+test disco::pruebas::ruta_segura_no_sale_ni_sigue_enlaces ... ok
+test editor_ui::pruebas::inicio_de_linea_en_caracteres ... ok
+test entradas::pruebas::lista_ordena_y_oculta ... ok
+test git::pruebas::lee_la_historia_de_este_repositorio ... ok
+test git::pruebas::una_carpeta_sin_git_lo_dice ... ok
+test gpu::pruebas::camara_lleva_el_mundo_a_la_gpu ... ok
+test gpu::pruebas::geometria_completa_y_solo_triangulos ... ok
+test gpu::pruebas::un_error_pone_anillo_rojo_en_la_gpu ... ok
+test gpu::pruebas::un_grupo_es_una_pila_de_tarjetas ... ok
+test guardianes::pruebas::arrays_de_bash_y_banderas_seguras ... ok
+test guardianes::pruebas::lee_ultra_warn_del_perfil_real ... ok
+test consultas::pruebas::la_cronologia_sale_de_git_y_se_verifica_sola ... ok
+test indice::pruebas::busca_texto_en_hilo_y_cancela ... ok
+test indice::pruebas::indexa_sin_enlaces_ni_builds ... ok
+test mcp::pruebas::en_vivo_avisa_cuando_cambia_el_codigo ... ok
+test mcp::pruebas::habla_mcp_por_json_rpc ... ok
+test indice::medida::buscar_en_el_repositorio ... ok
+test proceso::pruebas::programa_que_no_existe ... ok
+test proceso::pruebas::salida_errores_y_codigo ... ok
+test puente::pruebas::ida_y_vuelta ... ok
+test svg::pruebas::el_nucleo_solo_pide_claves_que_existen ... ok
+test svg::pruebas::todos_los_iconos_son_svg_y_pequenos ... ok
+test consultas::pruebas::la_guardia_revisa_por_turnos_y_ve_los_nuevos ... ok
+test vivos::pruebas::stat_con_espacios_y_parentesis_en_el_nombre ... ok
+test proceso::pruebas::detener_para_tambien_a_los_hijos ... ok
+test vigia::pruebas::avisa_al_instante_y_ve_carpetas_nuevas ... ok
+test vivos::pruebas::ve_el_grupo_del_proceso_lanzado ... ok
+test disco::pruebas::hilo_lista_y_avisa_cambios ... ok
+
+test result: ok. 52 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 2.33s

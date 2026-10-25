@@ -1,0 +1,2 @@
+nvidia-utils 615.78.08-1
+lib32-nvidia-utils 615.78.08-1

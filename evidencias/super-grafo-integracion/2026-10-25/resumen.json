@@ -1,0 +1,13 @@
+{
+  "qemu_checks": 181,
+  "qemu_failed": 0,
+  "core_tests": 110,
+  "interface_tests": 52,
+  "graphics": "Vulkan software QEMU; no es una medida de la RTX",
+  "incoming_main": "0ef82d9",
+  "tests_sha256": {
+    "scripts/probar_arranque.py": "d2e6a07fa0615bc49e7e30c702567edbfd5692c7a18ca69863a556144378c9be",
+    "scripts/probar_super_grafo_instalado.py": "0df07dbcc2ff66d54914991ab2972ef670a74a590b3c7aa4467d0dd9230d0ea8",
+    "scripts/probar_super_grafo_mcp.py": "6fb9926fa4a41f50172df711d574da2682a75470da3fd8b47e92f17d64cff00f"
+  }
+}

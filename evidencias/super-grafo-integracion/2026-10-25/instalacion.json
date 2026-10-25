@@ -1,0 +1,13 @@
+{
+  "profile": "pc",
+  "filesystem": "FAT32",
+  "system_sha256": "a9784a925d82e4ac472feac9fc8bbd71d7f310663612d72509ce84af9e8a8672",
+  "system_bytes": 2057101312,
+  "kernel_sha256": "e2242e375f3f508c535f18cf684a573d1d5664350a6199742ee9f0ab1891c8f7",
+  "data_sha256": "cb08669796b4a90dcac5182c26fb5014764b9d81d54ba8a816c6e9c29e566f55",
+  "data_preserved": true,
+  "game_disks_modified": false,
+  "backup_suffix": ".antes-supergrafo-20261025",
+  "source_verification": "fuentes-index.json",
+  "qemu_checks": 181
+}

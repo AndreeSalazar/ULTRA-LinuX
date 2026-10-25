@@ -26,7 +26,7 @@ pub struct Perfil {
 fn segura(f: &str) -> bool {
     (f.starts_with("-W") && !f.starts_with("-Wl,") && !f.starts_with("-Wa,") && !f.starts_with("-Wp,"))
         || f.starts_with("-std=") || f.starts_with("-D") || f.starts_with("-U")
-        || (f.starts_with("-f") && !f.starts_with("-fplugin") && !f.starts_with("-fdump") && !f.starts_with("-fprofile"))
+        || crate::compilacion::semantica_segura(f)
 }
 
 /// Saca un array de bash (`NOMBRE=(a b \n c)`) de un texto; sin comentarios.

@@ -1,0 +1,20 @@
+clang version 23.1.3
+Target: x86_64-pc-linux-gnu
+Thread model: posix
+InstalledDir: /usr/bin
+	linux-vdso.so.1 (0x00007fc1be01b000)
+	libclang-cpp.so.23.1 => /usr/lib/libclang-cpp.so.23.1 (0x00007fc1b9400000)
+	libLLVM.so.23.1 => /usr/lib/libLLVM.so.23.1 (0x00007fc1aee00000)
+	libstdc++.so.6 => /usr/lib/libstdc++.so.6 (0x00007fc1aea00000)
+	libc.so.6 => /usr/lib/libc.so.6 (0x00007fc1ae600000)
+	libm.so.6 => /usr/lib/libm.so.6 (0x00007fc1bde96000)
+	libgcc_s.so.1 => /usr/lib/libgcc_s.so.1 (0x00007fc1bde69000)
+	/lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007fc1be01d000)
+	libffi.so.8 => /usr/lib/libffi.so.8 (0x00007fc1bde59000)
+	libedit.so.0 => /usr/lib/libedit.so.0 (0x00007fc1bde1d000)
+	libz.so.1 => /usr/lib/libz.so.1 (0x00007fc1b93e5000)
+	libzstd.so.1 => /usr/lib/libzstd.so.1 (0x00007fc1aed1a000)
+	libxml2.so.16 => /usr/lib/libxml2.so.16 (0x00007fc1ae8bb000)
+	libncursesw.so.6 => /usr/lib/libncursesw.so.6 (0x00007fc1b9374000)
+	libicuuc.so.78 => /usr/lib/libicuuc.so.78 (0x00007fc1ae200000)
+	libicudata.so.78 => /usr/lib/libicudata.so.78 (0x00007fc1ac200000)

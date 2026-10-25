@@ -1,0 +1,12 @@
+{
+  "source_files_verified": 429,
+  "comparison": "bytes, normalizando solo CRLF a LF",
+  "artifacts": {
+    "bzImage-tiny64": "e2242e375f3f508c535f18cf684a573d1d5664350a6199742ee9f0ab1891c8f7",
+    "sistema-a.erofs": "a9784a925d82e4ac472feac9fc8bbd71d7f310663612d72509ce84af9e8a8672",
+    "disco-bmo.img": "e47daadec5caaee1be43a9876c6705156165e5c6be0388697ddc0369263b7759",
+    "almacen-nativo-fuentes.sha256": "416e8d5a1940dd9e2640012675785b1f2fc7039dfb32e69692837230e02ca84d"
+  },
+  "kernel_unchanged": true,
+  "nvidia_versions_preserved": true
+}

@@ -8,7 +8,7 @@
 //!   flags, no con unas genericas.
 //!
 //! Solo se copian flags que no ejecutan ni escriben nada: `-I`, `-isystem`, `-iquote`,
-//! `-D`, `-U`, `-std=`, `-include`, `-f…` (salvo `-fplugin`), `-m…` y `-W…` (salvo
+//! `-D`, `-U`, `-std=`, `-include`, una lista de opciones semanticas y `-W…` (salvo
 //! `-Wl,`, `-Wa,` y `-Wp,`). Nunca `-o`, `-B`, `-specs`, `-wrapper` ni `@archivo`.
 
 use serde_json::Value;
@@ -82,6 +82,28 @@ fn partir(s: &str) -> Vec<String> {
 }
 
 /// Flags seguras de una orden (sin el compilador ni el archivo de entrada).
+pub(crate) fn semantica_segura(a: &str) -> bool {
+    // No aceptar familias enteras: Clang -fpass-plugin carga codigo y otras -f
+    // escriben modulos, perfiles o informes aunque la salida principal sea /dev/null.
+    let nombre = a.split('=').next().unwrap_or(a);
+    let nombre = nombre.strip_prefix("-fno-").or_else(|| nombre.strip_prefix("-f"));
+    if let Some(n) = nombre {
+        return matches!(n, "exceptions" | "rtti" | "ms-extensions" | "ms-compatibility"
+            | "ms-compatibility-version" | "delayed-template-parsing" | "char8_t"
+            | "short-wchar" | "short-enums" | "signed-char" | "unsigned-char"
+            | "strict-aliasing" | "wrapv" | "trapv" | "builtin" | "freestanding"
+            | "hosted" | "gnu89-inline" | "gnu-keywords" | "operator-names"
+            | "visibility" | "visibility-inlines-hidden" | "PIC" | "pic" | "PIE" | "pie"
+            | "stack-protector" | "stack-protector-strong" | "stack-protector-all"
+            | "stack-clash-protection" | "cf-protection" | "omit-frame-pointer"
+            | "math-errno" | "fast-math" | "finite-math-only" | "rounding-math"
+            | "trapping-math" | "signed-zeros" | "fp-contract");
+    }
+    matches!(a, "-m32" | "-m64" | "-msse" | "-msse2" | "-msse3" | "-mssse3"
+        | "-msse4.1" | "-msse4.2" | "-mavx" | "-mavx2" | "-mfma" | "-mno-red-zone")
+        || a.starts_with("-march=") || a.starts_with("-mtune=")
+}
+
 fn seguras(args: &[String], carpeta: &Path, archivo: &str, descartadas: &mut usize) -> Vec<String> {
     let abs = |p: &str| { let x = Path::new(p); if x.is_absolute() { x.to_path_buf() } else { carpeta.join(x) } };
     let mut v = Vec::new();
@@ -99,8 +121,8 @@ fn seguras(args: &[String], carpeta: &Path, archivo: &str, descartadas: &mut usi
         if a == "-include" { if let Some(s) = siguiente { v.push("-include".into()); v.push(abs(s).display().to_string()); i += 2; continue; } }
         if (a == "-D" || a == "-U") && siguiente.is_some() { v.push(format!("{a}{}", siguiente.map(String::as_str).unwrap_or(""))); i += 2; continue; }
         let segura = a.starts_with("-D") || a.starts_with("-U") || a.starts_with("-std=")
-            || (a.starts_with("-f") && !a.starts_with("-fplugin") && !a.starts_with("-fdump") && !a.starts_with("-fprofile") && !a.starts_with("-fdiagnostics"))
-            || a.starts_with("-m") || (a.starts_with("-W") && !a.starts_with("-Wl,") && !a.starts_with("-Wa,") && !a.starts_with("-Wp,") && a != "-Werror");
+            || semantica_segura(a)
+            || (a.starts_with("-W") && !a.starts_with("-Wl,") && !a.starts_with("-Wa,") && !a.starts_with("-Wp,") && a != "-Werror");
         // -o, -MF, -MT y -MQ llevan un argumento que no es una flag: se salta junto.
         if matches!(a.as_str(), "-o" | "-MF" | "-MT" | "-MQ" | "-x" | "-Xclang" | "-arch" | "-target" | "-B" | "-specs" | "-wrapper") { i += 2; if a != "-o" && a != "-x" { *descartadas += 1; } continue; }
         if segura { v.push(a.clone()); }
@@ -156,6 +178,22 @@ mod pruebas {
     fn parte_ordenes_de_shell() {
         assert_eq!(partir(r#"gcc -DX="a b" -I'dir con espacio' -c x.c"#), ["gcc", "-DX=a b", "-Idir con espacio", "-c", "x.c"]);
         assert_eq!(partir("gcc -DY=\\\"z\\\" x.c"), ["gcc", "-DY=\"z\"", "x.c"]);
+    }
+
+    #[test]
+    fn no_importa_plugins_salidas_ni_opciones_del_backend() {
+        let peligrosas = ["-fpass-plugin=/tmp/plugin.so", "-fplugin=/tmp/plugin.so",
+            "-fmodule-output=/tmp/mod.pcm", "-fmodules-cache-path=/tmp/cache",
+            "-foptimization-record-file=/tmp/informe", "-fsave-optimization-record",
+            "-fcallgraph-info", "-fstack-usage", "-fprofile-instr-generate=/tmp/prof",
+            "-mllvm=-load=/tmp/plugin.so", "-fopcion-futura"];
+        let mut args = vec!["clang".to_string()];
+        args.extend(peligrosas.iter().map(|s| s.to_string()));
+        args.extend(["-fno-rtti", "-fPIC", "-march=x86-64", "-mtune=znver3"].map(String::from));
+        let mut descartadas = 0;
+        assert_eq!(seguras(&args, Path::new("/p"), "a.cc", &mut descartadas),
+            ["-fno-rtti", "-fPIC", "-march=x86-64", "-mtune=znver3"]);
+        assert_eq!(descartadas, peligrosas.len());
     }
 
     #[test]

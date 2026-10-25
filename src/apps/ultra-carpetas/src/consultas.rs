@@ -1441,10 +1441,12 @@ mod pruebas {
         assert!(r["ordenes"][0].as_str().unwrap().starts_with("clang "), "el clang del sistema, no el del proyecto: {r}");
         let lista = r["lista"].as_array().unwrap();
         assert!(lista.iter().any(|d| d["regla"] == "-Wshorten-64-to-32" || d["regla"] == "-Wconversion"), "con su -W: {r}");
-        let libre = lista.iter().find(|d| d["mensaje"].as_str().unwrap_or("").contains("freed")).unwrap_or_else(|| panic!("el uso tras free: {r}"));
+        // Clang cambia el texto entre versiones ("freed" / "released").
+        // Comprobar la regla y el sitio del caso conocido, no esa frase inglesa.
+        let libre = lista.iter().find(|d| d["regla"] == "unix.Malloc" && d["linea"] == 7).unwrap_or_else(|| panic!("el uso tras free: {r}"));
         assert_eq!((libre["archivo"].as_str(), libre["linea"].as_u64()), (Some("src/a.c"), Some(7)), "{libre}");
         let pasos: Vec<&str> = libre["pasos"].as_array().unwrap().iter().filter_map(|x| x.as_str()).collect();
-        assert!(pasos.iter().any(|p| p.starts_with("src/util.h:3: Memory is released")), "el camino pasa por util.h: {pasos:?}");
+        assert!(pasos.iter().any(|p| p.starts_with("src/util.h:3:")), "el camino pasa por util.h: {pasos:?}");
         // La revision recuerda su compilador y se repite con el mismo al cambiar una cabecera.
         assert_eq!(m.revisiones["src/a.c"].compilador, Compilador::Clang);
         std::thread::sleep(std::time::Duration::from_millis(20));

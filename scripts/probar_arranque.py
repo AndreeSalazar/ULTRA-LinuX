@@ -1015,8 +1015,18 @@ def check_hyprland(conn, failures):
             for perfil in ('original', 'fresco', 'eficiente'):
                 probe = "import json; from pathlib import Path; assert json.loads(Path('/run/ultra-energia/estado.json').read_text())['solicitado']=="+repr(perfil)+"; print('ENERGIA-PERFIL-VERIFICADO')"
                 transcript += run(conn, [('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/local/bin/ultra-energia '+perfil+'; sleep 3; ultra-entrar /usr/bin/python -c '+shlex.quote(probe), 'ENERGIA-PERFIL-VERIFICADO')], failures)
-        if '--carpetas' in sys.argv:
+        if '--super-grafo' in sys.argv:
+            encoded = base64.b64encode((ROOT/'scripts/probar_super_grafo_instalado.py').read_bytes()).decode()
+            transcript += run(conn, [(': > /arch/tmp/sg-banco.b64; echo SG-CARGA-$((40+5))', 'SG-CARGA-45')], failures)
+            for offset in range(0, len(encoded), 192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/sg-banco.b64; echo SG-CARGA-$((40+5))\n").encode())
+                transcript += response('SG-CARGA-45')
+            transcript += run(conn, [('base64 -d /arch/tmp/sg-banco.b64 > /arch/tmp/sg-banco.py; ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/bin/python /tmp/sg-banco.py', 'SUPER-GRAFO-INSTALADO-OK')], failures)
+        if '--carpetas' in sys.argv or '--super-grafo' in sys.argv:
             transcript += run(conn, [('mkdir -p /arch/home/ultra/Proyectos /arch/home/ultra/Juegos /arch/home/ultra/Museo /arch/home/ultra/Documentos; chown 1000:1000 /arch/home/ultra/Proyectos /arch/home/ultra/Juegos /arch/home/ultra/Museo /arch/home/ultra/Documentos; echo CARPETAS-DATOS-$((50+2))', 'CARPETAS-DATOS-52')], failures)
+            if '--super-grafo' in sys.argv:
+                command = "printf '#include \"a.h\"\\nint main(void) { return valor(); }\\n' > /arch/home/ultra/Proyectos/main.c; printf '#include \"b.h\"\\nint valor(void);\\n' > /arch/home/ultra/Proyectos/a.h; printf '#define VALOR 42\\n' > /arch/home/ultra/Proyectos/b.h; chown 1000:1000 /arch/home/ultra/Proyectos/*; echo SG-EDIFICIOS-$((50+6))"
+                transcript += run(conn, [(command, 'SG-EDIFICIOS-56')], failures)
             conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval \'hl.exec_cmd("ultra-tarjetas parar")\'; echo CARPETAS-INICIO-$((50+3))\n')
             transcript += response('CARPETAS-INICIO-53')
             mon.sendall(b'sendkey meta_l-4\n'); time.sleep(1)
@@ -1029,8 +1039,27 @@ def check_hyprland(conn, failures):
                 time.sleep(3)
                 transcript += run(conn, [(f"grep -Eq '^Uid:[[:space:]]+1000[[:space:]]+1000[[:space:]]+1000[[:space:]]+1000' /proc/{app['pid']}/status && echo CARPETAS-USUARIO-$((50+4))", 'CARPETAS-USUARIO-54'),
                                          (f"grep -q 'libvulkan_lvp' /proc/{app['pid']}/maps && echo CARPETAS-VULKAN-$((50+5))", 'CARPETAS-VULKAN-55')], failures)
-                for suffix, keys in [('carpetas', None), ('carpetas-ajustes', b'sendkey ctrl-comma\n')]:
+                captures = [('carpetas', None), ('carpetas-ajustes', b'sendkey ctrl-comma\n')]
+                if '--super-grafo' in sys.argv: captures.append(('carpetas-ciudad', b'sendkey esc\n'))
+                for suffix, keys in captures:
                     if keys: mon.sendall(keys); time.sleep(1)
+                    if suffix == 'carpetas-ciudad':
+                        probe = '''import json,os,subprocess,time
+home=os.environ['HOME']
+def q(tool,args):
+    return json.loads(subprocess.check_output(['/usr/local/bin/ultra-carpetas','--consulta',tool,home,json.dumps(args)],text=True,timeout=45))
+r=q('mostrar',{'accion':'grupo','rutas':['Proyectos/main.c','Proyectos/a.h'],'modo':'ciudad'})
+assert r['ventana_abierta'],r
+for _ in range(30):
+    v=q('ventana',{})
+    if v.get('vista',{}).get('modo')=='ciudad' and len(v['vista'].get('grupo',[]))==2: break
+    time.sleep(.2)
+else: raise AssertionError(v)
+time.sleep(2)
+assert q('ventana',{})['abierta']
+print('SUPER-GRAFO-'+'CIUDAD-VIVA-OK')'''
+                        command = 'ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/bin/env HOME=/home/ultra XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/python -c '+shlex.quote(probe)
+                        transcript += run(conn, [(command, 'SUPER-GRAFO-CIUDAD-VIVA-OK')], failures)
                     target = pathlib.Path(tempfile.gettempdir())/('ultra-'+suffix+'.png'); target.unlink(missing_ok=True)
                     mon.sendall(f'screendump {target} -f png\n'.encode())
                     for _ in range(50):

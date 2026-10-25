@@ -8,6 +8,11 @@
 
 ## Escritorio BMO-X // Neón
 
+**SUPER GRAFO integrado desde main:** indice incremental, MCP, revision con GCC y
+Clang y Ciudad fantasma. La integracion corrige opciones importadas del compilador
+y evita entregar ejecutables viejos si falla una compilacion.
+[Cambios, motivos y validacion](docs/SUPER-GRAFO-INTEGRACION-2026-10-25.md).
+
 **Eficiencia CPU:** [perfiles reversibles y sensores separados](docs/ENERGIA-CPU-PERFILES-2026-10-25.md).
 Super+F8 permite elegir Eficiente (90 % del máximo previo), Fresco (80 %) u
 Original. Son límites de frecuencia, no porcentajes de vatios ahorrados; pueden
@@ -22,8 +27,10 @@ como cliente necesario para sus juegos. El primer inicio importa la configuraci�
 anterior a datos propios, conservando el original, prefijos y partidas.
 MangoHud excluye la interfaz del launcher y sigue disponible para los juegos.
 [Migración y validación](docs/HERONITE-MIGRACION-2026-10-25.md).
-La entrega final pasó 180 comprobaciones de arranque QEMU y bancos de migración;
-falta validar la biblioteca real y medir RAM/vatios con la RTX.
+La integración inicial pasó 180 comprobaciones QEMU y bancos de migración.
+Los informes físicos posteriores muestran Heronite y Cyberpunk en ejecución;
+falta una comparación controlada de RAM/vatios. La actualización de SUPER GRAFO
+pasó 181 comprobaciones y quedó copiada en A: junto con esta integración.
 
 También está incluido el perfil optativo **Ahorro**, con fondo liso cyan, sin
 animaciones, desenfoque, dock ni tarjetas. Se selecciona desde Personalizar → Perfiles.

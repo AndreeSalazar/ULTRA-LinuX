@@ -233,7 +233,7 @@ if [[ -n $cmdline ]]; then
         mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
         mangohud=0.8.4-1 lib32-mangohud=0.8.4-1
         # Rust para el usuario: rustup instala las versiones en el home persistente; gcc enlaza.
-        rustup gcc git pkgconf
+        rustup gcc clang git pkgconf
         # Capturas de pantalla.
         grim slurp wl-clipboard cliphist
         # Fondo vivo: Pillow genera el bucle en el home; rsvg-convert (librsvg) pasa el SVG a imagen.

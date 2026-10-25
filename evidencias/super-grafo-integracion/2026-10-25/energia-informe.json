@@ -1,0 +1,70 @@
+{
+  "muestras": 25,
+  "duracion_segun_uptime_s": 131.05,
+  "saltos_reloj_civil_s": [
+    18002.67
+  ],
+  "cpu_ocupado_pct_maquina": {
+    "min": 2.38,
+    "media": 8.225,
+    "max": 22.232,
+    "n": 24
+  },
+  "cpu_ocupado_pct_periodo": 8.427,
+  "intervalos_cpu_rechazados": 0,
+  "gpu_W": {
+    "min": 17.15,
+    "media": 24.977,
+    "max": 45.3,
+    "n": 25
+  },
+  "gpu_pct": {
+    "min": 0.0,
+    "media": 16.96,
+    "max": 48.0,
+    "n": 25
+  },
+  "gpu_C": {
+    "min": 31.0,
+    "media": 34.12,
+    "max": 39.0,
+    "n": 25
+  },
+  "vram_MiB": {
+    "min": 1.0,
+    "media": 280.4,
+    "max": 665.0,
+    "n": 25
+  },
+  "cpu_W": {
+    "min": 25.154,
+    "media": 33.621,
+    "max": 59.251,
+    "n": 66
+  },
+  "cpu_temperatura_C": {
+    "min": 38.6,
+    "media": 46.266,
+    "max": 55.6,
+    "n": 67
+  },
+  "perfiles_energia_observados": [
+    "eficiente",
+    "original"
+  ],
+  "ventana_energia_cpu_monotonic_s": [
+    17.289,
+    149.382
+  ],
+  "motivo_cpu_W": "Muestras RAPL del paquete; media de observaciones, no energia total integrada.",
+  "primera_muestra_utc": "2026-10-25T13:03:20Z",
+  "ultima_muestra_utc": "2026-10-25T18:05:33Z",
+  "limites": [
+    "Uso CPU agregado de la maquina: 100% representa todos sus hilos.",
+    "Se excluyen idle e iowait; guest ya esta incluido en user/nice y no se suma otra vez.",
+    "GPU W corresponde a la tarjeta; no al procesador ni al enchufe.",
+    "Intervalos con contadores faltantes, reiniciados o sin avance se rechazan.",
+    "Estas muestras no identifican por si mismas causas ni consumo por proceso."
+  ],
+  "informe_sha256": "4ef23bfd11553d442a7009d852c377a1b15f5ce88d7bea712b4abcf3721c746f"
+}

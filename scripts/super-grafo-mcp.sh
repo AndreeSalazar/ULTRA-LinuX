@@ -5,9 +5,13 @@
 # stdout es solo del protocolo: la compilacion, si hace falta, escribe en stderr.
 set -eu
 raiz=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-bin="$raiz/src/apps/ultra-carpetas/target/release/ultra-carpetas"
-if [ ! -x "$bin" ]; then
-    echo "super-grafo: compilando ultra-carpetas (solo la primera vez)..." >&2
-    cargo build --release --quiet --manifest-path "$raiz/src/apps/ultra-carpetas/Cargo.toml" >&2
-fi
-exec "$bin" --mcp "${1:-$raiz}"
+carpeta=${1:-$raiz}
+# Resolver el argumento antes de cambiar de carpeta para fijar rust-toolchain.toml.
+carpeta=$(CDPATH= cd -- "$carpeta" && pwd)
+cd "$raiz/src/apps/ultra-carpetas"
+echo "super-grafo: comprobando compilacion incremental..." >&2
+# Cargo comprueba los cambios aun si existe el ejecutable de una revision anterior.
+# Si falla, no arrancar silenciosamente ese binario viejo.
+cargo build --release --locked --quiet >&2
+bin="${CARGO_TARGET_DIR:-target}/release/ultra-carpetas"
+exec "$bin" --mcp "$carpeta"
