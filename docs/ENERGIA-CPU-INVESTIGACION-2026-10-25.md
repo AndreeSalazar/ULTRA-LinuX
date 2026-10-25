@@ -32,6 +32,48 @@ EPP `balance_performance`. El dmesg anuncia RAPL para dominios package y core.
 Eso acredita detección del contador en el kernel; todavía hay que comprobar
 lectura y permisos durante el arranque Linux.
 
+## Corrección de interpretación: CPU a 91 °C
+
+El autor confirmó después una lectura de **91 °C bajo la etiqueta CPU de
+MangoHud**. Es una observación del usuario, no una temperatura recuperada del
+informe anterior. El 58,131 % agregado no mide temperatura y no demuestra margen
+térmico: promediar actividad de doce hilos y de varios minutos oculta distribución
+de carga, ráfagas y calentamiento. Tampoco permite calcular potencia.
+
+[AMD especifica Tjmax de 95 °C para el 5600X](https://www.amd.com/en/products/processors/desktops/ryzen/5000-series/amd-ryzen-5-5600x.html).
+91 °C está cerca de ese máximo. La lectura aislada no demuestra daño ni
+throttling; hay que registrar duración, sensor y frecuencia efectiva. Si se
+mantiene en ese nivel, priorizar bajar carga y revisar refrigeración.
+
+El objetivo pasa a ser **mínimos vatios manteniendo los FPS deseados, los tiempos
+de cuadro y una temperatura objetivo explícita**. Por ejemplo, se puede ensayar
+un objetivo de 80–85 °C como preferencia de funcionamiento, sin presentarlo como
+un límite oficial de AMD ni garantizarlo antes de medir.
+
+Orden estratégico:
+
+1. Registrar Tctl/Tdie y CCD cuando estén disponibles, máximos y tiempo a alta
+   temperatura, junto a energía del paquete y frametimes. El sensor debe llevar
+   nombre del chip y etiqueta; no basta con un número denominado TEMP.
+2. Limitar FPS al objetivo real del usuario y detener trabajo visual de fondo
+   durante el juego. Medir ahorro y p99 antes de cambiar otra variable.
+3. Comparar EPP balanceado orientado a ahorro si el firmware lo ofrece. Si no
+   basta, ensayar un límite de rendimiento/boost reversible o un límite de
+   potencia admitido por el firmware, manteniendo un punto de recuperación.
+   Desactivar boost puede bajar temperatura y también rendimiento: no es una
+   optimización gratuita ni el ajuste predeterminado de esta investigación.
+4. Revisar ventilador, polvo, flujo del gabinete y montaje del disipador si la
+   temperatura continúa alta. No se conoce el disipador instalado: no atribuir
+   el síntoma a pasta térmica, Linux o una avería sin comprobación.
+
+Hallazgo adicional de interfaz: `ultra-tarjetas.temperatura()` elige actualmente
+la máxima de todos los hwmon, incluyendo CPU, GPU y NVMe. Esa cifra genérica no
+se debe presentar como temperatura CPU. No cambia el origen confirmado de la
+lectura de MangoHud. Queda pendiente separar CPU/GPU/SSD en las tarjetas y
+exportar esos sensores etiquetados en las capturas, usando
+[k10temp y sus etiquetas](https://docs.kernel.org/hwmon/k10temp.html) en el Ryzen.
+No se modificó todavía ese código ni se reconstruyó A: en esta aclaración.
+
 ## Cómo obtener los vatios CPU
 
 La ruta preferida para este AMD es la PMU RAPL de perf, comprobando primero

@@ -152,6 +152,9 @@ La comprobación visual en la RTX y la medición de vatios siguen pendientes.
 Los 14,49–169,52 W observados son de la GPU; aún falta capturar energía del paquete
 CPU mediante RAPL. Se documentan candidatos de ahorro en efectos, monitores y
 editor, y el fallo de entrada con cursor visible, sin darlo por corregido.
+El autor informó después **91 °C de CPU en MangoHud**: el promedio de actividad
+no demuestra margen térmico. La investigación incorpora medición de sensores
+etiquetados y una estrategia de ahorro con objetivo térmico y FPS definidos.
 
 [Arranque de Warframe](docs/WARFRAME-INICIO-2026-10-24.md): el acceso evita
 esperar al registro si Steam ya está abierto y avisa si otra revisión está
