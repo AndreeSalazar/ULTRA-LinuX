@@ -41,8 +41,15 @@ fn ahora() -> u64 { std::time::SystemTime::now().duration_since(std::time::UNIX_
 
 fn escribir(ruta: &Path, v: &Value) -> bool {
     let tmp = ruta.with_extension(format!("tmp{}", std::process::id()));
-    std::fs::write(&tmp, serde_json::to_vec(v).unwrap_or_default()).is_ok() && std::fs::rename(&tmp, ruta).is_ok()
+    if std::fs::write(&tmp, serde_json::to_vec(v).unwrap_or_default()).is_err() { return false; }
+    // Solo el usuario lo lee y escribe (la carpeta ya es 700).
+    #[cfg(unix)]
+    { use std::os::unix::fs::PermissionsExt; let _ = std::fs::set_permissions(&tmp, std::fs::Permissions::from_mode(0o600)); }
+    std::fs::rename(&tmp, ruta).is_ok()
 }
+
+/// Al cerrar la ventana: se borra lo que se veia (no queda nada a la vista).
+pub fn cerrar(dir: &Path) { let _ = std::fs::remove_file(dir.join("ventana.json")); }
 
 /// La ventana publica lo que se ve.
 pub fn publicar(dir: &Path, vista: &Value) -> bool {
@@ -100,6 +107,10 @@ mod pruebas {
         assert_eq!(p.len(), 2);
         assert_eq!(p[0]["accion"], "revelar", "en orden");
         assert!(recoger(&dir).is_empty(), "se borran al recogerlas");
+        #[cfg(unix)]
+        { use std::os::unix::fs::PermissionsExt; assert_eq!(std::fs::metadata(dir.join("ventana.json")).unwrap().permissions().mode() & 0o777, 0o600); }
+        cerrar(&dir);
+        assert!(ventana(&dir).is_none(), "al cerrar no queda nada");
         std::fs::remove_dir_all(&dir).ok();
     }
 }

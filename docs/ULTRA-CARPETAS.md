@@ -818,6 +818,7 @@ ultra-carpetas --mcp <carpeta>     # servidor MCP por stdio (JSON-RPC 2.0)
 | `gcc_deps` | Cuánto acierta el mapa léxico frente a `gcc -MM -MG` |
 | `exportar_sarif` | El museo (y lo de GCC) en un archivo SARIF 2.1.0 |
 | `reanalizar` | Volver a leer la carpeta ya (el servidor MCP lo hace solo al ver cambios) |
+| `guardianes` | El perfil de los guardianes (banderas de `perfil-gcc.sh`) y las revisiones de GCC guardadas: si siguen al día |
 | `cambios` | Qué cambió desde el análisis anterior: sospechas nuevas y arregladas, fallos, causa principal, ciclos |
 | `ventana` | Lo que la persona mira ahora en la ventana (vista, grupo, selección, camino, editor), con las señales de su grupo |
 | `mostrar` | Enseñar algo en la ventana: un grupo, una línea, un camino, aislar o limpiar (solo mueve la vista) |
@@ -899,9 +900,15 @@ cliente como Claude Code lo ofrece al abrir el repositorio, y pide permiso antes
 
 ### En vivo: el servidor vigila, avisa y habla con la ventana
 
-**Vigila la carpeta.** Un hilo calcula una firma barata (rutas, tamaños y fechas). Si
-cambia, reanaliza: con la caché incremental, solo relee lo que cambió. El intervalo se
-adapta al tamaño: 20 veces lo que cuesta la firma, de 1 a 30 s.
+**Vigila la carpeta al instante (inotify).** El kernel avisa de cada cambio, sin sondear.
+
+- Se vigilan todas las carpetas del índice, y una carpeta nueva se añade sola.
+- Solo despierta lo que el SUPER GRAFO lee (C, C++, ASM, Rust, Python y
+  `compile_commands.json`): un `.txt` no.
+- Se junta la ráfaga 150 ms, se confirma con una firma barata (rutas, tamaños y fechas) y
+  se reanaliza en incremental.
+- Por si se perdiera un aviso, comprueba cada 30 s.
+- Sin inotify (otro sistema o sin vigilancias libres), vuelve a sondear cada 1 a 30 s.
 
 **Recursos MCP con suscripción:** `super-grafo://resumen`, `fallos`, `ciclos`, `cambios`
 y `ventana`.
@@ -941,8 +948,9 @@ el binario real):
   en la Ciudad, «el SUPER GRAFO (MCP) te enseña: camino»).
 - Después, `ventana` devuelve el camino, su porqué y las 2 señales del grupo, en unos
   357 tokens.
-- **Vigía:** se escribe un archivo con `free(p + 1)` y en menos de medio segundo llegan
-  `notifications/resources/updated` (`fallos`) y el mensaje con la sospecha nueva.
+- **Vigía con inotify, en Chromium `base/`:** de guardar un archivo con `free(p + 1)` al
+  aviso `notifications/resources/updated` (`fallos`) pasan **291 ms**, con el reanálisis
+  incremental de 128 ms. Al arreglarlo, 293 ms y «1 arreglada». Antes, de 1 a 30 s.
 
 **Comprobado:**
 
@@ -952,14 +960,35 @@ el binario real):
 - `puente.rs`: ida y vuelta de la vista y de las peticiones, en orden y borradas al
   recogerlas.
 
+**Los guardianes del proyecto en el SUPER GRAFO.** En un archivo de C, `gcc_diagnosticos`
+usa **el perfil de los guardianes**: `ULTRA_WARN` leído de
+`src/guardian/produccion/perfil-gcc.sh`, la fuente única de banderas. Revisa en dos
+pasadas, como `ultra_revisar`: `-O0 -fanalyzer` y `-O2`.
+
+- `ULTRA_WARN` lleva `-Werror`: lo que avisa el guardián es un error y entra como fallo.
+- En C++, o con `perfil: "generico"`, se usan `-Wall -Wextra -O2`.
+- **Las revisiones no se pierden:** se guardan con la fecha y el tamaño de su archivo, en
+  la caché.
+  - Al reanalizar, lo que dijo GCC de los archivos que no cambiaron vuelve a las señales
+    y al fallo conectado.
+  - Sobreviven a reiniciar el servidor.
+- **Se repiten solas:** si un archivo revisado cambia, el vigía lo vuelve a revisar con el
+  mismo perfil, como mucho 4 por ronda, antes de avisar. Así `cambios` dice si el guardián
+  lo hace fallar o ya pasa.
+- Medido en este repositorio: `produccion/ultra_guard.c` pasa limpio, con **0 errores**.
+  `laboratorio/minas.c` da **86 errores** (VLA, `cast-align`, `format-nonliteral`…), como
+  debe un campo de minas. Unos 250 ms las dos pasadas.
+
+**El puente:** la carpeta es 700 y sus archivos 600 (solo el usuario). Al cerrar la
+ventana se borra `ventana.json`: no queda a la vista lo que se miraba.
+
 **Límites:**
 
-- El vigía mira cada 1 a 30 s, no al instante (sin `inotify`).
-- Los diagnósticos de `gcc_diagnosticos` se borran al reanalizar (el código cambió): hay
-  que pedirlos otra vez.
-- El puente lo puede leer y escribir cualquier proceso del mismo usuario. Solo mueve la
-  vista, pero lo que se ve (rutas, la línea del editor) queda ahí mientras la ventana
-  esté abierta.
+- Una revisión se invalida cuando cambia **su** archivo. Si cambia una cabecera que
+  incluye, hay que revisar otra vez el `.c` (o pedirlo con `gcc_diagnosticos`).
+- El puente sigue al alcance de otros procesos **del mismo usuario** (como su `~/.cache`).
+  Solo mueve la vista.
+- inotify es de Linux. En otro sistema, el vigía vuelve a sondear.
 
 ### Flags reales (`compile_commands.json`) e índice incremental
 

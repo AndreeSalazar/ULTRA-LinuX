@@ -25,6 +25,7 @@ mod disco;
 mod editor_ui;
 mod entradas;
 mod git;
+mod guardianes;
 mod gpu;
 mod indice;
 mod mcp;
@@ -34,6 +35,7 @@ mod pintar_grafo;
 mod proceso;
 mod puente;
 mod svg;
+mod vigia;
 mod vivo;
 mod vivos;
 

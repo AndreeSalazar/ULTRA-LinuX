@@ -43,6 +43,39 @@ pub struct Mapa {
     /// La foto del analisis anterior y cuando se hizo el actual (segundos UNIX).
     previa: Option<Foto>,
     cuando: u64,
+    /// El perfil de los guardianes del proyecto (perfil-gcc.sh), si tiene.
+    guardian: Option<crate::guardianes::Perfil>,
+    /// Las revisiones de GCC por archivo: sobreviven al reanalisis (si el archivo no cambio)
+    /// y a reiniciar (se guardan en la cache). Las de archivos que cambiaron, pendientes.
+    revisiones: std::collections::BTreeMap<String, Revision>,
+    pub pendientes: Vec<String>,
+}
+
+/// Una revision de GCC de un archivo: con que perfil, cuando, y que dijo.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Revision {
+    fecha: u128,
+    tam: u64,
+    /// "guardian" (perfil-gcc.sh, como ultra_revisar) o "generico".
+    perfil: String,
+    analizador: bool,
+    extra: Vec<String>,
+    cuando: u64,
+    diags: Vec<DiagGcc>,
+}
+
+fn fecha_y_tam(p: &Path) -> Option<(u128, u64)> {
+    let m = std::fs::symlink_metadata(p).ok()?;
+    Some((m.modified().ok()?.duration_since(std::time::UNIX_EPOCH).ok()?.as_nanos(), m.len()))
+}
+
+fn diag_a_json(d: &DiagGcc) -> Value {
+    json!({ "archivo": d.archivo, "dentro": d.archivo_en_proyecto, "linea": d.linea, "columna": d.columna, "nivel": d.nivel, "regla": d.regla, "mensaje": d.mensaje, "pasos": d.pasos })
+}
+fn diag_de_json(v: &Value) -> Option<DiagGcc> {
+    Some(DiagGcc { archivo: v["archivo"].as_str()?.into(), archivo_en_proyecto: v["dentro"].as_bool()?, linea: v["linea"].as_u64()? as u32, columna: v["columna"].as_u64()? as u32,
+                   nivel: v["nivel"].as_str()?.into(), regla: v["regla"].as_str().map(str::to_string), mensaje: v["mensaje"].as_str()?.into(),
+                   pasos: v["pasos"].as_array()?.iter().filter_map(|x| x.as_str().map(str::to_string)).collect() })
 }
 
 /// Lo que se compara entre dos analisis para decir que cambio.
@@ -136,8 +169,9 @@ pub fn herramientas() -> Vec<Value> {
         h("peso", "Si cambia este archivo, cuantos se recompilan (quien lo usa, directa o indirectamente) y los que lo usan directamente.", json!({ "ruta": ruta, "limite": lim }), &["ruta"]),
         h("combinar", "Como se combinan varios archivos: directas, lo que comparten, quien los junta, sueltos y piezas.", json!({ "archivos": rutas, "limite": lim }), &["archivos"]),
         h("ficha", "Una ficha del museo: regla, control valido, limite, referencia y eje.", json!({ "id": { "type": "string", "description": "C-001, UB-002, E-003..." } }), &["id"]),
-        h("gcc_diagnosticos", "Compila un archivo C o C++ con GCC (-Wall -Wextra -O2 a /dev/null: no escribe nada) y lee sus diagnosticos en SARIF; con analizador=true anade -fanalyzer (segunda opinion). Los errores entran en las senales y el fallo conectado.",
-          json!({ "archivo": ruta, "analizador": { "type": "boolean" }, "flags": { "type": "array", "items": { "type": "string" }, "description": "Flags extra: solo -I, -D, -std= y -W" }, "limite": lim }), &["archivo"]),
+        h("gcc_diagnosticos", "Revisa un archivo con GCC (compila a /dev/null: no escribe nada) y lee sus diagnosticos en SARIF. En C usa el perfil de los guardianes del proyecto (perfil-gcc.sh: ULTRA_WARN, dos pasadas como ultra_revisar, -O0 -fanalyzer y -O2); si no, -Wall -Wextra -O2 (+ -fanalyzer si se pide). La revision se guarda: sobrevive al reanalisis y se repite sola si el archivo cambia.",
+          json!({ "archivo": ruta, "perfil": { "type": "string", "enum": ["guardian", "generico"] }, "analizador": { "type": "boolean" }, "flags": { "type": "array", "items": { "type": "string" }, "description": "Flags extra: solo -I, -D, -std= y -W" }, "limite": lim }), &["archivo"]),
+        h("guardianes", "El perfil de los guardianes (banderas de perfil-gcc.sh) y las revisiones de GCC guardadas: archivo, perfil, errores, avisos y si siguen al dia.", json!({ "limite": lim }), &[]),
         h("gcc_deps", "Mide cuanto acierta el mapa lexico: para unos archivos C/C++ compara sus cabeceras del proyecto con las que dice gcc -MM -MG (con #if resueltos). Pasar las -I reales del proyecto en flags.",
           json!({ "carpeta": ruta, "flags": { "type": "array", "items": { "type": "string" }, "description": "-I relativas, -D, -std=" }, "limite": lim }), &[]),
         h("exportar_sarif", "Escribe las sospechas del museo (y los diagnosticos de GCC leidos) en un archivo SARIF 2.1.0 dentro de la carpeta.", json!({ "salida": ruta }), &["salida"]),
@@ -154,7 +188,9 @@ impl Mapa {
     pub fn abrir(raiz: &Path) -> Result<Mapa, String> {
         let raiz = raiz.canonicalize().map_err(|e| format!("{}: {e}", raiz.display()))?;
         if !raiz.is_dir() { return Err(format!("{}: no es una carpeta", raiz.display())); }
-        let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None, version: 0, previa: None, cuando: 0 };
+        let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None, version: 0, previa: None, cuando: 0,
+                           guardian: None, revisiones: Default::default(), pendientes: Vec::new() };
+        m.revisiones = m.cargar_revisiones();
         m.analizar();
         Ok(m)
     }
@@ -174,6 +210,108 @@ impl Mapa {
         self.estado = e;
         self.micros = t.elapsed().as_micros() as u64;
         self.cc = crate::compilacion::leer(&self.raiz);
+        self.guardian = crate::guardianes::leer(&self.raiz);
+        self.reaplicar();
+    }
+
+    // ---------------- Revisiones de GCC (guardianes) ----------------
+
+    fn ruta_revisiones(&self) -> Option<PathBuf> {
+        let c = crate::analisis::ruta_cache(&self.raiz)?;
+        let nombre = c.file_name()?.to_string_lossy().replacen("analisis-", "revisiones-", 1);
+        Some(c.with_file_name(nombre))
+    }
+
+    fn cargar_revisiones(&self) -> std::collections::BTreeMap<String, Revision> {
+        let Some(doc) = self.ruta_revisiones().and_then(|r| std::fs::read(r).ok()).and_then(|b| serde_json::from_slice::<Value>(&b).ok()) else { return Default::default() };
+        doc.as_object().into_iter().flatten().filter_map(|(k, v)| Some((k.clone(), Revision {
+            fecha: v["fecha"].as_str()?.parse().ok()?, tam: v["tam"].as_u64()?, perfil: v["perfil"].as_str()?.into(), analizador: v["analizador"].as_bool()?,
+            extra: v["extra"].as_array()?.iter().filter_map(|x| x.as_str().map(str::to_string)).collect(), cuando: v["cuando"].as_u64()?,
+            diags: v["diags"].as_array()?.iter().filter_map(diag_de_json).collect() }))).collect()
+    }
+
+    fn guardar_revisiones(&self) {
+        let Some(ruta) = self.ruta_revisiones() else { return };
+        let doc: serde_json::Map<String, Value> = self.revisiones.iter().map(|(k, r)| (k.clone(), json!({
+            "fecha": r.fecha.to_string(), "tam": r.tam, "perfil": r.perfil, "analizador": r.analizador, "extra": r.extra, "cuando": r.cuando,
+            "diags": r.diags.iter().map(diag_a_json).collect::<Vec<_>>() }))).collect();
+        if let Some(d) = ruta.parent() { let _ = std::fs::create_dir_all(d); }
+        let tmp = ruta.with_extension(format!("tmp{}", std::process::id()));
+        if std::fs::write(&tmp, serde_json::to_vec(&doc).unwrap_or_default()).is_ok() { let _ = std::fs::rename(&tmp, &ruta); }
+    }
+
+    /// Vuelve a poner en el estado lo que dijo GCC de los archivos que no cambiaron; los que
+    /// cambiaron quedan pendientes (su revision ya no vale).
+    fn reaplicar(&mut self) {
+        self.pendientes.clear();
+        let mut leidos: Vec<(String, Diagnostico)> = Vec::new();
+        for (archivo, r) in &self.revisiones {
+            match fecha_y_tam(&self.raiz.join(archivo)) {
+                Some((f, s)) if f == r.fecha && s == r.tam => leidos.extend(r.diags.iter().filter(|d| d.archivo_en_proyecto).map(|d| (d.archivo.clone(),
+                    Diagnostico { linea: d.linea, columna: d.columna, mensaje: d.texto(), grave: d.nivel == "error" }))),
+                Some(_) => self.pendientes.push(archivo.clone()),
+                None => {} // ya no existe: se olvida abajo
+            }
+        }
+        self.revisiones.retain(|k, _| self.raiz.join(k).exists());
+        self.estado.errores.por_nodo.clear();
+        self.estado.version_fallos += 1;
+        self.estado.diagnosticos_externos(leidos);
+    }
+
+    /// Revisa otra vez los archivos que cambiaron (como mucho `max`), con el mismo perfil.
+    pub fn revisar_pendientes(&mut self, max: usize) -> Vec<String> {
+        let lista: Vec<String> = self.pendientes.iter().take(max).cloned().collect();
+        let mut hechos = Vec::new();
+        for archivo in lista {
+            let Some(r) = self.revisiones.get(&archivo).cloned() else { continue };
+            let perfil = if r.perfil == "guardian" { self.guardian.clone() } else { None };
+            if let Ok((diags, _, _)) = self.revisar(&archivo, perfil.as_ref(), r.analizador, &r.extra) {
+                self.anotar_revision(&archivo, perfil.is_some(), r.analizador, r.extra.clone(), diags);
+                hechos.push(archivo);
+            }
+        }
+        if !hechos.is_empty() { self.reaplicar(); self.guardar_revisiones(); }
+        hechos
+    }
+
+    fn anotar_revision(&mut self, archivo: &str, guardian: bool, analizador: bool, extra: Vec<String>, diags: Vec<DiagGcc>) {
+        let (fecha, tam) = fecha_y_tam(&self.raiz.join(archivo)).unwrap_or((0, 0));
+        self.revisiones.insert(archivo.to_string(), Revision { fecha, tam, perfil: if guardian { "guardian".into() } else { "generico".into() },
+                                                              analizador, extra, cuando: ahora_s(), diags });
+    }
+
+    /// Una revision de GCC: con el perfil de los guardianes, dos pasadas como `ultra_revisar`
+    /// (-O0 -fanalyzer y -O2); si no, -Wall -Wextra -O2 (y -fanalyzer si se pide).
+    /// Devuelve los diagnosticos (sin repetir), las ordenes y de donde salen las flags.
+    fn revisar(&self, archivo: &str, guardian: Option<&crate::guardianes::Perfil>, analizador: bool, extra: &[String]) -> Result<(Vec<DiagGcc>, Vec<String>, &'static str), String> {
+        let (carpeta, base, origen, entrada) = self.base_gcc(archivo);
+        let pasadas: Vec<Vec<String>> = match guardian {
+            Some(p) => {
+                // El perfil es de C: una cabecera va como C, no como C++.
+                let mut w = p.warn.clone();
+                if archivo.ends_with(".h") { w.push("-xc".into()); }
+                vec![[w.clone(), vec!["-O0".into(), "-fanalyzer".into()]].concat(), [w, vec!["-O2".into()]].concat()]
+            }
+            None => vec![[vec!["-Wall".into(), "-Wextra".into(), "-O2".into()], if analizador { vec!["-fanalyzer".into()] } else { vec![] }].concat()],
+        };
+        let mut diags: Vec<DiagGcc> = Vec::new();
+        let mut ordenes = Vec::new();
+        for pasada in pasadas {
+            let mut args = base.clone();
+            if guardian.is_some() { args.retain(|x| x != "-xc++" && !x.starts_with("-std=")); }
+            args.extend(extra.iter().cloned());
+            args.extend(pasada);
+            // Compilar de verdad a /dev/null (no escribe nada): -fsyntax-only no ve los avisos
+            // que necesitan optimizar ni puede correr -fanalyzer.
+            args.extend(["-c".into(), "-o".into(), "/dev/null".into(), "-fdiagnostics-format=sarif-stderr".into(), entrada.clone()]);
+            let (_, err) = self.gcc(&carpeta, &args)?;
+            for d in leer_sarif(&err, &self.raiz)? {
+                if !diags.iter().any(|x| x.archivo == d.archivo && x.linea == d.linea && x.columna == d.columna && x.mensaje == d.mensaje) { diags.push(d); }
+            }
+            ordenes.push(format!("gcc {}", args.join(" ")));
+        }
+        Ok((diags, ordenes, origen))
     }
 
     /// Lo que se compara entre analisis.
@@ -211,7 +349,18 @@ impl Mapa {
             "ciclos_rotos": lista(antes.ciclos.difference(&ahora.ciclos).map(|x| json!(x)).collect()),
             "dependencias": { "antes": antes.dependencias, "ahora": ahora.dependencias },
             "archivos": { "antes": antes.archivos, "ahora": ahora.archivos },
-            "nota": "Los diagnosticos de gcc_diagnosticos se borran al reanalizar (el codigo cambio): pedirlos otra vez.",
+            "revisiones_gcc": { "pendientes": self.pendientes, "nota": "las de archivos que cambiaron se repiten solas (servidor MCP) o con gcc_diagnosticos" },
+        })
+    }
+
+    fn guardianes(&self, n: usize) -> Value {
+        json!({
+            "perfil": self.guardian.as_ref().map(|p| json!({ "origen": p.origen, "banderas": p.warn, "pasadas": ["-O0 -fanalyzer", "-O2"] })),
+            "revisiones": { "total": self.revisiones.len(), "pendientes": self.pendientes.len(),
+                            "lista": self.revisiones.iter().take(n).map(|(k, r)| json!({ "archivo": k, "perfil": r.perfil,
+                                "errores": r.diags.iter().filter(|d| d.nivel == "error").count(), "avisos": r.diags.iter().filter(|d| d.nivel != "error").count(),
+                                "al_dia": !self.pendientes.contains(k), "revisado_hace_s": ahora_s().saturating_sub(r.cuando) })).collect::<Vec<_>>() },
+            "nota": "Una revision se repite sola cuando su archivo cambia (servidor MCP). Una cabecera que cambia no la invalida: revisar otra vez el .c si importa.",
         })
     }
 
@@ -271,6 +420,7 @@ impl Mapa {
             "exportar_sarif" => self.exportar_sarif(a),
             "reanalizar" => { self.analizar(); Ok(self.resumen()) }
             "cambios" => Ok(self.cambios(limite(a))),
+            "guardianes" => Ok(self.guardianes(limite(a))),
             "ventana" => Ok(self.ventana(limite(a))),
             "mostrar" => self.mostrar(a),
             _ => Err(format!("no hay herramienta \"{nombre}\"")),
@@ -302,6 +452,8 @@ impl Mapa {
             "analisis_ms": self.micros / 1000,
             "version": self.version,
             "reutilizados_de_la_cache": an.reutilizados,
+            "guardianes": self.guardian.as_ref().map(|p| json!({ "perfil": p.origen, "banderas": p.warn.len() })),
+            "revisiones_gcc": { "archivos": self.revisiones.len(), "pendientes": self.pendientes.len() },
             "compile_commands": an.compilacion.as_ref().map(|(o, b)| json!({ "archivo": o, "carpetas_de_busqueda": b,
                                                                              "archivos_con_orden": self.cc.as_ref().map(|c| c.por_archivo.len()) })),
             "recortado": an.truncado,
@@ -496,25 +648,27 @@ impl Mapa {
     fn gcc_diagnosticos(&mut self, a: &Value) -> Result<Value, String> {
         let archivo = self.existe(texto(a, "archivo")?)?;
         let n = limite(a);
-        let (carpeta, mut args, origen, entrada) = self.base_gcc(&archivo);
-        args.extend(flags(a)?);
+        let extra = flags(a)?;
         let analizador = a.get("analizador").and_then(Value::as_bool).unwrap_or(false);
-        if analizador { args.push("-fanalyzer".into()); }
-        // Compilar de verdad a /dev/null (no escribe nada): -fsyntax-only se queda en la primera
-        // fase y no ve los avisos que necesitan optimizar (free de un no-montón, desbordes de
-        // buffer...), ni puede correr -fanalyzer.
-        args.extend(["-Wall".into(), "-Wextra".into(), "-O2".into(), "-c".into(), "-o".into(), "/dev/null".into()]);
-        args.extend(["-fdiagnostics-format=sarif-stderr".into(), entrada]);
+        // Los guardianes del proyecto mandan en C (perfil-gcc.sh); en C++ o sin perfil, generico.
+        let es_c = matches!(archivo.rsplit('.').next(), Some("c" | "h"));
+        let perfil = match a.get("perfil").and_then(Value::as_str) {
+            Some("generico") => None,
+            Some("guardian") => Some(self.guardian.clone().ok_or_else(|| format!("este proyecto no tiene {}", crate::guardianes::LUGAR))?),
+            Some(x) => return Err(format!("perfil: guardian o generico (no {x})")),
+            None => self.guardian.clone().filter(|_| es_c),
+        };
         let t = Instant::now();
-        let (_, err) = self.gcc(&carpeta, &args)?;
+        let (diags, ordenes, origen) = self.revisar(&archivo, perfil.as_ref(), analizador, &extra)?;
         let ms = t.elapsed().as_millis();
-        let diags = leer_sarif(&err, &self.raiz)?;
-        // Al estado: entran en las senales y en el fallo conectado (los errores graves).
-        let leidos: Vec<(String, Diagnostico)> = diags.iter().filter(|d| d.archivo_en_proyecto).map(|d| (d.archivo.clone(), Diagnostico { linea: d.linea, columna: d.columna, mensaje: d.texto(), grave: d.nivel == "error" })).collect();
-        self.estado.diagnosticos_externos(leidos);
+        // Se guarda (con la fecha del archivo) y vuelve al estado: senales y fallo conectado.
+        self.anotar_revision(&archivo, perfil.is_some(), analizador, extra, diags.clone());
+        self.reaplicar();
+        self.guardar_revisiones();
         let errores = diags.iter().filter(|d| d.nivel == "error").count();
         Ok(json!({
-            "archivo": archivo, "gcc": format!("gcc {}", args.join(" ")), "flags_de": origen, "ms": ms, "analizador": analizador,
+            "archivo": archivo, "perfil": perfil.as_ref().map(|p| format!("guardianes ({})", p.origen)).unwrap_or_else(|| "generico".into()),
+            "ordenes": ordenes, "flags_de": origen, "ms": ms, "analizador": analizador || perfil.is_some(),
             "errores": errores, "avisos": diags.len() - errores,
             "lista": diags.iter().take(n).map(|d| json!({ "archivo": d.archivo, "linea": d.linea, "columna": d.columna, "nivel": d.nivel, "regla": d.regla, "mensaje": d.mensaje, "pasos": d.pasos })).collect::<Vec<_>>(),
             "quedan": diags.len().saturating_sub(n),
@@ -753,6 +907,38 @@ mod pruebas {
         assert!(m.ejecutar("gcc_diagnosticos", &json!({ "archivo": "main.c", "flags": ["-I../.."] })).is_err());
         assert!(m.ejecutar("exportar_sarif", &json!({ "salida": "x.txt" })).is_err());
         assert!(m.ejecutar("nada", &json!({})).is_err());
+    }
+
+    #[test]
+    fn los_guardianes_revisan_guardan_y_vuelven_a_revisar_solos() {
+        if std::process::Command::new("gcc").arg("--version").output().is_err() { return; }
+        let dir = std::env::temp_dir().join(format!("ultra-guardian-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src/guardian/produccion")).unwrap();
+        std::fs::write(dir.join(crate::guardianes::LUGAR), "ULTRA_WARN=(-std=c17 -Wall -Wextra -Werror -Wvla)\n").unwrap();
+        std::fs::write(dir.join("a.c"), "int f(int n) { return n + 1; }\n").unwrap();
+        let mut m = Mapa::abrir(&dir).unwrap();
+        let r = m.ejecutar("gcc_diagnosticos", &json!({ "archivo": "a.c" })).unwrap();
+        assert!(r["perfil"].as_str().unwrap().starts_with("guardianes"));
+        assert_eq!(r["ordenes"].as_array().unwrap().len(), 2, "dos pasadas, como ultra_revisar");
+        assert_eq!(r["errores"], 0);
+        // Alguien mete un VLA: al reanalizar, la revision queda pendiente y se repite sola.
+        std::fs::write(dir.join("a.c"), "int f(int n) { char b[n]; b[0] = 1; return b[0]; }\n").unwrap();
+        m.analizar();
+        assert_eq!(m.pendientes, ["a.c"]);
+        assert_eq!(m.revisar_pendientes(4), ["a.c"]);
+        let c = m.ejecutar("cambios", &json!({})).unwrap();
+        assert_eq!(c["fallan_ahora"]["lista"][0], "a.c", "el guardian lo hace fallar: {c}");
+        // Reanalizar sin cambios no borra lo que dijo el guardian.
+        m.analizar();
+        assert!(m.pendientes.is_empty());
+        assert_eq!(m.ejecutar("fallos", &json!({})).unwrap()["archivos_que_fallan"], 1);
+        // Y sobrevive a reiniciar (cache).
+        let otro = Mapa::abrir(&dir).unwrap();
+        assert_eq!(otro.revisiones.len(), 1);
+        assert_eq!(otro.estado.conectado.fallos, 1);
+        if let Some(r) = otro.ruta_revisiones() { std::fs::remove_file(r).ok(); }
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

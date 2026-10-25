@@ -117,6 +117,10 @@ GRAFO conteste la pregunta, no el formato.
    - recursos con suscripción y avisos;
    - `cambios`;
    - el puente con la ventana: `ventana` lee lo que se mira y `mostrar` lo enseña.
+   - **mejorado:** vigía al instante con inotify (unos 290 ms del guardado al aviso en
+     Chromium);
+   - **los guardianes del proyecto** (`perfil-gcc.sh`, dos pasadas como `ultra_revisar`)
+     revisan, se guardan y se repiten solos cuando cambia el archivo.
 7. **Siguiente:**
    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
      verdad cada archivo);

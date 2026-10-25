@@ -8,12 +8,14 @@
 //! El analisis se hace al arrancar, en otro hilo: `initialize` contesta al momento y la
 //! primera herramienta espera a que termine.
 //!
-//! **En vivo:** un hilo vigila la carpeta (una firma barata: rutas, tamanos y fechas). Si
-//! cambia, reanaliza (incremental: la cache solo relee lo que cambio) y avisa:
+//! **En vivo:** el kernel avisa de cada cambio (inotify, ver `vigia.rs`); se junta la
+//! rafaga 150 ms y se confirma con una firma barata (rutas, tamanos y fechas). Si cambio,
+//! reanaliza (incremental: la cache solo relee lo que cambio) y avisa:
 //! - `notifications/resources/updated` a quien se suscribio a un recurso que cambio
 //!   (`super-grafo://resumen`, `fallos`, `ciclos`, `cambios`, `ventana`);
 //! - `notifications/message` (si se pidio `logging/setLevel`) con lo que cambio.
-//! El intervalo se adapta al tamano: 20 veces lo que cuesta la firma (de 1 a 30 s).
+//! Sin inotify, sondea: 20 veces lo que cuesta la firma (de 1 a 30 s). Con inotify, ademas,
+//! una comprobacion cada 30 s por si se perdio un aviso.
 
 use crate::consultas::{herramientas, Mapa};
 use serde_json::{json, Value};
@@ -69,7 +71,11 @@ impl Servidor {
 
     fn mapa(&mut self) -> Result<&mut Mapa, String> {
         if let Some(rx) = self.llegando.take() {
-            match rx.recv() { Ok(Ok(m)) => self.mapa = Some(m), Ok(Err(e)) => self.error = Some(e), Err(_) => self.error = Some("el analisis se interrumpio".into()) }
+            match rx.recv() {
+                Ok(Ok(m)) => { self.firma = Some(crate::consultas::firma(&m.raiz)); self.mapa = Some(m); }
+                Ok(Err(e)) => self.error = Some(e),
+                Err(_) => self.error = Some("el analisis se interrumpio".into()),
+            }
         }
         if let Some(e) = &self.error { return Err(e.clone()); }
         self.mapa.as_mut().ok_or_else(|| "sin mapa".into())
@@ -96,10 +102,12 @@ impl Servidor {
         if antes.is_some_and(|a| a != f) {
             let t = Instant::now();
             mapa.analizar();
+            // Los guardianes vuelven a revisar lo que cambio (antes de decir que cambio).
+            let revisados = mapa.revisar_pendientes(4);
             let c = mapa.ejecutar("cambios", &json!({ "limite": 5 })).unwrap_or_default();
             if self.registro {
                 avisos.push(json!({ "jsonrpc": "2.0", "method": "notifications/message", "params": { "level": "info", "logger": "super-grafo",
-                    "data": { "reanalizado_ms": t.elapsed().as_millis(), "version": mapa.version, "cambios": c } } }));
+                    "data": { "reanalizado_ms": t.elapsed().as_millis(), "version": mapa.version, "revisados_otra_vez": revisados, "cambios": c } } }));
             }
         }
         // Avisar de los recursos suscritos cuyo contenido cambio (la ventana cambia sola).
@@ -179,6 +187,7 @@ impl Servidor {
 
 /// Bucle stdio: hasta que se cierre stdin. Un hilo aparte vigila la carpeta y avisa.
 pub fn servir(carpeta: PathBuf) -> i32 {
+    let raiz = carpeta.clone();
     let s = Arc::new(Mutex::new(Servidor::nuevo(carpeta)));
     let salida = Arc::new(Mutex::new(std::io::stdout()));
     let escribir = |salida: &Mutex<std::io::Stdout>, v: &Value| -> bool {
@@ -187,11 +196,18 @@ pub fn servir(carpeta: PathBuf) -> i32 {
     };
     {
         let (s, salida) = (s.clone(), salida.clone());
-        std::thread::Builder::new().name("vigia".into()).spawn(move || loop {
-            let espera = s.lock().map(|x| x.intervalo()).unwrap_or(Duration::from_secs(2));
-            std::thread::sleep(espera);
-            let avisos = match s.lock() { Ok(mut x) => x.vigilar(), Err(_) => return };
-            for a in avisos { if !escribir(&salida, &a) { return; } }
+        std::thread::Builder::new().name("vigia".into()).spawn(move || {
+            // Que el analisis inicial termine (y deje su firma) antes de vigilar.
+            if let Ok(mut x) = s.lock() { if let Ok(m) = x.mapa() { m.revisar_pendientes(8); } }
+            let avisos_kernel = crate::vigia::iniciar(&raiz);
+            loop {
+                match &avisos_kernel {
+                    Some(rx) => { crate::vigia::esperar(rx, Duration::from_secs(30), Duration::from_millis(150)); }
+                    None => { let espera = s.lock().map(|x| x.intervalo()).unwrap_or(Duration::from_secs(2)); std::thread::sleep(espera); }
+                }
+                let avisos = match s.lock() { Ok(mut x) => x.vigilar(), Err(_) => return };
+                for a in avisos { if !escribir(&salida, &a) { return; } }
+            }
         }).ok();
     }
     let entrada = std::io::stdin();

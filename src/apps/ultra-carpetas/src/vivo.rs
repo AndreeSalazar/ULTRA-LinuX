@@ -49,6 +49,12 @@ impl Vivo {
     }
 }
 
+impl Drop for Vivo {
+    fn drop(&mut self) {
+        if let Some(d) = self.dir.lock().ok().and_then(|g| g.clone()) { puente::cerrar(&d); }
+    }
+}
+
 /// egui por su nombre corto.
 mod egui_ctx { pub use eframe::egui::Context; }
 
