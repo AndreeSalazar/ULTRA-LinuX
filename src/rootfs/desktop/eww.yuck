@@ -1,0 +1,75 @@
+;; SPDX-License-Identifier: GPL-2.0-only
+;; BMO-X / Neon: Equipo en vivo en el escritorio (eww). Diseno: Eddi Salazar.
+;; Datos: ultra-tarjetas datos (un JSON cada 2 s; 10 s durante un juego).
+;; Clic en CPU o RAM: lo que mas consume (ultra-aplicaciones rapido). Super+F9 muestra u oculta.
+
+(deflisten d :initial '{"cpu":0,"nucleos":[],"ghz":0,"ram":{"total":0,"usada":0,"pct":0,"swap":0,"swap_pct":0},"gpu":{"nombre":"--","pct":0,"vram":0,"vram_total":0,"temp":null,"vatios":null},"temp":0,"hay_temp":false,"bajada":"--","subida":"--","red_pct":0,"raiz":{"pct":0,"libre":0,"total":0},"home":{"pct":0,"libre":0,"total":0},"top":{"nombre":"--","pct":0},"juego":false,"activo":"--"}'
+  `ultra-tarjetas datos`)
+(defvar abierto false)
+(defpoll hora :interval "1s" :initial "--:--:--" `date +%H:%M:%S`)
+
+(defwidget anillo [valor clase]
+  (circular-progress :class "anillo ${clase}" :value valor :thickness 5 :start-at 75 :clockwise true :width 56 :height 56
+    (label :class "pct" :show-truncated false :text "${round(valor, 0)}")))
+
+(defwidget tarjeta [clase titulo valor detalle pct accion ?graf]
+  (eventbox :onclick accion :cursor "pointer" :class "clic"
+    (box :class "tarjeta ${clase} ${pct >= 85 ? 'alerta' : ''}" :orientation "h" :space-evenly false :spacing 12
+      (anillo :valor pct :clase clase)
+      (box :orientation "v" :space-evenly false :hexpand true
+        (box :orientation "h" :space-evenly false
+          (label :class "titulo" :halign "start" :hexpand true :show-truncated false :text titulo)
+          (label :class "valor" :halign "end" :show-truncated false :text valor))
+        (label :class "detalle" :halign "start" :show-truncated false :limit-width 40 :text detalle)
+        (graph :class "linea ${clase}" :value {graf ?: pct} :time-range "90s" :thickness 2 :min 0 :max 100
+               :line-style "round" :height 28 :width 210 :hexpand true)))))
+
+(defwidget nucleos []
+  (box :class "nucleos" :orientation "h" :space-evenly true :spacing 2
+    (for n in {d.nucleos}
+      (progress :class "nucleo ${n >= 85 ? 'caliente' : ''}" :orientation "v" :flipped true :value n :height 22 :hexpand true))))
+
+(defwidget mini [clase titulo valor pct]
+  (box :class "mini ${clase} ${pct >= 90 ? 'alerta' : ''}" :orientation "v" :space-evenly false :hexpand true :width 96
+    (label :class "titulo" :halign "start" :show-truncated false :text titulo)
+    (label :class "valor" :halign "start" :show-truncated false :text valor)
+    (progress :class "barra ${clase}" :value pct)))
+
+(defwidget equipo []
+  (box :class "panel ${d.juego ? 'juego' : ''}" :orientation "v" :space-evenly false :spacing 10
+    (box :class "cabecera" :orientation "h" :space-evenly false
+      (label :class "marca" :halign "start" :hexpand true :show-truncated false :text "BMO-X // EQUIPO")
+      (label :class "hora" :halign "end" :show-truncated false :text hora))
+    (label :class "subtitulo" :halign "start" :show-truncated false :text "EDDI SALAZAR · ACTIVO ${d.activo}${d.juego ? ' · MODO JUEGO' : ''}")
+    (tarjeta :clase "cpu" :titulo "CPU" :valor "${round(d.cpu, 0)}%" :pct {d.cpu}
+             :detalle "${d.ghz} GHz · ${arraylength(d.nucleos)} nucleos · clic: procesos"
+             :accion "ultra-aplicaciones rapido cpu &")
+    (nucleos)
+    (tarjeta :clase "ram" :titulo "RAM" :valor "${d.ram.usada} / ${d.ram.total} GiB" :pct {d.ram.pct}
+             :detalle "swap ${d.ram.swap} GiB · clic: procesos"
+             :accion "ultra-aplicaciones rapido ram &")
+    (tarjeta :clase "gpu" :titulo "GPU" :valor "${round(d.gpu.pct, 0)}%" :pct {d.gpu.pct}
+             :detalle "${d.gpu.nombre} · VRAM ${d.gpu.vram}/${d.gpu.vram_total} GiB${d.gpu.temp != 'null' && d.gpu.temp != '' ? ' · ${d.gpu.temp}°C' : ''}"
+             :accion "ultra-graficos menu &")
+    (tarjeta :clase "red" :titulo "RED" :valor "↓ ${d.bajada}" :pct {d.red_pct}
+             :detalle "↑ ${d.subida} · enlace local"
+             :accion "true")
+    (box :class "fila" :orientation "h" :space-evenly true :spacing 8
+      (mini :clase "disco" :titulo "LIBRE /" :valor "${d.raiz.libre} GiB" :pct {d.raiz.pct})
+      (mini :clase "home" :titulo "LIBRE HOME" :valor "${d.home.libre} GiB" :pct {d.home.pct})
+      (mini :clase "temp" :titulo "TEMP" :valor {d.hay_temp ? "${d.temp}°C" : "sin sensor"} :pct {d.hay_temp ? d.temp : 0}))
+    (eventbox :onclick "ultra-aplicaciones rapido cpu &" :cursor "pointer" :class "clic"
+      (box :class "pie" :orientation "h" :space-evenly false
+        (label :class "etiqueta" :show-truncated false :text "MAS CPU")
+        (label :class "proceso" :halign "start" :hexpand true :show-truncated false :limit-width 22 :text {d.top.nombre})
+        (label :class "valor" :halign "end" :show-truncated false :text "${d.top.pct}%")))))
+
+(defwindow tarjetas
+  :monitor 0
+  :stacking "bottom"
+  :exclusive false
+  :focusable false
+  :namespace "ultra-tarjetas"
+  :geometry (geometry :x "18px" :y "58px" :width "372px" :anchor "top right")
+  (revealer :reveal abierto :transition "slideleft" :duration "450ms"
+    (equipo)))

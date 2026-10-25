@@ -894,9 +894,24 @@ def check_hyprland(conn, failures):
                 expect(marker in result,'Nucleo: '+label)
             if '--diagnostico-warframe' in sys.argv:
                 mon.sendall(b'sendkey meta_l-q\n'); time.sleep(.5)
-            mon.sendall(b'sendkey meta_l-f9\n'); time.sleep(1)
-            equipment=wait_apps(lambda apps:any(a.get('title')=='ULTRA / Equipo en vivo' for a in apps))
-            expect(bool(equipment),'Nucleo: Super+F9 abre equipo en vivo')
+            def tarjetas_visibles():
+                nonlocal transcript
+                conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j layers; echo TARJETAS-CAPAS-$((50+1))\n')
+                capas=response('TARJETAS-CAPAS-51'); transcript+=capas
+                return re.search(r'"namespace"\s*:\s*"ultra-tarjetas"',capas) is not None
+            if tarjetas_visibles():
+                # Con eww: las tarjetas abren al iniciar; Super+F9 las oculta y las vuelve a mostrar.
+                expect(True,'Nucleo: tarjetas eww abiertas al iniciar')
+                mon.sendall(b'sendkey meta_l-f9\n'); time.sleep(1.5)
+                expect(not tarjetas_visibles(),'Nucleo: Super+F9 oculta las tarjetas')
+                mon.sendall(b'sendkey meta_l-f9\n'); time.sleep(2)
+                equipment=tarjetas_visibles()
+                expect(equipment,'Nucleo: Super+F9 vuelve a mostrar las tarjetas')
+            else:
+                # Sin eww: Super+F9 abre la version de texto.
+                mon.sendall(b'sendkey meta_l-f9\n'); time.sleep(1)
+                equipment=wait_apps(lambda apps:any(a.get('title')=='ULTRA / Equipo en vivo' for a in apps))
+                expect(bool(equipment),'Nucleo: Super+F9 abre equipo en vivo')
             if equipment:
                 target=pathlib.Path(tempfile.gettempdir())/'ultra-equipo-panel.png'; target.unlink(missing_ok=True)
                 mon.sendall(f'screendump {target} -f png\n'.encode())

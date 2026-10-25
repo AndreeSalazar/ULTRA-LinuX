@@ -31,7 +31,7 @@ ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo':
            'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
 OPCIONES = {
     'acento': list(ACENTOS) + ['propio'],
-    'fondo': ['neon', 'demonio', 'auto', 'nucleo', 'imagen', 'liso'],
+    'fondo': ['neon', 'demonio', 'vivo', 'vivo-demonio', 'ciudad-3d', 'auto', 'nucleo', 'imagen', 'imagen-viva', 'liso'],
     'efectos': ['vivos', 'reducidos'],
     'borde': ['gira', 'quieto'],
     'huecos': ['compacto', 'normal', 'amplio'],
@@ -48,23 +48,26 @@ OPCIONES = {
     'reloj': ['24h', '12h', 'segundos'],
     'avisos': ['arriba-derecha', 'arriba-centro', 'abajo-derecha'],
     'letra': ['neon', 'petch', 'mono', 'clasica'],
-    'sonidos': ['si', 'no'],
+    'sonidos': ['si', 'basicos', 'no'],
     'modojuego': ['auto', 'no'],
+    'tarjetas': ['visibles', 'ocultas'],
 }
 DEFECTO = dict(acento='hielo', fondo='neon', imagen='', efectos='vivos', borde='gira', huecos='normal',
                grosor='2', cursor='28', barra='normal', inactivas='100', esquinas='rectas', animacion='emergente',
                velocidad='normal', desenfoque='ligero', posicion='arriba', dock='visible', reloj='24h',
-               avisos='arriba-derecha', letra='neon', sonidos='si', modojuego='auto')
+               avisos='arriba-derecha', letra='neon', sonidos='si', modojuego='auto', tarjetas='visibles')
 TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde de la ventana activa',
                huecos='Huecos entre ventanas', grosor='Grosor del borde', cursor='Tamano del cursor',
                barra='Tamano de la barra', inactivas='Opacidad de ventanas inactivas', esquinas='Esquinas',
                animacion='Animacion al abrir', velocidad='Velocidad de animaciones', desenfoque='Desenfoque',
                posicion='Posicion de la barra', dock='Dock', reloj='Reloj', avisos='Posicion de avisos',
-               letra='Letra de la interfaz', sonidos='Sonidos del sistema', modojuego='Modo juego automatico')
+               letra='Letra de la interfaz', sonidos='Sonidos del sistema', modojuego='Modo juego automatico', tarjetas='Tarjetas de equipo (eww)')
 # Perfiles de un toque: se parte del defecto y se cambian solo estas claves.
 PERFILES = {
     'neon-hielo': {},
     'demonio': dict(acento='rojo', fondo='demonio', borde='gira', esquinas='rectas', desenfoque='ligero', inactivas='92'),
+    # Todo vivo: ciudad 3D, sonidos, tarjetas y borde que gira.
+    'ciudad-3d': dict(fondo='ciudad-3d', borde='gira', sonidos='si', tarjetas='visibles', desenfoque='ligero', inactivas='92'),
     'sobrio': dict(efectos='reducidos', borde='quieto', desenfoque='no', velocidad='rapida'),
     'minimal': dict(dock='oculto', barra='compacta', huecos='compacto', grosor='1', reloj='24h'),
     'juego': dict(efectos='reducidos', borde='quieto', desenfoque='no', dock='oculto', avisos='arriba-centro', inactivas='100'),
@@ -74,7 +77,7 @@ MAX_PERFILES = 16
 GRUPOS = [('Colores y fondo', ['acento', 'fondo']),
           ('Ventanas', ['borde', 'grosor', 'esquinas', 'huecos', 'inactivas']),
           ('Animaciones y efectos', ['efectos', 'animacion', 'velocidad', 'desenfoque']),
-          ('Barra y dock', ['posicion', 'barra', 'dock', 'reloj']),
+          ('Barra y dock', ['posicion', 'barra', 'dock', 'reloj', 'tarjetas']),
           ('Avisos, letra y cursor', ['avisos', 'letra', 'cursor']),
           ('Sonido y juegos', ['sonidos', 'modojuego'])]
 ESQUINAS = {'rectas': 0, 'suaves': 6, 'redondas': 12}
@@ -92,7 +95,13 @@ BARRA = {'compacta': (13, 19), 'normal': (15, 23), 'grande': (17, 27)}
 IMAGENES = ('Imágenes', 'Pictures')
 # Fondo auto: Neon de dia, Demonio de noche (hora local).
 DIA = range(7, 19)
-SONIDOS = ('inicio', 'captura', 'critico', 'juego')
+# Un sonido propio por elemento. 'basicos' deja solo los que avisan de algo.
+SONIDOS = ('inicio', 'captura', 'critico', 'juego', 'juego-salir', 'ventana-abrir', 'ventana-cerrar', 'escritorio',
+           'aviso', 'menu', 'volumen', 'portapapeles', 'proceso', 'error')
+BASICOS = {'inicio', 'captura', 'critico', 'juego', 'juego-salir', 'aviso', 'proceso', 'error'}
+# Durante un juego solo suenan los que importan.
+EN_JUEGO = {'critico', 'juego', 'juego-salir', 'volumen', 'proceso', 'error', 'captura'}
+VOLUMEN_SONIDO = {'ventana-abrir': .35, 'ventana-cerrar': .35, 'escritorio': .4, 'menu': .45, 'volumen': .5, 'portapapeles': .45}
 FOOT = HOME / '.config/foot/foot.ini'
 EXTENSIONES = ('.png', '.jpg', '.jpeg', '.svg')
 
@@ -135,7 +144,7 @@ def validar(crudo):
         valor = crudo.get(clave)
         if valor in opciones and valor != 'propio': estado[clave] = valor
         elif clave == 'acento' and es_hex(valor): estado[clave] = valor.lower()
-    if estado['fondo'] == 'imagen':
+    if estado['fondo'] in ('imagen', 'imagen-viva'):
         if imagen_valida(crudo.get('imagen')): estado['imagen'] = crudo['imagen']
         else: estado['fondo'] = 'neon'
     return estado
@@ -203,6 +212,9 @@ def generar(estado):
             linea = linea.replace('border-bottom: 2px solid', 'border-top: 2px solid').replace('0 2px 14px', '0 -2px 14px')
         if abajo and linea.startswith('window#waybar.dock > box'):
             linea = linea.replace('border-top: 2px solid', 'border-bottom: 2px solid').replace('0 -2px 14px', '0 2px 14px')
+        if abajo and linea.startswith('@keyframes linea'): linea = linea.replace('border-bottom-color', 'border-top-color')
+        # Efectos reducidos: la barra queda quieta; solo parpadean las alertas.
+        if estado['efectos'] == 'reducidos': linea = re.sub(r' animation: (latido|aura|linea) [^;]*;', '', linea)
         lineas.append(linea)
     escribir(TEMA / 'waybar.css', '\n'.join(lineas) + '\n')
     barras = json.loads((ETC / 'waybar.jsonc').read_text())
@@ -225,6 +237,14 @@ def generar(estado):
     mako = re.sub(r'^anchor=.*$', f'anchor={ancla}', mako, flags=re.M)
     mako = re.sub(r'^outer-margin=.*$', f'outer-margin={arriba},0,{debajo}', mako, flags=re.M)
     escribir(TEMA / 'mako.conf', mako)
+    # Tarjetas eww con tu acento y tu letra.
+    if (ETC / 'eww.yuck').is_file():
+        scss = recolorear((ETC / 'eww.scss').read_text(), acento)
+        if estado['letra'] != 'neon':
+            scss = scss.replace('"Rajdhani", "DejaVu Sans Condensed"', barra_familia).replace('"Chakra Petch", "DejaVu Sans"', barra_familia)
+        if estado['efectos'] == 'reducidos': scss = re.sub(r'\n  animation: respira[^;]*;', '', scss)
+        escribir(TEMA / 'eww/eww.scss', scss)
+        escribir(TEMA / 'eww/eww.yuck', (ETC / 'eww.yuck').read_text())
     escribir(TEMA / 'fuzzel.ini', recolorear((ETC / 'fuzzel.ini').read_text(), acento)
              .replace('font=JetBrains Mono:size=12', f'font={lanzador_familia}:size=12'))
     rutas = dict(WAYBAR_CSS=TEMA / 'waybar.css', WAYBAR_JSON=TEMA / 'waybar.jsonc', MAKO_CONF=TEMA / 'mako.conf',
@@ -244,6 +264,19 @@ def rutas_fondo(estado, hora=None):
     acento = color_acento(estado)
     fondo = fondo_efectivo(estado, hora)
     rutas = dict(FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    if fondo == 'ciudad-3d':
+        # Ciudad 3D pre-renderizada: el Neon quieto hasta que el bucle esta listo.
+        rutas.update(VIVO='ciudad3d', VIVO_ACENTO=acento)
+        fondo = 'neon'
+    if fondo in ('vivo', 'vivo-demonio'):
+        # Se arranca con el estatico y ultra-fondo-vivo lo cambia por el animado cuando esta listo.
+        variante = 'demonio' if fondo == 'vivo-demonio' else 'neon'
+        rutas.update(VIVO=variante, VIVO_ACENTO=acento)
+        fondo = variante
+    if fondo == 'imagen-viva' and imagen_valida(estado['imagen']):
+        # Tu imagen quieta primero; despues, la misma con lluvia, escaneo y glitch.
+        rutas.update(VIVO='imagen', VIVO_ACENTO=acento, VIVO_IMAGEN=estado['imagen'])
+        fondo = 'imagen'
     if fondo == 'nucleo':
         rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
     elif fondo == 'demonio':
@@ -350,6 +383,9 @@ def poner_fondo(rutas):
     ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg')
     if rutas['FONDO_MODO'] == 'color': lanzar('swaybg', '-c', str(rutas['FONDO']))
     else: lanzar('swaybg', '-i', str(rutas['FONDO']), '-m', 'fill')
+    if rutas.get('VIVO_IMAGEN'): lanzar('ultra-fondo-vivo', 'poner', 'imagen', rutas['VIVO_ACENTO'], str(rutas['VIVO_IMAGEN']))
+    elif rutas.get('VIVO'): lanzar('ultra-fondo-vivo', 'poner', rutas['VIVO'], rutas['VIVO_ACENTO'])
+    else: ejecutar('ultra-fondo-vivo', 'parar')
 
 
 def aplicar(estado, reiniciar=True):
@@ -363,11 +399,12 @@ def aplicar(estado, reiniciar=True):
     lanzar('waybar', '-c', str(rutas['WAYBAR_JSON']), '-s', str(rutas['WAYBAR_CSS']))
     ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako')
     lanzar('mako', '--config', str(rutas['MAKO_CONF']))
+    lanzar('ultra-tarjetas', 'recargar' if estado['tarjetas'] == 'visibles' else 'parar')
     return rutas
 
 
 def restablecer():
-    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg'):
+    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg', 'eww/eww.yuck', 'eww/eww.scss'):
         try: (TEMA / nombre).unlink()
         except FileNotFoundError: pass
     try: ESTADO.unlink()
@@ -377,6 +414,8 @@ def restablecer():
     terminal_acento(BASE)
     aplicar_hyprland(estado)
     if os.environ.get('WAYLAND_DISPLAY'):
+        ejecutar('ultra-fondo-vivo', 'parar')
+        lanzar('ultra-tarjetas', 'recargar')
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'swaybg'); lanzar('swaybg', '-i', str(ETC / 'wallpaper.svg'), '-m', 'fill')
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'waybar'); lanzar('waybar', '-c', str(ETC / 'waybar.jsonc'), '-s', str(ETC / 'waybar.css'))
         ejecutar('pkill', '-x', '-u', str(os.geteuid()), 'mako'); lanzar('mako', '--config', str(ETC / 'mako.conf'))
@@ -384,9 +423,9 @@ def restablecer():
 
 def poner(clave, valor):
     estado, _ = leer_estado()
-    if clave == 'imagen':
+    if clave in ('imagen', 'imagen-viva'):
         if not imagen_valida(valor): raise ValueError('imagen no valida: usa PNG, JPG o SVG propios en ~/Imágenes o ~/Pictures')
-        estado.update(fondo='imagen', imagen=valor)
+        estado.update(fondo=clave, imagen=valor)
     elif clave == 'acento' and es_hex(valor):
         estado['acento'] = valor.lower()
     elif clave in OPCIONES and valor in OPCIONES[clave] and valor != 'propio':
@@ -408,8 +447,11 @@ def sonar(evento):
     if evento not in SONIDOS: raise ValueError(f'sonido desconocido: {evento}')
     estado, _ = leer_estado()
     archivo = ETC / f'sonido-{evento}.wav'
-    if estado['sonidos'] != 'si' or archivo.is_symlink() or not archivo.is_file(): return
-    lanzar('pw-play', '--volume=0.6', str(archivo))
+    if estado['sonidos'] == 'no' or (estado['sonidos'] == 'basicos' and evento not in BASICOS): return
+    if archivo.is_symlink() or not archivo.is_file(): return
+    base = runtime()
+    if base and evento not in EN_JUEGO and (base / 'ultra-modo-juego').exists(): return
+    lanzar('pw-play', f'--volume={VOLUMEN_SONIDO.get(evento, .6)}', str(archivo))
 
 
 def juego(accion):
@@ -423,6 +465,7 @@ def juego(accion):
         aplicar_hyprland(estado, 'juego')
         ejecutar('makoctl', 'mode', '-a', 'do-not-disturb')
         if marca: escribir(marca, 'activo\n')
+        lanzar('ultra-fondo-vivo', 'pausar')
         sonar('juego')
     elif accion == 'salir':
         modo = None
@@ -437,6 +480,8 @@ def juego(accion):
         if marca:
             try: marca.unlink()
             except FileNotFoundError: pass
+        lanzar('ultra-fondo-vivo', 'seguir')
+        if estado['modojuego'] == 'auto': sonar('juego-salir')
     else:
         raise ValueError('uso: ultra-personalizar juego entrar|salir')
 
@@ -519,7 +564,7 @@ def avisar(texto):
 
 
 def menu_perfiles(acento):
-    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'juego': 'Juego'}
+    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'ciudad-3d': 'Ciudad 3D', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'juego': 'Juego'}
     while True:
         propios = perfiles_propios()
         filas = [f'Aplicar: {t}' for t in fabrica.values()] + [f'Aplicar: {n} (tuyo)' for n in propios]
@@ -542,10 +587,11 @@ def menu_perfiles(acento):
                 aplicar(perfil_aplicar(nombre)); avisar(f'Perfil aplicado: {texto}')
                 acento = color_acento(leer_estado()[0])
         except (OSError, ValueError, subprocess.SubprocessError) as error:
-            avisar(str(error))
+            avisar(str(error)); sonar('error')
 
 
 def menu():
+    sonar('menu')
     grupo = None
     while True:
         estado, _ = leer_estado()
@@ -583,7 +629,7 @@ def menu():
                 if not texto: continue
                 texto = texto.strip()
                 estado = poner('acento', texto if texto.startswith('#') else '#' + texto)
-            elif clave == 'fondo' and valor == 'imagen':
+            elif clave == 'fondo' and valor in ('imagen', 'imagen-viva'):
                 archivos = []
                 for carpeta in IMAGENES:
                     try: archivos += sorted(p for p in (HOME / carpeta).iterdir() if imagen_valida(str(p)))[:64]
@@ -592,13 +638,13 @@ def menu():
                     avisar('Guarda una imagen PNG, JPG o SVG en ~/Imágenes y vuelve a elegirla.'); continue
                 nombre = elegir([p.name for p in archivos], 'IMAGEN', acento)
                 if not nombre: continue
-                estado = poner('imagen', str(next(p for p in archivos if p.name == nombre)))
+                estado = poner(valor, str(next(p for p in archivos if p.name == nombre)))
             else:
                 estado = poner(clave, valor)
             aplicar(estado)
             avisar(f'{TITULOS[clave]}: {estado[clave]}')
         except (OSError, ValueError, subprocess.SubprocessError) as error:
-            avisar(str(error))
+            avisar(str(error)); sonar('error')
 
 
 def main():

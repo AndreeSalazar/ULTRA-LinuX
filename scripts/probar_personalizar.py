@@ -10,7 +10,7 @@ import tempfile
 import time
 
 RAIZ = Path(__file__).resolve().parents[1]
-FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'makoctl', 'pkill', 'notify-send', 'pw-play', 'ultra-ambiente')
+FALSOS = ('hyprctl', 'swaybg', 'waybar', 'mako', 'makoctl', 'pkill', 'notify-send', 'pw-play', 'ultra-ambiente', 'ultra-fondo-vivo', 'ultra-tarjetas')
 
 
 def main():
@@ -24,7 +24,8 @@ def main():
         foot.write_text((RAIZ / 'src/rootfs/desktop/foot.ini').read_text())
         for nombre in FALSOS:
             falso = bin_ / nombre
-            falso.write_text(f'#!/bin/bash\nprintf "%s\\0" {nombre} "$@" >> {llamadas}; printf "\\n" >> {llamadas}\n')
+            # Una sola escritura por llamada: varios falsos en segundo plano no mezclan sus lineas.
+            falso.write_text(f'#!/bin/bash\nprintf "%s\\0" {nombre} "$@" $\'\\n\' >> {llamadas}\n')
             falso.chmod(0o755)
         herramienta = tmp / 'ultra-personalizar'
         herramienta.write_text(fuente
@@ -44,9 +45,16 @@ def main():
         def correr(*args, ok=True, **extra):
             llamadas.write_text('')
             r = subprocess.run([sys.executable, '-I', str(herramienta), *args], env=dict(entorno, **extra), capture_output=True, text=True, timeout=120)
-            time.sleep(.15)  # Lo lanzado en segundo plano (swaybg, pw-play) termina de anotar.
+            # Lo lanzado en segundo plano (swaybg, pw-play, tarjetas) anota tarde: esperar a que el registro se quede quieto.
+            previo, quieto = None, 0
+            for _ in range(60):
+                time.sleep(.05)
+                actual = llamadas.read_text()
+                quieto = quieto + 1 if actual == previo else 0
+                if quieto >= 4: break
+                previo = actual
             assert (r.returncode == 0) == ok, (args, r.returncode, r.stderr)
-            return r.stdout, [l.split('\0')[:-1] for l in llamadas.read_text().splitlines() if l]
+            return r.stdout, [l.lstrip('\0').split('\0')[:-1] for l in llamadas.read_text().splitlines() if l.strip('\0')]
 
         tema = home / '.config/ultra/tema-personal'
         # Sin elecciones: no genera nada y el escritorio usa /etc/ultra.
@@ -111,6 +119,10 @@ def main():
         estado = json.loads((home / '.config/ultra/personal.json').read_text())
         assert estado['acento'] == 'rojo' and estado['fondo'] == 'demonio' and estado['dock'] == 'visible'
         assert ['swaybg', '-i', str(RAIZ / 'src/rootfs/desktop/wallpaper-demonio.png'), '-m', 'fill'] in cmds
+        _, cmds = correr('perfil', 'aplicar', 'ciudad-3d')
+        estado = json.loads((home / '.config/ultra/personal.json').read_text())
+        assert estado['fondo'] == 'ciudad-3d' and estado['tarjetas'] == 'visibles' and estado['sonidos'] == 'si'
+        assert ['ultra-fondo-vivo', 'poner', 'ciudad3d', '#5ad8ff'] in cmds
         correr('perfil', 'aplicar', 'minimal')
         assert [b['name'] for b in json.loads((tema / 'waybar.jsonc').read_text())] == ['hud']
         correr('perfil', 'guardar', 'mi-noche')
@@ -162,6 +174,50 @@ def main():
         _, cmds = correr('vigilar', HORAS_PRUEBA='18,18,19,19')
         assert not any(c[0] == 'swaybg' for c in cmds), 'en juego el fondo espera'
         (runtime / 'ultra-modo-juego').unlink()
+        # Fondo vivo: arranca el estatico y pide el animado con tu acento; otro fondo lo para.
+        _, cmds = correr('poner', 'fondo', 'vivo')
+        assert ['ultra-fondo-vivo', 'poner', 'neon', '#ff2a4f'] in cmds, cmds
+        rutas = correr('rutas')[0]
+        assert 'VIVO=neon' in rutas and 'VIVO_ACENTO=#ff2a4f' in rutas
+        _, cmds = correr('poner', 'fondo', 'vivo-demonio')
+        assert ['ultra-fondo-vivo', 'poner', 'demonio', '#ff2a4f'] in cmds
+        _, cmds = correr('poner', 'fondo', 'ciudad-3d')
+        assert ['ultra-fondo-vivo', 'poner', 'ciudad3d', '#ff2a4f'] in cmds
+        assert 'VIVO=ciudad3d' in correr('rutas')[0]
+        _, cmds = correr('poner', 'fondo', 'neon')
+        assert ['ultra-fondo-vivo', 'parar'] in cmds
+        # Tu imagen animada: primero quieta y luego con lluvia y escaneo.
+        propia = home / 'Imágenes/ciudad.png'; propia.write_bytes(b'\x89PNG\r\n')
+        _, cmds = correr('poner', 'imagen-viva', str(propia))
+        assert ['ultra-fondo-vivo', 'poner', 'imagen', '#ff2a4f', str(propia)] in cmds, cmds
+        assert f'VIVO_IMAGEN={propia}' in correr('rutas')[0] and f'FONDO={propia}' in correr('rutas')[0]
+        correr('poner', 'imagen-viva', '/etc/passwd', ok=False)
+        # Tarjetas eww: copia con tu acento; ocultarlas las para.
+        _, cmds = correr('poner', 'tarjetas', 'visibles')
+        assert ['ultra-tarjetas', 'recargar'] in cmds
+        scss = (tema / 'eww/eww.scss').read_text()
+        assert '$acento: #ff2a4f' in scss and '#5ad8ff' not in scss and (tema / 'eww/eww.yuck').is_file()
+        _, cmds = correr('poner', 'tarjetas', 'ocultas')
+        assert ['ultra-tarjetas', 'parar'] in cmds
+        correr('poner', 'tarjetas', 'visibles')
+        # Efectos reducidos: la barra deja de latir; las alertas siguen.
+        correr('poner', 'efectos', 'reducidos')
+        css = (tema / 'waybar.css').read_text()
+        assert 'animation: latido' not in css and 'animation: linea' not in css and 'animation: alerta' in css
+        correr('poner', 'efectos', 'vivos')
+        assert 'animation: latido' in (tema / 'waybar.css').read_text()
+        # Cada elemento tiene su sonido y su volumen; 'basicos' calla los de ventanas.
+        _, cmds = correr('sonar', 'ventana-abrir')
+        assert ['pw-play', '--volume=0.35', str(RAIZ / 'src/rootfs/desktop/sonido-ventana-abrir.wav')] in cmds
+        correr('poner', 'sonidos', 'basicos')
+        assert not any(c[0] == 'pw-play' for c in correr('sonar', 'ventana-abrir')[1])
+        assert any(c[0] == 'pw-play' for c in correr('sonar', 'aviso')[1])
+        correr('poner', 'sonidos', 'si')
+        # En juego callan ventanas y avisos; lo critico suena.
+        (runtime / 'ultra-modo-juego').write_text('activo\n')
+        assert not any(c[0] == 'pw-play' for c in correr('sonar', 'escritorio')[1] + correr('sonar', 'aviso')[1])
+        assert any(c[0] == 'pw-play' for c in correr('sonar', 'critico')[1])
+        (runtime / 'ultra-modo-juego').unlink()
         # Sonidos propios: solo eventos conocidos y se pueden apagar.
         _, cmds = correr('sonar', 'captura')
         assert ['pw-play', '--volume=0.6', str(RAIZ / 'src/rootfs/desktop/sonido-captura.wav')] in cmds
@@ -174,10 +230,12 @@ def main():
         lua = next(c for c in cmds if c[:2] == ['hyprctl', 'eval'])[2]
         assert 'animations={enabled=false}' in lua and 'blur={enabled=false' in lua and 'leaf="borderangle",enabled=false' in lua
         assert ['makoctl', 'mode', '-a', 'do-not-disturb'] in cmds and (runtime / 'ultra-modo-juego').exists()
+        assert ['ultra-fondo-vivo', 'pausar'] in cmds
         assert (runtime / 'ultra-efectos').read_text().strip() == 'vivo'
         _, cmds = correr('juego', 'salir')
         lua = next(c for c in cmds if c[:2] == ['hyprctl', 'eval'])[2]
         assert 'animations={enabled=true}' in lua and ['makoctl', 'mode', '-r', 'do-not-disturb'] in cmds
+        assert ['ultra-fondo-vivo', 'seguir'] in cmds
         assert not (runtime / 'ultra-modo-juego').exists()
         correr('poner', 'modojuego', 'no')
         assert not any(c[:2] == ['hyprctl', 'eval'] for c in correr('juego', 'entrar')[1])
@@ -185,7 +243,7 @@ def main():
         # Restablecer: borra solo lo propio y vuelve al tema del sistema.
         _, cmds = correr('restablecer')
         assert not (home / '.config/ultra/personal.json').exists() and not (tema / 'waybar.css').exists()
-        assert ['waybar', '-c', str(RAIZ / 'src/rootfs/desktop/waybar.jsonc'), '-s', str(RAIZ / 'src/rootfs/desktop/waybar.css')] in cmds
+        assert ['waybar', '-c', str(RAIZ / 'src/rootfs/desktop/waybar.jsonc'), '-s', str(RAIZ / 'src/rootfs/desktop/waybar.css')] in cmds, cmds
         assert not (tema / 'waybar.jsonc').exists()
         assert 'selection-background=5ad8ff' in foot.read_text() and 'cursor=000000 5ad8ff' in foot.read_text()
         assert imagen.exists() and correr('rutas')[0] == ''

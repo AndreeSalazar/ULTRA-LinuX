@@ -38,6 +38,9 @@ def main():
                  (('Cyberpunk2077.exe', 0), b'fullscreen>>0\n'),         # ventana: salir
                  (('gamescope', 1), b'fullscreen>>1\n'),                 # entrar; luego Hyprland se cierra
                  ]
+        # Antes de los juegos: abrir dos ventanas seguidas suena una vez; cerrar y cambiar de escritorio suenan.
+        pasos = [(('foot', 0), b'openwindow>>a,1,foot,x\nopenwindow>>b,1,foot,y\n'), (('foot', 0), b'closewindow>>a\n'),
+                 (('foot', 0), b'workspace>>2\n')] + pasos
 
         def hyprland():
             con, _ = servidor.accept()
@@ -52,9 +55,12 @@ def main():
         r = subprocess.run([sys.executable, '-I', str(herramienta)], env=entorno, capture_output=True, text=True, timeout=30)
         hilo.join()
         assert r.returncode == 0, r.stderr
-        llamadas = reg.read_text().split()
+        time.sleep(.3)
+        lineas = reg.read_text().splitlines()
         # entrar, salir, entrar, salir, entrar y, al cerrarse Hyprland, salir.
-        assert llamadas == ['juego', 'entrar', 'juego', 'salir'] * 3, llamadas
+        assert [l for l in lineas if l.startswith('juego')] == ['juego entrar', 'juego salir'] * 3, lineas
+        sonidos = [l for l in lineas if l.startswith('sonar')]
+        assert sonidos[:3] == ['sonar ventana-abrir', 'sonar ventana-cerrar', 'sonar escritorio'], sonidos
         # Firma rara: no se construye una ruta con ella.
         r = subprocess.run([sys.executable, '-I', str(herramienta)], env=dict(entorno, HYPRLAND_INSTANCE_SIGNATURE='../x'),
                            capture_output=True, text=True, timeout=10)
