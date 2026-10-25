@@ -504,6 +504,8 @@ cuentan como fallos ni se conectan. Borrar el archivo hace que vuelvan a contar.
   `base/numerics/safe_conversions_impl.h` (`*(volatile char*)0`, un fallo provocado a
   propósito): «explica 9 · lo usan 2 524».
 
+Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
+
 **Límites:**
 
 - Es análisis **léxico**: no compila, no evalúa `#ifdef` ni macros y no ve tipos.
