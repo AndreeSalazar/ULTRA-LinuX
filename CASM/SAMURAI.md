@@ -87,7 +87,7 @@ marca «sin caso aislado» cualquier regla nueva hasta que tenga el suyo.
 ## El camino
 
 1. ~~**Un caso aislado por katana.**~~ Hecho: 48 de 48. Cada regla nueva entra con su caso.
-2. **Katanas en el binario**, como la sección `BKAT` de INTI. Cuando CASM tenga aritmética,
+2. **Katanas en el binario** (empezado, en [traspaso](traspaso/LEEME.md)), como la sección `BKAT` de INTI. Cuando CASM tenga aritmética,
    cada trampa emitida (desbordamiento, división por cero) se declara en una tabla del
    paquete. El verificador comprueba que en ese desplazamiento hay de verdad ese bloque
    de trampa. *Declarar sin comprobar es propaganda; comprobar sin declarar es adivinar.*
