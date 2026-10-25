@@ -20,12 +20,35 @@ pub const LUGARES: &[&str] = &["compile_commands.json", "build/compile_commands.
 /// Como mucho tantas carpetas de busqueda para el mapa.
 const MAX_BASES: usize = 256;
 
+/// Con que compilador se revisa: el que compila de verdad el archivo (Chromium: Clang; el
+/// codigo de ULTRA: GCC). Siempre se ejecuta el `gcc` o `clang` del sistema, nunca el
+/// programa que diga compile_commands.json (podria ser cualquier cosa del proyecto).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Compilador { #[default] Gcc, Clang }
+
+impl Compilador {
+    pub fn programa(self) -> &'static str { match self { Compilador::Gcc => "gcc", Compilador::Clang => "clang" } }
+    pub fn de_nombre(s: &str) -> Option<Compilador> { match s { "gcc" => Some(Compilador::Gcc), "clang" => Some(Compilador::Clang), _ => None } }
+    /// El de una orden: el primer programa que parezca un compilador (`ccache clang++`,
+    /// `.../llvm-build/Release+Asserts/bin/clang++`, `x86_64-linux-gnu-gcc-13`).
+    pub fn de_orden(args: &[String]) -> Compilador {
+        for a in args.iter().take(3) {
+            let n = a.rsplit('/').next().unwrap_or(a);
+            if n.contains("clang") { return Compilador::Clang; }
+            if n.contains("gcc") || n.contains("g++") || n == "cc" || n == "c++" { return Compilador::Gcc; }
+        }
+        Compilador::Gcc
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Orden {
     /// La carpeta donde corre el compilador (absoluta).
     pub carpeta: PathBuf,
     /// Las flags seguras, con las rutas de -I ya absolutas.
     pub flags: Vec<String>,
+    /// El compilador de la orden (gcc o clang).
+    pub compilador: Compilador,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -117,7 +140,7 @@ pub fn leer(raiz: &Path) -> Option<Compilacion> {
                 if let Ok(r) = d.strip_prefix(&raiz) { *cuenta.entry(r.to_string_lossy().to_string()).or_default() += 1; }
             }
         }
-        c.por_archivo.insert(rel.to_string_lossy().to_string(), Orden { carpeta, flags });
+        c.por_archivo.insert(rel.to_string_lossy().to_string(), Orden { carpeta, flags, compilador: Compilador::de_orden(&args) });
     }
     let mut bases: Vec<(String, usize)> = cuenta.into_iter().collect();
     bases.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));

@@ -13,6 +13,7 @@
 //! se le pide, dentro de la carpeta.
 
 use crate::analisis::analizar;
+use crate::compilacion::Compilador;
 use crate::indice::indexar;
 use carpetas_nucleo::camino::{camino, SinPaso, Union};
 use carpetas_nucleo::ciclos::Ciclo;
@@ -82,6 +83,8 @@ pub struct Revision {
     perfil: String,
     analizador: bool,
     extra: Vec<String>,
+    /// Con que compilador se hizo (las guardadas sin el campo son de GCC).
+    compilador: Compilador,
     cuando: u64,
     diags: Vec<DiagGcc>,
     /// Las cabeceras del proyecto que GCC leyo de verdad (-MMD, con los #if resueltos), con
@@ -208,13 +211,13 @@ pub fn herramientas() -> Vec<Value> {
         h("peso", "Si cambia este archivo, cuantos se recompilan (quien lo usa, directa o indirectamente) y los que lo usan directamente.", json!({ "ruta": ruta, "limite": lim }), &["ruta"]),
         h("combinar", "Como se combinan varios archivos: directas, lo que comparten, quien los junta, sueltos y piezas.", json!({ "archivos": rutas, "limite": lim }), &["archivos"]),
         h("ficha", "Una ficha del museo: regla, control valido, limite, referencia y eje.", json!({ "id": { "type": "string", "description": "C-001, UB-002, E-003..." } }), &["id"]),
-        h("gcc_diagnosticos", "Revisa un archivo con GCC (compila a /dev/null: no escribe nada) y lee sus diagnosticos en SARIF. En C usa el perfil de los guardianes del proyecto (perfil-gcc.sh: ULTRA_WARN, dos pasadas como ultra_revisar, -O0 -fanalyzer y -O2); si no, -Wall -Wextra -O2 (+ -fanalyzer si se pide). La revision se guarda: sobrevive al reanalisis y se repite sola si el archivo cambia.",
-          json!({ "archivo": ruta, "perfil": { "type": "string", "enum": ["guardian", "generico"] }, "analizador": { "type": "boolean" }, "flags": { "type": "array", "items": { "type": "string" }, "description": "Flags extra: solo -I, -D, -std= y -W" }, "limite": lim }), &["archivo"]),
+        h("gcc_diagnosticos", "Revisa un archivo con GCC o Clang (compila a /dev/null: no escribe nada). compilador auto: el de compile_commands.json (Chromium: clang), si no gcc. En C con GCC usa el perfil de los guardianes del proyecto (perfil-gcc.sh: ULTRA_WARN, dos pasadas como ultra_revisar, -O0 -fanalyzer y -O2); si no, -Wall -Wextra -O2 (+ -fanalyzer de GCC o --analyze de Clang si se pide: dan el camino de cada fallo en pasos). La revision se guarda: sobrevive al reanalisis y se repite sola, con el mismo compilador, si el archivo cambia.",
+          json!({ "archivo": ruta, "perfil": { "type": "string", "enum": ["guardian", "generico"] }, "analizador": { "type": "boolean" }, "compilador": compilador_esquema(), "flags": { "type": "array", "items": { "type": "string" }, "description": "Flags extra: solo -I, -D, -std= y -W" }, "limite": lim }), &["archivo"]),
  h("guardia", "Modo guardia: mantener revisados por los guardianes (GCC) todos los archivos de C de una carpeta (o del proyecto), por turnos y despues solo lo que cambie. Sin casos a proposito (CASOS-MUSEO.txt) salvo que se pida.",
           json!({ "carpeta": ruta, "activar": { "type": "boolean", "description": "false la apaga" }, "cpp": { "type": "boolean", "description": "tambien C++ (perfil generico)" }, "estudio": { "type": "boolean", "description": "tambien los casos a proposito" } }), &[]),
         h("guardianes", "El perfil de los guardianes (banderas de perfil-gcc.sh) y las revisiones de GCC guardadas: archivo, perfil, errores, avisos y si siguen al dia.", json!({ "limite": lim }), &[]),
         h("gcc_deps", "Mide cuanto acierta el mapa lexico: para unos archivos C/C++ compara sus cabeceras del proyecto con las que dice gcc -M -MG (con #if resueltos); no mide los que piden cabeceras generadas que faltan. Pasar las -I reales del proyecto en flags.",
-          json!({ "carpeta": ruta, "flags": { "type": "array", "items": { "type": "string" }, "description": "-I relativas, -D, -std=" }, "limite": lim }), &[]),
+          json!({ "carpeta": ruta, "flags": { "type": "array", "items": { "type": "string" }, "description": "-I relativas, -D, -std=" }, "compilador": compilador_esquema(), "limite": lim }), &[]),
         h("exportar_sarif", "Escribe las sospechas del museo (y los diagnosticos de GCC leidos) en un archivo SARIF 2.1.0 dentro de la carpeta.", json!({ "salida": ruta }), &["salida"]),
         h("reanalizar", "Vuelve a leer la carpeta ahora (el servidor MCP ya reanaliza solo al ver cambios; incremental: solo relee lo que cambio).", json!({}), &[]),
         h("ventana", "Lo que la persona esta mirando ahora en la ventana de ULTRA Carpetas (vista, grupo elegido, seleccion, camino, archivo del editor), con las senales de su grupo. Sin capturas.", json!({ "limite": lim }), &[]),
@@ -283,6 +286,7 @@ impl Mapa {
         let Some(doc) = self.ruta_revisiones().and_then(|r| std::fs::read(r).ok()).and_then(|b| serde_json::from_slice::<Value>(&b).ok()) else { return Default::default() };
         doc.as_object().into_iter().flatten().filter_map(|(k, v)| Some((k.clone(), Revision {
             fecha: v["fecha"].as_str()?.parse().ok()?, tam: v["tam"].as_u64()?, perfil: v["perfil"].as_str()?.into(), analizador: v["analizador"].as_bool()?,
+            compilador: v["compilador"].as_str().and_then(Compilador::de_nombre).unwrap_or_default(),
             extra: v["extra"].as_array()?.iter().filter_map(|x| x.as_str().map(str::to_string)).collect(), cuando: v["cuando"].as_u64()?,
             diags: v["diags"].as_array()?.iter().filter_map(diag_de_json).collect(),
             deps: v["deps"].as_array().into_iter().flatten().filter_map(|d| Some((d[0].as_str()?.to_string(), d[1].as_str()?.parse().ok()?, d[2].as_u64()?))).collect() }))).collect()
@@ -291,7 +295,7 @@ impl Mapa {
     fn guardar_revisiones(&self) {
         let Some(ruta) = self.ruta_revisiones() else { return };
         let doc: serde_json::Map<String, Value> = self.revisiones.iter().map(|(k, r)| (k.clone(), json!({
-            "fecha": r.fecha.to_string(), "tam": r.tam, "perfil": r.perfil, "analizador": r.analizador, "extra": r.extra, "cuando": r.cuando,
+            "fecha": r.fecha.to_string(), "tam": r.tam, "perfil": r.perfil, "analizador": r.analizador, "extra": r.extra, "compilador": r.compilador.programa(), "cuando": r.cuando,
             "diags": r.diags.iter().map(diag_a_json).collect::<Vec<_>>(),
             "deps": r.deps.iter().map(|(k, f, s)| json!([k, f.to_string(), s])).collect::<Vec<_>>() }))).collect();
         if let Some(d) = ruta.parent() { let _ = std::fs::create_dir_all(d); }
@@ -340,8 +344,8 @@ impl Mapa {
         for archivo in lista {
             let Some(r) = self.revisiones.get(&archivo).cloned() else { continue };
             let perfil = if r.perfil == "guardian" { self.guardian.clone() } else { None };
-            if let Ok((diags, _, _, deps)) = self.revisar(&archivo, perfil.as_ref(), r.analizador, &r.extra) {
-                self.anotar_revision(&archivo, perfil.is_some(), r.analizador, r.extra.clone(), diags, deps);
+            if let Ok((diags, _, _, deps, c)) = self.revisar(&archivo, perfil.as_ref(), r.analizador, &r.extra, Some(r.compilador)) {
+                self.anotar_revision(&archivo, perfil.is_some(), r.analizador, r.extra.clone(), c, diags, deps);
                 hechos.push(archivo);
             }
         }
@@ -349,18 +353,27 @@ impl Mapa {
         hechos
     }
 
-    fn anotar_revision(&mut self, archivo: &str, guardian: bool, analizador: bool, extra: Vec<String>, diags: Vec<DiagGcc>, deps: Vec<String>) {
+    #[allow(clippy::too_many_arguments)]
+    fn anotar_revision(&mut self, archivo: &str, guardian: bool, analizador: bool, extra: Vec<String>, compilador: Compilador, diags: Vec<DiagGcc>, deps: Vec<String>) {
         let (fecha, tam) = fecha_y_tam(&self.raiz.join(archivo)).unwrap_or((0, 0));
         let deps = deps.into_iter().filter_map(|d| { let (f, s) = fecha_y_tam(&self.raiz.join(&d))?; Some((d, f, s)) }).collect();
         self.revisiones.insert(archivo.to_string(), Revision { fecha, tam, perfil: if guardian { "guardian".into() } else { "generico".into() },
-                                                              analizador, extra, cuando: ahora_s(), diags, deps });
+                                                              analizador, extra, compilador, cuando: ahora_s(), diags, deps });
     }
 
     /// Una revision de GCC: con el perfil de los guardianes, dos pasadas como `ultra_revisar`
     /// (-O0 -fanalyzer y -O2); si no, -Wall -Wextra -O2 (y -fanalyzer si se pide).
     /// Devuelve los diagnosticos (sin repetir), las ordenes y de donde salen las flags.
-    fn revisar(&self, archivo: &str, guardian: Option<&crate::guardianes::Perfil>, analizador: bool, extra: &[String]) -> Result<(Vec<DiagGcc>, Vec<String>, &'static str, Vec<String>), String> {
-        let (carpeta, base, origen, entrada) = self.base_gcc(archivo);
+    #[allow(clippy::type_complexity)]
+    fn revisar(&self, archivo: &str, guardian: Option<&crate::guardianes::Perfil>, analizador: bool, extra: &[String], pedido: Option<Compilador>)
+        -> Result<(Vec<DiagGcc>, Vec<String>, &'static str, Vec<String>, Compilador), String> {
+        let (carpeta, base, origen, entrada, propio) = self.base_gcc(archivo);
+        // Los guardianes son de GCC (perfil-gcc.sh); si no, el pedido o el del archivo.
+        let compilador = if guardian.is_some() { Compilador::Gcc } else { pedido.unwrap_or(propio) };
+        if compilador == Compilador::Clang {
+            let (diags, ordenes, deps) = self.revisar_clang(archivo, &carpeta, &base, &entrada, analizador, extra)?;
+            return Ok((diags, ordenes, origen, deps, compilador));
+        }
         let pasadas: Vec<Vec<String>> = match guardian {
             Some(p) => {
                 // El perfil es de C: una cabecera va como C, no como C++.
@@ -383,19 +396,77 @@ impl Mapa {
             // En la primera pasada, las cabeceras que GCC lee de verdad, por la salida (no al disco).
             if i == 0 { args.extend(["-MMD".into(), "-MF".into(), "/dev/stdout".into()]); }
             args.extend(["-c".into(), "-o".into(), "/dev/null".into(), "-fdiagnostics-format=sarif-stderr".into(), entrada.clone()]);
-            let (salida, err) = self.gcc(&carpeta, &args)?;
-            if i == 0 {
-                deps = salida.split_once(':').map(|(_, d)| d).unwrap_or("").split_whitespace().filter(|x| *x != "\\")
-                    .filter_map(|x| self.del_proyecto(&carpeta, x)).filter(|x| x != archivo).take(MAX_DEPS).collect();
-                deps.sort();
-                deps.dedup();
-            }
-            for d in leer_sarif(&err, &self.raiz)? {
-                if !diags.iter().any(|x| x.archivo == d.archivo && x.linea == d.linea && x.columna == d.columna && x.mensaje == d.mensaje) { diags.push(d); }
-            }
+            let (salida, err) = self.compilar(Compilador::Gcc, &carpeta, &args)?;
+            if i == 0 { deps = self.deps_de(&carpeta, &salida, archivo); }
+            juntar(&mut diags, leer_sarif(&err, &self.raiz)?);
             ordenes.push(format!("gcc {}", args.join(" ")));
         }
-        Ok((diags, ordenes, origen, deps))
+        Ok((diags, ordenes, origen, deps, compilador))
+    }
+
+    /// Las cabeceras del proyecto que dice -MMD (sin el propio archivo).
+    fn deps_de(&self, carpeta: &Path, salida: &str, archivo: &str) -> Vec<String> {
+        let mut deps: Vec<String> = salida.split_once(':').map(|(_, d)| d).unwrap_or("").split_whitespace().filter(|x| *x != "\\")
+            .filter_map(|x| self.del_proyecto(carpeta, x)).filter(|x| x != archivo).take(MAX_DEPS).collect();
+        deps.sort();
+        deps.dedup();
+        deps
+    }
+
+    /// La revision con Clang: compilar a /dev/null con -Wall -Wextra -O2 (diagnosticos en
+    /// texto: el SARIF de Clang 18 es "inestable" y no dice el -W de cada aviso) y, si se
+    /// pide, su analizador estatico (--analyze) en SARIF, con el camino de cada fallo.
+    #[allow(clippy::type_complexity)]
+    fn revisar_clang(&self, archivo: &str, carpeta: &Path, base: &[String], entrada: &str, analizador: bool, extra: &[String])
+        -> Result<(Vec<DiagGcc>, Vec<String>, Vec<String>), String> {
+        let mut args: Vec<String> = base.to_vec();
+        args.extend(extra.iter().cloned());
+        args.extend(["-Wall", "-Wextra", "-O2", "-MMD", "-MF", "/dev/stdout", "-c", "-o", "/dev/null", "-fno-color-diagnostics", "-fdiagnostics-show-option"].map(String::from));
+        args.push(entrada.to_string());
+        let (salida, err) = self.compilar(Compilador::Clang, carpeta, &args)?;
+        let deps = self.deps_de(carpeta, &salida, archivo);
+        let mut diags = self.leer_clang(carpeta, &err);
+        let mut ordenes = vec![format!("clang {}", args.join(" "))];
+        if analizador {
+            let mut a: Vec<String> = base.to_vec();
+            a.extend(extra.iter().cloned());
+            a.extend(["--analyze", "-Xclang", "-analyzer-output=sarif", "-o", "/dev/stdout"].map(String::from));
+            a.push(entrada.to_string());
+            let (sarif, _) = self.compilar(Compilador::Clang, carpeta, &a)?;
+            // Sin SARIF (no compilo): quedan los diagnosticos de la compilacion.
+            if !sarif.trim().is_empty() { juntar(&mut diags, leer_sarif(&sarif, &self.raiz)?); }
+            ordenes.push(format!("clang {}", a.join(" ")));
+        }
+        Ok((diags, ordenes, deps))
+    }
+
+    /// Los diagnosticos de Clang en texto: `ruta:linea:columna: nivel: mensaje [-Wregla]`.
+    /// Las notas van como pasos del diagnostico anterior.
+    fn leer_clang(&self, carpeta: &Path, texto: &str) -> Vec<DiagGcc> {
+        let mut v: Vec<DiagGcc> = Vec::new();
+        for l in texto.lines() {
+            let Some((ruta, resto)) = l.split_once(':') else { continue };
+            let mut partes = resto.splitn(3, ':');
+            let (Some(linea), Some(columna), Some(cola)) = (partes.next(), partes.next(), partes.next()) else { continue };
+            let (Ok(linea), Ok(columna)) = (linea.trim().parse::<u32>(), columna.trim().parse::<u32>()) else { continue };
+            let cola = cola.trim_start();
+            let (nivel, mensaje) = if let Some(m) = cola.strip_prefix("fatal error: ") { ("error", m) }
+                else if let Some(m) = cola.strip_prefix("error: ") { ("error", m) }
+                else if let Some(m) = cola.strip_prefix("warning: ") { ("warning", m) }
+                else if let Some(m) = cola.strip_prefix("note: ") { ("note", m) }
+                else { continue };
+            let (mensaje, regla) = match mensaje.rsplit_once(" [") {
+                Some((m, r)) if r.ends_with(']') && r.starts_with("-W") => (m.to_string(), Some(r.trim_end_matches(']').to_string())),
+                _ => (mensaje.to_string(), None),
+            };
+            let (archivo, dentro) = match self.del_proyecto(carpeta, ruta) { Some(r) => (r, true), None => (ruta.to_string(), false) };
+            if nivel == "note" {
+                if let Some(d) = v.last_mut() { if d.pasos.len() < 12 { d.pasos.push(format!("{archivo}:{linea}: {mensaje}")); } }
+                continue;
+            }
+            juntar(&mut v, vec![DiagGcc { archivo, archivo_en_proyecto: dentro, linea, columna, nivel: nivel.into(), regla, mensaje, pasos: Vec::new() }]);
+        }
+        v
     }
 
     /// Lo que se compara entre analisis.
@@ -483,10 +554,10 @@ impl Mapa {
             let es_c = archivo.ends_with(".c");
             let perfil = self.guardian.clone().filter(|_| es_c);
             let (analizador, extra) = self.revisiones.get(archivo).map(|r| (r.analizador, r.extra.clone())).unwrap_or((false, Vec::new()));
-            match self.revisar(archivo, perfil.as_ref(), analizador, &extra) {
-                Ok((diags, _, _, deps)) => { self.anotar_revision(archivo, perfil.is_some(), analizador, extra, diags, deps); n += 1; }
+            match self.revisar(archivo, perfil.as_ref(), analizador, &extra, None) {
+                Ok((diags, _, _, deps, c)) => { self.anotar_revision(archivo, perfil.is_some(), analizador, extra, c, diags, deps); n += 1; }
                 // Que no falle es un fallo de GCC (no del codigo): se anota vacio para no reintentar sin fin.
-                Err(e) => { self.anotar_revision(archivo, perfil.is_some(), analizador, extra, vec![DiagGcc { archivo: archivo.clone(), archivo_en_proyecto: true, linea: 1, columna: 1,
+                Err(e) => { self.anotar_revision(archivo, perfil.is_some(), analizador, extra, Compilador::Gcc, vec![DiagGcc { archivo: archivo.clone(), archivo_en_proyecto: true, linea: 1, columna: 1,
                     nivel: "warning".into(), regla: Some("guardia".into()), mensaje: format!("no se pudo revisar: {e}"), pasos: Vec::new() }], Vec::new()); n += 1; }
             }
         }
@@ -775,10 +846,10 @@ impl Mapa {
     // ---------------- GCC ----------------
 
     /// Ejecuta GCC sin shell, en la carpeta, con tope de tiempo. Devuelve stdout y stderr.
-    fn gcc(&self, carpeta: &Path, args: &[String]) -> Result<(String, String), String> {
-        let mut hijo = std::process::Command::new("gcc").args(args).current_dir(carpeta)
+    fn compilar(&self, c: Compilador, carpeta: &Path, args: &[String]) -> Result<(String, String), String> {
+        let mut hijo = std::process::Command::new(c.programa()).args(args).current_dir(carpeta)
             .stdin(std::process::Stdio::null()).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped())
-            .spawn().map_err(|e| format!("no se pudo ejecutar gcc: {e}"))?;
+            .spawn().map_err(|e| format!("no se pudo ejecutar {}: {e}", c.programa()))?;
         // Las dos salidas se leen mientras corre: si se esperara al final, GCC se bloquearia al
         // llenar la tuberia (64 KiB de SARIF o de -MM) y nunca acabaria.
         let leer = |r: Option<Box<dyn std::io::Read + Send>>| std::thread::spawn(move || {
@@ -791,7 +862,7 @@ impl Mapa {
         let t = Instant::now();
         loop {
             if hijo.try_wait().map_err(|e| e.to_string())?.is_some() { break; }
-            if t.elapsed() > GCC_TIEMPO { let _ = hijo.kill(); let _ = hijo.wait(); return Err("gcc tardo mas de 60 s: cortado".into()); }
+            if t.elapsed() > GCC_TIEMPO { let _ = hijo.kill(); let _ = hijo.wait(); return Err(format!("{} tardo mas de 60 s: cortado", c.programa())); }
             std::thread::sleep(Duration::from_millis(10));
         }
         Ok((salida.join().unwrap_or_default(), errores.join().unwrap_or_default()))
@@ -800,16 +871,16 @@ impl Mapa {
     /// Donde y con que flags se compila un archivo: las de compile_commands.json si las tiene
     /// (su carpeta, sus -I, -D, -std...); si no, unas genericas desde la raiz. Devuelve
     /// (carpeta, flags, de donde salen) y la ruta del archivo tal como hay que pasarla.
-    fn base_gcc(&self, archivo: &str) -> (PathBuf, Vec<String>, &'static str, String) {
+    fn base_gcc(&self, archivo: &str) -> (PathBuf, Vec<String>, &'static str, String, Compilador) {
         if let Some(o) = self.cc.as_ref().and_then(|c| c.por_archivo.get(archivo)) {
-            return (o.carpeta.clone(), o.flags.clone(), "compile_commands.json", self.raiz.join(archivo).display().to_string());
+            return (o.carpeta.clone(), o.flags.clone(), "compile_commands.json", self.raiz.join(archivo).display().to_string(), o.compilador);
         }
         // Una cabecera .h se compila como C++ (en C tambien vale casi siempre, al reves no).
         let cpp = matches!(archivo.rsplit('.').next(), Some("cc" | "cpp" | "cxx" | "hpp" | "hh" | "hxx" | "mm" | "h"));
         let mut v = vec![if cpp { "-std=c++20".into() } else { "-std=c17".into() }, "-I.".into()];
         if let Some((d, _)) = archivo.rsplit_once('/') { v.push(format!("-I{d}")); }
         if archivo.ends_with(".h") { v.push("-xc++".into()); } // las cabeceras de C++ suelen acabar en .h
-        (self.raiz.clone(), v, "genericas", archivo.to_string())
+        (self.raiz.clone(), v, "genericas", archivo.to_string(), Compilador::Gcc)
     }
 
     /// Una ruta que escribe GCC (relativa a su carpeta o absoluta) como ruta del proyecto.
@@ -825,26 +896,28 @@ impl Mapa {
         let n = limite(a);
         let extra = flags(a)?;
         let analizador = a.get("analizador").and_then(Value::as_bool).unwrap_or(false);
+        let pedido = compilador_pedido(a)?;
         // Los guardianes del proyecto mandan en C (perfil-gcc.sh); en C++ o sin perfil, generico.
         let es_c = matches!(archivo.rsplit('.').next(), Some("c" | "h"));
         let perfil = match a.get("perfil").and_then(Value::as_str) {
             Some("generico") => None,
             Some("guardian") => Some(self.guardian.clone().ok_or_else(|| format!("este proyecto no tiene {}", crate::guardianes::LUGAR))?),
             Some(x) => return Err(format!("perfil: guardian o generico (no {x})")),
-            None => self.guardian.clone().filter(|_| es_c),
+            None => self.guardian.clone().filter(|_| es_c && pedido != Some(Compilador::Clang)),
         };
+        if perfil.is_some() && pedido == Some(Compilador::Clang) { return Err("los guardianes son de GCC: con clang, perfil generico".into()); }
         let t = Instant::now();
-        let (diags, ordenes, origen, deps) = self.revisar(&archivo, perfil.as_ref(), analizador, &extra)?;
+        let (diags, ordenes, origen, deps, compilador) = self.revisar(&archivo, perfil.as_ref(), analizador, &extra, pedido)?;
         let ms = t.elapsed().as_millis();
         let n_deps = deps.len();
         // Se guarda (con la fecha del archivo y de sus cabeceras) y vuelve al estado.
-        self.anotar_revision(&archivo, perfil.is_some(), analizador, extra, diags.clone(), deps);
+        self.anotar_revision(&archivo, perfil.is_some(), analizador, extra, compilador, diags.clone(), deps);
         self.reaplicar();
         self.guardar_revisiones();
         let errores = diags.iter().filter(|d| d.nivel == "error").count();
         Ok(json!({
             "archivo": archivo, "perfil": perfil.as_ref().map(|p| format!("guardianes ({})", p.origen)).unwrap_or_else(|| "generico".into()),
-            "ordenes": ordenes, "flags_de": origen, "ms": ms, "cabeceras_vigiladas": n_deps, "analizador": analizador || perfil.is_some(),
+            "compilador": compilador.programa(), "ordenes": ordenes, "flags_de": origen, "ms": ms, "cabeceras_vigiladas": n_deps, "analizador": analizador || perfil.is_some(),
             "errores": errores, "avisos": diags.len() - errores,
             "lista": diags.iter().take(n).map(|d| json!({ "archivo": d.archivo, "linea": d.linea, "columna": d.columna, "nivel": d.nivel, "regla": d.regla, "mensaje": d.mensaje, "pasos": d.pasos })).collect::<Vec<_>>(),
             "quedan": diags.len().saturating_sub(n),
@@ -870,6 +943,8 @@ impl Mapa {
         let mut ejemplos_gcc: Vec<Value> = Vec::new();
         let mut fallidos = 0;
         let mut con_cc = 0;
+        let pedido = compilador_pedido(a)?;
+        let (mut con_gcc, mut con_clang) = (0usize, 0usize);
         // Archivos con cabeceras que no existen (se generan al compilar: configure, make).
         // Con -MG, GCC las da por buenas pero deja de seguir otras: la medida no valdria.
         let mut incompletos = 0usize;
@@ -884,14 +959,16 @@ impl Mapa {
         let mut del_sistema: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
         let t = Instant::now();
         for r in &elegidos {
-            let (dir, mut args, origen, entrada) = self.base_gcc(r);
+            let (dir, mut args, origen, entrada, propio) = self.base_gcc(r);
             if origen == "compile_commands.json" { con_cc += 1; }
+            let c = pedido.unwrap_or(propio);
+            if c == Compilador::Clang { con_clang += 1 } else { con_gcc += 1 }
             args.retain(|x| x != "-xc++");
             args.extend(extra.iter().cloned());
             // -M y no -MM: con -MM, GCC calla lo que entra a traves de una cabecera del sistema,
             // aunque sea del proyecto (y si falta una generada, la busca en el sistema).
             args.extend(["-M".into(), "-MG".into(), entrada]);
-            let Ok((salida, _)) = self.gcc(&dir, &args) else { fallidos += 1; continue };
+            let Ok((salida, _)) = self.compilar(c, &dir, &args) else { fallidos += 1; continue };
             if salida.trim().is_empty() { fallidos += 1; continue; }
             // "obj.o: a.c b.h \\\n c.h": las cabeceras que existen en el proyecto.
             let nombres: Vec<&str> = salida.split_once(':').map(|(_, d)| d).unwrap_or("")
@@ -928,7 +1005,7 @@ impl Mapa {
             "aviso": "faltan cabeceras que se generan al compilar (configure, make), o falta una -I; o GCC uso la del sistema (otra version) en lugar de la plantilla .h.in del proyecto. Un archivo asi no se mide: generalas o pasa las -I y vuelve a medir.",
         }));
         Ok(json!({
-            "archivos_medidos": elegidos.len() - fallidos - incompletos, "fallidos": fallidos, "sin_medir": sin_medir, "con_compile_commands": con_cc, "ms": t.elapsed().as_millis(),
+            "archivos_medidos": elegidos.len() - fallidos - incompletos, "fallidos": fallidos, "sin_medir": sin_medir, "compiladores": { "gcc": con_gcc, "clang": con_clang }, "con_compile_commands": con_cc, "ms": t.elapsed().as_millis(),
             "aciertos": aciertos, "solo_en_el_mapa": solo_mapa, "solo_en_gcc": solo_gcc,
             "precision_pct": p(aciertos, solo_mapa), "cobertura_pct": p(aciertos, solo_gcc),
             "sin_los_if": { "aciertos": aciertos_fijo, "solo_en_el_mapa": solo_fijo, "precision_pct": p(aciertos_fijo, solo_fijo),
@@ -977,6 +1054,23 @@ fn flags(a: &Value) -> Result<Vec<String>, String> {
     Ok(v.into_iter().take(64).collect())
 }
 
+/// El compilador pedido: auto (None), gcc o clang.
+fn compilador_pedido(a: &Value) -> Result<Option<Compilador>, String> {
+    match a.get("compilador").and_then(Value::as_str) {
+        None | Some("auto") => Ok(None),
+        Some(x) => Compilador::de_nombre(x).map(Some).ok_or_else(|| format!("compilador: auto, gcc o clang (no {x})")),
+    }
+}
+
+fn compilador_esquema() -> Value { json!({ "type": "string", "enum": ["auto", "gcc", "clang"], "description": "auto: el de compile_commands.json, si no gcc" }) }
+
+/// Junta diagnosticos sin repetir (mismo sitio y mensaje).
+fn juntar(diags: &mut Vec<DiagGcc>, nuevos: Vec<DiagGcc>) {
+    for d in nuevos {
+        if !diags.iter().any(|x| x.archivo == d.archivo && x.linea == d.linea && x.columna == d.columna && x.mensaje == d.mensaje) { diags.push(d); }
+    }
+}
+
 /// Un diagnostico leido del SARIF de GCC.
 #[derive(Debug, Clone, PartialEq)]
 pub struct DiagGcc {
@@ -1011,9 +1105,20 @@ pub fn leer_sarif(texto: &str, raiz: &Path) -> Result<Vec<DiagGcc>, String> {
                 Err(_) if abs.is_relative() => (relativa(ruta).unwrap_or_else(|_| ruta.to_string()), relativa(ruta).is_ok()),
                 Err(_) => (ruta.to_string(), false),
             };
+            // El camino del fallo (-fanalyzer, --analyze). Puede cruzar archivos: entonces cada
+            // paso dice el suyo.
             let pasos: Vec<String> = r["codeFlows"][0]["threadFlows"][0]["locations"].as_array().into_iter().flatten().take(12).map(|p| {
                 let l = &p["location"];
-                format!("linea {}: {}", l["physicalLocation"]["region"]["startLine"].as_u64().unwrap_or(0), l["message"]["text"].as_str().unwrap_or(""))
+                let n = l["physicalLocation"]["region"]["startLine"].as_u64().unwrap_or(0);
+                let m = l["message"]["text"].as_str().unwrap_or("");
+                match l["physicalLocation"]["artifactLocation"]["uri"].as_str() {
+                    Some(u) if u != uri => {
+                        let u = u.strip_prefix("file://").unwrap_or(u);
+                        let u = Path::new(u).strip_prefix(raiz).map(|x| x.to_string_lossy().to_string()).unwrap_or_else(|_| u.to_string());
+                        format!("{u}:{n}: {m}")
+                    }
+                    _ => format!("linea {n}: {m}"),
+                }
             }).collect();
             v.push(DiagGcc {
                 archivo, archivo_en_proyecto: dentro,
@@ -1176,6 +1281,56 @@ mod pruebas {
         assert!(c["fallan_ahora"]["lista"].as_array().unwrap().iter().any(|x| x == "inc/util.h"), "el guardian ve el VLA de la cabecera: {c}");
         if let Some(r) = m.ruta_revisiones() { std::fs::remove_file(r).ok(); }
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn clang_revisa_lo_que_compila_clang_y_da_el_camino_entre_archivos() {
+        let hay = |p: &str| std::process::Command::new(p).arg("--version").output().is_ok_and(|o| o.status.success());
+        if !hay("clang") || !hay("gcc") { return; }
+        let dir = std::env::temp_dir().join(format!("ultra-clang-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src")).unwrap();
+        // Se libera en util.h y se usa despues en a.c: el camino cruza los dos archivos.
+        std::fs::write(dir.join("src/util.h"), "#include <stdlib.h>\nstatic inline void suelta(int *p) {\n    free(p);\n}\n").unwrap();
+        std::fs::write(dir.join("src/a.c"), "#include \"util.h\"\nint usa(void) {\n    int *p = malloc(sizeof *p);\n    if (!p) return 0;\n    *p = 1;\n    suelta(p);\n    return *p;\n}\nint corta(long v) { return v; }\n").unwrap();
+        // Como Chromium: compile_commands.json con un clang que no es el del sistema.
+        std::fs::write(dir.join("compile_commands.json"), json!([{ "directory": dir.join("src").display().to_string(), "file": "a.c",
+            "arguments": ["../../third_party/llvm-build/Release+Asserts/bin/clang", "-Wconversion", "-c", "a.c"] }]).to_string()).unwrap();
+        let mut m = Mapa::abrir(&dir).unwrap();
+        let r = m.ejecutar("gcc_diagnosticos", &json!({ "archivo": "src/a.c", "analizador": true })).unwrap();
+        assert_eq!(r["compilador"], "clang", "auto: el de compile_commands.json: {r}");
+        assert!(r["ordenes"][0].as_str().unwrap().starts_with("clang "), "el clang del sistema, no el del proyecto: {r}");
+        let lista = r["lista"].as_array().unwrap();
+        assert!(lista.iter().any(|d| d["regla"] == "-Wshorten-64-to-32" || d["regla"] == "-Wconversion"), "con su -W: {r}");
+        let libre = lista.iter().find(|d| d["mensaje"].as_str().unwrap_or("").contains("freed")).unwrap_or_else(|| panic!("el uso tras free: {r}"));
+        assert_eq!((libre["archivo"].as_str(), libre["linea"].as_u64()), (Some("src/a.c"), Some(7)), "{libre}");
+        let pasos: Vec<&str> = libre["pasos"].as_array().unwrap().iter().filter_map(|x| x.as_str()).collect();
+        assert!(pasos.iter().any(|p| p.starts_with("src/util.h:3: Memory is released")), "el camino pasa por util.h: {pasos:?}");
+        // La revision recuerda su compilador y se repite con el mismo al cambiar una cabecera.
+        assert_eq!(m.revisiones["src/a.c"].compilador, Compilador::Clang);
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        std::fs::write(dir.join("src/util.h"), "#include <stdlib.h>\nstatic inline void suelta(int *p) {\n    (void)p;\n}\n").unwrap();
+        m.analizar();
+        assert_eq!(m.revisar_pendientes(4), ["src/a.c"]);
+        assert_eq!(m.revisiones["src/a.c"].compilador, Compilador::Clang);
+        assert!(m.revisiones["src/a.c"].diags.iter().all(|d| !d.mensaje.contains("freed")), "arreglado en la cabecera");
+        // Pedir gcc a mano: GCC, y el perfil de los guardianes no se mezcla con clang.
+        let r = m.ejecutar("gcc_diagnosticos", &json!({ "archivo": "src/a.c", "compilador": "gcc" })).unwrap();
+        assert_eq!(r["compilador"], "gcc");
+        assert!(m.ejecutar("gcc_diagnosticos", &json!({ "archivo": "src/a.c", "compilador": "llvm" })).is_err());
+        let d = m.ejecutar("gcc_deps", &json!({})).unwrap();
+        assert_eq!(d["compiladores"]["clang"], 1, "{d}");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn el_compilador_de_cada_orden() {
+        let o = |v: &[&str]| Compilador::de_orden(&v.iter().map(|x| x.to_string()).collect::<Vec<_>>());
+        assert_eq!(o(&["../../third_party/llvm-build/Release+Asserts/bin/clang++", "-c"]), Compilador::Clang);
+        assert_eq!(o(&["ccache", "clang-18", "-c"]), Compilador::Clang);
+        assert_eq!(o(&["/usr/bin/x86_64-linux-gnu-gcc-13", "-c"]), Compilador::Gcc);
+        assert_eq!(o(&["c++", "-c"]), Compilador::Gcc);
+        assert_eq!(o(&["raro", "-c"]), Compilador::Gcc, "sin saberlo: GCC");
     }
 
     #[test]

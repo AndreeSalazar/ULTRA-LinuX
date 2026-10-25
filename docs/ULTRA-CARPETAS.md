@@ -837,11 +837,30 @@ cliente como Claude Code lo ofrece al abrir el repositorio, y pide permiso antes
   (`isError`); una herramienta que no existe es un error JSON-RPC.
 - El análisis arranca en otro hilo: `initialize` contesta al momento.
 
-**GCC habla en datos** (sin LLVM):
+**GCC (y Clang) hablan en datos:**
 
 - **`gcc_diagnosticos`** compila con `-Wall -Wextra -O2 -c -o /dev/null` (no escribe nada)
   y `-fdiagnostics-format=sarif-stderr`. Con `analizador: true` añade **`-fanalyzer`**, con
-  el camino paso a paso de cada problema.
+  el camino paso a paso de cada problema. Si el camino cruza archivos, cada paso dice el
+  suyo (`src/util.h:3: freed here`).
+- **`compilador: auto | gcc | clang`** (en `gcc_diagnosticos` y `gcc_deps`):
+  - `auto` usa el de `compile_commands.json`: `clang++`, o el
+    `third_party/llvm-build/.../clang++` de Chromium, es Clang. Sin él, GCC.
+  - Se ejecuta siempre el `gcc` o `clang` del sistema, nunca el binario que nombra el
+    proyecto.
+  - Con Clang:
+    - los diagnósticos se leen en texto, con su `-W`, porque el SARIF de Clang 18 es
+      «inestable» y no dice el `-W`;
+    - las notas pasan a ser pasos del aviso;
+    - `analizador: true` corre su analizador estático (`--analyze`) en SARIF, también
+      con el camino de cada fallo.
+  - La respuesta dice qué compilador habló. La revisión guardada lo recuerda y se repite
+    con el mismo.
+  - Los guardianes son de GCC: pedir `clang` con su perfil es un error.
+  - Medido en OpenSSL, con el analizador: `bss_file.c` 395 ms con GCC y 485 ms con Clang;
+    `ssl_lib.c` 3,8 s y 9,3 s, con 44 y 38 avisos.
+  - Una nota: el analizador de Clang descarta a propósito los NULL que devuelve una
+    función que él despliega (`suppress-null-return-paths`); `-fanalyzer` no.
   - Sus errores entran en las señales y en el fallo conectado.
   - Solo acepta flags que no escriben ni ejecutan nada: `-I` relativas, `-D`, `-std=` y `-W`.
 - **En la terminal de la aplicación**, si compilas con
@@ -1237,7 +1256,7 @@ archivos y 4 millones de `#include`):
 vuelve a resolver todos los `#include`. Lo siguiente es resolver solo lo que cambió
 cuando las rutas del índice son las mismas.
 
-Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
+Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; Clang solo como segundo compilador) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**
 

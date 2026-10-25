@@ -31,12 +31,15 @@ Orden: primero seguro; luego rápido sin romper lo seguro; luego simple sin perd
 - **Arquitectura: x86-64** (System V AMD64). No hay hardware RISC-V ni ARM64 donde
   probar; una regla que no se puede comprobar no entra. Si algún día lo hay, se añade
   como alcance nuevo, con sus propias fichas.
-- **LLVM: fuera del alcance del cazador.** Sus herramientas (clang-tidy, Clang Static
-  Analyzer, Infer) tienen equivalente en GCC para lo que necesita el SG. Nota: el código
-  Rust de este repositorio sí pasa por LLVM, porque es el backend de `rustc`. Eso no
-  cambia el cazador de C, que es de GCC.
+- **LLVM: como segundo compilador, para lo que compila Clang.** El cazador, los
+  guardianes (`perfil-gcc.sh`) y CASM siguen siendo de GCC. Pero proyectos como Chromium
+  solo se compilan oficialmente con Clang: revisarlos con GCC sería juzgarlos con otro
+  compilador. Por eso `gcc_diagnosticos` y `gcc_deps` usan el compilador que dice
+  `compile_commands.json`, o el que se pida, y dicen cuál habló. Siempre se ejecuta el
+  `gcc` o `clang` del sistema, nunca el binario del proyecto. Nota: el código Rust de este
+  repositorio también pasa por LLVM, porque es el backend de `rustc`.
 
-## Referencias (todas sin LLVM)
+## Referencias (sin LLVM; Clang solo como segundo compilador, arriba)
 
 De ellas se toman ideas y casos de prueba, no código: cada una tiene su licencia.
 
@@ -136,7 +139,11 @@ GRAFO conteste la pregunta, no el formato.
    de código: caché binaria (de 10 s y 1,8 GB a 0,3 s), resolución en paralelo y alcance
    18 veces más rápido. Con caché, 3,1 s; el servidor MCP contesta en 0,2 a 21 ms; la
    Ciudad dibuja los 312 000 edificios.
-9. **Siguiente:**
+9. ~~**Clang junto a GCC**~~ **Hecho:** cada archivo se revisa con el compilador que lo
+   compila. El analizador de Clang (`--analyze`), igual que `-fanalyzer`, da el **camino
+   del fallo entre archivos** (se reserva en `a.c:3`, se libera en `util.h:3`, se usa en
+   `a.c:7`).
+10. **Siguiente:**
    - resolver solo lo que cambió (el aviso en vivo con 312 000 archivos sigue en unos 4 s);
    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
      verdad cada archivo);
