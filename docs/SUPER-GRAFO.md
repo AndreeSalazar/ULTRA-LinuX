@@ -107,6 +107,13 @@ GRAFO conteste la pregunta, no el formato.
 
 ## Siguientes ideas para educar al SUPER GRAFO
 
+Hecho también: **del grupo a los nodos y al editor**. Lo que señalan los archivos del
+grupo, en el orden para arreglar, con lo que enseña cada ficha; «Siguiente señal» abre el
+editor en cada una; la cadena de `#include` hasta la causa; y «Ver en el grafo» con los
+cables del grupo. Detalle en
+[ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#del-grupo-a-los-nodos-y-al-editor-lo-que-señalan-cómo-arreglarlo-y-por-dónde-llega).
+Siguiente pendiente: **aislar el grupo entero** (hoy Aislar toma un solo nodo).
+
 Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
 
 1. ~~**Camino más corto entre dos elegidos.**~~ **Hecho:** con motivos (la línea de cada

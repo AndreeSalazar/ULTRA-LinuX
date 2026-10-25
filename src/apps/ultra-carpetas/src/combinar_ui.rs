@@ -17,7 +17,7 @@ use eframe::egui::{self, epaint::CubicBezierShape, Align2, Color32, FontId, Pos2
 /// La combinacion del grupo actual; se rehace solo si cambia el grupo o llega otro analisis.
 #[derive(Default)]
 pub struct Cache {
-    clave: Option<(Vec<String>, u64, Option<(String, String)>)>,
+    clave: Option<(Vec<String>, u64, Option<(String, String)>, u64)>,
     pub c: Combinacion,
     /// Los ejes del triangulo de cada miembro (sumados si es una carpeta).
     pub ejes: Vec<[u32; 3]>,
@@ -29,6 +29,10 @@ pub struct Cache {
     pub camino: Option<carpetas_nucleo::camino::Camino>,
     /// La onda del camino parada (por defecto se anima).
     pub quieto: bool,
+    /// Lo que senalan los del grupo (museo y compilador) y por donde les llega el fallo.
+    pub senales: carpetas_nucleo::senales::Senales,
+    /// La siguiente senal que abre «Siguiente».
+    pub siguiente: usize,
 }
 
 /// Lo que se combina: el grupo de la Ciudad; si esta vacio, la seleccion del grafo.
@@ -40,7 +44,7 @@ fn elegidos(e: &Estado) -> (Vec<String>, bool) {
 impl Cache {
     pub fn al_dia(&mut self, e: &Estado) {
         let (grupo, del_grafo) = elegidos(e);
-        let clave = (grupo, e.analisis.version, e.par.clone());
+        let clave = (grupo, e.analisis.version, e.par.clone(), e.version_fallos);
         if self.clave.as_ref() == Some(&clave) { return; }
         let t = std::time::Instant::now();
         self.c = combinar(&e.analisis.dep, &clave.0);
@@ -51,6 +55,9 @@ impl Cache {
         let par = e.par.as_ref().filter(|(a, b)| ids.contains(&a) && ids.contains(&b)).cloned()
             .or_else(|| (ids.len() >= 2).then(|| (ids[0].clone(), ids[1].clone())));
         self.camino = par.map(|(a, b)| carpetas_nucleo::camino::camino(&e.analisis.dep, &a, &b));
+        let ids: Vec<String> = self.c.miembros.iter().map(|m| m.id.clone()).chain(self.c.sin_datos.iter().cloned()).collect();
+        self.senales = carpetas_nucleo::senales::senales(e, &ids);
+        if self.siguiente >= self.senales.lista.len() { self.siguiente = 0; }
         self.clave = Some(clave);
         self.micros = t.elapsed().as_micros() as u64;
     }
@@ -122,6 +129,22 @@ impl App {
             ui.label(RichText::new(if n == 0 { "Elige al menos dos para ver como se combinan." } else { "Falta uno mas: Ctrl+clic en otro edificio." }).color(c.tenue));
         }
         // Con dos, el camino lo dice todo; con mas, el anillo y despues el camino.
+        // Llevar el grupo al grafo de nodos, e ir de senal en senal arreglando.
+        let mut siguiente = None;
+        ui.horizontal_wrapped(|ui| {
+            if !k.del_grafo && !e.grupo.is_empty() && ui.button("Ver en el grafo").on_hover_text("Despliega el camino de cada uno en el grafo de nodos, los deja seleccionados y dibuja los cables del grupo").clicked() {
+                acciones.push(Accion::Grupo(AccionGrupo::AlGrafo));
+            }
+            let total = k.senales.lista.len();
+            if total > 0 {
+                let b = egui::Button::new(RichText::new(format!("Siguiente senal ({}/{total})", k.siguiente + 1)).color(Color32::WHITE)).fill(c.error.gamma_multiply(0.55));
+                if ui.add(b).on_hover_text("Abre el editor en la siguiente: primero lo que rompe (compilador y Seguridad), despues Rendimiento y Elegancia").clicked() {
+                    let s = &k.senales.lista[k.siguiente];
+                    acciones.push(Accion::IrALinea { id: s.archivo.clone(), linea: s.linea.max(1) });
+                    siguiente = Some((k.siguiente + 1) % total);
+                }
+            }
+        });
         if n > 2 { self::lienzo(ui, c, k, &mut acciones); }
         let miembros: Vec<String> = cb.miembros.iter().map(|m| m.id.clone()).collect();
         let mut animar = !k.quieto;
@@ -131,6 +154,7 @@ impl App {
         let tope = ui.available_width();
         egui::ScrollArea::vertical().max_width(tope).auto_shrink([false, false]).show(ui, |ui| {
             ui.set_max_width(tope);
+            crate::senales_ui::seccion(ui, c, &k.senales, &mut acciones);
             if let Some(cam) = &k.camino { crate::camino_ui::seccion(ui, c, cam, &miembros, &mut animar, &mut acciones); }
             let fila = |ui: &mut egui::Ui, ruta: &str, detalle: String, col: Color32, acciones: &mut Vec<Accion>| {
                 // Envuelve en vez de ensanchar el panel (si crece, la Ciudad se mueve bajo el raton).
@@ -177,6 +201,7 @@ impl App {
             ui.label(RichText::new("Analisis lexico de #include, use, import y %include: lo que decide el preprocesador no se ve.").color(c.tenue).size(10.5));
         });
         self.combinar.quieto = !animar;
+        if let Some(i) = siguiente { self.combinar.siguiente = i; }
         for a in acciones { self.despachar(a); }
     }
 }

@@ -362,7 +362,9 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
     if let Some(cam) = camino { anclas.camino = buscar(&v3.ciudad, &cam.nodos.iter().map(String::as_str).collect::<Vec<_>>()); }
     if grupo {
         let (a, v) = (c.acento, c.verde);
-        for (i, col) in anclas.miembros.iter().map(|x| (x, [255, 255, 255]))
+        // Los del grupo en blanco; los que tienen algo de Seguridad, en rojo neon.
+        let rojo = [c.error.r(), c.error.g(), c.error.b()];
+        for (i, col) in anclas.miembros.iter().enumerate().map(|(m, x)| (x, if k.ejes.get(m).is_some_and(|e| e[0] > 0) { rojo } else { [255, 255, 255] }))
             .chain(anclas.comparten.iter().map(|x| (x, [a.r(), a.g(), a.b()])))
             .chain(anclas.juntan.iter().map(|x| (x, [v.r(), v.g(), v.b()]))) {
             if let Some(Ancla::Edificio(j)) = i { resaltar(&v3.ciudad.edificios[*j], col); }

@@ -136,6 +136,9 @@ pub enum AccionGrupo {
     Extremos(String, String),
     /// Cambiar A por B.
     Invertir,
+    /// Ver el grupo en el grafo de nodos: se despliega el camino de cada uno y quedan
+    /// todos seleccionados, con sus cables.
+    AlGrafo,
 }
 
 /// La historia de git de la carpeta abierta.
@@ -292,6 +295,10 @@ pub struct Estado {
     pub grupo: Vec<String>,
     /// Extremos elegidos para el camino (None: los dos primeros del grupo).
     pub par: Option<(String, String)>,
+    /// Lo que falta por revelar de un grupo (uno detras de otro, sumando a la seleccion).
+    pub por_revelar: Vec<String>,
+    /// Revelando un grupo: cada revelado se suma a la seleccion.
+    pub revelar_suma: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -311,7 +318,7 @@ impl Default for Estado {
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
                  ciudad: DatosCiudad::default(), historia: EstadoHistoria::default(),
                  analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0,
-                 casm: EstadoCasm::default(), filtro_eje: None, grupo: Vec::new(), par: None }
+                 casm: EstadoCasm::default(), filtro_eje: None, grupo: Vec::new(), par: None, por_revelar: Vec::new(), revelar_suma: false }
     }
 }
 
@@ -386,6 +393,21 @@ impl Estado {
         let (min, max) = limites(self);
         let (w, h) = ((max[0] - min[0]).max(1.0), (max[1] - min[1]).max(1.0));
         let zoom = ((self.lienzo[0] - 80.0) / w).min((self.lienzo[1] - 80.0) / h).clamp(0.2, 1.5);
+        self.camara = Camara { zoom, x: min[0] - (self.lienzo[0] / zoom - w) / 2.0, y: min[1] - (self.lienzo[1] / zoom - h) / 2.0 };
+    }
+
+    /// Encuadra solo lo seleccionado (si no hay nada, todo).
+    fn encuadrar_seleccion(&mut self) {
+        let pos = acomodar(self);
+        let mut puntos = self.seleccion.iter().filter_map(|id| pos.get(id));
+        let Some(p0) = puntos.next() else { return self.encuadrar() };
+        let (mut min, mut max) = (*p0, [p0[0] + NODO[0], p0[1] + NODO[1]]);
+        for p in puntos {
+            min = [min[0].min(p[0]), min[1].min(p[1])];
+            max = [max[0].max(p[0] + NODO[0]), max[1].max(p[1] + NODO[1])];
+        }
+        let (w, h) = ((max[0] - min[0]).max(1.0), (max[1] - min[1]).max(1.0));
+        let zoom = ((self.lienzo[0] - 160.0) / w).min((self.lienzo[1] - 160.0) / h).clamp(0.2, 1.2);
         self.camara = Camara { zoom, x: min[0] - (self.lienzo[0] / zoom - w) / 2.0, y: min[1] - (self.lienzo[1] / zoom - h) / 2.0 };
     }
 
@@ -580,9 +602,26 @@ impl Estado {
         self.camara = Camara { zoom: z, x: p[0] + NODO[0] / 2.0 - self.lienzo[0] / 2.0 / z, y: p[1] + NODO[1] / 2.0 - self.lienzo[1] / 2.0 / z };
     }
 
+    /// Revela lo pedido; si es un grupo, sigue con el siguiente cuando termina cada uno.
+    fn avanzar_revelar(&mut self) -> Vec<Efecto> {
+        let mut efectos = self.avanzar_revelar_uno();
+        while self.revelar.is_none() && self.revelar_suma {
+            match self.por_revelar.pop() {
+                Some(id) => { self.revelar = Some(Revelar::a(&id)); efectos.extend(self.avanzar_revelar_uno()); }
+                None => {
+                    // Terminado: el grafo encuadra lo seleccionado (no todo el arbol desplegado).
+                    self.revelar_suma = false;
+                    if self.en_grafo() { self.encuadrar_seleccion(); }
+                    self.aviso = Some(alloc::format!("grupo en el grafo: {} seleccionados", self.seleccion.len()));
+                }
+            }
+        }
+        efectos
+    }
+
     /// Sigue abriendo el camino hacia lo que se revela; cada carpeta que falta se pide al
     /// disco y se continua cuando llega su contenido.
-    fn avanzar_revelar(&mut self) -> Vec<Efecto> {
+    fn avanzar_revelar_uno(&mut self) -> Vec<Efecto> {
         let Some(Revelar { id, editor, linea, rango, enfocar }) = self.revelar.clone() else { return vec![] };
         let tramos: Vec<&str> = id.split('/').collect();
         // Las carpetas de encima (y la propia si hay que enfocarla).
@@ -620,7 +659,7 @@ impl Estado {
         // Si quedo fuera de la carpeta enfocada, se quita el foco para poder verlo.
         let raiz = raiz_vista(self).to_string();
         if !raiz.is_empty() && !id.starts_with(&(raiz + "/")) { self.disp.foco.clear(); }
-        self.seleccion = [id.clone()].into();
+        if self.revelar_suma { self.seleccion.insert(id.clone()); } else { self.seleccion = [id.clone()].into(); }
         self.revelado = (id.clone(), self.revelado.1 + 1);
         self.version_contenido = self.version_contenido.wrapping_add(1);
         if self.en_grafo() { self.centrar(&id); }
@@ -827,7 +866,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                        | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. } | Accion::IrA(_)
                        | Accion::ResultadosIrA { .. } | Accion::Indice(_) | Accion::Lateral(_) | Accion::ResultadosProyecto { .. }
                        | Accion::DatosCiudad { .. } | Accion::LineasListas { .. } | Accion::Historia { .. }
-                       | Accion::Taller(_) | Accion::MapaCasm { .. } | Accion::Grupo(_)
+                       | Accion::Taller(_) | Accion::MapaCasm { .. }
                        | Accion::Proyecto(AccionProyecto::Patron(_) | AccionProyecto::Mayusculas | AccionProyecto::Palabra
                                           | AccionProyecto::Filtro(_) | AccionProyecto::Lanzar | AccionProyecto::Limpiar | AccionProyecto::Plegar(_))) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
@@ -1070,7 +1109,9 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         Accion::Lateral(l) => { e.lateral = l; if !e.ajustes.explorador { e.ajustes.explorador = true; } vec![] }
         Accion::Grupo(a) => {
             let antes = e.grupo.len();
+            let al_grafo = a == AccionGrupo::AlGrafo;
             match a {
+                AccionGrupo::AlGrafo => {}
                 AccionGrupo::Alternar(id) => match e.grupo.iter().position(|x| *x == id) {
                     Some(i) => { e.grupo.remove(i); }
                     None => e.grupo.push(id),
@@ -1088,6 +1129,18 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             e.grupo.truncate(crate::combinar::MAX_GRUPO);
             // Al juntar el segundo, se abre el panel Combinar (despues manda quien lo usa).
             if antes < 2 && e.grupo.len() >= 2 { e.lateral = Lateral::Combinar; e.ajustes.explorador = true; }
+            if al_grafo && !e.grupo.is_empty() {
+                let mut ef = Vec::new();
+                if !e.en_grafo() { e.ajustes.modo = Modo::Grafo; ef.push(e.guardar_ajustes()); }
+                e.seleccion.clear();
+                // Fuera del foco no se verian: se quita el foco.
+                e.disp.foco.clear();
+                e.por_revelar = e.grupo.iter().rev().cloned().collect();
+                e.revelar_suma = true;
+                e.revelar = None;
+                ef.extend(e.avanzar_revelar());
+                return ef;
+            }
             vec![]
         }
     }

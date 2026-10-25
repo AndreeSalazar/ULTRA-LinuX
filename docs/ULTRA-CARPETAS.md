@@ -726,6 +726,54 @@ resueltos como en la aplicación:
 - En este repositorio salen los ciclos de los casos de prueba (`tests/datos/ciclos/`):
   `CASOS-MUSEO.txt` aparta las sospechas de las fichas, pero todavía no los ciclos.
 
+### Del grupo a los nodos y al editor: lo que señalan, cómo arreglarlo y por dónde llega
+
+Con un grupo elegido en la Ciudad (Ctrl+clic, Shift+arrastrar o Ctrl+P y Alt+Enter), el
+panel Combinar sirve para **arreglar** y para **aprender**:
+
+- **Lo que señalan:** todas las sospechas del museo y los errores del compilador de los
+  archivos del grupo (de una carpeta, lo de dentro). Van **en el orden para arreglar**:
+  1. errores del compilador;
+  2. Seguridad exacta;
+  3. Seguridad a revisar;
+  4. avisos;
+  5. Rendimiento;
+  6. Elegancia.
+
+  Cada una lleva su ficha y «qué enseña y cómo se arregla»: la regla, el control válido,
+  el límite y la referencia. Clic: el editor se abre en esa línea.
+- **Siguiente señal (n/total):** abre el editor en la siguiente, de la primera a la
+  última, para ir arreglando una a una.
+- **Por dónde le llega:** a un archivo que no falla pero se puede romper (o que falla
+  por otro) se le enseña la cadena de `#include` hasta la causa probable, cada paso con
+  su línea. Por ejemplo, `time.h:78 › clamped_math.h:11 › safe_conversions.h:15 ›
+  safe_conversions_impl.h`.
+- **Ver en el grafo:** pasa al grafo de nodos y despliega el camino de cada archivo del
+  grupo, uno detrás de otro (pidiendo al disco las carpetas que falten). Los deja todos
+  seleccionados, dibuja los **cables del grupo** en el acento (quién usa a quién) y
+  encuadra solo lo seleccionado.
+- **En la Ciudad:** los del grupo con algo de Seguridad se resaltan en rojo neón; el
+  resto, en blanco.
+
+![Lo que señalan 4 archivos de Chromium: 8 señales, 5 de Seguridad; time.h no falla pero le llega el fallo por time.h:78 › clamped_math.h:11 › safe_conversions.h:15; en la Ciudad, los que fallan en rojo](maquetas/png/neon/carpetas-senales.png)
+![Siguiente señal: el editor se abre en safe_conversions_impl.h:91, *(volatile char*)0 = 0](maquetas/png/neon/carpetas-senales-editor.png)
+![Ver en el grafo: los 4 seleccionados, sus carpetas desplegadas y la cámara encuadrada en ellos](maquetas/png/neon/carpetas-grupo-grafo.png)
+
+**Comprobado:**
+
+- `tests/senales.rs`: el orden (Seguridad antes que Elegancia), el papel de cada uno y la
+  cadena hasta la causa con sus líneas.
+- `tests/proyecto.rs`: desde la Ciudad, «Ver en el grafo» con tres archivos en carpetas
+  sin desplegar. Pide las carpetas al disco, selecciona a los tres y dibuja dos cables del
+  grupo.
+
+**Límites:**
+
+- Como mucho 400 señales por grupo (se dice cuántas hay) y 40 en la lista; «Siguiente»
+  recorre las 400.
+- En el grafo siguen los cables rojos del fallo conectado; con **A** se aísla.
+- Aislar todavía toma un solo nodo, no el grupo entero.
+
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**

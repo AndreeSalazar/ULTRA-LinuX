@@ -44,6 +44,7 @@ pub mod museo;
 pub mod organizar;
 pub mod procesos;
 pub mod proyecto;
+pub mod senales;
 pub mod tema;
 pub mod tipos;
 pub mod vista;

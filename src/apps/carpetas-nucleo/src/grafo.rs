@@ -323,6 +323,7 @@ pub fn nodos_y_cables(e: &Estado, tema: &crate::tema::Tema) -> (Vec<NodoGrafo>, 
         cables.push(Cable { desde, hasta, color: n.color, clase: ClaseCable::Arbol, vuelta: false });
     }
     conectar_nodos(e, tema, &lista, &mut nodos, &mut cables);
+    cables_del_grupo(e, tema, &lista, &nodos, &mut cables);
     // Filtro del triangulo: lo que no tiene nada de ese eje pasa a segundo plano.
     if let Some(f) = e.filtro_eje {
         for n in nodos.iter_mut() { if !n.raiz && n.marcas.ejes[f.indice()] == 0 { n.atenuado = true; } }
@@ -334,30 +335,71 @@ pub const MAX_CABLES_FALLO: usize = 1500;
 
 /// SUPER GRAFO: lleva la conexion (archivo -> papel) a los nodos que se ven. Un archivo
 /// que no se ve cuenta en su grupo cerrado o en la carpeta visible mas cercana.
+/// En que nodo visible cae un archivo: el suyo, su grupo cerrado o la carpeta de encima.
+struct Ubicador<'a> { visibles: BTreeMap<&'a str, usize>, miembro: BTreeMap<String, usize>, raiz: &'a str }
+
+impl<'a> Ubicador<'a> {
+    fn nuevo(e: &Estado, lista: &'a [Visible]) -> Self {
+        let visibles: BTreeMap<&str, usize> = lista.iter().enumerate().map(|(i, v)| (v.id.as_str(), i)).collect();
+        // Miembros de grupos cerrados -> el grupo.
+        let mut miembro: BTreeMap<String, usize> = BTreeMap::new();
+        for (i, v) in lista.iter().enumerate() {
+            if let Cosa::Grupo(g) = &v.cosa {
+                if !e.expandidas.contains(&v.id) { for m in &g.miembros { miembro.insert(hijo(&v.carpeta, &m.nombre), i); } }
+            }
+        }
+        Ubicador { visibles, miembro, raiz: lista[0].id.as_str() }
+    }
+    fn de(&self, archivo: &str) -> Option<usize> {
+        let raiz = self.raiz;
+        if !raiz.is_empty() && !(archivo.starts_with(raiz) && archivo.as_bytes().get(raiz.len()) == Some(&b'/')) { return None; }
+        if let Some(i) = self.visibles.get(archivo) { return Some(*i); }
+        if let Some(i) = self.miembro.get(archivo) { return Some(*i); }
+        let mut p = archivo;
+        while let Some((d, _)) = p.rsplit_once('/') {
+            if let Some(i) = self.visibles.get(d).or_else(|| self.miembro.get(d)) { return Some(*i); }
+            p = d;
+        }
+        self.visibles.get("").copied()
+    }
+}
+
+/// Un cable de nodo a nodo segun la direccion del grafo (arco por fuera si va hacia atras).
+fn cable(e: &Estado, nodos: &[NodoGrafo], desde: usize, hasta: usize, color: Rgb, clase: ClaseCable) -> Cable {
+    let (p, q) = (nodos[desde].pos, nodos[hasta].pos);
+    let (d, h, vuelta) = match e.ajustes.direccion {
+        Direccion::Blender if q[0] < p[0] + NODO[0] + 30.0 => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0] + NODO[0], q[1] + NODO[1] / 2.0], true),
+        Direccion::Blender => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0], q[1] + NODO[1] / 2.0], false),
+        Direccion::Houdini if q[1] < p[1] + NODO[1] + 30.0 => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1] + NODO[1]], true),
+        Direccion::Houdini => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1]], false),
+    };
+    Cable { desde: d, hasta: h, color, clase, vuelta }
+}
+
+/// Seleccion grupal (Combinar): cables del acento entre los del grupo que se usan (de lo
+/// usado a quien lo usa), visibles en el grafo aunque esten lejos en el arbol.
+fn cables_del_grupo(e: &Estado, tema: &crate::tema::Tema, lista: &[Visible], nodos: &[NodoGrafo], cables: &mut Vec<Cable>) {
+    if e.grupo.len() < 2 || lista.is_empty() { return; }
+    let u = Ubicador::nuevo(e, lista);
+    let dep = &e.analisis.dep;
+    let en_grupo: alloc::collections::BTreeSet<&str> = e.grupo.iter().map(String::as_str).collect();
+    let mut hechos: alloc::collections::BTreeSet<(usize, usize)> = alloc::collections::BTreeSet::new();
+    for a in &e.grupo {
+        for b in dep.usa(a) {
+            if !en_grupo.contains(b) { continue; }
+            let (Some(desde), Some(hasta)) = (u.de(b), u.de(a)) else { continue };
+            if desde == hasta || !hechos.insert((desde, hasta)) { continue; }
+            cables.push(cable(e, nodos, desde, hasta, tema.acento, ClaseCable::Dependencia));
+        }
+    }
+}
+
 fn conectar_nodos(e: &Estado, tema: &crate::tema::Tema, lista: &[Visible], nodos: &mut [NodoGrafo], cables: &mut Vec<Cable>) {
     use crate::analisis::Modo as M;
     let c = &e.conectado;
     if c.modo == M::Ninguno { return; }
-    let visibles: BTreeMap<&str, usize> = lista.iter().enumerate().map(|(i, v)| (v.id.as_str(), i)).collect();
-    // Miembros de grupos cerrados -> el grupo.
-    let mut miembro: BTreeMap<String, usize> = BTreeMap::new();
-    for (i, v) in lista.iter().enumerate() {
-        if let Cosa::Grupo(g) = &v.cosa {
-            if !e.expandidas.contains(&v.id) { for m in &g.miembros { miembro.insert(hijo(&v.carpeta, &m.nombre), i); } }
-        }
-    }
-    let raiz = lista[0].id.as_str();
-    let de = |archivo: &str| -> Option<usize> {
-        if !raiz.is_empty() && !(archivo.starts_with(raiz) && archivo.as_bytes().get(raiz.len()) == Some(&b'/')) { return None; }
-        if let Some(i) = visibles.get(archivo) { return Some(*i); }
-        if let Some(i) = miembro.get(archivo) { return Some(*i); }
-        let mut p = archivo;
-        while let Some((d, _)) = p.rsplit_once('/') {
-            if let Some(i) = visibles.get(d).or_else(|| miembro.get(d)) { return Some(*i); }
-            p = d;
-        }
-        visibles.get("").copied()
-    };
+    let u = Ubicador::nuevo(e, lista);
+    let de = |archivo: &str| u.de(archivo);
     let mut roles: Vec<Option<Rol>> = alloc::vec![None; nodos.len()];
     for (archivo, rol) in &c.conexion.roles {
         if let Some(i) = de(archivo) { if roles[i].is_none_or(|r| *rol > r) { roles[i] = Some(*rol); } }
@@ -376,15 +418,7 @@ fn conectar_nodos(e: &Estado, tema: &crate::tema::Tema, lista: &[Visible], nodos
         let (Some(desde), Some(hasta)) = (de(b), de(a)) else { continue };
         if desde == hasta || !hechos.insert((desde, hasta)) { continue; }
         if hechos.len() > MAX_CABLES_FALLO { break; }
-        let (p, q) = (nodos[desde].pos, nodos[hasta].pos);
-        // Si el destino no queda despues del origen (misma columna o detras), arco por fuera.
-        let (d, h, vuelta) = match e.ajustes.direccion {
-            Direccion::Blender if q[0] < p[0] + NODO[0] + 30.0 => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0] + NODO[0], q[1] + NODO[1] / 2.0], true),
-            Direccion::Blender => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0], q[1] + NODO[1] / 2.0], false),
-            Direccion::Houdini if q[1] < p[1] + NODO[1] + 30.0 => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1] + NODO[1]], true),
-            Direccion::Houdini => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1]], false),
-        };
-        cables.push(Cable { desde: d, hasta: h, color, clase, vuelta });
+        cables.push(cable(e, nodos, desde, hasta, color, clase));
     }
 }
 
