@@ -1,0 +1,9 @@
+{
+  "profile": "pc",
+  "filesystem": "FAT32",
+  "system_sha256": "1095f89f476e1bf40351afa0af9395fed2deb46627b17398e3df3f5a6c3dd998",
+  "kernel_sha256": "e2242e375f3f508c535f18cf684a573d1d5664350a6199742ee9f0ab1891c8f7",
+  "data_sha256": "e1b2c51b31cd2482f1764b198cbcff2da13cdf4b6259776d8e3d1f1b7c1c6122",
+  "data_preserved": true,
+  "kernel_unchanged": true
+}

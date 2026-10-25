@@ -883,7 +883,7 @@ def import_gog():
         raise ValueError('Elige primero la carpeta GOG en Discos y bibliotecas y vuelve a entrar al escritorio.')
     rows = [('Cyberpunk 2077 / GOG / disco Personal', 'cyberpunk-gog')] if ready else []
     rows.extend((r['relative'], r) for r in active)
-    item = choose('Carpeta para importar en Heroic', rows)
+    item = choose('Carpeta para importar en Heronite', rows)
     if item is None:
         return
     if item == 'cyberpunk-gog':
@@ -895,8 +895,8 @@ def import_gog():
     # Heroic owns its import format/account catalogue; do not invent installs.
     subprocess.Popen(['thunar', str(expected)])
     subprocess.run(['notify-send', 'GOG / importar archivos existentes',
-                    'En Heroic: selecciona el juego de tu cuenta > Importar juego. Usa la carpeta abierta: '+str(expected)], check=False)
-    subprocess.Popen(['/usr/local/bin/ultra-hud', 'ejecutar', '/opt/heroic/heroic', '--ozone-platform=wayland'],
+                    'En Heronite: selecciona el juego de tu cuenta e importa la carpeta abierta: '+str(expected)], check=False)
+    subprocess.Popen(['/usr/local/bin/ultra-heronite', 'biblioteca'],
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 

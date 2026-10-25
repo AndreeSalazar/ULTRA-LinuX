@@ -1,0 +1,4 @@
+version=0.15.0
+url=https://github.com/RafaelGoulartB/Heronite/releases/download/v0.15.0/heronite-0.15.0-1-x86_64.pkg.tar.zst
+sha256=512b515a0af6c5eb9243096835672aef0f9defb010a2c5772d1c11f6ac64d657
+source_commit=ed27c7d181befb55cf122332f25145bf515025ba

@@ -16,7 +16,7 @@ export CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-2}
 sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q nvidia-utils lib32-nvidia-utils > "$art/main-nvidia-antes.txt" 2>/dev/null || [[ $perfil != pc ]]
 # Los proyectos C/C++ necesitan las cabeceras que la imagen reducida omitía.
 sed 's@usr/include/\*@@g' "$art/pacman-sistema.conf" > "$art/pacman-main.conf"
-runtime=(rustup gcc git pkgconf gtk3 gtk-layer-shell libdbusmenu-gtk3 python-pillow vulkan-swrast perf)
+runtime=(rustup gcc git pkgconf gtk3 gtk-layer-shell libdbusmenu-gtk3 python-pillow vulkan-swrast perf webkit2gtk-4.1 libxkbcommon-x11)
 sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \
     -S --needed --noconfirm --ignore nvidia-utils,lib32-nvidia-utils "${runtime[@]}" > "$art/main-runtime.log" 2>&1
 sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \
@@ -39,6 +39,7 @@ echo "VERDE [MAIN]: dependencias y fondo $motor"
 bash "$lab/instalar-eww.sh" "$stage" "$art" "$base"
 [[ -x $stage/usr/local/bin/eww ]] || { echo 'ROJO: eww no construido'; exit 1; }
 bash "$lab/instalar-carpetas.sh" "$stage" "$art" "$base"
+bash "$lab/instalar-heronite.sh" "$stage" "$art" "$base"
 [[ -x $stage/usr/local/bin/ultra-carpetas ]] || { echo 'ROJO: ULTRA Carpetas no construido'; exit 1; }
 sudo install -d "$stage/etc/ultra" "$stage/usr/share/applications"
 find "$lab/rootfs/desktop" -maxdepth 1 -type f -exec sudo install -m 0644 -t "$stage/etc/ultra" {} +
@@ -49,7 +50,7 @@ for source in "$lab/rootfs/bin/"*; do
         [[ ! -f $stage/$directory/$name ]] || sudo install -m 0755 "$source" "$stage/$directory/$name"
     done
 done
-for helper in ultra-fondo-vivo ultra-tarjetas; do
+for helper in ultra-fondo-vivo ultra-tarjetas ultra-heronite; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$stage/usr/local/bin/$helper"
 done
 sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$stage/usr/local/bin/ultra-energia"
@@ -65,7 +66,7 @@ sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q > "$art/sistema-
 sudo install -m 0644 "$art/sistema-paquetes.txt" "$stage/etc/ultra/sistema-paquetes.txt"
 sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q nvidia-utils lib32-nvidia-utils > "$art/main-nvidia-despues.txt" 2>/dev/null || [[ $perfil != pc ]]
 cmp "$art/main-nvidia-antes.txt" "$art/main-nvidia-despues.txt"
-for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarjetas probar_registro_steam probar_lanzador_cyberpunk; do
+for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarjetas probar_registro_steam probar_lanzador_cyberpunk probar_heronite probar_gog_cyberpunk probar_descubrimiento_juegos probar_juegos_vivo probar_hud_lanzador; do
     # Los bancos buscan src/rootfs; el taller usa lab/rootfs para empaquetar.
     [[ -d $base/src/rootfs ]] || ln -s ../lab/rootfs "$base/src/rootfs"
     [[ $(readlink -f "$base/src/rootfs") == "$lab/rootfs" ]] || { echo 'ROJO: banco apunta a otras fuentes rootfs'; exit 1; }
@@ -73,7 +74,7 @@ for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarje
 done
 python "$lab/probar_energia_cpu.py" > "$art/main-probar_energia_cpu.log" 2>&1
 { find "$lab/rootfs" "$base/src/apps" -type f ! -path '*/target/*' ! -path '*/__pycache__/*' -print0 | sort -z | xargs -0 sha256sum;
-  sha256sum "$lab/actualizar-main.sh" "$lab/instalar-eww.sh" "$lab/instalar-carpetas.sh"; } > "$art/main-integracion-fuentes.sha256"
+  sha256sum "$lab/actualizar-main.sh" "$lab/instalar-eww.sh" "$lab/instalar-carpetas.sh" "$lab/instalar-heronite.sh"; } > "$art/main-integracion-fuentes.sha256"
 sudo install -m 0644 "$art/main-integracion-fuentes.sha256" "$stage/etc/ultra/main-integracion-fuentes.sha256"
 echo 'VERDE [MAIN]: aplicaciones, pruebas y fuentes listas; empaquetando'
 bash "$lab/actualizar-almacen-nativo.sh" "$perfil" "$revision"

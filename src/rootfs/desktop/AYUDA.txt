@@ -32,7 +32,7 @@ SUPER + Ctrl + F11  Panel de diagnostico Warframe
 SUPER + Shift + F11 Marcar el momento del tiron en la captura
 Shift derecho+F12   Mostrar/ocultar MangoHud dentro de juegos compatibles
 Shift izquierdo+F2  Grabar FPS/frametime a CSV local (hasta 10 min)
-SUPER + J           Juegos: Steam, GOG/Heroic, Cyberpunk y espacio disponible
+SUPER + J           Juegos: Heronite (Steam/GOG), Cyberpunk y espacio disponible
 Teclas multimedia   Volumen maestro +/- y silencio
 SUPER + Q           Cerrar la ventana activa
 SUPER + V           Alternar ventana flotante
@@ -70,7 +70,7 @@ para ver y cerrar lo que mas consume.
 Pulsa Q para cerrar esta ayuda. Cerrar una terminal no cierra el escritorio.
 
 Si D: y ULTRA-juegos.ext4 estan disponibles, el home es persistente en ext4.
-Steam, Heroic, Proton, configuracion y partidas se guardan alli.
+Steam, Heronite, Proton, configuracion y partidas se guardan alli.
 El juego de D: se lee como base; las escrituras van a una capa ext4 separada.
 Sin ese almacenamiento la sesion usa un home temporal en RAM. No guardes aqui archivos
 que necesites conservar tras apagar. No se han migrado datos personales.

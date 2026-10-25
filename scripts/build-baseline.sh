@@ -239,7 +239,7 @@ if [[ -n $cmdline ]]; then
         # Fondo vivo: Pillow genera el bucle en el home; rsvg-convert (librsvg) pasa el SVG a imagen.
         python-pillow
         # Tarjetas eww: bibliotecas de ejecucion (eww se compila en instalar-eww.sh).
-        gtk3 gtk-layer-shell libdbusmenu-gtk3)
+        gtk3 gtk-layer-shell libdbusmenu-gtk3 webkit2gtk-4.1 libxkbcommon-x11)
     # W3a, pc profile only: NVIDIA's userspace and the GPU firmware, the same version as the
     # nvidia-open module built above. The generic image stays without it: the safety net.
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
@@ -257,6 +257,7 @@ if [[ -n $cmdline ]]; then
     sudo pacman --root "$sistema" --dbpath "$sistema/var/lib/pacman" -Q > "$art/sistema-paquetes.txt"
     bash "$lab/instalar-brave.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-heroic.sh" "$sistema" "$art" "$base"
+    bash "$lab/instalar-heronite.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-eww.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-carpetas.sh" "$sistema" "$art" "$base"
     # Fixed session identity; render nodes only. KMS/input go through root seatd.
@@ -292,7 +293,7 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
-    for helper in ultra-audio ultra-juegos ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in ultra-audio ultra-juegos ultra-heronite ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$sistema/usr/local/bin/ultra-energia"
     for helper in ultra-cpu-control ultra_termica.py; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"

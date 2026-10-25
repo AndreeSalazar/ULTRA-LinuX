@@ -1,0 +1,10 @@
+test_gog_registered_and_discovered_are_distinct (__main__.Live.test_gog_registered_and_discovered_are_distinct) ... ok
+test_identity_allowlist (__main__.Live.test_identity_allowlist) ... ok
+test_rates_memory_and_pid_reuse_not_fps_guesses (__main__.Live.test_rates_memory_and_pid_reuse_not_fps_guesses) ... ok
+test_registration_fingerprint_changes_with_manifests (__main__.Live.test_registration_fingerprint_changes_with_manifests) ... ok
+test_steam_install_update_remove_live (__main__.Live.test_steam_install_update_remove_live) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.007s
+
+OK

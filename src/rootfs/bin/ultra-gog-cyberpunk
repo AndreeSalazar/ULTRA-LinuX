@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # SPDX-License-Identifier: GPL-2.0-only
-"""Import the verified, already mounted GOG Cyberpunk files into Heroic 2.22.4.
+"""Register verified GOG Cyberpunk files in Heronite 0.15.0 (legacy Heroic fallback).
 
 Offline installed-game metadata only. No credentials, catalogue ownership,
 downloads, game files, prefixes or saves are changed.
@@ -18,6 +18,7 @@ HOME = Path('/juegos/usuarios/ultra')
 GAME = Path('/juegos/Cyberpunk2077')
 APP = '1423049311'
 VERSION = Path('/etc/ultra/heroic-version')
+HERONITE_VERSION = Path('/etc/ultra/heronite-version')
 LIMIT = 2*1024*1024
 
 
@@ -71,7 +72,7 @@ def heroic_running():
         if index >= 8192:
             raise ValueError('demasiados procesos para comprobar Heroic')
         try:
-            if proc.stat().st_uid == 1000 and (proc/'exe').resolve() == Path('/opt/heroic/heroic'):
+            if proc.stat().st_uid == 1000 and (proc/'exe').resolve() in (Path('/opt/heroic/heroic'), Path('/usr/bin/heronite-rs')):
                 return True
         except (OSError, RuntimeError):
             continue
@@ -93,7 +94,7 @@ def atomic(path, value):
 
 def register():
     metadata = game_metadata()
-    store = HOME/'.config/heroic/gog_store'
+    store = HOME/('.local/share/heronite/gog_store' if HERONITE_VERSION.exists() else '.config/heroic/gog_store')
     store.mkdir(parents=True, exist_ok=True, mode=0o700)
     if store.resolve() != store:
         raise ValueError('configuracion Heroic redirigida')
@@ -124,7 +125,12 @@ def register():
 def main():
     if os.geteuid() != 1000 or Path(os.environ.get('HOME', '')) != HOME:
         raise ValueError('se requiere el usuario del escritorio con home persistente')
-    if VERSION.read_text().strip() != '2.22.4':
+    if HERONITE_VERSION.exists():
+        if HERONITE_VERSION.read_text().strip() != '0.15.0':
+            raise ValueError('version Heronite no compatible; usar su importador')
+        if not (HOME/'.local/share/heronite').is_dir():
+            raise ValueError('primero completar la migracion nativa de Heronite')
+    elif VERSION.read_text().strip() != '2.22.4':
         raise ValueError('version Heroic no compatible; usar su importador')
     for path, kind in ((HOME.parents[1], 'ext4'), (GAME, 'overlay')):
         result = subprocess.run(['/usr/bin/findmnt', '-n', '-o', 'FSTYPE', '--mountpoint', str(path)],

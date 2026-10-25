@@ -2,6 +2,10 @@
 
 Investigacion: 25 de octubre de 2026. No equivale a una instalacion en A:.
 
+Decision posterior del usuario: reemplazar Heroic. La integracion de **0.15.0**
+se documenta en [Heronite como gestor principal](HERONITE-MIGRACION-2026-10-25.md).
+Este documento conserva la investigacion inicial, anterior a esa decision.
+
 ## Resultado
 
 Heronite merece una prueba paralela; no sustituir Heroic ni sus configuraciones

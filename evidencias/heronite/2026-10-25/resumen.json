@@ -1,0 +1,8 @@
+{
+  "version": "0.15.0",
+  "qemu_checks": 180,
+  "system_bytes": 1919361024,
+  "physical_game_validation_pending": true,
+  "real_account_migration": "first user launch, native migration preserves original",
+  "ram_or_watt_savings_measured_on_rtx": false
+}

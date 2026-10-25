@@ -1,0 +1,9 @@
+test_bad_config_preserved (__main__.Prepare.test_bad_config_preserved) ... ok
+test_no_write_when_config_is_current (__main__.Prepare.test_no_write_when_config_is_current) ... ok
+test_only_obsolete_bundled_tools_are_changed_not_prefix_or_custom_runner (__main__.Prepare.test_only_obsolete_bundled_tools_are_changed_not_prefix_or_custom_runner) ... ok
+test_symlink_data_rejected_before_native_migration (__main__.Prepare.test_symlink_data_rejected_before_native_migration) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+OK

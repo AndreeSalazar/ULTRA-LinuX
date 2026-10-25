@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=GOG - Heroic
-Comment=GOG, Epic y Amazon con Heroic
+Name=Heronite
+Comment=Biblioteca unificada con Heronite
 Exec=/usr/local/bin/ultra-juegos gog
-Icon=heroic
+Icon=com.heronite.rs
 Terminal=false
 Categories=Game;

@@ -8,7 +8,7 @@ import sys
 import time
 
 HOME=Path(os.environ['HOME'])
-LOGS={'juegos-vivo.log','steam.log','heroic.log','cyberpunk.log','brave.log',
+LOGS={'juegos-vivo.log','steam.log','heroic.log','heronite.log','cyberpunk.log','brave.log',
       'pipewire.log','pipewire-pulse.log','wireplumber.log','gog-cyberpunk.log'}
 def available():
     s=os.statvfs(HOME);return s.f_bavail*s.f_frsize

@@ -157,10 +157,11 @@ printf 'PSI-CRECIO-%s\n' "$((4+5))"
 if '--gog-cyberpunk' in sys.argv:
     # Disposable ext4 + overlay wholly inside the guest; no host game or account.
     BOOT1 += [
-        ('cat /sistema/etc/ultra/heroic-version', '2.22.4'),
+        ('cat /sistema/etc/ultra/heronite-version; test ! -e /sistema/opt/heroic/heroic && echo SIN-ELECTRON-HEROIC', '0.15.0'),
         ('ultra-entrar /usr/bin/truncate -s 64M /tmp/gog-fixture.ext4; ultra-entrar /usr/bin/mkfs.ext4 -q -F /tmp/gog-fixture.ext4; echo GOG-FS-$?', 'GOG-FS-0'),
         ('ultra-entrar /usr/bin/bash -c \'set -e; umask 022; mkdir -p /juegos; mount -o loop,nosuid,nodev /tmp/gog-fixture.ext4 /juegos; mkdir -p /juegos/usuarios/ultra /juegos/overlay/upper /juegos/overlay/work /juegos/Cyberpunk2077 /tmp/gog-lower/bin/x64; printf MZ-fixture > /tmp/gog-lower/bin/x64/Cyberpunk2077.exe; chown -R 1000:1000 /juegos/usuarios; echo GOG-FIXTURE-$((6*7))\'', 'GOG-FIXTURE-42'),
         ('ultra-entrar /usr/bin/bash -c '+shlex.quote('printf \'%s\' \'{"gameId":"1423049311","rootGameId":"1423049311","buildId":"12345","languages":["en-US"]}\' > /tmp/gog-lower/goggame-1423049311.info; chmod 644 /tmp/gog-lower/goggame-1423049311.info; mount -t overlay overlay -o lowerdir=/tmp/gog-lower,upperdir=/juegos/overlay/upper,workdir=/juegos/overlay/work /juegos/Cyberpunk2077; echo GOG-OVERLAY-$?'), 'GOG-OVERLAY-0'),
+        ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/bin/env HOME=/juegos/usuarios/ultra /usr/bin/heronite-rs --help', '--launch'),
         ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/bin/env HOME=/juegos/usuarios/ultra /usr/local/bin/ultra-gog-cyberpunk', 'Cyberpunk GOG registrado'),
         ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/bin/env HOME=/juegos/usuarios/ultra /usr/local/bin/ultra-gog-cyberpunk', 'Cyberpunk GOG ya reconocido'),
         ('ultra-entrar /usr/bin/bash -c \'test ! -e /juegos/usuarios/ultra/.config/heroic/gog_store/auth.json && test ! -e /tmp/gog-lower/.config && echo GOG-SIN-CUENTAS-$((6*7)); umount /juegos/Cyberpunk2077; umount /juegos\'', 'GOG-SIN-CUENTAS-42'),
@@ -1041,6 +1042,27 @@ def check_hyprland(conn, failures):
                 mon.sendall(b'sendkey esc\n'); mon.sendall(b'sendkey meta_l-q\n'); time.sleep(1)
                 expect(not any(a.get('pid') == app['pid'] for a in clients()), 'Carpetas: cierre normal desde el escritorio')
             mon.sendall(b'sendkey meta_l-1\n')
+        if '--heronite' in sys.argv:
+            code = 'hl.exec_cmd("env HOME=/juegos/usuarios/ultra ultra-heronite biblioteca >/tmp/heronite-ui.log 2>&1")'
+            transcript += run(conn, [('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code), 'ok')], failures)
+            opened = wait_apps(lambda apps: any('heronite' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower() for a in apps))
+            expect(bool(opened), 'Heronite: interfaz nativa abre desde el adaptador ULTRA')
+            if opened:
+                app = next(a for a in opened if 'heronite' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower())
+                transcript += run(conn, [('grep -q "heronite-rs,heronite-epic-login" /arch/juegos/usuarios/ultra/.config/ultra/MangoHud.conf && echo HERONITE-HUD-EXCLUIDO', 'HERONITE-HUD-EXCLUIDO')], failures)
+                transcript += run(conn, [(f"grep -Eq '^Uid:[[:space:]]+1000[[:space:]]+1000[[:space:]]+1000[[:space:]]+1000' /proc/{app['pid']}/status && grep -q '^NoNewPrivs:[[:space:]]*1' /proc/{app['pid']}/status && echo HERONITE-USUARIO-SEGURO", 'HERONITE-USUARIO-SEGURO')], failures)
+                time.sleep(3)
+                target = pathlib.Path(tempfile.gettempdir())/'ultra-heronite.png'; target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot: shot.verify()
+                        break
+                    except (OSError, SyntaxError): time.sleep(.1)
+                else: raise ValueError('captura Heronite incompleta')
+                shutil.copyfile(target, LOG.with_name(LOG.stem+'-heronite.png'))
+                transcript += run(conn, [(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo HERONITE-CIERRE-SOLICITADO', 'HERONITE-CIERRE-SOLICITADO')], failures)
+            transcript += run(conn, [('cat /arch/tmp/heronite-ui.log; echo HERONITE-LOG-FIN', 'HERONITE-LOG-FIN')], failures)
         if '--limites' in sys.argv:
             encoded=base64.b64encode((ROOT/'scripts/banco_limites.py').read_bytes()).decode()
             conn.sendall(b': > /arch/tmp/limites.b64; echo LIM-CARGA-$((40+6))\n');transcript+=response('LIM-CARGA-46')

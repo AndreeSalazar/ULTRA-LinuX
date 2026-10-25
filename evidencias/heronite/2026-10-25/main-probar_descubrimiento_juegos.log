@@ -1,0 +1,13 @@
+test_cyberpunk_import_does_not_require_manual_personal_selection (__main__.Discovery.test_cyberpunk_import_does_not_require_manual_personal_selection) ... ok
+test_gog_uses_prepared_folder_without_account_writes (__main__.Discovery.test_gog_uses_prepared_folder_without_account_writes) ... ok
+test_installed_plus_update_flags_registered (__main__.Discovery.test_installed_plus_update_flags_registered) ... ok
+test_no_symbolic_or_deep_search (__main__.Discovery.test_no_symbolic_or_deep_search) ... ok
+test_parent_and_multiple_steam_libraries (__main__.Discovery.test_parent_and_multiple_steam_libraries) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.004s
+
+OK
+STEAM: biblioteca Games/Steam; juegos con manifiesto instalado: 1
+  Test
+STEAM: 1 bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad

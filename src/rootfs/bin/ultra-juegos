@@ -4,10 +4,10 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 action=${1:-menu}
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Steam' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'GOG / Heroic' 'Importar juegos GOG' 'Cyberpunk 2077' 'Cyberpunk / recuperacion y diagnostico' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Warframe / diagnostico' 'Warframe / panel de recursos' 'Warframe / capturas guardadas' |
+    choice=$(printf '%s\n' 'Heronite / Steam y GOG' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'Importar juegos GOG' 'Cyberpunk 2077' 'Cyberpunk / recuperacion y diagnostico' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Warframe / diagnostico' 'Warframe / panel de recursos' 'Warframe / capturas guardadas' |
         fuzzel --dmenu --prompt='Juegos /' --lines=16) || exit 0
     case $choice in
-        Steam) action=steam;; 'GOG / Heroic') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
+        'Heronite / Steam y GOG') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
         'Cyberpunk / recuperacion y diagnostico') action=cyberpunk-directo;;
         'Importar juegos GOG') exec ultra-bibliotecas importar-gog;;
         'Warframe / Steam') action=warframe;;
@@ -68,7 +68,7 @@ if [[ $action == estado ]]; then
 fi
 if [[ $action == registros ]]; then
     printf 'Ultimas lineas de lanzadores. No se exportan sesiones ni cuentas.\n'
-    for name in steam steam-bibliotecas cyberpunk cyberpunk-heroic heroic gog-cyberpunk; do
+    for name in steam steam-bibliotecas cyberpunk cyberpunk-heroic heroic heronite gog-cyberpunk; do
         file=$HOME/.cache/ultra/$name.log
         if [[ -f $file ]]; then printf '\n[%s]\n' "$name"; tail -n 60 -- "$file"; fi
     done
@@ -98,34 +98,25 @@ fi
 case $action in
     steam)
         ultra-espacio permitir-juegos || exit 1
-        exec ultra-hud ejecutar steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
+        exec ultra-heronite biblioteca >> "$HOME/.cache/ultra/heronite.log" 2>&1;;
     warframe)
         ultra-espacio permitir-juegos || exit 1
         if ! ultra-bibliotecas buscar-steam 230410; then
             notify-send 'Warframe: biblioteca no encontrada' 'Selecciona su carpeta Steam desde Discos y carpetas; cierra Steam y vuelve a abrirlo.' || true
             exit 1
         fi
-        exec ultra-hud ejecutar steam steam://rungameid/230410 >> "$HOME/.cache/ultra/steam.log" 2>&1;;
+        exec ultra-heronite warframe >> "$HOME/.cache/ultra/heronite.log" 2>&1;;
     gog)
         ultra-espacio permitir-juegos || exit 1
-        if ! ultra-gog-cyberpunk > "$HOME/.cache/ultra/gog-cyberpunk.log" 2>&1; then
-            notify-send 'GOG / Cyberpunk: revisar importacion' 'Consulta Registros de juegos. Si Heroic estaba abierto, cierralo y abre GOG otra vez.' || true
-        fi
-        exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1;;
+        exec ultra-heronite biblioteca >> "$HOME/.cache/ultra/heronite.log" 2>&1;;
     cyberpunk)
         ultra-espacio permitir-juegos || exit 1
         if [[ ! -r /juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe ]]; then
             notify-send --urgency=critical 'Cyberpunk: falta el montaje' 'El juego no esta accesible en /juegos/Cyberpunk2077. Revisa Estado y espacio; no hace falta instalarlo de nuevo.' || true
             exit 1
         fi
-        # Open the manager first: the user can review updates before pressing Play.
-        # The game's saved runner, prefix and launcher are managed by Heroic.
-        if ! ultra-gog-cyberpunk > "$HOME/.cache/ultra/gog-cyberpunk.log" 2>&1; then
-            notify-send 'Cyberpunk / Heroic' 'No se pudo registrar ahora. Se abre Heroic para revisar el juego; si estaba abierto, cierralo y vuelve a intentarlo.' || true
-            exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/heroic.log" 2>&1
-        fi
-        notify-send 'Cyberpunk / GOG' 'Primero Heroic: selecciona Cyberpunk para actualizar o verificar. Pulsa Jugar para abrir REDlauncher.' || true
-        exec ultra-hud ejecutar /opt/heroic/heroic --ozone-platform=wayland >> "$HOME/.cache/ultra/cyberpunk-heroic.log" 2>&1;;
+        notify-send 'Cyberpunk / GOG' 'Primero Heronite: selecciona Cyberpunk para actualizar o verificar. Pulsa Jugar para abrir REDlauncher.' || true
+        exec ultra-heronite biblioteca >> "$HOME/.cache/ultra/heronite.log" 2>&1;;
     cyberpunk-directo)
         ultra-espacio permitir-juegos || exit 1
         game=/juegos/Cyberpunk2077/bin/x64/Cyberpunk2077.exe
@@ -134,7 +125,7 @@ case $action in
         export WINEPREFIX="$HOME/Juegos/prefijos/cyberpunk2077" GAMEID=umu-0 PROTONPATH=GE-Proton
         export ULTRA_GAME_ID=ultra:cyberpunk2077 ULTRA_GAME_NAME='Cyberpunk 2077'
         export PROTON_LOG=1 PROTON_LOG_DIR="$HOME/.cache/ultra"
-        notify-send 'Cyberpunk / recuperacion' 'Modo UMU separado de Heroic; guarda registro Proton en ~/.cache/ultra. La opcion normal usa tu configuracion de GOG.' || true
+        notify-send 'Cyberpunk / recuperacion' 'Modo UMU separado de Heronite; guarda registro Proton en ~/.cache/ultra. La opcion normal usa tu configuracion de GOG.' || true
         result=0
         ultra-hud opengl umu-run "$game" --launcher-skip >> "$HOME/.cache/ultra/cyberpunk.log" 2>&1 || result=$?
         printf '\nULTRA: UMU termino con codigo %s\n' "$result" >> "$HOME/.cache/ultra/cyberpunk.log"

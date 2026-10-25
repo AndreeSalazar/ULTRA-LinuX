@@ -16,10 +16,21 @@ identificados y suspensión de monitores de fondo durante el juego.
 Instalado en A: (perfil PC) y verificado con 201 comprobaciones QEMU; falta
 medir el ahorro y la temperatura con el Ryzen físico a los mismos FPS.
 
-**En código, pendiente de empaquetar en A:** perfil optativo Ahorro, con fondo
-liso cyan, sin animaciones, desenfoque, dock ni tarjetas. Se selecciona desde
-Personalizar → Perfiles. [Investigación de Heronite y comparación pendiente](docs/HERONITE-Y-ESCRITORIO-AHORRO-2026-10-25.md):
-Heroic sigue siendo el gestor instalado; aún no se ha probado Heronite en ULTRA.
+**Heronite 0.15.0 instalado en A: (perfil PC):** biblioteca principal de Steam y
+GOG; la interfaz Electron de Heroic se retiró de la imagen. Steam se conserva
+como cliente necesario para sus juegos. El primer inicio importa la configuración
+anterior a datos propios, conservando el original, prefijos y partidas.
+MangoHud excluye la interfaz del launcher y sigue disponible para los juegos.
+[Migración y validación](docs/HERONITE-MIGRACION-2026-10-25.md).
+La entrega final pasó 180 comprobaciones de arranque QEMU y bancos de migración;
+falta validar la biblioteca real y medir RAM/vatios con la RTX.
+
+También está incluido el perfil optativo **Ahorro**, con fondo liso cyan, sin
+animaciones, desenfoque, dock ni tarjetas. Se selecciona desde Personalizar → Perfiles.
+
+<p align="center">
+  <img src="evidencias/heronite/2026-10-25/heronite-wayland.png" alt="Heronite real en Wayland, prueba QEMU sin cuentas ni juegos personales y con renderizado software" width="1000">
+</p>
 
 <p align="center">
   <img src="evidencias/main-integrado/2026-10-25/carpetas.png" alt="ULTRA Carpetas real sobre Hyprland, probado en QEMU con carpetas de ejemplo" width="1000">

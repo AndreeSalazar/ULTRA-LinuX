@@ -1,0 +1,15 @@
+test_heronite_uses_separate_store_and_preserves_heroic (__main__.Import.test_heronite_uses_separate_store_and_preserves_heroic) ... ok
+test_idempotent_registration_does_not_rewrite (__main__.Import.test_idempotent_registration_does_not_rewrite) ... ok
+test_malformed_store_untouched (__main__.Import.test_malformed_store_untouched) ... ok
+test_non_pe_stub_rejected (__main__.Import.test_non_pe_stub_rejected) ... ok
+test_repair_windows_path_and_preserve_other_entries_settings (__main__.Import.test_repair_windows_path_and_preserve_other_entries_settings) ... ok
+test_running_client_blocks_writes (__main__.Import.test_running_client_blocks_writes) ... ok
+test_running_client_can_launch_already_registered_without_writes (__main__.Import.test_running_client_can_launch_already_registered_without_writes) ... ok
+test_symlink_executable_or_store_rejected (__main__.Import.test_symlink_executable_or_store_rejected) ... ok
+test_unmatched_product_rejected (__main__.Import.test_unmatched_product_rejected) ... ok
+test_verified_base_and_dlc_import_without_auth_or_copy (__main__.Import.test_verified_base_and_dlc_import_without_auth_or_copy) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.012s
+
+OK

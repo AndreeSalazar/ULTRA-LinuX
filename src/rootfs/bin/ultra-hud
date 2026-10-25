@@ -20,7 +20,7 @@ case $action in
     activar|desactivar)
         mkdir -p "${state%/*}"
         if [[ $action == activar ]]; then rm -f -- "$state"; else : > "$state"; fi
-        notify-send 'HUD de juegos' 'Cambio guardado. Cierra y abre Steam/Heroic para los proximos juegos. En un juego con HUD: Shift derecho + F12 para mostrar/ocultar.' || true
+        notify-send 'HUD de juegos' 'Cambio guardado. Cierra y abre Steam/Heronite para los proximos juegos. En un juego con HUD: Shift derecho + F12 para mostrar/ocultar.' || true
         exit 0;;
     ejecutar|opengl) (( $# )) || exit 2;;
     *) exit 2;;
@@ -40,6 +40,33 @@ if [[ ! -e $config ]]; then
     trap - EXIT
 fi
 export MANGOHUD=1 MANGOHUD_CONFIGFILE="$config"
+if [[ ${1:-} == /usr/bin/heronite-rs ]]; then
+    # Existing personal HUD files survive image updates. Extend only the
+    # launcher's exclusion; games still inherit their normal HUD configuration.
+    /usr/bin/python - "$config" <<'PY'
+import os
+from pathlib import Path
+import tempfile
+import sys
+p=Path(sys.argv[1])
+if p.is_symlink() or not p.is_file() or p.stat().st_uid!=os.getuid() or p.stat().st_size>65536:
+    raise SystemExit('HUD: configuracion no regular; se conserva')
+raw=p.read_text()
+rows=[line.split('=',1)[1].strip() for line in raw.splitlines() if line.strip().startswith('blacklist=')]
+names=[name.strip() for name in rows[-1].split(',')] if rows else []
+required=['heronite-rs','heronite-epic-login']
+if not all(name in names for name in required):
+    names.extend(name for name in required if name not in names)
+    fd,tmp=tempfile.mkstemp(prefix='.hud-heronite-',dir=p.parent)
+    try:
+        with os.fdopen(fd,'w') as stream:
+            os.fchmod(stream.fileno(),0o600)
+            stream.write(raw.rstrip('\n')+'\nblacklist='+','.join(names)+'\n')
+        os.replace(tmp,p)
+    finally:
+        if os.path.exists(tmp):os.unlink(tmp)
+PY
+fi
 if [[ ${ULTRA_DIAGNOSTICO_HUD:-0} == 1 && -f /run/user/1000/ultra-diagnostico/MangoHud.conf ]]; then
     export MANGOHUD_CONFIGFILE=/run/user/1000/ultra-diagnostico/MangoHud.conf
 fi

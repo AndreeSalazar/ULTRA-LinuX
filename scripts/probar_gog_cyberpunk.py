@@ -27,6 +27,7 @@ class Import(unittest.TestCase):
         self.store = self.home/'.config/heroic/gog_store'; self.store.mkdir(parents=True)
         self.file = self.store/'installed.json'
         self.patches = [patch.object(app,'HOME',self.home),patch.object(app,'GAME',self.game),
+                        patch.object(app,'HERONITE_VERSION',self.root/'version-ausente'),
                         patch.object(app,'heroic_running',return_value=False)]
         for p in self.patches: p.start()
     def tearDown(self):
@@ -81,6 +82,17 @@ class Import(unittest.TestCase):
         (self.game/'bin/x64/Cyberpunk2077.exe').write_bytes(b'wrong')
         with self.assertRaises(ValueError): app.register()
         self.assertFalse(self.file.exists())
+
+    def test_heronite_uses_separate_store_and_preserves_heroic(self):
+        version = self.root/'heronite-version'; version.write_text('0.15.0')
+        self.file.write_text('{"installed": [], "sentinel": "original"}')
+        before = self.file.read_bytes()
+        with patch.object(app, 'HERONITE_VERSION', version):
+            self.assertIn('registrado', app.register())
+            target = self.home/'.local/share/heronite/gog_store/installed.json'
+            self.assertEqual(json.loads(target.read_text())['installed'][0]['appName'], app.APP)
+            self.assertIn('ya reconocido', app.register())
+        self.assertEqual(self.file.read_bytes(), before)
 
 
 if __name__=='__main__': unittest.main(verbosity=2)

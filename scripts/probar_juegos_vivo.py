@@ -57,7 +57,7 @@ class Live(unittest.TestCase):
         (folder/'goggame-123.info').write_text(json.dumps(dict(gameId='123',name='GOG test')))
         self.catalog.write_text(json.dumps(dict(folders=[dict(record,status='activa',path=str(folder))])))
         game = app.catalogue(lib)['games'][0]
-        self.assertEqual(game['state'],'importar en Heroic')
+        self.assertEqual(game['state'],'importar en Heronite')
         store = self.home/'.config/heroic/gog_store'; store.mkdir(parents=True)
         path = store/'installed.json'
         path.write_text(json.dumps(dict(installed=[dict(appName='123',title='GOG test',install_path=str(folder),access_token='NO-EXPORTAR')],refresh_token='SECRETO')))

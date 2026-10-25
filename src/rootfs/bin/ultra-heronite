@@ -1,0 +1,96 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""One library UI, native first-start migration; no game files or saves changed."""
+import fcntl
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+DATA = HOME/'.local/share/heronite'
+BIN = '/usr/bin/heronite-rs'
+
+
+def running():
+    for proc in Path('/proc').glob('[0-9]*'):
+        try:
+            if proc.stat().st_uid == os.getuid() and (proc/'exe').resolve() == Path(BIN):
+                return True
+        except (OSError, RuntimeError):
+            pass
+    return False
+
+
+def prepare():
+    # --help runs upstream's transactional migration before exiting, without
+    # opening a window, logging in or launching a game (pinned 0.15.0 source).
+    if DATA.exists() and DATA.resolve() != DATA:
+        raise ValueError('datos Heronite redirigidos; se conserva la configuracion')
+    subprocess.run([BIN, '--help'], check=True, stdout=subprocess.DEVNULL, timeout=300)
+    path = DATA/'config.json'
+    if path.is_file():
+        if path.is_symlink() or path.stat().st_size > 2*1024**2:
+            raise ValueError('configuracion Heronite no regular o demasiado grande')
+        doc = json.loads(path.read_text())
+        config = doc.get('defaultSettings', doc)
+        if not isinstance(config, dict):
+            raise ValueError('configuracion Heronite desconocida')
+        changed = False
+        for key, tool in [('altGogdlBin', 'gogdl'), ('altLegendaryBin', 'legendary'), ('altNileBin', 'nile')]:
+            value = config.get(key)
+            if isinstance(value, str) and value.startswith('/opt/heroic/'):
+                fixed = Path('/usr/lib/heronite-tools')/tool
+                config[key] = str(fixed) if fixed.is_file() else ''
+                changed = True
+        if changed:
+            # Same atomic metadata writer as the bounded GOG adapter.
+            fd, name = tempfile.mkstemp(prefix='.ultra-heronite-', dir=path.parent)
+            try:
+                with os.fdopen(fd, 'w') as stream:
+                    os.fchmod(stream.fileno(), 0o600)
+                    json.dump(doc, stream); stream.write('\n')
+                    stream.flush(); os.fsync(stream.fileno())
+                os.replace(name, path)
+            finally:
+                if os.path.exists(name):
+                    os.unlink(name)
+
+
+def main():
+    if os.getuid() != 1000 or HOME != Path('/juegos/usuarios/ultra'):
+        raise ValueError('se requiere el home persistente del escritorio')
+    action = sys.argv[1] if len(sys.argv) > 1 else 'biblioteca'
+    if action not in ('biblioteca', 'warframe'):
+        raise ValueError('accion Heronite desconocida')
+    cache = HOME/'.cache/ultra'
+    cache.mkdir(parents=True, exist_ok=True)
+    fd = os.open(cache/'heronite-inicio.lock', os.O_CREAT | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(fd, 'a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if not running():
+            result = subprocess.run(['/usr/local/bin/ultra-bibliotecas', 'registrar-steam'], timeout=60)
+            if result.returncode == 75:
+                raise ValueError('bibliotecas en preparacion; espera a que termine y vuelve a abrir')
+            prepare()
+            # Only refresh installed metadata after migration, while UI is closed.
+            if (Path('/juegos/Cyberpunk2077')/'goggame-1423049311.info').is_file():
+                result = subprocess.run(['/usr/local/bin/ultra-gog-cyberpunk'], timeout=15)
+                if result.returncode:
+                    raise ValueError('no se pudo registrar Cyberpunk; consulta el registro GOG')
+    args = [BIN] if action == 'biblioteca' else [BIN, '--launch', 'sideload_steam_230410']
+    os.execvp('ultra-hud', ['ultra-hud', 'ejecutar', *args])
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('Heronite:', error, file=sys.stderr)
+        try:
+            subprocess.run(['notify-send', 'Heronite: revisar inicio', 'Consulta Juegos > Registros de juegos. Se conservaron configuraciones y partidas.'], timeout=2)
+        except (OSError, subprocess.SubprocessError):
+            pass
+        sys.exit(1)

@@ -88,7 +88,10 @@ def catalogue(lib):
         except OSError:
             errors.append('Biblioteca Steam no disponible')
     try:
-        installed = json.loads(read(HOME/'.config/heroic/gog_store/installed.json', 2097152))
+        store = HOME/'.local/share/heronite/gog_store/installed.json'
+        if not store.exists():
+            store = HOME/'.config/heroic/gog_store/installed.json'
+        installed = json.loads(read(store, 2097152))
         if not isinstance(installed, dict) or not isinstance(installed.get('installed'), list):
             raise ValueError('formato instalado GOG desconocido')
         for app in installed['installed'][:MAX_GAMES]:
@@ -99,7 +102,7 @@ def catalogue(lib):
             appid, path = app.get('appName'), app.get('install_path')
             if not isinstance(appid, str) or not re.fullmatch(r'[0-9]{1,20}', appid) or not isinstance(path, str) or not Path(path).is_absolute():
                 continue
-            games['gog:'+appid] = dict(id='gog:'+appid, name=text(app.get('title', appid)), store='GOG / Heroic',
+            games['gog:'+appid] = dict(id='gog:'+appid, name=text(app.get('title', appid)), store='GOG / Heronite',
                 path=text(path, 4096), state='importado' if Path(path).is_dir() else 'carpeta ausente', bytes_metadata=None)
     except FileNotFoundError:
         pass
@@ -130,7 +133,7 @@ def catalogue(lib):
                                 appid = str(app.get('gameId', ''))
                                 if re.fullmatch(r'[0-9]{1,20}', appid):
                                     games.setdefault('gog:'+appid, dict(id='gog:'+appid, name=text(app.get('name', appid)),
-                                        store='GOG / archivos', path=str(folder), state='importar en Heroic', bytes_metadata=None))
+                                        store='GOG / archivos', path=str(folder), state='importar en Heronite', bytes_metadata=None))
                             except (OSError, ValueError, AttributeError):
                                 errors.append('Metadatos GOG ilegibles: '+text(entry.name))
                         elif depth < 3 and len(pending) < 1024 and entry.is_dir(follow_symlinks=False) and not entry.name.startswith('.'):
@@ -338,7 +341,7 @@ def display(state):
                     ' | '+fmt(gpu.get('temp_C'), ' C')+' | '+fmt(gpu.get('power_W'), ' W'))
     if not state.get('gpu'):
         rows.append('GPU global: NA (sin consulta NVIDIA disponible; el HUD depende del driver).')
-    rows.extend(['', 'JUEGOS EN EJECUCION (identidad Steam/Heroic/ULTRA):'])
+    rows.extend(['', 'JUEGOS EN EJECUCION (identidad Steam/Heronite/ULTRA):'])
     for game in state.get('games', []):
         rows.append(text(game['name'])+' | CPU '+fmt(game.get('cpu_pct'), '%')+
             ' | PSS '+fmt(game['pss_bytes']/2**20 if game.get('pss_bytes') is not None else None, ' MiB')+
