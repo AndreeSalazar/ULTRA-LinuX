@@ -7,6 +7,7 @@ ultra-energia iniciar || echo 'AMARILLO [CPU]: no se pudo solicitar el perfil en
 dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_RUNTIME_DIR HYPRLAND_INSTANCE_SIGNATURE
 [[ -z ${DISPLAY:-} ]] || dbus-update-activation-environment DISPLAY
 hyprctl setcursor ULTRA-Nucleo 28 || echo 'AMARILLO [CURSOR]: se conserva el cursor disponible'
+ultra-puntero-red >> "$XDG_RUNTIME_DIR/ultra-puntero-red.log" 2>&1 &
 # Personalizacion del usuario (ultra-personalizar); sin ella, el tema del sistema.
 fondo=/etc/ultra/wallpaper.svg fondo_modo=fill vivo= vivo_acento=#5ad8ff vivo_imagen= estilo=/etc/ultra/waybar.css barras=/etc/ultra/waybar.jsonc avisos=/etc/ultra/mako.conf
 while IFS='=' read -r clave valor; do

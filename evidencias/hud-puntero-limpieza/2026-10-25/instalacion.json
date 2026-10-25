@@ -1,0 +1,9 @@
+{
+  "perfil": "pc",
+  "filesystem": "FAT32",
+  "system_sha256": "275578c1c87e9d091e96462326ed4f9034f092c10516eb845b23699ef18e858f",
+  "datos_sha256": "e37fd01999c9d44e94ba244bf24bc29a657e3ebf6f42459e3af06114def5ee43",
+  "datos_preservados": true,
+  "kernel_sin_cambios": true,
+  "validacion_REDlauncher_real_pendiente": true
+}

@@ -28,6 +28,12 @@ falta validar la biblioteca real y medir RAM/vatios con la RTX.
 También está incluido el perfil optativo **Ahorro**, con fondo liso cyan, sin
 animaciones, desenfoque, dock ni tarjetas. Se selecciona desde Personalizar → Perfiles.
 
+**HUD y cursor:** [activación nativa de MangoHud, rescate de cursor transparente
+en REDlauncher y limpieza de compilaciones](docs/HUD-PUNTERO-LIMPIEZA-2026-10-25.md).
+Se reinstalan MangoHud de 64/32 bits y se conserva el HUD en los juegos, con
+controles de ULTRA que sincronizan Heronite. El rescate del cursor se limita al
+lanzador XWayland; falta confirmar el caso real con NVIDIA.
+
 <p align="center">
   <img src="evidencias/heronite/2026-10-25/heronite-wayland.png" alt="Heronite real en Wayland, prueba QEMU sin cuentas ni juegos personales y con renderizado software" width="1000">
 </p>

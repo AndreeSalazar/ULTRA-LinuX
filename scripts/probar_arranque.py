@@ -929,6 +929,7 @@ def check_hyprland(conn, failures):
                 time.sleep(1)
             for marker in ('PUNTERO-PERFILES-OK', 'PUNTERO-XWAYLAND-LAUNCHER-OK',
                            'PUNTERO-CLICK-XWAYLAND-OK', 'PUNTERO-XWAYLAND-JUEGO-OK',
+                           'PUNTERO-TRANSPARENTE-REPARADO-OK', 'PUNTERO-JUEGO-NO-ALTERADO-OK',
                            'PUNTERO-COMPATIBLE-OK', 'PUNTERO-RC-0'):
                 expect(marker in result, 'Puntero: ' + marker)
         if '--tema-nucleo' in sys.argv:
@@ -1043,7 +1044,21 @@ def check_hyprland(conn, failures):
                 expect(not any(a.get('pid') == app['pid'] for a in clients()), 'Carpetas: cierre normal desde el escritorio')
             mon.sendall(b'sendkey meta_l-1\n')
         if '--heronite' in sys.argv:
-            code = 'hl.exec_cmd("env HOME=/juegos/usuarios/ultra ultra-heronite biblioteca >/tmp/heronite-ui.log 2>&1")'
+            if '--hud-nativo' in sys.argv:
+                fixture="""import json
+from pathlib import Path
+h=Path('/juegos/usuarios/ultra');d=h/'.local/share/heronite'
+for name in ('GamesConfig','sideload_apps'): (d/name).mkdir(parents=True,exist_ok=True)
+(h/'.config/ultra').mkdir(parents=True,exist_ok=True)
+(h/'.config/ultra/hud-desactivado').touch()
+(d/'config.json').write_text(json.dumps({'defaultSettings':{'showMangohud':False},'version':'v0'}))
+(d/'GamesConfig/ultra_hud_banco.json').write_text(json.dumps({'ultra_hud_banco':{'showMangohud':False},'version':'v0'}))
+(d/'sideload_apps/library.json').write_text(json.dumps({'games':[{'runner':'sideload','app_name':'ultra_hud_banco','title':'ULTRA HUD banco Vulkan','is_installed':True,'is_linux_native':True,'install':{'executable':'/usr/bin/vkcube','platform':'linux','install_path':'/tmp'}}]}))
+print('HUD-NATIVO-FIXTURE')"""
+                user='ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/bin/env HOME=/juegos/usuarios/ultra '
+                transcript += run(conn,[(user+'/usr/bin/python -c '+shlex.quote(fixture),'HUD-NATIVO-FIXTURE')],failures)
+            home_env='env HOME=/juegos/usuarios/ultra XDG_DATA_HOME=/juegos/usuarios/ultra/.local/share XDG_CONFIG_HOME=/juegos/usuarios/ultra/.config XDG_CACHE_HOME=/juegos/usuarios/ultra/.cache '
+            code = 'hl.exec_cmd("'+home_env+'ultra-heronite biblioteca >/tmp/heronite-ui.log 2>&1")'
             transcript += run(conn, [('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code), 'ok')], failures)
             opened = wait_apps(lambda apps: any('heronite' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower() for a in apps))
             expect(bool(opened), 'Heronite: interfaz nativa abre desde el adaptador ULTRA')
@@ -1061,6 +1076,28 @@ def check_hyprland(conn, failures):
                     except (OSError, SyntaxError): time.sleep(.1)
                 else: raise ValueError('captura Heronite incompleta')
                 shutil.copyfile(target, LOG.with_name(LOG.stem+'-heronite.png'))
+                if '--hud-nativo' in sys.argv:
+                    probe="import json;from pathlib import Path;d=Path('/juegos/usuarios/ultra/.local/share/heronite');assert json.loads((d/'config.json').read_text())['defaultSettings']['showMangohud'];assert json.loads((d/'GamesConfig/ultra_hud_banco.json').read_text())['ultra_hud_banco']['showMangohud'];print('HUD-NATIVO-ACTIVADO')"
+                    transcript += run(conn,[('ultra-entrar /usr/bin/python -c '+shlex.quote(probe),'HUD-NATIVO-ACTIVADO')],failures)
+                    # Forward to the same native instance/data folder used above.
+                    code='hl.exec_cmd("'+home_env+'heronite-rs --launch sideload_ultra_hud_banco >/tmp/heronite-hud-game.log 2>&1")'
+                    transcript += run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+                    game_apps=wait_apps(lambda apps:any('vkcube' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower() for a in apps))
+                    expect(bool(game_apps),'HUD: Heronite lanza la aplicacion Vulkan con su opcion nativa')
+                    if game_apps:
+                        game_app=next(a for a in game_apps if 'vkcube' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower())
+                        transcript += run(conn,[(f"grep -qi libMangoHud /proc/{game_app['pid']}/maps && echo HUD-CAPA-VULKAN-CARGADA",'HUD-CAPA-VULKAN-CARGADA')],failures)
+                        time.sleep(3)
+                        target=pathlib.Path(tempfile.gettempdir())/'ultra-hud-nativo.png';target.unlink(missing_ok=True)
+                        mon.sendall(f'screendump {target} -f png\n'.encode())
+                        for _ in range(50):
+                            try:
+                                with Image.open(target) as shot:shot.verify()
+                                break
+                            except (OSError,SyntaxError):time.sleep(.1)
+                        else:raise ValueError('captura HUD nativo incompleta')
+                        shutil.copyfile(target,LOG.with_name(LOG.stem+'-hud-nativo.png'))
+                        transcript += run(conn,[(f'ultra-entrar /usr/bin/kill -TERM {game_app["pid"]}; echo HUD-BANCO-CERRADO','HUD-BANCO-CERRADO')],failures)
                 transcript += run(conn, [(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo HERONITE-CIERRE-SOLICITADO', 'HERONITE-CIERRE-SOLICITADO')], failures)
             transcript += run(conn, [('cat /arch/tmp/heronite-ui.log; echo HERONITE-LOG-FIN', 'HERONITE-LOG-FIN')], failures)
         if '--limites' in sys.argv:
@@ -1262,6 +1299,8 @@ def main():
                                         ('grep -q "ETHERNET: estado posterior" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && grep -q "contadores globales acumulados" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RED-EXPORTADA-$((4+5))', 'RED-EXPORTADA-9')], failures)
                 if BRAVE:
                     transcript += run(conn, [('grep -Eq "^RED iface=.* rx_bytes=[0-9]+ rx_packets=[0-9]+" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RED-C-MEDIDA-$((5+5))', 'RED-C-MEDIDA-10')], failures)
+                if '--puntero' in sys.argv:
+                    transcript += run(conn, [('grep -Eq \'"reparaciones_transparentes": [1-9][0-9]*\' /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo PUNTERO-EXPORTADO-SIN-ROOT', 'PUNTERO-EXPORTADO-SIN-ROOT')], failures)
                 # Extract the actual measurements, without exposing BMO to apps.
                 conn.sendall(b'busybox base64 /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt\n')
                 encoded = read_until(conn, 'ultra:', 30)

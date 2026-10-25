@@ -1,0 +1,111 @@
+{
+  "removed_files": [
+    {
+      "path": "build/pc/disco-bmo.img.antes-nativo",
+      "bytes": 3492806656
+    },
+    {
+      "path": "build/energia-cpu-pc/disco-bmo.img",
+      "bytes": 2197815296
+    },
+    {
+      "path": "build/main-integrado2-pc/disco-bmo.img",
+      "bytes": 2187329536
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-energiaeficiente-20261025",
+      "bytes": 2187329536
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-warframeinicio",
+      "bytes": 2154823680
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-puntero",
+      "bytes": 2154823680
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-persistencia",
+      "bytes": 2154823680
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-mainintegrado-20261025",
+      "bytes": 2154823680
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-lanzador",
+      "bytes": 2154823680
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-heroicprimero",
+      "bytes": 2154823680
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-cyberpunk",
+      "bytes": 2154823680
+    },
+    {
+      "path": "build/heronite-pc/disco-bmo.img",
+      "bytes": 2140143616
+    },
+    {
+      "path": "build/energia-cpu-pc/sistema-a.erofs",
+      "bytes": 1977417728
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-energiaeficiente-20261025",
+      "bytes": 1967075328
+    },
+    {
+      "path": "build/main-integrado2-pc/sistema-a.erofs",
+      "bytes": 1967075328
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-heroicprimero",
+      "bytes": 1934147584
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-mainintegrado-20261025",
+      "bytes": 1934147584
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-warframeinicio",
+      "bytes": 1934147584
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-persistencia",
+      "bytes": 1934147584
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-puntero",
+      "bytes": 1934147584
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-lanzador",
+      "bytes": 1934143488
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-cyberpunk",
+      "bytes": 1934143488
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-nativo",
+      "bytes": 1934143488
+    },
+    {
+      "path": "build/heronite-pc/sistema-a.erofs",
+      "bytes": 1919361024
+    }
+  ],
+  "bytes_removed": 50593288192.0,
+  "free_before_bytes": 77788540928,
+  "free_after_bytes": 128381837312,
+  "preserved": [
+    "build/pc/current",
+    "build/generico/current",
+    "build/pc/*antes-heronite-20261025",
+    "personal-data-backups",
+    "A:/ULTRA/datos.ext4",
+    "native-game-storage"
+  ]
+}

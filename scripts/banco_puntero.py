@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Hyprland real: politica por perfil y ventanas XWayland ficticias, sin juegos."""
 import ctypes as C
+import importlib.machinery
 import json
 import os
 from pathlib import Path
@@ -53,6 +54,41 @@ x.XPending.argtypes = [C.c_void_p]
 x.XNextEvent.argtypes = [C.c_void_p, C.c_void_p]
 d = x.XOpenDisplay(None)
 assert d, 'XWayland no disponible'
+adapter = importlib.machinery.SourceFileLoader('puntero_red_banco','/usr/local/bin/ultra-puntero-red').load_module()
+xx,fix,dd,hint_type,callback_keep = adapter.connect()
+class Color(C.Structure):
+    _fields_=[('pixel',C.c_ulong),('red',C.c_ushort),('green',C.c_ushort),('blue',C.c_ushort),('flags',C.c_char),('pad',C.c_char)]
+x.XCreateBitmapFromData.argtypes=[C.c_void_p,C.c_ulong,C.c_char_p,C.c_uint,C.c_uint]
+x.XCreateBitmapFromData.restype=C.c_ulong
+x.XCreatePixmapCursor.argtypes=[C.c_void_p,C.c_ulong,C.c_ulong,C.POINTER(Color),C.POINTER(Color),C.c_uint,C.c_uint]
+x.XCreatePixmapCursor.restype=C.c_ulong
+x.XDefineCursor.argtypes=[C.c_void_p,C.c_ulong,C.c_ulong]
+x.XFreePixmap.argtypes=[C.c_void_p,C.c_ulong]
+x.XFreeCursor.argtypes=[C.c_void_p,C.c_ulong]
+def visible():
+    image=fix.XFixesGetCursorImage(dd)
+    assert image
+    try:
+        v=image.contents
+        return any((v.pixels[i]>>24)&255 for i in range(v.width*v.height))
+    finally:xx.XFree(image)
+def transparent_fixture(window,repair):
+    pix=x.XCreateBitmapFromData(d,x.XDefaultRootWindow(d),b'\x00',1,1)
+    color=Color();cursor=x.XCreatePixmapCursor(d,pix,pix,C.byref(color),C.byref(color),0,0)
+    assert cursor
+    x.XDefineCursor(d,window,cursor);x.XFlush(d)
+    try:
+        if repair:
+            deadline=time.monotonic()+5
+            while time.monotonic()<deadline and not visible():time.sleep(.05)
+            assert visible(),'cursor transparente RED no recuperado'
+            print('PUNTERO-TRANSPARENTE-REPARADO-OK',flush=True)
+        else:
+            time.sleep(.4)
+            assert not visible(),'el reparador cambio el cursor del juego'
+            print('PUNTERO-JUEGO-NO-ALTERADO-OK',flush=True)
+    finally:
+        x.XFreeCursor(d,cursor);x.XFreePixmap(d,pix)
 windows = []
 old = json.loads(ctl('-j', 'getoption', 'cursor:no_hardware_cursors'))['int']
 try:
@@ -98,6 +134,10 @@ try:
                 time.sleep(.05)
             assert clicked, 'no llego ButtonPress a la ventana XWayland'
             print('PUNTERO-CLICK-XWAYLAND-OK', flush=True)
+        if not floating:
+            move = 'hl.dispatch(hl.dsp.cursor.move({x=' + str(int(app['at'][0]+app['size'][0]/2)) + ',y=' + str(int(app['at'][1]+app['size'][1]/2)) + '}))'
+            ctl('eval',move);time.sleep(.1)
+        transparent_fixture(w,floating)
         print('PUNTERO-XWAYLAND-' + ('LAUNCHER' if floating else 'JUEGO') + '-OK', flush=True)
         x.XDestroyWindow(d, w); x.XFlush(d); windows.remove(w)
     print('PUNTERO-COMPATIBLE-OK', flush=True)
@@ -105,5 +145,6 @@ finally:
     for w in windows:
         x.XDestroyWindow(d, w)
     x.XFlush(d); x.XCloseDisplay(d)
+    xx.XCloseDisplay(dd)
     ctl('eval', 'hl.config({cursor={no_hardware_cursors=' + str(old) + '}})')
 print('PUNTERO-RC-0', flush=True)

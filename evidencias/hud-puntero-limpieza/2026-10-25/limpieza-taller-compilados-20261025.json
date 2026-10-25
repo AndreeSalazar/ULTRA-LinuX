@@ -1,0 +1,157 @@
+{
+  "removed": [
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-mainintegrado.erofs",
+      "apparent_bytes": 1934147584
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-heronite2.erofs",
+      "apparent_bytes": 1919356928
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-energiafinal.erofs",
+      "apparent_bytes": 1977417728
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-heronitehud.erofs",
+      "apparent_bytes": 1919356928
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-energiaeww.erofs",
+      "apparent_bytes": 1977417728
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-heronite1.erofs",
+      "apparent_bytes": 1977417728
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-energiaeficiente.erofs",
+      "apparent_bytes": 1967075328
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/sistema-antes-mainintegrado2.erofs",
+      "apparent_bytes": 1963761664
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-heronitehud.img",
+      "apparent_bytes": 2140143616
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-energiaeficiente.img",
+      "apparent_bytes": 2187329536
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-heronite2.img",
+      "apparent_bytes": 2140143616
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-mainintegrado2.img",
+      "apparent_bytes": 2184183808
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-heronite1.img",
+      "apparent_bytes": 2197815296
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-energiaeww.img",
+      "apparent_bytes": 2197815296
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-mainintegrado.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/artifacts-pc/disco-bmo-antes-energiafinal.img",
+      "apparent_bytes": 2197815296
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/cache/carpetas-target",
+      "apparent_bytes": 866595372
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/cache/carpetas-target-nucleo",
+      "apparent_bytes": 791512840
+    },
+    {
+      "path": "/var/tmp/ultra-main-work/cache/eww-cache/target-d87c2fdbfdc012e76d229e4e9ea3325bc0f23e89",
+      "apparent_bytes": 1400774627
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-nativo.erofs",
+      "apparent_bytes": 1934143488
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-cyberpunk.erofs",
+      "apparent_bytes": 1934143488
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-antes-cyberpunk.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-lanzador.erofs",
+      "apparent_bytes": 1934143488
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-antes-lanzador.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-heroicprimero.erofs",
+      "apparent_bytes": 1934147584
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-antes-heroicprimero.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-persistencia.erofs",
+      "apparent_bytes": 1934147584
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-antes-persistencia.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-puntero.erofs",
+      "apparent_bytes": 1934147584
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-antes-puntero.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-punterofinal.erofs",
+      "apparent_bytes": 1934147584
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-antes-punterofinal.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-antes-warframeinicio.erofs",
+      "apparent_bytes": 1934147584
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/sistema-a.erofs",
+      "apparent_bytes": 1934147584
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo-antes-warframeinicio.img",
+      "apparent_bytes": 2154823680
+    },
+    {
+      "path": "/home/builder/linux-reconstruido/artifacts/pc/disco-bmo.img",
+      "apparent_bytes": 2154823680
+    }
+  ],
+  "apparent_bytes_removed": 70740810007,
+  "preserved": [
+    "kernel sources",
+    "current work stage",
+    "current work images",
+    "last work rollback",
+    "ULTRA-juegos images",
+    "datos.ext4"
+  ]
+}

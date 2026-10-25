@@ -1,0 +1,289 @@
+{
+  "muestras": 120,
+  "duracion_segun_uptime_s": 680.73,
+  "saltos_reloj_civil_s": [
+    18002.68
+  ],
+  "cpu_ocupado_pct_maquina": {
+    "min": 1.918,
+    "media": 18.727,
+    "max": 99.54,
+    "n": 119
+  },
+  "cpu_ocupado_pct_periodo": 20.85,
+  "intervalos_cpu_rechazados": 0,
+  "gpu_W": {
+    "min": 15.57,
+    "media": 50.661,
+    "max": 168.58,
+    "n": 120
+  },
+  "gpu_pct": {
+    "min": 0.0,
+    "media": 33.3,
+    "max": 98.0,
+    "n": 120
+  },
+  "gpu_C": {
+    "min": 29.0,
+    "media": 47.4,
+    "max": 73.0,
+    "n": 120
+  },
+  "vram_MiB": {
+    "min": 1.0,
+    "media": 1023.425,
+    "max": 5631.0,
+    "n": 120
+  },
+  "cpu_W": {
+    "min": 26.732,
+    "media": 40.309,
+    "max": 77.852,
+    "n": 300
+  },
+  "cpu_temperatura_C": {
+    "min": 55.1,
+    "media": 62.259,
+    "max": 78.5,
+    "n": 300
+  },
+  "perfiles_energia_observados": [
+    "eficiente"
+  ],
+  "ventana_energia_cpu_monotonic_s": [
+    547.735,
+    1146.233
+  ],
+  "motivo_cpu_W": "Muestras RAPL del paquete; media de observaciones, no energia total integrada.",
+  "politicas": {
+    "policy0": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy1": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy10": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy11": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy2": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy3": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy4": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy5": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy6": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy7": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy8": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    },
+    "policy9": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance",
+        "balance_power"
+      ]
+    }
+  },
+  "procesos_observados": [
+    "CrBrowserMain",
+    "CrRendererMain",
+    "Cyberpunk2077.e",
+    "GameThread",
+    "Hyprland",
+    "REDEngineErrorR",
+    "REDlauncher.exe",
+    "REDupdater.exe",
+    "Xwayland",
+    "at-spi-bus-laun",
+    "at-spi2-registr",
+    "bash",
+    "bwrap",
+    "conhost.exe",
+    "dbus-daemon",
+    "dbus-run-sessio",
+    "dconf-service",
+    "eww",
+    "explorer.exe",
+    "foot",
+    "fuzzel",
+    "glycin-svg",
+    "gnome-keyring-d",
+    "gzip",
+    "heronite-rs",
+    "less",
+    "localedef",
+    "lsass.exe",
+    "mako",
+    "nvidia-smi",
+    "pipewire",
+    "pipewire-pulse",
+    "plugplay.exe",
+    "pv-adverb",
+    "pv-locale-gen",
+    "python",
+    "python3",
+    "rpcss.exe",
+    "services.exe",
+    "srt-bwrap",
+    "srt-logger",
+    "start-hyprland",
+    "steam",
+    "steam-runtime-l",
+    "svchost.exe",
+    "swaybg",
+    "systemd-inhibit",
+    "tabtip.exe",
+    "ultra-ambiente",
+    "ultra-aplicacio",
+    "ultra-captura",
+    "ultra-espacio",
+    "ultra-fondo-viv",
+    "ultra-iniciar-e",
+    "ultra-juegos-vi",
+    "ultra-modo-jueg",
+    "ultra-pantallas",
+    "ultra-personali",
+    "ultra-tarjetas",
+    "umu-run",
+    "umu.exe",
+    "waybar",
+    "wine",
+    "wineboot.exe",
+    "winedevice.exe",
+    "wineserver",
+    "wireplumber",
+    "wl-copy",
+    "wl-paste",
+    "xalia.exe",
+    "xdg-desktop-por",
+    "xdg-permission-"
+  ],
+  "primera_muestra_utc": "2026-10-25T07:57:34Z",
+  "ultima_muestra_utc": "2026-10-25T13:08:57Z",
+  "limites": [
+    "Uso CPU agregado de la maquina: 100% representa todos sus hilos.",
+    "Se excluyen idle e iowait; guest ya esta incluido en user/nice y no se suma otra vez.",
+    "GPU W corresponde a la tarjeta; no al procesador ni al enchufe.",
+    "Intervalos con contadores faltantes, reiniciados o sin avance se rechazan.",
+    "Estas muestras no identifican por si mismas causas ni consumo por proceso."
+  ],
+  "informe_sha256": "8efea8e2f21c8a7a720e15a095ec0cbe03d422dde934d43a8ab463d0bf055073"
+}

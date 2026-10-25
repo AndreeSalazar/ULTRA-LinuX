@@ -1,0 +1,103 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Explicit native HUD preference; never reads store accounts or changes a prefix."""
+import json
+import os
+from pathlib import Path
+import stat
+import sys
+import tempfile
+
+HOME=Path(os.environ.get('HOME','/home/ultra'))
+REVISION='20261025-hud-nativo-1'
+
+
+def running():
+    for proc in Path('/proc').glob('[0-9]*'):
+        try:
+            if proc.stat().st_uid==os.getuid() and (proc/'exe').resolve()==Path('/usr/bin/heronite-rs'):
+                return True
+        except (OSError,RuntimeError):pass
+    return False
+
+
+def read(path):
+    if path.resolve()!=path: raise ValueError('configuracion redirigida')
+    fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    with os.fdopen(fd,'rb') as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode): raise ValueError('configuracion no regular')
+        raw=stream.read(2*1024**2+1)
+    if len(raw)>2*1024**2: raise ValueError('configuracion demasiado grande')
+    data=json.loads(raw)
+    if not isinstance(data,dict): raise ValueError('formato de configuracion desconocido')
+    return data
+
+
+def atomic(path,data):
+    path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+    if path.resolve()!=path: raise ValueError('destino redirigido')
+    fd,name=tempfile.mkstemp(prefix='.ultra-hud-',dir=path.parent)
+    try:
+        with os.fdopen(fd,'w') as stream:
+            os.fchmod(stream.fileno(),0o600)
+            json.dump(data,stream);stream.write('\n')
+        os.replace(name,path)
+    finally:
+        if os.path.exists(name):os.unlink(name)
+
+
+def synchronize(home,initial=False):
+    config=home/'.config/ultra'; config.mkdir(parents=True,exist_ok=True,mode=0o700)
+    marker=config/'hud-heronite-revision.json'
+    if initial and not marker.exists():
+        # Requested restoration, once. Future explicit Disable remains effective.
+        state=config/'hud-desactivado'
+        if state.is_symlink(): raise ValueError('estado HUD redirigido')
+        state.unlink(missing_ok=True)
+    desired=not (config/'hud-desactivado').exists()
+    if not marker.exists() or read(marker).get('activado')!=desired:
+        atomic(marker,{'revision':REVISION,'activado':desired})
+    if running():return {'pendiente':'cerrar y volver a abrir Heronite y Steam','activado':desired}
+    data=home/'.local/share/heronite'
+    if not data.is_dir(): return {'pendiente':'primero abrir Heronite','activado':desired}
+    targets=[data/'config.json']
+    games=data/'GamesConfig'
+    if games.exists():
+        if games.resolve()!=games: raise ValueError('configuraciones de juegos redirigidas')
+        entries=list(games.glob('*.json'))
+        if len(entries)>512: raise ValueError('demasiadas configuraciones de juegos')
+        targets+=entries
+    changed=0; skipped=0
+    # Validate all files before making any changes. Preserve every other option.
+    plans=[]
+    for path in targets:
+        doc=read(path) if path.exists() else {'version':'v0','defaultSettings':{}}
+        key='defaultSettings' if path==targets[0] else path.stem
+        settings=doc.setdefault(key,{}) if path==targets[0] else doc.get(key)
+        if not isinstance(settings,dict): skipped+=1;continue
+        if settings.get('showMangohud') is not desired:
+            settings['showMangohud']=desired;plans.append((path,doc))
+    for path,doc in plans:atomic(path,doc);changed+=1
+    result={'activado':desired,'configuraciones_actualizadas':changed,'formatos_omitidos':skipped,
+            'revision':REVISION,'prefijos_y_limites_fps':'conservados'}
+    return result
+
+
+def main():
+    if os.getuid()!=1000: raise ValueError('se requiere usuario del escritorio')
+    action=sys.argv[1] if len(sys.argv)>1 else 'iniciar'
+    if action not in ('iniciar','sincronizar','estado'): raise ValueError('accion HUD desconocida')
+    if action=='estado':
+        data=HOME/'.local/share/heronite/config.json'
+        doc=read(data) if data.exists() else {}
+        print(json.dumps({'hud_desactivado':(HOME/'.config/ultra/hud-desactivado').exists(),
+                          'heronite_showMangohud':doc.get('defaultSettings',{}).get('showMangohud'),
+                          'configuracion_hud_presente':(HOME/'.config/ultra/MangoHud.conf').is_file()}))
+        return
+    print(json.dumps(synchronize(HOME,initial=action=='iniciar')))
+
+
+if __name__=='__main__':
+    try:main()
+    except (OSError,ValueError) as error:
+        print('HUD Heronite:',error,file=sys.stderr);sys.exit(1)

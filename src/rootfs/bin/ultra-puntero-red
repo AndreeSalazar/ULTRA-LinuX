@@ -1,0 +1,140 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Repair fully transparent X11 cursors only under REDlauncher windows.
+
+XFixes image-change events, no input injection, no root and no game interception.
+Visible hand/text cursors and every other application are left alone.
+"""
+import ctypes as C
+import json
+import math
+import os
+from pathlib import Path
+import select
+import signal
+import stat
+import sys
+import time
+
+ALLOWED={b'redlauncher.exe',b'redprelauncher.exe'}
+
+
+def connect():
+    x=C.CDLL('libX11.so.6'); fix=C.CDLL('libXfixes.so.3')
+    def fn(lib,name,args,result):
+        f=getattr(lib,name);f.argtypes=args;f.restype=result;return f
+    ptr=C.c_void_p;win=C.c_ulong;integer=C.c_int
+    fn(x,'XOpenDisplay',[C.c_char_p],ptr)
+    fn(x,'XDefaultRootWindow',[ptr],win)
+    fn(x,'XConnectionNumber',[ptr],integer)
+    fn(x,'XQueryPointer',[ptr,win,C.POINTER(win),C.POINTER(win),C.POINTER(integer),C.POINTER(integer),C.POINTER(integer),C.POINTER(integer),C.POINTER(C.c_uint)],integer)
+    class Hint(C.Structure):_fields_=[('name',ptr),('klass',ptr)]
+    fn(x,'XGetClassHint',[ptr,win,C.POINTER(Hint)],integer)
+    fn(x,'XFree',[ptr],integer)
+    fn(x,'XPending',[ptr],integer)
+    fn(x,'XNextEvent',[ptr,ptr],integer)
+    fn(x,'XFlush',[ptr],integer)
+    fn(x,'XCloseDisplay',[ptr],integer)
+    fn(x,'XDefineCursor',[ptr,win,win],integer)
+    fn(x,'XFreeCursor',[ptr,win],integer)
+    fn(x,'XCreateFontCursor',[ptr,C.c_uint],win)
+    class Image(C.Structure):
+        _fields_=[('x',C.c_short),('y',C.c_short),('width',C.c_ushort),('height',C.c_ushort),
+                  ('xhot',C.c_ushort),('yhot',C.c_ushort),('serial',C.c_ulong),
+                  ('pixels',C.POINTER(C.c_ulong)),('atom',C.c_ulong),('name',C.c_char_p)]
+    fn(fix,'XFixesGetCursorImage',[ptr],C.POINTER(Image))
+    fn(fix,'XFixesSelectCursorInput',[ptr,win,C.c_ulong],None)
+    fn(fix,'XFixesQueryExtension',[ptr,C.POINTER(integer),C.POINTER(integer)],integer)
+    d=x.XOpenDisplay(None)
+    if not d:raise ValueError('XWayland no disponible')
+    event,error=integer(),integer()
+    if not fix.XFixesQueryExtension(d,C.byref(event),C.byref(error)):
+        x.XCloseDisplay(d);raise ValueError('XFixes no disponible')
+    # A launcher can close between QueryPointer and DefineCursor. Ignore that
+    # race on this private connection; do not install a global desktop handler.
+    callback=C.CFUNCTYPE(integer,ptr,ptr)
+    handler=callback(lambda display,event:0)
+    fn(x,'XSetErrorHandler',[callback],ptr)(handler)
+    return x,fix,d,Hint,handler
+
+
+def pointer_chain(x,d):
+    root=x.XDefaultRootWindow(d); current=root; chain=[]
+    for _ in range(16):
+        r,child=C.c_ulong(),C.c_ulong()
+        rx,ry,wx,wy=C.c_int(),C.c_int(),C.c_int(),C.c_int(); mask=C.c_uint()
+        ok=x.XQueryPointer(d,current,C.byref(r),C.byref(child),C.byref(rx),C.byref(ry),C.byref(wx),C.byref(wy),C.byref(mask))
+        if not ok: return []
+        chain.append(current)
+        if not child.value:break
+        current=child.value
+    return chain
+
+
+def repair_once(x,fix,d,Hint,cursor):
+    chain=pointer_chain(x,d)
+    allowed=False
+    for window in chain[1:]:
+        hint=Hint()
+        if x.XGetClassHint(d,window,C.byref(hint)):
+            try:
+                name=C.cast(hint.klass,C.c_char_p).value if hint.klass else b''
+                allowed=allowed or name.lower() in ALLOWED
+            finally:
+                if hint.name:x.XFree(hint.name)
+                if hint.klass:x.XFree(hint.klass)
+    if not allowed:return False
+    image=fix.XFixesGetCursorImage(d)
+    if not image:return False
+    try:
+        value=image.contents; count=value.width*value.height
+        transparent=0<count<=65536 and not any((value.pixels[i]>>24)&255 for i in range(count))
+    finally:x.XFree(image)
+    if not transparent:return False
+    x.XDefineCursor(d,chain[-1],cursor);x.XFlush(d)
+    return True
+
+
+def main():
+    if os.getuid()!=1000:raise ValueError('se requiere usuario del escritorio')
+    if sys.argv[1:]==['estado']:
+        path=Path(os.environ['XDG_RUNTIME_DIR'])/'ultra-puntero-red.json'
+        fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+        with os.fdopen(fd,'rb') as stream:
+            if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):raise ValueError('estado no regular')
+            raw=stream.read(4097)
+        if len(raw)>4096:raise ValueError('estado demasiado grande')
+        data=json.loads(raw)
+        if not isinstance(data,dict):raise ValueError('estado de puntero desconocido')
+        count=data.get('reparaciones_transparentes');stamp=data.get('monotonic_s')
+        if type(count)!=int or not 0<=count<2**63 or type(stamp) not in (int,float) or not math.isfinite(stamp) or stamp<0:
+            raise ValueError('estado de puntero desconocido')
+        print(json.dumps({'reparaciones_transparentes':count,'monotonic_s':stamp}))
+        return
+    if sys.argv[1:]:raise ValueError('accion desconocida')
+    x,fix,d,Hint,handler=connect()
+    cursor=x.XCreateFontCursor(d,68) # core XC_left_ptr; independent of app theme
+    repairs=0; root=x.XDefaultRootWindow(d)
+    fix.XFixesSelectCursorInput(d,root,1);x.XFlush(d)
+    def stop(*args):raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM,stop)
+    try:
+        while True:
+            if not x.XPending(d):select.select([x.XConnectionNumber(d)],[],[],5)
+            for _ in range(128):
+                if not x.XPending(d):break
+                event=(C.c_long*24)();x.XNextEvent(d,C.byref(event))
+            if repair_once(x,fix,d,Hint,cursor):
+                repairs+=1
+                path=Path(os.environ['XDG_RUNTIME_DIR'])/'ultra-puntero-red.json'
+                path.write_text(json.dumps({'reparaciones_transparentes':repairs,'monotonic_s':time.monotonic(),
+                    'alcance':'REDlauncher/REDprelauncher XWayland; no juegos'})+'\n')
+    except KeyboardInterrupt:pass
+    finally:
+        x.XFreeCursor(d,cursor);x.XCloseDisplay(d)
+
+
+if __name__=='__main__':
+    try:main()
+    except (OSError,ValueError) as error:
+        print('Puntero RED:',error,file=sys.stderr);sys.exit(1)

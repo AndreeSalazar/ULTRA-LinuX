@@ -20,6 +20,7 @@ case $action in
     activar|desactivar)
         mkdir -p "${state%/*}"
         if [[ $action == activar ]]; then rm -f -- "$state"; else : > "$state"; fi
+        ultra-hud-heronite sincronizar || true
         notify-send 'HUD de juegos' 'Cambio guardado. Cierra y abre Steam/Heronite para los proximos juegos. En un juego con HUD: Shift derecho + F12 para mostrar/ocultar.' || true
         exit 0;;
     ejecutar|opengl) (( $# )) || exit 2;;

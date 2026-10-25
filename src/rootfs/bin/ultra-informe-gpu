@@ -52,6 +52,15 @@ tmp=$out.$$
         --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
         timeout -k 1 2 head -c 16384 /juegos/usuarios/ultra/.cache/ultra/steam-bibliotecas.log 2>/dev/null || true
     printf '\n[MEDICION DURANTE LA SESION: no es consumo posterior al cierre]\n'
+    printf '\n[HUD: paquetes y preferencia nativa, sin cuentas]\n'
+    pacman -Q mangohud lib32-mangohud 2>/dev/null || true
+    setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
+        --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+        env HOME=/juegos/usuarios/ultra timeout -k 1 3 ultra-hud-heronite estado 2>/dev/null || true
+    printf '\n[PUNTERO RED: solo reparaciones de imagen transparente]\n'
+    setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
+        --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+        env XDG_RUNTIME_DIR=/run/user/1000 timeout -k 1 3 ultra-puntero-red estado 2>/dev/null || true
     if [[ -r /run/ultra-escritorio/cpu-energia.json ]]; then
         printf '\n[CPU: temperatura etiquetada, perfil y RAPL; ultimas 300 muestras]\n'
         head -c 1048576 /run/ultra-escritorio/cpu-energia.json

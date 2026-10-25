@@ -21,6 +21,8 @@ sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/va
     -S --needed --noconfirm --ignore nvidia-utils,lib32-nvidia-utils "${runtime[@]}" > "$art/main-runtime.log" 2>&1
 sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \
     -S --noconfirm --ignore nvidia-utils,lib32-nvidia-utils glibc gcc linux-api-headers >> "$art/main-runtime.log" 2>&1
+sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \
+    -S --noconfirm mangohud lib32-mangohud >> "$art/main-runtime.log" 2>&1
 # La reinstalacion de glibc puede regenerar los locales. Conservar Peru y
 # comprobar el resultado, no solo la variable LC_TIME del escritorio.
 if ! grep -qx 'es_PE.UTF-8 UTF-8' "$stage/etc/locale.gen"; then
@@ -50,7 +52,7 @@ for source in "$lab/rootfs/bin/"*; do
         [[ ! -f $stage/$directory/$name ]] || sudo install -m 0755 "$source" "$stage/$directory/$name"
     done
 done
-for helper in ultra-fondo-vivo ultra-tarjetas ultra-heronite; do
+for helper in ultra-fondo-vivo ultra-tarjetas ultra-heronite ultra-hud-heronite ultra-puntero-red; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$stage/usr/local/bin/$helper"
 done
 sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$stage/usr/local/bin/ultra-energia"
@@ -66,7 +68,7 @@ sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q > "$art/sistema-
 sudo install -m 0644 "$art/sistema-paquetes.txt" "$stage/etc/ultra/sistema-paquetes.txt"
 sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q nvidia-utils lib32-nvidia-utils > "$art/main-nvidia-despues.txt" 2>/dev/null || [[ $perfil != pc ]]
 cmp "$art/main-nvidia-antes.txt" "$art/main-nvidia-despues.txt"
-for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarjetas probar_registro_steam probar_lanzador_cyberpunk probar_heronite probar_gog_cyberpunk probar_descubrimiento_juegos probar_juegos_vivo probar_hud_lanzador; do
+for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarjetas probar_registro_steam probar_lanzador_cyberpunk probar_heronite probar_gog_cyberpunk probar_descubrimiento_juegos probar_juegos_vivo probar_hud_lanzador probar_hud_heronite; do
     # Los bancos buscan src/rootfs; el taller usa lab/rootfs para empaquetar.
     [[ -d $base/src/rootfs ]] || ln -s ../lab/rootfs "$base/src/rootfs"
     [[ $(readlink -f "$base/src/rootfs") == "$lab/rootfs" ]] || { echo 'ROJO: banco apunta a otras fuentes rootfs'; exit 1; }

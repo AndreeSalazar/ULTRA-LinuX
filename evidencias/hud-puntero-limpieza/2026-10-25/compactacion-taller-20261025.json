@@ -1,0 +1,16 @@
+[
+  {
+    "image": "main-escritorio-taller.qcow2",
+    "before_bytes": 51932102656,
+    "after_bytes": 15846277120,
+    "virtual_contents_equal": true,
+    "virtual_size_bytes": 68719476736
+  },
+  {
+    "image": "taller.qcow2",
+    "before_bytes": 44240928768,
+    "after_bytes": 11530403840,
+    "virtual_contents_equal": true,
+    "virtual_size_bytes": 68719476736
+  }
+]

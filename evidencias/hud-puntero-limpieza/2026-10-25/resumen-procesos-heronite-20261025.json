@@ -1,0 +1,10 @@
+{
+  "heronite_pss_MiB": {
+    "min": 108.8,
+    "mean": 141.3,
+    "max": 206.1,
+    "samples": 100
+  },
+  "session_sampled_cpu_peak_C": 78.5,
+  "game_process_seen": true
+}

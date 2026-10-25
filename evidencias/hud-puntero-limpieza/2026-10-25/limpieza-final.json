@@ -1,0 +1,38 @@
+{
+  "removed": [
+    {
+      "path": "build/pc/sistema-a.erofs.antes-heronite-20261025",
+      "bytes": 1977417728
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-heronite-20261025",
+      "bytes": 2197815296
+    },
+    {
+      "path": "build/pc/sistema-a.erofs.antes-hudcursorfinal-20261025",
+      "bytes": 1919369216
+    },
+    {
+      "path": "build/pc/disco-bmo.img.antes-hudcursorfinal-20261025",
+      "bytes": 2140143616
+    },
+    {
+      "path": "build/hud-cursor-pc/sistema-a.erofs",
+      "bytes": 1919369216
+    },
+    {
+      "path": "build/hud-cursor-pc/disco-bmo.img",
+      "bytes": 2140143616
+    },
+    {
+      "path": "build/hud-cursor-pc/disco-bmo-prueba.img",
+      "bytes": 2140143616
+    },
+    {
+      "path": "build/hud-cursor-pc/ovmf-vars-prueba.fd",
+      "bytes": 540672
+    }
+  ],
+  "C_free_after_bytes": 176404713472,
+  "last_verified_rollback": "build/pc/*antes-hudcursor-20261025"
+}

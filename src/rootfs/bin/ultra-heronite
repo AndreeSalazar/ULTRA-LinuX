@@ -75,6 +75,7 @@ def main():
             if result.returncode == 75:
                 raise ValueError('bibliotecas en preparacion; espera a que termine y vuelve a abrir')
             prepare()
+            subprocess.run(['/usr/local/bin/ultra-hud-heronite','iniciar'],check=True,timeout=15)
             # Only refresh installed metadata after migration, while UI is closed.
             if (Path('/juegos/Cyberpunk2077')/'goggame-1423049311.info').is_file():
                 result = subprocess.run(['/usr/local/bin/ultra-gog-cyberpunk'], timeout=15)
