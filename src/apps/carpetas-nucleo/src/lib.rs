@@ -24,6 +24,7 @@ extern crate alloc;
 pub mod ajustes;
 pub mod analisis;
 pub mod carriles;
+pub mod casm;
 pub mod ciudad;
 pub mod comandos;
 pub mod dependencias;

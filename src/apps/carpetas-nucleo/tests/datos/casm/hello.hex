@@ -1,0 +1,4 @@
+; CASM body only: x86-64 / metal64. Verify before packaging.
+48 8D 35 05 00 00 00 41 FF 57 10 C3 48 6F 6C 61
+20 6D 75 6E 64 6F 20 64 65 73 64 65 20 6D 69 20
+2E 68 65 78 21 0D 0A 00

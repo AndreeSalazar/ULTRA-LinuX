@@ -1,0 +1,5 @@
+{
+"Schema":1,"Target":"x86_64","ABI":"metal64","Constants":[{"Name":"greeting","Line":3,"Offset":12,"Hex":"486F6C61206D756E646F206465736465206D69202E686578210D0A00"}],
+"Calls":[{"Constant":0,"Line":4,"Offset":0}],
+"Return":{"Line":5,"Offset":11},"BodyBytes":40
+}

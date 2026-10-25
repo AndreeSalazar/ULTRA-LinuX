@@ -339,7 +339,7 @@ pub fn lenguaje(nombre: &str) -> Lenguaje {
     let ext = base.rsplit_once('.').map(|(_, x)| x).unwrap_or("");
     let es = |lista: &[&str]| lista.iter().any(|e| e.eq_ignore_ascii_case(ext));
     if es(&["rs"]) { Lenguaje::Rust }
-    else if es(&["c", "h", "cpp", "cc", "cxx", "c++", "cppm", "ixx", "hpp", "hh", "hxx", "h++", "inl", "ipp", "tpp", "cu", "cuh", "m", "mm",
+    else if es(&["casm", "c", "h", "cpp", "cc", "cxx", "c++", "cppm", "ixx", "hpp", "hh", "hxx", "h++", "inl", "ipp", "tpp", "cu", "cuh", "m", "mm",
                  "js", "mjs", "cjs", "ts", "mts", "cts", "jsx", "tsx", "wgsl", "glsl", "hlsl", "vert", "frag", "comp", "geom", "java", "go",
                  "kt", "kts", "cs", "swift", "zig", "dart", "scala", "php", "proto"]) { Lenguaje::C }
     else if es(&["py", "pyi", "pyw"]) { Lenguaje::Python }
