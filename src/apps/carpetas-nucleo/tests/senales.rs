@@ -14,7 +14,7 @@ fn primero_lo_que_rompe_y_por_donde_llega() {
     let util = "void g(char *p) {\n    free(p + 1);\n}\n";
     let mut e = Estado::default();
     let rutas: Vec<String> = ["main.c", "util.h", "red.h"].iter().map(|s| s.to_string()).collect();
-    let m = |l: u32, t: &str| Motivo { linea: l, texto: t.into(), clase: ClaseRef::Comillas, condicion: None };
+    let m = |l: u32, t: &str| Motivo { linea: l, texto: t.into(), clase: ClaseRef::Comillas, condicion: None, exportada: false };
     reducir(&mut e, Accion::Analisis(ResultadoAnalisis {
         rutas, aristas: vec![(0, 2), (2, 1)], motivos: vec![m(3, "red.h"), m(7, "util.h")],
         sospechas: vec![("main.c".into(), analizar("main.c", &larga)), ("util.h".into(), analizar("util.h", util))],

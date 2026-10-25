@@ -1083,6 +1083,82 @@ a los 60 s. Ahora se lee mientras corre: los 15 archivos pasaron de 300 s a 0,8 
   cambiar un archivo solo relee ese, y un arreglo quita su sospecha.
 - `tests/dependencias.rs`: la `-I` manda sobre el más parecido.
 
+### Proyectos grandes: OpenSSL y SpiderMonkey
+
+![La Ciudad de SpiderMonkey: 10 402 archivos, 3,5 millones de líneas](maquetas/png/neon/ciudad-spidermonkey.png)
+
+Medido con dos proyectos reales bajados de crates.io (la red de la prueba no dejaba bajar
+el kernel):
+
+- **OpenSSL 4.0.3:** 1 249 `.c` y 528 `.h`, 666 000 líneas.
+- **SpiderMonkey 153** (el motor de JavaScript de Firefox, en C++): 10 455 archivos y
+  2,3 millones de líneas de C y C++.
+
+**Velocidad y memoria** (`--consulta`, 4 núcleos):
+
+| | OpenSSL | SpiderMonkey |
+| --- | --- | --- |
+| Primer análisis | 0,19 s | 1,2 s (107 MB leídos) |
+| Con la caché | 0,03 s | 0,27 s |
+| Cada pregunta (`fallos`, `camino`, `peso`, `buscar`, `ciclos`) | — | unos 0,25 s |
+| Memoria máxima | 29 MB | 71 MB |
+| Respuesta de `resumen` | 196 tokens | 280 tokens |
+
+La ventana abre SpiderMonkey en 0,7 s. La Ciudad (10 402 edificios, 1 009 distritos)
+ocupa 267 MB de memoria con Vulkan por software. Solo se probó en la pantalla virtual,
+no con una GPU de verdad.
+
+**Exactitud de las dependencias** (`gcc_deps`, 50 archivos de OpenSSL repartidos):
+
+- Con las cabeceras generadas (`./Configure` y `make build_generated`, como el crate):
+  **cobertura 100 %, precisión 94,3 %**. Sin los `#include` que están dentro de un `#if`,
+  **precisión 100 %** (1 567 de 1 567). Lo que sobra es de otras plataformas:
+  `ebcdic.h` (mainframes de IBM) y `e_winsock.h` (Windows).
+- **Sin generarlas, la medida mentía:** daba 70 %. OpenSSL genera 28 cabeceras al
+  compilar (`x509.h`, `ssl.h`… vienen como `.h.in`). Esta máquina tiene las de OpenSSL 3
+  del sistema, así que GCC tomaba esas, de otra versión. Y con `-MM` callaba todo lo que
+  entraba a través de ellas, aunque fuera del proyecto. Arreglado en `gcc_deps`:
+  - usa `-M` en vez de `-MM`;
+  - no mide un archivo si le faltan cabeceras, o si GCC toma del sistema una que el
+    proyecto tiene como plantilla `.h.in`;
+  - lo dice en `sin_medir`: cuántos, cuáles faltan y cuáles se tomaron del sistema.
+
+  Ahora, sin generar, contesta «0 medidos: faltan 6 y 25 se tomaron del sistema» en vez
+  de un 70 % falso.
+- La medida de Chromium `base/` de arriba (58,9 %) se hizo con `-MM`. Pudo tener el mismo
+  problema; queda por repetir.
+
+**Cabeceras exportadas.** Los proyectos grandes copian sus cabeceras al compilar a otra
+carpeta, con otro prefijo. En SpiderMonkey, `mfbt/Assertions.h` se incluye como
+`"mozilla/Assertions.h"` y `js/public/Value.h` como `"js/Value.h"`. Sin compilar esa ruta
+no existe, y el mapa creía que **nadie usaba `Assertions.h`**: se perdían 5 177 de 35 938
+`#include` (15 %).
+
+Ahora se aprende del proyecto entero, en una segunda pasada:
+
+- Un prefijo (`mozilla/`) se acepta si tiene al menos 5 `#include` distintos sin resolver
+  y la mitad o más caen en un archivo del proyecto. En SpiderMonkey entran `mozilla/`
+  (60 %) y `js/` (79 %); `sys/` (2 %) no. Además, `sys/`, `linux/`, `asm/`, `bits/` y
+  similares nunca se aceptan.
+- Solo se deduce si **el nombre del archivo es único en el proyecto**. Al exportar se
+  aplanan carpetas: `mozilla/intl/Locale.h` es `intl/components/src/Locale.h`, no
+  `js/src/builtin/intl/Locale.h`, aunque este acabe en `/intl/Locale.h`. Con el nombre
+  repetido, la primera versión acertaba 41 de 86.
+- Cada flecha deducida lleva `"exportada": true` en su motivo, y `resumen` dice qué
+  prefijos se aprendieron y cuántas flechas dieron.
+
+**Contrastado con la verdad** (los `EXPORTS` de los `moz.build` de Mozilla): de 5 079
+flechas deducidas, **5 076 bien, 0 mal y 3 dudosas** (`mozilla/Logging.h`, cuyo archivo
+real no viene en el crate). `Assertions.h` pasó de «sin dependencias» a 446 archivos que
+lo usan directamente. En OpenSSL y en este repositorio no se deduce nada.
+
+**Comprobado:**
+
+- `tests/dependencias.rs`: se aprende `mozilla/` y no `sys/`; un prefijo con pocos aciertos
+  no entra; el `Locale.h` repetido no se deduce.
+- `consultas.rs`: `gcc_deps` no mide un archivo con una cabecera generada que falta, ni uno
+  que tomó del sistema la de una plantilla `.h.in`. Las dos pruebas fallan sin el arreglo.
+
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**
@@ -1092,8 +1168,9 @@ Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; 
   de tipos, valores o dialecto.
 - Fichas sin detector, porque sin compilar no se verían con honestidad: UB-006, UB-010,
   UB-013, UB-016, UB-019, UB-020, ASM-006 y las NOUB.
-- Las rutas de `-I` del compilador no se conocen: un `#include <x.h>` se resuelve por la
-  raíz o por el final de la ruta (el más cercano a quien lo incluye).
+- Sin `compile_commands.json`, las rutas de `-I` del compilador no se conocen: un
+  `#include <x.h>` se resuelve por la raíz o por el final de la ruta (el más cercano a
+  quien lo incluye). Las cabeceras exportadas se deducen solo con nombre único.
 - El ASM de 16 o 32 bits (arranque) no se juzga con la ABI de 64 bits. Una función sin
   `ret` ni salto de cola, como `_start`, tampoco.
 - Presupuesto: archivos de hasta 2 MiB, 2 GiB o 60 s en total. Si corta, el panel y F12

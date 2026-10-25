@@ -163,7 +163,11 @@ fn relativa(r: &str) -> Result<String, String> {
 
 fn motivo(m: &Option<Motivo>, desde: &str) -> Value {
     match m {
-        Some(m) => json!({ "linea": m.linea, "escrito": m.escrito(desde), "condicion": m.condicion }),
+        Some(m) => {
+            let mut v = json!({ "linea": m.linea, "escrito": m.escrito(desde), "condicion": m.condicion });
+            if m.exportada { v["exportada"] = json!(true); }
+            v
+        }
         None => Value::Null,
     }
 }
@@ -199,7 +203,7 @@ pub fn herramientas() -> Vec<Value> {
  h("guardia", "Modo guardia: mantener revisados por los guardianes (GCC) todos los archivos de C de una carpeta (o del proyecto), por turnos y despues solo lo que cambie. Sin casos a proposito (CASOS-MUSEO.txt) salvo que se pida.",
           json!({ "carpeta": ruta, "activar": { "type": "boolean", "description": "false la apaga" }, "cpp": { "type": "boolean", "description": "tambien C++ (perfil generico)" }, "estudio": { "type": "boolean", "description": "tambien los casos a proposito" } }), &[]),
         h("guardianes", "El perfil de los guardianes (banderas de perfil-gcc.sh) y las revisiones de GCC guardadas: archivo, perfil, errores, avisos y si siguen al dia.", json!({ "limite": lim }), &[]),
-        h("gcc_deps", "Mide cuanto acierta el mapa lexico: para unos archivos C/C++ compara sus cabeceras del proyecto con las que dice gcc -MM -MG (con #if resueltos). Pasar las -I reales del proyecto en flags.",
+        h("gcc_deps", "Mide cuanto acierta el mapa lexico: para unos archivos C/C++ compara sus cabeceras del proyecto con las que dice gcc -M -MG (con #if resueltos); no mide los que piden cabeceras generadas que faltan. Pasar las -I reales del proyecto en flags.",
           json!({ "carpeta": ruta, "flags": { "type": "array", "items": { "type": "string" }, "description": "-I relativas, -D, -std=" }, "limite": lim }), &[]),
         h("exportar_sarif", "Escribe las sospechas del museo (y los diagnosticos de GCC leidos) en un archivo SARIF 2.1.0 dentro de la carpeta.", json!({ "salida": ruta }), &["salida"]),
         h("reanalizar", "Vuelve a leer la carpeta ahora (el servidor MCP ya reanaliza solo al ver cambios; incremental: solo relee lo que cambio).", json!({}), &[]),
@@ -597,6 +601,10 @@ impl Mapa {
             "reutilizados_de_la_cache": an.reutilizados,
             "guardianes": self.guardian.as_ref().map(|p| json!({ "perfil": p.origen, "banderas": p.warn.len() })),
             "revisiones_gcc": { "archivos": self.revisiones.len(), "pendientes": self.pendientes.len() },
+            "cabeceras_exportadas": (!an.exportadas.is_empty()).then(|| json!({
+                "prefijos": an.exportadas.iter().map(|(p, k)| json!({ "prefijo": p, "aristas": k })).collect::<Vec<_>>(),
+                "nota": "deducidas: el #include nombra una ruta que solo existe al compilar (mozilla/x.h es mfbt/x.h); se aprenden del proyecto",
+            })),
             "compile_commands": an.compilacion.as_ref().map(|(o, b)| json!({ "archivo": o, "carpetas_de_busqueda": b,
                                                                              "archivos_con_orden": self.cc.as_ref().map(|c| c.por_archivo.len()) })),
             "recortado": an.truncado,
@@ -838,18 +846,42 @@ impl Mapa {
         let mut ejemplos_gcc: Vec<Value> = Vec::new();
         let mut fallidos = 0;
         let mut con_cc = 0;
+        // Archivos con cabeceras que no existen (se generan al compilar: configure, make).
+        // Con -MG, GCC las da por buenas pero deja de seguir otras: la medida no valdria.
+        let mut incompletos = 0usize;
+        let mut faltan: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+        // Plantillas del proyecto (`x509.h.in`): si GCC encuentra `x509.h` fuera del proyecto,
+        // toma la del sistema (otra version) en lugar de la que se generaria.
+        let plantillas: std::collections::BTreeSet<String> = if elegidos.is_empty() { Default::default() } else {
+            (0..self.indice.len()).filter(|k| !self.indice.es_carpeta(*k)).map(|k| self.indice.ruta(k))
+                .filter_map(|r| r.strip_suffix(".in")).filter(|r| r.ends_with(".h") || r.ends_with(".hpp"))
+                .map(|r| r.rsplit('/').next().unwrap_or(r).to_string()).collect()
+        };
+        let mut del_sistema: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
         let t = Instant::now();
         for r in &elegidos {
             let (dir, mut args, origen, entrada) = self.base_gcc(r);
             if origen == "compile_commands.json" { con_cc += 1; }
             args.retain(|x| x != "-xc++");
             args.extend(extra.iter().cloned());
-            args.extend(["-MM".into(), "-MG".into(), entrada]);
+            // -M y no -MM: con -MM, GCC calla lo que entra a traves de una cabecera del sistema,
+            // aunque sea del proyecto (y si falta una generada, la busca en el sistema).
+            args.extend(["-M".into(), "-MG".into(), entrada]);
             let Ok((salida, _)) = self.gcc(&dir, &args) else { fallidos += 1; continue };
             if salida.trim().is_empty() { fallidos += 1; continue; }
             // "obj.o: a.c b.h \\\n c.h": las cabeceras que existen en el proyecto.
-            let deps: std::collections::BTreeSet<String> = salida.split_once(':').map(|(_, d)| d).unwrap_or("")
-                .split_whitespace().filter(|x| *x != "\\").skip(1)
+            let nombres: Vec<&str> = salida.split_once(':').map(|(_, d)| d).unwrap_or("")
+                .split_whitespace().filter(|x| *x != "\\").skip(1).collect();
+            let ausentes: Vec<&str> = nombres.iter().copied().filter(|x| !dir.join(x).exists()).collect();
+            let tapadas: Vec<&str> = nombres.iter().copied()
+                .filter(|x| self.del_proyecto(&dir, x).is_none() && x.rsplit('/').next().is_some_and(|n| plantillas.contains(n))).collect();
+            if !ausentes.is_empty() || !tapadas.is_empty() {
+                incompletos += 1;
+                for x in ausentes { *faltan.entry(x.to_string()).or_default() += 1; }
+                for x in tapadas { *del_sistema.entry(x.to_string()).or_default() += 1; }
+                continue;
+            }
+            let deps: std::collections::BTreeSet<String> = nombres.into_iter()
                 .filter_map(|x| self.del_proyecto(&dir, x)).filter(|x| dep.id(x).is_some()).collect();
             let Some(id) = dep.id(r) else { continue };
             // El mapa: todo lo que alcanza por #include (gcc -MM da el cierre transitivo).
@@ -859,15 +891,27 @@ impl Mapa {
             for x in alcance_incondicional(dep, id) { if deps.contains(dep.ruta(x)) { aciertos_fijo += 1; } else { solo_fijo += 1; } }
         }
         let p = |a: usize, b: usize| if a + b == 0 { Value::Null } else { json!((a as f64 / (a + b) as f64 * 1000.0).round() / 10.0) };
+        let mut faltan: Vec<(String, usize)> = faltan.into_iter().collect();
+        faltan.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        let mut del_sistema: Vec<(String, usize)> = del_sistema.into_iter().collect();
+        del_sistema.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        let sin_medir = (incompletos > 0).then(|| json!({
+            "archivos": incompletos,
+            "cabeceras_que_faltan": faltan.len(),
+            "las_mas_pedidas": faltan.iter().take(n.min(10)).map(|(x, k)| json!({ "cabecera": x, "la_piden": k })).collect::<Vec<_>>(),
+            "tomadas_del_sistema": del_sistema.len(),
+            "del_sistema_en_vez_del_proyecto": del_sistema.iter().take(n.min(10)).map(|(x, k)| json!({ "cabecera": x, "la_piden": k })).collect::<Vec<_>>(),
+            "aviso": "faltan cabeceras que se generan al compilar (configure, make), o falta una -I; o GCC uso la del sistema (otra version) en lugar de la plantilla .h.in del proyecto. Un archivo asi no se mide: generalas o pasa las -I y vuelve a medir.",
+        }));
         Ok(json!({
-            "archivos_medidos": elegidos.len() - fallidos, "fallidos": fallidos, "con_compile_commands": con_cc, "ms": t.elapsed().as_millis(),
+            "archivos_medidos": elegidos.len() - fallidos - incompletos, "fallidos": fallidos, "sin_medir": sin_medir, "con_compile_commands": con_cc, "ms": t.elapsed().as_millis(),
             "aciertos": aciertos, "solo_en_el_mapa": solo_mapa, "solo_en_gcc": solo_gcc,
             "precision_pct": p(aciertos, solo_mapa), "cobertura_pct": p(aciertos, solo_gcc),
             "sin_los_if": { "aciertos": aciertos_fijo, "solo_en_el_mapa": solo_fijo, "precision_pct": p(aciertos_fijo, solo_fijo),
                             "nota": "el mapa contando solo los #include que no estan dentro de un #if" },
             "ejemplos_solo_mapa": ejemplos_mapa, "ejemplos_solo_gcc": ejemplos_gcc,
             "flags": extra,
-            "como": "gcc -MM -MG con -I., -I<carpeta del archivo> y las flags pedidas. Solo en el mapa: #include que GCC no siguio (otro #if, otra plataforma) o mal resuelto; solo en GCC: lo que el mapa no ve (macros, rutas -I).",
+            "como": "gcc -M -MG con -I., -I<carpeta del archivo> y las flags pedidas. Solo en el mapa: #include que GCC no siguio (otro #if, otra plataforma) o mal resuelto; solo en GCC: lo que el mapa no ve (macros, rutas -I).",
         }))
     }
 
@@ -1108,6 +1152,48 @@ mod pruebas {
         assert!(c["fallan_ahora"]["lista"].as_array().unwrap().iter().any(|x| x == "inc/util.h"), "el guardian ve el VLA de la cabecera: {c}");
         if let Some(r) = m.ruta_revisiones() { std::fs::remove_file(r).ok(); }
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn gcc_deps_no_mide_si_faltan_cabeceras_generadas() {
+        if std::process::Command::new("gcc").arg("--version").output().is_err() { return; }
+        let dir = std::env::temp_dir().join(format!("ultra-gcc-deps-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("b.h"), "int b(void);\n").unwrap();
+        // gen.h se generaria al compilar (como x509.h en OpenSSL): no existe.
+        std::fs::write(dir.join("a.c"), "#include \"gen.h\"\n#include \"b.h\"\nint a(void) { return b(); }\n").unwrap();
+        std::fs::write(dir.join("c.c"), "#include \"b.h\"\nint c(void) { return b(); }\n").unwrap();
+        let mut m = Mapa::abrir(&dir).unwrap();
+        let r = m.ejecutar("gcc_deps", &json!({})).unwrap();
+        assert_eq!(r["archivos_medidos"], 1, "solo c.c: {r}");
+        assert_eq!(r["sin_medir"]["archivos"], 1, "{r}");
+        assert_eq!(r["sin_medir"]["las_mas_pedidas"][0]["cabecera"], "gen.h", "{r}");
+        assert_eq!((r["precision_pct"].as_f64(), r["cobertura_pct"].as_f64()), (Some(100.0), Some(100.0)), "{r}");
+        // La plantilla del proyecto (ssl.h.in) y una ssl.h "del sistema" (otra version) que la
+        // tapa; la del sistema incluye una cabecera del proyecto (con -MM, GCC la callaba).
+        std::fs::remove_file(dir.join("a.c")).unwrap();
+        std::fs::create_dir_all(dir.join("sistema/x")).unwrap();
+        std::fs::create_dir_all(dir.join("include/x")).unwrap();
+        std::fs::write(dir.join("include/x/ssl.h.in"), "/* se genera */\n").unwrap();
+        std::fs::write(dir.join("include/x/evp.h"), "int evp;\n").unwrap();
+        let fuera = std::env::temp_dir().join(format!("ultra-gcc-deps-sistema-{}", std::process::id()));
+        std::fs::create_dir_all(fuera.join("x")).unwrap();
+        std::fs::write(fuera.join("x/ssl.h"), "#include <x/evp.h>\n").unwrap();
+        std::fs::write(dir.join("d.c"), "#include <x/ssl.h>\n#include \"b.h\"\nint d;\n").unwrap();
+        let mut m = Mapa::abrir(&dir).unwrap();
+        let r = m.ejecutar("gcc_deps", &json!({ "flags": ["-Iinclude", format!("-I{}", fuera.display())] }));
+        assert!(r.is_err(), "las -I de fuera del proyecto no se aceptan");
+        // C_INCLUDE_PATH: para GCC, cabeceras del sistema (solo trae x/ssl.h: no molesta a
+        // las otras pruebas).
+        std::env::set_var("C_INCLUDE_PATH", &fuera);
+        let r = m.ejecutar("gcc_deps", &json!({ "flags": ["-Iinclude"] })).unwrap();
+        std::env::remove_var("C_INCLUDE_PATH");
+        assert_eq!(r["archivos_medidos"], 1, "c.c; d.c usa la del sistema: {r}");
+        assert_eq!(r["sin_medir"]["tomadas_del_sistema"], 1, "{r}");
+        assert!(r["sin_medir"]["del_sistema_en_vez_del_proyecto"][0]["cabecera"].as_str().unwrap().ends_with("x/ssl.h"), "{r}");
+        std::fs::remove_dir_all(&dir).ok();
+        std::fs::remove_dir_all(&fuera).ok();
     }
 
     #[test]

@@ -22,7 +22,7 @@ use carpetas_nucleo::dependencias::{referencias, resolver, sigue, ClaseRef, Moti
 use carpetas_nucleo::museo::{analizar as museo, ficha, idioma, Fuerza, Sospecha};
 use serde_json::{json, Value};
 use carpetas_nucleo::proyecto::Indice;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
@@ -188,18 +188,42 @@ pub fn analizar_con(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool
     let mut aristas = Vec::new();
     let mut sospechas = Vec::new();
     let (mut archivos, mut bytes) = (0u64, 0u64);
+    // Los #include con carpeta que no se encontraron: quiza son cabeceras exportadas.
+    let mut sin_resolver: Vec<(u32, Referencia)> = Vec::new();
     for h in hojas {
         archivos += 1;
         bytes += h.bytes;
         let desde = indice.ruta(h.ruta as usize);
         for r in &h.refs {
-            let Some(destino) = resolver(desde, r, &rutas) else { continue };
+            let Some(destino) = resolver(desde, r, &rutas) else {
+                if matches!(r.clase, ClaseRef::Comillas | ClaseRef::Angulos) && r.texto.contains('/') { sin_resolver.push((h.ruta, r.clone())); }
+                continue;
+            };
             let Some(&kb) = rutas.todas.get(destino.as_str()) else { continue };
             let a = id(h.ruta, &mut nombres);
             let b = id(kb, &mut nombres);
             aristas.push((a, b, r.linea, Motivo::de(r)));
         }
         if !h.sospechas.is_empty() { sospechas.push((desde.to_string(), h.sospechas)); }
+    }
+    // Segunda pasada: los prefijos exportados que se aprenden del proyecto entero.
+    let prefijos = carpetas_nucleo::dependencias::prefijos_exportados(sin_resolver.iter().map(|(_, r)| r.texto.as_str()), &rutas);
+    let mut exportadas: BTreeMap<String, u32> = BTreeMap::new();
+    if !prefijos.is_empty() {
+        for (k, r) in &sin_resolver {
+            let Some((p, _)) = r.texto.trim_start_matches("./").split_once('/') else { continue };
+            if !prefijos.contains_key(p) { continue; }
+            let desde = indice.ruta(*k as usize);
+            let Some(destino) = carpetas_nucleo::dependencias::exportada(&r.texto, &rutas) else { continue };
+            if destino == desde { continue; }
+            let Some(&kb) = rutas.todas.get(destino.as_str()) else { continue };
+            let a = id(*k, &mut nombres);
+            let b = id(kb, &mut nombres);
+            let mut m = Motivo::de(r);
+            m.exportada = true;
+            aristas.push((a, b, r.linea, m));
+            *exportadas.entry(format!("{p}/")).or_default() += 1;
+        }
     }
     // Una arista por par; su motivo es la primera linea que la escribe.
     // Si la misma arista se escribe sin condicion en otra linea, manda esa (existe siempre).
@@ -220,7 +244,7 @@ pub fn analizar_con(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool
         }
     }
     ResultadoAnalisis { rutas: nombres, aristas, motivos, sospechas, archivos, bytes, truncado: truncado.load(Ordering::Relaxed), micros: t.elapsed().as_micros() as u64, estudio,
-                        reutilizados, compilacion }
+                        reutilizados, compilacion, exportadas: exportadas.into_iter().collect() }
 }
 
 #[cfg(test)]
@@ -297,6 +321,13 @@ mod pruebas {
         let (i, _) = crate::indice::indexar(&raiz, false);
         let ti = t.elapsed();
         let r = analizar(&i, &raiz, &|| true);
+        eprintln!("cabeceras exportadas: {:?}", r.exportadas);
+        // Para compararlas con la verdad del proyecto: desde, texto y a donde se resolvio.
+        if let Some(salida) = std::env::var_os("ULTRA_EXPORTADAS_SALIDA") {
+            let lineas: String = r.aristas.iter().zip(&r.motivos).filter(|(_, m)| m.exportada)
+                .map(|((a, b), m)| format!("{}\t{}\t{}\n", r.rutas[*a as usize], m.texto, r.rutas[*b as usize])).collect();
+            std::fs::write(salida, lineas).unwrap();
+        }
         let mut d = carpetas_nucleo::analisis::EstadoAnalisis::default();
         let (n_rutas, n_aristas) = (r.rutas.len(), r.aristas.len());
         let t2 = Instant::now();

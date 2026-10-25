@@ -124,7 +124,15 @@ GRAFO conteste la pregunta, no el formato.
      GCC leyó** (`-MMD`).
    - **modo guardia:** todos los `.c` de una carpeta por turnos (26 de este repositorio en
      9,2 s; 2 fallan, y uno es la caja con cabeceras de Landlock más viejas).
-7. **Siguiente:**
+7. ~~**Proyectos grandes**~~ **Medido:** OpenSSL (666 000 líneas) y SpiderMonkey
+   (2,3 millones):
+   - SpiderMonkey en 1,2 s la primera vez y 0,27 s con caché, con 71 MB de memoria;
+     cada pregunta en unos 0,25 s;
+   - precisión del 100 % sin los `#if` en OpenSSL, con las cabeceras generadas;
+   - **cabeceras exportadas** (`mozilla/x.h` es `mfbt/x.h`): 5 076 de 5 079 bien contra
+     los `moz.build`, 0 mal;
+   - `gcc_deps` ya no da una medida falsa cuando faltan cabeceras generadas.
+8. **Siguiente:**
    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
      verdad cada archivo);
    - un índice partido en trozos para proyectos que no caben en memoria.

@@ -39,10 +39,18 @@ pub struct Referencia {
 /// Por que `a usa b`: la referencia escrita en `a` (su linea y su texto). Es el motivo de
 /// cada paso de un camino del SUPER GRAFO.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Motivo { pub linea: u32, pub texto: String, pub clase: ClaseRef, pub condicion: Option<String> }
+pub struct Motivo {
+    pub linea: u32,
+    pub texto: String,
+    pub clase: ClaseRef,
+    pub condicion: Option<String>,
+    /// Deducida: el `#include` nombra una cabecera exportada (`mozilla/Assertions.h` es
+    /// `mfbt/Assertions.h`), ver `prefijos_exportados`.
+    pub exportada: bool,
+}
 
 impl Motivo {
-    pub fn de(r: &Referencia) -> Motivo { Motivo { linea: r.linea, texto: r.texto.clone(), clase: r.clase, condicion: r.condicion.clone() } }
+    pub fn de(r: &Referencia) -> Motivo { Motivo { linea: r.linea, texto: r.texto.clone(), clase: r.clase, condicion: r.condicion.clone(), exportada: false } }
     /// Como se escribio, mas o menos: `#include "x.h"`, `mod x;`, `import a.b`...
     pub fn escrito(&self, desde: &str) -> String {
         let asm = matches!(ext(desde), "asm" | "nasm" | "inc");
@@ -293,6 +301,50 @@ pub fn resolver(desde: &str, r: &Referencia, rutas: &dyn Rutas) -> Option<String
             None
         }
     }
+}
+
+/// Prefijos que son del sistema aunque el proyecto tenga un archivo con ese nombre.
+const PREFIJOS_DEL_SISTEMA: &[&str] = &[
+    "sys", "bits", "linux", "asm", "asm-generic", "net", "netinet", "netinet6", "arpa", "machine",
+    "mach", "mach-o", "gnu", "libkern", "os", "CoreFoundation", "x86_64-linux-gnu", "aarch64-linux-gnu", "i386-linux-gnu",
+];
+
+/// Cuantos `#include` distintos sin resolver necesita un prefijo para aprenderlo.
+pub const MIN_EXPORTADAS: u32 = 5;
+
+/// Cabeceras exportadas: los proyectos grandes copian sus cabeceras al compilar a otra
+/// carpeta con otro prefijo (Mozilla: `mfbt/Assertions.h` se incluye como
+/// `"mozilla/Assertions.h"`; `js/public/Value.h` como `"js/Value.h"`). Sin compilar, esa
+/// ruta no existe. Esto da el archivo del proyecto que acaba en lo que va detras del
+/// prefijo (`/Assertions.h`) si es el unico con ese nombre; si hay varios, nada: al
+/// exportar se aplanan carpetas (`mozilla/intl/Locale.h` es `intl/components/src/Locale.h`,
+/// no `js/src/builtin/intl/Locale.h`, que tambien acaba en `/intl/Locale.h`). Medido contra
+/// los moz.build de SpiderMonkey: con nombre repetido acertaba 41 de 86.
+pub fn exportada(texto: &str, rutas: &dyn Rutas) -> Option<String> {
+    let (_, resto) = texto.trim_start_matches("./").split_once('/')?;
+    let nombre = resto.rsplit('/').next()?;
+    let cola = format!("/{resto}");
+    let todos = rutas.por_nombre(nombre);
+    let [uno] = todos.as_slice() else { return None };
+    (uno.ends_with(&cola) || *uno == resto).then(|| uno.to_string())
+}
+
+/// Que prefijos se exportan, aprendido del proyecto entero: los que tienen al menos
+/// `MIN_EXPORTADAS` `#include` distintos sin resolver y en la mitad o mas cae un unico
+/// archivo (`exportada`). En SpiderMonkey: `mozilla/` (60 %) y `js/` (79 %); `sys/` (2 %)
+/// no. Da prefijo -> (los que caen, los distintos).
+pub fn prefijos_exportados<'a>(sin_resolver: impl IntoIterator<Item = &'a str>, rutas: &dyn Rutas) -> BTreeMap<String, (u32, u32)> {
+    let distintos: BTreeSet<&str> = sin_resolver.into_iter().collect();
+    let mut por: BTreeMap<String, (u32, u32)> = BTreeMap::new();
+    for t in distintos {
+        let Some((p, _)) = t.trim_start_matches("./").split_once('/') else { continue };
+        if p.is_empty() || p == ".." || PREFIJOS_DEL_SISTEMA.contains(&p) { continue; }
+        let e = por.entry(p.to_string()).or_default();
+        e.1 += 1;
+        if exportada(t, rutas).is_some() { e.0 += 1; }
+    }
+    por.retain(|_, (caen, total)| *total >= MIN_EXPORTADAS && *caen * 2 >= *total);
+    por
 }
 
 /// La carpeta `src` del crate de un archivo de Rust (la que tiene lib.rs o main.rs).

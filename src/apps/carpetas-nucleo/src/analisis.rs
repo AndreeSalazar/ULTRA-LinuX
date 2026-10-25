@@ -32,6 +32,8 @@ pub struct ResultadoAnalisis {
     pub reutilizados: u64,
     /// El compile_commands.json usado (de donde salio y cuantas -I aporto al mapa).
     pub compilacion: Option<(String, usize)>,
+    /// Prefijos de cabeceras exportadas aprendidos (`mozilla/`), con cuantas aristas dieron.
+    pub exportadas: Vec<(String, u32)>,
 }
 
 /// El archivo que marca una carpeta de casos de estudio (codigo malo a proposito).
@@ -55,6 +57,7 @@ pub struct EstadoAnalisis {
     pub ciclos: crate::ciclos::Ciclos,
     pub reutilizados: u64,
     pub compilacion: Option<(String, usize)>,
+    pub exportadas: Vec<(String, u32)>,
 }
 
 impl EstadoAnalisis {
@@ -71,6 +74,7 @@ impl EstadoAnalisis {
         self.archivos = r.archivos;
         self.reutilizados = r.reutilizados;
         self.compilacion = r.compilacion.clone();
+        self.exportadas = r.exportadas.clone();
         self.bytes = r.bytes;
         self.truncado = r.truncado;
         self.micros = r.micros;

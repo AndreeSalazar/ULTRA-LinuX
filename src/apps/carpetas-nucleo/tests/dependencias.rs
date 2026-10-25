@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-use carpetas_nucleo::dependencias::{aislar, conectar, referencias, resolver, unir, ClaseRef, Dependencias, Rol, Rutas};
+use carpetas_nucleo::dependencias::{aislar, conectar, exportada, prefijos_exportados, referencias, resolver, unir, ClaseRef, Dependencias, Rol, Rutas, MIN_EXPORTADAS};
 use std::collections::BTreeSet;
 
 struct Proyecto(Vec<&'static str>);
@@ -53,6 +53,27 @@ fn cada_include_sabe_de_que_if_depende() {
     // Un #ifndef con codigo antes no es la guarda.
     let c = referencias("z.c", "int x;\n#ifndef SOLO\n#include \"z.h\"\n#endif\n");
     assert_eq!(c[0].condicion.as_deref(), Some("#ifndef SOLO"));
+}
+
+#[test]
+fn cabeceras_exportadas_se_aprenden_del_proyecto() {
+    // Como SpiderMonkey: mfbt/X.h se incluye como "mozilla/X.h" (se copia al compilar).
+    let mut v: Vec<&'static str> = vec!["mfbt/Assertions.h", "mfbt/Types.h", "mfbt/Maybe.h", "mfbt/Vector.h", "mfbt/Span.h",
+        "js/public/Value.h", "js/src/builtin/intl/Locale.h", "intl/components/src/Locale.h", "src/types.h"];
+    let p = Proyecto(std::mem::take(&mut v));
+    assert_eq!(exportada("mozilla/Assertions.h", &p).as_deref(), Some("mfbt/Assertions.h"));
+    assert_eq!(exportada("js/Value.h", &p).as_deref(), Some("js/public/Value.h"));
+    // Al exportar se aplanan carpetas: con dos Locale.h, el que acaba en /intl/Locale.h no
+    // es el bueno (lo es intl/components/src/Locale.h). Con el nombre repetido, nada.
+    assert_eq!(exportada("mozilla/intl/Locale.h", &p), None);
+    assert_eq!(exportada("mozilla/NoExiste.h", &p), None);
+    let sin = ["mozilla/Assertions.h", "mozilla/Types.h", "mozilla/Maybe.h", "mozilla/Vector.h", "mozilla/Span.h", "mozilla/Generado.h",
+               "sys/types.h", "sys/types.h", "otro/a.h", "otro/b.h", "otro/c.h", "otro/d.h", "otro/Value.h"];
+    let pre = prefijos_exportados(sin.iter().copied(), &p);
+    assert_eq!(pre.get("mozilla"), Some(&(5, 6)), "5 de 6 caen en un archivo: {pre:?}");
+    assert!(!pre.contains_key("sys"), "sys/ es del sistema aunque haya src/types.h");
+    assert!(!pre.contains_key("otro"), "1 de 5: no se aprende ({pre:?})");
+    assert!(!prefijos_exportados(["poco/Assertions.h"], &p).contains_key("poco"), "menos de {MIN_EXPORTADAS} distintos");
 }
 
 #[test]
