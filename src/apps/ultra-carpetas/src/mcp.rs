@@ -88,6 +88,9 @@ impl Servidor {
         self.mapa()?.ejecutar(nombre, &json!({}))
     }
 
+    /// Hay turnos de guardia pendientes (el vigia no espera: sigue revisando).
+    pub fn guardia_pendiente(&self) -> bool { self.mapa.as_ref().is_some_and(|m| !m.por_guardar().is_empty()) }
+
     /// Cada cuanto vigilar: 20 veces lo que cuesta la firma, entre 1 y 30 s.
     pub fn intervalo(&self) -> Duration { (self.coste_firma * 20).clamp(Duration::from_secs(1), Duration::from_secs(30)) }
 
@@ -108,6 +111,15 @@ impl Servidor {
             if self.registro {
                 avisos.push(json!({ "jsonrpc": "2.0", "method": "notifications/message", "params": { "level": "info", "logger": "super-grafo",
                     "data": { "reanalizado_ms": t.elapsed().as_millis(), "version": mapa.version, "revisados_otra_vez": revisados, "cambios": c } } }));
+            }
+        }
+        // Un turno del modo guardia (2 archivos: el cerrojo no se queda mucho rato).
+        if let Some(mapa) = self.mapa.as_mut() {
+            let hechos = mapa.revisar_guardia(2);
+            if hechos > 0 && self.registro {
+                let falta = mapa.por_guardar().len();
+                avisos.push(json!({ "jsonrpc": "2.0", "method": "notifications/message", "params": { "level": "info", "logger": "super-grafo",
+                    "data": { "guardia": { "revisados_ahora": hechos, "por_revisar": falta, "archivos_que_fallan": mapa.estado.conectado.fallos } } } }));
             }
         }
         // Avisar de los recursos suscritos cuyo contenido cambio (la ventana cambia sola).
@@ -201,9 +213,11 @@ pub fn servir(carpeta: PathBuf) -> i32 {
             if let Ok(mut x) = s.lock() { if let Ok(m) = x.mapa() { m.revisar_pendientes(8); } }
             let avisos_kernel = crate::vigia::iniciar(&raiz);
             loop {
+                // Con guardia pendiente casi no se espera (se deja respirar a las preguntas).
+                let guardia = s.lock().map(|x| x.guardia_pendiente()).unwrap_or(false);
                 match &avisos_kernel {
-                    Some(rx) => { crate::vigia::esperar(rx, Duration::from_secs(30), Duration::from_millis(150)); }
-                    None => { let espera = s.lock().map(|x| x.intervalo()).unwrap_or(Duration::from_secs(2)); std::thread::sleep(espera); }
+                    Some(rx) => { crate::vigia::esperar(rx, if guardia { Duration::from_millis(20) } else { Duration::from_secs(30) }, Duration::from_millis(150)); }
+                    None => { let espera = if guardia { Duration::from_millis(20) } else { s.lock().map(|x| x.intervalo()).unwrap_or(Duration::from_secs(2)) }; std::thread::sleep(espera); }
                 }
                 let avisos = match s.lock() { Ok(mut x) => x.vigilar(), Err(_) => return };
                 for a in avisos { if !escribir(&salida, &a) { return; } }

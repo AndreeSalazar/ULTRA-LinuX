@@ -49,9 +49,26 @@ pub struct Mapa {
     /// y a reiniciar (se guardan en la cache). Las de archivos que cambiaron, pendientes.
     revisiones: std::collections::BTreeMap<String, Revision>,
     pub pendientes: Vec<String>,
+    /// Modo guardia: que archivos mantener revisados (el criterio, no la lista: un .c nuevo
+    /// de la carpeta entra solo). None: apagado.
+    guardia: Option<Guardia>,
     /// Por que esta pendiente cada una ("cambio a.c", "cambio base/x.h").
     razones: std::collections::BTreeMap<String, String>,
 }
+
+/// El criterio del modo guardia.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Guardia {
+    /// La carpeta a guardar ("" = todo el proyecto).
+    carpeta: String,
+    /// Tambien C++ (con el perfil generico: el de los guardianes es de C).
+    cpp: bool,
+    /// Tambien los casos a proposito (carpetas con CASOS-MUSEO.txt): sus minas fallarian.
+    estudio: bool,
+}
+
+/// Cuantos archivos como mucho en guardia.
+const MAX_GUARDIA: usize = 5000;
 
 /// Una revision de GCC de un archivo: con que perfil, cuando, y que dijo.
 #[derive(Debug, Clone, PartialEq)]
@@ -179,6 +196,8 @@ pub fn herramientas() -> Vec<Value> {
         h("ficha", "Una ficha del museo: regla, control valido, limite, referencia y eje.", json!({ "id": { "type": "string", "description": "C-001, UB-002, E-003..." } }), &["id"]),
         h("gcc_diagnosticos", "Revisa un archivo con GCC (compila a /dev/null: no escribe nada) y lee sus diagnosticos en SARIF. En C usa el perfil de los guardianes del proyecto (perfil-gcc.sh: ULTRA_WARN, dos pasadas como ultra_revisar, -O0 -fanalyzer y -O2); si no, -Wall -Wextra -O2 (+ -fanalyzer si se pide). La revision se guarda: sobrevive al reanalisis y se repite sola si el archivo cambia.",
           json!({ "archivo": ruta, "perfil": { "type": "string", "enum": ["guardian", "generico"] }, "analizador": { "type": "boolean" }, "flags": { "type": "array", "items": { "type": "string" }, "description": "Flags extra: solo -I, -D, -std= y -W" }, "limite": lim }), &["archivo"]),
+ h("guardia", "Modo guardia: mantener revisados por los guardianes (GCC) todos los archivos de C de una carpeta (o del proyecto), por turnos y despues solo lo que cambie. Sin casos a proposito (CASOS-MUSEO.txt) salvo que se pida.",
+          json!({ "carpeta": ruta, "activar": { "type": "boolean", "description": "false la apaga" }, "cpp": { "type": "boolean", "description": "tambien C++ (perfil generico)" }, "estudio": { "type": "boolean", "description": "tambien los casos a proposito" } }), &[]),
         h("guardianes", "El perfil de los guardianes (banderas de perfil-gcc.sh) y las revisiones de GCC guardadas: archivo, perfil, errores, avisos y si siguen al dia.", json!({ "limite": lim }), &[]),
         h("gcc_deps", "Mide cuanto acierta el mapa lexico: para unos archivos C/C++ compara sus cabeceras del proyecto con las que dice gcc -MM -MG (con #if resueltos). Pasar las -I reales del proyecto en flags.",
           json!({ "carpeta": ruta, "flags": { "type": "array", "items": { "type": "string" }, "description": "-I relativas, -D, -std=" }, "limite": lim }), &[]),
@@ -197,8 +216,10 @@ impl Mapa {
         let raiz = raiz.canonicalize().map_err(|e| format!("{}: {e}", raiz.display()))?;
         if !raiz.is_dir() { return Err(format!("{}: no es una carpeta", raiz.display())); }
         let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None, version: 0, previa: None, cuando: 0,
-                           guardian: None, revisiones: Default::default(), pendientes: Vec::new(), razones: Default::default() };
+                           guardian: None, revisiones: Default::default(), pendientes: Vec::new(), razones: Default::default(), guardia: None };
         m.revisiones = m.cargar_revisiones();
+        m.guardia = m.ruta_guardia().and_then(|r| std::fs::read(r).ok()).and_then(|b| serde_json::from_slice::<Value>(&b).ok())
+            .and_then(|v| Some(Guardia { carpeta: v["carpeta"].as_str()?.into(), cpp: v["cpp"].as_bool()?, estudio: v["estudio"].as_bool()? }));
         m.analizar();
         Ok(m)
     }
@@ -270,7 +291,16 @@ impl Mapa {
             }
         }
         self.revisiones.retain(|k, _| self.raiz.join(k).exists());
-        self.estado.errores.por_nodo.clear();
+        // Reparto justo bajo el tope (500): primero un error de cada archivo, despues el resto de
+        // errores y al final los avisos. Asi un archivo con cientos no tapa el fallo de otro.
+        let mut vistos: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        let rango: Vec<u8> = leidos.iter().map(|(a, d)| if !d.grave { 2 } else if vistos.insert(a.clone()) { 0 } else { 1 }).collect();
+        let mut con_rango: Vec<(u8, (String, Diagnostico))> = rango.into_iter().zip(leidos).collect();
+        con_rango.sort_by_key(|(r, _)| *r);
+        let leidos: Vec<(String, Diagnostico)> = con_rango.into_iter().map(|(_, x)| x).collect();
+        // De cero (lista y cuenta): si solo se vaciara la lista, la cuenta llegaria al tope tras
+        // unas rondas y dejaria de anotar.
+        self.estado.errores.olvidar_diagnosticos();
         self.estado.version_fallos += 1;
         self.estado.diagnosticos_externos(leidos);
     }
@@ -379,8 +409,93 @@ impl Mapa {
         })
     }
 
+    fn ruta_guardia(&self) -> Option<PathBuf> {
+        let r = self.ruta_revisiones()?;
+        let nombre = r.file_name()?.to_string_lossy().replacen("revisiones-", "guardia-", 1);
+        Some(r.with_file_name(nombre))
+    }
+
+    /// Los archivos que el modo guardia debe tener revisados, ahora mismo.
+    fn lista_guardia(&self) -> Vec<String> {
+        let Some(g) = &self.guardia else { return Vec::new() };
+        let dentro = |r: &str| g.carpeta.is_empty() || r.starts_with(&format!("{}/", g.carpeta));
+        let vale = |r: &str| matches!(r.rsplit('.').next(), Some("c")) || (g.cpp && matches!(r.rsplit('.').next(), Some("cc" | "cpp" | "cxx")));
+        // Si hay compile_commands.json, lo que de verdad se compila; si no, el indice.
+        let mut v: Vec<String> = match &self.cc {
+            Some(cc) => cc.por_archivo.keys().filter(|r| dentro(r) && vale(r)).cloned().collect(),
+            None => (0..self.indice.len()).filter(|k| !self.indice.es_carpeta(*k)).map(|k| self.indice.ruta(k)).filter(|r| dentro(r) && vale(r)).map(str::to_string).collect(),
+        };
+        if !g.estudio {
+            let mut marcadas: std::collections::HashMap<String, bool> = std::collections::HashMap::new();
+            v.retain(|r| {
+                let mut d = r.as_str();
+                while let Some((arriba, _)) = d.rsplit_once('/') {
+                    d = arriba;
+                    let m = *marcadas.entry(d.to_string()).or_insert_with(|| self.raiz.join(d).join(carpetas_nucleo::analisis::MARCA_ESTUDIO).is_file());
+                    if m { return false; }
+                }
+                true
+            });
+        }
+        v.sort();
+        v.truncate(MAX_GUARDIA);
+        v
+    }
+
+    /// Lo que le falta a la guardia: sin revision, o con la revision pendiente (cambio).
+    pub fn por_guardar(&self) -> Vec<String> {
+        self.lista_guardia().into_iter().filter(|r| !self.revisiones.contains_key(r) || self.pendientes.contains(r)).collect()
+    }
+
+    /// Un turno de la guardia: revisa como mucho `max` de lo que falta. Devuelve cuantos hizo.
+    pub fn revisar_guardia(&mut self, max: usize) -> usize {
+        let lista: Vec<String> = self.por_guardar().into_iter().take(max).collect();
+        let mut n = 0;
+        for archivo in &lista {
+            let es_c = archivo.ends_with(".c");
+            let perfil = self.guardian.clone().filter(|_| es_c);
+            let (analizador, extra) = self.revisiones.get(archivo).map(|r| (r.analizador, r.extra.clone())).unwrap_or((false, Vec::new()));
+            match self.revisar(archivo, perfil.as_ref(), analizador, &extra) {
+                Ok((diags, _, _, deps)) => { self.anotar_revision(archivo, perfil.is_some(), analizador, extra, diags, deps); n += 1; }
+                // Que no falle es un fallo de GCC (no del codigo): se anota vacio para no reintentar sin fin.
+                Err(e) => { self.anotar_revision(archivo, perfil.is_some(), analizador, extra, vec![DiagGcc { archivo: archivo.clone(), archivo_en_proyecto: true, linea: 1, columna: 1,
+                    nivel: "warning".into(), regla: Some("guardia".into()), mensaje: format!("no se pudo revisar: {e}"), pasos: Vec::new() }], Vec::new()); n += 1; }
+            }
+        }
+        if n > 0 { self.reaplicar(); self.guardar_revisiones(); }
+        n
+    }
+
+    fn guardia(&mut self, a: &Value) -> Result<Value, String> {
+        let activar = a.get("activar").and_then(Value::as_bool).unwrap_or(true);
+        if !activar {
+            self.guardia = None;
+            if let Some(r) = self.ruta_guardia() { let _ = std::fs::remove_file(r); }
+            return Ok(json!({ "guardia": "apagada", "nota": "Las revisiones hechas se quedan; ya no se revisa nada nuevo por turnos." }));
+        }
+        let carpeta = match a.get("carpeta").and_then(Value::as_str) { Some(c) if !c.is_empty() => { self.existe(c)?; relativa(c)? } _ => String::new() };
+        let g = Guardia { carpeta, cpp: a.get("cpp").and_then(Value::as_bool).unwrap_or(false), estudio: a.get("estudio").and_then(Value::as_bool).unwrap_or(false) };
+        if let Some(r) = self.ruta_guardia() {
+            if let Some(d) = r.parent() { let _ = std::fs::create_dir_all(d); }
+            let _ = std::fs::write(r, json!({ "carpeta": g.carpeta, "cpp": g.cpp, "estudio": g.estudio }).to_string());
+        }
+        self.guardia = Some(g);
+        let total = self.lista_guardia().len();
+        let falta = self.por_guardar().len();
+        Ok(json!({ "guardia": "encendida", "archivos": total, "por_revisar": falta,
+                   "perfil": self.guardian.as_ref().map(|p| p.origen.clone()).unwrap_or_else(|| "generico (sin perfil-gcc.sh)".into()),
+                   "nota": "El servidor MCP revisa por turnos (2 cada vez, sin bloquear) y despues solo lo que cambie. `guardianes` dice el progreso." }))
+    }
+
     fn guardianes(&self, n: usize) -> Value {
+        let lista = self.lista_guardia();
+        let falta = self.por_guardar();
+        let mut con_errores: Vec<(&String, usize)> = lista.iter().filter_map(|r| self.revisiones.get(r).map(|x| (r, x.diags.iter().filter(|d| d.nivel == "error").count()))).filter(|(_, e)| *e > 0).collect();
+        con_errores.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(b.0)));
         json!({
+            "guardia": self.guardia.as_ref().map(|g| json!({ "carpeta": if g.carpeta.is_empty() { "(todo)" } else { g.carpeta.as_str() }, "cpp": g.cpp, "casos_a_proposito": g.estudio,
+                "archivos": lista.len(), "al_dia": lista.len() - falta.len(), "por_revisar": falta.len(), "con_errores": con_errores.len(),
+                "peores": con_errores.iter().take(n).map(|(r, e)| json!({ "archivo": r, "errores": e })).collect::<Vec<_>>() })),
             "perfil": self.guardian.as_ref().map(|p| json!({ "origen": p.origen, "banderas": p.warn, "pasadas": ["-O0 -fanalyzer", "-O2"] })),
             "revisiones": { "total": self.revisiones.len(), "pendientes": self.pendientes.len(),
                             "lista": self.revisiones.iter().take(n).map(|(k, r)| json!({ "archivo": k, "perfil": r.perfil,
@@ -448,6 +563,7 @@ impl Mapa {
             "reanalizar" => { self.analizar(); Ok(self.resumen()) }
             "cambios" => Ok(self.cambios(limite(a))),
             "guardianes" => Ok(self.guardianes(limite(a))),
+            "guardia" => self.guardia(a),
             "ventana" => Ok(self.ventana(limite(a))),
             "mostrar" => self.mostrar(a),
             _ => Err(format!("no hay herramienta \"{nombre}\"")),
@@ -990,6 +1106,58 @@ mod pruebas {
         m.revisar_pendientes(4);
         let c = m.ejecutar("cambios", &json!({})).unwrap();
         assert!(c["fallan_ahora"]["lista"].as_array().unwrap().iter().any(|x| x == "inc/util.h"), "el guardian ve el VLA de la cabecera: {c}");
+        if let Some(r) = m.ruta_revisiones() { std::fs::remove_file(r).ok(); }
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn la_guardia_revisa_por_turnos_y_ve_los_nuevos() {
+        if std::process::Command::new("gcc").arg("--version").output().is_err() { return; }
+        let dir = std::env::temp_dir().join(format!("ultra-guardia-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src/guardian/produccion")).unwrap();
+        std::fs::create_dir_all(dir.join("lab")).unwrap();
+        std::fs::write(dir.join(crate::guardianes::LUGAR), "ULTRA_WARN=(-std=c17 -Wall -Wextra -Werror -Wvla -Wconversion)\n").unwrap();
+        std::fs::write(dir.join("a.c"), "int f(int n) { return n + 1; }\n").unwrap();
+        // Solo el guardian lo ve (-Wconversion): el museo no tiene ficha para esto.
+        std::fs::write(dir.join("b.c"), "int g(long n) { return n; }\n").unwrap();
+        std::fs::write(dir.join("lab/CASOS-MUSEO.txt"), "minas a proposito\n").unwrap();
+        std::fs::write(dir.join("lab/mina.c"), "int h(int n) { char y[n]; y[0] = 1; return y[0]; }\n").unwrap();
+        let mut m = Mapa::abrir(&dir).unwrap();
+        let r = m.ejecutar("guardia", &json!({})).unwrap();
+        assert_eq!((r["archivos"].as_u64(), r["por_revisar"].as_u64()), (Some(2), Some(2)), "la mina del laboratorio no entra: {r}");
+        assert_eq!(m.revisar_guardia(1), 1, "por turnos");
+        assert_eq!(m.revisar_guardia(5), 1);
+        assert_eq!(m.revisar_guardia(5), 0, "ya esta todo al dia");
+        let g = m.ejecutar("guardianes", &json!({})).unwrap();
+        assert_eq!(g["guardia"]["con_errores"], 1);
+        assert_eq!(g["guardia"]["peores"][0]["archivo"], "b.c");
+        assert!(m.estado.analisis.sospechas.get("b.c").is_none(), "el museo no ve nada en b.c");
+        assert_eq!(m.estado.conectado.fallos, 1, "el guardian (y solo el) hace fallar b.c");
+        // Volver a aplicar muchas veces no agota la cuenta de diagnosticos (fallo arreglado:
+        // antes, tras unas rondas, la cuenta llegaba al tope y b.c dejaba de fallar).
+        for _ in 0..3000 { m.reaplicar(); }
+        assert!(m.estado.errores.por_nodo.contains_key("b.c"));
+        assert_eq!(m.estado.conectado.fallos, 1, "tras 3000 rondas sigue fallando b.c");
+        // Un archivo con mas errores que el tope (500), antes en el orden, no tapa el de b.c.
+        let muchos: String = (0..600).map(|i| format!("int f{i}(int x) {{ int s = x; return x; }}\n")).collect();
+        std::fs::write(dir.join("a.c"), muchos).unwrap();
+        m.analizar();
+        m.revisar_pendientes(4);
+        let errores_a = m.revisiones["a.c"].diags.iter().filter(|d| d.nivel == "error").count();
+        assert!(errores_a > 500, "a.c da {errores_a} errores (mas que el tope)");
+        assert_eq!(m.estado.conectado.fallos, 2, "fallan a.c y b.c: el de b.c no queda fuera");
+        std::fs::write(dir.join("a.c"), "int f(int n) { return n + 1; }\n").unwrap();
+        m.analizar();
+        m.revisar_pendientes(4);
+        // Un .c nuevo entra solo (el criterio, no una lista).
+        std::fs::write(dir.join("c.c"), "int k(void) { return 3; }\n").unwrap();
+        m.analizar();
+        assert_eq!(m.por_guardar(), ["c.c"]);
+        // Y la guardia sobrevive a reiniciar.
+        let otro = Mapa::abrir(&dir).unwrap();
+        assert_eq!(otro.por_guardar(), ["c.c"]);
+        assert_eq!(m.ejecutar("guardia", &json!({ "activar": false })).unwrap()["guardia"], "apagada");
         if let Some(r) = m.ruta_revisiones() { std::fs::remove_file(r).ok(); }
         std::fs::remove_dir_all(&dir).ok();
     }

@@ -122,6 +122,8 @@ GRAFO conteste la pregunta, no el formato.
    - **los guardianes del proyecto** (`perfil-gcc.sh`, dos pasadas como `ultra_revisar`)
      revisan, se guardan y se repiten solos cuando cambia el archivo **o una cabecera que
      GCC leyó** (`-MMD`).
+   - **modo guardia:** todos los `.c` de una carpeta por turnos (26 de este repositorio en
+     9,2 s; 2 fallan, y uno es la caja con cabeceras de Landlock más viejas).
 7. **Siguiente:**
    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
      verdad cada archivo);

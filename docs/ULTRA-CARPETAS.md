@@ -818,6 +818,7 @@ ultra-carpetas --mcp <carpeta>     # servidor MCP por stdio (JSON-RPC 2.0)
 | `gcc_deps` | Cuánto acierta el mapa léxico frente a `gcc -MM -MG` |
 | `exportar_sarif` | El museo (y lo de GCC) en un archivo SARIF 2.1.0 |
 | `reanalizar` | Volver a leer la carpeta ya (el servidor MCP lo hace solo al ver cambios) |
+| `guardia` | Modo guardia: mantener revisados por los guardianes todos los `.c` de una carpeta (o del proyecto), por turnos, y después solo lo que cambie |
 | `guardianes` | El perfil de los guardianes (banderas de `perfil-gcc.sh`) y las revisiones de GCC guardadas: si siguen al día |
 | `cambios` | Qué cambió desde el análisis anterior: sospechas nuevas y arregladas, fallos, causa principal, ciclos |
 | `ventana` | Lo que la persona mira ahora en la ventana (vista, grupo, selección, camino, editor), con las señales de su grupo |
@@ -984,6 +985,40 @@ pasadas, como `ultra_revisar`: `-O0 -fanalyzer` y `-O2`.
 - Medido en este repositorio: `produccion/ultra_guard.c` pasa limpio, con **0 errores**.
   `laboratorio/minas.c` da **86 errores** (VLA, `cast-align`, `format-nonliteral`…), como
   debe un campo de minas. Unos 250 ms las dos pasadas.
+
+**Modo guardia** (`guardia`): revisa por turnos todos los archivos de C de una carpeta, o
+del proyecto, con el perfil de los guardianes. Después solo repite lo que cambie.
+
+- Guarda el **criterio** (carpeta, si incluir C++, si incluir los casos a propósito), no
+  una lista: un `.c` nuevo entra solo.
+- Si hay `compile_commands.json`, guarda lo que de verdad se compila.
+- Las carpetas con `CASOS-MUSEO.txt` quedan fuera, salvo que se pida (sus minas son a
+  propósito).
+- Va de 2 en 2 sin bloquear las preguntas, y avisa del progreso (`notifications/message`).
+- Sobrevive a reiniciar.
+- `guardianes` dice cuántos están al día y los peores.
+
+**Medido en este repositorio** (la guardia entera, por MCP): 26 archivos de C en **9,2 s**.
+
+- Fallan 2:
+  - `src/guardian/minas.c` (86 errores): la entrada que incluye las minas del
+    laboratorio, como se espera;
+  - **`src/caja/caja.c`** (4 errores): usa `LANDLOCK_SCOPE_SIGNAL` y
+    `LANDLOCK_SCOPE_ABSTRACT_UNIX_SOCKET`, de Landlock en Linux 6.12 o más nuevo, y las
+    cabeceras del kernel de esta máquina son más viejas. Es el entorno, no un fallo de
+    `caja.c`: con esas cabeceras, la caja no compila.
+- El resto pasa limpio.
+
+**Dos fallos de la primera versión, arreglados:**
+
+- Al volver a aplicar las revisiones se vaciaba la lista pero no su cuenta. Tras unas
+  rondas la cuenta llegaba al tope (500) y dejaban de contar: «0 archivos que fallan» con
+  2 que fallaban.
+- El tope se reparte con justicia: primero un error de cada archivo, después el resto de
+  errores y al final los avisos. Un archivo con más de 500 errores ya no tapa el fallo de
+  otro.
+
+Las dos pruebas se comprobaron fallando con el código anterior.
 
 **El puente:** la carpeta es 700 y sus archivos 600 (solo el usuario). Al cerrar la
 ventana se borra `ventana.json`: no queda a la vista lo que se miraba.
