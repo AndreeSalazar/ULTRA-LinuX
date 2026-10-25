@@ -7,12 +7,30 @@
 //!
 //! El analisis se hace al arrancar, en otro hilo: `initialize` contesta al momento y la
 //! primera herramienta espera a que termine.
+//!
+//! **En vivo:** un hilo vigila la carpeta (una firma barata: rutas, tamanos y fechas). Si
+//! cambia, reanaliza (incremental: la cache solo relee lo que cambio) y avisa:
+//! - `notifications/resources/updated` a quien se suscribio a un recurso que cambio
+//!   (`super-grafo://resumen`, `fallos`, `ciclos`, `cambios`, `ventana`);
+//! - `notifications/message` (si se pidio `logging/setLevel`) con lo que cambio.
+//! El intervalo se adapta al tamano: 20 veces lo que cuesta la firma (de 1 a 30 s).
 
 use crate::consultas::{herramientas, Mapa};
 use serde_json::{json, Value};
+use std::collections::{BTreeSet, HashMap};
 use std::io::{BufRead, Write};
 use std::path::PathBuf;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, Mutex};
+use std::time::{Duration, Instant};
+
+/// Los recursos que se pueden leer y a los que suscribirse.
+const RECURSOS: &[(&str, &str, &str)] = &[
+    ("resumen", "Resumen del proyecto", "Cifras: archivos, dependencias, sospechas por eje, fallo conectado y ciclos."),
+    ("fallos", "Fallo conectado", "Las causas probables y cuanto explica cada una."),
+    ("ciclos", "Ciclos de cabeceras", "Los ciclos (E-003) con su vuelta y donde cortar."),
+    ("cambios", "Cambios", "Que cambio en el ultimo analisis: sospechas nuevas y arregladas, fallos, ciclos."),
+    ("ventana", "La ventana", "Lo que la persona esta mirando en ULTRA Carpetas (si esta abierta)."),
+];
 
 /// Las versiones del protocolo que se entienden (la mas nueva primero).
 const VERSIONES: &[&str] = &["2025-06-18", "2025-03-26", "2024-11-05"];
@@ -28,18 +46,26 @@ pub struct Servidor {
     mapa: Option<Mapa>,
     llegando: Option<mpsc::Receiver<Result<Mapa, String>>>,
     error: Option<String>,
+    suscritos: BTreeSet<String>,
+    /// La ultima firma de la carpeta y lo que costo calcularla.
+    firma: Option<(u64, usize)>,
+    coste_firma: Duration,
+    /// Huella del contenido de cada recurso la ultima vez que se aviso.
+    huellas: HashMap<String, u64>,
+    /// logging/setLevel: si se piden mensajes.
+    registro: bool,
 }
 
 impl Servidor {
     pub fn nuevo(carpeta: PathBuf) -> Servidor {
         let (tx, rx) = mpsc::channel();
         std::thread::spawn(move || { let _ = tx.send(Mapa::abrir(&carpeta)); });
-        Servidor { mapa: None, llegando: Some(rx), error: None }
+        Servidor { mapa: None, llegando: Some(rx), error: None, suscritos: BTreeSet::new(), firma: None, coste_firma: Duration::ZERO, huellas: HashMap::new(), registro: false }
     }
 
     /// Para pruebas: con el mapa ya hecho.
     #[cfg(test)]
-    pub fn con_mapa(m: Mapa) -> Servidor { Servidor { mapa: Some(m), llegando: None, error: None } }
+    pub fn con_mapa(m: Mapa) -> Servidor { Servidor { mapa: Some(m), llegando: None, error: None, suscritos: BTreeSet::new(), firma: None, coste_firma: Duration::ZERO, huellas: HashMap::new(), registro: false } }
 
     fn mapa(&mut self) -> Result<&mut Mapa, String> {
         if let Some(rx) = self.llegando.take() {
@@ -47,6 +73,47 @@ impl Servidor {
         }
         if let Some(e) = &self.error { return Err(e.clone()); }
         self.mapa.as_mut().ok_or_else(|| "sin mapa".into())
+    }
+
+    /// El contenido de un recurso (`super-grafo://nombre`).
+    fn recurso(&mut self, uri: &str) -> Result<Value, String> {
+        let nombre = uri.strip_prefix("super-grafo://").ok_or_else(|| format!("recurso desconocido: {uri}"))?;
+        if !RECURSOS.iter().any(|(n, ..)| *n == nombre) { return Err(format!("recurso desconocido: {uri}")); }
+        self.mapa()?.ejecutar(nombre, &json!({}))
+    }
+
+    /// Cada cuanto vigilar: 20 veces lo que cuesta la firma, entre 1 y 30 s.
+    pub fn intervalo(&self) -> Duration { (self.coste_firma * 20).clamp(Duration::from_secs(1), Duration::from_secs(30)) }
+
+    /// Mira si la carpeta cambio; si si, reanaliza y devuelve los avisos que tocan.
+    pub fn vigilar(&mut self) -> Vec<Value> {
+        let Some(mapa) = self.mapa.as_mut() else { return Vec::new() };
+        let t = Instant::now();
+        let f = crate::consultas::firma(&mapa.raiz);
+        self.coste_firma = t.elapsed();
+        let mut avisos = Vec::new();
+        let antes = self.firma.replace(f);
+        if antes.is_some_and(|a| a != f) {
+            let t = Instant::now();
+            mapa.analizar();
+            let c = mapa.ejecutar("cambios", &json!({ "limite": 5 })).unwrap_or_default();
+            if self.registro {
+                avisos.push(json!({ "jsonrpc": "2.0", "method": "notifications/message", "params": { "level": "info", "logger": "super-grafo",
+                    "data": { "reanalizado_ms": t.elapsed().as_millis(), "version": mapa.version, "cambios": c } } }));
+            }
+        }
+        // Avisar de los recursos suscritos cuyo contenido cambio (la ventana cambia sola).
+        let suscritos: Vec<String> = self.suscritos.iter().cloned().collect();
+        for uri in suscritos {
+            let Ok(v) = self.recurso(&uri) else { continue };
+            let mut sin_hora = v.clone();
+            if let Some(o) = sin_hora.as_object_mut() { o.remove("escrito_hace_s"); o.remove("analizado_hace_s"); o.remove("analisis_ms"); }
+            let h = serde_json::to_string(&sin_hora).unwrap_or_default().bytes().fold(0xcbf29ce484222325u64, |h, b| (h ^ b as u64).wrapping_mul(0x100000001b3));
+            if self.huellas.insert(uri.clone(), h).is_some_and(|x| x != h) {
+                avisos.push(json!({ "jsonrpc": "2.0", "method": "notifications/resources/updated", "params": { "uri": uri } }));
+            }
+        }
+        avisos
     }
 
     /// Un mensaje JSON-RPC; None si es una notificacion (no lleva respuesta).
@@ -62,7 +129,7 @@ impl Servidor {
                 let version = VERSIONES.iter().find(|v| **v == pedida).copied().unwrap_or(VERSIONES[0]);
                 ok(json!({
                     "protocolVersion": version,
-                    "capabilities": { "tools": { "listChanged": false } },
+                    "capabilities": { "tools": { "listChanged": false }, "resources": { "subscribe": true, "listChanged": false }, "logging": {} },
                     "serverInfo": { "name": "super-grafo", "title": "SUPER GRAFO (ULTRA Carpetas)", "version": env!("CARGO_PKG_VERSION") },
                     "instructions": INSTRUCCIONES,
                 }))
@@ -80,32 +147,66 @@ impl Servidor {
                     Err(e) => json!({ "content": [{ "type": "text", "text": e }], "isError": true }),
                 })
             }
-            "resources/list" => ok(json!({ "resources": [] })),
+            "resources/list" => ok(json!({ "resources": RECURSOS.iter().map(|(n, titulo, desc)| json!({
+                "uri": format!("super-grafo://{n}"), "name": n, "title": titulo, "description": desc, "mimeType": "application/json" })).collect::<Vec<_>>() })),
+            "resources/read" => {
+                let uri = m["params"]["uri"].as_str().unwrap_or("").to_string();
+                match self.recurso(&uri) {
+                    Ok(v) => ok(json!({ "contents": [{ "uri": uri, "mimeType": "application/json", "text": serde_json::to_string(&v).unwrap_or_default() }] })),
+                    Err(e) => mal(-32002, &e),
+                }
+            }
+            "resources/subscribe" | "resources/unsubscribe" => {
+                let uri = m["params"]["uri"].as_str().unwrap_or("").to_string();
+                if !RECURSOS.iter().any(|(n, ..)| format!("super-grafo://{n}") == uri) { return Some(mal(-32002, &format!("recurso desconocido: {uri}"))); }
+                if metodo == "resources/subscribe" {
+                    // La huella de ahora, para avisar solo cuando cambie.
+                    if let Ok(v) = self.recurso(&uri) {
+                        let mut s = v; if let Some(o) = s.as_object_mut() { o.remove("escrito_hace_s"); o.remove("analizado_hace_s"); o.remove("analisis_ms"); }
+                        let h = serde_json::to_string(&s).unwrap_or_default().bytes().fold(0xcbf29ce484222325u64, |h, b| (h ^ b as u64).wrapping_mul(0x100000001b3));
+                        self.huellas.insert(uri.clone(), h);
+                    }
+                    self.suscritos.insert(uri);
+                } else { self.suscritos.remove(&uri); self.huellas.remove(&uri); }
+                ok(json!({}))
+            }
+            "logging/setLevel" => { self.registro = m["params"]["level"].as_str().is_some_and(|l| !matches!(l, "error" | "critical" | "alert" | "emergency")); ok(json!({})) }
             "prompts/list" => ok(json!({ "prompts": [] })),
             _ => mal(-32601, &format!("metodo desconocido: {metodo}")),
         })
     }
 }
 
-/// Bucle stdio: hasta que se cierre stdin.
+/// Bucle stdio: hasta que se cierre stdin. Un hilo aparte vigila la carpeta y avisa.
 pub fn servir(carpeta: PathBuf) -> i32 {
-    let mut s = Servidor::nuevo(carpeta);
+    let s = Arc::new(Mutex::new(Servidor::nuevo(carpeta)));
+    let salida = Arc::new(Mutex::new(std::io::stdout()));
+    let escribir = |salida: &Mutex<std::io::Stdout>, v: &Value| -> bool {
+        let Ok(mut o) = salida.lock() else { return false };
+        writeln!(o, "{}", serde_json::to_string(v).unwrap_or_default()).is_ok() && o.flush().is_ok()
+    };
+    {
+        let (s, salida) = (s.clone(), salida.clone());
+        std::thread::Builder::new().name("vigia".into()).spawn(move || loop {
+            let espera = s.lock().map(|x| x.intervalo()).unwrap_or(Duration::from_secs(2));
+            std::thread::sleep(espera);
+            let avisos = match s.lock() { Ok(mut x) => x.vigilar(), Err(_) => return };
+            for a in avisos { if !escribir(&salida, &a) { return; } }
+        }).ok();
+    }
     let entrada = std::io::stdin();
-    let mut salida = std::io::stdout().lock();
     for linea in entrada.lock().lines() {
         let Ok(linea) = linea else { break };
         if linea.trim().is_empty() { continue; }
         let respuesta = match serde_json::from_str::<Value>(&linea) {
             Ok(Value::Array(lote)) => {
-                let v: Vec<Value> = lote.iter().filter_map(|m| s.atender(m)).collect();
+                let v: Vec<Value> = match s.lock() { Ok(mut s) => lote.iter().filter_map(|m| s.atender(m)).collect(), Err(_) => break };
                 if v.is_empty() { None } else { Some(Value::Array(v)) }
             }
-            Ok(m) => s.atender(&m),
+            Ok(m) => match s.lock() { Ok(mut s) => s.atender(&m), Err(_) => break },
             Err(e) => Some(json!({ "jsonrpc": "2.0", "id": null, "error": { "code": -32700, "message": format!("JSON ilegible: {e}") } })),
         };
-        if let Some(r) = respuesta {
-            if writeln!(salida, "{}", serde_json::to_string(&r).unwrap_or_default()).is_err() || salida.flush().is_err() { break; }
-        }
+        if let Some(r) = respuesta { if !escribir(&salida, &r) { break; } }
     }
     0
 }
@@ -117,6 +218,42 @@ mod pruebas {
     fn servidor() -> Servidor {
         let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../carpetas-nucleo/tests/datos/ciclos/mal");
         Servidor::con_mapa(Mapa::abrir(&dir).unwrap())
+    }
+
+    #[test]
+    fn en_vivo_avisa_cuando_cambia_el_codigo() {
+        let dir = std::env::temp_dir().join(format!("ultra-mcp-vivo-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("a.c"), "#include \"a.h\"\nint f(void) { return 0; }\n").unwrap();
+        std::fs::write(dir.join("a.h"), "#pragma once\nint f(void);\n").unwrap();
+        let mut s = Servidor::con_mapa(Mapa::abrir(&dir).unwrap());
+        let r = s.atender(&json!({ "jsonrpc": "2.0", "id": 1, "method": "resources/list" })).unwrap();
+        assert_eq!(r["result"]["resources"].as_array().unwrap().len(), RECURSOS.len());
+        let r = s.atender(&json!({ "jsonrpc": "2.0", "id": 2, "method": "resources/read", "params": { "uri": "super-grafo://resumen" } })).unwrap();
+        assert!(r["result"]["contents"][0]["text"].as_str().unwrap().contains("\"dependencias\":1"));
+        s.atender(&json!({ "jsonrpc": "2.0", "id": 3, "method": "resources/subscribe", "params": { "uri": "super-grafo://resumen" } })).unwrap();
+        s.atender(&json!({ "jsonrpc": "2.0", "id": 4, "method": "logging/setLevel", "params": { "level": "info" } })).unwrap();
+        assert!(s.vigilar().is_empty(), "la primera vez solo toma la firma");
+        assert!(s.vigilar().is_empty(), "sin cambios, sin avisos");
+        // Alguien mete un free(p + 1): el vigia reanaliza y avisa.
+        std::fs::write(dir.join("b.c"), "#include <stdlib.h>\nvoid g(char *p) {\n    free(p + 1);\n}\n").unwrap();
+        let avisos = s.vigilar();
+        let metodos: Vec<&str> = avisos.iter().filter_map(|a| a["method"].as_str()).collect();
+        assert!(metodos.contains(&"notifications/resources/updated"), "{avisos:?}");
+        assert!(metodos.contains(&"notifications/message"));
+        let c = s.mapa().unwrap().ejecutar("cambios", &json!({})).unwrap();
+        assert_eq!(c["sospechas_nuevas"]["total"], 1);
+        assert_eq!(c["sospechas_nuevas"]["lista"][0]["ficha"], "C-001");
+        assert_eq!(c["fallan_ahora"]["lista"][0], "b.c");
+        // Se arregla: otra vez aviso, y la sospecha sale como arreglada.
+        std::fs::write(dir.join("b.c"), "#include <stdlib.h>\nvoid g(char *p) {\n    free(p);\n}\n").unwrap();
+        assert!(!s.vigilar().is_empty());
+        let c = s.mapa().unwrap().ejecutar("cambios", &json!({})).unwrap();
+        assert_eq!(c["sospechas_arregladas"]["total"], 1);
+        assert_eq!(c["ya_no_fallan"]["lista"][0], "b.c");
+        assert!(s.intervalo() >= Duration::from_secs(1));
+        std::fs::remove_dir_all(&dir).ok();
     }
 
     #[test]

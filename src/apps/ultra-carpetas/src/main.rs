@@ -32,7 +32,9 @@ mod museo_ui;
 mod paneles;
 mod pintar_grafo;
 mod proceso;
+mod puente;
 mod svg;
+mod vivo;
 mod vivos;
 
 use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_COINCIDENCIAS, MAX_DESPLEGADAS, MAX_DIAGNOSTICOS, MAX_ENTRADAS, MAX_INDICE, MAX_LINEAS_POR_CUADRO, MAX_NODOS, MAX_PROCESOS};
@@ -117,6 +119,8 @@ struct App {
     ciudad: ciudad3d::Vista3,
     /// Panel Combinar: la seleccion grupal y como se conecta.
     combinar: combinar_ui::Cache,
+    /// Puente en vivo con el servidor MCP (lo que se ve y lo que pide ensenar).
+    vivo: vivo::Vivo,
     ciudad_ok: bool,
     micros_datos_ciudad: u64,
     /// Historia de git (su hilo) y que pedido es el ultimo.
@@ -150,7 +154,7 @@ impl App {
             vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huellas: Default::default(),
             proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
             texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
-            ciudad: ciudad3d::Vista3::default(), combinar: combinar_ui::Cache::default(), ciudad_ok, micros_datos_ciudad: 0,
+            ciudad: ciudad3d::Vista3::default(), combinar: combinar_ui::Cache::default(), vivo: vivo::Vivo::nuevo(cc.egui_ctx.clone()), ciudad_ok, micros_datos_ciudad: 0,
             git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0, casm_clave: None,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
@@ -989,6 +993,7 @@ impl eframe::App for App {
         self.recoger_proyecto();
         self.recoger_git();
         self.recoger_casm();
+        self.puente_vivo();
         self.teclado(&ctx);
         if self.estado.panel_ajustes && ctx.input(|i| i.key_pressed(Key::Escape)) { self.despachar(Accion::Comando(Comando::Ajustes)); }
         let tema = self.estado.ajustes.tema(self.estado.acento);

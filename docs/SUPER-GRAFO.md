@@ -112,7 +112,12 @@ GRAFO conteste la pregunta, no el formato.
    `base/` pasa de 348 ms a 100 ms.
 5. ~~**Leer `compile_commands.json`**~~ **Hecho:** sus `-I` en el mapa, y sus flags y su
    carpeta en GCC. Precisión del 100 % sin los `#if` en Chromium `base/`.
-6. **Siguiente:**
+6. ~~**MCP en vivo**~~ **Hecho:**
+   - el servidor vigila la carpeta y reanaliza solo;
+   - recursos con suscripción y avisos;
+   - `cambios`;
+   - el puente con la ventana: `ventana` lee lo que se mira y `mostrar` lo enseña.
+7. **Siguiente:**
    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
      verdad cada archivo);
    - un índice partido en trozos para proyectos que no caben en memoria.

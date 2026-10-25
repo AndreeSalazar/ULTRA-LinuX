@@ -817,7 +817,10 @@ ultra-carpetas --mcp <carpeta>     # servidor MCP por stdio (JSON-RPC 2.0)
 | `gcc_diagnosticos` | La opinión de GCC sobre un archivo, en SARIF (con `-fanalyzer` si se pide) |
 | `gcc_deps` | Cuánto acierta el mapa léxico frente a `gcc -MM -MG` |
 | `exportar_sarif` | El museo (y lo de GCC) en un archivo SARIF 2.1.0 |
-| `reanalizar` | Volver a leer la carpeta |
+| `reanalizar` | Volver a leer la carpeta ya (el servidor MCP lo hace solo al ver cambios) |
+| `cambios` | Qué cambió desde el análisis anterior: sospechas nuevas y arregladas, fallos, causa principal, ciclos |
+| `ventana` | Lo que la persona mira ahora en la ventana (vista, grupo, selección, camino, editor), con las señales de su grupo |
+| `mostrar` | Enseñar algo en la ventana: un grupo, una línea, un camino, aislar o limpiar (solo mueve la vista) |
 
 **MCP (Model Context Protocol)** es el protocolo abierto con el que una IA llama a
 herramientas y recibe datos, no imágenes. `.mcp.json` en la raíz registra el servidor
@@ -893,6 +896,70 @@ cliente como Claude Code lo ofrece al abrir el repositorio, y pide permiso antes
   cabeceras generadas en la compilación algunas ramas `#if` no se pueden evaluar.
 - Una línea SARIF de más de 64 KiB en la terminal se queda como texto.
 - El servidor MCP carga el análisis en memoria al arrancar; para leer cambios, `reanalizar`.
+
+### En vivo: el servidor vigila, avisa y habla con la ventana
+
+**Vigila la carpeta.** Un hilo calcula una firma barata (rutas, tamaños y fechas). Si
+cambia, reanaliza: con la caché incremental, solo relee lo que cambió. El intervalo se
+adapta al tamaño: 20 veces lo que cuesta la firma, de 1 a 30 s.
+
+**Recursos MCP con suscripción:** `super-grafo://resumen`, `fallos`, `ciclos`, `cambios`
+y `ventana`.
+
+- Se leen con `resources/read`; con `resources/subscribe`, el cliente recibe
+  `notifications/resources/updated` cuando su contenido cambia.
+- Con `logging/setLevel`, además, `notifications/message` con lo que cambió (por ejemplo,
+  «sospecha nueva C-001 en libera.c»).
+
+**`cambios`** compara con el análisis anterior:
+
+- sospechas nuevas y arregladas (por archivo, ficha y lo visto, que no cambia al moverse
+  de línea);
+- archivos que empiezan a fallar o dejan de fallar;
+- la causa principal, antes y ahora;
+- ciclos nuevos y rotos.
+
+**El puente con la ventana.** Una carpeta privada por proyecto
+(`$XDG_RUNTIME_DIR/ultra-carpetas/vivo-<huella>`, permisos 700).
+
+- La ventana escribe ahí **lo que se ve** (`ventana.json`): modo, panel, grupo,
+  selección, aislado, filtro, archivo y línea del editor, camino. Lo escribe al cambiar
+  y con un latido cada 5 s.
+- El MCP deja **peticiones** (`peticion-*.json`). Un hilo de la ventana las recoge cada
+  300 ms y las aplica: un grupo (en la Ciudad o en el grafo), una línea en el editor, un
+  camino, aislar o limpiar. Solo mueve la vista: nunca escribe en el proyecto ni ejecuta
+  nada.
+- Las peticiones caducan a los 2 minutos.
+
+![Pedido por MCP: la ventana enseña el camino de launch_fuchsia.cc a safe_conversions_impl.h, con sus señales; abajo, «el SUPER GRAFO (MCP) te enseña: camino»](maquetas/png/neon/carpetas-mcp-mostrar.png)
+
+**Medido, de punta a punta** (ventana abierta en Chromium `base/` y un cliente MCP contra
+el binario real):
+
+- `ventana` dice qué se mira en **unos 93 tokens**, sin capturas.
+- `mostrar` con un camino: la ventana lo aplica sola (panel Combinar, el grupo, los arcos
+  en la Ciudad, «el SUPER GRAFO (MCP) te enseña: camino»).
+- Después, `ventana` devuelve el camino, su porqué y las 2 señales del grupo, en unos
+  357 tokens.
+- **Vigía:** se escribe un archivo con `free(p + 1)` y en menos de medio segundo llegan
+  `notifications/resources/updated` (`fallos`) y el mensaje con la sospecha nueva.
+
+**Comprobado:**
+
+- `mcp.rs`: los recursos; suscribirse; que no avise sin cambios; que avise y que
+  `cambios` diga la sospecha nueva y el archivo que falla; y, al arreglarlo, la sospecha
+  arreglada.
+- `puente.rs`: ida y vuelta de la vista y de las peticiones, en orden y borradas al
+  recogerlas.
+
+**Límites:**
+
+- El vigía mira cada 1 a 30 s, no al instante (sin `inotify`).
+- Los diagnósticos de `gcc_diagnosticos` se borran al reanalizar (el código cambió): hay
+  que pedirlos otra vez.
+- El puente lo puede leer y escribir cualquier proceso del mismo usuario. Solo mueve la
+  vista, pero lo que se ve (rutas, la línea del editor) queda ahí mientras la ventana
+  esté abierta.
 
 ### Flags reales (`compile_commands.json`) e índice incremental
 

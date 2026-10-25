@@ -38,7 +38,48 @@ pub struct Mapa {
     micros: u64,
     /// compile_commands.json, si lo hay: carpeta y flags reales de cada archivo.
     cc: Option<crate::compilacion::Compilacion>,
+    /// Sube con cada analisis (para `cambios` y los avisos en vivo).
+    pub version: u64,
+    /// La foto del analisis anterior y cuando se hizo el actual (segundos UNIX).
+    previa: Option<Foto>,
+    cuando: u64,
 }
+
+/// Lo que se compara entre dos analisis para decir que cambio.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Foto {
+    version: u64,
+    /// (archivo, ficha, lo visto): la linea cambia al editar, lo visto no.
+    sospechas: std::collections::BTreeSet<(String, String, String)>,
+    fallan: std::collections::BTreeSet<String>,
+    causas: Vec<String>,
+    ciclos: std::collections::BTreeSet<Vec<String>>,
+    dependencias: u64,
+    archivos: u64,
+}
+
+/// La firma barata de la carpeta: rutas, tamanos y fechas de lo que se analiza. Si cambia,
+/// toca reanalizar (y la cache hace que solo se relea lo que cambio).
+pub fn firma(raiz: &Path) -> (u64, usize) {
+    let (indice, _) = indexar(raiz, false);
+    let mut h = 0xcbf29ce484222325u64;
+    let mut mezclar = |b: &[u8]| for x in b { h = (h ^ *x as u64).wrapping_mul(0x100000001b3); };
+    let mut n = 0;
+    for k in 0..indice.len() {
+        if indice.es_carpeta(k) { continue; }
+        let r = indice.ruta(k);
+        if !(carpetas_nucleo::dependencias::sigue(r) || carpetas_nucleo::museo::idioma(r).is_some() || crate::compilacion::LUGARES.contains(&r)) { continue; }
+        let Ok(m) = std::fs::symlink_metadata(raiz.join(r)) else { continue };
+        let fecha = m.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_nanos()).unwrap_or(0);
+        mezclar(r.as_bytes());
+        mezclar(&m.len().to_le_bytes());
+        mezclar(&fecha.to_le_bytes());
+        n += 1;
+    }
+    (h, n)
+}
+
+fn ahora_s() -> u64 { std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0) }
 
 fn limite(a: &Value) -> usize { a.get("limite").and_then(Value::as_u64).map(|n| (n as usize).clamp(1, LIMITE_MAX)).unwrap_or(LIMITE) }
 
@@ -100,7 +141,12 @@ pub fn herramientas() -> Vec<Value> {
         h("gcc_deps", "Mide cuanto acierta el mapa lexico: para unos archivos C/C++ compara sus cabeceras del proyecto con las que dice gcc -MM -MG (con #if resueltos). Pasar las -I reales del proyecto en flags.",
           json!({ "carpeta": ruta, "flags": { "type": "array", "items": { "type": "string" }, "description": "-I relativas, -D, -std=" }, "limite": lim }), &[]),
         h("exportar_sarif", "Escribe las sospechas del museo (y los diagnosticos de GCC leidos) en un archivo SARIF 2.1.0 dentro de la carpeta.", json!({ "salida": ruta }), &["salida"]),
-        h("reanalizar", "Vuelve a leer la carpeta (si cambio el codigo).", json!({}), &[]),
+        h("reanalizar", "Vuelve a leer la carpeta ahora (el servidor MCP ya reanaliza solo al ver cambios; incremental: solo relee lo que cambio).", json!({}), &[]),
+        h("ventana", "Lo que la persona esta mirando ahora en la ventana de ULTRA Carpetas (vista, grupo elegido, seleccion, camino, archivo del editor), con las senales de su grupo. Sin capturas.", json!({ "limite": lim }), &[]),
+        h("mostrar", "Ensena algo en la ventana de la persona (solo mueve la vista): accion grupo (rutas, modo ciudad|grafo), revelar (ruta, linea), camino (a, b), aislar (rutas) o limpiar.",
+          json!({ "accion": { "type": "string", "enum": ["grupo", "revelar", "camino", "aislar", "limpiar"] }, "rutas": rutas, "ruta": ruta, "linea": { "type": "integer", "minimum": 1 },
+                  "a": ruta, "b": ruta, "modo": { "type": "string", "enum": ["ciudad", "grafo"] } }), &["accion"]),
+        h("cambios", "Que cambio desde el analisis anterior: sospechas nuevas y arregladas, archivos que empiezan o dejan de fallar, la causa principal, ciclos nuevos y rotos.", json!({ "limite": lim }), &[]),
     ]
 }
 
@@ -108,12 +154,17 @@ impl Mapa {
     pub fn abrir(raiz: &Path) -> Result<Mapa, String> {
         let raiz = raiz.canonicalize().map_err(|e| format!("{}: {e}", raiz.display()))?;
         if !raiz.is_dir() { return Err(format!("{}: no es una carpeta", raiz.display())); }
-        let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None };
+        let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None, version: 0, previa: None, cuando: 0 };
         m.analizar();
         Ok(m)
     }
 
-    fn analizar(&mut self) {
+    /// Vuelve a analizar (incremental: la cache solo relee lo que cambio) y guarda la foto
+    /// anterior para `cambios`.
+    pub fn analizar(&mut self) {
+        if self.version > 0 { self.previa = Some(self.foto()); }
+        self.version += 1;
+        self.cuando = ahora_s();
         let t = Instant::now();
         let (indice, _) = indexar(&self.raiz, false);
         let r = analizar(&indice, &self.raiz, &|| true);
@@ -123,6 +174,83 @@ impl Mapa {
         self.estado = e;
         self.micros = t.elapsed().as_micros() as u64;
         self.cc = crate::compilacion::leer(&self.raiz);
+    }
+
+    /// Lo que se compara entre analisis.
+    pub fn foto(&self) -> Foto {
+        let an = &self.estado.analisis;
+        Foto {
+            version: self.version,
+            sospechas: an.sospechas.iter().flat_map(|(k, v)| v.iter().map(move |s| (k.clone(), s.ficha.to_string(), s.visto.clone()))).collect(),
+            fallan: carpetas_nucleo::analisis::fallos(&self.estado.errores, an),
+            causas: self.estado.conectado.conexion.causas.iter().map(|c| c.ruta.clone()).collect(),
+            ciclos: an.ciclos.lista.iter().map(|c| c.archivos.clone()).collect(),
+            dependencias: an.dep.aristas,
+            archivos: an.archivos,
+        }
+    }
+
+    /// Que cambio entre el analisis anterior y el actual.
+    fn cambios(&self, n: usize) -> Value {
+        let Some(antes) = &self.previa else {
+            return json!({ "version": self.version, "cambios": false, "nota": "es el primer analisis: aun no hay con que comparar" });
+        };
+        let ahora = self.foto();
+        let lista = |v: Vec<Value>| { let total = v.len(); json!({ "total": total, "lista": v.into_iter().take(n).collect::<Vec<_>>() }) };
+        let sospecha = |(a, f, v): &(String, String, String)| json!({ "archivo": a, "ficha": f, "eje": eje(f).nombre(), "visto": v });
+        let nuevas: Vec<Value> = ahora.sospechas.difference(&antes.sospechas).map(sospecha).collect();
+        let arregladas: Vec<Value> = antes.sospechas.difference(&ahora.sospechas).map(sospecha).collect();
+        let hay = !nuevas.is_empty() || !arregladas.is_empty() || ahora.fallan != antes.fallan || ahora.ciclos != antes.ciclos || ahora.dependencias != antes.dependencias || ahora.archivos != antes.archivos;
+        json!({
+            "desde_version": antes.version, "version": self.version, "analizado_hace_s": ahora_s().saturating_sub(self.cuando), "cambios": hay,
+            "sospechas_nuevas": lista(nuevas), "sospechas_arregladas": lista(arregladas),
+            "fallan_ahora": lista(ahora.fallan.difference(&antes.fallan).map(|x| json!(x)).collect()),
+            "ya_no_fallan": lista(antes.fallan.difference(&ahora.fallan).map(|x| json!(x)).collect()),
+            "causa_principal": { "antes": antes.causas.first(), "ahora": ahora.causas.first() },
+            "ciclos_nuevos": lista(ahora.ciclos.difference(&antes.ciclos).map(|x| json!(x)).collect()),
+            "ciclos_rotos": lista(antes.ciclos.difference(&ahora.ciclos).map(|x| json!(x)).collect()),
+            "dependencias": { "antes": antes.dependencias, "ahora": ahora.dependencias },
+            "archivos": { "antes": antes.archivos, "ahora": ahora.archivos },
+            "nota": "Los diagnosticos de gcc_diagnosticos se borran al reanalizar (el codigo cambio): pedirlos otra vez.",
+        })
+    }
+
+    /// Lo que se ve en la ventana (por el puente), con las senales del grupo elegido.
+    fn ventana(&self, n: usize) -> Value {
+        let Some((v, hace)) = crate::puente::carpeta(&self.raiz).and_then(|d| crate::puente::ventana(&d)) else {
+            return json!({ "abierta": false, "nota": "No hay una ventana de ULTRA Carpetas abierta en esta carpeta (o es de otra version)." });
+        };
+        let grupo: Vec<String> = v["grupo"].as_array().into_iter().flatten().filter_map(|x| x.as_str().map(str::to_string)).collect();
+        let senales = (!grupo.is_empty()).then(|| {
+            let s = carpetas_nucleo::senales::senales(&self.estado, &grupo);
+            json!({ "total": s.total, "primeras": s.lista.iter().take(n).map(|x| json!({ "archivo": x.archivo, "linea": x.linea, "ficha": x.ficha, "eje": x.eje.nombre(), "texto": x.texto })).collect::<Vec<_>>() })
+        });
+        json!({ "abierta": hace <= 15, "escrito_hace_s": hace, "vista": v, "senales_del_grupo": senales })
+    }
+
+    /// Pide a la ventana que ensene algo (solo la vista).
+    fn mostrar(&self, a: &Value) -> Result<Value, String> {
+        let accion = texto(a, "accion")?;
+        let mut p = json!({ "accion": accion });
+        match accion {
+            "grupo" | "aislar" => {
+                let rutas: Vec<String> = lista(a, "rutas")?.iter().map(|r| self.existe(r)).collect::<Result<_, _>>()?;
+                p["rutas"] = json!(rutas);
+                if let Some(m) = a.get("modo").and_then(Value::as_str) { if !matches!(m, "ciudad" | "grafo") { return Err("modo: ciudad o grafo".into()); } p["modo"] = json!(m); }
+            }
+            "revelar" => {
+                p["ruta"] = json!(self.existe(texto(a, "ruta")?)?);
+                if let Some(l) = a.get("linea").and_then(Value::as_u64) { p["linea"] = json!(l.max(1)); }
+            }
+            "camino" => { p["a"] = json!(self.existe(texto(a, "a")?)?); p["b"] = json!(self.existe(texto(a, "b")?)?); }
+            "limpiar" => {}
+            otra => return Err(format!("accion desconocida: {otra} (grupo, revelar, camino, aislar o limpiar)")),
+        }
+        let dir = crate::puente::carpeta(&self.raiz).ok_or("no hay carpeta para el puente")?;
+        let abierta = crate::puente::ventana(&dir).is_some_and(|(_, hace)| hace <= 15);
+        if !crate::puente::pedir(&dir, &p) { return Err("no se pudo dejar la peticion".into()); }
+        Ok(json!({ "enviado": p, "ventana_abierta": abierta,
+                   "nota": if abierta { "La ventana lo aplica en menos de medio segundo; `ventana` dice lo que se ve despues." } else { "No hay ventana abierta: la peticion caduca en 2 minutos." } }))
     }
 
     /// Ejecuta una herramienta. El error es un texto para quien pregunta.
@@ -142,6 +270,9 @@ impl Mapa {
             "gcc_deps" => self.gcc_deps(a),
             "exportar_sarif" => self.exportar_sarif(a),
             "reanalizar" => { self.analizar(); Ok(self.resumen()) }
+            "cambios" => Ok(self.cambios(limite(a))),
+            "ventana" => Ok(self.ventana(limite(a))),
+            "mostrar" => self.mostrar(a),
             _ => Err(format!("no hay herramienta \"{nombre}\"")),
         }
     }
@@ -169,6 +300,7 @@ impl Mapa {
                                  "se_pueden_romper": k.conexion.roles.values().filter(|r| **r == Rol::Arrastra).count() },
             "ciclos": { "total": an.ciclos.total, "archivos": an.ciclos.archivos, "dependen_de_un_if": an.ciclos.condicionales },
             "analisis_ms": self.micros / 1000,
+            "version": self.version,
             "reutilizados_de_la_cache": an.reutilizados,
             "compile_commands": an.compilacion.as_ref().map(|(o, b)| json!({ "archivo": o, "carpetas_de_busqueda": b,
                                                                              "archivos_con_orden": self.cc.as_ref().map(|c| c.por_archivo.len()) })),
