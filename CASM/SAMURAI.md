@@ -101,9 +101,10 @@ marca «sin caso aislado» cualquier regla nueva hasta que tenga el suyo.
    como dependencia.
 
 La prioridad acordada es **Linux ELF x86-64 primero; metal64 despues**.
-El adaptador ELF actual permite ejecutar programas acotados, pero el compilador
-todavia es C y no puede compilarse con CASM. Capacidades pendientes, pruebas y
-condicion de cierre: [AUTOCOMPILACION.md](AUTOCOMPILACION.md).
+El **perfil Native 0.1 ya se autocompila**, con su analizador y emisor escritos en
+CASM y generaciones iguales en una raiz sin bibliotecas ni compiladores externos.
+El perfil metal64 0.2 conserva su frontend C. Alcance, pruebas y continuidad:
+[AUTOCOMPILACION.md](AUTOCOMPILACION.md) y [Native](native/README.md).
 
 ## El SUPER GRAFO como lupa
 

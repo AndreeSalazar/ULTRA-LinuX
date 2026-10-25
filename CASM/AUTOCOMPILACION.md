@@ -1,8 +1,21 @@
 # CASM: primero Linux, despues metal64
 
-## Estado comprobable
+## Estado comprobable actual
 
-**Todavia no se autocompila.** El frontend y el codificador actuales son C11.
+**CASM Native 0.1 ya se autocompila en Linux x86-64.** El compilador esta escrito
+en `native/compiler.casm`; tres generaciones desde GCC y otras tres desde Clang
+son identicas. Dentro de una raiz vacia, sin compiladores, Python ni libc, produce
+dos generaciones mas como UID 1000 y compila y ejecuta otra fuente diferente.
+[Lenguaje, verificador y uso](native/README.md). Evidencia:
+[`evidencias/casm-native/2026-10-25`](../evidencias/casm-native/2026-10-25/).
+
+Este cierre corresponde al **perfil Native**. El perfil **metal64 0.2** conserva
+su frontend C; no es compatible automaticamente con la nueva gramatica. El
+traspaso metal64 y la ampliacion de tipos/bibliotecas siguen pendientes.
+
+## Estado del perfil metal64 0.2 y primer tramo anterior
+
+**Este frontend metal64 todavia no se autocompila.** Su frontend y codificador son C11.
 La gramatica CASM 0.2 no puede expresar ese compilador: solo tiene una funcion,
 constantes y llamadas a servicios; faltan variables en ejecucion, funciones,
 bucles, memoria mutable y entrada de archivos.
@@ -88,17 +101,18 @@ Fuentes oficiales: [instrumentacion GCC](https://gcc.gnu.org/onlinedocs/gcc/Inst
 [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html) y
 [UndefinedBehaviorSanitizer](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html).
 
-## Condicion para afirmar autocompilacion
+## Criterio de cierre y continuidad
 
-El siguiente tramo del lenguaje necesita valores mutables en ejecucion, funciones
+La ruta de autocompilacion necesita valores mutables en ejecucion, funciones
 con parametros/retorno y marcos de pila, condicionales/bucles, buffers con longitud y
 acceso comprobado, mas servicios Linux de lectura/escritura acotados. Cada extension
 debe entrar a la vez en frontend, emisor, verificador y casos mal/bien.
 
-Despues debe existir una fuente **del propio compilador escrita en CASM**, no un
+Debe existir una fuente **del propio compilador escrita en CASM**, no un
 programa que copie un ejecutable o que invoque GCC. La semilla externa construye
 la etapa 1; esta construye la etapa 2 desde esa fuente; la etapa 2 vuelve a
 construirse. Se exigen igualdad determinista de etapas 2/3, corpus correcto y
 rechazos, bootstrap desde GCC y desde Clang, y ejecucion sin ambos presentes.
-Solo entonces cambia `self_hosted` a `true`. Metal64 necesita despues sus propios
+Ese criterio ya se cumplio para Native: `self_hosted` es `true` exclusivamente
+para su perfil, sin atribuirlo al compilador metal64 de C. Metal64 necesita sus propios
 servicios y la validacion de su ABI; no hereda los syscalls de Linux.

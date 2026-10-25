@@ -1,0 +1,8 @@
+{
+  "kit_manifest_verified": true,
+  "archive_sha256": "927482c6dc6d6c07d335d6d89a90287bd1d2f5e74d443e90c83af6618f72aaaa",
+  "example_output": "50",
+  "self_compiled_with_limits": true,
+  "fifo_and_symlink_rejected": true,
+  "privileged": false
+}

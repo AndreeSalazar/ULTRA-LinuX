@@ -1,5 +1,10 @@
 # CASM en ULTRA LinuX (emisor propio, semillas GCC/Clang, x86-64)
 
+**Dos perfiles explicitos:** el **metal64 0.2** descrito abajo conserva su frontend
+C y su contrato de bytes; **[CASM Native 0.1](native/README.md)** esta escrito en
+CASM y **ya se autocompila** para Linux x86-64, con funciones, bucles y buffers
+comprobados. No se declara autocompilado el frontend C por esa ampliacion.
+
 CASM es el lenguaje propio que emite x86-64 **exacto** a `.hex`: fuente con forma de C,
 IR acotada, codificador propio, verificador separado y paquete FAGRAW64 para el puente
 EFI (`metal64`). Esta carpeta es una **copia aislada** para construir BMO-X2 desde este
@@ -54,6 +59,7 @@ CASM/probar.sh                      # 108 casos (61 katanas) + paquete de oro (i
 CASM/compilar.sh                    # examples/hello.casm -> build/CASM/run-*/INICIO.X86
 CASM/compilar.sh CASM/examples/enteros.casm   # CASM 0.2: enteros exactos
 CASM/compilar.sh mi-programa.casm
+bash CASM/compilar-native.sh CASM/native/ejemplo.casm  # perfil Linux autocompilado
 CASM/construir.sh --compilador clang # semilla alternativa, sin GCC
 CASM/compilar.sh --linux            # tambien program.elf, .linux.hex y .linux.json
 python3 CASM/contrastar.py          # semillas, sanitizadores, comparacion byte a byte

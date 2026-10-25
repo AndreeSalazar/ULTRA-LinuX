@@ -4,11 +4,11 @@ B02,Semillas instrumentadas ASan UBSan,implementado,107 casos por semilla y omis
 B03,Emision HEX IR y paquete independiente de semilla,implementado,512 emisiones verificadas e identicas
 B04,Uso sin invocar GCC o Clang,implementado,compilacion y ejecucion con trampas de PATH
 B05,Adaptador ELF Linux sin ensamblador ni enlazador,implementado,ejecucion y HEX reversible RX y pila NX
-B06,Valores mutables y aritmetica en ejecucion,pendiente,reglas de overflow y trampas verificadas mal y bien
-B07,Funciones parametros retorno y pila,pendiente,ABI propio y limites de marcos probados
-B08,Condicionales y bucles,pendiente,saltos y destinos verificados con limites
-B09,Buffers con longitud y accesos comprobados,pendiente,lectura escritura indices limites y lifetime
-B10,Servicios Linux de archivos para compilar fuentes,pendiente,lecturas acotadas y errores de E S reproducidos
-B11,Fuente del compilador escrita en CASM,pendiente,frontend y emisor expresados en el propio lenguaje
-B12,Autocompilacion real Linux,pendiente,etapas 2 y 3 iguales desde ambas semillas sin GCC ni Clang
+B06,Valores mutables y aritmetica en ejecucion,implementado Native u64,overflow division y desplazamientos comprobados
+B07,Funciones parametros retorno y pila,implementado Native,aridad marcos profundidad y flujo de pila verificados
+B08,Condicionales y bucles,implementado Native,if else while break y fronteras de instrucciones
+B09,Buffers con longitud y accesos comprobados,implementado Native global fijo,indices capacidades y destinos de escritura verificados
+B10,Servicios Linux de archivos para compilar fuentes,implementado Native,lecturas acotadas E S multibloque sin sobrescribir ni seguir enlaces
+B11,Fuente del compilador escrita en CASM,implementado Native,compiler.casm contiene analizador simbolos emisor y escritor ELF
+B12,Autocompilacion real Linux,verificado Native,3 generaciones iguales desde cada semilla y 2 mas en raiz vacia
 B13,Autocompilacion metal64,pendiente,servicios BMO X y ABI validados en QEMU y hardware

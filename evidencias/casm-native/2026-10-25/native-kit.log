@@ -1,0 +1,7 @@
+GREEN [CASM-NATIVE] /home/builder/linux-reconstruido/build/kit-native-0ahy5fro/build/CASM/native/run-m6pmnapn/program.hex
+ELF: /home/builder/linux-reconstruido/build/kit-native-0ahy5fro/build/CASM/native/run-m6pmnapn/program.elf
+Verificacion: /home/builder/linux-reconstruido/build/kit-native-0ahy5fro/build/CASM/native/run-m6pmnapn/verified-native.json
+GREEN [CASM-NATIVE] /home/builder/linux-reconstruido/build/kit-native-0ahy5fro/build/CASM/native/run-nfc1kfel/program.hex
+ELF: /home/builder/linux-reconstruido/build/kit-native-0ahy5fro/build/CASM/native/run-nfc1kfel/program.elf
+Verificacion: /home/builder/linux-reconstruido/build/kit-native-0ahy5fro/build/CASM/native/run-nfc1kfel/verified-native.json
+GREEN [KIT] ejemplo y autocompilacion con publicador; FIFO y enlace rechazados

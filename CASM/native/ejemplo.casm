@@ -1,0 +1,17 @@
+// CASM Native, sin bibliotecas del anfitrion.
+u64 numeros[5] = {3,5,8,13,21};
+
+u64 suma(u64 n) {
+    u64 i=0;
+    u64 total=0;
+    while(i<n) {
+        total=total+numeros[i];
+        i=i+1;
+    }
+    return total;
+}
+
+u64 casm_main() {
+    print(suma(5));
+    return 0;
+}

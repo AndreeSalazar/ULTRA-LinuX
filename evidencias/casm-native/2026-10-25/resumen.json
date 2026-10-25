@@ -1,0 +1,20 @@
+{
+  "profile": "CASM Native 0.1 x86-64",
+  "self_hosted": true,
+  "legacy_metal64_self_hosted": false,
+  "compiler_bytes": 46992,
+  "compiler_sha256": "4131db7e05dcee684962b62a199ffe83383e600023b947ac08c363566e5493bc",
+  "source_sha256": "80cdd9e0f282fb8b1608b359fa5610f3edcc55abc9a891daa06b502745bcfd1e",
+  "generations_per_external_seed": 3,
+  "seeds": [
+    "gcc",
+    "clang"
+  ],
+  "cases": 60,
+  "mutation_rejections": 12,
+  "sealed_root_uid": 1000,
+  "sealed_root_passed": true,
+  "kit_verified": true,
+  "kit_sha256": "927482c6dc6d6c07d335d6d89a90287bd1d2f5e74d443e90c83af6618f72aaaa",
+  "boot_image_changed": false
+}

@@ -8,9 +8,11 @@
 
 ## Escritorio BMO-X // Neón
 
-**CASM hacia la autocompilación:** semillas GCC/Clang contrastadas, uso de la
-semilla vigente sin invocar esos compiladores y adaptador ELF Linux con HEX
-verificable. **Aún no se autocompila.**
+**CASM Native ya se autocompila en Linux x86-64:** compilador escrito en CASM,
+generaciones idénticas desde semillas GCC/Clang y prueba en una raíz sin
+compiladores ni bibliotecas. Emite ELF + HEX con verificación de instrucciones.
+El frontend metal64 0.2 sigue escrito en C.
+[Perfil Native y uso](CASM/native/README.md).
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).
 
 **SUPER GRAFO integrado desde main:** indice incremental, MCP, revision con GCC y

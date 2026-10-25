@@ -1,0 +1,468 @@
+// CASM Native: compiler implementation. Runtime constants precede this body.
+// Only the initial seed is translated as the compatible C subset.
+u64 source[65536];
+u64 code[262144];
+u64 initial[65536];
+u64 global_names[16384];
+u64 global_lengths[256];
+u64 global_addresses[256];
+u64 global_caps[256];
+u64 function_names[8192];
+u64 function_lengths[128];
+u64 function_args[128];
+u64 function_offsets[128];
+u64 local_names[8192];
+u64 local_lengths[128];
+u64 local_offsets[128];
+u64 fix_positions[4096];
+u64 fix_functions[4096];
+u64 break_positions[4096];
+u64 break_loops[4096];
+u64 length;
+u64 position;
+u64 token;
+u64 start;
+u64 name_length;
+u64 number;
+u64 pass;
+u64 global_count;
+u64 function_count;
+u64 local_count;
+u64 local_slots;
+u64 data_used;
+u64 data_high;
+u64 count;
+u64 fix_count;
+u64 expression_depth;
+u64 statement_depth;
+u64 active_loop;
+u64 loop_serial;
+u64 break_count;
+
+u64 error(u64 n) { print(position); panic(n); return 0; }
+u64 letter(u64 c) {
+    if (c>=65) { if(c<=90) { return 1; } }
+    if (c>=97) { if(c<=122) { return 1; } }
+    if(c==95) { return 1; } return 0;
+}
+u64 digit(u64 c) {
+    if(c>=48) { if(c<=57) { return c-48; } }
+    if(c>=65) { if(c<=70) { return c-55; } }
+    if(c>=97) { if(c<=102) { return c-87; } }
+    return 99;
+}
+u64 next() {
+    u64 c=0; u64 base=10; u64 d=0; u64 done=0;
+    while(done==0) {
+        if(position>=length) { token=0; return 0; }
+        c=source[position];
+        if(c==32) { position=position+1; }
+        else if(c==9) { position=position+1; }
+        else if(c==10) { position=position+1; }
+        else if(c==13) { position=position+1; }
+        else if(c==47) {
+            if(position+1<length) {
+                if(source[position+1]==47) {
+                    position=position+2;
+                    while(position<length) { if(source[position]==10) { break; } position=position+1; }
+                } else if(source[position+1]==42) {
+                    position=position+2; done=0;
+                    while(position+1<length) {
+                        if(source[position]==42) { if(source[position+1]==47) { done=1; break; } }
+                        position=position+1;
+                    }
+                    if(done==0) { error(65); } position=position+2; done=0;
+                } else { done=1; }
+            } else { done=1; }
+        } else { done=1; }
+    }
+    start=position; name_length=0; c=source[position]; position=position+1;
+    if(letter(c)) {
+        name_length=1;
+        while(position<length) {
+            c=source[position]; done=letter(c);
+            if(c>=48) { if(c<=57) { done=1; } }
+            if(done==0) { break; }
+            name_length=name_length+1; position=position+1;
+            if(name_length>63) { error(65); }
+        }
+        token=257; return 0;
+    }
+    if(c>=48) { if(c<=57) {
+        base=10; number=c-48;
+        if(c==48) { if(position<length) { if(source[position]==120) {
+            position=position+1; base=16; number=0;
+            if(position>=length) { error(65); }
+            if(digit(source[position])>=16) { error(65); }
+        } } }
+        while(position<length) {
+            d=digit(source[position]); if(d>=base) { break; }
+            if(number>(18446744073709551615-d)/base) { error(65); }
+            number=number*base+d; position=position+1;
+        }
+        token=256; return 0;
+    } }
+    if(c==0) { error(65); } if(c>127) { error(65); }
+    token=c;
+    if(position<length) {
+        d=source[position];
+        if(c==61) { if(d==61) { token=258; position=position+1; } }
+        if(c==33) { if(d==61) { token=259; position=position+1; } }
+        if(c==60) {
+            if(d==61) { token=260; position=position+1; }
+            else if(d==60) { token=262; position=position+1; }
+        }
+        if(c==62) {
+            if(d==61) { token=261; position=position+1; }
+            else if(d==62) { token=263; position=position+1; }
+        }
+    }
+    return 0;
+}
+u64 expect(u64 t) { if(token!=t) { error(65); } next(); return 0; }
+u64 word(u64 n,u64 value) {
+    u64 i=0;
+    if(token!=257) { return 0; } if(name_length!=n) { return 0; }
+    while(i<n) { if(source[start+i]!=value%256) { return 0; } value=value/256; i=i+1; }
+    return 1;
+}
+u64 builtin() {
+    if(word(5,0x7475706e69)) { return 1; }
+    if(word(6,0x74757074756f)) { return 2; }
+    if(word(6,0x74756f786568)) { return 3; }
+    if(word(5,0x746e697270)) { return 4; }
+    if(word(5,0x63696e6170)) { return 5; }
+    return 0;
+}
+u64 reserved_name() {
+    if(builtin()!=0) { return 1; }
+    if(word(3,0x343675)) { return 1; }
+    if(word(2,0x6669)) { return 1; }
+    if(word(4,0x65736c65)) { return 1; }
+    if(word(5,0x656c696877)) { return 1; }
+    if(word(5,0x6b61657262)) { return 1; }
+    if(word(6,0x6e7275746572)) { return 1; }
+    return 0;
+}
+u64 save_name(u64 kind,u64 index,u64 at,u64 n) {
+    u64 i=0; u64 value=0;
+    if(kind==0) { global_lengths[index]=n; }
+    if(kind==1) { function_lengths[index]=n; }
+    if(kind==2) { local_lengths[index]=n; }
+    while(i<n) {
+        value=source[at+i];
+        if(kind==0) { global_names[index*64+i]=value; }
+        if(kind==1) { function_names[index*64+i]=value; }
+        if(kind==2) { local_names[index*64+i]=value; }
+        i=i+1;
+    }
+    return 0;
+}
+u64 same_name(u64 kind,u64 index,u64 at,u64 n) {
+    u64 i=0; u64 value=0; u64 size=0;
+    if(kind==0) { size=global_lengths[index]; }
+    if(kind==1) { size=function_lengths[index]; }
+    if(kind==2) { size=local_lengths[index]; }
+    if(size!=n) { return 0; }
+    while(i<n) {
+        if(kind==0) { value=global_names[index*64+i]; }
+        if(kind==1) { value=function_names[index*64+i]; }
+        if(kind==2) { value=local_names[index*64+i]; }
+        if(value!=source[at+i]) { return 0; } i=i+1;
+    }
+    return 1;
+}
+u64 find(u64 kind,u64 at,u64 n) {
+    u64 i=0; u64 size=0;
+    if(kind==0) { size=global_count; }
+    if(kind==1) { size=function_count; }
+    if(kind==2) { size=local_count; }
+    while(i<size) { if(same_name(kind,i,at,n)) { return i; } i=i+1; }
+    return 4294967295;
+}
+u64 emit(u64 x) { if(count>=262144) { error(65); } if(x>255) { error(65); } code[count]=x; count=count+1; return 0; }
+u64 put(u64 at,u64 x,u64 n) {
+    u64 i=0; while(i<n) { code[at+i]=x%256; x=x/256; i=i+1; } return 0;
+}
+u64 emit_n(u64 x,u64 n) {
+    u64 i=0; while(i<n) { emit(x%256); x=x/256; i=i+1; } return 0;
+}
+u64 mov_rax(u64 x) { emit(72); emit(184); emit_n(x,8); return 0; }
+u64 mov_rdx(u64 x) { emit(72); emit(186); emit_n(x,8); return 0; }
+u64 patch(u64 at,u64 target) {
+    u64 value=0;
+    if(target>=at+4) { value=target-(at+4); }
+    else { value=4294967296-((at+4)-target); }
+    put(at,value,4); return 0;
+}
+u64 jump(u64 op) {
+    u64 at=0; if(op==233) { emit(233); } else { emit(15); emit(op); }
+    at=count; emit_n(0,4); return at;
+}
+u64 branch(u64 op,u64 target) { u64 at=0; at=jump(op); patch(at,target); return 0; }
+u64 call_runtime(u64 target,u64 args) {
+    u64 at=0; emit(232); at=count; emit_n(0,4); patch(at,target);
+    if(args>0) { emit(72); emit(129); emit(196); emit_n(args*8,4); } return 0;
+}
+u64 ret() { mov_rdx(268435472); emit(72); emit(255); emit(10); emit(201); emit(195); return 0; }
+u64 load_scalar(u64 local,u64 global) {
+    if(local!=4294967295) { emit(72); emit(139); emit(133); emit_n(local_offsets[local],4); }
+    else {
+        if(global==4294967295) { error(69); } if(global_caps[global]!=0) { error(65); }
+        mov_rdx(268435456+global_addresses[global]); emit(72); emit(139); emit(2);
+    } return 0;
+}
+u64 store_scalar(u64 local,u64 global) {
+    if(local!=4294967295) { emit(72); emit(137); emit(133); emit_n(local_offsets[local],4); }
+    else { mov_rdx(268435456+global_addresses[global]); emit(72); emit(137); emit(2); }
+    return 0;
+}
+u64 array_address(u64 global) {
+    if(global==4294967295) { error(69); } if(global_caps[global]==0) { error(65); }
+    mov_rdx(global_caps[global]); emit(72); emit(57); emit(208); branch(131,rt_bounds);
+    mov_rdx(268435456+global_addresses[global]); emit(72); emit(141); emit(4); emit(194); return 0;
+}
+u64 call(u64 fn,u64 built) {
+    u64 args=0; u64 g=0; u64 target=0;
+    expect(40);
+    if(built>=1) { if(built<=3) {
+        if(token!=257) { error(65); } g=find(0,start,name_length);
+        if(find(2,start,name_length)!=4294967295) { error(65); }
+        if(g==4294967295) { error(69); } if(global_caps[g]==0) { error(65); }
+        mov_rax(268435456+global_addresses[g]); emit(80);
+        mov_rax(global_caps[g]); emit(80); next(); args=2;
+        if(built!=1) { expect(44); expr(0); emit(80); args=3; }
+        expect(41);
+        if(built==1) { target=rt_input; }
+        if(built==2) { target=rt_output; }
+        if(built==3) { target=rt_hexout; }
+        call_runtime(target,args); return 0;
+    } }
+    if(token!=41) {
+        while(1) {
+            expr(0); emit(80); args=args+1; if(args>8) { error(65); }
+            if(token!=44) { break; } next();
+        }
+    }
+    expect(41);
+    if(built==4) { if(args!=1) { error(65); } call_runtime(rt_print,args); return 0; }
+    if(built==5) { if(args!=1) { error(65); } call_runtime(rt_panic,args); return 0; }
+    if(fn==4294967295) { error(69); } if(args!=function_args[fn]) { error(65); }
+    if(fix_count>=4096) { error(65); }
+    emit(232); fix_positions[fix_count]=count; fix_functions[fix_count]=fn; fix_count=fix_count+1; emit_n(0,4);
+    if(args>0) { emit(72); emit(129); emit(196); emit_n(args*8,4); } return 0;
+}
+u64 primary() {
+    u64 at=0; u64 n=0; u64 b=0; u64 local=0; u64 global=0; u64 fn=0;
+    if(token==256) { mov_rax(number); next(); return 0; }
+    if(token==40) { next(); expr(0); expect(41); return 0; }
+    if(token==33) {
+        next(); expr(9); emit(72); emit(133); emit(192); emit(15); emit(148); emit(192); emit(15); emit(182); emit(192); return 0;
+    }
+    if(token!=257) { error(65); }
+    at=start; n=name_length; b=builtin(); local=find(2,at,n); global=find(0,at,n); fn=find(1,at,n); next();
+    if(token==40) { call(fn,b); return 0; }
+    if(token==91) { if(local!=4294967295) { error(65); } next(); expr(0); expect(93); array_address(global); emit(72); emit(139); emit(0); return 0; }
+    load_scalar(local,global); return 0;
+}
+u64 precedence(u64 t) {
+    if(t==124) { return 1; } if(t==94) { return 2; } if(t==38) { return 3; }
+    if(t==258) { return 4; } if(t==259) { return 4; }
+    if(t==60) { return 5; } if(t==62) { return 5; } if(t==260) { return 5; } if(t==261) { return 5; }
+    if(t==262) { return 6; } if(t==263) { return 6; }
+    if(t==43) { return 7; } if(t==45) { return 7; }
+    if(t==42) { return 8; } if(t==47) { return 8; } if(t==37) { return 8; } return 0;
+}
+u64 binary(u64 op) {
+    u64 cmp=0;
+    emit(72); emit(137); emit(194); emit(88);
+    if(op==43) { emit(72); emit(1); emit(208); branch(130,rt_overflow); }
+    else if(op==45) { emit(72); emit(41); emit(208); branch(130,rt_overflow); }
+    else if(op==42) { emit(72); emit(247); emit(226); branch(130,rt_overflow); }
+    else if(op==47) { emit(72); emit(137); emit(209); emit(72); emit(133); emit(201); branch(132,rt_division); emit(49); emit(210); emit(72); emit(247); emit(241); }
+    else if(op==37) { emit(72); emit(137); emit(209); emit(72); emit(133); emit(201); branch(132,rt_division); emit(49); emit(210); emit(72); emit(247); emit(241); emit(72); emit(137); emit(208); }
+    else if(op==38) { emit(72); emit(33); emit(208); }
+    else if(op==124) { emit(72); emit(9); emit(208); }
+    else if(op==94) { emit(72); emit(49); emit(208); }
+    else if(op==262) {
+        emit(72); emit(137); emit(209); emit(72); emit(131); emit(249); emit(64); branch(131,rt_overflow);
+        emit(73); emit(137); emit(192); emit(72); emit(211); emit(224); emit(73); emit(137); emit(193); emit(73); emit(211); emit(233);
+        emit(77); emit(57); emit(193); branch(133,rt_overflow);
+    }
+    else if(op==263) { emit(72); emit(137); emit(209); emit(72); emit(131); emit(249); emit(64); branch(131,rt_overflow); emit(72); emit(211); emit(232); }
+    else {
+        emit(72); emit(57); emit(208);
+        if(op==258) { cmp=148; } if(op==259) { cmp=149; }
+        if(op==60) { cmp=146; } if(op==62) { cmp=151; }
+        if(op==260) { cmp=150; } if(op==261) { cmp=147; }
+        if(cmp==0) { error(65); }
+        emit(15); emit(cmp); emit(192); emit(15); emit(182); emit(192);
+    } return 0;
+}
+u64 expr(u64 minimum) {
+    u64 op=0; u64 level=0;
+    expression_depth=expression_depth+1; if(expression_depth>16) { error(65); }
+    primary(); level=precedence(token);
+    while(level>0) {
+        if(level<minimum) { break; }
+        op=token; next(); emit(80); expr(level+1); binary(op); level=precedence(token);
+    }
+    expression_depth=expression_depth-1; return 0;
+}
+u64 statement_body() {
+    u64 loop=0; u64 end=0; u64 other=0; u64 at=0; u64 n=0;
+    u64 local=0; u64 global=0; u64 fn=0; u64 built=0; u64 prior=0; u64 i=0;
+    if(token==123) {
+        next(); while(token!=125) { if(token==0) { error(65); } statement(); } expect(125); return 0;
+    }
+    if(word(2,0x6669)) {
+        next(); expect(40); expr(0); expect(41); emit(72); emit(133); emit(192); other=jump(132); statement();
+        if(word(4,0x65736c65)) { end=jump(233); patch(other,count); next(); statement(); patch(end,count); }
+        else { patch(other,count); } return 0;
+    }
+    if(word(5,0x656c696877)) {
+        next(); loop=count; expect(40); expr(0); expect(41); emit(72); emit(133); emit(192); end=jump(132);
+        prior=active_loop; loop_serial=loop_serial+1; active_loop=loop_serial;
+        statement(); branch(233,loop); patch(end,count);
+        while(i<break_count) { if(break_loops[i]==active_loop) { patch(break_positions[i],count); } i=i+1; }
+        active_loop=prior; return 0;
+    }
+    if(word(5,0x6b61657262)) {
+        if(active_loop==0) { error(65); } if(break_count>=4096) { error(65); }
+        next(); expect(59); break_positions[break_count]=jump(233); break_loops[break_count]=active_loop; break_count=break_count+1; return 0;
+    }
+    if(word(6,0x6e7275746572)) { next(); expr(0); expect(59); ret(); return 0; }
+    if(word(3,0x343675)) { error(65); }
+    if(token!=257) { error(65); }
+    at=start; n=name_length; local=find(2,at,n); global=find(0,at,n); fn=find(1,at,n); built=builtin(); next();
+    if(token==40) { call(fn,built); expect(59); return 0; }
+    if(token==91) {
+        if(local!=4294967295) { error(65); }
+        next(); expr(0); expect(93); array_address(global); emit(80); expect(61); expr(0); expect(59); emit(90); emit(72); emit(137); emit(2); return 0;
+    }
+    if(local==4294967295) { if(global==4294967295) { error(69); } if(global_caps[global]!=0) { error(65); } }
+    expect(61); expr(0); expect(59); store_scalar(local,global); return 0;
+}
+u64 statement() {
+    statement_depth=statement_depth+1; if(statement_depth>32) { error(65); }
+    statement_body(); statement_depth=statement_depth-1; return 0;
+}
+u64 data_put(u64 at,u64 value) {
+    u64 i=0; if(at+8>65536) { error(65); }
+    while(i<8) { initial[at+i]=value%256; value=value/256; i=i+1; } return 0;
+}
+u64 global_declaration(u64 at,u64 n) {
+    u64 cap=0; u64 g=0; u64 i=0; u64 value=0; u64 size=8;
+    if(token==91) { next(); if(token!=256) { error(65); } cap=number; if(cap==0) { error(65); } if(cap>262144) { error(65); } next(); expect(93); size=cap*8; }
+    if(pass==0) {
+        if(global_count>=256) { error(65); }
+        if(find(0,at,n)!=4294967295) { error(65); } if(find(1,at,n)!=4294967295) { error(65); }
+        if(data_used+size>8388608) { error(65); }
+        g=global_count; global_count=global_count+1; save_name(0,g,at,n); global_caps[g]=cap; global_addresses[g]=data_used; data_used=data_used+size;
+    } else { g=find(0,at,n); }
+    if(token==61) {
+        next(); if(cap>0) { expect(123); }
+        while(1) {
+            if(token!=256) { error(65); } value=number;
+            if(cap>0) { if(i>=cap) { error(65); } } else { if(i!=0) { error(65); } }
+            if(pass==0) { if(value!=0) {
+                data_put(global_addresses[g]+i*8,value);
+                if(global_addresses[g]+i*8+8>data_high) { data_high=global_addresses[g]+i*8+8; }
+            } }
+            i=i+1; next(); if(token!=44) { break; } if(cap==0) { error(65); } next();
+        }
+        if(cap>0) { expect(125); }
+    }
+    expect(59); return 0;
+}
+u64 function_declaration(u64 at,u64 n,u64 reserved) {
+    u64 fn=0; u64 args=0; u64 depth=1; u64 frame=0; u64 var_at=0; u64 var_n=0; u64 slot=0;
+    if(reserved!=0) { error(65); }
+    if(pass==0) {
+        if(function_count>=128) { error(65); }
+        if(find(1,at,n)!=4294967295) { error(65); } if(find(0,at,n)!=4294967295) { error(65); }
+        fn=function_count; function_count=function_count+1; save_name(1,fn,at,n);
+    } else { fn=find(1,at,n); local_count=0; local_slots=0; }
+    expect(40);
+    if(token!=41) {
+        while(1) {
+            if(word(3,0x343675)==0) { error(65); } next(); if(token!=257) { error(65); }
+            if(reserved_name()) { error(65); }
+            if(args>=8) { error(65); }
+            if(pass==1) {
+                if(find(2,start,name_length)!=4294967295) { error(65); }
+                if(find(0,start,name_length)!=4294967295) { error(65); }
+                if(find(1,start,name_length)!=4294967295) { error(65); }
+                save_name(2,local_count,start,name_length); local_offsets[local_count]=16+8*(function_args[fn]-1-args); local_count=local_count+1;
+            }
+            args=args+1; next(); if(token!=44) { break; } next();
+        }
+    }
+    expect(41); expect(123);
+    if(pass==0) {
+        function_args[fn]=args;
+        while(depth>0) {
+            if(token==0) { error(65); } if(token==123) { depth=depth+1; }
+            if(token==125) { depth=depth-1; } next();
+        } return 0;
+    }
+    function_offsets[fn]=count;
+    active_loop=0;
+    // NOP con aridad: metadato que el verificador de bytes comprueba.
+    emit(15); emit(31); emit(128); emit_n(args,4);
+    mov_rdx(268435472); emit(72); emit(129); emit(58); emit_n(128,4); branch(131,rt_depth);
+    emit(72); emit(255); emit(2); emit(85); emit(72); emit(137); emit(229); emit(72); emit(129); emit(236); frame=count; emit_n(0,4);
+    while(word(3,0x343675)) {
+        next(); if(token!=257) { error(65); } var_at=start; var_n=name_length;
+        if(reserved_name()) { error(65); }
+        if(find(2,var_at,var_n)!=4294967295) { error(65); } if(local_count>=128) { error(65); }
+        if(find(0,var_at,var_n)!=4294967295) { error(65); } if(find(1,var_at,var_n)!=4294967295) { error(65); }
+        next(); expect(61); expr(0); expect(59);
+        local_slots=local_slots+1; slot=4294967296-local_slots*8;
+        save_name(2,local_count,var_at,var_n); local_offsets[local_count]=slot; store_scalar(local_count,0); local_count=local_count+1;
+    }
+    while(token!=125) { if(token==0) { error(65); } statement(); }
+    expect(125); mov_rax(0); ret(); put(frame,local_slots*8,4); return 0;
+}
+u64 program() {
+    u64 at=0; u64 n=0; u64 reserved=0;
+    position=0; next();
+    while(token!=0) {
+        if(word(3,0x343675)==0) { error(65); } next(); if(token!=257) { error(65); }
+        at=start; n=name_length; reserved=reserved_name(); next();
+        if(reserved!=0) { error(65); }
+        if(token==40) { function_declaration(at,n,reserved); }
+        else { global_declaration(at,n); }
+    } return 0;
+}
+u64 entry_function() {
+    u64 i=0; u64 at=0;
+    while(i<function_count) {
+        if(function_lengths[i]==9) {
+            at=i*64;
+            if(function_names[at]==99) { if(function_names[at+1]==97) { if(function_names[at+2]==115) {
+            if(function_names[at+3]==109) { if(function_names[at+4]==95) { if(function_names[at+5]==109) {
+            if(function_names[at+6]==97) { if(function_names[at+7]==105) { if(function_names[at+8]==110) { return i; }
+            } } } } } } } }
+        } i=i+1;
+    } error(65); return 0;
+}
+u64 header(u64 end,u64 data_offset) {
+    put(0,1179403647,4); put(4,2,1); put(5,1,1); put(6,1,1);
+    put(16,2,2); put(18,62,2); put(20,1,4); put(24,4194304+240,8); put(32,64,8);
+    put(52,64,2); put(54,56,2); put(56,3,2);
+    put(64,1,4); put(68,5,4); put(72,0,8); put(80,4194304,8); put(88,4194304,8); put(96,end,8); put(104,end,8); put(112,4096,8);
+    put(120,1,4); put(124,6,4); put(128,data_offset,8); put(136,268435456,8); put(144,268435456,8); put(152,data_high,8); put(160,8454144,8); put(168,4096,8);
+    put(176,1685382481,4); put(180,6,4); put(224,16,8); return 0;
+}
+u64 casm_main() {
+    u64 i=0; u64 fn=0; u64 end=0; u64 data_offset=0;
+    length=input(source); data_used=24; data_high=24; pass=0; program();
+    count=240; while(i<rt_size) { emit(runtime_bytes[i]); i=i+1; }
+    pass=1; program();
+    i=0; while(i<fix_count) { patch(fix_positions[i],function_offsets[fix_functions[i]]); i=i+1; }
+    fn=entry_function(); if(function_args[fn]!=0) { error(65); } patch(240+rt_main_fix,function_offsets[fn]);
+    end=count; while(count%4096!=0) { emit(0); } data_offset=count;
+    i=0; while(i<data_high) { emit(initial[i]); i=i+1; }
+    header(end,data_offset); output(code,count); hexout(code,count); return 0;
+}

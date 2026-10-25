@@ -189,6 +189,11 @@ Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
 
 ## CASM: el lenguaje que exporta `.hex`
 
+El nuevo [perfil Native](../CASM/native/README.md) ya se autocompila para Linux
+x86-64 y verifica instrucciones, marcos y flujo de pila en el HEX emitido.
+Se mantiene separado del frontend metal64 0.2 escrito en C; el Taller existente
+no atribuye mapas metal64 a los artefactos Native.
+
 CASM vive aislado en [`CASM/`](../CASM/README.md): semillas GCC/Clang, destino
 x86-64 y verificador aparte, con adaptador Linux ELF opcional. Su rumbo como samurái de la CPU está en
 [CASM/SAMURAI.md](../CASM/SAMURAI.md). El SUPER GRAFO es su lupa: muestra cómo nace cada

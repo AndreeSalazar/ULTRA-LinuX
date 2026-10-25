@@ -101,3 +101,5 @@ docs/ENERGIA-CPU-PERFILES-2026-10-25.md text eol=lf
 evidencias/casm-linux/** text eol=lf
 # La fuente congelada conserva sus bytes originales para source_sha256.
 evidencias/casm-linux/**/ejemplo.casm -text whitespace=cr-at-eol
+CASM/native/*.casm text eol=lf
+evidencias/casm-native/** text eol=lf
