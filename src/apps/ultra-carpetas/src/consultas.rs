@@ -52,6 +52,9 @@ pub struct Mapa {
     /// Modo guardia: que archivos mantener revisados (el criterio, no la lista: un .c nuevo
     /// de la carpeta entra solo). None: apagado.
     guardia: Option<Guardia>,
+    /// La firma de la carpeta tomada con el indice del ultimo analisis (antes de leer: si algo
+    /// cambia mientras, la proxima firma sera distinta y se reanaliza).
+    pub firma: (u64, usize),
     /// Por que esta pendiente cada una ("cambio a.c", "cambio base/x.h").
     razones: std::collections::BTreeMap<String, String>,
 }
@@ -118,8 +121,15 @@ pub struct Foto {
 
 /// La firma barata de la carpeta: rutas, tamanos y fechas de lo que se analiza. Si cambia,
 /// toca reanalizar (y la cache hace que solo se relea lo que cambio).
-pub fn firma(raiz: &Path) -> (u64, usize) {
+///
+/// La firma y el indice con el que se hizo (para analizar con ese mismo, sin recorrer la
+/// carpeta otra vez: con Chromium son 0,8 s).
+pub fn firma_e_indice(raiz: &Path) -> ((u64, usize), Indice) {
     let (indice, _) = indexar(raiz, false);
+    (firma_de(raiz, &indice), indice)
+}
+
+fn firma_de(raiz: &Path, indice: &Indice) -> (u64, usize) {
     let mut h = 0xcbf29ce484222325u64;
     let mut mezclar = |b: &[u8]| for x in b { h = (h ^ *x as u64).wrapping_mul(0x100000001b3); };
     let mut n = 0;
@@ -220,7 +230,7 @@ impl Mapa {
         let raiz = raiz.canonicalize().map_err(|e| format!("{}: {e}", raiz.display()))?;
         if !raiz.is_dir() { return Err(format!("{}: no es una carpeta", raiz.display())); }
         let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None, version: 0, previa: None, cuando: 0,
-                           guardian: None, revisiones: Default::default(), pendientes: Vec::new(), razones: Default::default(), guardia: None };
+                           guardian: None, revisiones: Default::default(), pendientes: Vec::new(), razones: Default::default(), guardia: None, firma: (0, 0) };
         m.revisiones = m.cargar_revisiones();
         m.guardia = m.ruta_guardia().and_then(|r| std::fs::read(r).ok()).and_then(|b| serde_json::from_slice::<Value>(&b).ok())
             .and_then(|v| Some(Guardia { carpeta: v["carpeta"].as_str()?.into(), cpp: v["cpp"].as_bool()?, estudio: v["estudio"].as_bool()? }));
@@ -236,6 +246,20 @@ impl Mapa {
         self.cuando = ahora_s();
         let t = Instant::now();
         let (indice, _) = indexar(&self.raiz, false);
+        self.firma = firma_de(&self.raiz, &indice);
+        self.analizar_con(indice, t);
+    }
+
+    /// Analiza con un indice ya hecho y su firma (el vigia los acaba de sacar).
+    pub fn reanalizar_con(&mut self, indice: Indice, firma: (u64, usize)) {
+        if self.version > 0 { self.previa = Some(self.foto()); }
+        self.version += 1;
+        self.cuando = ahora_s();
+        self.firma = firma;
+        self.analizar_con(indice, Instant::now());
+    }
+
+    fn analizar_con(&mut self, indice: Indice, t: Instant) {
         let r = analizar(&indice, &self.raiz, &|| true);
         let mut e = Estado { raiz_absoluta: self.raiz.to_string_lossy().to_string(), ..Estado::default() };
         reducir(&mut e, Accion::Analisis(r));
@@ -252,7 +276,7 @@ impl Mapa {
     fn ruta_revisiones(&self) -> Option<PathBuf> {
         let c = crate::analisis::ruta_cache(&self.raiz)?;
         let nombre = c.file_name()?.to_string_lossy().replacen("analisis-", "revisiones-", 1);
-        Some(c.with_file_name(nombre))
+        Some(c.with_file_name(nombre).with_extension("json"))
     }
 
     fn cargar_revisiones(&self) -> std::collections::BTreeMap<String, Revision> {

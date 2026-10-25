@@ -8,7 +8,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 /// Rutas como mucho en el indice (Chromium entero son 511 951 archivos + 46 370 carpetas).
-pub const MAX_INDICE: usize = 600_000;
+pub const MAX_INDICE: usize = 2_000_000;
 pub const MAX_RESULTADOS_IR_A: usize = 50;
 /// Coincidencias de texto como mucho en todo el proyecto, y por archivo.
 pub const MAX_COINCIDENCIAS: usize = 20_000;

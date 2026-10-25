@@ -49,9 +49,9 @@ pub enum Respuesta {
 
 /// Lineas desconocidas (binario, demasiado grande, fuera del presupuesto).
 pub const SIN_LINEAS: u32 = u32::MAX;
-/// Presupuesto para contar lineas: hasta 1 GiB leido o 20 s (Chromium real son varios GiB).
-const LINEAS_BYTES: u64 = 1 << 30;
-const LINEAS_TIEMPO: Duration = Duration::from_secs(20);
+/// Presupuesto para contar lineas: hasta 32 GiB leidos o 5 min (Chromium real son varios GiB).
+const LINEAS_BYTES: u64 = 32 << 30;
+const LINEAS_TIEMPO: Duration = Duration::from_secs(300);
 
 pub struct Proyecto { tx: Sender<Pedido>, rx: Receiver<Respuesta> }
 

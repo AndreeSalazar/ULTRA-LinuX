@@ -17,7 +17,7 @@ use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
 
 pub const LADO: f32 = 1000.0;
-pub const MAX_EDIFICIOS: usize = 60_000;
+pub const MAX_EDIFICIOS: usize = 600_000;
 /// Altura de cada terraza de distrito.
 pub const TERRAZA: f32 = 3.0;
 

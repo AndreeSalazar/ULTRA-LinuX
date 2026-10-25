@@ -132,7 +132,12 @@ GRAFO conteste la pregunta, no el formato.
    - **cabeceras exportadas** (`mozilla/x.h` es `mfbt/x.h`): 5 076 de 5 079 bien contra
      los `moz.build`, 0 mal;
    - `gcc_deps` ya no da una medida falsa cuando faltan cabeceras generadas.
-8. **Siguiente:**
+8. ~~**Límites para Chromium entero**~~ **Subidos y medidos** con 312 000 archivos y 3,2 GB
+   de código: caché binaria (de 10 s y 1,8 GB a 0,3 s), resolución en paralelo y alcance
+   18 veces más rápido. Con caché, 3,1 s; el servidor MCP contesta en 0,2 a 21 ms; la
+   Ciudad dibuja los 312 000 edificios.
+9. **Siguiente:**
+   - resolver solo lo que cambió (el aviso en vivo con 312 000 archivos sigue en unos 4 s);
    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
      verdad cada archivo);
    - un índice partido en trozos para proyectos que no caben en memoria.

@@ -350,12 +350,14 @@ archivos**.
   proporcionales y nada se pisa, y hay pruebas que lo comprueban. La raíz cuadrada
   es de Newton, porque `no_std` no tiene biblioteca matemática.
 - Las **líneas** se cuentan en otro hilo, en los archivos de texto de hasta 2 MiB,
-  con un presupuesto de 1 GiB o 20 s. Hasta que terminan, se estiman por tamaño y la
+  con un presupuesto de 32 GiB o 5 min. Hasta que terminan, se estiman por tamaño y la
   ficha lo dice. Las imágenes y los binarios no tienen líneas, así que quedan bajitos
   y no parecen código.
 - **Proyectos enormes:** las carpetas hondas se juntan en **bloques** grises (clic:
-  entrar) hasta que caben 60 000 edificios, sin perder ningún archivo en la cuenta.
-  Chromium entero son 43 416 edificios y 1 489 distritos.
+  entrar) hasta que caben 600 000 edificios, sin perder ningún archivo en la cuenta.
+  Antes el tope era 60 000 y Chromium entero salía en 43 416 edificios y 1 489
+  distritos; ahora cabe cada archivo (unos 509 000). Cada edificio son 40 bytes en la
+  GPU.
   - Juntarlos tarda 0,26 s: rutas en orden alfabético y búsqueda binaria de la
     profundidad, antes 3,3 s.
   - El treemap tarda ~55 ms y solo se rehace al cambiar los datos.
@@ -779,7 +781,7 @@ panel Combinar sirve para **arreglar** y para **aprender**:
 - Como mucho 400 señales por grupo (se dice cuántas hay) y 40 en la lista; «Siguiente»
   recorre las 400.
 - Al aislar varios se calcula lo que usa y lo que usa a cada uno, y se juntan (como mucho
-  20 000 archivos; si no caben, el panel dice «recorte»).
+  1 000 000 de archivos; si no caben, el panel dice «recorte»).
 
 **Un fallo viejo que salió aquí:** cuando un botón de un panel lateral (Aislar, el filtro
 del triángulo…) cambiaba el grafo, la geometría de la GPU se marcaba con la versión nueva
@@ -1159,6 +1161,82 @@ lo usan directamente. En OpenSSL y en este repositorio no se deduce nada.
 - `consultas.rs`: `gcc_deps` no mide un archivo con una cabecera generada que falta, ni uno
   que tomó del sistema la de una plantilla `.h.in`. Las dos pruebas fallan sin el arreglo.
 
+### A escala de Chromium: límites subidos y medidos
+
+![312 060 archivos y 105 millones de líneas en una sola Ciudad](maquetas/png/neon/ciudad-escala-chromium.png)
+
+Sin red para bajar Chromium, la prueba fue **30 copias de SpiderMonkey** (enlaces duros:
+no ocupan disco): 342 360 rutas, 312 060 archivos, 247 740 de código, 3,2 GB de C, C++,
+Python y Rust. Por tamaño se parece a Chromium (unos 509 000 archivos). No es Chromium:
+ni su forma ni sus `#include` son los suyos. En esta prueba no salen cabeceras
+exportadas, porque con 30 copias ningún nombre es único.
+
+**Con los límites viejos se cortaba:** el análisis paraba en 2 GiB (157 000 de 248 000
+archivos de código, `recortado: true`).
+
+| Límite | Antes | Ahora |
+| --- | --- | --- |
+| Presupuesto del análisis | 2 GiB o 60 s | 32 GiB o 10 min (`ULTRA_PRESUPUESTO_GB`, `_S`) |
+| Contar líneas | 1 GiB o 20 s | 32 GiB o 5 min |
+| Índice | 600 000 rutas | 2 000 000 |
+| Ciudad | 60 000 edificios | 600 000 |
+| Vigía (inotify) | 60 000 carpetas | 500 000 (si el sistema no deja, mira cada poco) |
+| Alcance (`peso`, aislar, fallo conectado) | 20 000 archivos | 1 000 000 |
+
+**Subirlos destapó cuatro cuellos de botella, arreglados:**
+
+1. **La caché en JSON:** 103 MB, 10 s y 1,8 GB de memoria al cargarla, más 6 s al
+   escribirla. Ahora es **binaria**, con una tabla de textos sin repetir: 50 MB, 0,3 s
+   al cargarla y 0,5 s al escribirla, en paralelo con la resolución. Si nada cambió no se
+   reescribe. Se lee comprobando cada largo: cortada o rota, se ignora y se relee todo.
+2. **Lo guardado se copiaba** a cada archivo y después se tiraba (más de 1 s y cientos
+   de MB). Ahora se mueve.
+3. **Resolver** los `#include` iba en un solo hilo (2,3 s). Ahora va repartido entre los
+   núcleos y se junta en orden (1,0 s con 4 núcleos).
+4. **El alcance** guardaba cada paso en un `BTreeMap`: 500 000 archivos costaban 0,9 s.
+   Ahora usa un arreglo plano: **51 ms**. El fallo conectado solo cuenta, y reutiliza la
+   memoria entre causas.
+
+**Medido** (4 núcleos):
+
+| | Antes | Ahora |
+| --- | --- | --- |
+| Primer análisis, sin caché | 17,5 s (cortado en 2 GiB) | 17 s (todo) |
+| Con la caché | 10 s y 1,8 GB | **3,1 s y 473 MB** |
+| Servidor MCP: arranque | — | 3,4 s, 366 MB |
+| Servidor MCP: cada pregunta | — | **0,2 a 21 ms** |
+| Del guardado al aviso en vivo | 5,9 s | 4,3 s |
+
+En el servidor MCP el mapa vive en memoria: `fallos`, `peso`, `archivo` y `ciclos` tardan
+menos de 1 ms; `buscar` (texto en 342 000 rutas), 21 ms. El aviso en vivo ya no recorre la
+carpeta dos veces (la firma y el análisis usan el mismo índice). Esa firma se toma
+**antes** de leer, así que un cambio hecho a mitad del análisis no se pierde. Antes se
+tomaba al final.
+
+**La Ciudad** con 312 060 edificios, uno por archivo, y 30 300 distritos: 1,09 GB de
+memoria (130 MB más que con bloques). Con Vulkan por software el cuadro tarda unos 21 ms.
+No se probó con una GPU de verdad.
+
+**El peor caso del fallo conectado** (`tests/escala.rs`, grafo sintético de 500 000
+archivos y 4 millones de `#include`):
+
+- 1 500 fallos repartidos: 0,4 s;
+- 300 cabeceras de base fallando a la vez, cada una arrastrando a unos 425 000 archivos:
+  **2,9 s** (antes 4,3 s). Son unos 67 millones de pasos para contar exacto. Se prefirió
+  exacto y lento en ese extremo a recortar y que el orden de las causas mienta.
+
+**Comprobado:**
+
+- `analisis.rs`: la caché binaria va y vuelve igual (referencias con su `#if`, Python con
+  puntos, sospechas), y no se lee cortada en ningún largo ni con otra huella.
+- Una prueba vieja pilló un fallo mío: al borrar la caché JSON antigua se borraba la
+  nueva si su nombre acababa en `.json`.
+- Las 107 pruebas del núcleo y las 45 de la app pasan con el alcance nuevo.
+
+**Queda:** el aviso en vivo con 312 000 archivos sigue en unos 4 s, porque cada cambio
+vuelve a resolver todos los `#include`. Lo siguiente es resolver solo lo que cambió
+cuando las rutas del índice son las mismas.
+
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**
@@ -1173,7 +1251,8 @@ Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; 
   quien lo incluye). Las cabeceras exportadas se deducen solo con nombre único.
 - El ASM de 16 o 32 bits (arranque) no se juzga con la ABI de 64 bits. Una función sin
   `ret` ni salto de cola, como `_start`, tampoco.
-- Presupuesto: archivos de hasta 2 MiB, 2 GiB o 60 s en total. Si corta, el panel y F12
+- Presupuesto: archivos de hasta 2 MiB, 32 GiB o 10 min en total
+  (`ULTRA_PRESUPUESTO_GB` y `ULTRA_PRESUPUESTO_S` lo cambian). Si corta, el panel y F12
   lo dicen.
 
 ## Taller CASM: cómo nace el .hex (SUPER GRAFO)
@@ -1312,7 +1391,7 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 | **Índice** | 50 ms | 300 ms | Ctrl+P: puntuar nombres en su hilo, repartido entre los núcleos; recorrer el disco (1 s en Chromium) va aparte, solo al abrir |
 | **Búsqueda** | 2 s | 10 s | Texto dentro de los archivos en su hilo, cancelable; lotes cada 100 ms; se salta lo binario |
 | **Git** | 2 s | 15 s | `git log` en su hilo, solo lectura; como mucho 20 000 commits, 30 s y 256 MiB |
-| **Museo** | 3 s | 20 s | Museo y dependencias en su hilo (todos los núcleos), solo lectura: archivos de hasta 2 MiB, como mucho 2 GiB o 60 s |
+| **Museo** | 3 s | 20 s | Museo y dependencias en su hilo (todos los núcleos), solo lectura: archivos de hasta 2 MiB, como mucho 32 GiB o 10 min |
 | **Ciudad** | 30 ms | 150 ms | Treemap e instancias solo al cambiar los datos; girar la cámara manda 80 bytes. Los datos salen del hilo del índice (F12 muestra cuánto) |
 
 **Límites duros** (por diseño, no por suerte):

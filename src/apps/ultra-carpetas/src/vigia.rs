@@ -14,8 +14,9 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::time::Duration;
 
-/// Como mucho tantas carpetas vigiladas (por debajo del limite habitual del sistema).
-const MAX_CARPETAS: usize = 60_000;
+/// Como mucho tantas carpetas vigiladas (Chromium tiene decenas de miles). Si el sistema no
+/// deja tantas (`/proc/sys/fs/inotify/max_user_watches`), no hay inotify y se mira cada poco.
+const MAX_CARPETAS: usize = 500_000;
 
 fn relevante(nombre: &str) -> bool {
     carpetas_nucleo::dependencias::sigue(nombre) || carpetas_nucleo::museo::idioma(nombre).is_some() || nombre == "compile_commands.json"

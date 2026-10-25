@@ -420,20 +420,30 @@ impl Dependencias {
     /// Recorrido en anchura desde `origen`: hacia lo que usan (`arriba` = false) o hacia
     /// quien los usa (`arriba` = true). Devuelve id -> distancia (como mucho `max`).
     pub fn alcance(&self, origen: &[u32], arriba: bool, max: usize) -> (BTreeMap<u32, u16>, bool) {
-        let mut vistos: BTreeMap<u32, u16> = BTreeMap::new();
+        // La distancia en un arreglo plano (uno por archivo) y el mapa ordenado al final, de
+        // golpe: con un BTreeMap en cada paso, 500 000 archivos costaban 0,9 s.
+        const NO: u16 = u16::MAX;
+        let n = self.usa.len();
+        let mut dist: Vec<u16> = alloc::vec![NO; n];
+        let mut orden: Vec<u32> = Vec::new();
         let mut cola: VecDeque<u32> = VecDeque::new();
-        for o in origen { if vistos.insert(*o, 0).is_none() { cola.push_back(*o); } }
-        while let Some(x) = cola.pop_front() {
-            let d = vistos[&x];
+        for &o in origen {
+            if (o as usize) < n && dist[o as usize] == NO { dist[o as usize] = 0; orden.push(o); cola.push_back(o); }
+        }
+        let mut recortado = false;
+        'bfs: while let Some(x) = cola.pop_front() {
+            let d = dist[x as usize];
             let vecinos = if arriba { &self.usado_por[x as usize] } else { &self.usa[x as usize] };
-            for y in vecinos {
-                if vistos.contains_key(y) { continue; }
-                if vistos.len() >= max { return (vistos, true); }
-                vistos.insert(*y, d.saturating_add(1));
-                cola.push_back(*y);
+            for &y in vecinos {
+                if dist[y as usize] != NO { continue; }
+                if orden.len() >= max { recortado = true; break 'bfs; }
+                dist[y as usize] = d.saturating_add(1).min(NO - 1);
+                orden.push(y);
+                cola.push_back(y);
             }
         }
-        (vistos, false)
+        orden.sort_unstable();
+        (orden.into_iter().map(|x| (x, dist[x as usize])).collect(), recortado)
     }
 }
 
@@ -469,7 +479,7 @@ pub struct Conexion {
     pub truncada: bool,
 }
 
-pub const MAX_ALCANCE: usize = 20_000;
+pub const MAX_ALCANCE: usize = 1_000_000;
 pub const MAX_ARISTAS: usize = 4_000;
 pub const MAX_CAUSAS: usize = 300;
 
@@ -496,13 +506,17 @@ pub fn conectar(dep: &Dependencias, fallos: &BTreeSet<String>, propios: &BTreeSe
             _ => { c.roles.insert(f.clone(), Rol::Causa); causas.push(Causa { ruta: f.clone(), explica: 0, arrastra: 0 }); }
         }
     }
-    // Cuanto explica cada causa (las primeras MAX_CAUSAS; el resto queda en 0).
+    // Cuanto explica cada causa (las primeras MAX_CAUSAS; el resto queda en 0). Solo se
+    // cuenta, con la memoria del recorrido reutilizada: 300 cabeceras de base que arrastran
+    // a 400 000 archivos cada una costaban 4,3 s armando un mapa por causa.
+    let mut r = Recorrido::nuevo(dep.usa.len());
+    let fallan: Vec<bool> = { let mut v = alloc::vec![false; dep.usa.len()]; for &i in &ids { v[i as usize] = true; } v };
     for causa in causas.iter_mut().take(MAX_CAUSAS) {
         let Some(i) = dep.id(&causa.ruta) else { continue };
-        let (arriba, t) = dep.alcance(&[i], true, MAX_ALCANCE);
+        let (total, explica, t) = r.contar(dep, i, MAX_ALCANCE, &fallan);
         c.truncada |= t;
-        causa.explica = arriba.keys().filter(|x| **x != i && ids.contains(x)).count() as u32;
-        causa.arrastra = arriba.len().saturating_sub(1) as u32;
+        causa.explica = explica;
+        causa.arrastra = total.saturating_sub(1);
     }
     // Un ciclo en el que todos fallan: no hay uno solo que explique al resto; todos son causa.
     if causas.is_empty() {
@@ -518,6 +532,36 @@ pub fn conectar(dep: &Dependencias, fallos: &BTreeSet<String>, propios: &BTreeSe
     c.causas = causas;
     c.aristas = aristas_entre(dep, &c.roles, &mut c.truncada);
     c
+}
+
+/// Un recorrido hacia arriba (quien usa a quien) que solo cuenta, con su memoria
+/// reutilizable: cada pasada marca con su turno, asi no hay que limpiar nada entre causas.
+struct Recorrido { turno: Vec<u32>, actual: u32, cola: VecDeque<u32> }
+
+impl Recorrido {
+    fn nuevo(n: usize) -> Recorrido { Recorrido { turno: alloc::vec![0; n], actual: 0, cola: VecDeque::new() } }
+
+    /// Cuantos alcanza desde `origen` (el incluido), cuantos de ellos fallan (sin contar el
+    /// origen) y si se corto en `max`.
+    fn contar(&mut self, dep: &Dependencias, origen: u32, max: usize, fallan: &[bool]) -> (u32, u32, bool) {
+        self.actual += 1;
+        let marca = self.actual;
+        self.cola.clear();
+        self.turno[origen as usize] = marca;
+        self.cola.push_back(origen);
+        let (mut total, mut explica) = (1usize, 0u32);
+        while let Some(x) = self.cola.pop_front() {
+            for &y in &dep.usado_por[x as usize] {
+                if self.turno[y as usize] == marca { continue; }
+                if total >= max { return (total as u32, explica, true); }
+                self.turno[y as usize] = marca;
+                total += 1;
+                if fallan[y as usize] { explica += 1; }
+                self.cola.push_back(y);
+            }
+        }
+        (total as u32, explica, false)
+    }
 }
 
 /// Aisla un archivo: lo que usa (Base) y quien lo usa (Arrastra), con el en el centro.

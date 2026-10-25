@@ -72,7 +72,7 @@ impl Servidor {
     fn mapa(&mut self) -> Result<&mut Mapa, String> {
         if let Some(rx) = self.llegando.take() {
             match rx.recv() {
-                Ok(Ok(m)) => { self.firma = Some(crate::consultas::firma(&m.raiz)); self.mapa = Some(m); }
+                Ok(Ok(m)) => { self.firma = Some(m.firma); self.mapa = Some(m); }
                 Ok(Err(e)) => self.error = Some(e),
                 Err(_) => self.error = Some("el analisis se interrumpio".into()),
             }
@@ -98,13 +98,13 @@ impl Servidor {
     pub fn vigilar(&mut self) -> Vec<Value> {
         let Some(mapa) = self.mapa.as_mut() else { return Vec::new() };
         let t = Instant::now();
-        let f = crate::consultas::firma(&mapa.raiz);
+        let (f, indice) = crate::consultas::firma_e_indice(&mapa.raiz);
         self.coste_firma = t.elapsed();
         let mut avisos = Vec::new();
         let antes = self.firma.replace(f);
         if antes.is_some_and(|a| a != f) {
             let t = Instant::now();
-            mapa.analizar();
+            mapa.reanalizar_con(indice, f);
             // Los guardianes vuelven a revisar lo que cambio (antes de decir que cambio).
             let revisados = mapa.revisar_pendientes(4);
             let c = mapa.ejecutar("cambios", &json!({ "limite": 5 })).unwrap_or_default();

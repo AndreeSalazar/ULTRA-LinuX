@@ -6,7 +6,8 @@
 //! - quien usa a quien (`#include`, `mod`/`use`, `import`), resuelto contra el indice.
 //!
 //! Solo lectura: abre archivos regulares (nunca enlaces) de hasta 2 MiB, como mucho
-//! 2 GiB o 60 s en total. Si corta, lo dice (`truncado`).
+//! 32 GiB o 10 min en total (`ULTRA_PRESUPUESTO_GB` y `ULTRA_PRESUPUESTO_S` lo cambian).
+//! Si corta, lo dice (`truncado`).
 //!
 //! **Incremental:** lo que saca de cada archivo (sus referencias y sospechas) se guarda en
 //! la cache del usuario (`$XDG_CACHE_HOME/ultra-carpetas`), con su fecha y su tamano. La
@@ -20,15 +21,22 @@ use crate::indice::leer_texto;
 use carpetas_nucleo::analisis::{ResultadoAnalisis, MARCA_ESTUDIO};
 use carpetas_nucleo::dependencias::{referencias, resolver, sigue, ClaseRef, Motivo, Referencia, Rutas};
 use carpetas_nucleo::museo::{analizar as museo, ficha, idioma, Fuerza, Sospecha};
-use serde_json::{json, Value};
 use carpetas_nucleo::proyecto::Indice;
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-const BYTES: u64 = 2 << 30;
-const TIEMPO: Duration = Duration::from_secs(60);
+/// Presupuesto del analisis: Chromium entero (con third_party) son varios GiB de codigo.
+const BYTES: u64 = 32 << 30;
+const TIEMPO: Duration = Duration::from_secs(600);
+
+/// El presupuesto, con las variables de entorno si las hay.
+pub fn presupuesto() -> (u64, Duration) {
+    let n = |v: &str| std::env::var(v).ok().and_then(|x| x.trim().parse::<u64>().ok()).filter(|x| *x > 0);
+    (n("ULTRA_PRESUPUESTO_GB").map(|g| g.saturating_mul(1 << 30)).unwrap_or(BYTES),
+     n("ULTRA_PRESUPUESTO_S").map(Duration::from_secs).unwrap_or(TIEMPO))
+}
 
 /// Las rutas del indice para resolver referencias.
 struct PorIndice<'a> { todas: HashMap<&'a str, u32>, nombres: HashMap<&'a str, Vec<&'a str>>, bases: Vec<String> }
@@ -60,7 +68,7 @@ struct Hoja { ruta: u32, refs: Vec<Referencia>, sospechas: Vec<Sospecha>, bytes:
 // ---------------- Cache incremental ----------------
 
 /// Sube si cambia lo que se guarda por archivo.
-const VERSION_CACHE: u32 = 1;
+const VERSION_CACHE: u32 = 2;
 
 /// Donde va la cache de una carpeta (None: apagada).
 pub fn ruta_cache(base: &Path) -> Option<std::path::PathBuf> {
@@ -71,7 +79,7 @@ pub fn ruta_cache(base: &Path) -> Option<std::path::PathBuf> {
     let raiz = base.canonicalize().ok()?;
     // FNV-1a de la ruta: un archivo por carpeta analizada.
     let h = raiz.to_string_lossy().bytes().fold(0xcbf29ce484222325u64, |h, b| (h ^ b as u64).wrapping_mul(0x100000001b3));
-    Some(dir.join(format!("analisis-{h:016x}.json")))
+    Some(dir.join(format!("analisis-{h:016x}.bin")))
 }
 
 /// La huella del programa: si cambia (otro binario, otros detectores), la cache no vale.
@@ -83,47 +91,147 @@ fn huella() -> String {
 
 fn fecha_de(m: &std::fs::Metadata) -> u128 { m.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_nanos()).unwrap_or(0) }
 
-fn clase_a(c: ClaseRef) -> String {
-    match c { ClaseRef::Comillas => "c".into(), ClaseRef::Angulos => "a".into(), ClaseRef::ModRust => "m".into(), ClaseRef::UsoRust => "u".into(), ClaseRef::Python(n) => format!("p{n}") }
+fn clase_a(c: ClaseRef) -> u8 {
+    match c { ClaseRef::Comillas => 0, ClaseRef::Angulos => 1, ClaseRef::ModRust => 2, ClaseRef::UsoRust => 3, ClaseRef::Python(n) => 4u8.saturating_add(n) }
 }
-fn clase_de(s: &str) -> Option<ClaseRef> {
-    Some(match s { "c" => ClaseRef::Comillas, "a" => ClaseRef::Angulos, "m" => ClaseRef::ModRust, "u" => ClaseRef::UsoRust, p => ClaseRef::Python(p.strip_prefix('p')?.parse().ok()?) })
+fn clase_de(b: u8) -> ClaseRef {
+    match b { 0 => ClaseRef::Comillas, 1 => ClaseRef::Angulos, 2 => ClaseRef::ModRust, 3 => ClaseRef::UsoRust, n => ClaseRef::Python(n - 4) }
 }
 
 /// Lo guardado de un archivo: (fecha, tamano, bytes, referencias, sospechas).
 type Guardado = (u128, u64, u64, Vec<Referencia>, Vec<Sospecha>);
 
-fn cargar_cache(ruta: &Path) -> HashMap<String, Guardado> {
-    let Some(doc) = std::fs::read(ruta).ok().and_then(|b| serde_json::from_slice::<Value>(&b).ok()) else { return HashMap::new() };
-    if doc["huella"].as_str() != Some(huella().as_str()) { return HashMap::new(); }
-    let mut m = HashMap::new();
-    for (k, v) in doc["archivos"].as_object().into_iter().flatten() {
-        let leer = || -> Option<Guardado> {
-            let fecha = v[0].as_str()?.parse().ok()?;
-            let refs = v[3].as_array()?.iter().map(|r| Some(Referencia { texto: r[0].as_str()?.into(), linea: r[1].as_u64()? as u32, clase: clase_de(r[2].as_str()?)?,
-                                                                       condicion: r[3].as_str().map(str::to_string) })).collect::<Option<Vec<_>>>()?;
-            let sosp = v[4].as_array()?.iter().map(|s| Some(Sospecha { ficha: ficha(s[0].as_str()?)?.id, linea: s[1].as_u64()? as u32, columna: s[2].as_u64()? as u32,
-                                                                      fuerza: if s[3].as_bool()? { Fuerza::Exacto } else { Fuerza::Revisar },
-                                                                      visto: s[4].as_str()?.into(), motivo: s[5].as_str()?.into() })).collect::<Option<Vec<_>>>()?;
-            Some((fecha, v[1].as_u64()?, v[2].as_u64()?, refs, sosp))
-        };
-        if let Some(g) = leer() { m.insert(k.clone(), g); }
+/// La cache en binario (con JSON, Chromium entero eran 100 MB, 10 s y 1,8 GB de memoria
+/// al cargarla). Todo en little endian:
+///
+/// - `ULTRACC2`, la huella (texto), y la tabla de textos: cuantos y cada uno (largo u32 y
+///   bytes). Cada texto (rutas, `#include`, motivos) se guarda una vez; despues va su numero.
+/// - Cuantos archivos, y por archivo: ruta, fecha (u128), tamano y bytes (u64), las
+///   referencias (texto, linea, clase u8, condicion o u32::MAX) y las sospechas (ficha,
+///   linea, columna, exacto u8, visto, motivo).
+///
+/// Se lee comprobando cada largo: si algo no cuadra, no hay cache (se relee todo).
+const MAGIA: &[u8; 8] = b"ULTRACC2";
+const NADA: u32 = u32::MAX;
+
+struct Escritor<'a> { textos: HashMap<&'a str, u32>, tabla: Vec<&'a str>, cuerpo: Vec<u8> }
+
+impl<'a> Escritor<'a> {
+    fn u8(&mut self, x: u8) { self.cuerpo.push(x); }
+    fn u32(&mut self, x: u32) { self.cuerpo.extend_from_slice(&x.to_le_bytes()); }
+    fn u64(&mut self, x: u64) { self.cuerpo.extend_from_slice(&x.to_le_bytes()); }
+    fn u128(&mut self, x: u128) { self.cuerpo.extend_from_slice(&x.to_le_bytes()); }
+    fn texto(&mut self, s: &'a str) {
+        let n = self.tabla.len() as u32;
+        let k = *self.textos.entry(s).or_insert(n);
+        if k == n { self.tabla.push(s); }
+        self.u32(k);
     }
-    m
+}
+
+struct Lector<'a> { b: &'a [u8], i: usize }
+
+impl<'a> Lector<'a> {
+    fn tomar(&mut self, n: usize) -> Option<&'a [u8]> {
+        let fin = self.i.checked_add(n).filter(|f| *f <= self.b.len())?;
+        let s = &self.b[self.i..fin];
+        self.i = fin;
+        Some(s)
+    }
+    fn u8(&mut self) -> Option<u8> { Some(self.tomar(1)?[0]) }
+    fn u32(&mut self) -> Option<u32> { Some(u32::from_le_bytes(self.tomar(4)?.try_into().ok()?)) }
+    fn u64(&mut self) -> Option<u64> { Some(u64::from_le_bytes(self.tomar(8)?.try_into().ok()?)) }
+    fn u128(&mut self) -> Option<u128> { Some(u128::from_le_bytes(self.tomar(16)?.try_into().ok()?)) }
+    fn crudo(&mut self) -> Option<&'a str> { let n = self.u32()? as usize; std::str::from_utf8(self.tomar(n)?).ok() }
+}
+
+fn cargar_cache(ruta: &Path) -> HashMap<String, Guardado> {
+    leer_cache(&std::fs::read(ruta).unwrap_or_default(), &huella()).unwrap_or_default()
+}
+
+fn leer_cache(b: &[u8], huella: &str) -> Option<HashMap<String, Guardado>> {
+    let mut l = Lector { b, i: 0 };
+    if l.tomar(8)? != MAGIA || l.crudo()? != huella { return None; }
+    let n = l.u32()? as usize;
+    // Cada texto ocupa al menos 4 bytes: un numero mayor es un archivo roto.
+    if n > b.len() / 4 { return None; }
+    let tabla: Vec<&str> = (0..n).map(|_| l.crudo()).collect::<Option<_>>()?;
+    let texto = |l: &mut Lector| -> Option<&str> { tabla.get(l.u32()? as usize).copied() };
+    let archivos = l.u32()? as usize;
+    if archivos > b.len() / 16 { return None; }
+    let mut m = HashMap::with_capacity(archivos);
+    for _ in 0..archivos {
+        let ruta = texto(&mut l)?;
+        let (fecha, tam, bytes) = (l.u128()?, l.u64()?, l.u64()?);
+        let nr = l.u32()? as usize;
+        if nr > b.len() { return None; }
+        let mut refs = Vec::with_capacity(nr);
+        for _ in 0..nr {
+            let t = texto(&mut l)?.to_string();
+            let linea = l.u32()?;
+            let clase = clase_de(l.u8()?);
+            let c = l.u32()?;
+            let condicion = if c == NADA { None } else { Some(tabla.get(c as usize)?.to_string()) };
+            refs.push(Referencia { texto: t, linea, clase, condicion });
+        }
+        let ns = l.u32()? as usize;
+        if ns > b.len() { return None; }
+        let mut sosp = Vec::with_capacity(ns);
+        for _ in 0..ns {
+            let f = ficha(texto(&mut l)?)?.id;
+            let (linea, columna, exacto) = (l.u32()?, l.u32()?, l.u8()?);
+            let (visto, motivo) = (texto(&mut l)?.to_string(), texto(&mut l)?.to_string());
+            sosp.push(Sospecha { ficha: f, linea, columna, fuerza: if exacto == 1 { Fuerza::Exacto } else { Fuerza::Revisar }, visto, motivo });
+        }
+        m.insert(ruta.to_string(), (fecha, tam, bytes, refs, sosp));
+    }
+    (l.i == b.len()).then_some(m)
+}
+
+fn escribir_cache<'a>(indice: &'a Indice, hojas: &'a [Hoja], huella: &str) -> Vec<u8> {
+    let mut e = Escritor { textos: HashMap::new(), tabla: Vec::new(), cuerpo: Vec::new() };
+    e.u32(hojas.len() as u32);
+    for h in hojas {
+        e.texto(indice.ruta(h.ruta as usize));
+        e.u128(h.fecha);
+        e.u64(h.tam);
+        e.u64(h.bytes);
+        e.u32(h.refs.len() as u32);
+        for r in &h.refs {
+            e.texto(&r.texto);
+            e.u32(r.linea);
+            e.u8(clase_a(r.clase));
+            match &r.condicion { Some(c) => e.texto(c), None => e.u32(NADA) }
+        }
+        e.u32(h.sospechas.len() as u32);
+        for s in &h.sospechas {
+            e.texto(s.ficha);
+            e.u32(s.linea);
+            e.u32(s.columna);
+            e.u8(u8::from(s.fuerza == Fuerza::Exacto));
+            e.texto(&s.visto);
+            e.texto(&s.motivo);
+        }
+    }
+    let mut v = Vec::with_capacity(e.cuerpo.len() + 64);
+    v.extend_from_slice(MAGIA);
+    let crudo = |v: &mut Vec<u8>, s: &str| { v.extend_from_slice(&(s.len() as u32).to_le_bytes()); v.extend_from_slice(s.as_bytes()); };
+    crudo(&mut v, huella);
+    v.extend_from_slice(&(e.tabla.len() as u32).to_le_bytes());
+    for s in &e.tabla { crudo(&mut v, s); }
+    v.extend_from_slice(&e.cuerpo);
+    v
 }
 
 fn guardar_cache(ruta: &Path, indice: &Indice, hojas: &[Hoja]) {
-    let archivos: serde_json::Map<String, Value> = hojas.iter().map(|h| (indice.ruta(h.ruta as usize).to_string(), json!([
-        h.fecha.to_string(), h.tam, h.bytes,
-        h.refs.iter().map(|r| json!([r.texto, r.linea, clase_a(r.clase), r.condicion])).collect::<Vec<_>>(),
-        h.sospechas.iter().map(|s| json!([s.ficha, s.linea, s.columna, s.fuerza == Fuerza::Exacto, s.visto, s.motivo])).collect::<Vec<_>>(),
-    ]))).collect();
-    let doc = json!({ "huella": huella(), "archivos": archivos });
     let Some(dir) = ruta.parent() else { return };
     if std::fs::create_dir_all(dir).is_err() { return; }
+    let datos = escribir_cache(indice, hojas, &huella());
     // Escritura atomica: a un temporal y despues se renombra.
     let tmp = ruta.with_extension(format!("tmp{}", std::process::id()));
-    if std::fs::write(&tmp, serde_json::to_vec(&doc).unwrap_or_default()).is_ok() { let _ = std::fs::rename(&tmp, ruta); } else { let _ = std::fs::remove_file(&tmp); }
+    if std::fs::write(&tmp, datos).is_ok() { let _ = std::fs::rename(&tmp, ruta); } else { let _ = std::fs::remove_file(&tmp); }
+    // La cache vieja en JSON (version 1) ya no se lee: fuera.
+    if ruta.extension().is_some_and(|e| e == "bin") { let _ = std::fs::remove_file(ruta.with_extension("json")); }
 }
 
 /// Analiza todo el indice, con la cache del usuario. `sigue()` false cancela.
@@ -139,16 +247,23 @@ pub fn analizar_con(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool
         .filter(|k| !indice.es_carpeta(*k) && indice.tam(*k) <= 2 << 20 && { let r = indice.ruta(*k); sigue(r) || idioma(r).is_some() })
         .collect();
     let leidos = AtomicU64::new(0);
+    let (max_bytes, max_tiempo) = presupuesto();
     let truncado = std::sync::atomic::AtomicBool::new(false);
     let hilos = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1).clamp(1, 8);
     let tramo = candidatos.len().div_ceil(hilos).max(1);
+    // Lo guardado de cada candidato, sacado del mapa: se mueve a su hoja en vez de copiarse
+    // (con Chromium son millones de textos; copiarlos y tirar el mapa costaba mas de 1 s).
+    let total_guardado = guardado.len();
+    let mut guardado = guardado;
+    let mut previos: Vec<Option<Guardado>> = candidatos.iter().map(|&k| guardado.remove(indice.ruta(k))).collect();
+    drop(guardado);
     let hojas: Vec<Hoja> = std::thread::scope(|s| {
-        let manos: Vec<_> = candidatos.chunks(tramo).map(|parte| {
-            let (leidos, truncado, guardado) = (&leidos, &truncado, &guardado);
+        let manos: Vec<_> = candidatos.chunks(tramo).zip(previos.chunks_mut(tramo)).map(|(parte, previos)| {
+            let (leidos, truncado) = (&leidos, &truncado);
             s.spawn(move || {
                 let mut v = Vec::new();
                 for (n, &k) in parte.iter().enumerate() {
-                    if leidos.load(Ordering::Relaxed) > BYTES || t.elapsed() > TIEMPO { truncado.store(true, Ordering::Relaxed); break; }
+                    if leidos.load(Ordering::Relaxed) > max_bytes || t.elapsed() > max_tiempo { truncado.store(true, Ordering::Relaxed); break; }
                     if n % 64 == 0 && !sigue_vivo() { break; }
                     let ruta = indice.ruta(k);
                     let camino = base.join(ruta);
@@ -156,9 +271,9 @@ pub fn analizar_con(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool
                     if !meta.is_file() { continue; }
                     let (fecha, tam) = (fecha_de(&meta), meta.len());
                     // Igual que la ultima vez (fecha y tamano): no se relee.
-                    if let Some((f, s, b, refs, sosp)) = guardado.get(ruta) {
-                        if *f == fecha && *s == tam && fecha != 0 {
-                            v.push(Hoja { ruta: k as u32, refs: refs.clone(), sospechas: sosp.clone(), bytes: *b, fecha, tam, reusada: true });
+                    if let Some((f, s, b, refs, sosp)) = previos[n].take() {
+                        if f == fecha && s == tam && fecha != 0 {
+                            v.push(Hoja { ruta: k as u32, refs, sospechas: sosp, bytes: b, fecha, tam, reusada: true });
                             continue;
                         }
                     }
@@ -174,7 +289,10 @@ pub fn analizar_con(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool
         manos.into_iter().flat_map(|m| m.join().unwrap_or_default()).collect()
     });
     let reutilizados = hojas.iter().filter(|h| h.reusada).count() as u64;
-    if let Some(c) = cache { if !truncado.load(Ordering::Relaxed) && sigue_vivo() { guardar_cache(c, indice, &hojas); } }
+    // Si todo vino de la cache y no falta ni sobra nadie, no hace falta reescribirla.
+    let igual = reutilizados as usize == hojas.len() && total_guardado == hojas.len();
+    // Se escribe mientras se resuelve (solo lee las hojas): no espera al disco.
+    let guardar = cache.filter(|_| !igual && !truncado.load(Ordering::Relaxed) && sigue_vivo());
     // Resolver contra el indice: a usa b (con las -I de compile_commands.json si lo hay).
     let mut rutas = PorIndice::nuevo(indice);
     let cc = crate::compilacion::leer(base);
@@ -188,23 +306,46 @@ pub fn analizar_con(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool
     let mut aristas = Vec::new();
     let mut sospechas = Vec::new();
     let (mut archivos, mut bytes) = (0u64, 0u64);
-    // Los #include con carpeta que no se encontraron: quiza son cabeceras exportadas.
+    // Resolver es lo mas caro con la cache llena (Chromium: 1,3 millones de #include): se
+    // reparte entre los nucleos y se junta en orden (los numeros de las rutas no cambian).
+    // Los #include con carpeta que no se encontraron quiza son cabeceras exportadas.
+    type Resuelto = (Vec<(u32, u32, u32, Motivo)>, Vec<(u32, Referencia)>);
+    let tramo = hojas.len().div_ceil(hilos).max(1);
+    let partes: Vec<Resuelto> = std::thread::scope(|s| {
+        if let Some(c) = guardar { let hojas = &hojas; s.spawn(move || guardar_cache(c, indice, hojas)); }
+        let manos: Vec<_> = hojas.chunks(tramo).map(|parte| {
+            let rutas = &rutas;
+            s.spawn(move || {
+                let (mut v, mut sin) = (Vec::new(), Vec::new());
+                for h in parte {
+                    let desde = indice.ruta(h.ruta as usize);
+                    for r in &h.refs {
+                        let Some(destino) = resolver(desde, r, rutas) else {
+                            if matches!(r.clase, ClaseRef::Comillas | ClaseRef::Angulos) && r.texto.contains('/') { sin.push((h.ruta, r.clone())); }
+                            continue;
+                        };
+                        let Some(&kb) = rutas.todas.get(destino.as_str()) else { continue };
+                        v.push((h.ruta, kb, r.linea, Motivo::de(r)));
+                    }
+                }
+                (v, sin)
+            })
+        }).collect();
+        manos.into_iter().map(|m| m.join().unwrap_or_default()).collect()
+    });
     let mut sin_resolver: Vec<(u32, Referencia)> = Vec::new();
+    for (v, sin) in partes {
+        for (ka, kb, linea, m) in v {
+            let a = id(ka, &mut nombres);
+            let b = id(kb, &mut nombres);
+            aristas.push((a, b, linea, m));
+        }
+        sin_resolver.extend(sin);
+    }
     for h in hojas {
         archivos += 1;
         bytes += h.bytes;
-        let desde = indice.ruta(h.ruta as usize);
-        for r in &h.refs {
-            let Some(destino) = resolver(desde, r, &rutas) else {
-                if matches!(r.clase, ClaseRef::Comillas | ClaseRef::Angulos) && r.texto.contains('/') { sin_resolver.push((h.ruta, r.clone())); }
-                continue;
-            };
-            let Some(&kb) = rutas.todas.get(destino.as_str()) else { continue };
-            let a = id(h.ruta, &mut nombres);
-            let b = id(kb, &mut nombres);
-            aristas.push((a, b, r.linea, Motivo::de(r)));
-        }
-        if !h.sospechas.is_empty() { sospechas.push((desde.to_string(), h.sospechas)); }
+        if !h.sospechas.is_empty() { sospechas.push((indice.ruta(h.ruta as usize).to_string(), h.sospechas)); }
     }
     // Segunda pasada: los prefijos exportados que se aprenden del proyecto entero.
     let prefijos = carpetas_nucleo::dependencias::prefijos_exportados(sin_resolver.iter().map(|(_, r)| r.texto.as_str()), &rutas);
@@ -309,6 +450,44 @@ mod pruebas {
         let r = pasada();
         assert_eq!(r.reutilizados, 3);
         assert!(!r.sospechas.iter().any(|(k, _)| k == "src/libera.c"), "arreglado: ya no hay sospecha");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn la_cache_binaria_va_y_vuelve_y_rechaza_lo_roto() {
+        let dir = std::env::temp_dir().join(format!("ultra-cache-bin-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src")).unwrap();
+        std::fs::write(dir.join("src/a.h"), "int a(void);\n").unwrap();
+        std::fs::write(dir.join("src/b.c"), "#include \"a.h\"\n#ifdef _WIN32\n#include <windows.h>\n#endif\n#include <stdlib.h>\nvoid g(char *p) {\n    free(p + 1);\n}\n").unwrap();
+        std::fs::write(dir.join("src/m.py"), "from . import x\n").unwrap();
+        let (i, _) = crate::indice::indexar(&dir, false);
+        let r = analizar_con(&i, &dir, &|| true, None);
+        assert!(!r.sospechas.is_empty() && !r.aristas.is_empty());
+        // Las hojas como las guardaria el analisis.
+        let hojas: Vec<Hoja> = (0..i.len()).filter(|k| !i.es_carpeta(*k)).map(|k| {
+            let ruta = i.ruta(k);
+            let texto = std::fs::read_to_string(dir.join(ruta)).unwrap();
+            Hoja { ruta: k as u32, refs: referencias(ruta, &texto), sospechas: museo(ruta, &texto), bytes: texto.len() as u64, fecha: 7, tam: 9, reusada: false }
+        }).collect();
+        let datos = escribir_cache(&i, &hojas, "h");
+        let m = leer_cache(&datos, "h").expect("se lee lo que se escribe");
+        assert_eq!(m.len(), hojas.len());
+        for h in &hojas {
+            let g = &m[i.ruta(h.ruta as usize)];
+            assert_eq!((g.0, g.1, g.2), (7, 9, h.bytes));
+            assert_eq!(g.3, h.refs, "referencias de {}", i.ruta(h.ruta as usize));
+            assert_eq!(g.4, h.sospechas);
+        }
+        assert!(m.values().any(|g| g.3.iter().any(|r| r.condicion.is_some())), "con su #if");
+        assert!(m.values().any(|g| g.3.iter().any(|r| matches!(r.clase, ClaseRef::Python(1)))));
+        // Otra huella, cortada a cualquier largo o con un byte cambiado: no hay cache.
+        assert!(leer_cache(&datos, "otra").is_none());
+        for n in 0..datos.len() { assert!(leer_cache(&datos[..n], "h").is_none(), "cortada en {n}"); }
+        let mut mala = datos.clone();
+        let k = mala.len() - 30;
+        mala[k] ^= 0xff;
+        let _ = leer_cache(&mala, "h"); // no debe romperse (puede dar algo o nada)
         std::fs::remove_dir_all(&dir).ok();
     }
 
