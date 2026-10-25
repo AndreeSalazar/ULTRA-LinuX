@@ -154,3 +154,157 @@ pub fn hex_corto(bytes: &[u8], max: usize) -> String {
     if bytes.len() > max { s.push_str(&format!(" … ({} bytes)", bytes.len())); }
     s
 }
+
+// ====================================================================================
+// El taller: las katanas de CASM (que regla corta y donde) y sus compilaciones.
+// Todo sale de los propios archivos de CASM: nada se escribe a mano aqui.
+// ====================================================================================
+
+/// En que paso de la cadena corta una regla.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Etapa {
+    /// `main.c`: leer la fuente, memoria y escritura en el anfitrion.
+    Anfitrion,
+    /// `frontend.c`: lexico, sintaxis, nombres y tipos (rechaza antes de emitir).
+    Fuente,
+    /// `emitter.c`: el codificador x86-64 y los limites del cuerpo.
+    Codificador,
+    /// `verify.py`: reconstruye cada byte permitido y solo entonces publica el paquete.
+    Verificador,
+}
+
+impl Etapa {
+    pub fn nombre(self) -> &'static str {
+        match self { Etapa::Anfitrion => "Anfitrion", Etapa::Fuente => "Frontend", Etapa::Codificador => "Codificador x86-64", Etapa::Verificador => "Verificador" }
+    }
+    fn de_archivo(ruta: &str) -> Option<Etapa> {
+        let n = ruta.rsplit('/').next().unwrap_or(ruta);
+        match n { "main.c" => Some(Etapa::Anfitrion), "frontend.c" => Some(Etapa::Fuente), "emitter.c" => Some(Etapa::Codificador), "verify.py" => Some(Etapa::Verificador), _ => None }
+    }
+}
+
+/// Una katana: una regla que CORTA (nada se emite o nada se publica) y donde esta.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Katana {
+    pub regla: String,
+    pub etapa: Etapa,
+    /// (archivo, linea) de cada sitio que la aplica.
+    pub sitios: Vec<(String, u32)>,
+    /// El motivo que imprime, si esta escrito al lado.
+    pub motivo: String,
+    /// Casos de `test.py` que la provocan a proposito.
+    pub casos: Vec<String>,
+}
+
+fn entre_comillas(s: &str) -> Vec<&str> {
+    let mut v = Vec::new();
+    let mut resto = s;
+    while let Some(i) = resto.find(|c| c == '"' || c == '\'') {
+        let q = resto.as_bytes()[i];
+        let tras = &resto[i + 1..];
+        let Some(f) = tras.find(q as char) else { break };
+        v.push(&tras[..f]);
+        resto = &tras[f + 1..];
+    }
+    v
+}
+
+fn es_regla(r: &str) -> bool { !r.is_empty() && r.len() <= 40 && r.bytes().all(|b| b.is_ascii_uppercase() || b.is_ascii_digit() || b == b'-') && r.bytes().any(|b| b.is_ascii_uppercase()) }
+
+/// Las katanas de CASM leidas de sus fuentes: `fail(p, "REGLA", "motivo")` y `RED [REGLA]`
+/// en C, `require(..., 'REGLA')` en el verificador, y los casos rechazados de `test.py`.
+pub fn katanas(archivos: &[(&str, &str)]) -> Vec<Katana> {
+    let mut mapa: alloc::collections::BTreeMap<(Etapa, String), Katana> = alloc::collections::BTreeMap::new();
+    let mut casos: Vec<(String, String)> = Vec::new();
+    for (ruta, texto) in archivos {
+        let nombre = ruta.rsplit('/').next().unwrap_or(ruta);
+        if nombre == "test.py" {
+            // 'caso': (b'...','REGLA'),
+            for l in texto.lines() {
+                let l = l.trim();
+                let Some((caso, resto)) = l.strip_prefix('\'').and_then(|x| x.split_once("':")) else { continue };
+                let partes = entre_comillas(resto.trim_end_matches(','));
+                if let Some(r) = partes.last().filter(|r| es_regla(r)) { if resto.trim_start().starts_with("(b") { casos.push((r.to_string(), caso.to_string())); } }
+            }
+            continue;
+        }
+        let Some(etapa) = Etapa::de_archivo(ruta) else { continue };
+        for (k, l) in texto.lines().enumerate() {
+            let linea = k as u32 + 1;
+            let mut hallado: Vec<(String, String)> = Vec::new();
+            for trozo in l.split("fail(").skip(1) {
+                let q = entre_comillas(trozo);
+                if let Some(r) = q.first().filter(|r| es_regla(r)) { hallado.push((r.to_string(), q.get(1).map(|x| x.to_string()).unwrap_or_default())); }
+            }
+            for trozo in l.split("RED [").skip(1) {
+                if let Some((r, resto)) = trozo.split_once(']') {
+                    if es_regla(r) { hallado.push((r.to_string(), resto.trim().trim_end_matches(|c| c == '"' || c == ')' || c == ';').trim_end_matches("\\n").trim().to_string())); }
+                }
+            }
+            for trozo in l.split("require(").skip(1) {
+                if let Some(r) = entre_comillas(trozo).last() {
+                    let r = r.split(':').next().unwrap_or(r).trim();
+                    if es_regla(r) { hallado.push((r.to_string(), String::new())); }
+                }
+            }
+            for (r, motivo) in hallado {
+                let e = mapa.entry((etapa, r.clone())).or_insert_with(|| Katana { regla: r, etapa, sitios: Vec::new(), motivo: String::new(), casos: Vec::new() });
+                if !e.sitios.iter().any(|(a, b)| a == *ruta && *b == linea) { e.sitios.push((ruta.to_string(), linea)); }
+                if e.motivo.is_empty() && !motivo.is_empty() { e.motivo = motivo; }
+            }
+        }
+    }
+    let mut v: Vec<Katana> = mapa.into_values().collect();
+    for (r, caso) in casos {
+        // Un caso demuestra la regla en la primera etapa que la tiene (la que corta primero).
+        if let Some(k) = v.iter_mut().find(|k| k.regla == r) { k.casos.push(caso); }
+    }
+    v
+}
+
+/// Una compilacion de `build/CASM/run-*`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Compilacion {
+    pub run: String,
+    /// La fuente original (de origen.txt), si se sabe.
+    pub origen: String,
+    /// Hay paquete publicado: el verificador lo aprobo.
+    pub verde: bool,
+    pub paquete: u32,
+    pub cuerpo: u32,
+    pub sha_paquete: String,
+    /// La regla que corto (si fue roja) y su linea completa.
+    pub corte: Option<(String, String)>,
+    /// Lineas YELLOW del registro.
+    pub avisos: Vec<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct Verificado { verified: bool, target: String, #[serde(rename = "ABI")] abi: String, #[serde(rename = "PacketSHA256")] packet_sha256: String, packet_bytes: u32, body_bytes: u32 }
+
+/// Arma una compilacion con lo que haya en su carpeta (cada pieza puede faltar).
+pub fn compilacion(run: &str, origen: &str, verificado: Option<&str>, registro: &str, hay_paquete: bool) -> Compilacion {
+    let v: Option<Verificado> = verificado.and_then(|j| serde_json::from_str(j).ok()).filter(|v: &Verificado| v.verified && v.target == "x86_64" && v.abi == "metal64");
+    let corte = registro.lines().find_map(|l| {
+        let r = l.strip_prefix("RED [")?.split_once(']')?;
+        (r.0 != "COMPILE").then(|| (r.0.to_string(), l.to_string()))
+    });
+    let avisos = registro.lines().filter(|l| l.starts_with("YELLOW [")).map(|l| l.to_string()).collect();
+    let verde = hay_paquete && v.is_some() && corte.is_none();
+    Compilacion { run: run.to_string(), origen: origen.trim().to_string(), verde,
+                  paquete: v.as_ref().map(|v| v.packet_bytes).unwrap_or(0), cuerpo: v.as_ref().map(|v| v.body_bytes).unwrap_or(0),
+                  sha_paquete: v.map(|v| v.packet_sha256).unwrap_or_default(), corte, avisos }
+}
+
+/// Lo que el SUPER GRAFO sabe del taller CASM de la carpeta abierta.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Taller {
+    /// Carpeta de CASM, relativa a la abierta ("" si es la propia).
+    pub carpeta: String,
+    pub katanas: Vec<Katana>,
+    /// La mas nueva primero.
+    pub compilaciones: Vec<Compilacion>,
+    /// build/CASM/host/toolchain.txt (compilador, flags y huellas).
+    pub toolchain: String,
+}

@@ -113,6 +113,10 @@ pub enum Accion {
     Aislar(Option<String>),
     /// Revelar un archivo y abrirlo en el editor en esa linea (sospecha del museo).
     IrALinea { id: String, linea: u32 },
+    /// El taller CASM de la carpeta abierta (katanas y compilaciones), o que no hay.
+    Taller(Option<crate::casm::Taller>),
+    /// El mapa .casm -> .hex del archivo del editor (None: no hay compilacion de este texto).
+    MapaCasm { id: String, resultado: Option<Result<crate::casm::MapaCasm, String>> },
 }
 
 /// La historia de git de la carpeta abierta.
@@ -158,7 +162,7 @@ impl Revelar {
 
 /// Que muestra el panel de la izquierda.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Lateral { #[default] Explorador, Buscar, Museo }
+pub enum Lateral { #[default] Explorador, Buscar, Museo, Casm }
 
 /// Estado del indice de todo el proyecto (lo lleva la plataforma en su hilo).
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -260,6 +264,14 @@ pub struct Estado {
     pub conectado: crate::analisis::Conectado,
     /// Sube cuando cambian los errores atrapados (para recalcular la conexion).
     pub version_fallos: u64,
+    /// El taller CASM (si la carpeta abierta lo tiene) y el mapa del editor.
+    pub casm: EstadoCasm,
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct EstadoCasm {
+    pub taller: Option<crate::casm::Taller>,
+    pub mapa: Option<(String, Result<crate::casm::MapaCasm, String>)>,
 }
 
 impl Default for Estado {
@@ -272,7 +284,8 @@ impl Default for Estado {
                  editor: Pestanas::default(), procesos: Vec::new(), ir_a: None, proyecto: BusquedaProyecto::default(),
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
                  ciudad: DatosCiudad::default(), historia: EstadoHistoria::default(),
-                 analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0 }
+                 analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0,
+                 casm: EstadoCasm::default() }
     }
 }
 
@@ -782,6 +795,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                        | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. } | Accion::IrA(_)
                        | Accion::ResultadosIrA { .. } | Accion::Indice(_) | Accion::Lateral(_) | Accion::ResultadosProyecto { .. }
                        | Accion::DatosCiudad { .. } | Accion::LineasListas { .. } | Accion::Historia { .. }
+                       | Accion::Taller(_) | Accion::MapaCasm { .. }
                        | Accion::Proyecto(AccionProyecto::Patron(_) | AccionProyecto::Mayusculas | AccionProyecto::Palabra
                                           | AccionProyecto::Filtro(_) | AccionProyecto::Lanzar | AccionProyecto::Limpiar | AccionProyecto::Plegar(_))) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
@@ -1002,6 +1016,8 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         }
         Accion::Analisis(r) => { e.analisis.llegar(r); vec![] }
         Accion::Aislar(a) => { e.aislar = a; vec![] }
+        Accion::Taller(t) => { e.casm.taller = t; vec![] }
+        Accion::MapaCasm { id, resultado } => { e.casm.mapa = resultado.map(|r| (id, r)); vec![] }
         Accion::IrALinea { id, linea } => {
             e.revelar = Some(Revelar { editor: true, linea: Some(linea), ..Revelar::a(&id) });
             e.avanzar_revelar()

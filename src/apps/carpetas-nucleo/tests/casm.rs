@@ -36,3 +36,39 @@ fn rechaza_lo_que_no_cuadra() {
     assert!(mapa(FUENTE, &IR.replace("05 00 00 00", "06 00 00 00"), &HEX.replacen("35 05", "35 06", 1), "r").unwrap_err().contains("no apunta"));
     assert!(leer_hex("4G").is_err());
 }
+
+#[test]
+fn las_katanas_salen_de_las_fuentes_de_casm() {
+    use carpetas_nucleo::casm::{katanas, Etapa};
+    let raiz = concat!(env!("CARGO_MANIFEST_DIR"), "/../../../CASM/");
+    let leer = |r: &str| std::fs::read_to_string(format!("{raiz}{r}")).unwrap();
+    let archivos: Vec<(String, String)> = ["src/main.c", "src/frontend.c", "src/emitter.c", "verify.py", "test.py"].iter().map(|r| (format!("CASM/{r}"), leer(r))).collect();
+    let refs: Vec<(&str, &str)> = archivos.iter().map(|(a, b)| (a.as_str(), b.as_str())).collect();
+    let k = katanas(&refs);
+    let de = |r: &str, e: Etapa| k.iter().find(|x| x.regla == r && x.etapa == e).unwrap_or_else(|| panic!("falta {r} en {e:?}"));
+    let indef = de("NAME-UNDEFINED", Etapa::Fuente);
+    assert_eq!(indef.motivo, "String must be declared before use.");
+    assert!(indef.sitios.iter().any(|(a, _)| a == "CASM/src/frontend.c"));
+    assert_eq!(indef.casos, ["undefined-name"]);
+    assert!(de("EMISSION-MISMATCH", Etapa::Verificador).sitios[0].0.ends_with("verify.py"));
+    assert!(de("BODY-LIMIT", Etapa::Codificador).motivo.contains("4072"));
+    assert!(de("SOURCE-SIZE", Etapa::Anfitrion).casos.contains(&"source-too-large".to_string()));
+    // Cada caso rechazado de test.py demuestra una katana que existe.
+    let casos: usize = k.iter().map(|x| x.casos.len()).sum();
+    assert_eq!(casos, 23, "{k:#?}");
+    assert!(k.len() >= 30, "{}", k.len());
+}
+
+#[test]
+fn una_compilacion_verde_o_roja() {
+    use carpetas_nucleo::casm::compilacion;
+    let v = r#"{"Schema":1,"Verified":true,"Target":"x86_64","ABI":"metal64","PacketSHA256":"b3fd","PacketBytes":64,"BodyBytes":40}"#;
+    let c = compilacion("run-1", "/x/hello.casm\n", Some(v), "GREEN [VERIFY] 64 bytes\nYELLOW [UNUSED-CONSTANT] line 2: a\n", true);
+    assert!(c.verde && c.paquete == 64 && c.cuerpo == 40 && c.sha_paquete == "b3fd" && c.origen == "/x/hello.casm");
+    assert_eq!(c.avisos.len(), 1);
+    let r = compilacion("run-2", "", None, "RED [NAME-UNDEFINED] line 1: String must be declared before use.\nRED [COMPILE] Fuente rechazada.\n", false);
+    assert!(!r.verde);
+    assert_eq!(r.corte.as_ref().map(|x| x.0.as_str()), Some("NAME-UNDEFINED"));
+    // Sin paquete no hay verde aunque el informe diga que si.
+    assert!(!compilacion("run-3", "", Some(v), "", false).verde);
+}

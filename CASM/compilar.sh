@@ -14,13 +14,18 @@ mkdir -p "$raiz/build/CASM"
 run="$(mktemp -d "$raiz/build/CASM/run-$(date +%Y%m%d-%H%M%S)-XXXX")"
 # La misma fuente congelada para el compilador y para el verificador.
 cp -- "$fuente" "$run/source.casm"
-if ! "$raiz/build/CASM/host/casmc" "$run/source.casm" "$run/program.hex" "$run/program.ir.json"; then
-    echo "RED [COMPILE] Fuente rechazada. No se publico ningun paquete. Run: $run" >&2; exit 1
-fi
-if ! python3 -B "$casm/verify.py" "$run/source.casm" "$run/program.hex" "$run/program.ir.json" \
-        --packet "$run/INICIO.X86" --report "$run/verified.json"; then
-    echo "RED [COMPILE] Emision rechazada. Run: $run" >&2; exit 1
-fi
+realpath -- "$fuente" > "$run/origen.txt"
 cp "$raiz/build/CASM/host/toolchain.txt" "$run/toolchain.txt"
+# Todo lo que dicen el compilador y el verificador queda en registro.txt (el SUPER GRAFO lo lee).
+registro="$run/registro.txt"
+if ! "$raiz/build/CASM/host/casmc" "$run/source.casm" "$run/program.hex" "$run/program.ir.json" > >(tee -a "$registro") 2> >(tee -a "$registro" >&2); then
+    wait; echo "RED [COMPILE] Fuente rechazada. No se publico ningun paquete. Run: $run" | tee -a "$registro" >&2; exit 1
+fi
+wait
+if ! python3 -B "$casm/verify.py" "$run/source.casm" "$run/program.hex" "$run/program.ir.json" \
+        --packet "$run/INICIO.X86" --report "$run/verified.json" > >(tee -a "$registro") 2> >(tee -a "$registro" >&2); then
+    wait; echo "RED [COMPILE] Emision rechazada. Run: $run" | tee -a "$registro" >&2; exit 1
+fi
+wait
 echo "GREEN [READY] Paquete verificado: $run/INICIO.X86"
 echo "No se toco ningun disco, entrada de arranque ni paquete instalado."

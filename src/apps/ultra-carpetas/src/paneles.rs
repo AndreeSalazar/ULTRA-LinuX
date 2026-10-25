@@ -11,7 +11,7 @@ use eframe::egui::{self, text::LayoutJob, Align, Align2, Color32, FontId, Pos2, 
 
 /// Iconos de la barra de actividad, dibujados con formas (nitidos y sin fuentes).
 #[derive(Clone, Copy, PartialEq)]
-pub enum Icono { Explorador, Buscar, IrA, Grafo, Ciudad, Museo, Terminal, Carriles, Ajustes }
+pub enum Icono { Explorador, Buscar, IrA, Grafo, Ciudad, Museo, Casm, Terminal, Carriles, Ajustes }
 
 pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
     let c = caja.center();
@@ -53,6 +53,13 @@ pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
             for x in [-6.5, 0.0, 6.5] { p.line_segment([c + Vec2::new(x, -2.0), c + Vec2::new(x, 6.0)], Stroke::new(2.2, col)); }
             p.line_segment([c + Vec2::new(-11.0, 8.5), c + Vec2::new(11.0, 8.5)], Stroke::new(2.0, col));
         }
+        Icono::Casm => {
+            // Una katana: hoja en diagonal, guarda y empunadura.
+            let (punta, guarda) = (c + Vec2::new(9.0, -9.0), c + Vec2::new(-3.5, 3.5));
+            p.line_segment([guarda, punta], Stroke::new(2.2, col));
+            p.line_segment([guarda + Vec2::new(-3.0, -3.0), guarda + Vec2::new(3.0, 3.0)], Stroke::new(2.4, col));
+            p.line_segment([guarda + Vec2::new(-1.0, 1.0), c + Vec2::new(-9.0, 9.0)], Stroke::new(3.0, col));
+        }
         Icono::Terminal => {
             p.rect_stroke(Rect::from_center_size(c, Vec2::new(20.0, 15.0)), 2, t, StrokeKind::Middle);
             p.line_segment([c + Vec2::new(-6.0, -3.0), c + Vec2::new(-2.0, 0.0)], t);
@@ -89,7 +96,8 @@ impl App {
         let modo = e.ajustes.modo;
         let pasos = |destino: Modo| -> usize { let i = |m: Modo| match m { Modo::Iconos => 0, Modo::Grafo => 1, Modo::Ciudad => 2 }; (i(destino) + 3 - i(modo)) % 3 };
         let museo = lateral && e.lateral == Lateral::Museo;
-        let botones: [(Icono, bool, &str, Accion); 7] = [
+        let taller = lateral && e.lateral == Lateral::Casm;
+        let botones: [(Icono, bool, &str, Accion); 8] = [
             (Icono::Explorador, lateral && e.lateral == Lateral::Explorador, "Explorador [Ctrl+B]",
              if lateral && e.lateral == Lateral::Explorador { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Explorador) }),
             (Icono::Buscar, lateral && e.lateral == Lateral::Buscar, "Buscar en el proyecto [Ctrl+Shift+F]",
@@ -101,6 +109,8 @@ impl App {
              Accion::Comando(Comando::Ciudad)),
             (Icono::Museo, museo, "SUPER GRAFO // Museo: fallo conectado, causa probable y las fichas de C, C++ y ASM que aparecen en tu codigo [A: aislar]",
              if museo { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Museo) }),
+            (Icono::Casm, taller, "Taller CASM // SAMURAI: como se genera el .hex, las katanas (donde corta cada regla) y las compilaciones",
+             if taller { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Casm) }),
             (Icono::Terminal, e.terminal.abierta, "Terminal [Ctrl+`]", Accion::Comando(Comando::Terminal)),
         ];
         ui.add_space(4.0);

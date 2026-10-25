@@ -59,3 +59,11 @@ De ellas se toman ideas y casos de prueba, no código: cada una tiene su licenci
 3. **`-fanalyzer` como segunda opinión** para lo que el SG marca «revisar».
 4. **Cada ficha con su eje** (Seguridad, Rendimiento o Elegancia) y el SG coloreado por
    eje en el grafo y en la Ciudad.
+
+## CASM: el lenguaje que exporta `.hex`
+
+CASM vive aislado en [`CASM/`](../CASM/README.md): construido solo con GCC, solo para
+x86-64 y con su verificador aparte. Su rumbo como samurái de la CPU está en
+[CASM/SAMURAI.md](../CASM/SAMURAI.md). El SUPER GRAFO es su lupa: muestra cómo nace cada
+byte, dónde corta cada katana y qué compilaciones salieron verdes o rojas
+([Taller CASM](ULTRA-CARPETAS.md#taller-casm-cómo-nace-el-hex-super-grafo)).

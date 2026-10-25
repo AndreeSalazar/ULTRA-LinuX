@@ -520,6 +520,28 @@ Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; 
 - Presupuesto: archivos de hasta 2 MiB, 2 GiB o 60 s en total. Si corta, el panel y F12
   lo dicen.
 
+## Taller CASM: cómo nace el .hex (SUPER GRAFO)
+
+[CASM](../CASM/README.md) es el lenguaje propio que prepara y exporta `.hex` exacto para
+x86-64 ([su rumbo de samurái](../CASM/SAMURAI.md)). El SUPER GRAFO lo entiende y se
+organiza solo con lo que hay en el disco, sin listas escritas a mano:
+
+- **Panel Taller CASM** (icono de la katana):
+  - la **cadena** fuente → frontend → IR → codificador x86-64 → HEX → verificador →
+    `INICIO.X86`, en verde, o con el paso donde cortó la última compilación en rojo;
+  - el resumen: bytes de cuerpo, tamaño del paquete y huella;
+  - las **katanas**, cada regla que corta, leída de las fuentes de CASM, con su archivo
+    y línea (clic: editor) y el caso de `test.py` que la demuestra, o «sin caso aislado»;
+  - las **compilaciones** de `build/CASM/run-*`.
+- **Editor:** a la derecha de cada línea de un `.casm`, sus bytes y su desplazamiento
+  (`metal_puts(greeting);` → `+00  48 8D 35 05 00 00 00 41 FF 57 10`). Sale **solo** si hay
+  una compilación verificada de ese texto exacto, y el mapa se vuelve a comprobar
+  (cuerpo completo, tramos contiguos, `LEA`/`CALL`/`RET`). Si editas sin recompilar, lo dice
+  en vez de enseñar bytes viejos.
+- **Play** en cada `.casm` y botón «Compilar el ejemplo»: `bash compilar.sh`, sin shell.
+
+![Taller CASM: la cadena en verde, las katanas con su sitio y su caso, y hello.casm con los bytes de cada línea](maquetas/png/neon/carpetas-taller-casm.png)
+
 ## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
 
 ![Terminal tras cargo run y carriles con 7 subidas a la GPU en 153 cuadros](maquetas/png/neon/carpetas-gpu-terminal.png)

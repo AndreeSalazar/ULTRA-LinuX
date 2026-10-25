@@ -3,7 +3,8 @@
 CASM es el lenguaje propio que emite x86-64 **exacto** a `.hex`: fuente con forma de C,
 IR acotada, codificador propio, verificador separado y paquete FAGRAW64 para el puente
 EFI (`metal64`). Esta carpeta es una **copia aislada** para construir BMO-X2 desde este
-Linux. La definicion del lenguaje esta en [LANGUAGE.md](LANGUAGE.md).
+Linux. La definicion del lenguaje esta en [LANGUAGE.md](LANGUAGE.md) y su rumbo, como
+samurai de la CPU, en [SAMURAI.md](SAMURAI.md).
 
 ## Origen
 
@@ -40,6 +41,11 @@ CASM/probar.sh                      # 39 casos + paquete de oro (identico al .he
 CASM/compilar.sh                    # examples/hello.casm -> build/CASM/run-*/INICIO.X86
 CASM/compilar.sh mi-programa.casm
 ```
+
+Cada compilacion deja en `build/CASM/run-*` la fuente congelada, el HEX, la IR, el
+paquete (solo si se verifico), `verified.json`, `registro.txt` (lo que dijeron el
+compilador y el verificador), `origen.txt` y `toolchain.txt`. El panel **Taller CASM**
+de ULTRA Carpetas lo lee todo.
 
 Comprobado aqui con GCC 13.3: 39/39 casos, y `hello.x86` con SHA-256
 `b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33`, el mismo que las

@@ -12,6 +12,8 @@
 mod almacen;
 mod analisis;
 mod archivo;
+mod casm_taller;
+mod casm_ui;
 mod ciudad3d;
 mod disco;
 mod editor_ui;
@@ -59,6 +61,9 @@ impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
 }
 
+/// (carpeta, panel del taller abierto, compilando, (archivo .casm, carga, sin guardar)).
+type ClaveCasm = (PathBuf, bool, bool, Option<(String, u64, bool)>);
+
 struct App {
     estado: Estado,
     carpeta: PathBuf,
@@ -102,6 +107,8 @@ struct App {
     /// Historia de git (su hilo) y que pedido es el ultimo.
     git: git::Git,
     pedido_git: u64,
+    /// Lo ultimo que se miro del taller CASM (para no releer el disco cada cuadro).
+    casm_clave: Option<ClaveCasm>,
 }
 
 /// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
@@ -129,7 +136,7 @@ impl App {
             proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
             texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
             ciudad: ciudad3d::Vista3::default(), ciudad_ok, micros_datos_ciudad: 0,
-            git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0,
+            git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0, casm_clave: None,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -317,6 +324,25 @@ impl App {
                     self.despachar(Accion::ResultadosProyecto { generacion, lote, vistos, terminada, truncada });
                 }
             }
+        }
+    }
+
+    /// El taller CASM y el mapa .casm -> .hex del editor. Solo relee el disco cuando cambia
+    /// algo que lo puede cambiar: abrir el panel, terminar una compilacion o guardar.
+    fn recoger_casm(&mut self) {
+        let e = &self.estado;
+        let taller = e.ajustes.explorador && e.lateral == carpetas_nucleo::estado::Lateral::Casm;
+        let ed = e.editor.activa().filter(|x| x.id.ends_with(".casm") && x.cargado);
+        let clave: ClaveCasm = (self.carpeta.clone(), taller, e.terminal.en_curso.is_some(), ed.map(|x| (x.id.clone(), x.carga, x.sucio)));
+        if self.casm_clave.as_ref() == Some(&clave) { return; }
+        self.casm_clave = Some(clave);
+        let mapa = ed.map(|x| (x.id.clone(), if x.sucio { None } else { casm_taller::mapa_para(&self.carpeta, &x.texto) }));
+        let habia_mapa = e.casm.mapa.is_some();
+        if taller { let t = casm_taller::explorar(&self.carpeta); self.despachar(Accion::Taller(t)); }
+        match mapa {
+            Some((id, resultado)) => self.despachar(Accion::MapaCasm { id, resultado }),
+            None if habia_mapa => self.despachar(Accion::MapaCasm { id: String::new(), resultado: None }),
+            None => {}
         }
     }
 
@@ -939,6 +965,7 @@ impl eframe::App for App {
         self.recoger_vivos();
         self.recoger_proyecto();
         self.recoger_git();
+        self.recoger_casm();
         self.teclado(&ctx);
         if self.estado.panel_ajustes && ctx.input(|i| i.key_pressed(Key::Escape)) { self.despachar(Accion::Comando(Comando::Ajustes)); }
         let tema = self.estado.ajustes.tema(self.estado.acento);
@@ -985,6 +1012,7 @@ impl eframe::App for App {
                     carpetas_nucleo::estado::Lateral::Explorador => self.explorador(ui, &v, &c),
                     carpetas_nucleo::estado::Lateral::Buscar => self.panel_buscar(ui, &c),
                     carpetas_nucleo::estado::Lateral::Museo => self.panel_museo(ui, &c),
+                    carpetas_nucleo::estado::Lateral::Casm => self.panel_casm(ui, &c),
                 });
         }
         egui::CentralPanel::default().frame(egui::Frame::new().fill(c.fondo)).show(ui, |ui| {
