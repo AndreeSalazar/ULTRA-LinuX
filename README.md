@@ -16,6 +16,11 @@ identificados y suspensión de monitores de fondo durante el juego.
 Instalado en A: (perfil PC) y verificado con 201 comprobaciones QEMU; falta
 medir el ahorro y la temperatura con el Ryzen físico a los mismos FPS.
 
+**En código, pendiente de empaquetar en A:** perfil optativo Ahorro, con fondo
+liso cyan, sin animaciones, desenfoque, dock ni tarjetas. Se selecciona desde
+Personalizar → Perfiles. [Investigación de Heronite y comparación pendiente](docs/HERONITE-Y-ESCRITORIO-AHORRO-2026-10-25.md):
+Heroic sigue siendo el gestor instalado; aún no se ha probado Heronite en ULTRA.
+
 <p align="center">
   <img src="evidencias/main-integrado/2026-10-25/carpetas.png" alt="ULTRA Carpetas real sobre Hyprland, probado en QEMU con carpetas de ejemplo" width="1000">
 </p>

@@ -240,6 +240,21 @@ def main():
         correr('poner', 'modojuego', 'no')
         assert not any(c[:2] == ['hyprctl', 'eval'] for c in correr('juego', 'entrar')[1])
         correr('juego', 'otro', ok=False)
+        # Ahorro: quita las fuentes de trabajo visual continuo, conserva la barra
+        # y persiste sin imponer el perfil a otros usuarios.
+        _, cmds = correr('perfil', 'aplicar', 'ahorro')
+        lua = next(c for c in cmds if c[:2] == ['hyprctl', 'eval'])[2]
+        assert 'animations={enabled=false}' in lua and 'blur={enabled=false' in lua
+        assert 'leaf="borderangle",enabled=false' in lua
+        assert ['ultra-tarjetas', 'parar'] in cmds
+        assert ['ultra-fondo-vivo', 'parar'] in cmds
+        assert not any(c[:2] == ['ultra-fondo-vivo', 'poner'] for c in cmds)
+        barras = json.loads((tema / 'waybar.jsonc').read_text())
+        assert [b['name'] for b in barras] == ['hud']
+        assert barras[0]['clock']['format'] == '{:%H:%M}'
+        guardado = json.loads((home / '.config/ultra/personal.json').read_text())
+        assert guardado['tarjetas'] == 'ocultas' and guardado['fondo'] == 'liso'
+        assert 'ahorro' in correr('perfiles')[0].splitlines()
         # Restablecer: borra solo lo propio y vuelve al tema del sistema.
         _, cmds = correr('restablecer')
         assert not (home / '.config/ultra/personal.json').exists() and not (tema / 'waybar.css').exists()

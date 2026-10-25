@@ -70,6 +70,10 @@ PERFILES = {
     'ciudad-3d': dict(fondo='ciudad-3d', borde='gira', sonidos='si', tarjetas='visibles', desenfoque='ligero', inactivas='92'),
     'sobrio': dict(efectos='reducidos', borde='quieto', desenfoque='no', velocidad='rapida'),
     'minimal': dict(dock='oculto', barra='compacta', huecos='compacto', grosor='1', reloj='24h'),
+    # Optativo: detener trabajo visual continuo y el observador de tarjetas.
+    'ahorro': dict(acento='cyan', fondo='liso', efectos='reducidos', borde='quieto',
+                   desenfoque='no', dock='oculto', barra='compacta', reloj='24h',
+                   tarjetas='ocultas', sonidos='basicos', inactivas='100'),
     'juego': dict(efectos='reducidos', borde='quieto', desenfoque='no', dock='oculto', avisos='arriba-centro', inactivas='100'),
 }
 NOMBRE_PERFIL = re.compile(r'[a-z0-9][a-z0-9-]{0,23}')
@@ -566,7 +570,7 @@ def avisar(texto):
 
 
 def menu_perfiles(acento):
-    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'ciudad-3d': 'Ciudad 3D', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'juego': 'Juego'}
+    fabrica = {'neon-hielo': 'Neon hielo', 'demonio': 'Demonio', 'ciudad-3d': 'Ciudad 3D', 'sobrio': 'Sobrio', 'minimal': 'Minimal', 'ahorro': 'Ahorro (fondo quieto, sin tarjetas)', 'juego': 'Juego'}
     while True:
         propios = perfiles_propios()
         filas = [f'Aplicar: {t}' for t in fabrica.values()] + [f'Aplicar: {n} (tuyo)' for n in propios]
