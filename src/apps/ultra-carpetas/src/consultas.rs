@@ -56,6 +56,8 @@ pub struct Mapa {
     /// La firma de la carpeta tomada con el indice del ultimo analisis (antes de leer: si algo
     /// cambia mientras, la proxima firma sera distinta y se reanaliza).
     pub firma: (u64, usize),
+    /// La cronologia de git (se lee al pedirla; se rehace si cambia el ultimo commit).
+    crono: Option<Crono>,
     /// Por que esta pendiente cada una ("cambio a.c", "cambio base/x.h").
     razones: std::collections::BTreeMap<String, String>,
 }
@@ -224,6 +226,9 @@ pub fn herramientas() -> Vec<Value> {
         h("mostrar", "Ensena algo en la ventana de la persona (solo mueve la vista): accion grupo (rutas, modo ciudad|grafo), revelar (ruta, linea), camino (a, b), aislar (rutas) o limpiar.",
           json!({ "accion": { "type": "string", "enum": ["grupo", "revelar", "camino", "aislar", "limpiar"] }, "rutas": rutas, "ruta": ruta, "linea": { "type": "integer", "minimum": 1 },
                   "a": ruta, "b": ruta, "modo": { "type": "string", "enum": ["ciudad", "grafo"] } }), &["accion"]),
+        h("cronologia", "Como se construyo el proyecto desde el primer commit (git), sin sacar versiones viejas: sin argumentos, como crecio por periodos (archivos, dependencias, ciclos, con el mapa de cada momento resuelto como hoy), en que orden nacieron las carpetas y una verificacion (lo reconstruido contra lo de hoy). ruta: cuando nacio un archivo o carpeta, quien, por que (asunto del commit), sus nombres anteriores y como crecio. a y b: que commit anadio la referencia que une a con b. ciclos: que commit cerro cada ciclo de hoy.",
+          json!({ "ruta": ruta, "a": ruta, "b": ruta, "ciclos": { "type": "boolean" }, "periodos": { "type": "integer", "minimum": 1, "maximum": 100 },
+                  "profundidad": { "type": "integer", "minimum": 1, "maximum": 4, "description": "carpetas de hasta tantos niveles en el orden de nacimiento (1 por defecto)" }, "limite": lim }), &[]),
         h("cambios", "Que cambio desde el analisis anterior: sospechas nuevas y arregladas, archivos que empiezan o dejan de fallar, la causa principal, ciclos nuevos y rotos.", json!({ "limite": lim }), &[]),
     ]
 }
@@ -233,7 +238,7 @@ impl Mapa {
         let raiz = raiz.canonicalize().map_err(|e| format!("{}: {e}", raiz.display()))?;
         if !raiz.is_dir() { return Err(format!("{}: no es una carpeta", raiz.display())); }
         let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None, version: 0, previa: None, cuando: 0,
-                           guardian: None, revisiones: Default::default(), pendientes: Vec::new(), razones: Default::default(), guardia: None, firma: (0, 0) };
+                           guardian: None, revisiones: Default::default(), pendientes: Vec::new(), razones: Default::default(), guardia: None, firma: (0, 0), crono: None };
         m.revisiones = m.cargar_revisiones();
         m.guardia = m.ruta_guardia().and_then(|r| std::fs::read(r).ok()).and_then(|b| serde_json::from_slice::<Value>(&b).ok())
             .and_then(|v| Some(Guardia { carpeta: v["carpeta"].as_str()?.into(), cpp: v["cpp"].as_bool()?, estudio: v["estudio"].as_bool()? }));
@@ -272,6 +277,121 @@ impl Mapa {
         self.cc = crate::compilacion::leer(&self.raiz);
         self.guardian = crate::guardianes::leer(&self.raiz);
         self.reaplicar();
+    }
+
+    // ---------------- Cronologia (git) ----------------
+
+    /// La cronologia al dia: se lee si no hay, si cambio el ultimo commit o si se piden
+    /// otros periodos.
+    fn crono(&mut self, periodos: usize) -> Result<&Crono, String> {
+        let mut cabeza = String::new();
+        let _ = std::process::Command::new("git").arg("-C").arg(&self.raiz).args(["rev-parse", "HEAD"])
+            .env("GIT_OPTIONAL_LOCKS", "0").stdin(std::process::Stdio::null()).stderr(std::process::Stdio::null()).output()
+            .map(|o| cabeza = String::from_utf8_lossy(&o.stdout).trim().to_string());
+        let vale = self.crono.as_ref().is_some_and(|c| c.cabeza == cabeza && c.periodos == periodos);
+        if !vale {
+            let t = Instant::now();
+            let (c, cortada, superficial) = crate::git::cronologia(&self.raiz)?;
+            if c.commits.is_empty() { return Err("el repositorio no tiene commits".into()); }
+            let rep = carpetas_nucleo::cronologia::reproducir(&c, periodos);
+            self.crono = Some(Crono { cabeza, c, rep, periodos, cortada, superficial, ms: t.elapsed().as_millis() });
+        }
+        Ok(self.crono.as_ref().expect("recien hecha"))
+    }
+
+    fn cronologia(&mut self, a: &Value) -> Result<Value, String> {
+        use carpetas_nucleo::cronologia::recorrer;
+        let n = limite(a);
+        let periodos = a.get("periodos").and_then(Value::as_u64).map(|x| (x as usize).clamp(1, 100)).unwrap_or(10);
+        let profundidad = a.get("profundidad").and_then(Value::as_u64).map(|x| (x as usize).clamp(1, 4)).unwrap_or(1);
+        // Lo que hay hoy (para verificar y para los ciclos), antes de tomar prestada la cronologia.
+        let hoy: std::collections::BTreeSet<String> = (0..self.indice.len()).filter(|k| !self.indice.es_carpeta(*k)).map(|k| self.indice.ruta(k).to_string()).collect();
+        let ciclos_hoy = self.estado.analisis.ciclos.clone();
+        let dep_hoy = &self.estado.analisis.dep;
+        let aristas_hoy: std::collections::BTreeSet<(String, String)> = dep_hoy.rutas.iter()
+            .flat_map(|x| dep_hoy.usa(x).map(move |y| (x.clone(), y.to_string()))).collect();
+        let cr = self.crono(periodos)?;
+        let (c, rep) = (&cr.c, &cr.rep);
+        let commit = |i: u32| { let x = &c.commits[i as usize]; json!({ "commit": x.id, "fecha": fecha_iso(x.fecha), "autor": c.autores[x.autor as usize], "asunto": x.asunto }) };
+        let nota = "git sin versiones viejas: archivos por --name-status y referencias por las lineas #include/mod/use/import que entran y salen (-G). El mapa de cada momento se resuelve con las reglas de hoy. No se ve lo que un #include no escribe (macros, rutas generadas) ni el #if de una linea suelta; los merges no cuentan y el orden es el de git log.";
+        let base = json!({ "commits": c.commits.len(), "autores": c.autores.len(), "desde": fecha_iso(c.commits[0].fecha), "hasta": fecha_iso(c.commits[c.commits.len() - 1].fecha),
+                           "leida_ms": cr.ms, "cortada": cr.cortada, "superficial": cr.superficial, "nota": nota });
+        let mut v = base;
+        if cr.superficial { v["aviso"] = json!("repositorio superficial (clonado sin toda la historia): el primer commit no es el de verdad; git fetch --unshallow lo trae entero"); }
+        // Una arista: que commit anadio la referencia que une a con b.
+        if let (Some(x), Some(y)) = (a.get("a").and_then(Value::as_str), a.get("b").and_then(Value::as_str)) {
+            let (x, y) = (relativa(x)?, relativa(y)?);
+            let Some(m) = self.estado.analisis.dep.id(&x).zip(self.estado.analisis.dep.id(&y)).and_then(|(i, j)| self.estado.analisis.dep.motivo(i, j).cloned())
+                else { return Err(format!("hoy {x} no usa a {y} (sin arista en el mapa)")); };
+            let cr = self.crono.as_ref().expect("leida arriba");
+            let c = &cr.c;
+            let entra = c.id_ruta(&x).zip(c.id_texto(&m.texto)).and_then(|k| cr.rep.entra.get(&k).copied());
+            v["arista"] = json!({ "a": x, "b": y, "escrito": m.escrito(&x),
+                "entra": entra.map(|i| { let k = &c.commits[i as usize]; json!({ "commit": k.id, "fecha": fecha_iso(k.fecha), "autor": c.autores[k.autor as usize], "asunto": k.asunto }) }),
+                "si_falta": "una referencia que git no vio entrar (escrita con una macro, o en una linea que la lectura no reconoce)" });
+            return Ok(v);
+        }
+        if a.get("ciclos").and_then(Value::as_bool) == Some(true) {
+            let lista: Vec<Value> = ciclos_hoy.lista.iter().take(n).map(|ci| {
+                // El ciclo se cerro con la ultima referencia de su vuelta que entro.
+                let entradas: Vec<(Option<u32>, &carpetas_nucleo::ciclos::Eslabon)> = ci.vuelta.iter().map(|e| {
+                    let t = e.motivo.as_ref().map(|m| m.texto.as_str()).unwrap_or("");
+                    (c.id_ruta(&e.desde).zip(c.id_texto(t)).and_then(|k| rep.entra.get(&k).copied()), e)
+                }).collect();
+                let cierre = entradas.iter().filter_map(|(i, e)| i.map(|i| (i, *e))).max_by_key(|(i, _)| *i);
+                json!({ "archivos": ci.archivos.len(), "vuelta": ci.vuelta.iter().map(|e| e.desde.as_str()).collect::<Vec<_>>(),
+                        "se_cerro": cierre.map(|(i, e)| json!({ "con": e.motivo.as_ref().map(|m| m.escrito(&e.desde)), "en": e.desde, "por": commit(i) })),
+                        "sin_ver_entrar": entradas.iter().filter(|(i, _)| i.is_none()).count() })
+            }).collect();
+            v["ciclos"] = json!({ "hoy": ciclos_hoy.total, "lista": lista });
+            return Ok(v);
+        }
+        if let Some(r) = a.get("ruta").and_then(Value::as_str) {
+            let r = relativa(r)?;
+            if let Some(k) = c.id_ruta(&r).filter(|k| rep.vidas.contains_key(k)) {
+                let vida = &rep.vidas[&k];
+                v["archivo"] = json!({ "ruta": r, "nace": commit(vida.nace), "cambios": vida.cambios, "vivo": vida.muere.is_none(),
+                    "antes_se_llamaba": vida.antes.iter().map(|(x, i)| json!({ "ruta": c.ruta_de(*x), "hasta": commit(*i) })).collect::<Vec<_>>(),
+                    "muere": vida.muere.map(commit) });
+                return Ok(v);
+            }
+            let Some(&nace) = rep.carpetas.get(&r) else { return Err(format!("{r}: git no lo conoce (ni archivo ni carpeta con historia)")) };
+            let prefijo = format!("{r}/");
+            let mut crece = Vec::new();
+            recorrer(c, periodos, |e, i| {
+                let dentro = e.vivos.iter().filter(|k| c.ruta_de(**k).starts_with(&prefijo)).count();
+                crece.push(json!({ "fecha": fecha_iso(c.commits[i as usize].fecha), "commit": c.commits[i as usize].id, "archivos": dentro }));
+            });
+            v["carpeta"] = json!({ "ruta": r, "nace": commit(nace), "crecimiento": crece });
+            return Ok(v);
+        }
+        // Sin argumentos: el crecimiento, las carpetas en orden y la verificacion.
+        v["crecimiento"] = json!(rep.fotos.iter().map(|f| {
+            let x = &c.commits[f.commit as usize];
+            json!({ "fecha": fecha_iso(x.fecha), "commit": x.id, "asunto": x.asunto, "archivos": f.archivos, "codigo": f.codigo,
+                    "dependencias": f.dependencias, "ciclos": f.ciclos })
+        }).collect::<Vec<_>>());
+        let mut carpetas: Vec<(&String, &u32)> = rep.carpetas.iter().filter(|(k, _)| k.split('/').count() <= profundidad).collect();
+        carpetas.sort_by_key(|(k, i)| (**i, (*k).clone()));
+        v["carpetas_en_orden"] = json!(carpetas.iter().take(n).map(|(k, i)| json!({ "carpeta": k, "nace": commit(**i) })).collect::<Vec<_>>());
+        v["carpetas_total"] = json!(carpetas.len());
+        // Verificacion: lo reconstruido al final contra lo que hay hoy en la carpeta.
+        // Lo oculto (.gitignore, .github/) no esta en el indice: no se compara.
+        let reconstruidos: std::collections::BTreeSet<&str> = rep.vivos.iter().map(|k| c.ruta_de(*k)).filter(|r| !r.split('/').any(|p| p.starts_with('.'))).collect();
+        let coinciden = reconstruidos.iter().filter(|r| hoy.contains(**r)).count();
+        let solo_git: Vec<&&str> = reconstruidos.iter().filter(|r| !hoy.contains(**r)).take(5).collect();
+        v["verificacion"] = json!({ "reconstruidos": reconstruidos.len(), "hoy": hoy.len(), "coinciden": coinciden,
+            "pct_de_lo_reconstruido": if reconstruidos.is_empty() { 0.0 } else { (coinciden as f64 * 1000.0 / reconstruidos.len() as f64).round() / 10.0 },
+            "solo_en_git": solo_git, "nota": "hoy cuenta tambien lo que git no sigue (ignorado o generado); solo_en_git deberia estar vacio" });
+        // Y las dependencias: el mapa reconstruido al final contra el de hoy.
+        let (_, con_texto) = rep.mapa(c);
+        let aristas_git: std::collections::BTreeSet<(String, String)> = con_texto.iter().map(|(x, y, _)| (c.ruta_de(*x).to_string(), c.ruta_de(*y).to_string())).collect();
+        let iguales = aristas_git.intersection(&aristas_hoy).count();
+        v["verificacion"]["dependencias"] = json!({ "reconstruidas": aristas_git.len(), "hoy": aristas_hoy.len(), "coinciden": iguales,
+            "solo_hoy": aristas_hoy.difference(&aristas_git).take(5).map(|(x, y)| format!("{x} -> {y}")).collect::<Vec<_>>(),
+            "solo_en_git": aristas_git.difference(&aristas_hoy).take(5).map(|(x, y)| format!("{x} -> {y}")).collect::<Vec<_>>(),
+            "nota": "solo_hoy: lo que aun no esta en un commit, o un use de Rust partido en varias lineas" });
+        Ok(v)
     }
 
     // ---------------- Revisiones de GCC (guardianes) ----------------
@@ -661,6 +781,7 @@ impl Mapa {
             "exportar_sarif" => self.exportar_sarif(a),
             "reanalizar" => { self.analizar(); Ok(self.resumen()) }
             "cambios" => Ok(self.cambios(limite(a))),
+            "cronologia" => self.cronologia(a),
             "guardianes" => Ok(self.guardianes(limite(a))),
             "guardia" => self.guardia(a),
             "ventana" => Ok(self.ventana(limite(a))),
@@ -1054,6 +1175,24 @@ fn flags(a: &Value) -> Result<Vec<String>, String> {
     Ok(v.into_iter().take(64).collect())
 }
 
+/// La cronologia leida y reproducida (con el commit de arriba cuando se leyo).
+struct Crono { cabeza: String, c: carpetas_nucleo::cronologia::Cronologia, rep: carpetas_nucleo::cronologia::Reproduccion,
+               periodos: usize, cortada: bool, superficial: bool, ms: u128 }
+
+/// Fecha Unix (UTC) como AAAA-MM-DD (Howard Hinnant, days_from_civil al reves).
+pub fn fecha_iso(s: u64) -> String {
+    let z = (s / 86_400) as i64 + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z - era * 146_097;
+    let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let y = yoe + era * 400 + i64::from(m <= 2);
+    format!("{y:04}-{m:02}-{d:02}")
+}
+
 /// El compilador pedido: auto (None), gcc o clang.
 fn compilador_pedido(a: &Value) -> Result<Option<Compilador>, String> {
     match a.get("compilador").and_then(Value::as_str) {
@@ -1320,6 +1459,48 @@ mod pruebas {
         assert!(m.ejecutar("gcc_diagnosticos", &json!({ "archivo": "src/a.c", "compilador": "llvm" })).is_err());
         let d = m.ejecutar("gcc_deps", &json!({})).unwrap();
         assert_eq!(d["compiladores"]["clang"], 1, "{d}");
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn la_cronologia_sale_de_git_y_se_verifica_sola() {
+        let dir = std::env::temp_dir().join(format!("ultra-crono-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src")).unwrap();
+        let git = |args: &[&str]| std::process::Command::new("git").arg("-C").arg(&dir).args(["-c", "user.name=Ana", "-c", "user.email=a@x", "-c", "commit.gpgsign=false"])
+            .args(args).env("GIT_AUTHOR_DATE", "1700000000 +0000").env("GIT_COMMITTER_DATE", "1700000000 +0000").output().is_ok_and(|o| o.status.success());
+        if !git(&["init", "-q"]) { return; }
+        std::fs::write(dir.join("src/a.c"), "#include \"b.h\"\nint main(void) { return 0; }\n").unwrap();
+        std::fs::write(dir.join("src/b.h"), "int b;\n").unwrap();
+        assert!(git(&["add", "-A"]) && git(&["commit", "-q", "-m", "Primer paso"]));
+        std::fs::create_dir_all(dir.join("inc")).unwrap();
+        std::fs::rename(dir.join("src/b.h"), dir.join("inc/b.h")).unwrap();
+        std::fs::write(dir.join("src/a.c"), "#include \"../inc/b.h\"\nint main(void) { return 0; }\n").unwrap();
+        std::fs::write(dir.join("inc/c.h"), "#include \"b.h\"\n").unwrap();
+        assert!(git(&["add", "-A"]) && git(&["commit", "-q", "-m", "Mover b.h a inc y nace c.h"]));
+        std::fs::write(dir.join("inc/b.h"), "#include \"c.h\"\nint b;\n").unwrap();
+        assert!(git(&["add", "-A"]) && git(&["commit", "-q", "-m", "b.h usa c.h: ciclo"]));
+        let mut m = Mapa::abrir(&dir).unwrap();
+        let r = m.ejecutar("cronologia", &json!({ "periodos": 3 })).unwrap();
+        assert_eq!((r["commits"].as_u64(), r["superficial"].as_bool()), (Some(3), Some(false)), "{r}");
+        let f: Vec<(u64, u64, u64)> = r["crecimiento"].as_array().unwrap().iter()
+            .map(|x| (x["archivos"].as_u64().unwrap(), x["dependencias"].as_u64().unwrap(), x["ciclos"].as_u64().unwrap())).collect();
+        assert_eq!(f, [(2, 1, 0), (3, 2, 0), (3, 3, 1)], "{r}");
+        assert_eq!(r["carpetas_en_orden"][0]["carpeta"], "src");
+        assert_eq!(r["carpetas_en_orden"][1]["carpeta"], "inc");
+        assert_eq!(r["verificacion"]["pct_de_lo_reconstruido"], 100.0, "{r}");
+        assert_eq!(r["verificacion"]["dependencias"]["coinciden"], r["verificacion"]["dependencias"]["hoy"], "{r}");
+        // inc/b.h nacio como src/b.h en el primer commit.
+        let b = m.ejecutar("cronologia", &json!({ "ruta": "inc/b.h", "periodos": 3 })).unwrap();
+        assert_eq!(b["archivo"]["nace"]["asunto"], "Primer paso", "{b}");
+        assert_eq!(b["archivo"]["antes_se_llamaba"][0]["ruta"], "src/b.h");
+        // El ciclo se cerro en el tercer commit, con el #include "c.h" de inc/b.h.
+        let c = m.ejecutar("cronologia", &json!({ "ciclos": true, "periodos": 3 })).unwrap();
+        assert_eq!(c["ciclos"]["lista"][0]["se_cerro"]["por"]["asunto"], "b.h usa c.h: ciclo", "{c}");
+        assert_eq!(c["ciclos"]["lista"][0]["se_cerro"]["con"], "#include \"c.h\"");
+        let e = m.ejecutar("cronologia", &json!({ "a": "src/a.c", "b": "inc/b.h", "periodos": 3 })).unwrap();
+        assert_eq!(e["arista"]["entra"]["asunto"], "Mover b.h a inc y nace c.h", "{e}");
+        assert!(m.ejecutar("cronologia", &json!({ "ruta": "no/existe" })).is_err());
         std::fs::remove_dir_all(&dir).ok();
     }
 

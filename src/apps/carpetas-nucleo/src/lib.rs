@@ -27,6 +27,7 @@ pub mod carriles;
 pub mod casm;
 pub mod ciclos;
 pub mod ciudad;
+pub mod cronologia;
 pub mod camino;
 pub mod combinar;
 pub mod comandos;

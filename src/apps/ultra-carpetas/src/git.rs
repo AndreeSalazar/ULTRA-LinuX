@@ -6,6 +6,7 @@
 //!   un repositorio ajeno no puede hacer que se ejecute otro programa al leerlo;
 //! - como mucho MAX_COMMITS commits, 30 s y 256 MiB de salida.
 
+use carpetas_nucleo::cronologia::Cronologia;
 use carpetas_nucleo::historia::{leer_log, Historia, MAX_COMMITS};
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -52,6 +53,76 @@ pub fn leer(base: &Path) -> Result<Historia, String> {
     let mut h = leer_log(&String::from_utf8_lossy(&bytes), MAX_COMMITS);
     h.truncada |= cortada || bytes.len() as u64 >= MAX_SALIDA;
     Ok(h)
+}
+
+/// Lo que puede tardar cada lectura de la cronologia (Chromium: millones de commits).
+const MAX_TIEMPO_CRONOLOGIA: Duration = Duration::from_secs(1800);
+
+/// Los archivos que la segunda lectura mira (los que tienen referencias que se siguen).
+const CON_REFERENCIAS: &[&str] = &["*.c", "*.h", "*.cc", "*.cpp", "*.cxx", "*.hpp", "*.hh", "*.hxx", "*.ipp", "*.inl", "*.tpp",
+                                   "*.cu", "*.cuh", "*.m", "*.mm", "*.S", "*.s", "*.asm", "*.nasm", "*.inc", "*.rs", "*.py", "*.pyi"];
+
+/// Ejecuta `git` (con las mismas protecciones que `leer`) y pasa cada linea de su salida
+/// a `cada`, en flujo: nunca se guarda entera. Un vigilante lo corta si pasa de `max`.
+fn en_flujo(base: &Path, args: &[String], max: Duration, mut cada: impl FnMut(&str)) -> Result<bool, String> {
+    use std::io::BufRead;
+    let mut hijo = Command::new("git").arg("-C").arg(base)
+        .args(["-c", "core.quotepath=false", "-c", "log.showSignature=false", "-c", "core.fsmonitor=false", "-c", "diff.external=", "-c", "core.pager=cat"])
+        .args(args)
+        .env("GIT_TERMINAL_PROMPT", "0").env("GIT_OPTIONAL_LOCKS", "0").env("LC_ALL", "C").env("GIT_EXTERNAL_DIFF", "")
+        .stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped())
+        .spawn().map_err(|e| format!("no se pudo ejecutar git: {e}"))?;
+    let salida = hijo.stdout.take().ok_or("sin salida")?;
+    let mut err = hijo.stderr.take().ok_or("sin salida")?;
+    let lector_err = std::thread::spawn(move || { let mut v = Vec::new(); let _ = Read::by_ref(&mut err).take(64 * 1024).read_to_end(&mut v); v });
+    // El vigilante: espera a git y lo corta si tarda demasiado (la lectura acaba sola).
+    let vigilante = std::thread::spawn(move || {
+        let inicio = Instant::now();
+        loop {
+            match hijo.try_wait() {
+                Ok(Some(s)) => return (Some(s), false),
+                Ok(None) if inicio.elapsed() > max => { let _ = hijo.kill(); let _ = hijo.wait(); return (None, true); }
+                Ok(None) => std::thread::sleep(Duration::from_millis(50)),
+                Err(_) => return (None, false),
+            }
+        }
+    });
+    let mut r = std::io::BufReader::with_capacity(1 << 20, salida);
+    let mut buf = Vec::new();
+    loop {
+        buf.clear();
+        match r.read_until(b'\n', &mut buf) { Ok(0) | Err(_) => break, Ok(_) => {} }
+        let l = String::from_utf8_lossy(&buf);
+        cada(l.trim_end_matches(['\n', '\r']));
+    }
+    let (estado, cortada) = vigilante.join().unwrap_or((None, false));
+    let errores = String::from_utf8_lossy(&lector_err.join().unwrap_or_default()).to_string();
+    if let Some(s) = estado {
+        if !s.success() {
+            return Err(if errores.contains("not a git repository") { "no es un repositorio git".into() }
+                       else if errores.contains("does not have any commits") { "el repositorio aun no tiene commits".into() }
+                       else { format!("git: {}", errores.lines().next().unwrap_or("fallo")) });
+        }
+    }
+    Ok(cortada)
+}
+
+/// La cronologia de `base` desde el primer commit (ver `carpetas_nucleo::cronologia`).
+/// Rutas relativas a `base`. Devuelve tambien si alguna lectura se corto por tiempo y si el
+/// repositorio es superficial (sin el principio de la historia).
+pub fn cronologia(base: &Path) -> Result<(Cronologia, bool, bool), String> {
+    let formato = format!("--format={}%h{}%ct{}%an{}%s", "%x01", "%x02", "%x02", "%x02");
+    let mut c = Cronologia::default();
+    let a: Vec<String> = ["log", "--reverse", "--no-merges", "--no-color", "--relative", "--name-status", "-M"].iter().map(|x| x.to_string())
+        .chain([formato]).collect();
+    let corte1 = en_flujo(base, &a, MAX_TIEMPO_CRONOLOGIA, |l| c.linea_archivos(l))?;
+    let b: Vec<String> = ["log", "--reverse", "--no-merges", "--no-color", "--relative", "-p", "-U0", "-M", "--no-ext-diff", "--no-textconv",
+                          "--format=%x01%h%x02%ct", "-G^[[:space:]]*(#[[:space:]]*(include|import)|(pub([(][^)]*[)])?[[:space:]]+)?mod[[:space:]]|use[[:space:]]|from[[:space:]].*import|import[[:space:]])", "--"]
+        .iter().map(|x| x.to_string()).chain(CON_REFERENCIAS.iter().map(|x| x.to_string())).collect();
+    let corte2 = en_flujo(base, &b, MAX_TIEMPO_CRONOLOGIA, |l| c.linea_refs(l))?;
+    let mut superficial = false;
+    let _ = en_flujo(base, &["rev-parse".into(), "--is-shallow-repository".into()], Duration::from_secs(10), |l| superficial = l.trim() == "true");
+    Ok((c, corte1 || corte2, superficial))
 }
 
 impl Git {

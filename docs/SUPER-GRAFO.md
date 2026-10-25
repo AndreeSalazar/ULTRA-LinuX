@@ -143,11 +143,18 @@ GRAFO conteste la pregunta, no el formato.
    compila. El analizador de Clang (`--analyze`), igual que `-fanalyzer`, da el **camino
    del fallo entre archivos** (se reserva en `a.c:3`, se libera en `util.h:3`, se usa en
    `a.c:7`).
-10. **Siguiente:**
-   - resolver solo lo que cambió (el aviso en vivo con 312 000 archivos sigue en unos 4 s);
-   - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
-     verdad cada archivo);
-   - un índice partido en trozos para proyectos que no caben en memoria.
+10. ~~**La cronología**~~ **Hecha (datos y MCP):** cómo se construyó el proyecto desde el
+    primer commit, sin sacar versiones viejas. Se verifica sola contra lo de hoy (en este
+    repositorio: 2 350 de 2 350 archivos y 333 de 333 dependencias). 100 000 commits
+    sintéticos en 18 s.
+11. **Siguiente:**
+    - la cronología en la Ciudad: un deslizador de tiempo y la ciudad fantasma (los mismos
+      edificios en la GPU, con su fecha de nacimiento; mover el tiempo solo cambia un
+      número);
+    - resolver solo lo que cambió (el aviso en vivo con 312 000 archivos sigue en unos 4 s);
+    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
+      verdad cada archivo);
+    - un índice partido en trozos para proyectos que no caben en memoria.
 
 Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-super-grafo-sin-ventana-consultas-en-json-y-servidor-mcp).
 

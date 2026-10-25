@@ -820,6 +820,7 @@ ultra-carpetas --mcp <carpeta>     # servidor MCP por stdio (JSON-RPC 2.0)
 | `gcc_deps` | Cuánto acierta el mapa léxico frente a `gcc -MM -MG` |
 | `exportar_sarif` | El museo (y lo de GCC) en un archivo SARIF 2.1.0 |
 | `reanalizar` | Volver a leer la carpeta ya (el servidor MCP lo hace solo al ver cambios) |
+| `cronologia` | Cómo se construyó el proyecto desde el primer commit: crecimiento por periodos, carpetas en orden de nacimiento, vida de un archivo, qué commit añadió una dependencia o cerró un ciclo, y una verificación contra lo de hoy |
 | `guardia` | Modo guardia: mantener revisados por los guardianes todos los `.c` de una carpeta (o del proyecto), por turnos, y después solo lo que cambie |
 | `guardianes` | El perfil de los guardianes (banderas de `perfil-gcc.sh`) y las revisiones de GCC guardadas: si siguen al día |
 | `cambios` | Qué cambió desde el análisis anterior: sospechas nuevas y arregladas, fallos, causa principal, ciclos |
@@ -1179,6 +1180,69 @@ lo usan directamente. En OpenSSL y en este repositorio no se deduce nada.
   no entra; el `Locale.h` repetido no se deduce.
 - `consultas.rs`: `gcc_deps` no mide un archivo con una cabecera generada que falta, ni uno
   que tomó del sistema la de una plantilla `.h.in`. Las dos pruebas fallan sin el arreglo.
+
+### La cronología: cómo se construyó, desde el primer commit
+
+`cronologia` reconstruye la historia **sin sacar ninguna versión vieja** (con Chromium
+serían años de trabajo). Usa dos lecturas de git, leídas en flujo, línea a línea, sin
+guardar la salida:
+
+1. `git log --reverse --name-status -M`: cuándo nace, se mueve o muere cada archivo, quién
+   lo hizo y por qué (el asunto del commit).
+2. `git log --reverse -p -U0 -G'#include|mod|use|import'`: solo los commits que tocan
+   una línea de referencias. De cada línea que entra o sale se sacan sus referencias con
+   el mismo lector que el mapa de hoy.
+
+Con eso se reproduce la historia commit a commit. En cada corte se resuelve el mapa de
+ese momento, con las reglas de hoy, y se cuentan archivos, dependencias y ciclos.
+
+| Pregunta | Qué contesta |
+| --- | --- |
+| (sin argumentos) | Crecimiento por periodos, carpetas en orden de nacimiento (`profundidad`) y la **verificación** |
+| `ruta` | Cuándo nació, quién y por qué; sus nombres anteriores; cuántas veces cambió; si murió. De una carpeta, cuántos archivos tenía en cada periodo |
+| `a` y `b` | Qué commit añadió la referencia que une a `a` con `b` |
+| `ciclos` | Qué commit cerró cada ciclo de hoy (la última referencia de su vuelta que entró) |
+
+**Se verifica sola.** Lo reconstruido al final se compara con lo que hay hoy:
+- en archivos, sin contar los ocultos;
+- en dependencias: si falta o sobra alguna, se dice cuál.
+
+Si el clon es superficial (sin el principio de la historia), lo avisa.
+
+**En este repositorio** (164 commits, del 18 al 25 de octubre de 2026), en 0,6 s:
+
+- Archivos: **2 350 de 2 350**. Dependencias: **333 de 333**, ninguna de más. Las 5 de hoy
+  que faltaban eran el código de la propia cronología, aún sin commit.
+- El orden en que nacieron las carpetas:
+  - `docs`, `evidencias` y `scripts` en el primer commit;
+  - `src` con el kernel mínimo;
+  - `C++` el día 19;
+  - `config`, `ASM` y `Museo` el 22;
+  - `CASM` el 25.
+- Los dos ciclos de hoy se cerraron en `39fb860`, el commit que añadió los casos de
+  prueba de ciclos.
+
+**A escala:** una historia sintética de **100 000 commits** (`git fast-import`; 30 106
+archivos y 73 313 dependencias al final) se lee y reproduce en **18 s con 211 MB**. Git
+se lleva unos 16 s: la lectura con `-p` sola tarda 13,6 s. Leer y reproducir los 100 000
+commits cuesta unos 1,8 s. La verificación sale perfecta en archivos y dependencias.
+Chromium (1,5 millones de commits, cambios más grandes) no se ha medido. Calculo de
+varios minutos a media hora la primera vez; cada lectura se corta a los 30 min. El
+servidor MCP la guarda en memoria hasta que cambia el último commit.
+
+**Límites (los dice cada respuesta):**
+- no se ve lo que un `#include` no escribe (macros, rutas generadas), igual que hoy;
+- no se sabe el `#if` de una línea suelta;
+- un `use` de Rust partido en varias líneas se ve a medias;
+- los merges no cuentan y el orden es el de `git log`.
+
+**Comprobado:**
+
+- `tests/cronologia.rs`: una historia a mano con nacer, mover (la fecha de nacimiento
+  sigue al archivo), borrar y cerrar un ciclo; los cortes; líneas raras que no rompen nada.
+- `consultas.rs`: un repositorio de git de verdad con tres commits. La herramienta da el
+  crecimiento, las carpetas en orden, el nombre anterior, el commit que cerró el ciclo y
+  el que añadió una dependencia, y la verificación al 100 %.
 
 ### A escala de Chromium: límites subidos y medidos
 
