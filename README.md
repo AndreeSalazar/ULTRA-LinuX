@@ -28,6 +28,40 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
 - **Personalizar** (Super+Shift+P): perfiles de un toque (Neón hielo, Demonio, Sobrio, Minimal,
   Juego y los tuyos), fondo Demonio con tu Tux, fondo según la hora y 20 opciones de colores,
   ventanas, animaciones, barra, dock, avisos, letra y sonidos ([detalle](docs/TEMA-NEON.md)).
+  **Fondo vivo**: lluvia, aro que gira y letreros que fallan, con tu acento o tu Tux, quieto en
+  juegos ([Neón](docs/maquetas/png/neon/fondo-vivo-neon.mp4), [Demonio](docs/maquetas/png/neon/fondo-vivo-demonio.mp4)).
+  **Un sonido propio por elemento** ([escuchar](docs/maquetas/sonidos-bmox.ogg)). Clic en CPU o RAM
+  de la barra para cerrar o frenar lo que más consume. **Tu imagen, viva**: cualquier fondo tuyo
+  (por ejemplo, los oficiales de Cyberpunk 2077 de GOG) con lluvia, barrido y glitch.
+- **Ciudad 3D**: la cámara vuela por una avenida neón con edificios, reflejos, coches
+  voladores, lluvia con profundidad y la esfera del autor: núcleo que late, malla 3D, órbitas
+  con satélites, HUD y tu firma girando ([primer plano](docs/maquetas/png/neon/esfera-3d.mp4)). Se calcula una vez
+  en tu PC y se queda quieta en juegos ([hielo](docs/maquetas/png/neon/ciudad-3d-hielo.mp4),
+  [rojo](docs/maquetas/png/neon/ciudad-3d-rojo.mp4)).
+- **ULTRA Carpetas** (Super+Ctrl+E), en Rust con Vulkan (wgpu): iconos donde tú quieras, como en
+  el Windows antiguo, con rejilla, candado y deshacer; cada carpeta recuerda su orden y nunca
+  toca tus archivos. Arquitectura como React + Redux con paleta de comandos como VS Code, y
+  el núcleo es `no_std`: compila para bare-metal, listo para BMO-X ([detalle](docs/ULTRA-CARPETAS.md)).
+  **Modo grafo como Blender y Houdini** (nodos, cables curvos, zoom, desplegar en el grafo, peso de
+  cada carpeta para optimizar), **explorador** sincronizado e **iconos SVG** de VS Code (Material) o
+  Lucide. Carriles aislados con **semáforo de rendimiento** (F12) y el disco en su propio hilo.
+  **Grafo retenido en la GPU** (la CPU arma la geometría una vez; mover y zoom solo mandan la cámara
+  al shader WGSL), **botones ▶** para `cargo run`, `make`, Python y scripts, y **terminal** abajo como
+  VS Code, sin shell.
+  **En vivo:** los procesos del play (de `/proc`) en una tarjeta sobre su nodo; los errores de
+  rustc, panics, gcc y Python **marcan en rojo el nodo de su archivo**; y con **clic derecho** se
+  abre el editor de código en la línea del error (F8 va al siguiente; Ctrl+S guarda sin pisar
+  cambios de fuera), con **pestañas** y **buscar y reemplazar** (Ctrl+F / Ctrl+H). Los archivos de
+  código llevan **su logo** (Rust, C, C++, cabeceras, CMake, asm y 40 lenguajes más).
+  **Todo el proyecto**: Ctrl+P va a cualquier archivo y lo muestra en grafo y explorador a la vez,
+  Ctrl+Shift+F busca texto en todo, y **Enfocar** (E) hace raíz a una carpeta; un organizador medido
+  sobre Chromium (509 418 archivos) agrupa `foo.h`+`foo.cc`+`foo_unittest.cc` en unidades. Y la
+  **vista Ciudad** (como CodeCity): distritos = carpetas, edificios = archivos, huella = tamaño,
+  altura = líneas o cambios en git, color = lenguaje, errores o **calor** (puntos calientes: lo grande que más cambia), con su % ([detalle](docs/ULTRA-CARPETAS.md#vista-ciudad-inspirada-en-codecity)). El **SUPER GRAFO** busca en tu C, C++ y ASM los patrones de las 38 fichas del museo, conecta `#include`/`use`/`import` y, cuando algo falla, marca en rojo neón y blanco la causa probable, cablea todo lo que arrastra y con **A** aísla el resto ([detalle](docs/ULTRA-CARPETAS.md#super-grafo-el-museo-en-tu-código-y-el-fallo-conectado)) ([en vivo](docs/ULTRA-CARPETAS.md#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)).
+  **9 temas** (Neón BMO-X, TITAN Taller, Synthwave '84, Tokyo Night, Catppuccin, Rosé Pine, Kanagawa,
+  Dracula, Nord) con contraste comprobado y panel de ajustes en Ctrl+, ([temas](docs/TEMAS-APPS.md)).
+- **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y
+  temperatura, con anillos y gráficas en vivo ([captura con eww real](docs/maquetas/png/neon/tarjetas-eww.png)).
   La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa
   se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+Shift+V)
   con historial en RAM; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,

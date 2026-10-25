@@ -1,0 +1,7 @@
+Esta carpeta contiene codigo malo A PROPOSITO (minas, casos de estudio y controles).
+
+ULTRA Carpetas (SUPER GRAFO) sigue mostrando sus sospechas del museo en el panel
+Museo, en "Casos de estudio", pero no las cuenta como fallos del proyecto: no se
+conectan, no pintan la causa en rojo y no aparecen al aislar.
+
+Borrar este archivo hace que vuelvan a contar como fallos.

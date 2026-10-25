@@ -2,7 +2,7 @@
    Sin clip-path en GTK: los cortes inclinados se hacen con degradados. */
 * { font-family: "Rajdhani", "DejaVu Sans Condensed", "Font Awesome 7 Free", "Font Awesome 7 Brands"; font-size: 15px; font-weight: 600; min-height: 0; border-radius: 0; }
 window#waybar { background: transparent; color: #ece9dc; }
-window#waybar.hud > box { background: rgba(6, 5, 10, .92); border-bottom: 2px solid #5ad8ff; box-shadow: 0 2px 14px rgba(90, 216, 255, .18); }
+window#waybar.hud > box { background: rgba(6, 5, 10, .92); border-bottom: 2px solid #5ad8ff; box-shadow: 0 2px 14px rgba(90, 216, 255, .18); animation: linea 6s ease-in-out infinite alternate; }
 tooltip { background: #06050a; border: 1px solid #5ad8ff; }
 tooltip label { color: #ece9dc; padding: 6px; font-family: "Chakra Petch", "DejaVu Sans"; font-weight: 500; font-size: 13px; }
 
@@ -14,7 +14,7 @@ tooltip label { color: #ece9dc; padding: 6px; font-family: "Chakra Petch", "Deja
 #workspaces button { font-family: "JetBrains Mono", "DejaVu Sans Mono"; font-size: 13px; color: #ece9dc; min-width: 30px; padding: 0 4px; margin: 0 2px;
   border-bottom: 2px solid #2b9fd0; background: transparent; transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease; }
 #workspaces button.empty { color: #625f70; border-bottom-color: transparent; }
-#workspaces button.active { background: #5ad8ff; color: #000000; font-weight: 700; border-bottom-color: #5ad8ff; box-shadow: 0 0 10px rgba(90, 216, 255, .45); }
+#workspaces button.active { background: #5ad8ff; color: #000000; font-weight: 700; border-bottom-color: #5ad8ff; box-shadow: 0 0 10px rgba(90, 216, 255, .45); animation: latido 2400ms ease-in-out infinite alternate; }
 #workspaces button.urgent { color: #ff2a4f; border-bottom-color: #ff2a4f; animation: alerta 700ms ease-in-out infinite alternate; }
 #workspaces button:hover { background: rgba(90, 216, 255, .12); color: #bff3ff; box-shadow: none; }
 
@@ -24,9 +24,11 @@ tooltip label { color: #ece9dc; padding: 6px; font-family: "Chakra Petch", "Deja
 #custom-equipo, #cpu, #memory, #network, #pulseaudio, #custom-autor { padding: 0 12px; border-left: 1px solid #3b3747; color: #ece9dc; font-size: 15px; }
 #custom-equipo { color: #5ad8ff; }
 #custom-equipo:hover { color: #bff3ff; background: rgba(90, 216, 255, .10); }
+/* CPU y RAM se pueden clicar: lo que mas consume (clic) y el administrador (clic derecho). */
+#cpu:hover, #memory:hover { background: rgba(90, 216, 255, .10); color: #bff3ff; box-shadow: inset 0 -2px #5ad8ff; }
 #cpu.alerta { color: #ff2a4f; animation: alerta 800ms ease-in-out infinite alternate; }
 #network.disconnected, #network.linked, #pulseaudio.muted { color: #ff2a4f; }
-#custom-autor { color: #5ad8ff; letter-spacing: 2px; text-shadow: 0 0 8px rgba(90, 216, 255, .55); }
+#custom-autor { color: #5ad8ff; letter-spacing: 2px; text-shadow: 0 0 8px rgba(90, 216, 255, .55); animation: aura 3200ms ease-in-out infinite alternate; }
 #custom-autor:hover { color: #bff3ff; }
 #custom-ambiente { color: #00f0ff; padding: 0 14px; font-size: 16px; border-left: 1px solid #3b3747; }
 #custom-ambiente:hover { color: #bff3ff; background: rgba(0, 240, 255, .10); }
@@ -41,6 +43,11 @@ window#waybar.dock > box { background: rgba(6, 5, 10, .94); border-top: 2px soli
 #custom-games, #custom-terminal { color: #5ad8ff; }
 #custom-help { color: #a19eae; }
 .dock #custom-browser:hover, .dock #custom-games:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover {
-  color: #bff3ff; background: #0a1a22; border-color: #5ad8ff; border-bottom-color: #5ad8ff; }
+  color: #bff3ff; background: #0a1a22; border-color: #5ad8ff; border-bottom-color: #5ad8ff; box-shadow: 0 0 12px rgba(90, 216, 255, .35); }
 
 @keyframes alerta { from { color: #ff2a4f; } to { color: #ffffff; } }
+/* Vida: el escritorio activo late, el nombre del autor brilla y la linea de la barra
+   pasa del acento al cyan como el borde de las ventanas. Efectos reducidos las quita. */
+@keyframes latido { from { box-shadow: 0 0 5px rgba(90, 216, 255, .28); } to { box-shadow: 0 0 16px rgba(90, 216, 255, .70); } }
+@keyframes aura { from { text-shadow: 0 0 4px rgba(90, 216, 255, .30); } to { text-shadow: 0 0 12px rgba(90, 216, 255, .85); } }
+@keyframes linea { from { border-bottom-color: #5ad8ff; } to { border-bottom-color: #00f0ff; } }

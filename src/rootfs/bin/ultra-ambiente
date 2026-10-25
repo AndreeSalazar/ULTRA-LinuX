@@ -5,6 +5,7 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 mode=${1:-menu}
 if [[ $mode == menu ]]; then
+    ultra-personalizar sonar menu > /dev/null 2>&1 &
     category=raiz
     remembered="${XDG_RUNTIME_DIR:?}/ultra-categoria"
     previous=apps
@@ -27,7 +28,7 @@ if [[ $mode == menu ]]; then
                 case $previous in apps) index=0;; discos) index=1;; juegos) index=2;; pantalla) index=3;; audio) index=4;; ambiente) index=5;; sistema) index=6;; esac
                 rows=('1 Aplicaciones' '2 Discos y bibliotecas' '3 Juegos' '4 Pantalla y graficos' '5 Audio' '6 Ambiente' '7 Sistema y ayuda');;
             apps) title='Aplicaciones / ACENTO'; accent=$personal
-                rows=('Buscar aplicaciones' 'Navegador Brave' 'Archivos' 'Terminal' 'Editor' 'Volver a categorias');;
+                rows=('Buscar aplicaciones' 'Navegador Brave' 'Archivos' 'Carpetas BMO-X' 'Terminal' 'Editor' 'Volver a categorias');;
             discos) title='Discos / CYAN'; accent=00f0ffff
                 rows=('Panel de discos y preparacion' 'Carpetas guardadas' 'Windows NVMe (solo lectura)' 'Explorar discos (solo lectura)' 'Volver a categorias');;
             juegos) title='Juegos / ROJO'; accent=ff2a4fff
@@ -64,6 +65,7 @@ if [[ $mode == menu ]]; then
         'Buscar aplicaciones') exec ultra-personalizar lanzador;;
         'Navegador Brave') exec ultra-brave;;
         Archivos) exec thunar;;
+        'Carpetas BMO-X') exec ultra-carpetas;;
         'Panel de discos y preparacion') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Carpetas guardadas') exec foot --hold /usr/local/bin/ultra-bibliotecas estado;;
         'Windows NVMe (solo lectura)') exec ultra-windows;;

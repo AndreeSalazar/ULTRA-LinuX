@@ -1,0 +1,600 @@
+#!/usr/bin/python
+# SPDX-License-Identifier: GPL-2.0-only
+"""Fondo animado de BMO-X / Neon para UID 1000. Sin root, red ni shell.
+
+La primera vez genera en ~/.cache/ultra/fondo-vivo/ un bucle de 4 s a partir del
+fondo estatico (Neon con tu acento, o Demonio): lluvia que cae, el aro del autor
+que gira y pulsa, letreros que parpadean, una linea de escaneo y un corte glitch.
+Lo reproduce con awww (antes swww). Sin awww ni swww se queda el fondo estatico.
+
+    ultra-fondo-vivo poner neon|demonio|ciudad3d [#RRGGBB]
+    ultra-fondo-vivo poner imagen #RRGGBB ~/Imágenes/mi-fondo.jpg   (anima tu propia imagen)
+    ultra-fondo-vivo pausar | seguir     (modo juego: cuadro quieto / animado)
+    ultra-fondo-vivo parar
+    ultra-fondo-vivo crear BASE.png #RRGGBB SALIDA.gif [--tam ANCHOxALTO] [--cuadros N]
+"""
+import hashlib
+import math
+import os
+import stat
+from pathlib import Path
+import random
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+VERSION = 'v1'
+ETC = Path('/etc/ultra')
+CREAR_FONDO = Path('/usr/local/libexec/ultra-crear-fondo')
+HOME = Path(os.environ.get('HOME', '/home/ultra'))
+CACHE = HOME / '.cache/ultra/fondo-vivo'
+CUADROS, MS = 48, 83  # 48 cuadros a ~12 por segundo: bucle de 4 s.
+# Posiciones del fondo de ultra-crear-fondo, en fracciones de la pantalla.
+ARO = (.65, .23, 170 / 1920)
+LETREROS = [(.085, 5), (.87, 5), (.78, 3)]  # x y letras de ULTRA, BMO-X y 24H
+
+
+def rgb(hexa):
+    return tuple(int(hexa[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def es_hex(texto):
+    return isinstance(texto, str) and re.fullmatch(r'#[0-9a-fA-F]{6}', texto) is not None
+
+
+# ---------- Generar el bucle (Pillow) ----------
+def cuadro(base, acento, t, semilla=2077, propio=False):
+    """Un cuadro en el instante t de [0, 1). t=1 es igual a t=0: el bucle no salta.
+    propio: imagen del usuario; sin aro ni letreros (no sabemos donde estan), con un barrido de luz."""
+    from PIL import Image, ImageDraw
+    W, H = base.size; k = W / 1920
+    img = base.copy()
+    capa = Image.new('RGBA', base.size, (0, 0, 0, 0)); d = ImageDraw.Draw(capa)
+    r, g, b = acento
+    claro = tuple(min(255, c + (255 - c) * 6 // 10) for c in acento)
+    # Lluvia: cada gota da 1, 2 o 3 vueltas enteras por bucle.
+    azar = random.Random(semilla)
+    for _ in range(int(240 * k) or 24):
+        x0, y0 = azar.uniform(0, W), azar.uniform(0, H)
+        largo, vueltas = azar.uniform(14, 42) * k, azar.choice((1, 2, 3))
+        alfa = azar.randint(28, 80)
+        y = (y0 + vueltas * t * (H + largo)) % (H + largo) - largo
+        x = (x0 - (y - y0) / 4) % W
+        d.line([(x, y), (x - largo / 4, y + largo)], fill=claro + (alfa,), width=max(1, round(k)))
+    if propio:
+        # Barrido diagonal de luz del acento que cruza la imagen una vez por bucle.
+        # Empieza y termina del todo fuera de la pantalla (la franja va inclinada H*.35).
+        ancho = W * .18; x = -ancho + t * (W + H * .35 + ancho)
+        for paso in range(6):
+            alfa = 7 - paso
+            d.polygon([(x + paso * ancho / 6, 0), (x + (paso + 1) * ancho / 6, 0),
+                       (x + (paso + 1) * ancho / 6 - H * .35, H), (x + paso * ancho / 6 - H * .35, H)], fill=(r, g, b, alfa))
+    # Aro: cuatro arcos iguales que giran un cuarto de vuelta por bucle y un brillo que pulsa.
+    ax, ay, radio = ARO[0] * W, ARO[1] * H, ARO[2] * W
+    if propio: radio = 0
+    pulso = .5 + .5 * math.sin(2 * math.pi * t)
+    caja = [ax - radio, ay - radio, ax + radio, ay + radio]
+    for i in range(4 if radio else 0):
+        inicio = (i * 90 + t * 90) % 360
+        d.arc(caja, inicio, inicio + 38, fill=(r, g, b, 150 + round(80 * pulso)), width=max(2, round(4 * k)))
+    halo = radio * (1.08 + .04 * pulso)
+    if radio: d.ellipse([ax - halo, ay - halo, ax + halo, ay + halo], outline=(r, g, b, round(30 + 50 * pulso)), width=max(1, round(2 * k)))
+    # Letreros: el de 24H falla dos veces por bucle, BMO-X una vez.
+    for (fx, letras), apagado in zip(LETREROS if not propio else [], ((), (.62,), (.18, .21, .74))):
+        if any(abs(t - a) < .5 / CUADROS for a in apagado):
+            lx, ly = fx * W - 4 * k, .30 * H
+            d.rectangle([lx - 6 * k, ly - 6 * k, lx + 50 * k, ly + (letras * 42 + 26) * k], fill=(4, 3, 8, 200))
+    # Linea de escaneo que baja una vez por bucle.
+    sy = t * H
+    for dy, alfa in ((0, 34), (2 * k, 18), (5 * k, 8)):
+        d.rectangle([0, sy - dy, W, sy - dy + max(1, k)], fill=(r, g, b, alfa))
+    img = Image.alpha_composite(img, capa)
+    # Corte glitch: tres franjas desplazadas durante dos cuadros.
+    if abs(t - .45) < 1.5 / CUADROS:
+        g_azar = random.Random(int(t * CUADROS))
+        for _ in range(3):
+            top = g_azar.randint(0, H - 30); alto = g_azar.randint(int(6 * k) or 2, int(28 * k) or 6)
+            franja = img.crop((0, top, W, top + alto))
+            img.paste(franja, (g_azar.choice((-1, 1)) * g_azar.randint(int(12 * k) or 3, int(60 * k) or 12), top))
+    return img
+
+
+# ---------- Ciudad 3D (perspectiva real, pre-renderizada) ----------
+# La camara vuela por una avenida. Todo se mueve un numero entero de periodos por
+# bucle (edificios cada P*D, cuadricula cada S, coches cada VUELTA_COCHE): t=1 == t=0.
+D3, P3, LARGO3, AVENIDA, ALTURA_CAM, LEJOS, CERCA = 16.0, 4, 11.0, 13.0, 9.0, 260.0, 1.2
+CUADROS_3D = 64  # 64 cuadros a ~12 por segundo: 5,3 s
+
+
+def _azar_edificio(lado, j):
+    """Propiedades fijas por (lado, j mod P): asi el bucle cierra."""
+    azar = random.Random(f'{lado}-{j % P3}-2077')
+    alto = azar.choice((8, 12, 16, 22, 30, 40, 54))
+    ancho = azar.uniform(6, 13)
+    ventanas = [(fila, col) for fila in range(int(alto / 2.4)) for col in range(int(LARGO3 / 1.8)) if azar.random() < .32]
+    frente = [(fila, col) for fila in range(int(alto / 2.4)) for col in range(int(ancho / 1.8)) if azar.random() < .28]
+    letrero = azar.random() < .55
+    tono = azar.choice(('acento', 'cyan', 'rojo', 'acento', 'violeta'))
+    return alto, ancho, ventanas, frente, letrero, tono, azar.randrange(1 << 30)
+
+
+def _proyectar(W, H, x, y, z):
+    f = .72 * W
+    return (W * .5 + f * x / z, H * .60 + f * (ALTURA_CAM - y) / z)
+
+
+def _recortar(poligono):
+    """Sutherland-Hodgman contra el plano z = CERCA."""
+    salida = []
+    for i, actual in enumerate(poligono):
+        previo = poligono[i - 1]
+        dentro_a, dentro_p = actual[2] >= CERCA, previo[2] >= CERCA
+        if dentro_a != dentro_p:
+            k = (CERCA - previo[2]) / (actual[2] - previo[2])
+            salida.append(tuple(previo[n] + k * (actual[n] - previo[n]) for n in range(3)))
+        if dentro_a: salida.append(actual)
+    return salida
+
+
+def _niebla(color, z, cielo=(26, 10, 40)):
+    k = min(1.0, max(0.0, (z - 20) / (LEJOS - 20))) ** .8
+    return tuple(round(c * (1 - k) + s * k) for c, s in zip(color, cielo))
+
+
+FUENTES_ESFERA = ('/usr/share/fonts/ultra-neon/ChakraPetch-Bold.ttf', '/usr/share/fonts/TTF/DejaVuSans-Bold.ttf',
+                  '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', str(HOME / '.local/share/fonts/ChakraPetch-Bold.ttf'))
+FIRMA = 'EDDI SALAZAR · BMO-X · ULTRA LINUX · '
+
+
+def _fuente(tam):
+    from PIL import ImageFont
+    for ruta in FUENTES_ESFERA:
+        try: return ImageFont.truetype(ruta, tam)
+        except OSError: continue
+    try: return ImageFont.load_default(tam)
+    except TypeError: return ImageFont.load_default()
+
+
+def _girar(p, inclinacion, giro):
+    """Gira p alrededor de Y (giro) y despues lo inclina alrededor de X."""
+    x, y, z = p
+    x, z = x * math.cos(giro) + z * math.sin(giro), -x * math.sin(giro) + z * math.cos(giro)
+    y, z = y * math.cos(inclinacion) - z * math.sin(inclinacion), y * math.sin(inclinacion) + z * math.cos(inclinacion)
+    return x, y, z
+
+
+def _esfera(d, b, W, H, acento, colores, t, cx, cy, radio):
+    """La esfera del autor: haz, halo, HUD, firma, anillos, malla 3D, nucleo, escaneo y satelites.
+    Todo gira vueltas enteras (o simetrias exactas) por bucle: t=1 == t=0."""
+    tau = 2 * math.pi
+    pulso = .5 + .5 * math.sin(tau * t)
+    eps = radio * 1e-6
+    tenue = lambda c, k: tuple(round(v * k) for v in c)
+    blanco = (255, 255, 255)
+    claro = tuple(min(255, c + (255 - c) * 6 // 10) for c in acento)
+
+    def proy(p):
+        esc = 1 / (1 + p[2] / (radio * 7))
+        return (cx + p[0] * esc, cy + p[1] * esc)
+
+    # 1. Haz de luz que baja hasta la ciudad (los edificios lo tapan despues).
+    base_y = H * .60
+    for i, (ancho, k) in enumerate(((radio * .22, .10), (radio * .10, .22), (radio * .03, .55))):
+        b.rectangle([cx - ancho, cy + radio * .3, cx + ancho, base_y], fill=tenue(acento, k * (.8 + .4 * pulso)))
+    d.line([(cx, cy + radio * .35), (cx, base_y)], fill=tenue(claro, .5), width=max(1, round(radio / 60)))
+    # 2. Halo en capas.
+    for paso in range(7):
+        r_h = radio * (2.1 - paso * .17) * (1 + .03 * pulso)
+        b.ellipse([cx - r_h, cy - r_h, cx + r_h, cy + r_h], fill=tenue(acento, .035 + paso * .022))
+    # 3. Anillo HUD: 72 marcas (una larga cada 6) que avanza un tramo largo por bucle.
+    r_hud = radio * 1.42
+    giro_hud = math.radians(30) * t
+    for i in range(72):
+        ang = giro_hud + tau * i / 72
+        largo = radio * (.10 if i % 6 == 0 else .045)
+        a = (cx + r_hud * math.cos(ang), cy + r_hud * math.sin(ang))
+        c = (cx + (r_hud + largo) * math.cos(ang), cy + (r_hud + largo) * math.sin(ang))
+        d.line([a, c], fill=tenue(acento if i % 6 else claro, .55 if i % 6 else .9), width=1 if i % 6 else 2)
+    # Corchetes fijos en las cuatro diagonales y un arco que barre.
+    r_c = radio * 1.62
+    for k in range(4):
+        ini = 45 + 90 * k - 12
+        d.arc([cx - r_c, cy - r_c, cx + r_c, cy + r_c], ini, ini + 24, fill=tenue(colores['cyan'], .8), width=2)
+        b.arc([cx - r_c, cy - r_c, cx + r_c, cy + r_c], ini, ini + 24, fill=tenue(colores['cyan'], .35), width=5)
+    barrido = math.degrees(tau * t)
+    d.arc([cx - r_hud * .97, cy - r_hud * .97, cx + r_hud * .97, cy + r_hud * .97], barrido, barrido + 50, fill=tenue(colores['rojo'], .8), width=2)
+    # 4. Tu firma alrededor: el texto va dos veces, asi media vuelta por bucle cierra exacto.
+    fuente = _fuente(max(9, round(radio * .115)))
+    texto = FIRMA * 2
+    r_txt = radio * 1.27
+    for i, letra in enumerate(texto):
+        ang = tau * i / len(texto) + math.pi * t - math.pi / 2  # se lee en sentido horario
+        x, y = cx + r_txt * math.cos(ang), cy + r_txt * math.sin(ang)
+        # Solo el arco de arriba: alli las letras rectas se leen de izquierda a derecha; se apagan al bajar.
+        arriba = -math.sin(ang)
+        if arriba < .15: continue
+        d.text((x, y), letra, font=fuente, fill=tenue(claro, min(.9, (arriba - .15) * 2.2)), anchor='mm')
+    # 5. Anillos orbitales en 3D (detras y delante se separan para que el nucleo los tape).
+    orbitas = [(radio * 1.08, math.radians(72), tau * t, acento, 3), (radio * 1.0, math.radians(-58), -tau * t + .6, colores['cyan'], 2),
+               (radio * 1.16, math.radians(15), tau * t * 2, colores['violeta'], 1)]
+    traseros, delanteros = [], []
+    for r_o, incl, giro, tono, grosor in orbitas:
+        puntos = [_girar((r_o * math.cos(tau * i / 180), 0.0, r_o * math.sin(tau * i / 180)), incl, giro) for i in range(181)]
+        for i in range(180):
+            if (i // 9) % 4 == 3: continue  # trazos: periodo de 36 pasos = 72 grados
+            seg = (puntos[i], puntos[i + 1], tono, grosor)
+            (traseros if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps else delanteros).append(seg)
+    # 6. Malla de la esfera: 6 meridianos y 5 paralelos, inclinada 23 grados, una vuelta por bucle.
+    r_s = radio * .62
+    giro_s, incl_s = tau * t, math.radians(23)
+    for m in range(6):
+        lon = math.pi * m / 6
+        puntos = [_girar((r_s * math.sin(tau * i / 72) * math.cos(lon), r_s * math.cos(tau * i / 72), r_s * math.sin(tau * i / 72) * math.sin(lon)), incl_s, giro_s) for i in range(73)]
+        for i in range(72):
+            seg = (puntos[i], puntos[i + 1], acento, 1)
+            (traseros if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps else delanteros).append(seg)
+    for lat in (-60, -30, 0, 30, 60):
+        rad = math.radians(lat)
+        puntos = [_girar((r_s * math.cos(rad) * math.cos(tau * i / 72), r_s * math.sin(rad), r_s * math.cos(rad) * math.sin(tau * i / 72)), incl_s, giro_s) for i in range(73)]
+        for i in range(72):
+            seg = (puntos[i], puntos[i + 1], colores['cyan'] if lat == 0 else acento, 2 if lat == 0 else 1)
+            (traseros if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps else delanteros).append(seg)
+
+    def trazar(segmentos, k):
+        for p1, p2, tono, grosor in segmentos:
+            a, c = proy(p1), proy(p2)
+            b.line([a, c], fill=tenue(tono, k * .5), width=grosor + 2)
+            d.line([a, c], fill=tenue(tono, k), width=grosor)
+
+    trazar(traseros, .35)
+    # 7. Nucleo de energia que late: del acento oscuro al blanco.
+    r_n = radio * .34 * (1 + .07 * pulso)
+    for paso in range(10):
+        k = paso / 9
+        rr = r_n * (1 - .85 * k)
+        col = tuple(round(a * (.25 + .75 * k) + 255 * k ** 3 * .8) for a in acento)
+        col = tuple(min(255, v) for v in col)
+        d.ellipse([cx - rr, cy - rr, cx + rr, cy + rr], fill=col)
+        b.ellipse([cx - rr * 1.3, cy - rr * 1.3, cx + rr * 1.3, cy + rr * 1.3], fill=tenue(col, .35))
+    trazar(delanteros, 1.0)
+    # 8. Banda de escaneo: un paralelo brillante que sube y baja por la esfera.
+    rad = math.radians(70) * math.sin(tau * t)
+    puntos = [_girar((r_s * math.cos(rad) * math.cos(tau * i / 72), r_s * math.sin(rad), r_s * math.cos(rad) * math.sin(tau * i / 72)), incl_s, 0.0) for i in range(73)]
+    for i in range(72):
+        if (puntos[i][2] + puntos[i + 1][2]) / 2 > eps: continue
+        a, c = proy(puntos[i]), proy(puntos[i + 1])
+        b.line([a, c], fill=claro, width=5); d.line([a, c], fill=blanco, width=2)
+    # 9. Satelites con estela sobre las orbitas (2, 3 y 1 vueltas por bucle).
+    for (r_o, incl, giro, tono, _), vueltas, fase in zip(orbitas, (2, 3, 1), (0.0, 2.1, 4.2)):
+        for paso in range(8, -1, -1):
+            th = fase + tau * vueltas * t - paso * .07
+            p = _girar((r_o * math.cos(th), 0.0, r_o * math.sin(th)), incl, giro)
+            x, y = proy(p)
+            atras = p[2] > eps
+            tam = max(1.0, radio * (.045 if paso == 0 else .025 * (1 - paso / 10)))
+            luz = (.4 if atras else 1.0) * (1 - paso / 10)
+            col = blanco if paso == 0 and not atras else tono
+            b.ellipse([x - tam * 2, y - tam * 2, x + tam * 2, y + tam * 2], fill=tenue(tono, luz * .6))
+            d.ellipse([x - tam, y - tam, x + tam, y + tam], fill=tenue(col, luz))
+
+
+def ciudad3d(W, H, acento, t):
+    from PIL import Image, ImageDraw, ImageFilter
+    t %= 1.0  # todo es periodico; asi t=1 cae exacto en t=0 sin restos de coma flotante
+    colores = dict(acento=acento, cyan=(0, 240, 255), rojo=(255, 42, 79), violeta=(192, 59, 255), amarillo=(252, 238, 10))
+    img = Image.new('RGB', (W, H), (6, 5, 10))
+    d = ImageDraw.Draw(img)
+    brillo = Image.new('RGB', (W, H), (0, 0, 0))  # lo que brilla: se desenfoca y se suma (bloom)
+    b = ImageDraw.Draw(brillo)
+    hy = H * .60
+    # Cielo: negro arriba, purpura con un poco del acento en el horizonte.
+    for y in range(int(hy) + 2):
+        k = (y / hy) ** 1.5  # bruma de la ciudad: sube del horizonte
+        r_, g_, b_ = (round(6 + (34 + a * .12) * k) for a in acento)
+        d.line([(0, y), (W, y)], fill=(r_ + round(18 * k), g_, b_ + round(36 * k)))
+    # Skyline lejano fijo (sin paralaje: esta en el infinito).
+    azar = random.Random(7)
+    x = 0
+    while x < W:
+        ancho = azar.randint(20, 70); alto = azar.randint(20, 140) * H / 1080
+        d.rectangle([x, hy - alto, x + ancho, hy], fill=(18, 9, 30))
+        x += ancho + azar.randint(0, 6)
+    # La esfera del autor sobre la avenida, donde queda el cielo abierto.
+    _esfera(d, b, W, H, acento, colores, t, W * .5, H * .215, W * .078)
+    # Suelo: cuadricula neon que avanza hacia la camara.
+    d.rectangle([0, hy, W, H], fill=(5, 3, 10))
+    S = D3 / 2
+    desplazado = t * P3 * D3
+    n = math.ceil((CERCA + desplazado) / S)
+    while True:
+        z = n * S - desplazado
+        if z > LEJOS: break
+        if z >= CERCA:
+            y = _proyectar(W, H, 0, 0, z)[1]
+            col = _niebla(tuple(round(v * .55) for v in colores['rojo']), z, (5, 3, 10))
+            d.line([(0, y), (W, y)], fill=col, width=1)
+        n += 1
+    for k in range(-30, 31):
+        xs = k * 4.0
+        a, c = _proyectar(W, H, xs, 0, CERCA), _proyectar(W, H, xs, 0, LEJOS)
+        d.line([a, c], fill=(40, 12, 50) if abs(k) > 1 else tuple(round(v * .5) for v in acento), width=1)
+    # Edificios a los dos lados, del mas lejano al mas cercano.
+    caras = []
+    j0 = math.floor((CERCA - LARGO3 + desplazado) / D3) - 1
+    for lado in (-1, 1):
+        j = j0
+        while True:
+            zf = j * D3 - desplazado + 8
+            if zf > LEJOS: break
+            if zf + LARGO3 > CERCA: caras.append((zf, lado, j))
+            j += 1
+    for zf, lado, j in sorted(caras, key=lambda c: -c[0]):
+        alto, ancho, ventanas, frente, letrero, tono, semilla = _azar_edificio(lado, j)
+        xi = lado * AVENIDA; xe = lado * (AVENIDA + ancho)
+        color_neon = colores[tono]
+        # Cara lateral (mira a la avenida) y cara frontal.
+        lateral = [(xi, 0, zf), (xi, 0, zf + LARGO3), (xi, alto, zf + LARGO3), (xi, alto, zf)]
+        frontal = [(xi, 0, zf), (xe, 0, zf), (xe, alto, zf), (xi, alto, zf)]
+        for poligono, base in ((lateral, (14, 11, 24)), (frontal, (9, 7, 16))):
+            recortado = _recortar(poligono)
+            if len(recortado) >= 3:
+                zc = max(CERCA, sum(p[2] for p in recortado) / len(recortado))
+                plano = [_proyectar(W, H, *p) for p in recortado]
+                d.polygon(plano, fill=_niebla(base, zc))
+                b.polygon(plano, fill=(0, 0, 0))  # el edificio tapa el brillo de lo que hay detras
+        # Ventanas encendidas.
+        for (fila, col) in ventanas:
+            z1 = zf + .5 + col * 1.8
+            if z1 < CERCA: continue
+            y1 = 1 + fila * 2.4
+            quad = [_proyectar(W, H, xi, y1, z1), _proyectar(W, H, xi, y1, z1 + 1.0), _proyectar(W, H, xi, y1 + 1.3, z1 + 1.0), _proyectar(W, H, xi, y1 + 1.3, z1)]
+            if abs(quad[1][0] - quad[0][0]) < .6: continue
+            tono_v = (colores['amarillo'] if (fila + col + semilla) % 7 == 0 else colores['cyan'] if (fila * col + semilla) % 5 == 0
+                      else color_neon if (fila + semilla) % 4 == 0 else (150, 140, 190))
+            luz_v = _niebla(tuple(round(v * .55) for v in tono_v), z1)
+            d.polygon(quad, fill=luz_v)
+            b.polygon(quad, fill=tuple(v // 3 for v in luz_v))
+        if zf >= CERCA:
+            for (fila, col) in frente:
+                x1 = xi + lado * (.6 + col * 1.8); y1 = 1 + fila * 2.4
+                if abs(x1 - xi) > ancho - 1: continue
+                quad = [_proyectar(W, H, x1, y1, zf), _proyectar(W, H, x1 + lado, y1, zf), _proyectar(W, H, x1 + lado, y1 + 1.3, zf), _proyectar(W, H, x1, y1 + 1.3, zf)]
+                d.polygon(quad, fill=_niebla((70, 62, 96) if (fila + col + semilla) % 3 else tuple(round(v * .5) for v in color_neon), zf))
+            # Borde de neon en la esquina que da a la avenida y en el techo.
+            col = _niebla(color_neon, zf, (0, 0, 0))
+            arista = [_proyectar(W, H, xi, 0, zf), _proyectar(W, H, xi, alto, zf)]
+            techo = [_proyectar(W, H, xi, alto, zf), _proyectar(W, H, xi, alto, zf + LARGO3)]
+            grosor = max(1, round(60 / zf))
+            for capa, g in ((b, grosor + 3), (d, grosor)):
+                capa.line(arista, fill=col, width=g); capa.line(techo, fill=col, width=g)
+            # Reflejo en el suelo mojado: la arista bajo el suelo, tenue.
+            reflejo = [_proyectar(W, H, xi, 0, zf), _proyectar(W, H, xi, -alto * .45, zf)]
+            tenue = tuple(round(v * .28) for v in col)
+            d.line(reflejo, fill=tenue, width=grosor); b.line(reflejo, fill=tuple(v // 2 for v in tenue), width=grosor + 2)
+            # Letrero vertical en la cara lateral, cerca del frente.
+            if letrero and zf > 3:
+                y0, y1 = alto * .35, min(alto - 2, alto * .35 + 12)
+                panel = [_proyectar(W, H, xi, y0, zf + 1), _proyectar(W, H, xi, y0, zf + 3), _proyectar(W, H, xi, y1, zf + 3), _proyectar(W, H, xi, y1, zf + 1)]
+                b.polygon(panel, fill=col); d.polygon(panel, outline=col, fill=tuple(round(v * .35) for v in col))
+                for fila in range(5):  # letras como barras de luz
+                    yy = y0 + 1.2 + fila * (y1 - y0 - 2) / 5
+                    d.line([_proyectar(W, H, xi, yy, zf + 1.6), _proyectar(W, H, xi, yy, zf + 2.4)], fill=col, width=max(1, grosor))
+    # Coches voladores: luces que vienen (blancas) y que se van (rojas).
+    VUELTA_COCHE = 240.0
+    for i, (carril, altura, sentido) in enumerate(((-2.2, 11, -1), (2.0, 15, 1), (-1.0, 21, 1), (2.8, 9, -1), (0.5, 26, -1))):
+        z = (i * 53.0 + sentido * -t * VUELTA_COCHE) % VUELTA_COCHE + CERCA + 2
+        if z > LEJOS or z < 14: continue  # muy cerca taparia media pantalla
+        luz = (255, 245, 230) if sentido < 0 else colores['rojo']
+        a, c = _proyectar(W, H, carril, altura, z), _proyectar(W, H, carril, altura, z + 4)
+        g = max(1, round(40 / z))
+        b.line([a, c], fill=luz, width=g + 4); d.line([a, c], fill=luz, width=g)
+        # Su reflejo en el suelo.
+        ra, rc = _proyectar(W, H, carril, -altura, z), _proyectar(W, H, carril, -altura, z + 4)
+        d.line([ra, rc], fill=tuple(v // 5 for v in luz), width=g)
+    # Bloom: lo que brilla se desenfoca y se suma.
+    from PIL import ImageChops
+    img = ImageChops.add(img, brillo.filter(ImageFilter.GaussianBlur(radius=max(2, W // 240))))
+    img = ImageChops.add(img, brillo.filter(ImageFilter.GaussianBlur(radius=max(4, W // 90))), scale=1.6)
+    # Lluvia con profundidad: tres capas, la cercana larga y rapida.
+    capa = Image.new('RGBA', (W, H), (0, 0, 0, 0)); dl = ImageDraw.Draw(capa)
+    claro = tuple(min(255, c + (255 - c) * 6 // 10) for c in acento)
+    azar = random.Random(2077); k = W / 1920
+    for cantidad, (largo0, largo1), vueltas, alfa, ancho in ((260, (8, 16), 1, 40, 1), (140, (18, 34), 2, 60, 1), (40, (50, 90), 3, 70, 2)):
+        for _ in range(cantidad):
+            x0, y0, largo = azar.uniform(0, W), azar.uniform(0, H), azar.uniform(largo0, largo1) * k
+            y = (y0 + vueltas * t * (H + largo)) % (H + largo) - largo
+            x = (x0 - (y - y0) / 5) % W
+            dl.line([(x, y), (x - largo / 5, y + largo)], fill=claro + (alfa,), width=max(1, round(ancho * k)))
+    return Image.alpha_composite(img.convert('RGBA'), capa)
+
+
+def crear3d(acento_hex, salida, tam=(1920, 1080), cuadros=CUADROS_3D):
+    from PIL import Image
+    acento = rgb(acento_hex)
+    marcos = [ciudad3d(tam[0], tam[1], acento, i / cuadros) for i in range(cuadros)]
+    paleta = marcos[len(marcos) // 2].convert('RGB').quantize(colors=224, method=Image.Quantize.MEDIANCUT)
+    gif = [m.convert('RGB').quantize(palette=paleta, dither=Image.Dither.NONE) for m in marcos]
+    salida = Path(salida); salida.parent.mkdir(parents=True, exist_ok=True)
+    tmp = salida.with_name('.' + salida.name + '.tmp')
+    gif[0].save(tmp, format='GIF', save_all=True, append_images=gif[1:], duration=MS, loop=0, disposal=1, optimize=False)
+    os.replace(tmp, salida)
+    quieto = salida.with_suffix('.png'); marcos[0].convert('RGB').save(quieto)
+    return salida, quieto
+
+
+def cubrir(img, tam):
+    """Llena tam recortando al centro, sin deformar."""
+    from PIL import ImageOps, Image
+    return ImageOps.fit(img, tam, Image.LANCZOS)
+
+
+def crear(base_png, acento_hex, salida, tam=None, cuadros=CUADROS, propio=False):
+    from PIL import Image
+    base = Image.open(base_png)
+    base.thumbnail((3840, 3840))
+    base = base.convert('RGBA')
+    if propio: base = cubrir(base, tam or (1920, 1080))
+    elif tam: base = base.resize(tam, Image.LANCZOS)
+    acento = rgb(acento_hex)
+    marcos = [cuadro(base, acento, i / cuadros, propio=propio) for i in range(cuadros)]
+    # Una sola paleta para todo el bucle: sin parpadeo de colores entre cuadros.
+    paleta = marcos[0].convert('RGB').quantize(colors=192, method=Image.Quantize.MEDIANCUT)
+    gif = [m.convert('RGB').quantize(palette=paleta, dither=Image.Dither.NONE) for m in marcos]
+    salida = Path(salida); salida.parent.mkdir(parents=True, exist_ok=True)
+    tmp = salida.with_name('.' + salida.name + '.tmp')
+    gif[0].save(tmp, format='GIF', save_all=True, append_images=gif[1:], duration=MS, loop=0, disposal=1, optimize=False)
+    os.replace(tmp, salida)
+    quieto = salida.with_suffix('.png')
+    marcos[0].convert('RGB').save(quieto); return salida, quieto
+
+
+# ---------- Reproducir (awww o swww) ----------
+def motor():
+    for nombre in ('awww', 'swww'):
+        if shutil.which(nombre) and shutil.which(f'{nombre}-daemon'): return nombre
+    return None
+
+
+def correr(*cmd, timeout=20):
+    try: return subprocess.run(list(cmd), stdin=subprocess.DEVNULL, capture_output=True, timeout=timeout, check=False)
+    except (OSError, subprocess.SubprocessError): return None
+
+
+def estado_ruta():
+    runtime = os.environ.get('XDG_RUNTIME_DIR')
+    return Path(runtime) / 'ultra-fondo-vivo' if runtime and Path(runtime).is_dir() else None
+
+
+def leer_estado():
+    ruta = estado_ruta()
+    try: gif = Path(ruta.read_text().strip()) if ruta else None
+    except OSError: return None
+    return gif if gif and gif.is_relative_to(CACHE) and gif.is_file() and not gif.is_symlink() else None
+
+
+def mostrar(nombre, archivo, transicion='fade'):
+    correr(nombre, 'img', str(archivo), '--transition-type', transicion, '--transition-duration', '0.8')
+
+
+def base_neon(acento, destino):
+    """El fondo Neon con tu acento, pasado a PNG con rsvg-convert."""
+    svg = subprocess.run(['/usr/bin/python', str(CREAR_FONDO), '--acento', acento], capture_output=True, text=True, timeout=60, check=True).stdout
+    if not svg.startswith('<svg'): raise ValueError('fondo generado invalido')
+    with tempfile.TemporaryDirectory() as tmp:
+        fuente = Path(tmp) / 'fondo.svg'; fuente.write_text(svg)
+        subprocess.run(['rsvg-convert', '-w', '1920', '-h', '1080', '-o', str(destino), str(fuente)], capture_output=True, timeout=120, check=True)
+
+
+IMAGENES = ('Imágenes', 'Pictures')
+EXTENSIONES = ('.png', '.jpg', '.jpeg', '.webp', '.svg')
+
+
+def imagen_valida(texto):
+    """Las mismas reglas que Personalizar: archivo propio en ~/Imágenes o ~/Pictures, sin enlaces, < 64 MiB."""
+    if not texto or len(texto) > 512: return None
+    ruta = Path(texto)
+    if not any(ruta.parent == HOME / c for c in IMAGENES) or ruta.suffix.lower() not in EXTENSIONES: return None
+    try: info = ruta.lstat()
+    except OSError: return None
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_size > 64 * 2**20: return None
+    return ruta
+
+
+def preparar(variante, acento, imagen=None):
+    CACHE.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if CACHE.is_symlink() or CACHE.resolve() != CACHE: raise ValueError('cache redirigida')
+    if variante == 'demonio': acento = '#ff2a4f'
+    clave = ''
+    if variante == 'imagen':
+        info = imagen.stat()
+        clave = '-' + hashlib.sha256(f'{imagen}|{info.st_mtime_ns}|{info.st_size}'.encode()).hexdigest()[:12]
+    gif = CACHE / f'{variante}{clave}-{acento[1:].lower()}-{VERSION}.gif'
+    if gif.is_file() and gif.with_suffix('.png').is_file(): return gif
+    if variante == 'imagen': limpiar_viejas()
+    with tempfile.TemporaryDirectory(dir=CACHE) as tmp:
+        base = Path(tmp) / 'base.png'
+        if variante == 'demonio': shutil.copyfile(ETC / 'wallpaper-demonio.png', base)
+        elif variante == 'imagen' and imagen.suffix.lower() == '.svg':
+            subprocess.run(['rsvg-convert', '-w', '1920', '-o', str(base), str(imagen)], capture_output=True, timeout=120, check=True)
+        elif variante == 'imagen': shutil.copyfile(imagen, base)
+        elif variante == 'ciudad3d':
+            crear3d(acento, gif); return gif
+        else: base_neon(acento, base)
+        crear(base, acento, gif, propio=variante == 'imagen')
+    return gif
+
+
+def limpiar_viejas(maximo=6):
+    """Guarda como mucho 6 imagenes propias animadas (unos 100 MB); borra las mas viejas."""
+    propias = sorted((p for p in CACHE.glob('imagen-*.gif') if not p.is_symlink()), key=lambda p: p.stat().st_mtime)
+    for viejo in propias[:max(0, len(propias) - maximo + 1)]:
+        for ruta in (viejo, viejo.with_suffix('.png')):
+            try: ruta.unlink()
+            except FileNotFoundError: pass
+
+
+def poner(variante, acento, imagen=None):
+    if variante not in ('neon', 'demonio', 'imagen', 'ciudad3d') or not es_hex(acento): raise ValueError('uso: poner neon|demonio|ciudad3d|imagen #RRGGBB [RUTA]')
+    if variante == 'imagen':
+        imagen = imagen_valida(imagen)
+        if not imagen: raise ValueError('imagen no valida: PNG, JPG, WEBP o SVG propios en ~/Imágenes o ~/Pictures')
+    nombre = motor()
+    if not nombre:
+        print('AMARILLO [FONDO VIVO]: sin awww ni swww; se queda el fondo estatico', file=sys.stderr); return
+    gif = preparar(variante, acento.lower(), imagen)
+    if correr(nombre, 'query') is None or correr(nombre, 'query').returncode != 0:
+        subprocess.Popen([f'{nombre}-daemon'], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        for _ in range(50):
+            resultado = correr(nombre, 'query', timeout=2)
+            if resultado is not None and resultado.returncode == 0: break
+            __import__('time').sleep(.1)
+    mostrar(nombre, gif)
+    ruta = estado_ruta()
+    if ruta: ruta.write_text(f'{gif}\n')
+    # El estatico ya no hace falta: el animado esta en su lugar.
+    correr('pkill', '-x', '-u', str(os.geteuid()), 'swaybg')
+    print(f'VERDE [FONDO VIVO]: {gif.name} con {nombre}')
+
+
+def pausar(quieto):
+    nombre, gif = motor(), leer_estado()
+    if nombre and gif: mostrar(nombre, gif.with_suffix('.png') if quieto else gif, 'none' if quieto else 'fade')
+
+
+def parar():
+    nombre = motor()
+    if nombre: correr(nombre, 'kill')
+    ruta = estado_ruta()
+    if ruta:
+        try: ruta.unlink()
+        except FileNotFoundError: pass
+
+
+def main():
+    args = sys.argv[1:]
+    if args[:1] == ['crear'] and len(args) >= 4:
+        tam = cuadros = None; resto = [a for a in args[4:] if a != '--propio']; resto_original = args[4:]
+        while resto:
+            clave, valor, resto = resto[0], resto[1], resto[2:]
+            if clave == '--tam' and re.fullmatch(r'[0-9]{2,5}x[0-9]{2,5}', valor): tam = tuple(map(int, valor.split('x')))
+            elif clave == '--cuadros' and valor.isdecimal() and 2 <= int(valor) <= 240: cuadros = int(valor)
+            else: raise ValueError(f'opcion no valida: {clave}')
+        if not es_hex(args[2]): raise ValueError('acento: #RRGGBB')
+        propio = '--propio' in resto_original
+        print(*crear(args[1], args[2], args[3], tam, cuadros or CUADROS, propio)); return
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    os.umask(0o077)
+    if args[:1] == ['poner'] and len(args) in (2, 3): poner(args[1], args[2] if len(args) == 3 else '#5ad8ff')
+    elif args[:2] == ['poner', 'imagen'] and len(args) == 4: poner('imagen', args[2], args[3])
+    elif args == ['pausar']: pausar(True)
+    elif args == ['seguir']: pausar(False)
+    elif args == ['parar']: parar()
+    else: raise ValueError('uso: ultra-fondo-vivo poner neon|demonio [#RRGGBB] | pausar | seguir | parar | crear BASE ACENTO SALIDA')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError, ImportError) as error:
+        print('FONDO VIVO:', error, file=sys.stderr); sys.exit(1)

@@ -45,6 +45,11 @@ def avisar(texto):
         pass
 
 
+def sonar(evento):
+    try: subprocess.run(['ultra-personalizar', 'sonar', evento], capture_output=True, timeout=5, check=False)
+    except (OSError, subprocess.SubprocessError): pass
+
+
 def vigilar():
     datos = base_datos()
     os.execvp('wl-paste', ['wl-paste', '--watch', 'cliphist', '-db-path', str(datos), '-max-items', str(MAX), 'store'])
@@ -52,6 +57,7 @@ def vigilar():
 
 def borrar():
     cliphist('wipe')
+    sonar('proceso')
     avisar('Historial borrado.')
 
 
@@ -73,6 +79,7 @@ def menu():
     contenido = cliphist('decode', entrada=eleccion + b'\n')
     if contenido.returncode != 0: raise ValueError('no se pudo recuperar la entrada')
     subprocess.run(['wl-copy'], input=contenido.stdout, timeout=10, check=False)
+    sonar('portapapeles')
 
 
 def main():

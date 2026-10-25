@@ -1,0 +1,12 @@
+[package]
+name = "carpetas-nucleo"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.95"
+license = "GPL-2.0-only"
+description = "Nucleo no_std de ULTRA Carpetas: estado, acciones, reducer, comandos y vista. Sirve igual en Linux y en BMO-X."
+authors = ["Eddi Salazar"]
+
+[dependencies]
+serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
+serde_json = { version = "1", default-features = false, features = ["alloc"] }

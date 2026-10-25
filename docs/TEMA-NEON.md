@@ -69,7 +69,7 @@ la luna de la barra.
 | Opción | Valores |
 | --- | --- |
 | Acento | hielo, amarillo, cyan, rojo, verde, violeta, coral, blanco o un hex propio (`#RRGGBB`) |
-| Fondo | Neón con el acento elegido, **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
+| Fondo | Neón con el acento elegido, **ciudad-3d** (vuelo en 3D), **vivo** o **vivo-demonio** (animados), **imagen-viva** (tu imagen animada), **Demonio** (tu Tux dentro del aro sobre la ciudad en rojo), **auto** (Neón de 7:00 a 19:00, Demonio de noche), Núcleo clásico, imagen propia (PNG, JPG o SVG de `~/Imágenes` o `~/Pictures`) o color liso |
 | Efectos | vivos o reducidos |
 | Borde de la ventana activa | gira o quieto |
 | Huecos entre ventanas | compacto, normal o amplio |
@@ -86,7 +86,8 @@ la luna de la barra.
 | Reloj | 24 h, 12 h o con segundos |
 | Posición de avisos | arriba a la derecha, arriba al centro o abajo a la derecha; esquivan barra y dock |
 | Letra de la interfaz | Neón (Rajdhani y Chakra Petch), Chakra Petch, mono (JetBrains Mono) o clásica (DejaVu Sans) |
-| Sonidos del sistema | sí o no |
+| Sonidos del sistema | sí, básicos o no |
+| Tarjetas de equipo (eww) | visibles u ocultas |
 | Modo juego automático | auto o no |
 
 El acento también llega a la terminal: la selección y el cursor de foot cambian
@@ -100,6 +101,7 @@ en las terminales que abras después. El resto de tu `foot.ini` no se toca.
 | --- | --- |
 | Neón hielo | Todo al tema de fábrica |
 | Demonio | Acento rojo, fondo Demonio, borde que gira, inactivas al 92 % |
+| Ciudad 3D | Fondo ciudad-3d, sonidos, tarjetas, borde que gira, desenfoque ligero, inactivas al 92 % |
 | Sobrio | Efectos reducidos, borde quieto, sin desenfoque, animaciones rápidas |
 | Minimal | Sin dock, barra compacta, huecos compactos, borde de 1 px |
 | Juego | Efectos reducidos, borde quieto, sin desenfoque ni dock, avisos arriba al centro |
@@ -151,6 +153,21 @@ copia la imagen al portapapeles y avisa con la miniatura. Valida la geometría
 que devuelve `slurp` antes de usarla. `scripts/probar_captura.py` lo prueba con
 herramientas falsas.
 
+## Controles de la barra
+
+| Clic | En CPU | En RAM |
+| --- | --- | --- |
+| Izquierdo | Los 15 procesos con más CPU (medida real en 0,6 s) | Los 15 con más memoria |
+| Derecho | Administrador completo ordenado por CPU | Administrador ordenado por RAM |
+
+Al elegir un proceso: **cerrar** (le pide salir, puede guardar), **forzar cierre**,
+**limitar a 50 % de un núcleo** o **limitar a 2 GiB**. Cerrar y forzar piden
+confirmación. Usa lo mismo que `ultra-aplicaciones` (Super+Esc): señales por
+`pidfd`, que comprueban que el proceso sigue siendo el mismo, y límites con cgroups
+en `ultra-usuario`. Los procesos del escritorio y los de root no aparecen. En el
+administrador, **O** alterna el orden entre CPU y RAM. `scripts/probar_controles_barra.py`
+lo prueba con un proceso real como UID 1000.
+
 ## Avisos y portapapeles
 
 | Atajo | Qué hace |
@@ -167,18 +184,205 @@ Ambiente. `scripts/probar_portapapeles.py` lo prueba con herramientas falsas.
 
 ## Sonidos
 
-Cuatro sonidos propios, sintetizados por `scripts/crear_sonidos.py` (sin muestras
-de terceros), en `/etc/ultra/sonido-*.wav`:
+Cada elemento del escritorio tiene un sonido propio, sintetizado por
+`scripts/crear_sonidos.py` (sin muestras de terceros) y guardado en
+`/etc/ultra/sonido-*.wav`. Escúchalos todos seguidos en
+[`sonidos-bmox.ogg`](maquetas/sonidos-bmox.ogg), en el orden de esta tabla.
 
-| Sonido | Cuándo |
-| --- | --- |
-| `inicio` | Tres notas que suben al iniciar sesión |
-| `captura` | Obturador al guardar una captura |
-| `critico` | Dos pulsos graves con un aviso crítico (mako `on-notify`) |
-| `juego` | Barrido que baja al entrar en modo juego |
+| Sonido | Cuándo | Cómo suena |
+| --- | --- | --- |
+| `inicio` | Al iniciar sesión | Tres notas que suben |
+| `ventana-abrir` | Se abre una ventana | Chirrido corto que sube, con grano glitch |
+| `ventana-cerrar` | Se cierra una ventana | El chirrido que cae |
+| `escritorio` | Cambias de escritorio | Soplido de aire y un tic |
+| `menu` | Centro BMO-X, Personalizar y clic en CPU/RAM | Arpegio digital de tres pasos |
+| `aviso` | Llega un aviso normal | Ping de dos notas altas |
+| `volumen` | Teclas de volumen | Tic seco |
+| `portapapeles` | Recuperas algo del historial | Doble clic |
+| `captura` | Guardas una captura | Obturador |
+| `proceso` | Cierras o limitas un proceso, o borras el historial | Golpe grave con crujido |
+| `error` | Algo falla en un menú | Zumbido cuadrado doble |
+| `critico` | Aviso crítico | Dos pulsos graves |
+| `juego` / `juego-salir` | Entras o sales del modo juego | Barrido que baja / que sube |
 
-Los reproduce `ultra-personalizar sonar EVENTO` con `pw-play` al 60 %. Se apagan
-en Personalizar > Sonido y juegos.
+Los reproduce `ultra-personalizar sonar EVENTO` con `pw-play`. Los de ventanas,
+escritorio, menú, volumen y portapapeles van más bajos (35–50 %); el resto al 60 %.
+
+- **Sonidos: sí**: todos.
+- **Sonidos: básicos**: solo los que avisan de algo (inicio, aviso, crítico,
+  captura, proceso, error y modo juego); ventanas, escritorios y menús callan.
+- **Sonidos: no**: ninguno.
+- **En un juego**: solo suenan crítico, volumen, captura, proceso, error y modo juego.
+
+Las ventanas y los escritorios suenan desde `ultra-modo-juego`, que ya escucha los
+eventos de Hyprland; si se abren varias ventanas a la vez, suena una sola. Los
+avisos suenan con `on-notify` de mako según su tipo.
+
+## Fondo vivo
+
+**Personalizar > Colores y fondo > Fondo: vivo** (ciudad Neón con tu acento) o
+**vivo-demonio** (tu Tux). Vista previa:
+[Neón](maquetas/png/neon/fondo-vivo-neon.mp4) y
+[Demonio](maquetas/png/neon/fondo-vivo-demonio.mp4). Son la salida real del
+generador, pero no una captura del sistema funcionando.
+
+Es un bucle de 4 s a 12 cuadros por segundo:
+
+- lluvia que cae (cada gota da 1, 2 o 3 vueltas por bucle, así nunca salta);
+- el aro del autor gira un cuarto de vuelta y su brillo pulsa;
+- los letreros 24H y BMO-X fallan como neón viejo;
+- una línea de escaneo baja y, una vez por bucle, un corte glitch.
+
+Cómo funciona:
+
+- `ultra-fondo-vivo` lo genera **en tu PC** la primera vez (unos 5–10 s) con
+  Pillow, a partir del fondo estático y tu acento, y lo guarda en
+  `~/.cache/ultra/fondo-vivo/` (unos 16–18 MB). No va en el repo ni en la imagen.
+- Mientras se genera queda el fondo estático; cuando está listo, `awww` (antes
+  `swww`) lo reproduce y se cierra `swaybg`.
+- **En un juego** se cambia por su primer cuadro, quieto, y vuelve a moverse al salir.
+- Cambiar de acento genera otro bucle; elegir otro fondo para `awww`.
+- **Sin awww ni swww** se queda el fondo estático, sin error. Los scripts de
+  build intentan instalar `awww` y luego `swww`; no pude confirmar cuál está hoy
+  en los repositorios oficiales, así que el build avisa en amarillo si no hay ninguno.
+
+**Sin medir:** el coste en CPU y GPU no está medido. `awww` guarda los cuadros
+ya decodificados, pero Hyprland recibe una imagen nueva 12 veces por segundo
+mientras estás en el escritorio. Compáralo con `ultra-diagnostico-juego` con el
+fondo `neon` y con `vivo`. `scripts/probar_fondo_vivo.py` comprueba que el bucle
+cierra sin salto, la caché por acento, la pausa y el caso sin awww.
+
+### Ciudad 3D
+
+**Fondo: ciudad-3d** (o el perfil **Ciudad 3D**). La cámara vuela por una avenida
+entre edificios, con perspectiva real. Vista previa:
+[hielo](maquetas/png/neon/ciudad-3d-hielo.mp4) y [rojo](maquetas/png/neon/ciudad-3d-rojo.mp4).
+Son la salida real del generador, no una captura del sistema.
+
+- Edificios a los dos lados con ventanas encendidas y aristas de neón de tu acento,
+  cyan, rojo o violeta.
+- Letreros verticales en las fachadas y niebla que apaga lo lejano.
+- Cuadrícula neón en el suelo que avanza hacia ti.
+- Reflejos del neón y de los coches en el suelo mojado.
+- Coches voladores: luces blancas que vienen y rojas que se van.
+- **La esfera del autor** sobre la avenida ([primer plano](maquetas/png/neon/esfera-3d.mp4)):
+  - núcleo de energía que late, del acento al blanco;
+  - malla 3D de 6 meridianos y 5 paralelos, inclinada 23 grados, que gira: la mitad de
+    atrás va tenue y el núcleo la tapa;
+  - tres órbitas inclinadas (acento, cyan y violeta) con un satélite cada una y su estela;
+  - una banda de escaneo blanca que sube y baja por la esfera;
+  - un anillo HUD de 72 marcas con corchetes cyan y un arco rojo que barre;
+  - tu firma «EDDI SALAZAR · BMO-X · ULTRA LINUX» girando por el arco de arriba;
+  - un halo en capas y un haz de luz que baja hasta la ciudad, tapado por los edificios.
+- Lluvia en tres capas: la cercana, larga y rápida; la lejana, fina y lenta.
+- Bloom: el neón se desenfoca y se suma para que brille, y los edificios tapan el
+  brillo de lo que hay detrás.
+
+**Es 3D pre-renderizado, no en tiempo real.** Un motor 3D dibujando todo el rato
+ocuparía la GPU siempre, como un juego en segundo plano, y eso va contra cero
+microtirones. Este se calcula una vez en tu PC con Pillow: 64 cuadros, unos 22 s,
+25 MB en `~/.cache/ultra/fondo-vivo/`. Luego `awww` lo reproduce como el fondo vivo
+y en los juegos se queda quieto.
+
+Para que el bucle de 5,3 s cierre sin salto, todo avanza un número entero de
+periodos: la cámara, 4 edificios (el patrón de edificios se repite cada 4); la
+cuadrícula, 8 líneas; los coches, una vuelta; el aro, una vuelta. La prueba
+compara el cuadro 0 con el 1 píxel a píxel; así encontró un salto real del aro.
+
+Las ventanas de Hyprland no pueden ser 3D: Hyprland solo las mueve, escala y
+desvanece en 2D. El 3D está en el fondo, y las ventanas y las tarjetas flotan encima.
+
+### Tu imagen, viva
+
+**Fondo: imagen-viva** anima una imagen tuya (PNG, JPG, WEBP o SVG en `~/Imágenes`
+o `~/Pictures`): lluvia de tu acento, un barrido de luz que la cruza, la línea de
+escaneo y el corte glitch. El aro y los letreros no se dibujan, porque no sabemos
+dónde caerían en tu imagen. Se recorta al centro a 1920×1080 sin deformarla. Se
+guardan hasta 6 imágenes animadas (unos 100 MB); las más viejas se borran solas.
+
+Por terminal: `ultra-personalizar poner imagen-viva ~/Imágenes/mi-fondo.jpg`.
+
+### Dónde conseguir buenos fondos
+
+No van en el repo: son de sus autores. Para uso personal:
+
+| Fuente | Qué hay | Licencia |
+| --- | --- | --- |
+| [GOG: colección Goodies de Cyberpunk 2077](https://www.gogdb.org/product/1774891642) | Fondos oficiales de CD Projekt, incluidos los de Phantom Liberty (unos 1 GB). Gratis con cuenta de GOG | Uso personal; las [normas de contenido de fans](https://cdn1.epicgames.com/eulatracking-download/cp2077/en/v1/r2/ebdad01b0f2e8388d23b5750ca18a3ac.pdf) no permiten venderlos |
+| [Neoncityhub](https://neoncityhub.gumroad.com/l/ejlbx) | Ciudades neón en 4K a 0 $ | No indica licencia |
+| [404static](https://404static.gumroad.com/l/rmjqt) | 50 fondos cyberpunk por 9,99 $ | Incluye licencia comercial |
+| [Wallpapers.com: Night City](https://wallpapers.com/night-city) | Mucha variedad | No indica licencia; revisa cada imagen |
+| Los tuyos | Neón (con cualquier acento) y Demonio, de `ultra-crear-fondo` y `crear_fondo_demonio.py` | Tuyos (GPL-2.0) |
+
+Guarda el que elijas en `~/Imágenes` y elígelo en **Fondo: imagen-viva**.
+Quedan mejor las imágenes oscuras con cielo despejado arriba: la lluvia y el
+barrido se ven sobre zonas oscuras.
+
+## Tarjetas de equipo (eww)
+
+![Tarjetas eww sobre el fondo Neón](maquetas/png/neon/tarjetas-eww.png)
+
+La captura es de eww 0.6.0 real con estos mismos archivos, en una pantalla
+virtual X11 (Xvfb) del entorno de desarrollo, no en Hyprland. Por eso la GPU
+dice «sin datos» y no hay sensor de temperatura.
+
+Panel a la derecha, debajo de la barra, en la capa del escritorio: las ventanas
+lo tapan. **Super+F9** lo oculta o lo muestra, con un deslizamiento lateral.
+
+| Tarjeta | Qué muestra | Clic |
+| --- | --- | --- |
+| CPU (acento) | Anillo de uso, GHz, gráfica de 90 s y una barra por núcleo (en rojo sobre 85 %) | Los procesos que más CPU usan |
+| RAM (cyan) | Usada / total, swap y gráfica | Los que más memoria usan |
+| GPU (verde) | Uso, VRAM, temperatura y nombre (NVIDIA con `nvidia-smi`; AMD por `/sys`) | Gráficos |
+| RED (violeta) | Bajada y subida, con escala que se adapta | — |
+| Libre /, libre home, temperatura | Espacio libre y la temperatura más alta de los sensores | — |
+| MÁS CPU | El proceso tuyo que más CPU usó en los últimos 2 s | Los procesos que más CPU usan |
+
+- El panel respira con un brillo de tu acento.
+- Una tarjeta sobre el 85 % (o un disco sobre el 90 %) late en rojo.
+- En modo juego el borde se pone rojo y los datos se leen cada 10 s en vez de 2.
+
+Cómo funciona:
+
+- `ultra-tarjetas datos` lee `/proc`, `/sys` y, si existe, `nvidia-smi`. Usa
+  un solo `nvidia-smi -l 2`, no uno nuevo cada vez. Escribe un JSON por línea
+  que eww escucha (`deflisten`).
+- `eww.yuck` y `eww.scss` van en `/etc/ultra`. Personalizar genera una copia
+  con tu acento y tu letra; con efectos reducidos, el panel deja de respirar.
+- **Personalizar > Barra y dock > Tarjetas de equipo**: visibles u ocultas.
+- **Sin eww**, Super+F9 abre la versión de texto de siempre.
+
+**eww no está en los repositorios oficiales de Arch** (solo en AUR).
+`scripts/instalar-eww.sh` lo compila en el taller, sin AUR:
+
+- clona la etiqueta `v0.6.0` y comprueba que apunta al commit
+  `d87c2fdbfdc012e76d229e4e9ea3325bc0f23e89`;
+- compila solo con Wayland (`--no-default-features --features wayland`, Rust 1.76.0
+  según su `rust-toolchain.toml`);
+- comprueba con `ldd` en la imagen que no falta ninguna biblioteca.
+
+En la imagen van `gtk3`, `gtk-layer-shell` y `libdbusmenu-gtk3`. Si algo falla al
+compilar, el build avisa en amarillo y sigue sin tarjetas.
+
+`scripts/probar_tarjetas.py` prueba las lecturas con `/proc` y `/sys` falsos. También
+comprueba que cada dato que usa `eww.yuck` existe en el JSON real y en el inicial, y
+el abrir, ocultar y la versión de texto. La prueba de arranque acepta las dos formas
+de Super+F9: con eww y sin eww.
+
+**Sin medir:** eww redibuja el panel cada 2 s y mientras respira. Si quieres el
+escritorio sin ese coste, ocúltalo con Super+F9 o en Personalizar.
+
+## Barra con vida
+
+- El escritorio activo late con un brillo de tu acento.
+- **EDDI** brilla y se apaga despacio.
+- La línea de la barra pasa de tu acento al cyan y vuelve, como el borde de las ventanas.
+- CPU y RAM se iluminan al pasar el ratón, porque se pueden clicar.
+- Los botones del dock brillan al pasar el ratón.
+
+Con **Efectos: reducidos** en Personalizar la barra se queda quieta; solo
+parpadean las alertas (CPU al 80 % y escritorio urgente). GTK redibuja la barra
+mientras haya animaciones; en pantalla completa Hyprland la tapa.
 
 ## Modo juego automático
 
@@ -187,6 +391,7 @@ la ventana activa es un juego en pantalla completa (clase `steam_app_N` de Proto
 un `.exe` de Wine o Heroic, o `gamescope`):
 
 - apaga animaciones, desenfoque, sombras y el borde que gira (`ultra-personalizar juego entrar`);
+- deja quieto el fondo vivo;
 - pone mako en no molestar: los avisos normales se guardan en el historial y los
   críticos se siguen viendo;
 - el fondo automático espera a que termines para cambiar.
@@ -199,10 +404,6 @@ Hyprland ya la tapa. Se apaga en Personalizar > Sonido y juegos > Modo juego: no
 **Sin medir todavía**: no hay datos de que esto suba FPS o quite tirones. Lo que sí
 hace es dejar al compositor sin trabajo de efectos mientras juegas. Para saber si
 ayuda, compara con `ultra-diagnostico-juego` con el modo en `auto` y en `no`.
-
-**Fondo animado**: no está. Necesitaría `mpvpaper` o `swww` con un video en bucle
-renderizado antes, y gastaría GPU todo el tiempo fuera de los juegos. Si se hace,
-el modo juego sería el lugar para pausarlo.
 
 ## Iconos de apps
 
@@ -240,17 +441,15 @@ Lo que solo existe en el prototipo:
 
 - el corte glitch al abrir ventanas;
 - la barra de tiempo de los avisos;
-- Equipo en vivo con tarjetas (necesitaría eww);
-- el fondo animado.
+- el corte glitch en Equipo en vivo.
 
 ## Para RING 0
 
 - **Borde que gira:** obliga a Hyprland a redibujar mientras haya un borde visible.
   En pantalla completa no hay borde. Si se prefiere un escritorio quieto, basta
   con quitar la línea `borderangle` de `hyprland.lua`.
-- **Fondo animado** (lluvia, letreros, aro): no está en el sistema real; sigue
-  `swaybg` con el SVG fijo. Activarlo sería decisión de RING 0, pausándolo en
-  juegos y en pantalla completa.
+- **Fondo vivo**: opcional y apagado de fábrica (el fondo por defecto sigue
+  siendo el SVG fijo con `swaybg`). Se queda quieto en juegos. Su coste está sin medir.
 
 ## Verificación pendiente
 

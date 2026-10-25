@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Carpetas BMO-X
+Comment=Iconos donde tu quieras, con rejilla, candado y deshacer
+Exec=/usr/local/bin/ultra-carpetas
+Icon=folder
+Terminal=false
+Categories=System;FileManager;

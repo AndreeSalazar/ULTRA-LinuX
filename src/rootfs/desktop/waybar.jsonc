@@ -66,12 +66,17 @@
       "format": "<span color='#00f0ff' size='small'>CPU</span> {usage}%",
       "states": { "alerta": 80 },
       "interval": 3,
-      "tooltip": true
+      "tooltip": true,
+      "tooltip-format": "CPU {usage}% · carga {load} · {avg_frequency} GHz\nClic: lo que mas consume y cerrarlo o frenarlo\nClic derecho: administrador ordenado por CPU",
+      "on-click": "ultra-aplicaciones rapido cpu",
+      "on-click-right": "foot --fullscreen --title='ULTRA / Aplicaciones' ultra-aplicaciones --orden cpu"
     },
     "memory": {
       "format": "<span color='#00f0ff' size='small'>RAM</span> {used:0.1f}G",
       "interval": 5,
-      "tooltip-format": "RAM: {used:0.2f} / {total:0.2f} GiB · {percentage}%"
+      "tooltip-format": "RAM: {used:0.2f} / {total:0.2f} GiB · {percentage}%\nClic: lo que mas memoria usa y cerrarlo o limitarlo\nClic derecho: administrador ordenado por RAM",
+      "on-click": "ultra-aplicaciones rapido ram",
+      "on-click-right": "foot --fullscreen --title='ULTRA / Aplicaciones' ultra-aplicaciones --orden ram"
     },
     "network": {
       "format-ethernet": "<span color='#00f0ff' size='small'>NET</span> {ifname}",
