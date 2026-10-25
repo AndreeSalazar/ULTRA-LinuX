@@ -219,7 +219,7 @@ mod pruebas {
     use carpetas_nucleo::{Tipo, TEMAS};
 
     fn nodo(id: &str, pos: [f32; 2]) -> NodoGrafo {
-        NodoGrafo { id: id.into(), nombre: id.into(), tipo: Tipo::Carpeta, pos, tam: [210.0, 74.0], color: [255, 0, 0], icono: "", detalle: String::new(), marcas: Default::default(), raiz: id.is_empty(), grupo: None,
+        NodoGrafo { id: id.into(), nombre: id.into(), tipo: Tipo::Carpeta, pos, tam: [210.0, 74.0], color: [255, 0, 0], icono: "", detalle: String::new(), marcas: Default::default(), raiz: id.is_empty(), grupo: None, rol: None, atenuado: false,
                     peso: 0.5, expandida: Some(true), seleccionado: false, play: None }
     }
 
@@ -264,7 +264,7 @@ mod pruebas {
     fn geometria_completa_y_solo_triangulos() {
         let t = TEMAS[0];
         let nodos = [nodo("", [0.0, 0.0]), nodo("a", [300.0, 0.0])];
-        let cables = [Cable { desde: [210.0, 37.0], hasta: [300.0, 37.0], color: [0, 255, 0] }];
+        let cables = [Cable { desde: [210.0, 37.0], hasta: [300.0, 37.0], color: [0, 255, 0], clase: Default::default() }];
         let g = geometria(&nodos, &cables, &t, Direccion::Blender);
         assert_eq!(g.len() % 3, 0);
         assert!(g.len() > 1000 && g.len() < 40_000, "{} vertices", g.len());

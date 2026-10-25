@@ -2,6 +2,7 @@
 //! El modo grafo (como los editores de nodos de Blender y Houdini) y el arbol del
 //! explorador. Comparten las carpetas desplegadas: abrir una en un lado la abre en el otro.
 
+use crate::dependencias::Rol;
 use crate::estado::{Entrada, Estado};
 use crate::iconos::icono;
 use crate::organizar::{id_grupo, organizar, Clase, Grupo, Hijo};
@@ -54,6 +55,10 @@ pub struct NodoGrafo {
     pub raiz: bool,
     /// Grupo virtual del organizador: su resumen ("h · cc · unittest").
     pub grupo: Option<String>,
+    /// SUPER GRAFO: su papel en el fallo conectado (o alrededor del nodo aislado).
+    pub rol: Option<Rol>,
+    /// Aislado: no esta conectado con lo que se aislo (se pinta apagado).
+    pub atenuado: bool,
 }
 
 /// Lo que se atrapo en la salida para un nodo: rojo con errores, amarillo con avisos.
@@ -65,18 +70,37 @@ pub struct Marcas {
     pub primero: Option<String>,
     /// Coincidencias de la busqueda en todo el proyecto.
     pub coincidencias: u32,
+    /// Sospechas del museo: patron exacto de la ficha / para revisar.
+    pub exactas: u32,
+    pub revisar: u32,
+    /// "UB-003 Desplazar fuera del ancho · src/a.c:12\nmotivo" de la primera.
+    pub museo: Option<String>,
+}
+
+impl Marcas {
+    pub fn museo_total(&self) -> u32 { self.exactas + self.revisar }
 }
 
 pub fn marcas(e: &Estado, id: &str) -> Marcas {
     let (errores, avisos) = e.errores.conteo(id);
     let coincidencias = e.proyecto.conteo(id);
-    if errores + avisos + coincidencias == 0 { return Marcas::default(); }
+    let (exactas, revisar) = e.analisis.conteo(id);
+    if errores + avisos + coincidencias + exactas + revisar == 0 { return Marcas::default(); }
     let primero = e.errores.primero(id).map(|(f, d)| format!("{f}:{}:{}  {}", d.linea, d.columna, d.mensaje));
-    Marcas { errores, avisos, primero, coincidencias }
+    let museo = e.analisis.primera(id).map(|(f, s)| {
+        let titulo = crate::museo::ficha(s.ficha).map(|x| x.titulo).unwrap_or("");
+        let fuerza = if s.fuerza == crate::museo::Fuerza::Exacto { "patron exacto" } else { "revisar" };
+        format!("Museo {} · {titulo} ({fuerza})\n{f}:{}  {}\n{}", s.ficha, s.linea, s.visto, s.motivo)
+    });
+    Marcas { errores, avisos, primero, coincidencias, exactas, revisar, museo }
 }
 
+/// Que une un cable: el arbol de carpetas, un fallo que se propaga o una dependencia.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ClaseCable { #[default] Arbol, Fallo, Dependencia }
+
 #[derive(Debug, Clone, PartialEq)]
-pub struct Cable { pub desde: [f32; 2], pub hasta: [f32; 2], pub color: Rgb }
+pub struct Cable { pub desde: [f32; 2], pub hasta: [f32; 2], pub color: Rgb, pub clase: ClaseCable }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FilaArbol {
@@ -212,7 +236,10 @@ fn marcas_grupo(e: &Estado, carpeta: &str, miembros: &[&Entrada]) -> Marcas {
         m.errores += mx.errores;
         m.avisos += mx.avisos;
         m.coincidencias += mx.coincidencias;
+        m.exactas += mx.exactas;
+        m.revisar += mx.revisar;
         if m.primero.is_none() { m.primero = mx.primero; }
+        if m.museo.is_none() { m.museo = mx.museo; }
     }
     m
 }
@@ -274,7 +301,7 @@ pub fn nodos_y_cables(e: &Estado, tema: &crate::tema::Tema) -> (Vec<NodoGrafo>, 
             icono: d.icono, detalle: d.detalle, peso, expandida: d.expandida,
             seleccionado: e.seleccion.contains(&v.id),
             play: if matches!(v.cosa, Cosa::Grupo(_)) { None } else { crate::ejecutar::lanzador(e, &v.id).map(|l| l.titulo) },
-            marcas: d.marcas, raiz, grupo: d.grupo,
+            marcas: d.marcas, raiz, grupo: d.grupo, rol: None, atenuado: false,
         });
     }
     // Cables del padre al hijo: salida a la derecha (Blender) o abajo (Houdini).
@@ -285,9 +312,63 @@ pub fn nodos_y_cables(e: &Estado, tema: &crate::tema::Tema) -> (Vec<NodoGrafo>, 
             Direccion::Blender => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [n.pos[0], n.pos[1] + NODO[1] / 2.0]),
             Direccion::Houdini => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [n.pos[0] + NODO[0] / 2.0, n.pos[1]]),
         };
-        cables.push(Cable { desde, hasta, color: n.color });
+        cables.push(Cable { desde, hasta, color: n.color, clase: ClaseCable::Arbol });
     }
+    conectar_nodos(e, tema, &lista, &mut nodos, &mut cables);
     (nodos, cables)
+}
+
+pub const MAX_CABLES_FALLO: usize = 1500;
+
+/// SUPER GRAFO: lleva la conexion (archivo -> papel) a los nodos que se ven. Un archivo
+/// que no se ve cuenta en su grupo cerrado o en la carpeta visible mas cercana.
+fn conectar_nodos(e: &Estado, tema: &crate::tema::Tema, lista: &[Visible], nodos: &mut [NodoGrafo], cables: &mut Vec<Cable>) {
+    use crate::analisis::Modo as M;
+    let c = &e.conectado;
+    if c.modo == M::Ninguno { return; }
+    let visibles: BTreeMap<&str, usize> = lista.iter().enumerate().map(|(i, v)| (v.id.as_str(), i)).collect();
+    // Miembros de grupos cerrados -> el grupo.
+    let mut miembro: BTreeMap<String, usize> = BTreeMap::new();
+    for (i, v) in lista.iter().enumerate() {
+        if let Cosa::Grupo(g) = &v.cosa {
+            if !e.expandidas.contains(&v.id) { for m in &g.miembros { miembro.insert(hijo(&v.carpeta, &m.nombre), i); } }
+        }
+    }
+    let raiz = lista[0].id.as_str();
+    let de = |archivo: &str| -> Option<usize> {
+        if !raiz.is_empty() && !(archivo.starts_with(raiz) && archivo.as_bytes().get(raiz.len()) == Some(&b'/')) { return None; }
+        if let Some(i) = visibles.get(archivo) { return Some(*i); }
+        if let Some(i) = miembro.get(archivo) { return Some(*i); }
+        let mut p = archivo;
+        while let Some((d, _)) = p.rsplit_once('/') {
+            if let Some(i) = visibles.get(d).or_else(|| miembro.get(d)) { return Some(*i); }
+            p = d;
+        }
+        visibles.get("").copied()
+    };
+    let mut roles: Vec<Option<Rol>> = alloc::vec![None; nodos.len()];
+    for (archivo, rol) in &c.conexion.roles {
+        if let Some(i) = de(archivo) { if roles[i].is_none_or(|r| *rol > r) { roles[i] = Some(*rol); } }
+    }
+    let aislado = e.aislar.is_some();
+    for (n, r) in nodos.iter_mut().zip(&roles) {
+        n.rol = *r;
+        n.atenuado = aislado && r.is_none();
+    }
+    let (clase, color) = if c.modo == M::Fallos { (ClaseCable::Fallo, tema.error) } else { (ClaseCable::Dependencia, tema.acento) };
+    let mut hechos: alloc::collections::BTreeSet<(usize, usize)> = alloc::collections::BTreeSet::new();
+    for (a, b) in &c.conexion.aristas {
+        // a usa b: el fallo viaja de b (lo usado) hacia a (quien lo usa).
+        let (Some(desde), Some(hasta)) = (de(b), de(a)) else { continue };
+        if desde == hasta || !hechos.insert((desde, hasta)) { continue; }
+        if hechos.len() > MAX_CABLES_FALLO { break; }
+        let (p, q) = (nodos[desde].pos, nodos[hasta].pos);
+        let (d, h) = match e.ajustes.direccion {
+            Direccion::Blender => ([p[0] + NODO[0], p[1] + NODO[1] / 2.0], [q[0], q[1] + NODO[1] / 2.0]),
+            Direccion::Houdini => ([p[0] + NODO[0] / 2.0, p[1] + NODO[1]], [q[0] + NODO[0] / 2.0, q[1]]),
+        };
+        cables.push(Cable { desde: d, hasta: h, color, clase });
+    }
 }
 
 /// Bytes de una carpeta contando lo ya leido de sus subcarpetas (hasta 32 niveles).

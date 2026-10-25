@@ -43,6 +43,8 @@ pub enum Respuesta {
     Texto { generacion: u64, lote: Vec<(String, Vec<Coincidencia>)>, vistos: u64, terminada: bool, truncada: bool, micros: u64 },
     Ciudad { generacion: u64, raiz: String, archivos: Vec<ArchivoCiudad>, micros: u64 },
     Lineas { contadas: u64 },
+    /// Carril Museo: sospechas y dependencias de todo el proyecto.
+    Analisis(carpetas_nucleo::analisis::ResultadoAnalisis),
 }
 
 /// Lineas desconocidas (binario, demasiado grande, fuera del presupuesto).
@@ -94,7 +96,7 @@ const BINARIOS: &[&str] = &["png", "jpg", "jpeg", "gif", "webp", "avif", "bmp", 
 
 /// Lee un archivo de texto (no enlace, hasta 2 MiB). Mira primero 8 KB: si hay un NUL es
 /// binario y no se lee el resto.
-fn leer_texto(ruta: &Path) -> Option<String> {
+pub fn leer_texto(ruta: &Path) -> Option<String> {
     if ruta.extension().and_then(|e| e.to_str()).is_some_and(|e| BINARIOS.iter().any(|b| b.eq_ignore_ascii_case(e))) { return None; }
     let meta = std::fs::symlink_metadata(ruta).ok()?;
     if !meta.is_file() || meta.len() > MAX_TEXTO { return None; }
@@ -204,6 +206,22 @@ impl Proyecto {
             }).expect("hilo de lineas");
         }
         let (tx_resp, rx) = mpsc::channel();
+        // Hilo del museo: analiza cada indice nuevo; uno viejo se abandona.
+        let (tx_museo, rx_museo) = mpsc::channel::<(u64, Arc<Indice>, PathBuf)>();
+        let version_museo = Arc::new(AtomicU64::new(0));
+        {
+            let (version_museo, tx_resp, avisar) = (version_museo.clone(), tx_resp.clone(), avisar.clone());
+            std::thread::Builder::new().name("ultra-museo".into()).spawn(move || {
+                while let Ok((version, indice, base)) = rx_museo.recv() {
+                    if version_museo.load(Ordering::Relaxed) != version { continue; }
+                    let vivo = || version_museo.load(Ordering::Relaxed) == version;
+                    let r = crate::analisis::analizar(&indice, &base, &vivo);
+                    if !vivo() { continue; }
+                    if tx_resp.send(Respuesta::Analisis(r)).is_err() { return; }
+                    avisar();
+                }
+            }).expect("hilo del museo");
+        }
         let vigente = Arc::new(AtomicU64::new(0));
         // Hilo de busqueda de texto: recibe trabajos con su copia del indice.
         type Trabajo = (Arc<Indice>, PathBuf, String, String, bool, bool, String, u64);
@@ -242,6 +260,8 @@ impl Proyecto {
                         lineas = Arc::new(Vec::new());
                         version_lineas.store(version, Ordering::Relaxed);
                         let _ = tx_contar.send((version, indice.clone(), base.clone()));
+                        version_museo.store(version, Ordering::Relaxed);
+                        let _ = tx_museo.send((version, indice.clone(), base.clone()));
                         if tx_resp.send(Respuesta::Indice(info)).is_err() { return; }
                         avisar();
                         if let Some((g, r)) = pendiente_ciudad.take() { let _ = tx_resp.send(ciudad(&indice, &lineas, g, &r)); avisar(); }

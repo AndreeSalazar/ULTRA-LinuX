@@ -14,7 +14,7 @@ pub enum Comando {
     Modo, Explorador, Direccion, Encuadrar, Reacomodar, Iconos, Carriles,
     Terminal, Detener, LimpiarTerminal, Dibujo, EjecutarSeleccion,
     SiguienteError, PararEnError, Guardar, CerrarEditor, SiguientePestana, AnteriorPestana,
-    Enfocar, SubirFoco, IrA, BuscarProyecto, Organizar, Reindexar, Ciudad, AlturaCiudad, ColorCiudad, HuellaCiudad,
+    Enfocar, SubirFoco, IrA, BuscarProyecto, Organizar, Reindexar, Ciudad, AlturaCiudad, ColorCiudad, HuellaCiudad, Aislar,
 }
 
 pub struct InfoComando {
@@ -43,6 +43,7 @@ pub const COMANDOS: &[InfoComando] = &[
     InfoComando { comando: Comando::BuscarProyecto, id: "proyecto.buscar", titulo: "Buscar texto en todo el proyecto", atajo: "Ctrl+Shift+F" },
     InfoComando { comando: Comando::Enfocar, id: "grafo.enfocar", titulo: "Enfocar: la carpeta elegida pasa a ser la raiz", atajo: "E" },
     InfoComando { comando: Comando::SubirFoco, id: "grafo.subirFoco", titulo: "Subir el foco a la carpeta de arriba", atajo: "U" },
+    InfoComando { comando: Comando::Aislar, id: "grafo.aislar", titulo: "SUPER GRAFO: aislar el fallo (o lo seleccionado) y conectar todo lo que arrastra", atajo: "A" },
     InfoComando { comando: Comando::Organizar, id: "grafo.organizar", titulo: "Organizar carpetas grandes: automatico, siempre o nunca", atajo: "O" },
     InfoComando { comando: Comando::Reindexar, id: "proyecto.reindexar", titulo: "Volver a indexar el proyecto", atajo: "" },
     InfoComando { comando: Comando::Ciudad, id: "vista.ciudad", titulo: "Vista Ciudad: el proyecto en 3D (distritos y edificios)", atajo: "Tab" },
@@ -115,6 +116,7 @@ pub fn atajo(tecla: Tecla, ctrl: bool, shift: bool, alt: bool, paleta_abierta: b
         (Tecla::Acento, true, _, _) => Comando::Terminal,
         (Tecla::Z, true, _, _) => Comando::Deshacer,
         (Tecla::A, true, _, _) => Comando::SeleccionarTodo,
+        (Tecla::A, false, false, false) => Comando::Aislar,
         (Tecla::Izquierda, _, _, true) => Comando::Atras,
         (Tecla::Arriba, _, _, true) | (Tecla::Retroceso, false, false, false) => Comando::Subir,
         (Tecla::G, false, false, false) => Comando::Rejilla,

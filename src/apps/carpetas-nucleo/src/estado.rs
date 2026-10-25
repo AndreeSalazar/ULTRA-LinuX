@@ -107,6 +107,10 @@ pub enum Accion {
     LineasListas { contadas: u64 },
     /// Llego la historia de git (o por que no hay). `ahora`: la hora de la plataforma.
     Historia { resultado: Result<crate::historia::Historia, String>, ahora: u64 },
+    /// Llego el analisis (museo + dependencias) de todo el proyecto.
+    Analisis(crate::analisis::ResultadoAnalisis),
+    /// Aislar: None apaga; Some("") los fallos; Some(id) lo que rodea a ese nodo.
+    Aislar(Option<String>),
 }
 
 /// La historia de git de la carpeta abierta.
@@ -246,6 +250,14 @@ pub struct Estado {
     pub aviso: Option<String>,
     pub ciudad: DatosCiudad,
     pub historia: EstadoHistoria,
+    /// Museo y dependencias del proyecto (del hilo de analisis).
+    pub analisis: crate::analisis::EstadoAnalisis,
+    /// Aislar (tecla A): None apagado; Some("") los fallos; Some(id) alrededor de un nodo.
+    pub aislar: Option<String>,
+    /// La conexion de fallos (o del nodo aislado), recalculada solo si cambia algo.
+    pub conectado: crate::analisis::Conectado,
+    /// Sube cuando cambian los errores atrapados (para recalcular la conexion).
+    pub version_fallos: u64,
 }
 
 impl Default for Estado {
@@ -257,7 +269,8 @@ impl Default for Estado {
                  version_contenido: 0, terminal: Terminal::default(), errores: Errores::default(), raiz_absoluta: String::new(),
                  editor: Pestanas::default(), procesos: Vec::new(), ir_a: None, proyecto: BusquedaProyecto::default(),
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
-                 ciudad: DatosCiudad::default(), historia: EstadoHistoria::default() }
+                 ciudad: DatosCiudad::default(), historia: EstadoHistoria::default(),
+                 analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0 }
     }
 }
 
@@ -423,6 +436,10 @@ impl Estado {
             Comando::BuscarProyecto => self.proyecto(AccionProyecto::Abrir),
             Comando::Organizar => { self.ajustes.organizar = self.ajustes.organizar.siguiente(); vec![self.guardar_ajustes()] }
             Comando::Reindexar => vec![Efecto::Reindexar { ocultos: self.ocultos }, Efecto::LeerHistoria],
+            Comando::Aislar => {
+                self.aislar = if self.aislar.is_some() { None } else { Some(self.seleccion.iter().next().cloned().unwrap_or_default()) };
+                vec![]
+            }
             Comando::Ciudad => { self.ajustes.modo = Modo::Ciudad; vec![self.guardar_ajustes()] }
             Comando::AlturaCiudad => { self.ajustes.altura_ciudad = self.ajustes.altura_ciudad.siguiente(); vec![self.guardar_ajustes()] }
             Comando::HuellaCiudad => { self.ajustes.huella_ciudad = self.ajustes.huella_ciudad.siguiente(); vec![self.guardar_ajustes()] }
@@ -454,6 +471,7 @@ impl Estado {
         self.terminal.en_curso = Some(titulo.clone());
         self.terminal.carpeta = carpeta.clone();
         self.errores.empezar(&carpeta);
+        self.version_fallos += 1;
         self.procesos.clear();
         vec![Efecto::Ejecutar { titulo, carpeta, programa, args }]
     }
@@ -702,10 +720,43 @@ fn se_cruzan(a: ([f32; 2], [f32; 2]), b: ([f32; 2], [f32; 2])) -> bool {
 pub fn reducir(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
     let mut efectos = reducir_sin_ciudad(e, accion);
     efectos.extend(e.pedir_ciudad());
+    e.reconectar();
     efectos
 }
 
 impl Estado {
+    /// Recalcula la conexion de fallos si cambiaron el analisis, los errores o lo aislado.
+    fn reconectar(&mut self) {
+        let clave = (self.analisis.version, self.version_fallos, self.aislar.clone());
+        if clave == self.conectado.clave { return; }
+        let aislado = self.aislar.as_deref().filter(|x| !x.is_empty()).map(|id| (id, self.archivos_de(id)));
+        let (modo, conexion, fallos) = crate::analisis::conectar_estado(&self.errores, &self.analisis, aislado);
+        self.conectado = crate::analisis::Conectado { modo, conexion, fallos, clave };
+        self.version_contenido = self.version_contenido.wrapping_add(1);
+    }
+
+    /// Los archivos de un nodo: el mismo, los miembros de un grupo o lo que hay en una carpeta.
+    pub fn archivos_de(&self, id: &str) -> Vec<String> {
+        if let Some((carpeta, clave)) = partes_grupo(id) {
+            let Some(entradas) = self.arbol.get(carpeta) else { return vec![] };
+            let mut dentro: Option<String> = None;
+            for _ in 0..8 {
+                let mut siguiente = None;
+                for h in organizar(entradas, self.ajustes.organizar, dentro.as_deref()) {
+                    if let Hijo::Grupo(g) = h {
+                        if g.clave == clave { return g.miembros.iter().map(|m| hijo(carpeta, &m.nombre)).collect(); }
+                        if clave.starts_with(g.clave.as_str()) { siguiente = Some(g.clave.clone()); }
+                    }
+                }
+                match siguiente { Some(c) => dentro = Some(c), None => break }
+            }
+            return vec![];
+        }
+        if self.analisis.dep.id(id).is_some() || self.entrada(id).is_some_and(|x| x.tipo != Tipo::Carpeta) { return vec![id.to_string()]; }
+        let prefijo = if id.is_empty() { String::new() } else { alloc::format!("{id}/") };
+        self.analisis.dep.rutas.iter().filter(|r| r.starts_with(&prefijo)).take(2000).cloned().collect()
+    }
+
     /// En la vista Ciudad: si cambio la raiz o el indice, se piden los datos otra vez.
     fn pedir_ciudad(&mut self) -> Vec<Efecto> {
         if self.ajustes.modo != Modo::Ciudad || !self.indice.listo || self.ciudad.cargando { return vec![]; }
@@ -756,6 +807,8 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             efectos.push(Efecto::Reindexar { ocultos: e.ocultos });
             e.historia = EstadoHistoria { version: e.historia.version + 1, ..EstadoHistoria::default() };
             efectos.push(Efecto::LeerHistoria);
+            e.analisis = crate::analisis::EstadoAnalisis { version: e.analisis.version + 1, ..Default::default() };
+            e.aislar = None;
             // El foco guardado: se abre el camino hasta el (sus carpetas aun no estan leidas).
             let foco = e.disp.foco.clone();
             if !foco.is_empty() { e.revelar = Some(Revelar { enfocar: true, ..Revelar::a(&foco) }); efectos.extend(e.avanzar_revelar()); }
@@ -945,6 +998,8 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             h.version += 1;
             vec![]
         }
+        Accion::Analisis(r) => { e.analisis.llegar(r); vec![] }
+        Accion::Aislar(a) => { e.aislar = a; vec![] }
         Accion::LineasListas { contadas } => { e.indice.lineas = contadas; e.indice.lineas_listas = true; e.indice.version += 1; vec![] }
         Accion::DatosCiudad { generacion, raiz, archivos } => {
             if generacion == e.ciudad.generacion {
@@ -967,6 +1022,7 @@ impl Estado {
         let (nuevo, grave) = self.errores.anotar(leidos, &raiz);
         if !nuevo { return vec![]; }
         self.version_contenido = self.version_contenido.wrapping_add(1); // el nodo cambia de color
+        self.version_fallos += 1;
         let mut efectos = self.desplegar_errores();
         if grave && self.ajustes.parar_en_error && self.terminal.en_curso.is_some() && !self.errores.parado {
             self.errores.parado = true;

@@ -31,6 +31,8 @@ pub enum Carril {
     Ciudad,
     /// Leer la historia de git (su propio hilo, solo lectura).
     Git,
+    /// Museo (patrones de las fichas en C, C++ y ASM) y dependencias: su propio hilo, solo lectura.
+    Museo,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -73,6 +75,8 @@ pub const PRESUPUESTOS: &[Presupuesto] = &[
                   que_consume: "CPU al cambiar los datos: treemap de hasta 60 000 edificios e instancias para la GPU; girar la camara solo manda 80 bytes" },
     Presupuesto { carril: Carril::Git, nombre: "Git", verde_us: 2_000_000, amarillo_us: 15_000_000,
                   que_consume: "git log en su hilo, solo lectura (sin bloqueos ni tocar el indice de git); como mucho 20 000 commits, 30 s y 256 MiB de salida" },
+    Presupuesto { carril: Carril::Museo, nombre: "Museo", verde_us: 3_000_000, amarillo_us: 20_000_000,
+                  que_consume: "E/S y CPU en su hilo (todos los nucleos): lee C, C++, ASM, Rust y Python de hasta 2 MiB, como mucho 2 GiB o 60 s; solo lectura" },
 ];
 
 pub fn presupuesto(c: Carril) -> &'static Presupuesto {

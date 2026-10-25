@@ -1,0 +1,139 @@
+// SPDX-License-Identifier: GPL-2.0-only
+//! Lo que manda el hilo de analisis (museo + dependencias) y la conexion de fallos que
+//! dibuja el SUPER GRAFO: rojo neon con nucleo blanco en la causa probable, cables rojos
+//! hasta todo lo que arrastra, y el resto apagado cuando se aisla.
+
+use crate::dependencias::{aislar, conectar, Conexion, Dependencias, Rol};
+use crate::diagnosticos::Errores;
+use crate::museo::{Fuerza, Sospecha};
+use alloc::collections::{BTreeMap, BTreeSet};
+use alloc::string::String;
+use alloc::vec::Vec;
+
+/// El resultado del hilo de analisis para todo el proyecto.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct ResultadoAnalisis {
+    /// Rutas con alguna arista, y las aristas (a usa b) como indices en `rutas`.
+    pub rutas: Vec<String>,
+    pub aristas: Vec<(u32, u32)>,
+    pub sospechas: Vec<(String, Vec<Sospecha>)>,
+    /// Archivos leidos (C, C++, ASM, Rust, Python) y bytes.
+    pub archivos: u64,
+    pub bytes: u64,
+    /// Se corto por el presupuesto (bytes o tiempo): no se leyo todo.
+    pub truncado: bool,
+    pub micros: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct EstadoAnalisis {
+    pub dep: Dependencias,
+    pub sospechas: BTreeMap<String, Vec<Sospecha>>,
+    pub listo: bool,
+    pub archivos: u64,
+    pub bytes: u64,
+    pub truncado: bool,
+    pub micros: u64,
+    pub total: u32,
+    pub version: u64,
+}
+
+impl EstadoAnalisis {
+    pub fn llegar(&mut self, r: ResultadoAnalisis) {
+        self.dep = Dependencias::nuevo(r.rutas, &r.aristas);
+        self.total = r.sospechas.iter().map(|(_, v)| v.len() as u32).sum();
+        self.sospechas = r.sospechas.into_iter().filter(|(_, v)| !v.is_empty()).collect();
+        self.archivos = r.archivos;
+        self.bytes = r.bytes;
+        self.truncado = r.truncado;
+        self.micros = r.micros;
+        self.listo = true;
+        self.version += 1;
+    }
+
+    pub fn de(&self, id: &str) -> &[Sospecha] { self.sospechas.get(id).map(|v| v.as_slice()).unwrap_or(&[]) }
+
+    fn debajo<'a>(&'a self, id: &'a str) -> impl Iterator<Item = (&'a String, &'a Vec<Sospecha>)> + 'a {
+        self.sospechas.range::<str, _>((core::ops::Bound::Included(id), core::ops::Bound::Unbounded))
+            .take_while(move |(k, _)| k.starts_with(id))
+            .filter(move |(k, _)| id.is_empty() || k.len() == id.len() || k.as_bytes()[id.len()] == b'/')
+    }
+
+    /// (exactas, revisar) del nodo; en una carpeta, todo lo de dentro.
+    pub fn conteo(&self, id: &str) -> (u32, u32) {
+        self.debajo(id).flat_map(|(_, v)| v.iter()).fold((0, 0), |(e, r), s| if s.fuerza == Fuerza::Exacto { (e + 1, r) } else { (e, r + 1) })
+    }
+
+    pub fn primera<'a>(&'a self, id: &'a str) -> Option<(&'a String, &'a Sospecha)> {
+        let mut todas = self.debajo(id).flat_map(|(k, v)| v.iter().map(move |s| (k, s)));
+        let primera = todas.next()?;
+        if primera.1.fuerza == Fuerza::Exacto { return Some(primera); }
+        Some(todas.find(|(_, s)| s.fuerza == Fuerza::Exacto).unwrap_or(primera))
+    }
+
+    /// Las sospechas agrupadas por ficha (para el panel del museo), por id de ficha.
+    pub fn por_ficha(&self) -> BTreeMap<&'static str, Vec<(&String, &Sospecha)>> {
+        let mut m: BTreeMap<&'static str, Vec<(&String, &Sospecha)>> = BTreeMap::new();
+        for (r, v) in &self.sospechas { for s in v { m.entry(s.ficha).or_default().push((r, s)); } }
+        m
+    }
+}
+
+/// Que se esta conectando.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub enum Modo {
+    #[default]
+    Ninguno,
+    /// Los fallos: errores del compilador y sospechas del museo.
+    Fallos,
+    /// Un archivo, grupo o carpeta aislado: lo que usa y quien lo usa.
+    Alrededor(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Conectado {
+    pub modo: Modo,
+    pub conexion: Conexion,
+    /// Cuantos archivos fallan (errores graves + museo).
+    pub fallos: u32,
+    pub clave: (u64, u64, Option<String>),
+}
+
+/// Archivos que fallan: con un error grave del compilador o una sospecha del museo.
+pub fn fallos(errores: &Errores, analisis: &EstadoAnalisis) -> BTreeSet<String> {
+    let mut f: BTreeSet<String> = errores.por_nodo.iter().filter(|(_, v)| v.iter().any(|d| d.grave)).map(|(k, _)| k.clone()).collect();
+    f.extend(analisis.sospechas.keys().cloned());
+    f
+}
+
+/// Recalcula la conexion. `centros`: los archivos del nodo aislado (si se aislo uno).
+pub fn conectar_estado(errores: &Errores, analisis: &EstadoAnalisis, aislado: Option<(&str, Vec<String>)>) -> (Modo, Conexion, u32) {
+    let f = fallos(errores, analisis);
+    let n = f.len() as u32;
+    match aislado {
+        Some((id, centros)) if !centros.is_empty() => {
+            let mut c = Conexion::default();
+            for centro in &centros {
+                let a = aislar(&analisis.dep, centro);
+                c.truncada |= a.truncada;
+                for (r, rol) in a.roles {
+                    let e = c.roles.entry(r).or_insert(rol);
+                    if rol > *e { *e = rol; }
+                }
+                for x in a.aristas { if c.aristas.len() < crate::dependencias::MAX_ARISTAS { c.aristas.push(x); } }
+                c.causas.extend(a.causas);
+                if c.roles.len() > crate::dependencias::MAX_ALCANCE { c.truncada = true; break; }
+            }
+            c.aristas.sort();
+            c.aristas.dedup();
+            (Modo::Alrededor(String::from(id)), c, n)
+        }
+        _ if f.is_empty() => (Modo::Ninguno, Conexion::default(), 0),
+        _ => (Modo::Fallos, conectar(&analisis.dep, &f), n),
+    }
+}
+
+/// El papel mas fuerte de un conjunto (para un nodo que agrupa varios archivos).
+pub fn rol_de<'a>(roles: &BTreeMap<String, Rol>, archivos: impl Iterator<Item = &'a str>) -> Option<Rol> {
+    archivos.filter_map(|a| roles.get(a).copied()).max()
+}

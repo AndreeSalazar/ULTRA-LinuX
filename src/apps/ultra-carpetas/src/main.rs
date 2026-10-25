@@ -10,6 +10,7 @@
 //! iconos SVG son solo los incrustados. Solo ordena la vista: nunca toca tus archivos.
 
 mod almacen;
+mod analisis;
 mod archivo;
 mod ciudad3d;
 mod disco;
@@ -51,7 +52,7 @@ fn acento() -> Rgb {
 
 /// Ultimo tiempo y maximo por carril, en microsegundos.
 #[derive(Default)]
-struct Medidas { ultimo: [u64; 13], maximo: [u64; 13] }
+struct Medidas { ultimo: [u64; 14], maximo: [u64; 14] }
 
 impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
@@ -306,6 +307,10 @@ impl App {
                     self.despachar(Accion::DatosCiudad { generacion, raiz, archivos });
                 }
                 indice::Respuesta::Lineas { contadas, .. } => self.despachar(Accion::LineasListas { contadas }),
+                indice::Respuesta::Analisis(r) => {
+                    self.medidas.anotar(Carril::Museo, r.micros);
+                    self.despachar(Accion::Analisis(r));
+                }
                 indice::Respuesta::Texto { generacion, lote, vistos, terminada, truncada, micros } => {
                     self.medidas.anotar(Carril::Busqueda, micros);
                     self.despachar(Accion::ResultadosProyecto { generacion, lote, vistos, terminada, truncada });
@@ -799,7 +804,7 @@ impl App {
                 ui.set_width(430.0);
                 ui.label(egui::RichText::new("CARRILES // SEMAFORO  (F12)").color(c.acento).strong());
                 for carril in [Carril::Disco, Carril::Acomodo, Carril::Vista, Carril::Geometria, Carril::Pintado, Carril::Iconos, Carril::Terminal,
-                               Carril::Procesos, Carril::Editor, Carril::Indice, Carril::Busqueda, Carril::Ciudad, Carril::Git] {
+                               Carril::Procesos, Carril::Editor, Carril::Indice, Carril::Busqueda, Carril::Ciudad, Carril::Git, Carril::Museo] {
                     let p = presupuesto(carril);
                     let (u, m) = (self.medidas.ultimo[carril as usize], self.medidas.maximo[carril as usize]);
                     let foco = match luz(carril, u) { Luz::Verde => Color32::from_rgb(61, 255, 154), Luz::Amarillo => Color32::from_rgb(252, 238, 10), Luz::Rojo => Color32::from_rgb(255, 42, 79) };
@@ -817,6 +822,12 @@ impl App {
                 let ix = self.estado.indice;
                 ui.label(egui::RichText::new(format!("indice {}/{MAX_INDICE} rutas en {:.1} s · coincidencias {}/{MAX_COINCIDENCIAS}",
                     paneles::miles(ix.archivos + ix.carpetas), ix.micros as f64 / 1e6, self.estado.proyecto.total)).color(c.tenue).size(11.0));
+                let an = &self.estado.analisis;
+                if an.listo {
+                    ui.label(egui::RichText::new(format!("museo: {} archivos ({:.1} MiB) · {} sospechas · {} dependencias{}",
+                        paneles::miles(an.archivos), an.bytes as f64 / 1048576.0, an.total, paneles::miles(an.dep.aristas),
+                        if an.truncado { " · cortado por el presupuesto" } else { "" })).color(c.tenue).size(11.0));
+                }
                 if self.estado.ajustes.modo == Modo::Ciudad {
                     ui.label(egui::RichText::new(format!("ciudad: {} edificios · datos en {:.0} ms (hilo del indice) · treemap en {:.0} ms (al cambiar)",
                         self.ciudad.ciudad.edificios.len(), self.micros_datos_ciudad as f64 / 1e3, self.ciudad.micros as f64 / 1e3)).color(c.tenue).size(11.0));
