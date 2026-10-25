@@ -1,0 +1,170 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.12s
+     Running unittests src/lib.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/carpetas_nucleo-158bf8dca7899e5e)
+
+running 2 tests
+test museo::pruebas::lexer_quita_comentarios_y_cadenas ... ok
+test museo::pruebas::literales ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ciudad.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/ciudad-0fab7beb1e29d135)
+
+running 6 tests
+test colores_de_lenguaje_distintos_para_c_y_cpp ... ok
+test imagenes_bajitas_y_huella_por_lineas ... ok
+test distritos_edificios_y_porcentajes ... ok
+test la_ciudad_pide_sus_datos_cuando_toca ... ok
+test squarify_reparte_proporcional_y_sin_pisar ... ok
+test proyecto_enorme_se_junta_en_bloques ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/dependencias.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/dependencias-82bd4578d593e9f0)
+
+running 4 tests
+test c_cpp_y_asm ... ok
+test python ... ok
+test conecta_el_fallo_y_aisla_la_causa ... ok
+test rust_mod_y_use ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/diagnosticos.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/diagnosticos-dcba65d52905a060)
+
+running 5 tests
+test lineas_de_la_terminal_con_clic ... ok
+test gcc_y_python ... ok
+test panic_de_rust_en_marcha ... ok
+test rustc_errores_y_avisos ... ok
+test rutas_a_nodos_sin_salir ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/editor.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/editor-f5918c489ff361dc)
+
+running 5 tests
+test buscar_mayusculas_palabras_y_utf8 ... ok
+test reemplazar_uno_y_todos ... ok
+test volver_al_texto_de_disco_quita_el_sin_guardar ... ok
+test pestanas_no_pierden_cambios ... ok
+test reemplazar_respeta_el_limite_y_mucho_hallazgo ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/errores.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/errores-1b10b51d7bf15e02)
+
+running 5 tests
+test resaltado_sin_huecos_y_con_utf8 ... ok
+test procesos_en_arbol ... ok
+test clic_derecho_abre_el_editor_en_el_error ... ok
+test rutas_fuera_y_parar_en_el_primer_error ... ok
+test el_error_marca_el_nodo_y_despliega_el_camino ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/grafo.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/grafo-836b44392ab1d58a)
+
+running 10 tests
+test banda_en_grafo_y_explorador_sincronizado ... ok
+test camara_zoom_ancla_y_encuadrar ... ok
+test acomodo_blender_y_houdini ... ok
+test arrastrar_nodo_fija_posicion_respeta_zoom_y_deshace ... ok
+test desplegar_pide_disco_y_acepta_solo_lo_pedido ... ok
+test iconos_por_estilo ... ok
+test mover_la_camara_no_rehace_la_geometria ... ok
+test semaforo_de_carriles ... ok
+test play_en_proyectos_y_terminal ... ok
+test peso_detalle_y_limites_duros ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/historia.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/historia-93f64b46f836128d)
+
+running 3 tests
+test abrir_pide_la_historia_y_la_guarda ... ok
+test cuenta_cambios_fechas_y_autores ... ok
+test puntos_calientes_grande_y_cambiante_primero ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/iconos.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/iconos-503e502cbb2daf26)
+
+running 4 tests
+test claves_sin_repetir_formato ... ok
+test neon_sigue_dibujando_lo_que_no_es_codigo ... ok
+test familia_c_y_cpp_completa ... ok
+test rust_y_otros_lenguajes ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/museo.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/museo-5baefe3775b216bd)
+
+running 6 tests
+test asm_de_arranque_no_se_juzga_con_la_abi_de_64_bits ... ok
+test cada_sospecha_dice_donde_que_y_por_que ... ok
+test comentarios_cadenas_y_otros_lenguajes_no_saltan ... ok
+test nunca_entra_en_panico_con_basura ... ok
+test las_fichas_son_las_del_museo ... ok
+test cada_ficha_salta_en_su_caso_malo_y_calla_en_su_control ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/organizar.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/organizar-3d527bdde190f5c4)
+
+running 4 tests
+test raices_de_unidad_como_chromium ... ok
+test net_http_y_carpeta_pequena ... ok
+test base_de_chromium_se_organiza ... ok
+test carpeta_generada_gigante_por_prefijos ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/proyecto.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/proyecto-4b0da2ad66979177)
+
+running 10 tests
+test chromium_file_path_watcher_es_una_unidad ... ok
+test ctrl_enter_enfoca_una_carpeta_ya_leida_y_rehace_la_vista ... ok
+test buscar_en_el_proyecto ... ok
+test filtro_y_coincidencias_con_lineas ... ok
+test enter_antes_de_los_resultados_espera ... ok
+test indice_compacto_y_ctrl_p ... ok
+test muchos_hijos_cerrados_van_en_rejilla_sin_pisarse ... ok
+test enfocar_una_carpeta_y_volver ... ok
+test ctrl_p_revela_en_las_dos_vistas ... ok
+test grupos_en_el_grafo_y_el_explorador ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/reducer.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/reducer-b71a269983513e0c)
+
+running 9 tests
+test abrir_pide_efectos_segun_tipo ... ok
+test cargar_coloca_por_filas ... ok
+test arrastrar_soltar_guarda_y_deshacer ... ok
+test refrescar_olvida_lo_borrado_sin_mover_lo_demas ... ok
+test rejilla_encaja_y_candado_bloquea ... ok
+test seleccion_con_clic_ctrl_y_banda ... ok
+test vista_describe_lo_que_hay_que_dibujar ... ok
+test paleta_de_comandos_como_vscode ... ok
+test json_raro_no_rompe_nada ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/temas.rs (/var/tmp/ultra-main-work/cache/carpetas-target-nucleo/debug/deps/temas-b084ab423d84d44c)
+
+running 5 tests
+test ajustes_raros_vuelven_al_defecto ... ok
+test neon_usa_el_acento_del_escritorio ... ok
+test panel_de_ajustes_y_brillo ... ok
+test elegir_tema_por_comando_paleta_y_tecla ... ok
+test tabla_de_temas_bien_formada ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests carpetas_nucleo
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `release` profile [optimized] target(s) in 0.05s

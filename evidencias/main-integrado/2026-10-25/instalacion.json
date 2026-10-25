@@ -1,0 +1,14 @@
+{
+  "UTC": "2026-10-25T05:42:20.1704866Z",
+  "Perfil": "pc",
+  "Destino": "A: FAT32 BMO",
+  "SistemaSHA256": "14d702598bb1df1da67f60c51f719013897d6c50749953b8e7b0c03d85cc9ecc",
+  "KernelSHA256": "e2242e375f3f508c535f18cf684a573d1d5664350a6199742ee9f0ab1891c8f7",
+  "DatosAntesSHA256": "396991921a34abdccd359386003968e906563a601d6ebe161919a883c10431cc",
+  "DatosDespuesSHA256": "396991921a34abdccd359386003968e906563a601d6ebe161919a883c10431cc",
+  "DatosConservados": true,
+  "KernelConservado": true,
+  "QEMUComprobaciones": 194,
+  "FuentesVerificadas": 368,
+  "JuegosNativosModificados": false
+}

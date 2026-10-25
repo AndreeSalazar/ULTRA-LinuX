@@ -91,3 +91,6 @@ evidencias/heroic-primero/** text eol=lf whitespace=-blank-at-eol
 evidencias/continuidad-juegos/** text eol=lf whitespace=-blank-at-eol
 evidencias/puntero-launcher/** text eol=lf whitespace=-blank-at-eol
 evidencias/warframe-inicio/** text eol=lf whitespace=-blank-at-eol
+evidencias/main-integrado/** text eol=lf whitespace=-blank-at-eol
+evidencias/main-integrado/**/*.png binary
+docs/MAIN-INTEGRADO-2026-10-25.md text eol=lf

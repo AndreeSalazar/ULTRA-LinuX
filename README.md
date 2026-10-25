@@ -9,13 +9,14 @@
 ## Escritorio BMO-X // Neón
 
 <p align="center">
-  <img src="docs/maquetas/png/neon/recorrido.gif" alt="Recorrido animado del escritorio BMO-X Neón en azul hielo: ciudad nocturna con lluvia, ventanas con borde que gira, menú, escritorios, equipo en vivo, captura, modo juego y bloqueo" width="760">
+  <img src="evidencias/main-integrado/2026-10-25/carpetas.png" alt="ULTRA Carpetas real sobre Hyprland, probado en QEMU con carpetas de ejemplo" width="1000">
 </p>
 
 <p align="center"><b>Neón</b>: negro, azul hielo, cyan y rojo, con estética cyberpunk original.<br>
 Diseño y autoría: <b>Eddi Salazar</b>.</p>
 
-- **Video de presentación** (53 s): [`recorrido.mp4`](docs/maquetas/png/neon/recorrido.mp4).
+- **Maqueta animada del diseño**: [`recorrido.gif`](docs/maquetas/png/neon/recorrido.gif).
+  **Video del prototipo** (53 s): [`recorrido.mp4`](docs/maquetas/png/neon/recorrido.mp4).
 - **Prototipo interactivo**: [`vivo.html`](docs/maquetas/neon/vivo.html). Se abre en
   el navegador; Alt hace de Super.
 - **Animaciones**: fondo con lluvia, letreros y el aro del autor; ventanas con
@@ -38,10 +39,12 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   con satélites, HUD y tu firma girando ([primer plano](docs/maquetas/png/neon/esfera-3d.mp4)). Se calcula una vez
   en tu PC y se queda quieta en juegos ([hielo](docs/maquetas/png/neon/ciudad-3d-hielo.mp4),
   [rojo](docs/maquetas/png/neon/ciudad-3d-rojo.mp4)).
-- **ULTRA Carpetas** (Super+Ctrl+E), en Rust con Vulkan (wgpu): iconos donde tú quieras, como en
-  el Windows antiguo, con rejilla, candado y deshacer; cada carpeta recuerda su orden y nunca
-  toca tus archivos. Arquitectura como React + Redux con paleta de comandos como VS Code, y
-  el núcleo es `no_std`: compila para bare-metal, listo para BMO-X ([detalle](docs/ULTRA-CARPETAS.md)).
+- **ULTRA Carpetas** (Super+Ctrl+E), en Rust con egui y wgpu: iconos donde tú quieras, con
+  rejilla, candado y deshacer. Organizar la vista conserva el orden sin mover los archivos;
+  el editor sí guarda su contenido con Ctrl+S y comprueba los cambios externos.
+  Estado, acciones y reductor en Rust, con paleta de comandos como VS Code.
+  Su núcleo compila como `no_std` para `x86_64-unknown-none`; la interfaz necesita el sistema
+  gráfico y sus bibliotecas ([detalle](docs/ULTRA-CARPETAS.md)).
   **Modo grafo como Blender y Houdini** (nodos, cables curvos, zoom, desplegar en el grafo, peso de
   cada carpeta para optimizar), **explorador** sincronizado e **iconos SVG** de VS Code (Material) o
   Lucide. Carriles aislados con **semáforo de rendimiento** (F12) y el disco en su propio hilo.
@@ -60,8 +63,11 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
   altura = líneas o cambios en git, color = lenguaje, errores o **calor** (puntos calientes: lo grande que más cambia), con su % ([detalle](docs/ULTRA-CARPETAS.md#vista-ciudad-inspirada-en-codecity)). El **SUPER GRAFO** busca en tu C, C++ y ASM los patrones de las 38 fichas del museo, conecta `#include`/`use`/`import` y, cuando algo falla, marca en rojo neón y blanco la causa probable, cablea todo lo que arrastra y con **A** aísla el resto ([detalle](docs/ULTRA-CARPETAS.md#super-grafo-el-museo-en-tu-código-y-el-fallo-conectado)) ([en vivo](docs/ULTRA-CARPETAS.md#en-vivo-procesos-errores-atrapados-en-los-nodos-y-editor-clic-derecho)).
   **9 temas** (Neón BMO-X, TITAN Taller, Synthwave '84, Tokyo Night, Catppuccin, Rosé Pine, Kanagawa,
   Dracula, Nord) con contraste comprobado y panel de ajustes en Ctrl+, ([temas](docs/TEMAS-APPS.md)).
+  Las coincidencias del museo son indicios para investigar: no demuestran por sí solas UB,
+  su causa ni aislamiento de memoria. La medición sobre Chromium pertenece al estudio del
+  organizador; no es un benchmark nuevo de esta imagen.
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y
-  temperatura, con anillos y gráficas en vivo ([captura con eww real](docs/maquetas/png/neon/tarjetas-eww.png)).
+  temperatura, con anillos y gráficas en vivo ([captura de esta compilación](evidencias/main-integrado/2026-10-25/equipo.png)).
   La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa
   se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+Shift+V)
   con historial en RAM; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,
@@ -74,12 +80,21 @@ El tema real ya está en el código del escritorio: Hyprland, Waybar, fuzzel,
 mako, GTK, foot, MangoHud, fondo, iconos y cursores. Las fuentes Rajdhani y
 Chakra Petch (OFL) viajan con el proyecto.
 
-El GIF y el video salen del prototipo en el navegador. El perfil PC con Neón
-ya fue reconstruido, pasó 186 comprobaciones de arranque en QEMU y se instaló
-en A: FAT32 el 24 de octubre de 2026, conservando los datos y el perfil genérico
-de recuperación. Queda comprobar esta compilación en el PC físico.
+Las capturas de esta sección proceden del escritorio real ejecutado en QEMU,
+con renderizado por software y carpetas sintéticas. El GIF y los videos enlazados
+como prototipo o maqueta ilustran el diseño en el navegador.
 
-![Escritorio BMO-X Neón real en QEMU, compilación PC del 24 de octubre](evidencias/limpieza-main/2026-10-24/escritorio.png)
+[Integración de main del 25 de octubre](docs/MAIN-INTEGRADO-2026-10-25.md):
+compilación de Carpetas y eww, pruebas del núcleo y de la aplicación, cabeceras
+para C/C++, 368 fuentes verificadas y **194 comprobaciones correctas en QEMU**,
+incluidos dos arranques y el escritorio. Carpetas suma 78 pruebas del núcleo y
+25 de la aplicación; un benchmark permanece ignorado.
+Instalado en **A: FAT32, perfil PC**, el 25 de octubre de 2026, con los hashes
+de copia verificados y `datos.ext4` conservado byte por byte.
+El kernel y las versiones NVIDIA se conservan. La RTX física, el tirón previo al
+lanzador de Warframe y el consumo en vatios requieren mediciones en el PC.
+
+![Ajustes reales de ULTRA Carpetas en QEMU](evidencias/main-integrado/2026-10-25/carpetas-ajustes.png)
 
 [Compilación, pruebas y limpieza del taller](docs/LIMPIEZA-COMPILACION-2026-10-24.md):
 se conservan las fuentes, configuraciones, imágenes finales y respaldos personales.
@@ -118,13 +133,14 @@ el juego; la recuperación directa sigue disponible.
 
 [Continuidad de Steam y perfiles](docs/CONTINUIDAD-JUEGOS-2026-10-24.md): renovar
 la vista Windows conserva ahora prefijos, cachés y runtimes Linux. Se recuperó
-el entorno anterior de Warframe y se unificó el prefijo de Cyberpunk; la
-pantalla negra de este último sigue pendiente de comprobación en el PC.
+el entorno anterior de Warframe y se unificó el prefijo de Cyberpunk. El autor
+confirmó después que pudo jugar; las correcciones nuevas de cursor y escritorio
+necesitan su propia comprobación en el PC.
 
 [Recuperación tras desinstalación incompleta](docs/CYBERPUNK-DESINSTALACION-2026-10-24.md):
 se respaldó una capa con 49 marcas de borrado y se recuperó el acceso a los
-4.991 archivos. Esto corrige su ocultamiento, no acredita resolver el fallo
-anterior de arranque del juego.
+4.991 archivos. La recuperación comprobó su lectura; la confirmación posterior
+de una partida procede del autor, separada de los bancos virtuales.
 
 [Puntero y energía](docs/PUNTERO-Y-ENERGIA-2026-10-24.md): el usuario ya confirmó
 una partida de Cyberpunk. La corrección de escritorio selecciona cursor
@@ -251,12 +267,12 @@ Las imagenes estan instaladas en A: con hashes verificados y datos conservados.
 | Área | Estado y evidencia |
 |---|---|
 | Arranque | UEFI, init C, consola BusyBox y perfiles genérico/PC; probado en QEMU y PC real |
-| Escritorio | Hyprland, Waybar, Fuzzel, Foot, Thunar, Mousepad, Mako e iconos Papirus |
+| Escritorio | Hyprland, Waybar, Fuzzel, Foot, Thunar, Mousepad, Mako, ULTRA Carpetas, eww y tema Neón |
 | NVIDIA | RTX 3060 detectada; Hyprland, EGL y Brave/WebGL registrados en el PC real |
 | Navegador | Brave con Wayland y sandbox; página local de pruebas y diagnóstico GPU |
 | Ethernet | Firmware Realtek, DHCP incluso con enlace tardío, DNS y HTTPS en el banco |
 | Audio | USB/HDA, PipeWire y control maestro; USB emulado probado, audición del dispositivo físico pendiente |
-| Juegos | Steam, Heroic/GOG y UMU; interfaces y persistencia probadas, Cyberpunk real aún sin validar |
+| Juegos | Steam, Heroic/GOG y UMU; el autor confirmó partidas de Warframe y Cyberpunk; esta imagen nueva se prueba primero en QEMU |
 | Seguridad | Casos concretos de CET, FORTIFY, seccomp, Landlock y detectores de UB; cobertura parcial documentada |
 
 La ampliación gráfica del **21 de octubre pasó 283 comprobaciones**: 113 de
@@ -285,11 +301,14 @@ Super es la tecla Windows. En la consola, `e` abre el menú con flechas y Enter.
 | Super + R | Buscar aplicaciones |
 | Super + Space | [Centro BMO-X por categorias y colores](docs/MENU-CATEGORIAS.md), con panel de discos y revision automatica |
 | Super + E / N | Archivos / editor |
+| Super + Ctrl + E | ULTRA Carpetas: iconos, grafo, ciudad y editor |
+| Super + F9 | Mostrar u ocultar las tarjetas del equipo con eww |
+| Super + Shift + P | Personalizar colores, efectos y fondo |
 | Super + B / G | Brave / diagnóstico GPU del navegador |
 | Super + Shift + G | Informe OpenGL/Vulkan y cubo con validación opcional |
 | Super + P | [Pantallas](docs/PANTALLAS.md): resolución, Hz, escala y recuperación del ajuste anterior |
 | Super + Shift + E | Archivos de Windows en el NVMe, solo lectura |
-| Super + A | Audio maestro, salida, silencio y boost opcional hasta 150 % |
+| Super + A | Audio maestro, salida, silencio y amplificación opcional hasta 500 % |
 | Super + J | Steam, Heroic, Cyberpunk y espacio |
 | Super + Shift + A | Alternar efectos vivos y reducidos |
 | Super + 1…9 | Cambiar de escritorio |

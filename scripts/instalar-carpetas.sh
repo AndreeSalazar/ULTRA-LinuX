@@ -9,7 +9,7 @@ sistema=$1; art=$2; base=$3
 lab=$(cd -- "$(dirname -- "$0")" && pwd)
 fuente="$lab/../src/apps/ultra-carpetas"
 nucleo="$lab/../src/apps/carpetas-nucleo"
-destino="$base/carpetas-target"
+destino="${ULTRA_BUILD_CACHE:-$base}/carpetas-target"
 command -v cargo > /dev/null || sudo pacman -S --needed --noconfirm rustup > "$art/carpetas-herramientas.log" 2>&1 ||
     { echo 'AMARILLO [CARPETAS]: sin Rust; se queda Thunar'; exit 0; }
 if ! (cd "$nucleo" && CARGO_TARGET_DIR="$destino-nucleo" cargo test --locked &&

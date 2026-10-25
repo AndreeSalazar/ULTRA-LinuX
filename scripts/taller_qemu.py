@@ -71,7 +71,7 @@ final_message: "Linux Reconstruido: cloud-init finalizado; comprobar paquetes y 
     if not disk.exists():run(QEMU/'qemu-img.exe','create','-f','qcow2','-F','qcow2','-b',image,disk,'64G')
     print('Seed y disco Linux de 64 GiB virtuales preparados. Base oficial conservada.')
 
-def start(accel="whpx"):
+def start(accel="whpx", disco_trabajo=False):
     for port in [12222,18765,14444]:free(port)
     if not (VM/'seed.iso').exists():raise RuntimeError('Ejecutar prepare primero.')
     if accel == 'whpx':
@@ -83,9 +83,18 @@ def start(accel="whpx"):
         except subprocess.TimeoutExpired:
             probe.kill();probe.communicate()
     clock=['-accel','whpx','-cpu','host'] if accel=='whpx' else ['-accel','tcg,thread=single','-icount','shift=auto','-cpu','qemu64']
+    work_args=[]
+    if disco_trabajo:
+        work=VM/'main-escritorio-taller.qcow2'
+        if not work.is_file() or work.resolve()!=work:raise RuntimeError('Disco virtual de trabajo ausente o redirigido')
+        info=json.loads(subprocess.check_output([str(QEMU/'qemu-img.exe'),'info','--output=json',str(work)],text=True))
+        if info.get('format')!='qcow2' or info.get('virtual-size')!=68719476736 or info.get('backing-filename'):
+            raise RuntimeError('Disco de trabajo no corresponde a la imagen independiente de 64 GiB')
+        work_args=['-drive',f'file={work},format=qcow2,if=none,id=main-work,discard=unmap',
+               '-device','virtio-blk-pci,drive=main-work,serial=ULTRA-MAIN-WORK']
     http_log=(VM/'http.log').open('ab')
     server=subprocess.Popen([sys.executable,'-m','http.server','18765','--bind','127.0.0.1','--directory',str(VM/'public')],stdout=http_log,stderr=subprocess.STDOUT,creationflags=HIDDEN)
-    args=[str(QEMU/'qemu-system-x86_64.exe'),'-name','Linux Reconstruido - taller GCC','-machine','pc',*clock,'-smp','4','-m','4096','-drive',f'file={VM/"taller.qcow2"},format=qcow2,if=virtio,discard=unmap,detect-zeroes=unmap','-drive',f'file={VM/"seed.iso"},format=raw,media=cdrom,readonly=on','-device','virtio-net-pci,netdev=net0','-netdev','user,id=net0,hostfwd=tcp:127.0.0.1:12222-:22','-qmp','tcp:127.0.0.1:14444,server=on,wait=off','-serial',f'file:{VM/"serial.log"}','-display','none']
+    args=[str(QEMU/'qemu-system-x86_64.exe'),'-name','Linux Reconstruido - taller GCC','-machine','pc',*clock,'-smp','4','-m','4096','-drive',f'file={VM/"taller.qcow2"},format=qcow2,if=none,id=taller-root,discard=unmap,detect-zeroes=unmap','-device','virtio-blk-pci,drive=taller-root,bootindex=1','-drive',f'file={VM/"seed.iso"},format=raw,media=cdrom,readonly=on','-device','virtio-net-pci,netdev=net0','-netdev','user,id=net0,hostfwd=tcp:127.0.0.1:12222-:22','-qmp','tcp:127.0.0.1:14444,server=on,wait=off','-serial',f'file:{VM/"serial.log"}','-display','none',*work_args]
     log=(VM/'qemu.log').open('ab')
     try:proc=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT,creationflags=HIDDEN)
     except Exception:server.terminate();raise
@@ -113,9 +122,9 @@ def status():
         print('AMARILLO: cloud-init conserva error historico del clon interrumpido; inicializador recuperado y comprobado manualmente. No se certifica un arranque limpio.')
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['prepare','start','status']);parser.add_argument('--accel',choices=['whpx','tcg'],default='whpx');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('action',choices=['prepare','start','status']);parser.add_argument('--accel',choices=['whpx','tcg'],default='whpx');parser.add_argument('--disco-trabajo',action='store_true',help='Conectar el disco virtual existente de compilacion main, sin formatear');args=parser.parse_args()
     try:
-        if args.action=='start':start(args.accel)
+        if args.action=='start':start(args.accel,args.disco_trabajo)
         else:globals()[args.action]()
     except subprocess.CalledProcessError as exc:print('AMARILLO/ROJO:',exc.stderr or exc.stdout or str(exc),file=sys.stderr);sys.exit(1)
     except Exception as exc:print('AMARILLO/ROJO:',exc,file=sys.stderr);sys.exit(1)

@@ -14,6 +14,11 @@ FALLA = '--auto-falla' in sys.argv[2:]
 AUTO = FALLA or '--auto' in sys.argv[2:]
 BMO = AUTO or '--bmo' in sys.argv[2:]
 BRAVE = '--brave' in sys.argv[2:]
+RAM_MIB = 2048
+if '--ram-mib' in sys.argv[2:]:
+    try: RAM_MIB = int(sys.argv[sys.argv.index('--ram-mib')+1])
+    except (ValueError, IndexError): raise SystemExit('Falta RAM valida para el banco')
+    if not 2048 <= RAM_MIB <= 8192: raise SystemExit('RAM del banco: entre 2048 y 8192 MiB')
 DISCO = BMO or '--disco' in sys.argv[2:]
 QEMU_SHARE = pathlib.Path(r'C:\Program Files\qemu\share')
 BUILD = ROOT / 'build' / {'produccion': 'baseline', 'vigia': 'vigia', 'generico': 'generico', 'pc': 'pc'}[PERFIL]
@@ -668,24 +673,49 @@ def check_hyprland(conn, failures):
             except (OSError, SyntaxError): time.sleep(.1)
         else: raise ValueError('captura base de categorias incompleta')
         base_pixels = {color: contar(base_capture, color) for color in colores}
+        menu_checks = 0
+        def esperar_menu(prompt):
+            nonlocal transcript, menu_checks
+            menu_checks += 1
+            marker = f'MENU-LISTO-{60+menu_checks}'
+            command = ("for intento in $(seq 1 50); do listo=; "
+                       "for p in $(pidof fuzzel); do "
+                       f"if grep -aqF -- {shlex.quote(prompt)} /proc/$p/cmdline; then listo=1; fi; "
+                       "done; if test -n \"$listo\"; then "
+                       f"echo MENU-LISTO-$((60+{menu_checks})); break; fi; sleep .1; done")
+            transcript += run(conn, [(command, marker)], failures)
+            # El proceso existe antes de que Wayland termine de dar foco al menu.
+            time.sleep(.5)
+        prompts = ['Aplicaciones / ACENTO', 'Discos / CYAN', 'Juegos / ROJO',
+                   'Pantalla / VERDE', 'Audio / VIOLETA', 'Ambiente / AMARILLO', 'Sistema / CORAL']
         for number, color in enumerate(colores, 1):
-            mon.sendall(b'sendkey meta_l-spc\n'); time.sleep(.7)
+            mon.sendall(b'sendkey meta_l-spc\n')
+            esperar_menu('BMO-X // Categorias')
             mon.sendall(f'sendkey {number}\n'.encode()); time.sleep(.15)
-            mon.sendall(b'sendkey ret\n'); time.sleep(1)
+            mon.sendall(b'sendkey ret\n')
+            esperar_menu(prompts[number-1])
             category_capture = pathlib.Path(tempfile.gettempdir()) / f'ultra-categoria-{number}.png'
-            category_capture.unlink(missing_ok=True)
-            mon.sendall(f'screendump {category_capture} -f png\n'.encode())
-            for _ in range(50):
-                try:
-                    from PIL import Image
-                    with Image.open(category_capture) as shot: shot.verify()
-                    break
-                except (OSError, SyntaxError): time.sleep(.1)
-            else: raise ValueError('captura de categoria incompleta')
-            pixels = contar(category_capture, color) - base_pixels[color]
+            # Un proceso listo no garantiza que su primer cuadro ya se presento.
+            # Mantener el mismo umbral visual, esperando el cuadro hasta 10 s.
+            deadline = time.monotonic() + 10
+            pixels = 0
+            while time.monotonic() < deadline:
+                category_capture.unlink(missing_ok=True)
+                mon.sendall(f'screendump {category_capture} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        from PIL import Image
+                        with Image.open(category_capture) as shot: shot.verify()
+                        break
+                    except (OSError, SyntaxError): time.sleep(.1)
+                else: raise ValueError('captura de categoria incompleta')
+                pixels = contar(category_capture, color) - base_pixels[color]
+                if pixels > 40: break
+                time.sleep(.2)
             expect(pixels > 40, f'Categoria {number}: color propio visible')
             shutil.copyfile(category_capture,LOG.with_name(LOG.stem+f'-categoria-{number}.png'))
-            mon.sendall(b'sendkey esc\n'); time.sleep(.7)  # Submenu -> root.
+            mon.sendall(b'sendkey esc\n')  # Submenu -> root.
+            esperar_menu('BMO-X // Categorias')
             transcript += run(conn, [('test -n "$(pidof fuzzel)" && echo CATEGORIA-RAIZ-$((1+1))', 'CATEGORIA-RAIZ-2')], failures)
             mon.sendall(b'sendkey esc\n'); time.sleep(.5)
         # Drive the actual Super+Space menu. A fresh VM has no personal storage;
@@ -950,6 +980,34 @@ def check_hyprland(conn, failures):
                     except (OSError,SyntaxError): time.sleep(.1)
                 else: raise ValueError('captura de equipo incompleta')
                 shutil.copyfile(target,LOG.with_name(LOG.stem+'-equipo.png'))
+        if '--carpetas' in sys.argv:
+            transcript += run(conn, [('mkdir -p /arch/home/ultra/Proyectos /arch/home/ultra/Juegos /arch/home/ultra/Museo /arch/home/ultra/Documentos; chown 1000:1000 /arch/home/ultra/Proyectos /arch/home/ultra/Juegos /arch/home/ultra/Museo /arch/home/ultra/Documentos; echo CARPETAS-DATOS-$((50+2))', 'CARPETAS-DATOS-52')], failures)
+            conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval \'hl.exec_cmd("ultra-tarjetas parar")\'; echo CARPETAS-INICIO-$((50+3))\n')
+            transcript += response('CARPETAS-INICIO-53')
+            mon.sendall(b'sendkey meta_l-4\n'); time.sleep(1)
+            mon.sendall(b'sendkey meta_l-ctrl-e\n')
+            opened = wait_apps(lambda apps: any(a.get('class') == 'ultra-carpetas' or a.get('title') == 'ULTRA Carpetas' for a in apps))
+            expect(bool(opened), 'Carpetas: Super+Ctrl+E abre la aplicacion real')
+            if opened:
+                app = next(a for a in opened if a.get('class') == 'ultra-carpetas' or a.get('title') == 'ULTRA Carpetas')
+                # La ventana puede mapearse antes de terminar de crear el adaptador.
+                time.sleep(3)
+                transcript += run(conn, [(f"grep -Eq '^Uid:[[:space:]]+1000[[:space:]]+1000[[:space:]]+1000[[:space:]]+1000' /proc/{app['pid']}/status && echo CARPETAS-USUARIO-$((50+4))", 'CARPETAS-USUARIO-54'),
+                                         (f"grep -q 'libvulkan_lvp' /proc/{app['pid']}/maps && echo CARPETAS-VULKAN-$((50+5))", 'CARPETAS-VULKAN-55')], failures)
+                for suffix, keys in [('carpetas', None), ('carpetas-ajustes', b'sendkey ctrl-comma\n')]:
+                    if keys: mon.sendall(keys); time.sleep(1)
+                    target = pathlib.Path(tempfile.gettempdir())/('ultra-'+suffix+'.png'); target.unlink(missing_ok=True)
+                    mon.sendall(f'screendump {target} -f png\n'.encode())
+                    for _ in range(50):
+                        try:
+                            with Image.open(target) as shot: shot.verify()
+                            break
+                        except (OSError, SyntaxError): time.sleep(.1)
+                    else: raise ValueError('captura de Carpetas incompleta')
+                    shutil.copyfile(target, LOG.with_name(LOG.stem+'-'+suffix+'.png'))
+                mon.sendall(b'sendkey esc\n'); mon.sendall(b'sendkey meta_l-q\n'); time.sleep(1)
+                expect(not any(a.get('pid') == app['pid'] for a in clients()), 'Carpetas: cierre normal desde el escritorio')
+            mon.sendall(b'sendkey meta_l-1\n')
         if '--limites' in sys.argv:
             encoded=base64.b64encode((ROOT/'scripts/banco_limites.py').read_bytes()).decode()
             conn.sendall(b': > /arch/tmp/limites.b64; echo LIM-CARGA-$((40+6))\n');transcript+=response('LIM-CARGA-46')
@@ -1094,7 +1152,7 @@ def main():
         boot = ['-kernel', str(KERNEL), '-append', 'console=ttyS0,115200 rdinit=/init panic=-1 noapic quiet '
                 'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on']
     def start():
-        proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', '2048',
+        proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', str(RAM_MIB),
                                  *boot, '-vga', 'virtio', '-nic', 'user,model=virtio-net-pci' if BRAVE else 'none', '-display', 'none', '-no-reboot',
                                  '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on',
                                  '-monitor', f'tcp:127.0.0.1:{PORT + 1},server=on,wait=off'],

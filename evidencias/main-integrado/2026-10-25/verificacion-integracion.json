@@ -1,0 +1,12 @@
+{
+  "source_files_verified": 368,
+  "artifacts": {
+    "sistema-a.erofs": "14d702598bb1df1da67f60c51f719013897d6c50749953b8e7b0c03d85cc9ecc",
+    "disco-bmo.img": "cb87e31268e75967436777ac113f86ab37600d23150ddad1a2927b07ad657f75",
+    "bzImage-tiny64": "e2242e375f3f508c535f18cf684a573d1d5664350a6199742ee9f0ab1891c8f7",
+    "almacen-nativo-fuentes.sha256": "e5a78031ebe2fdf82a5b9df877400d697d9a25cbeb9aee4e9cf5217a0588eb3b"
+  },
+  "kernel_unchanged": true,
+  "nvidia_versions_preserved": true,
+  "extra_source_manifest_sha256": "b77f44f8f28ab3a0589b93cb841c3e7899bf1002a660c055465043383a847e33"
+}

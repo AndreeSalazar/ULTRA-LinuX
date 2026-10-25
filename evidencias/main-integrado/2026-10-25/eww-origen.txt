@@ -1,0 +1,5 @@
+version=v0.6.0
+commit=d87c2fdbfdc012e76d229e4e9ea3325bc0f23e89
+url=https://github.com/elkowar/eww.git
+funciones=wayland
+sha256=78e98b9f17ba7b395472392d645f46b3460fbf9d652749eec3517843177285a6

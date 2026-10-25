@@ -1,0 +1,36 @@
+{
+  "Tipo": "Solo candidatas fallidas y copias desechables de QEMU de esta integracion",
+  "Archivos": [
+    {
+      "Archivo": "build/main-integrado-pc/disco-bmo-prueba.img",
+      "Bytes": 2184183808
+    },
+    {
+      "Archivo": "build/main-integrado-pc/ovmf-vars-prueba.fd",
+      "Bytes": 540672
+    },
+    {
+      "Archivo": "build/main-integrado-pc/disco-bmo.img",
+      "Bytes": 2184183808
+    },
+    {
+      "Archivo": "build/main-integrado-pc/sistema-a.erofs",
+      "Bytes": 1963761664
+    },
+    {
+      "Archivo": "build/main-integrado-pc/bzImage-tiny64",
+      "Bytes": 18756608
+    },
+    {
+      "Archivo": "build/main-integrado2-pc/disco-bmo-prueba.img",
+      "Bytes": 2187329536
+    },
+    {
+      "Archivo": "build/main-integrado2-pc/ovmf-vars-prueba.fd",
+      "Bytes": 540672
+    }
+  ],
+  "BytesRecuperados": 8539296768,
+  "RespaldosAnterioresConservados": true,
+  "CacheCompilacionConservada": true
+}
