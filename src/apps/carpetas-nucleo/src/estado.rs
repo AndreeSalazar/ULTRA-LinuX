@@ -119,6 +119,19 @@ pub enum Accion {
     MapaCasm { id: String, resultado: Option<Result<crate::casm::MapaCasm, String>> },
     /// Filtro del triangulo: ver solo un eje (None: los tres).
     FiltroEje(Option<crate::museo::Eje>),
+    /// Seleccion grupal (Ciudad: Ctrl+clic o Shift+arrastrar) para el panel Combinar.
+    Grupo(AccionGrupo),
+}
+
+/// Cambios del grupo que se combina.
+#[derive(Debug, Clone, PartialEq)]
+pub enum AccionGrupo {
+    /// Meterlo si no esta; sacarlo si esta.
+    Alternar(String),
+    /// Meter varios (la banda de la Ciudad).
+    Sumar(Vec<String>),
+    Quitar(String),
+    Limpiar,
 }
 
 /// La historia de git de la carpeta abierta.
@@ -164,7 +177,7 @@ impl Revelar {
 
 /// Que muestra el panel de la izquierda.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Lateral { #[default] Explorador, Buscar, Museo, Casm }
+pub enum Lateral { #[default] Explorador, Buscar, Museo, Casm, Combinar }
 
 /// Estado del indice de todo el proyecto (lo lleva la plataforma en su hilo).
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -270,6 +283,9 @@ pub struct Estado {
     pub casm: EstadoCasm,
     /// Triangulo: ver solo Seguridad, Rendimiento o Elegancia (None: los tres).
     pub filtro_eje: Option<crate::museo::Eje>,
+    /// Seleccion grupal de la Ciudad, en el orden en que se eligio (rutas relativas de
+    /// archivos o carpetas). Aparte de `seleccion`, que es la del explorador y el grafo.
+    pub grupo: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -289,7 +305,7 @@ impl Default for Estado {
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
                  ciudad: DatosCiudad::default(), historia: EstadoHistoria::default(),
                  analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0,
-                 casm: EstadoCasm::default(), filtro_eje: None }
+                 casm: EstadoCasm::default(), filtro_eje: None, grupo: Vec::new() }
     }
 }
 
@@ -799,7 +815,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                        | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. } | Accion::IrA(_)
                        | Accion::ResultadosIrA { .. } | Accion::Indice(_) | Accion::Lateral(_) | Accion::ResultadosProyecto { .. }
                        | Accion::DatosCiudad { .. } | Accion::LineasListas { .. } | Accion::Historia { .. }
-                       | Accion::Taller(_) | Accion::MapaCasm { .. }
+                       | Accion::Taller(_) | Accion::MapaCasm { .. } | Accion::Grupo(_)
                        | Accion::Proyecto(AccionProyecto::Patron(_) | AccionProyecto::Mayusculas | AccionProyecto::Palabra
                                           | AccionProyecto::Filtro(_) | AccionProyecto::Lanzar | AccionProyecto::Limpiar | AccionProyecto::Plegar(_))) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
@@ -813,6 +829,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             e.entradas = entradas;
             e.disp = disposicion;
             e.seleccion.clear();
+            e.grupo.clear();
             e.expandidas.clear();
             e.arrastrando = false;
             e.banda = None;
@@ -1038,6 +1055,23 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             vec![]
         }
         Accion::Lateral(l) => { e.lateral = l; if !e.ajustes.explorador { e.ajustes.explorador = true; } vec![] }
+        Accion::Grupo(a) => {
+            let antes = e.grupo.len();
+            match a {
+                AccionGrupo::Alternar(id) => match e.grupo.iter().position(|x| *x == id) {
+                    Some(i) => { e.grupo.remove(i); }
+                    None => e.grupo.push(id),
+                },
+                AccionGrupo::Sumar(ids) => for id in ids { if !e.grupo.contains(&id) { e.grupo.push(id); } },
+                AccionGrupo::Quitar(id) => e.grupo.retain(|x| *x != id),
+                AccionGrupo::Limpiar => e.grupo.clear(),
+            }
+            e.grupo.retain(|x| !x.is_empty() && x.len() <= 4096);
+            e.grupo.truncate(crate::combinar::MAX_GRUPO);
+            // Al juntar el segundo, se abre el panel Combinar (despues manda quien lo usa).
+            if antes < 2 && e.grupo.len() >= 2 { e.lateral = Lateral::Combinar; e.ajustes.explorador = true; }
+            vec![]
+        }
     }
 }
 

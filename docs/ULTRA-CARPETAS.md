@@ -548,6 +548,55 @@ Rendimiento).
 - **No comprobado:** que R-002 sea más lento de verdad en cada sitio (no hay perfil
   medido) ni el umbral de 100 líneas contra otro criterio. Son guías, no fallos.
 
+### Combinar: la selección grupal en vivo
+
+Varios edificios de la Ciudad se juntan en un **grupo**, y el panel **Combinar** (icono de
+tres nodos en la barra de la izquierda; lleva el número de miembros) dibuja cómo se
+conectan. Se rehace al momento, cada vez que el grupo cambia.
+
+- **Elegir en la Ciudad:**
+  - **Ctrl+clic** mete o saca un edificio (también un bloque juntado: cuenta con todos sus
+    archivos).
+  - **Shift+arrastrar** hace una banda: entran los edificios cuya azotea cae dentro.
+  - Al juntar el segundo, el panel se abre solo.
+- **En el grafo** vale la selección de siempre (la banda). Si el grupo de la Ciudad está
+  vacío, el panel usa esa selección.
+- **En el panel**, de un vistazo:
+  - **Cable blanco con flecha:** uno del grupo usa a otro (`#include`, `use`, `import`,
+    `%include`).
+  - **Abajo, en el acento:** lo que **comparten**, es decir, archivos de fuera que usan dos
+    o más del grupo.
+  - **Arriba, en verde:** **quién los junta**, es decir, archivos de fuera que usan a dos o
+    más del grupo.
+  - **Sueltos:** no se tocan con ningún otro del grupo. **Piezas:** cuántos bloques
+    separados forman.
+  - Cada miembro lleva su **triángulo**, y el borde rojo neón si tiene algo de Seguridad.
+  - Con más de 12 miembros son puntos, y solo se rotulan los más unidos.
+  - Pasar el ratón enciende sus cables y apaga el resto. Clic: la Ciudad lleva la cámara
+    allí. Ctrl+clic en algo compartido: entra al grupo. Clic derecho en un miembro: sale.
+- **En la Ciudad**, los mismos cables encima de los edificios:
+  - Los miembros, en blanco.
+  - Lo compartido, en el acento; quien los junta, en verde.
+  - Arcos blancos con flecha entre los que se usan.
+
+![Combinar con 42 edificios de base/strings y base/time (Shift+arrastrar): 14 directas, 26 compartidos, 34 que los juntan; 0,34 ms](maquetas/png/neon/carpetas-combinar.png)
+![Combinar con 5 elegidos por Ctrl+clic: ninguno usa a otro, pero comparten 5 cabeceras; time_unittest.cc con borde rojo (Seguridad) y strcat_unittest.cc suelto](maquetas/png/neon/carpetas-combinar-pocos.png)
+
+**Medido** (Chromium `base/`, 16 312 dependencias):
+
+- Combinar 42 miembros tarda **0,34 ms**; 5 miembros, 0,05 ms. El panel enseña el tiempo
+  de cada vez.
+- La lógica está en el núcleo (`carpetas-nucleo/src/combinar.rs`, `no_std`). Lo comprueba
+  `tests/combinar.rs`: directas, compartidos, quién los junta, carpetas, sueltos, piezas
+  y el reductor del grupo.
+
+**Límites:**
+
+- Como mucho 64 miembros, y 8 de cada clase de puente (el total sí se cuenta entero).
+- Las dependencias son las del análisis léxico: lo que decide el preprocesador
+  (`#ifdef`, rutas `-I`) no se ve.
+- Si un archivo y su carpeta están los dos, el archivo cuenta para el primero que entró.
+
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**

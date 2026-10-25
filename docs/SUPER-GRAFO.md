@@ -62,6 +62,26 @@ De ellas se toman ideas y casos de prueba, no código: cada una tiene su licenci
    Rendimiento, 4 Elegancia), cuatro de ellas nuevas (R-001, R-002, E-001, E-002). Solo
    la Seguridad cuenta como fallo. Detalle y medidas en
    [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-triángulo-seguridad-rendimiento-y-elegancia).
+5. **Combinar: la selección grupal.** Varios edificios (Ctrl+clic o Shift+arrastrar en la
+   Ciudad) y el panel dibuja cómo se combinan: directas, lo que comparten, quién los junta
+   y los sueltos, con cables también sobre la Ciudad. **Hecho:** 0,34 ms con 42 miembros
+   en Chromium. Detalle en
+   [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#combinar-la-selección-grupal-en-vivo).
+
+## Siguientes ideas para educar al SUPER GRAFO
+
+Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
+
+1. **Camino más corto entre dos elegidos.** Con dos en el grupo: la cadena de `#include`
+   que los une (A → x.h → y.h → B), pintada en el panel y en la Ciudad.
+2. **Ciclos en el grupo.** A usa B y B usa A (por cualquier camino): marcarlos, porque un
+   ciclo de cabeceras es un olor de diseño (eje Elegancia).
+3. **Peso del cambio.** Si cambia este grupo, cuántos archivos hay que recompilar (quien
+   los usa, directa o indirectamente): una cifra de Rendimiento medible con GCC.
+4. **Fronteras de carpeta.** Contar cuántas dependencias cruzan de un distrito a otro: un
+   módulo que todos usan, o uno que usa a todos.
+5. **Grupos guardados.** Ponerle nombre a un grupo («red», «arranque») y volver a él.
+
 
 ## CASM: el lenguaje que exporta `.hex`
 

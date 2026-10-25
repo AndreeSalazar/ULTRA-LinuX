@@ -279,6 +279,14 @@ impl Dependencias {
     pub fn ruta(&self, id: u32) -> &str { &self.rutas[id as usize] }
     pub fn usa(&self, ruta: &str) -> impl Iterator<Item = &str> { self.id(ruta).into_iter().flat_map(move |i| self.usa[i as usize].iter().map(move |j| self.ruta(*j))) }
     pub fn usado_por(&self, ruta: &str) -> impl Iterator<Item = &str> { self.id(ruta).into_iter().flat_map(move |i| self.usado_por[i as usize].iter().map(move |j| self.ruta(*j))) }
+    /// Lo que usa (o quien usa) un archivo, por indice.
+    pub fn usa_id(&self, i: u32) -> &[u32] { self.usa.get(i as usize).map(|v| v.as_slice()).unwrap_or(&[]) }
+    pub fn usado_por_id(&self, i: u32) -> &[u32] { self.usado_por.get(i as usize).map(|v| v.as_slice()).unwrap_or(&[]) }
+    /// Los archivos cuya ruta empieza por `prefijo` (los de una carpeta: "dir/").
+    pub fn con_prefijo<'a>(&'a self, prefijo: &'a str) -> impl Iterator<Item = u32> + 'a {
+        self.indice.range::<str, _>((core::ops::Bound::Included(prefijo), core::ops::Bound::Unbounded))
+            .take_while(move |(r, _)| r.starts_with(prefijo)).map(|(_, i)| *i)
+    }
     pub fn len(&self) -> usize { self.rutas.len() }
     pub fn is_empty(&self) -> bool { self.rutas.is_empty() }
 

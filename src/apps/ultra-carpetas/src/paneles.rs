@@ -11,7 +11,7 @@ use eframe::egui::{self, text::LayoutJob, Align, Align2, Color32, FontId, Pos2, 
 
 /// Iconos de la barra de actividad, dibujados con formas (nitidos y sin fuentes).
 #[derive(Clone, Copy, PartialEq)]
-pub enum Icono { Explorador, Buscar, IrA, Grafo, Ciudad, Museo, Casm, Terminal, Carriles, Ajustes }
+pub enum Icono { Explorador, Buscar, IrA, Grafo, Ciudad, Museo, Combinar, Casm, Terminal, Carriles, Ajustes }
 
 pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
     let c = caja.center();
@@ -52,6 +52,12 @@ pub fn dibujar(p: &egui::Painter, caja: Rect, i: Icono, col: Color32) {
             p.line_segment([c + Vec2::new(-10.0, -4.0), c + Vec2::new(10.0, -4.0)], t);
             for x in [-6.5, 0.0, 6.5] { p.line_segment([c + Vec2::new(x, -2.0), c + Vec2::new(x, 6.0)], Stroke::new(2.2, col)); }
             p.line_segment([c + Vec2::new(-11.0, 8.5), c + Vec2::new(11.0, 8.5)], Stroke::new(2.0, col));
+        }
+        Icono::Combinar => {
+            // Tres nodos que se combinan: dos arriba unidos y uno abajo que comparten.
+            let (a, b, d) = (c + Vec2::new(-8.0, -6.0), c + Vec2::new(8.0, -6.0), c + Vec2::new(0.0, 8.0));
+            for (x, y) in [(a, b), (a, d), (b, d)] { p.line_segment([x, y], Stroke::new(1.3, col)); }
+            for q in [a, b, d] { p.circle_filled(q, 3.4, col); }
         }
         Icono::Casm => {
             // Una katana: hoja en diagonal, guarda y empunadura.
@@ -97,7 +103,8 @@ impl App {
         let pasos = |destino: Modo| -> usize { let i = |m: Modo| match m { Modo::Iconos => 0, Modo::Grafo => 1, Modo::Ciudad => 2 }; (i(destino) + 3 - i(modo)) % 3 };
         let museo = lateral && e.lateral == Lateral::Museo;
         let taller = lateral && e.lateral == Lateral::Casm;
-        let botones: [(Icono, bool, &str, Accion); 8] = [
+        let combinar = lateral && e.lateral == Lateral::Combinar;
+        let botones: [(Icono, bool, &str, Accion); 9] = [
             (Icono::Explorador, lateral && e.lateral == Lateral::Explorador, "Explorador [Ctrl+B]",
              if lateral && e.lateral == Lateral::Explorador { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Explorador) }),
             (Icono::Buscar, lateral && e.lateral == Lateral::Buscar, "Buscar en el proyecto [Ctrl+Shift+F]",
@@ -109,6 +116,8 @@ impl App {
              Accion::Comando(Comando::Ciudad)),
             (Icono::Museo, museo, "SUPER GRAFO // Museo: fallo conectado, causa probable y las fichas de C, C++ y ASM que aparecen en tu codigo [A: aislar]",
              if museo { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Museo) }),
+            (Icono::Combinar, combinar, "SUPER GRAFO // Combinar: como se conectan varios elegidos (Ctrl+clic o Shift+arrastrar en la Ciudad; la banda en el grafo)",
+             if combinar { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Combinar) }),
             (Icono::Casm, taller, "Taller CASM // SAMURAI: como se genera el .hex, las katanas (donde corta cada regla) y las compilaciones",
              if taller { Accion::Comando(Comando::Explorador) } else { Accion::Lateral(Lateral::Casm) }),
             (Icono::Terminal, e.terminal.abierta, "Terminal [Ctrl+`]", Accion::Comando(Comando::Terminal)),
@@ -122,6 +131,12 @@ impl App {
                 let q = r.rect.right_top() + Vec2::new(-11.0, 10.0);
                 ui.painter().circle_filled(q, 4.5, c.error);
                 ui.painter().circle_filled(q, 1.8, Color32::WHITE);
+            }
+            if icono == Icono::Combinar && e.grupo.len() >= 2 {
+                // Cuantos hay en el grupo de la Ciudad.
+                let q = r.rect.right_top() + Vec2::new(-10.0, 10.0);
+                ui.painter().circle_filled(q, 6.5, c.acento);
+                ui.painter().text(q, Align2::CENTER_CENTER, e.grupo.len().to_string(), FontId::proportional(9.0), c.sobre_acento);
             }
             if r.on_hover_text(ayuda).clicked() {
                 // El boton de grafo lleva a esa vista desde cualquiera (Tab va en orden).

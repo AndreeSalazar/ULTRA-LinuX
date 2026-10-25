@@ -15,6 +15,7 @@ mod archivo;
 mod casm_taller;
 mod casm_ui;
 mod ciudad3d;
+mod combinar_ui;
 mod disco;
 mod editor_ui;
 mod entradas;
@@ -108,6 +109,8 @@ struct App {
     revelado_visto: u64,
     /// Vista Ciudad: la ciudad armada, sus instancias y su camara.
     ciudad: ciudad3d::Vista3,
+    /// Panel Combinar: la seleccion grupal y como se conecta.
+    combinar: combinar_ui::Cache,
     ciudad_ok: bool,
     micros_datos_ciudad: u64,
     /// Historia de git (su hilo) y que pedido es el ultimo.
@@ -141,7 +144,7 @@ impl App {
             vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huellas: Default::default(),
             proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
             texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
-            ciudad: ciudad3d::Vista3::default(), ciudad_ok, micros_datos_ciudad: 0,
+            ciudad: ciudad3d::Vista3::default(), combinar: combinar_ui::Cache::default(), ciudad_ok, micros_datos_ciudad: 0,
             git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0, casm_clave: None,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
@@ -1019,6 +1022,7 @@ impl eframe::App for App {
                     carpetas_nucleo::estado::Lateral::Buscar => self.panel_buscar(ui, &c),
                     carpetas_nucleo::estado::Lateral::Museo => self.panel_museo(ui, &c),
                     carpetas_nucleo::estado::Lateral::Casm => self.panel_casm(ui, &c),
+                    carpetas_nucleo::estado::Lateral::Combinar => self.panel_combinar(ui, &c),
                 });
         }
         egui::CentralPanel::default().frame(egui::Frame::new().fill(c.fondo)).show(ui, |ui| {
@@ -1033,7 +1037,8 @@ impl eframe::App for App {
             } else if v.modo == Modo::Ciudad {
                 let mut acciones = Vec::new();
                 let antes = self.ciudad.micros;
-                ciudad3d::pintar(ui, &mut self.ciudad, &self.estado, &c, self.ciudad_ok, &mut acciones);
+                self.combinar.al_dia(&self.estado);
+                ciudad3d::pintar(ui, &mut self.ciudad, &self.estado, &self.combinar, &c, self.ciudad_ok, &mut acciones);
                 if self.ciudad.micros != antes { self.medidas.anotar(Carril::Ciudad, self.ciudad.micros); }
                 for a in acciones { self.despachar(a); }
             } else {

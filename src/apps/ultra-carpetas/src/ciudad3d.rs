@@ -152,7 +152,12 @@ pub struct Vista3 {
     revelado_visto: u64,
     raiz_vista: String,
     pub micros: u64,
+    /// Shift+arrastrar: donde empezo la banda de la seleccion grupal.
+    banda: Option<Pos2>,
 }
+
+/// Cajas resaltadas como mucho: lo elegido, lo de debajo del raton y el grupo con sus puentes.
+const MAX_RESALTES: usize = 128;
 
 impl Vista3 {
     /// Rehace la ciudad y sus instancias si cambio algo que se ve (no la camara).
@@ -247,7 +252,7 @@ pub fn instalar(rs: &egui_wgpu::RenderState, profundidad: Option<wgpu::TextureFo
         multiview_mask: None,
         cache: None,
     });
-    let resaltes = d.create_buffer(&wgpu::BufferDescriptor { label: Some("ciudad resaltes"), size: (std::mem::size_of::<Instancia>() * 4) as u64,
+    let resaltes = d.create_buffer(&wgpu::BufferDescriptor { label: Some("ciudad resaltes"), size: (std::mem::size_of::<Instancia>() * MAX_RESALTES) as u64,
         usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
     rs.renderer.write().callback_resources.insert(Recursos { pipeline, uniforme, grupo, instancias: None, cantidad: 0, version: u64::MAX, resaltes, n_resaltes: 0 });
     true
@@ -265,7 +270,7 @@ impl CallbackTrait for Pintor {
             r.version = self.version;
         }
         queue.write_buffer(&r.uniforme, 0, bytemuck::bytes_of(&self.uniforme));
-        r.n_resaltes = self.resaltes.len().min(4) as u32;
+        r.n_resaltes = self.resaltes.len().min(MAX_RESALTES) as u32;
         if r.n_resaltes > 0 { queue.write_buffer(&r.resaltes, 0, bytemuck::cast_slice(&self.resaltes[..r.n_resaltes as usize])); }
         Vec::new()
     }
@@ -287,7 +292,7 @@ impl CallbackTrait for Pintor {
 fn por(x: f32) -> String { if x >= 10.0 { format!("{x:.0} %") } else if x >= 0.1 { format!("{x:.1} %") } else { "<0.1 %".into() } }
 
 /// Pinta la ciudad, su leyenda y etiquetas; traduce el raton a acciones.
-pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: bool, acciones: &mut Vec<Accion>) {
+pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combinar_ui::Cache, c: &Colores, gpu: bool, acciones: &mut Vec<Accion>) {
     let (rect, resp) = ui.allocate_exact_size(ui.available_size(), Sense::click_and_drag());
     let pintor = ui.painter_at(rect);
     pintor.rect_filled(rect, 0.0, c.fondo);
@@ -303,8 +308,10 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
     v3.preparar(e, c);
     let aspecto = rect.width() / rect.height().max(1.0);
     // Camara: arrastrar = girar; central o derecho = mover; rueda = acercar.
+    let shift = ui.input(|i| i.modifiers.shift);
+    if resp.drag_started_by(egui::PointerButton::Primary) && shift { v3.banda = ui.input(|i| i.pointer.press_origin()); }
     let cam = &mut v3.camara;
-    if resp.dragged_by(egui::PointerButton::Primary) {
+    if resp.dragged_by(egui::PointerButton::Primary) && v3.banda.is_none() {
         let d = resp.drag_delta();
         cam.giro -= d.x * 0.008;
         cam.inclinacion = (cam.inclinacion + d.y * 0.006).clamp(0.12, 1.5);
@@ -347,6 +354,18 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
     };
     let sel = e.seleccion.iter().next();
     if let Some(b) = sel.and_then(|s| v3.ciudad.edificios.iter().find(|b| &b.ruta == s)) { resaltar(b, [255, 255, 255]); }
+    // Seleccion grupal: los del grupo en blanco, lo que comparten en el acento y quien los
+    // junta en verde. Los cables se dibujan despues, sobre la ciudad.
+    let grupo = !e.grupo.is_empty() && !k.del_grafo;
+    let anclas = if grupo { anclas(&v3.ciudad, k) } else { Anclas::default() };
+    if grupo {
+        let (a, v) = (c.acento, c.verde);
+        for (i, col) in anclas.miembros.iter().map(|x| (x, [255, 255, 255]))
+            .chain(anclas.comparten.iter().map(|x| (x, [a.r(), a.g(), a.b()])))
+            .chain(anclas.juntan.iter().map(|x| (x, [v.r(), v.g(), v.b()]))) {
+            if let Some(Ancla::Edificio(j)) = i { resaltar(&v3.ciudad.edificios[*j], col); }
+        }
+    }
     if let Some(i) = bajo { let a = c.acento; resaltar(&v3.ciudad.edificios[i], [a.r(), a.g(), a.b()]); }
     let luz = [0.45, 0.85, 0.30, (v3.camara.distancia * 0.0012).clamp(0.08, 1.2)];
     pintor.add(egui_wgpu::Callback::new_paint_callback(rect, Pintor { version: v3.version_gpu, instancias: v3.instancias.clone(), uniforme: UniformeCiudad { vp, luz }, resaltes }));
@@ -370,6 +389,7 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         pintor.galley(caja.center() - g.size() / 2.0, g, Color32::WHITE);
     }
 
+    if grupo { cables(&pintor, &vp, rect, &v3.ciudad, k, &anclas, c); }
     leyenda(ui, rect, v3, e, c, acciones);
 
     // Ficha del edificio (o del distrito) bajo el raton.
@@ -402,8 +422,23 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         let t = format!("{}/\n{} archivos · {} · {} del total\ndoble clic: enfocar", if d.ruta.is_empty() { "(raiz)" } else { &d.ruta }, d.archivos, legible(d.tam), por(d.porcentaje));
         ficha(&pintor, rect, p, &t, c);
     }
-    // Clics.
-    if resp.clicked() {
+    // Shift+arrastrar: banda; al soltar, al grupo los edificios cuya azotea cae dentro.
+    if let Some(inicio) = v3.banda {
+        let fin = ui.input(|i| i.pointer.interact_pos()).unwrap_or(inicio);
+        let caja = Rect::from_two_pos(inicio, fin);
+        pintor.rect(caja, 2, c.acento.gamma_multiply(0.10), Stroke::new(1.0, c.acento), StrokeKind::Inside);
+        if resp.drag_stopped() || !ui.input(|i| i.pointer.primary_down()) {
+            v3.banda = None;
+            let dentro: Vec<String> = v3.ciudad.edificios.iter()
+                .filter(|b| proyectar(&vp, [b.rect[0] + b.rect[2] / 2.0, b.base + b.altura, b.rect[1] + b.rect[3] / 2.0], rect).is_some_and(|q| caja.contains(q)))
+                .take(carpetas_nucleo::combinar::MAX_GRUPO).map(|b| b.ruta.clone()).collect();
+            if !dentro.is_empty() { acciones.push(Accion::Grupo(carpetas_nucleo::AccionGrupo::Sumar(dentro))); }
+        }
+    }
+    // Clics. Ctrl+clic: meter o sacar del grupo (archivos y bloques).
+    if resp.clicked() && ui.input(|i| i.modifiers.command) {
+        if let Some(b) = bajo.map(|i| &v3.ciudad.edificios[i]) { acciones.push(Accion::Grupo(carpetas_nucleo::AccionGrupo::Alternar(b.ruta.clone()))); }
+    } else if resp.clicked() {
         match bajo.map(|i| &v3.ciudad.edificios[i]) {
             Some(b) if b.bloque => acciones.push(Accion::Enfocar(b.ruta.clone())),
             Some(b) => acciones.push(Accion::Revelar { id: b.ruta.clone(), editor: false }),
@@ -417,7 +452,7 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         if let Some(d) = distrito.map(|i| &v3.ciudad.distritos[i]) { if !d.ruta.is_empty() && bajo.is_none() { acciones.push(Accion::Enfocar(d.ruta.clone())); } }
     }
     pintor.text(rect.left_bottom() + Vec2::new(10.0, -8.0), Align2::LEFT_BOTTOM,
-                "arrastrar: girar · central/derecho: mover · rueda: acercar · clic: mostrar en el explorador · clic derecho: editor · doble clic en un distrito: enfocar · U: subir",
+                "arrastrar: girar · central/derecho: mover · rueda: acercar · clic: mostrar · Ctrl+clic o Shift+arrastrar: grupo (panel Combinar) · clic derecho: editor · doble clic en un distrito: enfocar · U: subir",
                 FontId::proportional(11.0), c.tenue);
 }
 
@@ -559,5 +594,69 @@ mod pruebas {
         // Un punto alto se ve mas arriba en pantalla.
         let alto = proyectar(&vp, [500.0, 100.0, 500.0], lienzo).unwrap();
         assert!(alto.y < p.y);
+    }
+}
+
+/// Donde esta en la ciudad algo del grupo: un edificio (archivo o bloque) o un distrito.
+#[derive(Clone, Copy, PartialEq)]
+enum Ancla { Edificio(usize), Distrito(usize) }
+
+#[derive(Default)]
+struct Anclas { miembros: Vec<Option<Ancla>>, comparten: Vec<Option<Ancla>>, juntan: Vec<Option<Ancla>> }
+
+/// Busca cada ruta del grupo (y sus puentes) en la ciudad de una pasada. Lo que esta dentro
+/// de un bloque juntado cae en ese bloque.
+fn anclas(ciudad: &Ciudad, k: &crate::combinar_ui::Cache) -> Anclas {
+    use std::collections::HashMap;
+    let cb = &k.c;
+    let rutas: Vec<&str> = cb.miembros.iter().map(|m| m.id.as_str()).chain(cb.comparten.iter().map(|x| x.ruta.as_str())).chain(cb.juntan.iter().map(|x| x.ruta.as_str())).collect();
+    let mut hallado: HashMap<&str, Ancla> = HashMap::with_capacity(rutas.len());
+    let buscados: std::collections::HashSet<&str> = rutas.iter().copied().collect();
+    for (i, b) in ciudad.edificios.iter().enumerate() { if buscados.contains(b.ruta.as_str()) { hallado.insert(&ciudad.edificios[i].ruta, Ancla::Edificio(i)); } }
+    let faltan: Vec<&str> = rutas.iter().copied().filter(|r| !hallado.contains_key(r)).collect();
+    for r in faltan {
+        let a = ciudad.distritos.iter().position(|d| d.ruta == r).map(Ancla::Distrito)
+            .or_else(|| ciudad.edificios.iter().position(|b| b.bloque && r.len() > b.ruta.len() && r.starts_with(b.ruta.as_str()) && r.as_bytes()[b.ruta.len()] == b'/').map(Ancla::Edificio));
+        if let Some(a) = a { hallado.insert(r, a); }
+    }
+    let de = |r: &str| hallado.get(r).copied();
+    Anclas { miembros: cb.miembros.iter().map(|m| de(&m.id)).collect(), comparten: cb.comparten.iter().map(|x| de(&x.ruta)).collect(), juntan: cb.juntan.iter().map(|x| de(&x.ruta)).collect() }
+}
+
+/// La azotea de un ancla (el centro de arriba del edificio o del distrito).
+fn azotea(ciudad: &Ciudad, a: Ancla) -> V3 {
+    match a {
+        Ancla::Edificio(i) => { let b = &ciudad.edificios[i]; [b.rect[0] + b.rect[2] / 2.0, b.base + b.altura, b.rect[1] + b.rect[3] / 2.0] }
+        Ancla::Distrito(i) => { let d = &ciudad.distritos[i]; [d.rect[0] + d.rect[2] / 2.0, d.base, d.rect[1] + d.rect[3] / 2.0] }
+    }
+}
+
+/// Cables sobre la ciudad: arcos blancos entre los del grupo que se usan (flecha en el
+/// usado) y arcos finos del acento (o verdes) hasta lo que comparten (o quien los junta).
+fn cables(pintor: &egui::Painter, vp: &[[f32; 4]; 4], lienzo: Rect, ciudad: &Ciudad, k: &crate::combinar_ui::Cache, an: &Anclas, c: &Colores) {
+    use eframe::egui::epaint::QuadraticBezierShape;
+    let cb = &k.c;
+    let punto = |a: Option<Ancla>| a.and_then(|a| proyectar(vp, azotea(ciudad, a), lienzo));
+    let arco = |p: Pos2, q: Pos2, col: Color32, w: f32, flecha: bool| {
+        let alto = ((q - p).length() * 0.35).clamp(18.0, 220.0);
+        let ctl = p + (q - p) / 2.0 - Vec2::new(0.0, alto);
+        if c.brillo { pintor.add(QuadraticBezierShape::from_points_stroke([p, ctl, q], false, Color32::TRANSPARENT, Stroke::new(w + 4.0, col.gamma_multiply(0.22)))); }
+        pintor.add(QuadraticBezierShape::from_points_stroke([p, ctl, q], false, Color32::TRANSPARENT, Stroke::new(w, col)));
+        if flecha {
+            let dir = (q - ctl).normalized();
+            let lado = Vec2::new(-dir.y, dir.x);
+            pintor.add(egui::Shape::convex_polygon(vec![q, q - dir * 10.0 + lado * 5.0, q - dir * 10.0 - lado * 5.0], col, Stroke::NONE));
+        }
+    };
+    for (i, x) in cb.comparten.iter().enumerate() {
+        let Some(q) = punto(an.comparten[i]) else { continue };
+        for &m in &x.miembros { if let Some(p) = punto(an.miembros[m]) { arco(p, q, c.acento.gamma_multiply(0.75), 1.3, false); } }
+    }
+    for (i, x) in cb.juntan.iter().enumerate() {
+        let Some(q) = punto(an.juntan[i]) else { continue };
+        for &m in &x.miembros { if let Some(p) = punto(an.miembros[m]) { arco(q, p, c.verde.gamma_multiply(0.75), 1.3, false); } }
+    }
+    for &(a, b, veces) in &cb.directas {
+        if let (Some(p), Some(q)) = (punto(an.miembros[a]), punto(an.miembros[b])) { arco(p, q, Color32::WHITE, 1.8 + (veces as f32).ln_1p(), true); }
     }
 }
