@@ -1,4 +1,4 @@
-# CASM 0.1 language and C adoption policy
+# CASM 0.2 language and C adoption policy
 
 Status: executable foundation, deliberately bounded. C11 is a reference, not a
 conformance claim. The public [N1570 draft](https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf)
@@ -11,8 +11,45 @@ claiming complete C support.
 translation-unit := "void" "metal_main" "(" "void" ")" "{" statement* "return" ";" "}"
 statement        := declaration | service-call
 declaration      := "const" "char" identifier "[" "]" "=" string ";"
+                  | "const" int-type identifier "=" expression ";"          (0.2)
 service-call     := "metal_puts" "(" identifier ")" ";"
+                  | "metal_put_int" "(" identifier ")" ";"                  (0.2)
+int-type         := "uint8_t" | "uint16_t" | "uint32_t" | "uint64_t"
+                  | "int8_t"  | "int16_t"  | "int32_t"  | "int64_t"
+expression       := term (("+" | "-") term)*
+term             := unary (("*" | "/" | "%") unary)*
+unary            := "-" unary | primary
+primary          := integer-literal | identifier | "(" expression ")"
+integer-literal  := "0" | [1-9][0-9]* | "0x" [0-9A-Fa-f]+
 ```
+
+## Exact integers (CASM 0.2)
+
+Inspired by COBOL's exact, declared-size numbers and its DISPLAY, without its silent
+truncation: in CASM a value that does not fit always stops the compilation.
+
+- **Every value lives in its declared type** (CPU widths, two's complement for signed).
+  Each literal, each referenced integer and **each intermediate result** must be
+  representable there. Nothing wraps, nothing is promoted, nothing is implicit:
+  `INT-OVERFLOW`. This applies to unsigned types too (in C, unsigned wraps; here it stops).
+- **Literals:** decimal without leading zeros (`010` is rejected: there is no octal) or
+  `0x` hexadecimal; no suffixes; at most 18446744073709551615 (`INT-LITERAL`). `-literal`
+  is a single exact value, so `int64_t` can hold `-9223372036854775808`.
+- **Division** truncates toward zero; `x % y` has the sign of `x`; `x / 0` and `x % 0`
+  stop (`INT-DIV-ZERO`); `MIN / -1` does not fit (`INT-OVERFLOW`); `MIN % -1` is exactly 0.
+- **Names:** integers and strings share one scope. A string cannot be used as an integer
+  nor printed with `metal_put_int`, and an integer cannot be printed with `metal_puts`
+  (`TYPE-INT`, `TYPE-STRING`). Use before declaration is `NAME-UNDEFINED`.
+- **Limits:** 128 integers, 256 operations and 32 nesting levels per expression.
+- **Where it is computed:** CASM has no runtime inputs yet, so the compiler computes every
+  value with these rules. `metal_put_int(x)` emits the same 11-byte call as `metal_puts`,
+  pointing to the exact decimal digits of `x` in the data region (shared by every call).
+- **Second control:** the IR carries each integer's postfix form (`Rpn`). The verifier
+  recomputes it with unbounded Python integers and the same rules, and must reach the same
+  `Value`; the decimal data must be exactly its digits (`INT-VALUE`, `INT-RPN`,
+  `DATA-DECIMAL`). Two independent implementations of the arithmetic have to agree.
+- **No trap code is emitted yet.** Trap blocks in the binary (and the BKAT-style table of
+  where each one cuts) arrive with the first runtime values.
 
 The complete source is parsed before emission. Whitespace and `//` / `/* */`
 comments are accepted. Identifiers are ASCII letters/underscore followed by
@@ -50,17 +87,17 @@ not become implemented by appearing in this table.
 |---|---|---|
 | Environment / translation phases, §5 | Bounded ASCII source | Preprocessing phases, encodings, translation units, freestanding environment |
 | Scope, linkage, lifetime, §6.2 | One scope, immutable strings | Blocks, storage durations, lifetime, linkage, aliases |
-| Types, representations, §6.2.5–6.2.8 | const char arrays | Integer widths, alignment, qualifiers, floats/complex types |
-| Conversions, §6.3 | No arithmetic conversions | Promotions, narrowing, signedness, checked conversion policy |
-| Lexical elements, §6.4 | Names, restricted strings, comments | Constants, full escapes, tokens, translation-phase rules |
-| Expressions, §6.5–6.6 | One built-in service call | Arithmetic, sequencing, overflow, comparisons, addresses, constant evaluation |
-| Declarations, §6.7 | One array form | Scalars, structs/unions, enum, typedef, full declarators/initialization |
+| Types, representations, §6.2.5–6.2.8 | const char arrays; exact `uint8_t`..`uint64_t`, `int8_t`..`int64_t` (0.2) | Alignment, qualifiers, mutable storage; no floats planned for the CPU core |
+| Conversions, §6.3 | None implicit: a value must be representable in the declared type (0.2) | Explicit checked conversions |
+| Lexical elements, §6.4 | Names, restricted strings, comments, decimal and 0x integers (0.2) | Full escapes, character constants |
+| Expressions, §6.5–6.6 | Service calls; constant integer `+ - * / %` and unary `-` with checked rules (0.2) | Runtime arithmetic with trap blocks, comparisons, sequencing, addresses |
+| Declarations, §6.7 | One array form; `const` integer scalars (0.2) | Mutable scalars, structs/unions, enum, typedef, full declarators |
 | Statements, §6.8 | Calls and final return | Blocks, if/switch, loops, break/continue, goto, reachability |
 | Functions/definitions, §6.9 | One void entry | Parameters, recursion, stack limits, ABI, external calls, separate compilation |
 | Preprocessor, §6.10 | Rejected | Includes, macros, conditionals, diagnostic/source mapping |
 | Standard library, §7 | Not implemented; metal_puts is project-specific | Host library versus bare-metal services; no implied libc |
 | Rust-inspired ownership | Source pointers unavailable | Regions, borrowing, escape/lifetime rules, explicit unsafe boundary |
-| Undefined/unspecified behavior, Annex J | Most relevant operations unavailable | Preserve C behavior or document each deliberate deviation |
+| Undefined/unspecified behavior, Annex J | Most operations unavailable; signed and unsigned overflow, division by zero and MIN/-1 are rejected (0.2) | Preserve C behavior or document each deliberate deviation |
 | Threads, atomics, volatile, MMIO | Rejected | Memory model, interrupts, hardware access, privileged operations |
 
 CASM cannot preserve acceptance of every unrestricted C program and also reject
@@ -70,7 +107,8 @@ overflow or pointer semantics.
 
 ## Next implementation boundary
 
-The next coherent slice is integer types, scalar locals and checked arithmetic,
-with definite-initialization tracking and precise overflow rules. Both frontend
-and emission verifier need extending. Borrow checking, arbitrary libraries,
+CASM 0.2 delivered integer types and checked arithmetic over constants, in both the
+frontend and the emission verifier. The next slice is the first runtime value (a service
+that returns one, so arithmetic happens in the CPU), with emitted trap blocks and the
+table that declares where each one cuts, checked against the bytes. Borrow checking, arbitrary libraries,
 device drivers and a graphical OS are not supplied by this foundation.

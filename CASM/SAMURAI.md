@@ -29,14 +29,49 @@ CASM toma su forma de C para leerse fácil, pero **no es C**. Su única tarea es
   en [LANGUAGE.md](LANGUAGE.md); lo demás se rechaza con su regla.
 - **El compilador de CASM con otro compilador que no sea GCC** (`construir.sh` se niega).
 
+## CASM 0.2: enteros exactos
+
+`const uint64_t grande = 4000000000 * 4;` y `metal_put_int(grande);` ([LANGUAGE.md](LANGUAGE.md#exact-integers-casm-02)).
+
+- **Tipos con la anchura de la CPU:** `uint8_t`…`uint64_t` e `int8_t`…`int64_t`.
+- **Nada da la vuelta.** Cada literal, cada referencia y **cada paso intermedio** debe
+  caber en el tipo declarado, también en los sin signo (en C dan la vuelta; aquí cortan).
+- **De COBOL** se toma el número exacto de tamaño declarado y su `DISPLAY`
+  (`metal_put_int`). **No** se toma su truncado silencioso cuando falta `ON SIZE ERROR`:
+  en CASM el corte es obligatorio.
+- **Sin trampas de C:** `010` no es octal (se rechaza), la división trunca hacia cero,
+  `x % 0` corta y `MIN % -1` es exactamente 0.
+- **Dos implementaciones que deben coincidir:** el compilador (C, GCC) calcula cada valor;
+  el verificador (Python, enteros sin límite) lo **recalcula** desde la forma postfija de
+  la IR con las mismas reglas. Si no da lo mismo, no se publica el paquete. Se probaron
+  los bordes: `UINT64_MAX`, `INT64_MIN`, `0xFF`, `MIN % -1 = 0`, `-7 / 2 = -3`,
+  `-7 % 2 = -1` y `7 % -2 = 1`.
+- **El `.hex`:** `metal_put_int(x)` es el mismo `LEA`/`CALL` de 11 bytes que
+  `metal_puts`, apuntando a las cifras exactas de `x`. Aún no hay código de trampa:
+  CASM no tiene valores en ejecución, así que el compilador lo calcula todo antes. Las
+  trampas en el binario llegan con el primer valor de ejecución.
+
+### El museo en CASM 0.2
+
+| Ficha del museo | En C | En CASM 0.2 |
+|---|---|---|
+| UB-001 el entero con signo que se sale | UB | Imposible: `INT-OVERFLOW` corta al compilar |
+| NOUB-001 unsigned que da la vuelta | Definido (da la vuelta) | Más estricto: también corta |
+| UB-002 división por cero y `MIN / -1` | UB | Imposible: `INT-DIV-ZERO` / `INT-OVERFLOW` |
+| UB-003 desplazar fuera del ancho | UB | No existe `<<`: no se puede escribir |
+| UB-016 flotante que no cabe en int | UB | No hay flotantes |
+| UB-020 leer una local sin inicializar | UB | Todo entero es `const` y nace inicializado |
+
 ## Las katanas hoy (medidas por el SUPER GRAFO)
 
 El panel **Taller CASM** de ULTRA Carpetas lee las fuentes de CASM y saca cada regla
-que corta. En `src/` y `verify.py` hay **48 reglas que cortan**, repartidas entre
-anfitrión, frontend, codificador y verificador; algunas, como `SOURCE-ASCII`, cortan
-en dos etapas, y cada etapa se prueba por separado.
+que corta. En `src/` y `verify.py` hay **61 reglas que cortan** (48 en CASM 0.1 y 13
+nuevas con los enteros), repartidas entre anfitrión, frontend, codificador y
+verificador; algunas, como `INT-OVERFLOW`, cortan en dos etapas, y cada etapa se prueba
+por separado.
 
-**Las 48 tienen su caso aislado** en `test.py` (55 casos; con los aceptados, 61 en total):
+**Las 61 tienen su caso aislado** en `test.py` (108 casos en total, contando los que
+deben aceptarse con su valor exacto):
 
 - **Frontend y codificador:** una fuente mínima que debe cortar con esa regla (27).
 - **Anfitrión:** fuente que no existe (`HOST-READ`), salida que es una carpeta
@@ -56,8 +91,9 @@ marca «sin caso aislado» cualquier regla nueva hasta que tenga el suyo.
    cada trampa emitida (desbordamiento, división por cero) se declara en una tabla del
    paquete. El verificador comprueba que en ese desplazamiento hay de verdad ese bloque
    de trampa. *Declarar sin comprobar es propaganda; comprobar sin declarar es adivinar.*
-3. **Crecer el lenguaje** con lo que marca LANGUAGE.md (enteros con aritmética comprobada,
-   variables, `if`, bucles, funciones). Cada pieza entra con sus katanas, y el museo dice
+3. **Crecer el lenguaje.** Hecho el primer tramo: enteros exactos con aritmética
+   comprobada (CASM 0.2). Siguen el primer valor en ejecución (con sus trampas), las
+   variables, `if`, bucles y funciones. Cada pieza entra con sus katanas, y el museo dice
    qué UB de C deja imposible.
 4. **Autoalojamiento.** CASM prepara y exporta su propio compilador. La semilla es el
    `.hex` escrito a mano, que una persona puede revisar, y GCC queda como testigo, no

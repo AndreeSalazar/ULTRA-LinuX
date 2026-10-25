@@ -8,8 +8,9 @@ samurai de la CPU, en [SAMURAI.md](SAMURAI.md).
 
 ## Origen
 
-Copiado sin cambios de [TALK-CPU-x86-64](https://github.com/AndreeSalazar/TALK-CPU-x86-64),
-commit `b5b8e88`, del mismo autor. No se modifico ni se envio nada a ese repositorio.
+Copiado de [TALK-CPU-x86-64](https://github.com/AndreeSalazar/TALK-CPU-x86-64), commit
+`b5b8e88`, del mismo autor; las huellas de abajo son las del origen. Desde la 0.2 el
+lenguaje crece aqui. No se modifico ni se envio nada a ese repositorio.
 
 | Archivo | SHA-256 en el origen |
 |---|---|
@@ -22,8 +23,9 @@ commit `b5b8e88`, del mismo autor. No se modifico ni se envio nada a ese reposit
 | examples/hello.casm | 63bb72f6eaa4722b7f91133ab8b7635d1e55290d276673ca42ebf2bc26711547 |
 
 `test.py` cambia el compilador a `build/CASM/host/casmc` (Linux) en vez de `casmc.exe`,
-y aqui crecio: cada katana tiene su caso aislado y cada caso exige SU regla (61 casos;
-ver [SAMURAI.md](SAMURAI.md)). Los scripts de PowerShell y la prueba QEMU del puente no se copiaron.
+y aqui crecio: cada katana tiene su caso aislado y cada caso exige SU regla. Desde la
+0.2, CASM tiene enteros exactos (`frontend.c`, `emitter.c` y `verify.py` ampliados; ver
+[SAMURAI.md](SAMURAI.md)). Los scripts de PowerShell y la prueba QEMU del puente no se copiaron.
 
 ## Aislado
 
@@ -38,8 +40,9 @@ ver [SAMURAI.md](SAMURAI.md)). Los scripts de PowerShell y la prueba QEMU del pu
 ## Uso
 
 ```bash
-CASM/probar.sh                      # 61 casos (48 katanas) + paquete de oro (identico al .hex a mano)
+CASM/probar.sh                      # 108 casos (61 katanas) + paquete de oro (identico al .hex a mano)
 CASM/compilar.sh                    # examples/hello.casm -> build/CASM/run-*/INICIO.X86
+CASM/compilar.sh CASM/examples/enteros.casm   # CASM 0.2: enteros exactos
 CASM/compilar.sh mi-programa.casm
 ```
 
@@ -48,6 +51,6 @@ paquete (solo si se verifico), `verified.json`, `registro.txt` (lo que dijeron e
 compilador y el verificador), `origen.txt` y `toolchain.txt`. El panel **Taller CASM**
 de ULTRA Carpetas lo lee todo.
 
-Comprobado aqui con GCC 13.3: 61/61 casos, y `hello.x86` con SHA-256
+Comprobado aqui con GCC 13.3: 108/108 casos, y `hello.x86` con SHA-256
 `b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33`, el mismo que las
 evidencias de TALK-CPU para el `.hex` escrito a mano.

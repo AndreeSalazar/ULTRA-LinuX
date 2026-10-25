@@ -28,11 +28,18 @@ struct Ir {
     #[serde(rename = "Return")]
     retorno: PosIr,
     body_bytes: u32,
+    #[serde(default)]
+    integers: Vec<EnteroIr>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct ConstanteIr { name: String, line: u32, offset: u32, hex: String }
+struct ConstanteIr { name: String, line: u32, offset: u32, hex: String, #[serde(default)] kind: Option<String>, #[serde(default)] integer: Option<String> }
+
+/// Un entero exacto de CASM 0.2 (lo calcula el compilador; no emite bytes por si solo).
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct EnteroIr { name: String, #[serde(rename = "Type")] tipo: String, line: u32, value: String, rpn: String }
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -49,7 +56,13 @@ pub enum Pieza {
     Retorno,
     /// Una cadena constante en la region de datos (con su cero final).
     Dato { nombre: String },
+    /// El texto decimal exacto de un entero (lo que imprime metal_put_int).
+    Decimal { entero: String, valor: String, tipo: String },
 }
+
+/// Un entero de CASM 0.2 y su valor exacto (calculado al compilar, verificado aparte).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Entero { pub linea: u32, pub nombre: String, pub tipo: String, pub valor: String, pub postfija: String }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Tramo {
@@ -70,6 +83,7 @@ pub struct MapaCasm {
     pub cuerpo: u32,
     /// Carpeta de la compilacion (build/CASM/run-...).
     pub run: String,
+    pub enteros: Vec<Entero>,
 }
 
 impl MapaCasm {
@@ -94,7 +108,7 @@ pub fn leer_hex(texto: &str) -> Result<Vec<u8>, String> {
 /// Arma y comprueba el mapa de una compilacion. `fuente`: su source.casm congelado.
 pub fn mapa(fuente: &str, ir_json: &str, hex: &str, run: &str) -> Result<MapaCasm, String> {
     let ir: Ir = serde_json::from_str(ir_json).map_err(|e| format!("program.ir.json no se entiende: {e}"))?;
-    if ir.schema != 1 || ir.target != "x86_64" || ir.abi != "metal64" {
+    if !(ir.schema == 1 || ir.schema == 2) || ir.target != "x86_64" || ir.abi != "metal64" {
         return Err(format!("solo x86_64 / metal64 esquema 1 (vino {} / {} esquema {})", ir.target, ir.abi, ir.schema));
     }
     let cuerpo = leer_hex(hex)?;
@@ -108,7 +122,15 @@ pub fn mapa(fuente: &str, ir_json: &str, hex: &str, run: &str) -> Result<MapaCas
     piezas.push((ir.retorno.offset, 1, ir.retorno.line, Pieza::Retorno));
     for k in &ir.constants {
         if k.hex.len() % 2 != 0 { return Err(format!("la constante {} tiene un HEX impar", k.name)); }
-        piezas.push((k.offset, k.hex.len() / 2, k.line, Pieza::Dato { nombre: k.name.clone() }));
+        let pieza = match (k.kind.as_deref(), &k.integer) {
+            (Some("decimal"), Some(e)) => {
+                let n = ir.integers.iter().find(|n| &n.name == e).ok_or_else(|| format!("el decimal {} no tiene su entero", k.name))?;
+                Pieza::Decimal { entero: e.clone(), valor: n.value.clone(), tipo: n.tipo.clone() }
+            }
+            (None | Some("ascii"), _) => Pieza::Dato { nombre: k.name.clone() },
+            (otro, _) => return Err(format!("dato de tipo desconocido: {otro:?}")),
+        };
+        piezas.push((k.offset, k.hex.len() / 2, k.line, pieza));
     }
     piezas.sort_by_key(|p| p.0);
     // Contiguos y cubriendo el cuerpo entero, sin huecos ni solapes.
@@ -136,6 +158,13 @@ pub fn mapa(fuente: &str, ir_json: &str, hex: &str, run: &str) -> Result<MapaCas
                 if bytes != [0xC3] { return Err(format!("el retorno de la linea {linea} no es C3")); }
                 String::from("RET")
             }
+            Pieza::Decimal { entero, valor, tipo } => {
+                // Los bytes deben ser exactamente las cifras del valor y su cero.
+                if bytes[..bytes.len() - 1] != *valor.as_bytes() || bytes.last() != Some(&0) {
+                    return Err(format!("el decimal de '{entero}' no es \"{valor}\""));
+                }
+                format!("\"{valor}\\0\" = {entero} ({tipo}), calculado al compilar ({} bytes)", bytes.len())
+            }
             Pieza::Dato { nombre } => {
                 if bytes.last() != Some(&0) { return Err(format!("la cadena '{nombre}' no termina en cero")); }
                 let texto: String = bytes[..bytes.len() - 1].iter().map(|b| match b { b'\r' => "\\r".to_string(), b'\n' => "\\n".to_string(),
@@ -145,7 +174,8 @@ pub fn mapa(fuente: &str, ir_json: &str, hex: &str, run: &str) -> Result<MapaCas
         };
         tramos.push(Tramo { linea, offset: off, bytes, pieza, lectura });
     }
-    Ok(MapaCasm { fuente: fuente.to_string(), tramos, cuerpo: cuerpo.len() as u32, run: run.to_string() })
+    let enteros = ir.integers.into_iter().map(|n| Entero { linea: n.line, nombre: n.name, tipo: n.tipo, valor: n.value, postfija: n.rpn }).collect();
+    Ok(MapaCasm { fuente: fuente.to_string(), tramos, cuerpo: cuerpo.len() as u32, run: run.to_string(), enteros })
 }
 
 /// "48 8D 35 05" (como mucho `max` bytes; si hay mas, "… (N bytes)").
@@ -233,6 +263,7 @@ pub fn katanas(archivos: &[(&str, &str)]) -> Vec<Katana> {
             continue;
         }
         let Some(etapa) = Etapa::de_archivo(ruta) else { continue };
+        let lineas: Vec<&str> = texto.lines().collect();
         for (k, l) in texto.lines().enumerate() {
             let linea = k as u32 + 1;
             let mut hallado: Vec<(String, String)> = Vec::new();
@@ -253,7 +284,12 @@ pub fn katanas(archivos: &[(&str, &str)]) -> Vec<Katana> {
                     if es_regla(r) { hallado.push((r.to_string(), String::new())); }
                 }
             }
-            for (r, motivo) in hallado {
+            for (r, mut motivo) in hallado {
+                // fail(p, "REGLA", reason) con el texto armado por snprintf en las lineas de antes.
+                if motivo.is_empty() {
+                    motivo = lineas[k.saturating_sub(3)..k].iter().rev().find_map(|x| x.contains("snprintf").then(|| entre_comillas(x).into_iter().find(|q| q.contains(' '))).flatten())
+                        .map(|q| q.replace("%s", "…")).unwrap_or_default();
+                }
                 let e = mapa.entry((etapa, r.clone())).or_insert_with(|| Katana { regla: r, etapa, sitios: Vec::new(), motivo: String::new(), casos: Vec::new() });
                 if !e.sitios.iter().any(|(a, b)| a == *ruta && *b == linea) { e.sitios.push((ruta.to_string(), linea)); }
                 if e.motivo.is_empty() && !motivo.is_empty() { e.motivo = motivo; }

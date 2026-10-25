@@ -542,11 +542,18 @@ organiza solo con lo que hay en el disco, sin listas escritas a mano:
 
 ![Taller CASM: la cadena en verde, las katanas con su sitio y su caso, y hello.casm con los bytes de cada línea](maquetas/png/neon/carpetas-taller-casm.png)
 
-Las **48 katanas de CASM tienen su caso aislado** (61 casos en `CASM/probar.sh`). Cada
+Las **katanas de CASM tienen todas su caso aislado** (61 reglas y 108 casos en `CASM/probar.sh` desde la 0.2). Cada
 caso exige que corte **su** regla, también en el verificador, alterando una sola cosa de
 una emisión buena.
 
 ![Taller CASM: 48 reglas que cortan, 48 con caso de prueba aislado](maquetas/png/neon/carpetas-katanas-casm.png)
+
+**CASM 0.2, enteros exactos:** en la línea de cada entero, el editor muestra su valor y
+su tipo (`= -14 : int64_t`), calculados por el compilador y recalculados por el
+verificador, y, si se imprime, los bytes de su decimal (`+4C  2D 31 34 00`). La caja de
+bytes nunca tapa el código: si no cabe a la derecha, va después de la línea.
+
+![enteros.casm: el valor exacto de cada entero y los bytes de cada línea](maquetas/png/neon/carpetas-casm-enteros.png)
 
 ## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
 

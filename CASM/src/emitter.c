@@ -33,12 +33,21 @@ int casm_emit(const CasmProgram *program, const char *hex_path, const char *ir_p
     if(fclose(hex)) return 0;
     ir=fopen(ir_path,"wb");
     if(!ir) { fprintf(stderr,"RED [HOST-WRITE] Cannot create IR output.\n"); return 0; }
-    fprintf(ir,"{\n\"Schema\":1,\"Target\":\"x86_64\",\"ABI\":\"metal64\",\"Constants\":[");
+    /* Schema 2: data kinds (ascii / decimal) and the exact integers with their postfix form. */
+    fprintf(ir,"{\n\"Schema\":2,\"Target\":\"x86_64\",\"ABI\":\"metal64\",\"Constants\":[");
     for(i=0;i<program->constant_count;i++) {
         const CasmConstant *c=&program->constants[i];
-        fprintf(ir,"%s{\"Name\":\"%s\",\"Line\":%u,\"Offset\":%zu,\"Hex\":\"",i?",":"",c->name,c->line,offsets[i]);
+        fprintf(ir,"%s{\"Name\":\"%s\",\"Kind\":\"%s\",",i?",":"",c->name,c->kind==CASM_DECIMAL?"decimal":"ascii");
+        if(c->kind==CASM_DECIMAL) fprintf(ir,"\"Integer\":\"%s\",",program->integers[c->integer].name);
+        fprintf(ir,"\"Line\":%u,\"Offset\":%zu,\"Hex\":\"",c->line,offsets[i]);
         for(j=0;j<c->length;j++) fprintf(ir,"%02X",c->bytes[j]);
         fprintf(ir,"\"}");
+    }
+    fprintf(ir,"],\n\"Integers\":[");
+    for(i=0;i<program->integer_count;i++) {
+        const CasmInteger *n=&program->integers[i];
+        fprintf(ir,"%s{\"Name\":\"%s\",\"Type\":\"%s\",\"Line\":%u,\"Value\":\"%s%llu\",\"Rpn\":\"%s\"}",i?",":"",n->name,
+                casm_int_types[n->type].name,n->line,n->negative?"-":"",(unsigned long long)n->magnitude,n->rpn);
     }
     fprintf(ir,"],\n\"Calls\":[");
     for(i=0;i<program->call_count;i++) fprintf(ir,"%s{\"Constant\":%zu,\"Line\":%u,\"Offset\":%zu}",i?",":"",program->calls[i].constant,program->calls[i].line,i*11);
@@ -51,6 +60,8 @@ int casm_emit(const CasmProgram *program, const char *hex_path, const char *ir_p
         for(j=0;j<program->call_count;j++) if(program->calls[j].constant==i) used=1;
         if(!used) printf("YELLOW [UNUSED-CONSTANT] line %u: %s\n",program->constants[i].line,program->constants[i].name);
     }
+    for(i=0;i<program->integer_count;i++)
+        if(!program->integers[i].used) printf("YELLOW [UNUSED-INTEGER] line %u: %s\n",program->integers[i].line,program->integers[i].name);
     printf("GREEN [EMISSION] %zu body bytes; unverified HEX and IR written.\n",size);
     return 1;
 }

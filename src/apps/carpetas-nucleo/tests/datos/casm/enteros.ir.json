@@ -1,0 +1,6 @@
+{
+"Schema":2,"Target":"x86_64","ABI":"metal64","Constants":[{"Name":"salto","Kind":"ascii","Line":3,"Offset":56,"Hex":"0D0A00"},{"Name":"#grande","Kind":"decimal","Integer":"grande","Line":4,"Offset":59,"Hex":"313630303030303030303000"},{"Name":"#bajo","Kind":"decimal","Integer":"bajo","Line":5,"Offset":71,"Hex":"2D31323800"},{"Name":"#mezcla","Kind":"decimal","Integer":"mezcla","Line":6,"Offset":76,"Hex":"2D313400"}],
+"Integers":[{"Name":"grande","Type":"uint64_t","Line":4,"Value":"16000000000","Rpn":"4000000000 4 *"},{"Name":"bajo","Type":"int8_t","Line":5,"Value":"-128","Rpn":"-128"},{"Name":"mezcla","Type":"int64_t","Line":6,"Value":"-14","Rpn":"@grande 1000000 / 17 - 7 % 16 -"}],
+"Calls":[{"Constant":1,"Line":7,"Offset":0},{"Constant":0,"Line":8,"Offset":11},{"Constant":2,"Line":9,"Offset":22},{"Constant":0,"Line":10,"Offset":33},{"Constant":3,"Line":11,"Offset":44}],
+"Return":{"Line":12,"Offset":55},"BodyBytes":80
+}

@@ -239,14 +239,23 @@ impl PanelEditor {
                     if let Some(m) = mapa_ok {
                         // Los bytes de esta linea, pegados a la derecha (con su desplazamiento en el cuerpo).
                         let tramos: Vec<_> = m.de_linea(linea).collect();
-                        if !tramos.is_empty() {
-                            let txt = tramos.iter().map(|t| format!("+{:02X}  {}", t.offset, carpetas_nucleo::casm::hex_corto(&t.bytes, 12))).collect::<Vec<_>>().join("   ");
+                        let entero = m.enteros.iter().find(|e| e.linea == linea);
+                        if !tramos.is_empty() || entero.is_some() {
+                            // Un entero: su valor exacto; si se imprime, tambien los bytes de su decimal.
+                            let mut partes: Vec<String> = Vec::new();
+                            if let Some(e) = entero { partes.push(format!("= {} : {}", e.valor, e.tipo)); }
+                            partes.extend(tramos.iter().map(|t| format!("+{:02X}  {}", t.offset, carpetas_nucleo::casm::hex_corto(&t.bytes, 12))));
+                            if entero.is_some() && tramos.is_empty() { partes.push(String::from("(no emite bytes)")); }
+                            let txt = partes.join("   ");
                             let g = pintor.layout_no_wrap(txt, FontId::monospace(LETRA - 1.5), c.acento);
-                            let caja = Rect::from_min_size(Pos2::new(visible.max.x - g.size().x - 14.0, r.center().y - g.size().y / 2.0 - 1.0), g.size() + Vec2::new(10.0, 2.0));
+                            // A la derecha del todo, pero nunca encima del codigo de esa linea (si no cabe, despues de el).
+                            let x = (visible.max.x - g.size().x - 14.0).max(r.max.x + 16.0);
+                            let caja = Rect::from_min_size(Pos2::new(x, r.center().y - g.size().y / 2.0 - 1.0), g.size() + Vec2::new(10.0, 2.0));
                             pintor.rect_filled(caja, 3.0, c.fondo.gamma_multiply(0.92));
                             pintor.rect_stroke(caja, 3.0, Stroke::new(1.0, c.acento.gamma_multiply(0.4)), egui::StrokeKind::Inside);
                             pintor.galley(caja.min + Vec2::new(5.0, 1.0), g, c.acento);
-                            let tip = tramos.iter().map(|t| format!("+0x{:02X}  {}\n{}", t.offset, carpetas_nucleo::casm::hex_corto(&t.bytes, 64), t.lectura)).collect::<Vec<_>>().join("\n\n");
+                            let mut tip = entero.map(|e| format!("{} : {} = {}\ncalculado por el compilador con aritmetica comprobada y recalculado por el verificador\npostfija: {}", e.nombre, e.tipo, e.valor, e.postfija)).unwrap_or_default();
+                            for t in &tramos { if !tip.is_empty() { tip.push_str("\n\n"); } tip.push_str(&format!("+0x{:02X}  {}\n{}", t.offset, carpetas_nucleo::casm::hex_corto(&t.bytes, 64), t.lectura)); }
                             ui.interact(caja, ui.make_persistent_id(("casm-bytes", linea)), Sense::hover()).on_hover_text(tip);
                         }
                     }

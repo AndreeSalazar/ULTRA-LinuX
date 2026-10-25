@@ -16,6 +16,19 @@ COMPILER = ROOT / 'build/CASM/host/casmc'
 OUTPUT = ROOT / 'build/CASM'
 RESULTS = []
 HELLO = (ROOT / 'CASM/examples/hello.casm').read_bytes()
+ENTEROS = (ROOT / 'CASM/examples/enteros.casm').read_bytes()
+# Bordes exactos de la aritmetica de CASM: cada valor, tal cual debe salir en el .hex.
+BORDES = (b'void metal_main(void) {'
+          b' const uint64_t max = 18446744073709551615; metal_put_int(max);'
+          b' const int64_t min = -9223372036854775808; metal_put_int(min);'
+          b' const uint8_t hex = 0xFF; metal_put_int(hex);'
+          b' const int64_t r0 = -9223372036854775808 % -1; metal_put_int(r0);'
+          b' const int32_t q = -7 / 2; metal_put_int(q);'
+          b' const int32_t r1 = -7 % 2; metal_put_int(r1);'
+          b' const int32_t r2 = 7 % -2; metal_put_int(r2);'
+          b' const int16_t p = (2 + 3) * -(4 - 10); metal_put_int(p);'
+          b' return; }')
+BORDES_VALORES = ['18446744073709551615', '-9223372036854775808', '255', '0', '-3', '-1', '1', '30']
 
 
 def compile_case(folder, source):
@@ -37,6 +50,8 @@ def main():
             'unused-warning': b'void metal_main(void) { const char a[]="A"; return; }',
             'comments-crlf': b'/* header */\r\nvoid metal_main(void) { // comment\r\n const char a[]="\\\"\\\\\\n\\r"; metal_puts(a); return; }',
             'packet-4096': b'void metal_main(void) { const char a[]="'+ b'A'*4059 + b'"; metal_puts(a); return; }',
+            'integers': ENTEROS,
+            'integer-edges': BORDES,
         }
         hello_paths = None
         for name, source in valid.items():
@@ -55,6 +70,13 @@ def main():
                 (OUTPUT/'hello.hex').write_bytes(paths[1].read_bytes())
                 (OUTPUT/'hello.ir.json').write_bytes(paths[2].read_bytes())
                 (OUTPUT/'hello.verified.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')
+            if name == 'integers':
+                ints_paths = paths
+                assert [n['Value'] for n in report['Integers']] == ['16000000000', '-128', '-14'], report['Integers']
+                assert b'16000000000\0' in packet and b'-128\0' in packet and b'-14\0' in packet
+            if name == 'integer-edges':
+                assert [n['Value'] for n in report['Integers']] == BORDES_VALORES, report['Integers']
+                for v in BORDES_VALORES: assert v.encode() + b'\0' in packet, v
             if name == 'unused-warning': assert 'YELLOW [UNUSED-CONSTANT]' in process.stdout
             if name == 'packet-4096': assert len(packet) == 4096 and 'YELLOW [BODY-MARGIN]' in process.stdout
             RESULTS.append(dict(Case=name, Passed=True, Kind='accepted-and-verified'))
@@ -86,6 +108,39 @@ def main():
             'decl-name': (b'void metal_main(void){ const char []="A"; return; }','DECL-NAME'),
             'syntax': (b'void metal_main(void){ return }','SYNTAX'),
             'string-size': (b'void metal_main(void){const char a[]="'+b'A'*4100+b'";return;}','STRING-SIZE'),
+            # CASM 0.2: enteros exactos. Nada da la vuelta, nada es octal, nada se divide por cero.
+            'int-sum-overflow': (b'void metal_main(void){const uint8_t a=255+1;return;}','INT-OVERFLOW'),
+            'int-difference-underflow': (b'void metal_main(void){const uint32_t a=0-1;return;}','INT-OVERFLOW'),
+            'int-product-overflow': (b'void metal_main(void){const int64_t a=4294967296*4294967296;return;}','INT-OVERFLOW'),
+            'int-quotient-overflow': (b'void metal_main(void){const int64_t a=-9223372036854775808/-1;return;}','INT-OVERFLOW'),
+            'int-negation-overflow': (b'void metal_main(void){const int8_t a=-(-128);return;}','INT-OVERFLOW'),
+            'int-literal-range': (b'void metal_main(void){const int8_t a=128;return;}','INT-OVERFLOW'),
+            'int-negative-unsigned': (b'void metal_main(void){const uint16_t a=-1;return;}','INT-OVERFLOW'),
+            'int-reference-range': (b'void metal_main(void){const int64_t a=300;const uint8_t b=a;return;}','INT-OVERFLOW'),
+            'int-division-by-zero': (b'void metal_main(void){const uint16_t a=7/0;return;}','INT-DIV-ZERO'),
+            'int-remainder-by-zero': (b'void metal_main(void){const int32_t a=7%(3-3);return;}','INT-DIV-ZERO'),
+            'int-octal-literal': (b'void metal_main(void){const uint8_t a=010;return;}','INT-LITERAL'),
+            'int-literal-too-big': (b'void metal_main(void){const uint64_t a=18446744073709551616;return;}','INT-LITERAL'),
+            'int-literal-suffix': (b'void metal_main(void){const uint64_t a=10u;return;}','INT-LITERAL'),
+            'int-hex-without-digits': (b'void metal_main(void){const uint8_t a=0x;return;}','INT-LITERAL'),
+            'int-literal-too-long': (b'void metal_main(void){const uint8_t a='+b'1'*4100+b';return;}','INT-LITERAL'),
+            'int-string-operand': (b'void metal_main(void){const char s[]="x";const uint8_t a=s;return;}','TYPE-INT'),
+            'int-string-initializer': (b'void metal_main(void){const uint8_t a="x";return;}','TYPE-INT'),
+            'int-put-string': (b'void metal_main(void){const char s[]="x";metal_put_int(s);return;}','TYPE-INT'),
+            'int-put-literal': (b'void metal_main(void){metal_put_int(5);return;}','TYPE-INT'),
+            'int-puts-integer': (b'void metal_main(void){const uint8_t a=1;metal_puts(a);return;}','TYPE-STRING'),
+            'int-undefined': (b'void metal_main(void){const uint8_t a=b+1;return;}','NAME-UNDEFINED'),
+            'int-put-undefined': (b'void metal_main(void){metal_put_int(b);return;}','NAME-UNDEFINED'),
+            'int-duplicate': (b'void metal_main(void){const char a[]="x";const uint8_t a=1;return;}','NAME-DUPLICATE'),
+            'int-reserved-name': (b'void metal_main(void){const uint8_t int64_t=1;return;}','NAME-RESERVED'),
+            'int-decl-name': (b'void metal_main(void){const uint8_t =1;return;}','DECL-NAME'),
+            'int-missing-operand': (b'void metal_main(void){const uint8_t a=1+;return;}','SYNTAX'),
+            'int-raw-pointer': (b'void metal_main(void){const char *p="x";return;}','TOKEN-UNSUPPORTED'),
+            'int-expression-depth': (b'void metal_main(void){const uint8_t a='+b'('*40+b'1'+b')'*40+b';return;}','EXPR-DEPTH'),
+            'int-negation-depth': (b'void metal_main(void){const int8_t a='+b'-'*40+b'1;return;}','EXPR-DEPTH'),
+            'int-expression-size': (b'void metal_main(void){const uint64_t a=0'+b'+1'*300+b';return;}','EXPR-SIZE'),
+            'int-integer-limit': (b'void metal_main(void){'+b''.join(b'const uint8_t n%d=1;' % i for i in range(129))+b'return;}','INTEGER-LIMIT'),
+            'int-decimal-constant-limit': (b'void metal_main(void){'+b''.join(b'const char c%d[]="A";' % i for i in range(128))+b'const uint8_t n=1;metal_put_int(n);return;}','CONSTANT-LIMIT'),
         }
         for name, (source, rule) in invalid.items():
             process, paths = compile_case(work/name, source)
@@ -138,9 +193,31 @@ def main():
             'verify-displacement': ('EMISSION-MISMATCH', lambda h,ir,s: (h.replace('35 05','35 06',1), ir, s)),
             'verify-return-opcode': ('EMISSION-MISMATCH', lambda h,ir,s: (h.replace('10 C3','10 90',1), ir, s)),
         }
-        for name, (rule, mutate) in mutations.items():
+        n0 = lambda ir, **k: dict(ir, Integers=[dict(ir['Integers'][0], **k)] + ir['Integers'][1:])
+        k1 = lambda ir, **k: dict(ir, Constants=[ir['Constants'][0], dict(ir['Constants'][1], **k)] + ir['Constants'][2:])
+        enteros = {
+            'verify-int-value': ('INT-VALUE', lambda h,ir,s: (h, n0(ir, Value='16000000001'), s)),
+            'verify-int-value-format': ('INT-VALUE', lambda h,ir,s: (h, n0(ir, Value='016000000000'), s)),
+            'verify-int-type': ('INT-TYPE', lambda h,ir,s: (h, n0(ir, Type='uint128_t'), s)),
+            'verify-int-overflow': ('INT-OVERFLOW', lambda h,ir,s: (h, n0(ir, Type='uint32_t'), s)),
+            'verify-int-div-zero': ('INT-DIV-ZERO', lambda h,ir,s: (h, n0(ir, Rpn='4000000000 0 /'), s)),
+            'verify-int-rpn-stack': ('INT-RPN', lambda h,ir,s: (h, n0(ir, Rpn='4000000000 4 * +'), s)),
+            'verify-int-rpn-token': ('INT-RPN', lambda h,ir,s: (h, n0(ir, Rpn='4000000000 4 shl'), s)),
+            'verify-int-rpn-forward': ('INT-RPN', lambda h,ir,s: (h, n0(ir, Rpn='@mezcla'), s)),
+            'verify-int-name': ('IR-NAME', lambda h,ir,s: (h, n0(ir, Name='_grande'), s)),
+            'verify-int-duplicate': ('IR-DUPLICATE', lambda h,ir,s: (h, dict(ir, Integers=ir['Integers'][:1]*2+ir['Integers'][1:]), s)),
+            'verify-data-decimal-digits': ('DATA-DECIMAL', lambda h,ir,s: (h, k1(ir, Hex='313630303030303030303100'), s)),
+            'verify-data-decimal-owner': ('DATA-DECIMAL', lambda h,ir,s: (h, k1(ir, Integer='bajo'), s)),
+            'verify-data-kind': ('IR-CONTRACT', lambda h,ir,s: (h, k1(ir, Kind='binary'), s)),
+        }
+        ints_ir = json.loads(ints_paths[2].read_text())
+        ints_hex = ints_paths[1].read_text()
+        ints_src = ints_paths[0].read_bytes()
+        casos = [(n, r, m, original_hex, original_ir, original_src) for n, (r, m) in mutations.items()]
+        casos += [(n, r, m, ints_hex, ints_ir, ints_src) for n, (r, m) in enteros.items()]
+        for name, rule, mutate, base_hex, base_ir, base_src in casos:
             folder=work/('mutated-'+name); folder.mkdir()
-            hex_text, ir, src = mutate(original_hex,copy.deepcopy(original_ir),original_src)
+            hex_text, ir, src = mutate(base_hex,copy.deepcopy(base_ir),base_src)
             sp,hp,ip=folder/'source.casm',folder/'body.hex',folder/'body.ir.json'
             sp.write_bytes(src); hp.write_text(hex_text); ip.write_text(json.dumps(ir))
             try: verify(sp,hp,ip)

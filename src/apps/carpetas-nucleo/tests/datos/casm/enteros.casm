@@ -1,0 +1,13 @@
+// CASM 0.2: exact integers, computed by the compiler with checked rules.
+void metal_main(void) {
+    const char salto[] = "\r\n";
+    const uint64_t grande = 4000000000 * 4;
+    const int8_t bajo = -128;
+    const int64_t mezcla = (grande / 1000000 - 17) % 7 - 0x10;
+    metal_put_int(grande);
+    metal_puts(salto);
+    metal_put_int(bajo);
+    metal_puts(salto);
+    metal_put_int(mezcla);
+    return;
+}

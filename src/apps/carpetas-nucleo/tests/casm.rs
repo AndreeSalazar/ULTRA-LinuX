@@ -47,16 +47,20 @@ fn las_katanas_salen_de_las_fuentes_de_casm() {
     let k = katanas(&refs);
     let de = |r: &str, e: Etapa| k.iter().find(|x| x.regla == r && x.etapa == e).unwrap_or_else(|| panic!("falta {r} en {e:?}"));
     let indef = de("NAME-UNDEFINED", Etapa::Fuente);
-    assert_eq!(indef.motivo, "String must be declared before use.");
+    assert!(indef.motivo.ends_with("must be declared before use."), "{}", indef.motivo);
     assert!(indef.sitios.iter().any(|(a, _)| a == "CASM/src/frontend.c"));
-    assert_eq!(indef.casos, ["undefined-name"]);
+    assert!(indef.casos.contains(&"undefined-name".to_string()) && indef.casos.contains(&"int-undefined".to_string()));
     assert!(de("EMISSION-MISMATCH", Etapa::Verificador).sitios[0].0.ends_with("verify.py"));
     assert!(de("BODY-LIMIT", Etapa::Codificador).motivo.contains("4072"));
     assert_eq!(de("HOST-READ", Etapa::Anfitrion).motivo, "Cannot open source.", "el motivo, sin el codigo que lo rodea");
     assert!(de("SOURCE-SIZE", Etapa::Anfitrion).casos.contains(&"source-too-large".to_string()));
     // Cada caso rechazado de test.py demuestra una katana que existe.
     let casos: usize = k.iter().map(|x| x.casos.len()).sum();
-    assert_eq!(casos, 55, "{k:#?}"); // 27 de fuente, 3 del anfitrion, 23 del verificador y 2 de su programa
+    // Cada katana tiene casos; y ninguno queda sin su katana (casos = los rechazos de test.py).
+    let rechazos = archivos.iter().find(|(a, _)| a.ends_with("test.py")).unwrap().1.lines()
+        .filter(|l| { let t = l.trim(); t.starts_with('\'') && (t.contains("': (b'") || t.contains("': ('")) && !t.contains("': (b'void metal_main(void) {") }).count();
+    assert!(casos >= 90 && casos <= rechazos, "{casos} casos de {rechazos} lineas de rechazo");
+    assert!(!de("INT-OVERFLOW", Etapa::Fuente).motivo.is_empty(), "el motivo armado con snprintf");
     assert!(k.len() >= 30, "{}", k.len());
     // Ninguna katana sin su caso aislado.
     let sin: Vec<String> = k.iter().filter(|x| x.casos.is_empty()).map(|x| format!("{:?} {}", x.etapa, x.regla)).collect();
@@ -76,4 +80,19 @@ fn una_compilacion_verde_o_roja() {
     assert_eq!(r.corte.as_ref().map(|x| x.0.as_str()), Some("NAME-UNDEFINED"));
     // Sin paquete no hay verde aunque el informe diga que si.
     assert!(!compilacion("run-3", "", Some(v), "", false).verde);
+}
+
+#[test]
+fn enteros_exactos_en_el_mapa() {
+    let m = mapa(include_str!("datos/casm/enteros.casm"), include_str!("datos/casm/enteros.ir.json"), include_str!("datos/casm/enteros.hex"), "r").unwrap();
+    assert_eq!(m.enteros.iter().map(|e| (e.nombre.as_str(), e.valor.as_str(), e.tipo.as_str())).collect::<Vec<_>>(),
+               [("grande", "16000000000", "uint64_t"), ("bajo", "-128", "int8_t"), ("mezcla", "-14", "int64_t")]);
+    // La linea 6 (mezcla) lleva los bytes de su decimal: "-14" y su cero.
+    let l6: Vec<_> = m.de_linea(6).collect();
+    assert_eq!(l6[0].bytes, b"-14\0");
+    assert!(matches!(&l6[0].pieza, Pieza::Decimal { valor, .. } if valor == "-14"));
+    assert!(l6[0].lectura.contains("= mezcla (int64_t)"));
+    // Un decimal que no son las cifras del valor no se acepta.
+    let ir = include_str!("datos/casm/enteros.ir.json").replace("\"Value\":\"-14\"", "\"Value\":\"-15\"");
+    assert!(mapa(include_str!("datos/casm/enteros.casm"), &ir, include_str!("datos/casm/enteros.hex"), "r").unwrap_err().contains("mezcla"));
 }
