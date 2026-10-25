@@ -49,6 +49,8 @@ pub struct Mapa {
     /// y a reiniciar (se guardan en la cache). Las de archivos que cambiaron, pendientes.
     revisiones: std::collections::BTreeMap<String, Revision>,
     pub pendientes: Vec<String>,
+    /// Por que esta pendiente cada una ("cambio a.c", "cambio base/x.h").
+    razones: std::collections::BTreeMap<String, String>,
 }
 
 /// Una revision de GCC de un archivo: con que perfil, cuando, y que dijo.
@@ -62,7 +64,13 @@ pub struct Revision {
     extra: Vec<String>,
     cuando: u64,
     diags: Vec<DiagGcc>,
+    /// Las cabeceras del proyecto que GCC leyo de verdad (-MMD, con los #if resueltos), con
+    /// su fecha y tamano: si cambia una, la revision ya no vale.
+    deps: Vec<(String, u128, u64)>,
 }
+
+/// Como mucho tantas cabeceras guardadas por revision.
+const MAX_DEPS: usize = 4000;
 
 fn fecha_y_tam(p: &Path) -> Option<(u128, u64)> {
     let m = std::fs::symlink_metadata(p).ok()?;
@@ -189,7 +197,7 @@ impl Mapa {
         let raiz = raiz.canonicalize().map_err(|e| format!("{}: {e}", raiz.display()))?;
         if !raiz.is_dir() { return Err(format!("{}: no es una carpeta", raiz.display())); }
         let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None, version: 0, previa: None, cuando: 0,
-                           guardian: None, revisiones: Default::default(), pendientes: Vec::new() };
+                           guardian: None, revisiones: Default::default(), pendientes: Vec::new(), razones: Default::default() };
         m.revisiones = m.cargar_revisiones();
         m.analizar();
         Ok(m)
@@ -227,14 +235,16 @@ impl Mapa {
         doc.as_object().into_iter().flatten().filter_map(|(k, v)| Some((k.clone(), Revision {
             fecha: v["fecha"].as_str()?.parse().ok()?, tam: v["tam"].as_u64()?, perfil: v["perfil"].as_str()?.into(), analizador: v["analizador"].as_bool()?,
             extra: v["extra"].as_array()?.iter().filter_map(|x| x.as_str().map(str::to_string)).collect(), cuando: v["cuando"].as_u64()?,
-            diags: v["diags"].as_array()?.iter().filter_map(diag_de_json).collect() }))).collect()
+            diags: v["diags"].as_array()?.iter().filter_map(diag_de_json).collect(),
+            deps: v["deps"].as_array().into_iter().flatten().filter_map(|d| Some((d[0].as_str()?.to_string(), d[1].as_str()?.parse().ok()?, d[2].as_u64()?))).collect() }))).collect()
     }
 
     fn guardar_revisiones(&self) {
         let Some(ruta) = self.ruta_revisiones() else { return };
         let doc: serde_json::Map<String, Value> = self.revisiones.iter().map(|(k, r)| (k.clone(), json!({
             "fecha": r.fecha.to_string(), "tam": r.tam, "perfil": r.perfil, "analizador": r.analizador, "extra": r.extra, "cuando": r.cuando,
-            "diags": r.diags.iter().map(diag_a_json).collect::<Vec<_>>() }))).collect();
+            "diags": r.diags.iter().map(diag_a_json).collect::<Vec<_>>(),
+            "deps": r.deps.iter().map(|(k, f, s)| json!([k, f.to_string(), s])).collect::<Vec<_>>() }))).collect();
         if let Some(d) = ruta.parent() { let _ = std::fs::create_dir_all(d); }
         let tmp = ruta.with_extension(format!("tmp{}", std::process::id()));
         if std::fs::write(&tmp, serde_json::to_vec(&doc).unwrap_or_default()).is_ok() { let _ = std::fs::rename(&tmp, &ruta); }
@@ -244,13 +254,19 @@ impl Mapa {
     /// cambiaron quedan pendientes (su revision ya no vale).
     fn reaplicar(&mut self) {
         self.pendientes.clear();
+        self.razones.clear();
         let mut leidos: Vec<(String, Diagnostico)> = Vec::new();
         for (archivo, r) in &self.revisiones {
-            match fecha_y_tam(&self.raiz.join(archivo)) {
-                Some((f, s)) if f == r.fecha && s == r.tam => leidos.extend(r.diags.iter().filter(|d| d.archivo_en_proyecto).map(|d| (d.archivo.clone(),
+            // Vale si ni el archivo ni ninguna de las cabeceras que GCC leyo cambiaron.
+            let cambio = match fecha_y_tam(&self.raiz.join(archivo)) {
+                None => continue, // ya no existe: se olvida abajo
+                Some((f, s)) if f != r.fecha || s != r.tam => Some(archivo.clone()),
+                Some(_) => r.deps.iter().find(|(d, f, s)| fecha_y_tam(&self.raiz.join(d)) != Some((*f, *s))).map(|(d, ..)| d.clone()),
+            };
+            match cambio {
+                None => leidos.extend(r.diags.iter().filter(|d| d.archivo_en_proyecto).map(|d| (d.archivo.clone(),
                     Diagnostico { linea: d.linea, columna: d.columna, mensaje: d.texto(), grave: d.nivel == "error" }))),
-                Some(_) => self.pendientes.push(archivo.clone()),
-                None => {} // ya no existe: se olvida abajo
+                Some(c) => { self.razones.insert(archivo.clone(), format!("cambio {c}")); self.pendientes.push(archivo.clone()); }
             }
         }
         self.revisiones.retain(|k, _| self.raiz.join(k).exists());
@@ -266,8 +282,8 @@ impl Mapa {
         for archivo in lista {
             let Some(r) = self.revisiones.get(&archivo).cloned() else { continue };
             let perfil = if r.perfil == "guardian" { self.guardian.clone() } else { None };
-            if let Ok((diags, _, _)) = self.revisar(&archivo, perfil.as_ref(), r.analizador, &r.extra) {
-                self.anotar_revision(&archivo, perfil.is_some(), r.analizador, r.extra.clone(), diags);
+            if let Ok((diags, _, _, deps)) = self.revisar(&archivo, perfil.as_ref(), r.analizador, &r.extra) {
+                self.anotar_revision(&archivo, perfil.is_some(), r.analizador, r.extra.clone(), diags, deps);
                 hechos.push(archivo);
             }
         }
@@ -275,16 +291,17 @@ impl Mapa {
         hechos
     }
 
-    fn anotar_revision(&mut self, archivo: &str, guardian: bool, analizador: bool, extra: Vec<String>, diags: Vec<DiagGcc>) {
+    fn anotar_revision(&mut self, archivo: &str, guardian: bool, analizador: bool, extra: Vec<String>, diags: Vec<DiagGcc>, deps: Vec<String>) {
         let (fecha, tam) = fecha_y_tam(&self.raiz.join(archivo)).unwrap_or((0, 0));
+        let deps = deps.into_iter().filter_map(|d| { let (f, s) = fecha_y_tam(&self.raiz.join(&d))?; Some((d, f, s)) }).collect();
         self.revisiones.insert(archivo.to_string(), Revision { fecha, tam, perfil: if guardian { "guardian".into() } else { "generico".into() },
-                                                              analizador, extra, cuando: ahora_s(), diags });
+                                                              analizador, extra, cuando: ahora_s(), diags, deps });
     }
 
     /// Una revision de GCC: con el perfil de los guardianes, dos pasadas como `ultra_revisar`
     /// (-O0 -fanalyzer y -O2); si no, -Wall -Wextra -O2 (y -fanalyzer si se pide).
     /// Devuelve los diagnosticos (sin repetir), las ordenes y de donde salen las flags.
-    fn revisar(&self, archivo: &str, guardian: Option<&crate::guardianes::Perfil>, analizador: bool, extra: &[String]) -> Result<(Vec<DiagGcc>, Vec<String>, &'static str), String> {
+    fn revisar(&self, archivo: &str, guardian: Option<&crate::guardianes::Perfil>, analizador: bool, extra: &[String]) -> Result<(Vec<DiagGcc>, Vec<String>, &'static str, Vec<String>), String> {
         let (carpeta, base, origen, entrada) = self.base_gcc(archivo);
         let pasadas: Vec<Vec<String>> = match guardian {
             Some(p) => {
@@ -297,21 +314,30 @@ impl Mapa {
         };
         let mut diags: Vec<DiagGcc> = Vec::new();
         let mut ordenes = Vec::new();
-        for pasada in pasadas {
+        let mut deps: Vec<String> = Vec::new();
+        for (i, pasada) in pasadas.into_iter().enumerate() {
             let mut args = base.clone();
             if guardian.is_some() { args.retain(|x| x != "-xc++" && !x.starts_with("-std=")); }
             args.extend(extra.iter().cloned());
             args.extend(pasada);
             // Compilar de verdad a /dev/null (no escribe nada): -fsyntax-only no ve los avisos
             // que necesitan optimizar ni puede correr -fanalyzer.
+            // En la primera pasada, las cabeceras que GCC lee de verdad, por la salida (no al disco).
+            if i == 0 { args.extend(["-MMD".into(), "-MF".into(), "/dev/stdout".into()]); }
             args.extend(["-c".into(), "-o".into(), "/dev/null".into(), "-fdiagnostics-format=sarif-stderr".into(), entrada.clone()]);
-            let (_, err) = self.gcc(&carpeta, &args)?;
+            let (salida, err) = self.gcc(&carpeta, &args)?;
+            if i == 0 {
+                deps = salida.split_once(':').map(|(_, d)| d).unwrap_or("").split_whitespace().filter(|x| *x != "\\")
+                    .filter_map(|x| self.del_proyecto(&carpeta, x)).filter(|x| x != archivo).take(MAX_DEPS).collect();
+                deps.sort();
+                deps.dedup();
+            }
             for d in leer_sarif(&err, &self.raiz)? {
                 if !diags.iter().any(|x| x.archivo == d.archivo && x.linea == d.linea && x.columna == d.columna && x.mensaje == d.mensaje) { diags.push(d); }
             }
             ordenes.push(format!("gcc {}", args.join(" ")));
         }
-        Ok((diags, ordenes, origen))
+        Ok((diags, ordenes, origen, deps))
     }
 
     /// Lo que se compara entre analisis.
@@ -349,7 +375,7 @@ impl Mapa {
             "ciclos_rotos": lista(antes.ciclos.difference(&ahora.ciclos).map(|x| json!(x)).collect()),
             "dependencias": { "antes": antes.dependencias, "ahora": ahora.dependencias },
             "archivos": { "antes": antes.archivos, "ahora": ahora.archivos },
-            "revisiones_gcc": { "pendientes": self.pendientes, "nota": "las de archivos que cambiaron se repiten solas (servidor MCP) o con gcc_diagnosticos" },
+            "revisiones_gcc": { "pendientes": self.pendientes, "por_que": self.razones, "nota": "las de archivos que cambiaron se repiten solas (servidor MCP) o con gcc_diagnosticos" },
         })
     }
 
@@ -359,8 +385,9 @@ impl Mapa {
             "revisiones": { "total": self.revisiones.len(), "pendientes": self.pendientes.len(),
                             "lista": self.revisiones.iter().take(n).map(|(k, r)| json!({ "archivo": k, "perfil": r.perfil,
                                 "errores": r.diags.iter().filter(|d| d.nivel == "error").count(), "avisos": r.diags.iter().filter(|d| d.nivel != "error").count(),
-                                "al_dia": !self.pendientes.contains(k), "revisado_hace_s": ahora_s().saturating_sub(r.cuando) })).collect::<Vec<_>>() },
-            "nota": "Una revision se repite sola cuando su archivo cambia (servidor MCP). Una cabecera que cambia no la invalida: revisar otra vez el .c si importa.",
+                                "al_dia": !self.pendientes.contains(k), "pendiente_por": self.razones.get(k), "cabeceras_vigiladas": r.deps.len(),
+                                "revisado_hace_s": ahora_s().saturating_sub(r.cuando) })).collect::<Vec<_>>() },
+            "nota": "Una revision se repite sola (servidor MCP) cuando cambia su archivo o cualquiera de las cabeceras del proyecto que GCC leyo al revisarlo.",
         })
     }
 
@@ -659,16 +686,17 @@ impl Mapa {
             None => self.guardian.clone().filter(|_| es_c),
         };
         let t = Instant::now();
-        let (diags, ordenes, origen) = self.revisar(&archivo, perfil.as_ref(), analizador, &extra)?;
+        let (diags, ordenes, origen, deps) = self.revisar(&archivo, perfil.as_ref(), analizador, &extra)?;
         let ms = t.elapsed().as_millis();
-        // Se guarda (con la fecha del archivo) y vuelve al estado: senales y fallo conectado.
-        self.anotar_revision(&archivo, perfil.is_some(), analizador, extra, diags.clone());
+        let n_deps = deps.len();
+        // Se guarda (con la fecha del archivo y de sus cabeceras) y vuelve al estado.
+        self.anotar_revision(&archivo, perfil.is_some(), analizador, extra, diags.clone(), deps);
         self.reaplicar();
         self.guardar_revisiones();
         let errores = diags.iter().filter(|d| d.nivel == "error").count();
         Ok(json!({
             "archivo": archivo, "perfil": perfil.as_ref().map(|p| format!("guardianes ({})", p.origen)).unwrap_or_else(|| "generico".into()),
-            "ordenes": ordenes, "flags_de": origen, "ms": ms, "analizador": analizador || perfil.is_some(),
+            "ordenes": ordenes, "flags_de": origen, "ms": ms, "cabeceras_vigiladas": n_deps, "analizador": analizador || perfil.is_some(),
             "errores": errores, "avisos": diags.len() - errores,
             "lista": diags.iter().take(n).map(|d| json!({ "archivo": d.archivo, "linea": d.linea, "columna": d.columna, "nivel": d.nivel, "regla": d.regla, "mensaje": d.mensaje, "pasos": d.pasos })).collect::<Vec<_>>(),
             "quedan": diags.len().saturating_sub(n),
@@ -938,6 +966,31 @@ mod pruebas {
         assert_eq!(otro.revisiones.len(), 1);
         assert_eq!(otro.estado.conectado.fallos, 1);
         if let Some(r) = otro.ruta_revisiones() { std::fs::remove_file(r).ok(); }
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn si_cambia_una_cabecera_el_guardian_revisa_a_quien_la_usa() {
+        if std::process::Command::new("gcc").arg("--version").output().is_err() { return; }
+        let dir = std::env::temp_dir().join(format!("ultra-guardian-h-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("src/guardian/produccion")).unwrap();
+        std::fs::create_dir_all(dir.join("inc")).unwrap();
+        std::fs::write(dir.join(crate::guardianes::LUGAR), "ULTRA_WARN=(-std=c17 -Wall -Wextra -Werror -Wvla)\n").unwrap();
+        std::fs::write(dir.join("inc/util.h"), "static inline int doble(int n) { return 2 * n; }\n").unwrap();
+        std::fs::write(dir.join("main.c"), "#include \"inc/util.h\"\nint f(int n) { return doble(n); }\n").unwrap();
+        let mut m = Mapa::abrir(&dir).unwrap();
+        let r = m.ejecutar("gcc_diagnosticos", &json!({ "archivo": "main.c" })).unwrap();
+        assert_eq!((r["errores"].as_u64(), r["cabeceras_vigiladas"].as_u64()), (Some(0), Some(1)), "GCC dijo que lee inc/util.h: {r}");
+        // Solo cambia la cabecera (un VLA): la revision de main.c queda pendiente por ella.
+        std::fs::write(dir.join("inc/util.h"), "static inline int doble(int n) { char b[n]; b[0] = 2; return b[0] * n; }\n").unwrap();
+        m.analizar();
+        assert_eq!(m.pendientes, ["main.c"]);
+        assert_eq!(m.razones["main.c"], "cambio inc/util.h");
+        m.revisar_pendientes(4);
+        let c = m.ejecutar("cambios", &json!({})).unwrap();
+        assert!(c["fallan_ahora"]["lista"].as_array().unwrap().iter().any(|x| x == "inc/util.h"), "el guardian ve el VLA de la cabecera: {c}");
+        if let Some(r) = m.ruta_revisiones() { std::fs::remove_file(r).ok(); }
         std::fs::remove_dir_all(&dir).ok();
     }
 

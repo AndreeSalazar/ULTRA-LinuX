@@ -972,9 +972,15 @@ pasadas, como `ultra_revisar`: `-O0 -fanalyzer` y `-O2`.
   - Al reanalizar, lo que dijo GCC de los archivos que no cambiaron vuelve a las señales
     y al fallo conectado.
   - Sobreviven a reiniciar el servidor.
-- **Se repiten solas:** si un archivo revisado cambia, el vigía lo vuelve a revisar con el
-  mismo perfil, como mucho 4 por ronda, antes de avisar. Así `cambios` dice si el guardián
-  lo hace fallar o ya pasa.
+- **Se repiten solas:** el vigía vuelve a revisar con el mismo perfil, como mucho 4 por
+  ronda, antes de avisar, cuando cambia el archivo revisado **o cualquiera de las
+  cabeceras del proyecto que GCC leyó al revisarlo**. Así `cambios` dice si el guardián lo
+  hace fallar o ya pasa.
+  - Esas cabeceras las dice GCC (`-MMD -MF /dev/stdout`, por la salida y no al disco),
+    con los `#if` ya resueltos: son las de verdad, no las del mapa léxico.
+  - Cada revisión guarda la fecha y el tamaño de las suyas (hasta 4 000).
+  - `cambios` y `guardianes` dicen el motivo: «cambió inc/util.h».
+  - En este repositorio, `ultra_guard.c` vigila 1 cabecera y `minas.c`, 2.
 - Medido en este repositorio: `produccion/ultra_guard.c` pasa limpio, con **0 errores**.
   `laboratorio/minas.c` da **86 errores** (VLA, `cast-align`, `format-nonliteral`…), como
   debe un campo de minas. Unos 250 ms las dos pasadas.
@@ -984,8 +990,9 @@ ventana se borra `ventana.json`: no queda a la vista lo que se miraba.
 
 **Límites:**
 
-- Una revisión se invalida cuando cambia **su** archivo. Si cambia una cabecera que
-  incluye, hay que revisar otra vez el `.c` (o pedirlo con `gcc_diagnosticos`).
+- Solo se repiten solas las revisiones que ya se pidieron alguna vez (con
+  `gcc_diagnosticos`). El guardián no revisa todo el proyecto por su cuenta.
+- Las cabeceras del sistema (`<stdio.h>`) no se vigilan: `-MMD` las deja fuera.
 - El puente sigue al alcance de otros procesos **del mismo usuario** (como su `~/.cache`).
   Solo mueve la vista.
 - inotify es de Linux. En otro sistema, el vigía vuelve a sondear.

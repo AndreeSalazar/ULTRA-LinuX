@@ -120,7 +120,8 @@ GRAFO conteste la pregunta, no el formato.
    - **mejorado:** vigía al instante con inotify (unos 290 ms del guardado al aviso en
      Chromium);
    - **los guardianes del proyecto** (`perfil-gcc.sh`, dos pasadas como `ultra_revisar`)
-     revisan, se guardan y se repiten solos cuando cambia el archivo.
+     revisan, se guardan y se repiten solos cuando cambia el archivo **o una cabecera que
+     GCC leyó** (`-MMD`).
 7. **Siguiente:**
    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
      verdad cada archivo);
