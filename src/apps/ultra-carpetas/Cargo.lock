@@ -2580,6 +2580,7 @@ dependencies = [
  "carpetas-nucleo",
  "eframe",
  "egui_extras",
+ "serde_json",
 ]
 
 [[package]]

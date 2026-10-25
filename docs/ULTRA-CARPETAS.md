@@ -786,6 +786,114 @@ del triángulo…) cambiaba el grafo, la geometría de la GPU se marcaba con la 
 pero seguía con el dibujo viejo, y no se rehacía. Se veían los cables rojos del fallo
 estando aislado. Ahora la geometría lleva la versión de la vista de la que sale.
 
+## El SUPER GRAFO sin ventana: consultas en JSON y servidor MCP
+
+El mismo mapa contesta preguntas sin abrir la ventana, con respuestas **exactas y con
+tope**: primero las cifras y lo peor; las listas llevan `limite` (10 por defecto, como
+mucho 100) y dicen cuántos quedan. Así un proyecto de 4 000 archivos y uno gigante
+cuestan casi lo mismo a quien pregunta (una persona, un script o una IA).
+
+```bash
+ultra-carpetas --consulta resumen  <carpeta>
+ultra-carpetas --consulta camino   <carpeta> '{"a": "base/time/time.h", "b": "base/numerics/safe_conversions_impl.h"}'
+ultra-carpetas --consulta peso     <carpeta> '{"ruta": "base/time/time.h", "limite": 3}'
+ultra-carpetas --mcp <carpeta>     # servidor MCP por stdio (JSON-RPC 2.0)
+```
+
+**Herramientas** (las mismas en `--consulta` y en MCP):
+
+| Herramienta | Qué contesta |
+|---|---|
+| `resumen` | Archivos, dependencias, sospechas por eje, fallo conectado y ciclos |
+| `buscar` | Rutas por nombre, como Ctrl+P |
+| `archivo` | Lo que usa y quien lo usa (con la línea de cada `#include`), sus sospechas y su papel |
+| `fallos` | Las causas probables del fallo conectado: cuánto explica cada una y a cuántos llega |
+| `senales` | Lo que señalan unos archivos, en el orden para arreglar, con su ficha y por dónde les llega |
+| `camino` | Por dónde se unen dos archivos, con la línea de cada paso y lo imprescindible |
+| `ciclos` | Los ciclos de cabeceras, su vuelta y dónde cortar |
+| `peso` | Si cambia este archivo, cuántos se recompilan y por dónde se reparte |
+| `combinar` | Cómo se combinan varios: directas, compartidos, quién los junta |
+| `ficha` | Una ficha del museo entera |
+| `gcc_diagnosticos` | La opinión de GCC sobre un archivo, en SARIF (con `-fanalyzer` si se pide) |
+| `gcc_deps` | Cuánto acierta el mapa léxico frente a `gcc -MM -MG` |
+| `exportar_sarif` | El museo (y lo de GCC) en un archivo SARIF 2.1.0 |
+| `reanalizar` | Volver a leer la carpeta |
+
+**MCP (Model Context Protocol)** es el protocolo abierto con el que una IA llama a
+herramientas y recibe datos, no imágenes. `.mcp.json` en la raíz registra el servidor
+`super-grafo` (`scripts/super-grafo-mcp.sh`, que compila el binario la primera vez). Un
+cliente como Claude Code lo ofrece al abrir el repositorio, y pide permiso antes de usarlo.
+
+- Se habla **JSON-RPC 2.0 por stdio**: `initialize` (versiones 2025-06-18, 2025-03-26 y
+  2024-11-05), `tools/list`, `tools/call` y `ping`.
+- stdout es solo del protocolo. Un error de una herramienta va dentro del resultado
+  (`isError`); una herramienta que no existe es un error JSON-RPC.
+- El análisis arranca en otro hilo: `initialize` contesta al momento.
+
+**GCC habla en datos** (sin LLVM):
+
+- **`gcc_diagnosticos`** compila con `-Wall -Wextra -O2 -c -o /dev/null` (no escribe nada)
+  y `-fdiagnostics-format=sarif-stderr`. Con `analizador: true` añade **`-fanalyzer`**, con
+  el camino paso a paso de cada problema.
+  - Sus errores entran en las señales y en el fallo conectado.
+  - Solo acepta flags que no escriben ni ejecutan nada: `-I` relativas, `-D`, `-std=` y `-W`.
+- **En la terminal de la aplicación**, si compilas con
+  `-fdiagnostics-format=sarif-stderr`, el bloque SARIF se convierte en diagnósticos de
+  siempre y se marcan en sus nodos.
+- **`exportar_sarif`:** las sospechas del museo, con su ficha como regla, en SARIF 2.1.0.
+  - Seguridad exacta → `error`; Seguridad a revisar → `warning`; Rendimiento y Elegancia
+    → `note`.
+  - Lo leen GitHub y los editores sin adaptadores.
+
+**Medido:**
+
+- **Respuestas MCP en Chromium `base/`**, desde un cliente JSON-RPC de prueba contra el
+  binario real:
+  - `initialize`, 2 ms;
+  - `resumen`, 197 ms (la primera espera al análisis), unos 143 tokens;
+  - `camino`, 0 ms, unos 169 tokens;
+  - `peso`, 1 ms, unos 117 tokens;
+  - `senales`, 0 ms, unos 302 tokens.
+
+  Una captura de pantalla son unos 1 500 tokens: cada respuesta cuesta de 5 a 10 veces
+  menos y es exacta.
+- **`--consulta resumen`** completo (indexar, analizar y contestar): 0,2 s con la caché de
+  disco caliente; la primera vez, 6,4 s, casi todo esperando al disco.
+- **El mapa léxico frente a `gcc -MM -MG`** (15 archivos de Chromium `base/`, con
+  `-Ibase/allocator/partition_allocator/src`):
+  - cobertura **100 %**: todo lo que GCC incluye, el mapa también lo ve;
+  - precisión 55 %;
+  - **sin los `#include` que están dentro de un `#if`, la precisión sube al 94 %**
+    (810 de 818 aciertos).
+
+  Casi todo el desacuerdo son ramas de plataforma o de configuración (`PA_BUILDFLAG`, que
+  Chromium genera al compilar), y el SUPER GRAFO ya las distingue.
+- **GCC confirma el museo:** en el caso `C-001` (`free(p + 1)`), GCC dice `'free' called on
+  pointer 'p' with nonzero offset 1` (`-Wfree-nonheap-object`). Con `-fanalyzer` añade la
+  fuga de memoria con sus 5 pasos.
+- **El SARIF del museo de Chromium:** 432 resultados en 10 reglas: 2 `error` y 13 `warning`
+  (las 15 de Seguridad), y 417 `note`.
+
+**Comprobado:**
+
+- Pruebas de `consultas.rs`:
+  - respuestas exactas y con tope;
+  - rutas fuera de la carpeta y flags peligrosas, rechazadas;
+  - lectura del SARIF de GCC;
+  - GCC confirmando C-001;
+  - el SARIF exportado.
+- Pruebas de `mcp.rs`: `initialize`, notificaciones sin respuesta, `tools/list` con sus
+  esquemas, `tools/call`, errores dentro del resultado y métodos desconocidos.
+
+**Límites:**
+
+- Las rutas se resuelven por texto (léxico); para la verdad de una compilación concreta
+  están `gcc_deps` y `gcc_diagnosticos`.
+- `gcc_deps` no conoce los flags reales del proyecto: hay que pasarle sus `-I`, y sin las
+  cabeceras generadas en la compilación algunas ramas `#if` no se pueden evaluar.
+- Una línea SARIF de más de 64 KiB en la terminal se queda como texto.
+- El servidor MCP carga el análisis en memoria al arrancar; para leer cambios, `reanalizar`.
+
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**

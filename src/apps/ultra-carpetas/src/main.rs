@@ -19,12 +19,14 @@ mod ciclos_ui;
 mod senales_ui;
 mod ciudad3d;
 mod combinar_ui;
+mod consultas;
 mod disco;
 mod editor_ui;
 mod entradas;
 mod git;
 mod gpu;
 mod indice;
+mod mcp;
 mod museo_ui;
 mod paneles;
 mod pintar_grafo;
@@ -387,7 +389,11 @@ impl App {
         let quedan = mensajes.len() == MAX_LINEAS_POR_CUADRO;
         for m in mensajes {
             match m {
-                proceso::Mensaje::Linea(linea, error) => self.despachar(Accion::Salida { linea, error }),
+                // GCC con -fdiagnostics-format=sarif-stderr: el SARIF pasa a lineas de diagnostico.
+                proceso::Mensaje::Linea(linea, error) => match consultas::sarif_a_lineas(&linea) {
+                    Some(lineas) => for l in lineas { self.despachar(Accion::Salida { linea: l, error: true }); },
+                    None => self.despachar(Accion::Salida { linea, error }),
+                },
                 proceso::Mensaje::Fin(codigo) => { self.proceso = None; self.vivos.seguir(None); self.despachar(Accion::Termino(codigo)); }
             }
         }
@@ -1064,6 +1070,16 @@ impl eframe::App for App {
 }
 
 fn main() -> eframe::Result {
+    // Sin ventana: preguntas en JSON (--consulta) o servidor MCP por stdio (--mcp).
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    match args.first().map(String::as_str) {
+        Some("--consulta") => std::process::exit(consultas::linea_de_ordenes(&args[1..])),
+        Some("--mcp") => {
+            let carpeta = args.get(1).map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
+            std::process::exit(mcp::servir(carpeta));
+        }
+        _ => {}
+    }
     let carpeta = std::env::args_os().nth(1).map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| "/".into())));
     let opciones = eframe::NativeOptions {

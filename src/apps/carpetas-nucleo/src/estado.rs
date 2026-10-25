@@ -1173,6 +1173,14 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
 }
 
 impl Estado {
+    /// Diagnosticos que llegan de fuera de la terminal (GCC en SARIF, por ejemplo): se
+    /// anotan como los de la salida y se reconecta el fallo.
+    pub fn diagnosticos_externos(&mut self, leidos: Vec<(String, crate::diagnosticos::Diagnostico)>) -> Vec<Efecto> {
+        let ef = self.notar_errores(leidos);
+        self.reconectar();
+        ef
+    }
+
     /// Errores nuevos de la salida: se marcan en sus nodos y se despliega el camino.
     fn notar_errores(&mut self, leidos: Vec<(String, crate::diagnosticos::Diagnostico)>) -> Vec<Efecto> {
         if leidos.is_empty() { return vec![]; }

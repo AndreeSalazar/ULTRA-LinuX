@@ -101,9 +101,18 @@ GRAFO conteste la pregunta, no el formato.
 **Orden de madurez:**
 
 1. ~~**Ciclos.**~~ Hecho.
-2. **Consultas sin ventana** (`--consulta camino|ciclos|peso … --json`, con tope).
-3. **Comparar con `gcc -M`**, para medir cuánto acierta el mapa léxico.
+2. ~~**Consultas sin ventana**~~ **Hecho:** `--consulta` y **servidor MCP** (`--mcp`,
+   `.mcp.json`), 14 herramientas con tope. Las respuestas cuestan de 5 a 10 veces menos
+   que una captura.
+3. ~~**Comparar con `gcc -M`**~~ **Hecho:** `gcc_deps`. Cobertura 100 %; precisión 94 %
+   sin los `#include` dentro de un `#if`.
+   Además: diagnósticos de **GCC en SARIF** (con `-fanalyzer`) en las señales y el fallo
+   conectado, en la terminal de la app, y **exportar el museo en SARIF**.
 4. **Índice incremental en disco**, el paso hacia los miles de millones de líneas.
+5. **Leer `compile_commands.json`** (lo generan Bear, CMake o GN con GCC), para que
+   `gcc_deps` y `gcc_diagnosticos` usen los flags reales de cada archivo.
+
+Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-super-grafo-sin-ventana-consultas-en-json-y-servidor-mcp).
 
 ## Siguientes ideas para educar al SUPER GRAFO
 
@@ -113,7 +122,7 @@ editor en cada una; la cadena de `#include` hasta la causa; y «Ver en el grafo�
 cables del grupo. Detalle en
 [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#del-grupo-a-los-nodos-y-al-editor-lo-que-señalan-cómo-arreglarlo-y-por-dónde-llega).
 También **aislar el grupo entero** (botón en Combinar, o **A** con varios seleccionados).
-Siguiente: las **consultas sin ventana**.
+Y las **consultas sin ventana** con su **servidor MCP**: ver el orden de madurez.
 
 Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
 
