@@ -75,8 +75,21 @@ Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
 1. ~~**Camino más corto entre dos elegidos.**~~ **Hecho:** con motivos (la línea de cada
    paso), la onda de recompilación animada y los pasos imprescindibles (dónde cortar).
    Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-camino-entre-dos-elegidos-motivos-onda-y-dónde-cortar).
-2. **Ciclos en el grupo.** A usa B y B usa A (por cualquier camino): marcarlos, porque un
-   ciclo de cabeceras es un olor de diseño (eje Elegancia).
+2. **Ciclos (el siguiente).** A usa B y B usa A, por cualquier camino. Un ciclo de
+   cabeceras es un olor de diseño (eje Elegancia): nadie se puede compilar ni entender
+   por separado. Lo que ya hay lo hace casi gratis:
+   - **Buscar:** el camino A → B y el B → A ya existen (`camino.rs`). Si salen los dos,
+     es un ciclo. Para todo el proyecto, las componentes fuertes de Tarjan sobre
+     `Dependencias` (lineal en aristas).
+   - **Motivos:** cada arista del ciclo con su línea, como en el camino.
+   - **Dónde cortar:** la arista del ciclo con menos peso (la que menos archivos usan),
+     igual que la pista del camino. Comprobarlo compilando con GCC.
+   - **Verlo:** en el panel, un anillo cerrado con la onda dando vueltas sin salida;
+     en la Ciudad, los arcos del ciclo en el color de Elegancia.
+   - **Prueba:** un caso `mal` (a.h incluye b.h y b.h incluye a.h) y uno `bien` (sin
+     vuelta), y la medida en Chromium `base/`: cuántos ciclos y de qué tamaño.
+   - **Cuidado:** las guardas `#ifndef` hacen que un ciclo compile. Es aviso de
+     Elegancia, nunca fallo de Seguridad.
 3. **Peso del cambio.** Si cambia este grupo, cuántos archivos hay que recompilar (quien
    los usa, directa o indirectamente): una cifra de Rendimiento medible con GCC.
 4. **Fronteras de carpeta.** Contar cuántas dependencias cruzan de un distrito a otro: un
