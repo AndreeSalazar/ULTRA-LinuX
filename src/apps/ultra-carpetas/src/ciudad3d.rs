@@ -18,11 +18,88 @@ use std::sync::Arc;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable, PartialEq)]
-pub struct Instancia { pub suelo: [f32; 4], pub alto: [f32; 2], pub color: [f32; 4] }
+pub struct Instancia { pub suelo: [f32; 4], pub alto: [f32; 2], pub color: [f32; 4], pub nace: f32 }
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable, PartialEq)]
-pub struct UniformeCiudad { pub vp: [[f32; 4]; 4], pub luz: [f32; 4] }
+pub struct UniformeCiudad { pub vp: [[f32; 4]; 4], pub luz: [f32; 4], pub tiempo: [f32; 4] }
+
+/// La cronologia de la ciudad: cuando nacio cada archivo y carpeta de hoy (de git, sin
+/// sacar versiones viejas: `carpetas_nucleo::cronologia`).
+pub struct LineaTiempo {
+    /// (id corto, fecha, asunto) de cada commit, en orden.
+    pub commits: Vec<(String, u64, String)>,
+    pub nace: std::collections::HashMap<String, u32>,
+    pub carpetas: std::collections::HashMap<String, u32>,
+    /// Los nacimientos de los archivos de hoy, ordenados (para contar los que ya existian).
+    pub orden: Vec<u32>,
+    pub ms: u128,
+}
+
+impl LineaTiempo {
+    /// Cuando nacio (0..1 por commits); lo que git no conoce, al final.
+    fn de(&self, ruta: &str, carpeta: bool) -> f32 {
+        let n = self.commits.len().saturating_sub(1).max(1) as f32;
+        let i = if carpeta { self.carpetas.get(ruta) } else { self.nace.get(ruta).or_else(|| self.carpetas.get(ruta)) };
+        i.map(|&i| i as f32 / n).unwrap_or(1.0)
+    }
+}
+
+/// El deslizador del tiempo y su cronologia (que se lee en otro hilo).
+#[derive(Default)]
+pub struct Tiempo {
+    pub activo: bool,
+    /// El commit que se mira (con decimales mientras se reproduce).
+    pub t: f32,
+    pub jugando: bool,
+    pub datos: Option<Arc<LineaTiempo>>,
+    pub error: Option<String>,
+    pedido: Option<(String, std::sync::mpsc::Receiver<Result<LineaTiempo, String>>, std::time::Instant)>,
+    /// Para que las instancias rehagan su fecha de nacimiento al llegar la cronologia.
+    version: u64,
+}
+
+impl Tiempo {
+    fn pedir(&mut self, raiz: &str, ctx: &egui::Context) {
+        if self.pedido.as_ref().is_some_and(|(r, ..)| r == raiz) { return; }
+        let (tx, rx) = std::sync::mpsc::channel();
+        let (base, ctx) = (std::path::PathBuf::from(raiz), ctx.clone());
+        std::thread::Builder::new().name("ultra-cronologia".into()).spawn(move || {
+            let t = std::time::Instant::now();
+            let r = crate::git::cronologia(&base).and_then(|(c, ..)| {
+                if c.commits.is_empty() { return Err("el repositorio no tiene commits".into()); }
+                let rep = carpetas_nucleo::cronologia::reproducir(&c, 1);
+                let nace: std::collections::HashMap<String, u32> = rep.vivos.iter().filter_map(|k| Some((c.ruta_de(*k).to_string(), rep.vidas.get(k)?.nace))).collect();
+                let mut orden: Vec<u32> = nace.values().copied().collect();
+                orden.sort_unstable();
+                Ok(LineaTiempo { commits: c.commits.iter().map(|x| (x.id.clone(), x.fecha, x.asunto.clone())).collect(), nace,
+                                 carpetas: rep.carpetas.into_iter().collect(), orden, ms: t.elapsed().as_millis() })
+            });
+            let _ = tx.send(r);
+            ctx.request_repaint();
+        }).ok();
+        self.pedido = Some((raiz.to_string(), rx, std::time::Instant::now()));
+        self.datos = None;
+        self.error = None;
+    }
+
+    fn recoger(&mut self) {
+        let Some((_, rx, _)) = &self.pedido else { return };
+        match rx.try_recv() {
+            Ok(Ok(d)) => { self.t = 0.0; self.datos = Some(Arc::new(d)); self.version += 1; }
+            Ok(Err(e)) => self.error = Some(e),
+            Err(_) => {}
+        }
+    }
+
+    /// El momento que mira la GPU: 0..1, o -1 si no hay cronologia en marcha.
+    fn ahora(&self) -> f32 {
+        match (&self.datos, self.activo) {
+            (Some(d), true) => self.t / d.commits.len().saturating_sub(1).max(1) as f32,
+            _ => -1.0,
+        }
+    }
+}
 
 // ---------- Matematicas (sin dependencias) ----------
 type V3 = [f32; 3];
@@ -154,6 +231,9 @@ pub struct Vista3 {
     pub micros: u64,
     /// Shift+arrastrar: donde empezo la banda de la seleccion grupal.
     banda: Option<Pos2>,
+    /// La cronologia (ciudad fantasma) y la version de ella con la que se hicieron las instancias.
+    pub tiempo: Tiempo,
+    nace_hecho: u64,
 }
 
 /// Cajas resaltadas como mucho: lo elegido, lo de debajo del raton y el grupo con sus puentes.
@@ -165,7 +245,10 @@ impl Vista3 {
         let a = c.acento;
         let clave = (e.ciudad.version, e.ajustes.altura_ciudad, e.ajustes.color_ciudad, e.ajustes.huella_ciudad, e.errores.total, e.proyecto.generacion, e.proyecto.total, [a.r(), a.g(), a.b()], e.historia.version,
                      e.conectado.clave.clone(), e.analisis.version);
-        if self.clave.as_ref() == Some(&clave) { return; }
+        if self.clave.as_ref() == Some(&clave) && self.nace_hecho == self.tiempo.version { return; }
+        self.nace_hecho = self.tiempo.version;
+        let linea = self.tiempo.datos.clone();
+        let nace = |r: &str, carpeta: bool| linea.as_ref().map(|l| l.de(r, carpeta)).unwrap_or(0.0);
         let t = std::time::Instant::now();
         let medida = |r: &str| match e.ajustes.altura_ciudad {
             Altura::Errores => { let (x, y) = e.errores.conteo(r); x * 3 + y }
@@ -180,7 +263,7 @@ impl Vista3 {
             let k = (0.10 + d.nivel as f32 * 0.05).min(0.35);
             let base = [c.superficie.r(), c.superficie.g(), c.superficie.b()];
             let col = [(base[0] as f32 * (1.0 + k)) as u8, (base[1] as f32 * (1.0 + k)) as u8, ((base[2] as f32 * (1.0 + k)) as u8).saturating_add(6)];
-            v.push(Instancia { suelo: d.rect, alto: [d.base - TERRAZA, TERRAZA], color: rgba(col, 1.0) });
+            v.push(Instancia { suelo: d.rect, alto: [d.base - TERRAZA, TERRAZA], color: rgba(col, 1.0), nace: if d.ruta.is_empty() { 0.0 } else { nace(&d.ruta, true) } });
         }
         for b in &ciudad.edificios {
             let col = match (e.aislar.is_some(), e.conectado.conexion.roles.get(&b.ruta)) {
@@ -192,7 +275,7 @@ impl Vista3 {
                 (true, None) => [34, 36, 44],
                 _ => color_edificio(b, e.ajustes.color_ciudad, e, c),
             };
-            v.push(Instancia { suelo: b.rect, alto: [b.base, b.altura], color: rgba(col, 1.0) });
+            v.push(Instancia { suelo: b.rect, alto: [b.base, b.altura], color: rgba(col, 1.0), nace: nace(&b.ruta, b.bloque) });
         }
         if self.raiz_vista != ciudad.raiz { self.camara = Camara3::default(); self.raiz_vista = ciudad.raiz.clone(); }
         self.ciudad = Arc::new(ciudad);
@@ -205,7 +288,11 @@ impl Vista3 {
     /// Edificio (o distrito) bajo el raton: el mas cercano que toca el rayo.
     fn elegir(&self, o: V3, d: V3) -> (Option<usize>, Option<usize>) {
         let mut mejor = (f32::MAX, None);
+        // Con la cronologia en marcha, lo que aun no nacio no se elige (es un solar).
+        let ahora = self.tiempo.ahora();
+        let distritos = self.ciudad.distritos.len();
         for (i, b) in self.ciudad.edificios.iter().enumerate() {
+            if ahora >= 0.0 && self.instancias.get(distritos + i).is_some_and(|x| x.nace > ahora + 1e-6) { continue; }
             let min = [b.rect[0], b.base, b.rect[1]];
             let max = [b.rect[0] + b.rect[2], b.base + b.altura, b.rect[1] + b.rect[3]];
             if let Some(t) = rayo_caja(o, d, min, max) { if t < mejor.0 { mejor = (t, Some(i)); } }
@@ -238,7 +325,7 @@ pub fn instalar(rs: &egui_wgpu::RenderState, profundidad: Option<wgpu::TextureFo
     let grupo = d.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("ciudad"), layout: &disposicion,
         entries: &[wgpu::BindGroupEntry { binding: 0, resource: uniforme.as_entire_binding() }] });
     let capas = d.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor { label: Some("ciudad"), bind_group_layouts: &[Some(&disposicion)], immediate_size: 0 });
-    let atributos = wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4];
+    let atributos = wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32];
     let pipeline = d.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("ciudad"), layout: Some(&capas),
         vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs"), compilation_options: Default::default(),
@@ -305,6 +392,18 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
         pintor.text(rect.center(), Align2::CENTER_CENTER, t, FontId::proportional(15.0), c.tenue);
         if e.ciudad.archivos.is_empty() { return; }
     }
+    // La cronologia: recoger lo que llego y avanzar si se esta reproduciendo (toda la
+    // historia en unos 30 s, sea cual sea su largo).
+    v3.tiempo.recoger();
+    if v3.tiempo.activo && v3.tiempo.jugando {
+        if let Some(d) = v3.tiempo.datos.clone() {
+            let fin = d.commits.len().saturating_sub(1) as f32;
+            let dt = ui.input(|i| i.stable_dt).min(0.1);
+            v3.tiempo.t = (v3.tiempo.t + dt * (fin / 30.0).max(1.0)).min(fin);
+            if v3.tiempo.t >= fin { v3.tiempo.jugando = false; }
+            ui.ctx().request_repaint();
+        }
+    }
     v3.preparar(e, c);
     let aspecto = rect.width() / rect.height().max(1.0);
     // Camara: arrastrar = girar; central o derecho = mover; rueda = acercar.
@@ -350,7 +449,7 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
     let mut resaltes = Vec::new();
     let mut resaltar = |b: &Edificio, col: [u8; 3]| {
         let g = 0.4;
-        resaltes.push(Instancia { suelo: [b.rect[0] - g, b.rect[1] - g, b.rect[2] + 2.0 * g, b.rect[3] + 2.0 * g], alto: [b.base, b.altura + g], color: rgba(col, 1.0) });
+        resaltes.push(Instancia { suelo: [b.rect[0] - g, b.rect[1] - g, b.rect[2] + 2.0 * g, b.rect[3] + 2.0 * g], alto: [b.base, b.altura + g], color: rgba(col, 1.0), nace: 0.0 });
     };
     let sel = e.seleccion.iter().next();
     if let Some(b) = sel.and_then(|s| v3.ciudad.edificios.iter().find(|b| &b.ruta == s)) { resaltar(b, [255, 255, 255]); }
@@ -374,7 +473,10 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
     }
     if let Some(i) = bajo { let a = c.acento; resaltar(&v3.ciudad.edificios[i], [a.r(), a.g(), a.b()]); }
     let luz = [0.45, 0.85, 0.30, (v3.camara.distancia * 0.0012).clamp(0.08, 1.2)];
-    pintor.add(egui_wgpu::Callback::new_paint_callback(rect, Pintor { version: v3.version_gpu, instancias: v3.instancias.clone(), uniforme: UniformeCiudad { vp, luz }, resaltes }));
+    // El brillo de lo recien nacido dura un 3 % de la historia (al menos un commit).
+    let brillo = v3.tiempo.datos.as_ref().map(|d| (0.03f32).max(1.0 / d.commits.len().max(1) as f32)).unwrap_or(0.0);
+    let tiempo = [v3.tiempo.ahora(), brillo, 0.0, 0.0];
+    pintor.add(egui_wgpu::Callback::new_paint_callback(rect, Pintor { version: v3.version_gpu, instancias: v3.instancias.clone(), uniforme: UniformeCiudad { vp, luz, tiempo }, resaltes }));
 
     // Etiquetas de distritos: los de arriba siempre que quepan; mas hondos si se ven grandes.
     let mut ocupadas: Vec<Rect> = Vec::new();
@@ -414,6 +516,14 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
         if err + av > 0 { t += &format!("\n{err} errores · {av} avisos"); }
         let n = e.proyecto.conteo(&b.ruta);
         if n > 0 { t += &format!("\n{n} resultados de la busqueda"); }
+        // La cronologia: cuando nacio y con que commit (el porque).
+        if let Some(d) = &v3.tiempo.datos {
+            let i = if b.bloque { d.carpetas.get(&b.ruta) } else { d.nace.get(&b.ruta) };
+            t += &match i.and_then(|i| d.commits.get(*i as usize)) {
+                Some((id, f, a)) => format!("\nnacio el {} ({id}): {a}", crate::consultas::fecha_iso(*f)),
+                None => "\ngit no lo conoce (sin commit, ignorado o generado)".to_string(),
+            };
+        }
         if e.historia.lista && e.historia.sin.is_none() {
             let h = e.historia.datos.de(&b.ruta);
             t += &if h.veces == 0 { "\nsin cambios en la historia leida".to_string() }
@@ -582,8 +692,70 @@ fn leyenda(ui: &mut egui::Ui, lienzo: Rect, v3: &mut Vista3, e: &Estado, c: &Col
                 if ui.small_button("Encuadrar").clicked() { v3.camara = Camara3::default(); }
                 if !ciudad.raiz.is_empty() && ui.small_button("Subir [U]").clicked() { acciones.push(Accion::Comando(Comando::SubirFoco)); }
             });
+            tiempo_ui(ui, v3, e, c);
         });
     });
+}
+
+/// La seccion TIEMPO de la leyenda: ver como se construyo, desde el primer commit.
+fn tiempo_ui(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores) {
+    ui.add_space(6.0);
+    ui.separator();
+    let tm = &mut v3.tiempo;
+    if !tm.activo {
+        if ui.button(egui::RichText::new("Ver como se construyo (git)").color(c.acento)).on_hover_text("La ciudad desde el primer commit: lo que aun no existe es un solar oscuro y lo recien nacido brilla. Lee la historia de git una vez (sin sacar versiones viejas).").clicked() {
+            tm.activo = true;
+            tm.jugando = false;
+            if tm.datos.is_none() { tm.pedir(&e.raiz_absoluta, ui.ctx()); }
+        }
+        return;
+    }
+    ui.label(egui::RichText::new("TIEMPO // como se construyo").color(c.acento).strong().size(12.5));
+    if let Some(m) = &tm.error {
+        ui.label(egui::RichText::new(format!("Sin cronologia: {m}")).color(c.aviso).size(11.0));
+        if ui.small_button("Volver a hoy").clicked() { tm.activo = false; }
+        return;
+    }
+    let Some(d) = tm.datos.clone() else {
+        let s = tm.pedido.as_ref().map(|(_, _, t)| t.elapsed().as_secs()).unwrap_or(0);
+        ui.label(egui::RichText::new(format!("leyendo la historia de git… {s} s")).color(c.tenue).size(11.0));
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(500));
+        return;
+    };
+    let fin = d.commits.len().saturating_sub(1) as f32;
+    let i = (tm.t.round() as usize).min(d.commits.len().saturating_sub(1));
+    let (id, fecha, asunto) = &d.commits[i];
+    ui.label(egui::RichText::new(format!("{} · commit {} de {} · {id}", crate::consultas::fecha_iso(*fecha), i + 1, d.commits.len())).color(c.texto).size(11.5));
+    ui.label(egui::RichText::new(asunto.as_str()).color(c.tenue).size(11.0)).on_hover_text(asunto.as_str());
+    // Cuantos archivos de hoy ya existian en ese commit.
+    let ya = d.orden.partition_point(|x| *x as usize <= i);
+    ui.label(egui::RichText::new(format!("{} de {} archivos de hoy ya existian", crate::paneles::miles(ya as u64), crate::paneles::miles(d.nace.len() as u64))).color(c.texto).size(11.0));
+    let mut t = tm.t;
+    ui.spacing_mut().slider_width = 276.0;
+    ui.add(egui::Slider::new(&mut t, 0.0..=fin.max(0.0)).show_value(false).text(""));
+    if t != tm.t { tm.t = t; tm.jugando = false; }
+    ui.horizontal(|ui| {
+        if ui.small_button("|<").on_hover_text("El primer commit").clicked() { tm.t = 0.0; tm.jugando = false; }
+        if ui.small_button("<").on_hover_text("Un commit atras").clicked() { tm.t = (tm.t.round() - 1.0).max(0.0); tm.jugando = false; }
+        let jugar = if tm.jugando { "Pausa" } else { "Reproducir" };
+        if ui.small_button(jugar).on_hover_text("Toda la historia en unos 30 s").clicked() {
+            if !tm.jugando && tm.t >= fin { tm.t = 0.0; }
+            tm.jugando = !tm.jugando;
+        }
+        if ui.small_button(">").on_hover_text("Un commit adelante").clicked() { tm.t = (tm.t.round() + 1.0).min(fin); tm.jugando = false; }
+        if ui.small_button("Hoy").on_hover_text("Salir de la cronologia").clicked() { tm.activo = false; tm.jugando = false; }
+    });
+    // Las ultimas carpetas que nacieron hasta ese momento: el orden en que se fue armando.
+    let mut nacidas: Vec<(&String, &u32)> = d.carpetas.iter().filter(|(k, n)| **n as usize <= i && k.split('/').count() <= 2).collect();
+    nacidas.sort_by_key(|(k, n)| (std::cmp::Reverse(**n), (*k).clone()));
+    if !nacidas.is_empty() {
+        ui.label(egui::RichText::new("ULTIMAS CARPETAS NACIDAS").color(c.tenue).size(10.5));
+        for (k, n) in nacidas.into_iter().take(4) {
+            let (_, f, a) = &d.commits[*n as usize];
+            ui.label(egui::RichText::new(format!("{k}  ·  {}", crate::consultas::fecha_iso(*f))).color(c.texto).size(11.0)).on_hover_text(a.as_str());
+        }
+    }
+    ui.label(egui::RichText::new(format!("leida en {:.1} s · oscuro = aun no existia · dorado = recien nacido", d.ms as f32 / 1000.0)).color(c.tenue).size(10.0));
 }
 
 #[cfg(test)]
@@ -728,4 +900,46 @@ fn camino_ciudad(ui: &egui::Ui, pintor: &egui::Painter, vp: &[[f32; 4]; 4], lien
         }
     }
     if animar { ui.ctx().request_repaint_after(std::time::Duration::from_millis(33)); }
+}
+
+#[cfg(test)]
+mod pruebas_tiempo {
+    use super::*;
+
+    fn linea() -> LineaTiempo {
+        LineaTiempo {
+            commits: (0..5).map(|i| (format!("c{i}"), 100 + i as u64, format!("paso {i}"))).collect(),
+            nace: [("src/a.c".to_string(), 0u32), ("src/b.c".to_string(), 4)].into_iter().collect(),
+            carpetas: [("src".to_string(), 0u32), ("docs".to_string(), 2)].into_iter().collect(),
+            orden: vec![0, 4],
+            ms: 0,
+        }
+    }
+
+    #[test]
+    fn cada_edificio_sabe_cuando_nacio() {
+        let l = linea();
+        assert_eq!(l.de("src/a.c", false), 0.0, "el primer commit");
+        assert_eq!(l.de("src/b.c", false), 1.0, "el ultimo");
+        assert_eq!(l.de("docs", true), 0.5, "una carpeta (bloque o distrito), por su nacimiento");
+        assert_eq!(l.de("docs", false), 0.5, "un bloque sin archivo propio: el de su carpeta");
+        assert_eq!(l.de("generado.h", false), 1.0, "lo que git no conoce, al final");
+        assert_eq!(l.orden.partition_point(|x| *x <= 2), 1, "en el commit 2 existia uno de los dos");
+    }
+
+    #[test]
+    fn el_tiempo_solo_corre_con_la_cronologia_puesta() {
+        let mut t = Tiempo { t: 2.0, ..Tiempo::default() };
+        assert_eq!(t.ahora(), -1.0, "sin datos: hoy");
+        t.datos = Some(Arc::new(linea()));
+        assert_eq!(t.ahora(), -1.0, "con datos pero apagado: hoy");
+        t.activo = true;
+        assert_eq!(t.ahora(), 0.5, "commit 2 de 0..4");
+    }
+
+    #[test]
+    fn la_instancia_lleva_su_nacimiento_en_44_bytes() {
+        assert_eq!(std::mem::size_of::<Instancia>(), 44);
+        assert_eq!(std::mem::size_of::<UniformeCiudad>(), 96);
+    }
 }

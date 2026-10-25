@@ -148,9 +148,11 @@ GRAFO conteste la pregunta, no el formato.
     repositorio: 2 350 de 2 350 archivos y 333 de 333 dependencias). 100 000 commits
     sintéticos en 18 s.
 11. **Siguiente:**
-    - la cronología en la Ciudad: un deslizador de tiempo y la ciudad fantasma (los mismos
-      edificios en la GPU, con su fecha de nacimiento; mover el tiempo solo cambia un
-      número);
+    - ~~la cronología en la Ciudad~~ **hecha:** la ciudad fantasma con deslizador y
+      «Reproducir» (los mismos edificios en la GPU, 4 bytes más cada uno; mover el tiempo
+      solo cambia un número);
+    - en la ciudad fantasma, las dependencias y los ciclos de cada momento (hoy salen en el
+      MCP, no en 3D);
     - resolver solo lo que cambió (el aviso en vivo con 312 000 archivos sigue en unos 4 s);
     - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
       verdad cada archivo);

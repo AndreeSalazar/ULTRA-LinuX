@@ -1244,6 +1244,47 @@ servidor MCP la guarda en memoria hasta que cambia el último commit.
   crecimiento, las carpetas en orden, el nombre anterior, el commit que cerró el ciclo y
   el que añadió una dependencia, y la verificación al 100 %.
 
+### La ciudad fantasma: ver cómo se construyó
+
+![Commits 1, 40, 84 y 165 de este repositorio en la Ciudad](maquetas/png/neon/ciudad-cronologia.png)
+
+En la Ciudad, **«Ver cómo se construyó (git)»** lee la cronología, en otro hilo y una sola
+vez, y pone la ciudad en el primer commit:
+
+- Lo que **aún no existía** es un solar oscuro y bajito: se ve dónde irá.
+- Lo que **acaba de nacer** brilla en dorado, durante un 3 % de la historia.
+- **Reproducir** recorre toda la historia en unos 30 s, sea cual sea su largo. También se
+  puede mover el deslizador o ir commit a commit (`<`, `>`). **Hoy** sale.
+- El panel dice:
+  - la fecha y el asunto del commit;
+  - cuántos archivos de hoy ya existían;
+  - las últimas carpetas que nacieron (el orden en que se fue armando).
+- La ficha de cada edificio dice cuándo nació y con qué commit. Si git no lo conoce (sin
+  commit, ignorado o generado), también lo dice.
+
+**Casi no gasta en 3D.** Son los mismos edificios que ya estaban en la GPU: cada uno lleva
+su nacimiento (de 0 a 1 en la historia, 4 bytes más: 44 por edificio) y la cámara lleva
+el momento que se mira. Mover el tiempo solo cambia ese número; el shader decide qué es
+solar, qué brilla y qué es normal. No se rehace la ciudad ni se sube nada más. Lo que aún
+no existe tampoco se puede elegir con el ratón.
+
+**En este repositorio** (las cuatro fotos de arriba):
+
+| Commit | Fecha | Archivos de hoy que ya existían |
+| --- | --- | --- |
+| 1 | 18 de octubre | 7 de 2 357 (`docs`, `evidencias`, `scripts`) |
+| 40 | 19 de octubre | 285 (nacían `src/logo` y el laboratorio de C) |
+| 84 | 22 de octubre | 1 213 (`ASM/laboratorio`, las evidencias de producción) |
+| 165 | 25 de octubre | 2 357 (`CASM`) |
+
+Solo se probó en la pantalla virtual, con Vulkan por software. La Ciudad enseña los
+archivos de hoy: los que murieron por el camino no salen (la herramienta MCP `cronologia`
+sí los cuenta).
+
+**Comprobado** (`ciudad3d.rs`): cada edificio sabe cuándo nació (lo desconocido, al
+final; un bloque, por su carpeta); el tiempo solo corre con la cronología puesta; la
+instancia ocupa 44 bytes y la cámara 96.
+
 ### A escala de Chromium: límites subidos y medidos
 
 ![312 060 archivos y 105 millones de líneas en una sola Ciudad](maquetas/png/neon/ciudad-escala-chromium.png)
