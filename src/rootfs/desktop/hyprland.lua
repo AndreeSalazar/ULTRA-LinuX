@@ -1,6 +1,9 @@
 -- SPDX-License-Identifier: GPL-2.0-only
 -- ULTRA / BMO-X Neon: shell original para Hyprland 0.56.2. Acento hielo, esquinas rectas.
 local vivo = os.getenv("ULTRA_EFECTOS") ~= "sobrio"
+-- NVIDIA + XWayland/Wine: preferir cursor compuesto hasta validar el plano HW.
+-- ULTRA_RENDER_MODE lo entrega ultra-sesion segun el dispositivo real.
+local cursor_compatible = os.getenv("ULTRA_RENDER_MODE") == "nvidia"
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 hl.config({
     debug = { enable_stdout_logs = true },
@@ -13,8 +16,18 @@ hl.config({
     },
     animations = { enabled = vivo },
     input = { kb_layout = "us", follow_mouse = 1 },
-    cursor = { enable_hyprcursor = false },
+    cursor = {
+        enable_hyprcursor = false,
+        no_hardware_cursors = cursor_compatible and 1 or 2,
+        hide_on_key_press = false, hide_on_touch = false, inactive_timeout = 0,
+    },
     misc = { disable_hyprland_logo = true, force_default_wallpaper = 0 },
+})
+-- Solo el lanzador: el juego conserva su geometria y pantalla completa.
+hl.window_rule({
+    name = "ultra-redlauncher",
+    match = { class = "^(REDlauncher[.]exe|REDprelauncher[.]exe)$" },
+    float = true, center = true,
 })
 hl.curve("ultraEase", { type = "bezier", points = { {0.16, 1}, {0.3, 1} } })
 hl.curve("lineal", { type = "bezier", points = { {0, 0}, {1, 1} } })

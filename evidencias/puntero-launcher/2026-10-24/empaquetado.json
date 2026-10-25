@@ -1,0 +1,10 @@
+{
+  "source_files_verified": 9,
+  "manifest_no_duplicates": true,
+  "artifacts": {
+    "sistema-a.erofs": "7576002de6ffac760fdf26196d80a35226eeaa2b1dca8bd6e1fc7775cee856b1",
+    "disco-bmo.img": "8931d8eacf87b0cda1da0184c1dc0029e0bf974eb79f0fd2a85cf20a323e0429",
+    "bzImage-tiny64": "e2242e375f3f508c535f18cf684a573d1d5664350a6199742ee9f0ab1891c8f7",
+    "almacen-nativo-fuentes.sha256": "7467204d8f46d2f18a3342cfd628241460a455387c3270d8888ba854692d8086"
+  }
+}

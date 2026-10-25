@@ -872,6 +872,34 @@ def check_hyprland(conn, failures):
                     except (OSError,SyntaxError): time.sleep(.1)
                 else: raise ValueError('captura del diagnostico incompleta')
                 shutil.copyfile(target,LOG.with_name(LOG.stem+'-diagnostico.png'))
+        if '--puntero' in sys.argv:
+            encoded = base64.b64encode((ROOT/'scripts/banco_puntero.py').read_bytes()).decode()
+            conn.sendall(b': > /arch/tmp/puntero-probe.b64; echo PUNTERO-CARGA-$((40+4))\n')
+            transcript += response('PUNTERO-CARGA-44')
+            for offset in range(0, len(encoded), 192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/puntero-probe.b64; echo PUNTERO-CARGA-$((40+4))\n").encode())
+                transcript += response('PUNTERO-CARGA-44')
+            conn.sendall(b'busybox base64 -d /arch/tmp/puntero-probe.b64 > /arch/tmp/puntero-probe.py; echo PUNTERO-CARGA-$((40+4))\n')
+            transcript += response('PUNTERO-CARGA-44')
+            command = 'python /tmp/puntero-probe.py > /tmp/puntero-resultado.txt 2>&1'
+            conn.sendall(('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '
+                          + "'hl.exec_cmd(" + json.dumps(command) + ")'; echo PUNTERO-INICIO-$((40+4))\n").encode())
+            transcript += response('PUNTERO-INICIO-44')
+            result = ''
+            clicked = False
+            for _ in range(30):
+                conn.sendall(b'cat /arch/tmp/puntero-resultado.txt; echo PUNTERO-LECTURA-$((40+4))\n')
+                result = response('PUNTERO-LECTURA-44'); transcript += result
+                if 'PUNTERO-ESPERA-CLICK' in result and not clicked:
+                    mon.sendall(b'mouse_button 1\n'); time.sleep(.15)
+                    mon.sendall(b'mouse_button 0\n'); clicked = True
+                if re.search(r'(?m)^PUNTERO-RC-[0-9]+\r?$', result): break
+                if 'Traceback (most recent call last)' in result: break
+                time.sleep(1)
+            for marker in ('PUNTERO-PERFILES-OK', 'PUNTERO-XWAYLAND-LAUNCHER-OK',
+                           'PUNTERO-CLICK-XWAYLAND-OK', 'PUNTERO-XWAYLAND-JUEGO-OK',
+                           'PUNTERO-COMPATIBLE-OK', 'PUNTERO-RC-0'):
+                expect(marker in result, 'Puntero: ' + marker)
         if '--tema-nucleo' in sys.argv:
             source=(ROOT/'scripts/banco_tema_nucleo.py').read_bytes()
             encoded=base64.b64encode(source).decode()

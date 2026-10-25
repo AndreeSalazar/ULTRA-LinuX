@@ -92,6 +92,11 @@ se respaldó una capa con 49 marcas de borrado y se recuperó el acceso a los
 4.991 archivos. Esto corrige su ocultamiento, no acredita resolver el fallo
 anterior de arranque del juego.
 
+[Puntero y energía](docs/PUNTERO-Y-ENERGIA-2026-10-24.md): el usuario ya confirmó
+una partida de Cyberpunk. La corrección de escritorio selecciona cursor
+compuesto con NVIDIA y abre REDlauncher flotante y centrado en cada sesión.
+La comprobación visual en la RTX y la medición de vatios siguen pendientes.
+
 Actualización de bibliotecas y audio: detección Steam dentro de carpetas
 elegidas, recuperación conservando capas anteriores cuando Windows actualiza
 los juegos, acceso a importación GOG y volumen maestro opcional hasta 500 %.
