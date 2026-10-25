@@ -11,7 +11,7 @@ fn proyecto() -> Dependencias {
     let rutas: Vec<String> = ["main.c", "red.h", "util.h", "log.h", "disco.c", "prueba.c", "solo.c", "aislado.h", "otro.c"].iter().map(|s| s.to_string()).collect();
     let aristas = [(0, 1), (1, 2), (0, 3), (3, 2), (4, 2), (5, 0), (5, 4), (6, 7), (8, 1)];
     let mut d = Dependencias::nuevo(rutas, &aristas);
-    let m = |l: u32, t: &str| Motivo { linea: l, texto: t.to_string(), clase: ClaseRef::Comillas };
+    let m = |l: u32, t: &str| Motivo { linea: l, texto: t.to_string(), clase: ClaseRef::Comillas, condicion: None };
     d.poner_motivos(&aristas, vec![m(3, "red.h"), m(1, "util.h"), m(4, "log.h"), m(2, "util.h"), m(7, "util.h"), m(1, "main.c"), m(2, "disco.c"), m(1, "aislado.h"), m(5, "red.h")]);
     d
 }

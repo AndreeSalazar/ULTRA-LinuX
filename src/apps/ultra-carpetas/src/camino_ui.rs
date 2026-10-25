@@ -104,6 +104,9 @@ pub fn seccion(ui: &mut egui::Ui, c: &Colores, cam: &Camino, miembros: &[String]
                 None => (format!("usa {}", corto(&p.hasta, 30)), p.hasta.clone()),
             };
             ui.add(egui::Label::new(RichText::new(escrito).monospace().color(c.aviso).size(12.0)).wrap()).on_hover_text(entero);
+            if let Some(cond) = p.motivo.as_ref().and_then(|m| m.condicion.as_ref()) {
+                ui.label(RichText::new(format!("solo si {cond}")).color(c.verde).size(11.0)).on_hover_text("Este #include esta dentro de un condicional: con otra plataforma u otras opciones este paso no existe.");
+            }
             ui.label(RichText::new(chip).color(col).size(11.0));
             ui.label(RichText::new(format!("· {} usan {}", p.lo_usan, corto(&p.hasta, 24))).color(c.tenue).size(11.0)).on_hover_text("Cuantos archivos del proyecto usan a ese: el peso del eslabon");
         });

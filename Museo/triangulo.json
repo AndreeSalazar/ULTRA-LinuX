@@ -34,6 +34,13 @@
      "control": "Salir pronto (return, continue o un goto de limpieza) y extraer funciones.",
      "limite": "Se cuentan llaves de bloque, no la sangria: un if sin llaves no suma un nivel.",
      "referencia": "Linux kernel coding style, 1) Indentation",
-     "url": "https://www.kernel.org/doc/html/latest/process/coding-style.html"}
+     "url": "https://www.kernel.org/doc/html/latest/process/coding-style.html"},
+    {"id": "E-003", "eje": "ELEGANCIA", "lenguaje": "C", "clase": "ELEGANCIA",
+     "titulo": "Ciclo de cabeceras",
+     "regla": "a.h incluye b.h y b.h, por el camino que sea, vuelve a incluir a.h. Compila gracias a las guardas, pero ninguno se entiende ni se prueba sin los otros, y el orden de los #include empieza a importar.",
+     "control": "struct a;  /* declarar el tipo en vez de incluir su cabecera, cuando solo se usa un puntero */",
+     "limite": "Lo detecta el grafo de dependencias, no una linea: es lexico (no ve #ifdef ni rutas -I). Solo C, C++ y ASM; en Rust los modulos de un crate se usan entre si sin problema.",
+     "referencia": "C++ Core Guidelines SF.9: evitar dependencias ciclicas entre archivos fuente",
+     "url": "https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rs-cycles"}
   ]
 }

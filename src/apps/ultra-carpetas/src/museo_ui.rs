@@ -106,13 +106,20 @@ impl App {
         let por_ficha: PorFicha = an.por_ficha().into_iter().filter(|(id, _)| filtro.is_none_or(|f| eje(id) == f)).collect();
         if an.listo && por_ficha.is_empty() { ui.label(RichText::new("Ningun patron de las fichas en lo leido.").color(c.verde).size(12.0)); }
         let estudio = an.estudio_por_ficha();
-        egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+        // Con tope de ancho: las rutas largas no ensanchan el panel (la vista no se mueve).
+        let tope = ui.available_width();
+        egui::ScrollArea::vertical().max_width(tope).auto_shrink([false, false]).show(ui, |ui| {
+            ui.set_max_width(tope);
             // Agrupadas por eje: primero lo que es fallo.
             for x in Eje::TODOS {
                 let de: PorFicha = por_ficha.iter().filter(|(id, _)| eje(id) == x).map(|(k, v)| (*k, v.clone())).collect();
-                if de.is_empty() { continue; }
+                // Los ciclos son de Elegancia, pero los ve el grafo y no una linea: van al
+                // principio de su eje, antes de las fichas lexicas.
+                let ciclos = x == Eje::Elegancia && an.listo && filtro.is_none_or(|f| f == Eje::Elegancia);
+                if de.is_empty() && !ciclos { continue; }
                 ui.add_space(4.0);
                 ui.label(RichText::new(x.nombre().to_uppercase()).color(crate::color_eje(c, x)).strong().size(12.0));
+                if ciclos { crate::ciclos_ui::seccion(ui, c, &an.ciclos, &mut acciones); ui.add_space(6.0); }
                 fichas(ui, c, &de, "museo", &mut acciones);
             }
             if !estudio.is_empty() {

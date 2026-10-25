@@ -31,6 +31,22 @@ fn c_cpp_y_asm() {
 }
 
 #[test]
+fn cada_include_sabe_de_que_if_depende() {
+    let texto = "// licencia\n#ifndef X_H\n#define X_H\n#include \"siempre.h\"\n#if BUILDFLAG(IS_WIN)\n#include \"win.h\"\n#elif BUILDFLAG(IS_POSIX)\n#include \"posix.h\"\n#else\n#include \"otro.h\"\n#endif\n#ifdef DEBUG\n#  include <a/depura.h>\n#endif\n#endif\n";
+    let c: Vec<(String, Option<String>)> = referencias("x.h", texto).into_iter().map(|r| (r.texto, r.condicion)).collect();
+    let s = |x: &str| x.to_string();
+    // La guarda (#ifndef X_H / #define X_H) no cuenta: siempre.h no depende de nada.
+    assert_eq!(c, vec![(s("siempre.h"), None), (s("win.h"), Some(s("#if BUILDFLAG(IS_WIN)"))), (s("posix.h"), Some(s("#elif BUILDFLAG(IS_POSIX)"))),
+                       (s("otro.h"), Some(s("#else de #elif BUILDFLAG(IS_POSIX)"))), (s("a/depura.h"), Some(s("#ifdef DEBUG")))]);
+    // Sin guarda (#pragma once), un #ifndef de verdad si cuenta.
+    let c = referencias("y.h", "#pragma once\n#ifndef NO_RED\n#include \"red.h\"\n#endif\n");
+    assert_eq!(c[0].condicion.as_deref(), Some("#ifndef NO_RED"));
+    // Un #ifndef con codigo antes no es la guarda.
+    let c = referencias("z.c", "int x;\n#ifndef SOLO\n#include \"z.h\"\n#endif\n");
+    assert_eq!(c[0].condicion.as_deref(), Some("#ifndef SOLO"));
+}
+
+#[test]
 fn rust_mod_y_use() {
     let p = Proyecto(vec!["app/src/main.rs", "app/src/vista.rs", "app/src/vista/boton.rs", "app/src/red/mod.rs", "nucleo/src/lib.rs", "nucleo/src/ciudad.rs", "nucleo/tests/a.rs", "nucleo/tests/comun.rs"]);
     let main = "mod vista;\npub(crate) mod red;\nuse crate::vista::Cosa;\nuse carpetas_nucleo::{ciudad::construir, Otra};\nuse std::io;\nmod en_linea { }\n";

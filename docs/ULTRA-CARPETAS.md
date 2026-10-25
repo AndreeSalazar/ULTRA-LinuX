@@ -433,7 +433,7 @@ Con un proyecto gigante el problema no es ver un error, es saber **de dónde vie
 **hasta dónde llega**. El SUPER GRAFO junta tres cosas:
 
 1. **El museo en tu código.** Las fichas del [museo de C, C++ y ASM](../Museo/README.md) y del
-   [banco de C](MUSEO-UB.md) (42 fichas, generadas desde sus catálogos con
+   [banco de C](MUSEO-UB.md) (43 fichas, generadas desde sus catálogos con
    `scripts/fichas-carpetas.py`; `--comprobar` falla si se desfasan) buscan su patrón en el
    código del proyecto. Hay 32 con detector:
    - **C:** `free(p + 1)`, VLA.
@@ -666,6 +666,65 @@ busca **por dónde se unen** y lo explica:
 - Es el camino más corto por número de saltos, no por coste de compilación.
 - Desvío o imprescindible se miden quitando **un** paso cada vez.
 - Se analizan los 16 primeros pasos; el resto sale «sin analizar».
+
+### Ciclos de cabeceras (E-003, eje Elegancia)
+
+`a.h` incluye `b.h` y `b.h`, por el camino que sea, vuelve a incluir `a.h`. **Compila**
+(las guardas `#ifndef` lo permiten; GCC acepta los dos casos de prueba), pero ninguno se
+entiende ni se prueba sin el otro. Por eso es **Elegancia, nunca un fallo de Seguridad**.
+
+- **Dónde:** panel Museo, al principio de ELEGANCIA. La ficha **E-003** enseña qué es,
+  el control válido (`struct a;` en vez de incluir, si basta un puntero), su límite y
+  su referencia (C++ Core Guidelines SF.9).
+- **Cómo se buscan:**
+  - Las componentes fuertes del grafo (Tarjan, sin recursión: 200 000 archivos en
+    cadena no desbordan la pila).
+  - De cada una, la **vuelta más corta**.
+  - Solo entre C, C++ y ASM: en Rust los módulos de un crate se usan entre sí sin
+    problema.
+- **Cada paso con su motivo** (`string_util.h:663 #include "…/string_util_win.h"`); clic,
+  y el editor se abre en esa línea.
+- **Dónde cortar:** el paso cuyo incluido usan menos archivos, en rojo con su marca.
+- **La animación:** la onda da vueltas por el anillo sin salida, como un `#include` que
+  vuelve a empezar.
+- **Ver en Combinar:** mete la vuelta en el grupo. El camino dice entonces «y la vuelta
+  también existe: forman un ciclo», y la Ciudad marca A y B.
+
+**El SUPER GRAFO aprendió a leer los `#if`.** Cada `#include` guarda el `#if`, `#ifdef`,
+`#elif` o `#else` dentro del que está, sin contar la guarda de la cabecera
+(`#ifndef X_H` seguido de `#define X_H`). En el panel sale como «solo si #if …». Un ciclo
+con un paso condicional dice «depende de un #if» y va al final. El consejo cambia: suele
+ser un patrón a propósito (la parte de una plataforma al final de la cabecera).
+
+![Ciclos en Chromium base/: string_util.h y string_util_win.h, solo si #if BUILDFLAG(IS_WIN); la onda da vueltas y el paso donde cortar late en rojo](maquetas/png/neon/carpetas-ciclos.png)
+![Ver en Combinar: el camino dice que forman un ciclo y la Ciudad marca A y B](maquetas/png/neon/carpetas-ciclo-combinar.png)
+
+**Medido en Chromium `base/`:**
+
+- 2 ciclos (4 archivos), en 0,4 a 0,6 ms: `string_util.h` ↔ `string_util_win.h` y
+  `string_split.h` ↔ `string_split_win.h`.
+- **Los dos están dentro de `#if BUILDFLAG(IS_WIN)`.** Al compilar para Linux con GCC no
+  existen: Chromium `base/` no tiene ningún ciclo de cabeceras incondicional.
+- 874 de las 16 268 dependencias (5,4 %) están dentro de un `#if`.
+
+**Comprobado:** `tests/ciclos.rs`, con casos aislados en `tests/datos/ciclos/`, leídos y
+resueltos como en la aplicación:
+
+- `mal` tiene una vuelta de 3; `bien` la rompe con `struct a;`; `condicional` solo vuelve
+  dentro de `#if defined(_WIN32)`. Los tres compilan con GCC (`-std=c17 -Wall -Werror`).
+- Hay pruebas de varios ciclos, de Rust ignorado y de la cadena de 200 000 archivos.
+- `tests/dependencias.rs` comprueba la lectura de los `#if`: la guarda, `#elif`, `#else`,
+  `#ifdef`, `#pragma once`, y un `#ifndef` con código antes.
+
+**Límites:**
+
+- La vuelta es la más corta desde los 24 archivos más conectados de la componente; en
+  una de más de 2 000, desde uno solo.
+- Se calculan los 100 ciclos más grandes; el resto solo se cuenta.
+- Los `#if` se leen como texto: no se evalúan (no se sabe si `BUILDFLAG(IS_WIN)` es
+  cierto).
+- En este repositorio salen los ciclos de los casos de prueba (`tests/datos/ciclos/`):
+  `CASOS-MUSEO.txt` aparta las sospechas de las fichas, pero todavía no los ciclos.
 
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 

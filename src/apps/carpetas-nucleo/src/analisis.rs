@@ -47,12 +47,15 @@ pub struct EstadoAnalisis {
     pub micros: u64,
     pub total: u32,
     pub version: u64,
+    /// Ciclos de cabeceras (C, C++ y ASM), del eje Elegancia.
+    pub ciclos: crate::ciclos::Ciclos,
 }
 
 impl EstadoAnalisis {
     pub fn llegar(&mut self, r: ResultadoAnalisis) {
         self.dep = Dependencias::nuevo(r.rutas, &r.aristas);
         self.dep.poner_motivos(&r.aristas, r.motivos);
+        self.ciclos = crate::ciclos::ciclos(&self.dep);
         let estudio: BTreeSet<String> = r.estudio.into_iter().collect();
         let (casos, reales): (Vec<_>, Vec<_>) = r.sospechas.into_iter().filter(|(_, v)| !v.is_empty()).partition(|(k, _)| estudio.contains(k));
         self.total = reales.iter().map(|(_, v)| v.len() as u32).sum();

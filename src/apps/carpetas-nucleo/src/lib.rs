@@ -25,6 +25,7 @@ pub mod ajustes;
 pub mod analisis;
 pub mod carriles;
 pub mod casm;
+pub mod ciclos;
 pub mod ciudad;
 pub mod camino;
 pub mod combinar;

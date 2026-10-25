@@ -15,6 +15,7 @@ mod archivo;
 mod casm_taller;
 mod casm_ui;
 mod camino_ui;
+mod ciclos_ui;
 mod ciudad3d;
 mod combinar_ui;
 mod disco;

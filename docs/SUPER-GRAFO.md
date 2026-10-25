@@ -59,7 +59,7 @@ De ellas se toman ideas y casos de prueba, no código: cada una tiene su licenci
 3. **`-fanalyzer` como segunda opinión** para lo que el SG marca «revisar».
 4. **Cada ficha con su eje** (Seguridad, Rendimiento o Elegancia) y el SG coloreado por
    eje en el grafo y en la Ciudad. **Hecho:** 42 fichas con su eje (35 Seguridad, 3
-   Rendimiento, 4 Elegancia), cuatro de ellas nuevas (R-001, R-002, E-001, E-002). Solo
+   Rendimiento, 4 Elegancia; hoy 43 con E-003, la de los ciclos), cuatro de ellas nuevas (R-001, R-002, E-001, E-002). Solo
    la Seguridad cuenta como fallo. Detalle y medidas en
    [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-triángulo-seguridad-rendimiento-y-elegancia).
 5. **Combinar: la selección grupal.** Varios edificios (Ctrl+clic o Shift+arrastrar en la
@@ -68,6 +68,43 @@ De ellas se toman ideas y casos de prueba, no código: cada una tiene su licenci
    en Chromium. Detalle en
    [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#combinar-la-selección-grupal-en-vivo).
 
+## Cómo lo usa una IA: preguntar, no volcar
+
+Con miles de millones de líneas nadie lee el código entero, tampoco una IA. El reparto:
+
+| Pieza | Papel |
+|---|---|
+| **SUPER GRAFO** | El músculo: recorre todo, cuenta, conecta y ordena, en su hilo y sin gastar tokens |
+| **Respuesta pequeña (JSON o texto)** | Lo exacto: rutas completas, líneas, cifras y su motivo |
+| **Imagen** | La forma: patrones espaciales («todo lo rojo está en `allocator`») |
+| **La IA** | Pregunta, decide y va al código solo donde importa |
+
+**Regla:** cada respuesta tiene un **tamaño acotado**, sea cual sea el tamaño del proyecto.
+
+1. Primero las cifras y lo peor: «12 ciclos; los 5 más grandes son…».
+2. Bajar solo si hace falta: «los motivos del ciclo 3».
+3. Nunca una lista sin tope: si hay más, se dice cuántos quedan (como «comparten 26»
+   enseñando 8).
+
+Cálculo de hoy (estimado), con el camino de 12 pasos en Chromium:
+
+- Una captura de 1600 × 1000 son unos 1 500 tokens fijos, pero los nombres salen
+  cortados y solo se leen 2 pasos.
+- El texto completo de los 12 pasos son unos 600 tokens.
+- Un resumen acotado son unos 250.
+- Lo caro fueron las repeticiones: unas 10 capturas (unos 15 000 tokens) contra una
+  consulta.
+
+Volcar todo en JSON costaría más que cualquier captura: lo que ahorra es que el SUPER
+GRAFO conteste la pregunta, no el formato.
+
+**Orden de madurez:**
+
+1. ~~**Ciclos.**~~ Hecho.
+2. **Consultas sin ventana** (`--consulta camino|ciclos|peso … --json`, con tope).
+3. **Comparar con `gcc -M`**, para medir cuánto acierta el mapa léxico.
+4. **Índice incremental en disco**, el paso hacia los miles de millones de líneas.
+
 ## Siguientes ideas para educar al SUPER GRAFO
 
 Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
@@ -75,21 +112,10 @@ Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
 1. ~~**Camino más corto entre dos elegidos.**~~ **Hecho:** con motivos (la línea de cada
    paso), la onda de recompilación animada y los pasos imprescindibles (dónde cortar).
    Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-camino-entre-dos-elegidos-motivos-onda-y-dónde-cortar).
-2. **Ciclos (el siguiente).** A usa B y B usa A, por cualquier camino. Un ciclo de
-   cabeceras es un olor de diseño (eje Elegancia): nadie se puede compilar ni entender
-   por separado. Lo que ya hay lo hace casi gratis:
-   - **Buscar:** el camino A → B y el B → A ya existen (`camino.rs`). Si salen los dos,
-     es un ciclo. Para todo el proyecto, las componentes fuertes de Tarjan sobre
-     `Dependencias` (lineal en aristas).
-   - **Motivos:** cada arista del ciclo con su línea, como en el camino.
-   - **Dónde cortar:** la arista del ciclo con menos peso (la que menos archivos usan),
-     igual que la pista del camino. Comprobarlo compilando con GCC.
-   - **Verlo:** en el panel, un anillo cerrado con la onda dando vueltas sin salida;
-     en la Ciudad, los arcos del ciclo en el color de Elegancia.
-   - **Prueba:** un caso `mal` (a.h incluye b.h y b.h incluye a.h) y uno `bien` (sin
-     vuelta), y la medida en Chromium `base/`: cuántos ciclos y de qué tamaño.
-   - **Cuidado:** las guardas `#ifndef` hacen que un ciclo compile. Es aviso de
-     Elegancia, nunca fallo de Seguridad.
+2. ~~**Ciclos.**~~ **Hecho:** Tarjan, la vuelta más corta con sus motivos, dónde cortar,
+   el anillo animado y la ficha E-003. Además el SUPER GRAFO aprendió a leer los `#if`:
+   los 2 ciclos de Chromium `base/` solo existen al compilar para Windows. Detalle en
+   [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#ciclos-de-cabeceras-e-003-eje-elegancia).
 3. **Peso del cambio.** Si cambia este grupo, cuántos archivos hay que recompilar (quien
    los usa, directa o indirectamente): una cifra de Rendimiento medible con GCC.
 4. **Fronteras de carpeta.** Contar cuántas dependencias cruzan de un distrito a otro: un

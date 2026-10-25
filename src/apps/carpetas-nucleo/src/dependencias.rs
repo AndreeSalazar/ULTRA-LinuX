@@ -27,14 +27,22 @@ pub enum ClaseRef {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Referencia { pub texto: String, pub linea: u32, pub clase: ClaseRef }
+pub struct Referencia {
+    pub texto: String,
+    pub linea: u32,
+    pub clase: ClaseRef,
+    /// El `#if` (o `#ifdef`, `#elif`, `#else`) dentro del que esta, sin contar la guarda de
+    /// la cabecera: el `#include` solo existe si se cumple (por ejemplo, solo en Windows).
+    pub condicion: Option<String>,
+}
 
 /// Por que `a usa b`: la referencia escrita en `a` (su linea y su texto). Es el motivo de
 /// cada paso de un camino del SUPER GRAFO.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Motivo { pub linea: u32, pub texto: String, pub clase: ClaseRef }
+pub struct Motivo { pub linea: u32, pub texto: String, pub clase: ClaseRef, pub condicion: Option<String> }
 
 impl Motivo {
+    pub fn de(r: &Referencia) -> Motivo { Motivo { linea: r.linea, texto: r.texto.clone(), clase: r.clase, condicion: r.condicion.clone() } }
     /// Como se escribio, mas o menos: `#include "x.h"`, `mod x;`, `import a.b`...
     pub fn escrito(&self, desde: &str) -> String {
         let asm = matches!(ext(desde), "asm" | "nasm" | "inc");
@@ -65,6 +73,10 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
     let python = e == "py" || e == "pyi";
     let mut path_attr: Option<String> = None;
     let mut en_comentario = false;
+    // C: la pila de #if abiertos (texto, es la guarda) y la guarda candidata.
+    let mut condiciones: Vec<(String, bool)> = Vec::new();
+    let mut guarda: Option<String> = None;
+    let mut visto_codigo = false;
     for (k, crudo) in texto.lines().enumerate() {
         let linea = k as u32 + 1;
         let mut l = crudo.trim();
@@ -80,7 +92,7 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
                 let nombre = resto.trim_end().strip_suffix(';').map(str::trim);
                 if let Some(n) = nombre.filter(|n| es_nombre(n)) {
                     let texto = path_attr.take().map(|p| format!("#{p}")).unwrap_or_else(|| n.to_string());
-                    v.push(Referencia { texto, linea, clase: ClaseRef::ModRust });
+                    v.push(Referencia { texto, linea, clase: ClaseRef::ModRust, condicion: None });
                 }
                 continue;
             }
@@ -88,7 +100,7 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
             if let Some(resto) = sin_pub.strip_prefix("use ") {
                 // use a::b::{c, d::e}; -> a::b::c, a::b::d::e (un nivel de llaves)
                 let resto = resto.trim_end().trim_end_matches(';').trim();
-                for camino in expandir_use(resto) { v.push(Referencia { texto: camino, linea, clase: ClaseRef::UsoRust }); }
+                for camino in expandir_use(resto) { v.push(Referencia { texto: camino, linea, clase: ClaseRef::UsoRust, condicion: None }); }
             }
             continue;
         }
@@ -101,34 +113,61 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
                 if m.is_empty() {
                     for n in nombres.trim_matches(|c| c == '(' || c == ')' || c == ' ').split(',') {
                         let n = n.split_whitespace().next().unwrap_or("");
-                        if es_nombre(n) { v.push(Referencia { texto: n.to_string(), linea, clase: ClaseRef::Python(puntos) }); }
+                        if es_nombre(n) { v.push(Referencia { texto: n.to_string(), linea, clase: ClaseRef::Python(puntos), condicion: None }); }
                     }
                 } else if m.split('.').all(es_nombre) {
                     // from pkg.sub import b: b puede ser un submodulo (pkg/sub/b.py); si no, vale pkg/sub.
                     let antes = v.len();
                     for n in nombres.trim_matches(|c| c == '(' || c == ')' || c == ' ').split(',') {
                         let n = n.split_whitespace().next().unwrap_or("");
-                        if es_nombre(n) { v.push(Referencia { texto: format!("{m}.{n}"), linea, clase: ClaseRef::Python(puntos) }); }
+                        if es_nombre(n) { v.push(Referencia { texto: format!("{m}.{n}"), linea, clase: ClaseRef::Python(puntos), condicion: None }); }
                     }
-                    if v.len() == antes { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(puntos) }); }
+                    if v.len() == antes { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(puntos), condicion: None }); }
                 }
             } else if let Some(resto) = l.strip_prefix("import ") {
                 for m in resto.split(',') {
                     let m = m.split_whitespace().next().unwrap_or("");
-                    if !m.is_empty() && m.split('.').all(es_nombre) { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(0) }); }
+                    if !m.is_empty() && m.split('.').all(es_nombre) { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(0), condicion: None }); }
                 }
             }
             continue;
         }
-        // C, C++ y ASM
+        // C, C++ y ASM. Primero los condicionales: de que #if depende cada #include.
+        if let Some(d) = l.strip_prefix('#').map(str::trim_start) {
+            let palabra = d.split(|c: char| !c.is_ascii_alphanumeric() && c != '_').next().unwrap_or("");
+            let resto = d[palabra.len()..].split("//").next().unwrap_or("").trim();
+            match palabra {
+                "if" | "ifdef" | "ifndef" => {
+                    // La guarda: el primer #ifndef X seguido de #define X (se marca al ver el #define).
+                    condiciones.push((alloc::format!("#{palabra} {resto}"), false));
+                    if palabra == "ifndef" && condiciones.len() == 1 && v.is_empty() && !visto_codigo { guarda = Some(resto.to_string()); } else { guarda = None; }
+                    continue;
+                }
+                "elif" => { if let Some(c) = condiciones.last_mut() { c.0 = alloc::format!("#elif {resto}"); } continue; }
+                "else" => { if let Some(c) = condiciones.last_mut() { c.0 = alloc::format!("#else de {}", c.0); } continue; }
+                "endif" => { condiciones.pop(); continue; }
+                "define" => {
+                    let una = condiciones.len() == 1;
+                    if let (Some(g), Some(c)) = (guarda.take(), condiciones.last_mut()) {
+                        if una && resto.split_whitespace().next() == Some(g.as_str()) { c.1 = true; }
+                    }
+                    continue;
+                }
+                _ => {}
+            }
+        } else if !l.is_empty() && !l.starts_with("//") {
+            visto_codigo = true;
+            guarda = None;
+        }
+        let condicion = condiciones.iter().rev().find(|c| !c.1).map(|c| c.0.clone());
         let directiva = l.strip_prefix('#').map(str::trim_start).and_then(|r| r.strip_prefix("include").or_else(|| r.strip_prefix("import")))
             .or_else(|| l.strip_prefix("%include")).or_else(|| l.strip_prefix(".include"));
         let Some(resto) = directiva else { continue };
         let resto = resto.trim_start();
         if let Some(r) = resto.strip_prefix('"') {
-            if let Some((x, _)) = r.split_once('"') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Comillas }); } }
+            if let Some((x, _)) = r.split_once('"') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Comillas, condicion: condicion.clone() }); } }
         } else if let Some(r) = resto.strip_prefix('<') {
-            if let Some((x, _)) = r.split_once('>') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Angulos }); } }
+            if let Some((x, _)) = r.split_once('>') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Angulos, condicion }); } }
         }
     }
     v

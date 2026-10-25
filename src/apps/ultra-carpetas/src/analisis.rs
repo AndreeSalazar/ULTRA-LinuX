@@ -95,14 +95,15 @@ pub fn analizar(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool + S
             let Some(&kb) = rutas.todas.get(destino.as_str()) else { continue };
             let a = id(h.ruta, &mut nombres);
             let b = id(kb, &mut nombres);
-            aristas.push((a, b, r.linea, r.texto.clone(), r.clase));
+            aristas.push((a, b, r.linea, Motivo::de(r)));
         }
         if !h.sospechas.is_empty() { sospechas.push((desde.to_string(), h.sospechas)); }
     }
     // Una arista por par; su motivo es la primera linea que la escribe.
-    aristas.sort_unstable_by(|x, y| (x.0, x.1, x.2).cmp(&(y.0, y.1, y.2)));
+    // Si la misma arista se escribe sin condicion en otra linea, manda esa (existe siempre).
+    aristas.sort_unstable_by(|x, y| (x.0, x.1, x.3.condicion.is_some(), x.2).cmp(&(y.0, y.1, y.3.condicion.is_some(), y.2)));
     aristas.dedup_by(|x, y| x.0 == y.0 && x.1 == y.1);
-    let motivos = aristas.iter().map(|(_, _, linea, texto, clase)| Motivo { linea: *linea, texto: texto.clone(), clase: *clase }).collect();
+    let motivos = aristas.iter().map(|(_, _, _, m)| m.clone()).collect();
     let aristas: Vec<(u32, u32)> = aristas.into_iter().map(|(a, b, ..)| (a, b)).collect();
     // Casos de estudio: una carpeta (o una de arriba) con CASOS-MUSEO.txt. Sin seguir enlaces.
     let mut marcadas: HashMap<String, bool> = HashMap::new();
@@ -167,6 +168,16 @@ mod pruebas {
         eprintln!("indice {} rutas en {ti:?}; museo {} archivos, {:.1} MiB en {} ms; {n_rutas} rutas con {n_aristas} aristas; {} sospechas (+{} a proposito); conectar {:?}: {} causas, {} papeles",
                   i.len(), r.archivos, r.bytes as f64 / 1048576.0, r.micros / 1000, d.total, d.total_estudio, t2.elapsed(), c.1.causas.len(), c.1.roles.len());
         for causa in c.1.causas.iter().take(5) { eprintln!("  causa {} explica {} lo usan {}", causa.ruta, causa.explica, causa.arrastra); }
+        let condicionales = r.motivos.iter().filter(|m| m.condicion.is_some()).count();
+        eprintln!("aristas dentro de un #if: {condicionales} de {}", r.motivos.len());
+        // Ciclos de cabeceras: cuantos, de que tamano y la vuelta del mayor.
+        let t3 = Instant::now();
+        let ci = carpetas_nucleo::ciclos::ciclos(&d.dep);
+        eprintln!("ciclos: {} ({} archivos) en {:?}; tamanos {:?}", ci.total, ci.archivos, t3.elapsed(), ci.lista.iter().take(8).map(|c| c.archivos.len()).collect::<Vec<_>>());
+        for (k, c) in ci.lista.iter().take(3).enumerate() {
+            eprintln!("  ciclo {k}: {} archivos, vuelta {}, corte {:?}, condicional {}", c.archivos.len(), c.vuelta.len(), c.corte, c.condicional);
+            for e in &c.vuelta { eprintln!("    {}:{} {}  lo usan {}", e.desde, e.motivo.as_ref().map(|m| m.linea).unwrap_or(0), e.motivo.as_ref().map(|m| m.escrito(&e.desde)).unwrap_or_default(), e.lo_usan); }
+        }
         // Caminos entre pares repartidos por todo el proyecto: cuanto tardan y de que clase son.
         use carpetas_nucleo::camino::{camino, SinPaso, Union};
         let n = d.dep.len();

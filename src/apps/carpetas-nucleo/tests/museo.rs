@@ -60,7 +60,7 @@ fn las_fichas_son_las_del_museo() {
     let ub = include_str!("../../../../docs/museo-ub.json");
     let nuevo = include_str!("../../../../Museo/catalogo.json");
     let triangulo = include_str!("../../../../Museo/triangulo.json");
-    assert_eq!(FICHAS.len(), 42);
+    assert_eq!(FICHAS.len(), 43);
     for f in FICHAS {
         let id = format!("\"id\": \"{}\"", f.id);
         let id2 = format!("\"id\":\"{}\"", f.id);
@@ -109,7 +109,7 @@ fn el_triangulo_reparte_las_fichas() {
     assert_eq!(eje("NOUB-002"), Eje::Elegancia, "el orden no especificado es claridad, no un fallo");
     assert_eq!(eje("no-existe"), Eje::Seguridad, "lo desconocido, por prudencia, cuenta como seguridad");
     let por_eje = |e: &str| FICHAS.iter().filter(|f| f.eje == e).count();
-    assert_eq!((por_eje("SEGURIDAD"), por_eje("RENDIMIENTO"), por_eje("ELEGANCIA")), (35, 3, 4));
+    assert_eq!((por_eje("SEGURIDAD"), por_eje("RENDIMIENTO"), por_eje("ELEGANCIA")), (35, 3, 5));
 }
 
 #[test]

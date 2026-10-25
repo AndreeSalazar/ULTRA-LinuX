@@ -84,6 +84,8 @@ pub struct Camino {
     /// Por que se ve asi, en una frase.
     pub por_que: String,
     pub recortado: bool,
+    /// A llega a B y B llega a A: estan en un ciclo.
+    pub ciclo: bool,
 }
 
 /// Un recorrido en anchura de varios origenes. `arriba`: por quien usa (si no, por lo que se usa).
@@ -194,7 +196,7 @@ fn nombre(r: &str) -> &str { r.rsplit('/').next().unwrap_or(r) }
 pub fn camino(dep: &Dependencias, a: &str, b: &str) -> Camino {
     let (fa, fb) = (archivos_de(dep, a), archivos_de(dep, b));
     let mut c = Camino { a: a.to_string(), b: b.to_string(), union: None, nodos: Vec::new(), pasos: Vec::new(), punto: None,
-                         igual_de_cortos: 0, explorados: 0, por_que: String::new(), recortado: false };
+                         igual_de_cortos: 0, explorados: 0, por_que: String::new(), recortado: false, ciclo: false };
     if fa.is_empty() || fb.is_empty() {
         let falta = if fa.is_empty() { a } else { b };
         c.por_que = format!("{} no tiene dependencias conocidas (no es C, C++, ASM, Rust ni Python, o nada lo usa ni usa nada).", nombre(falta));
@@ -238,6 +240,12 @@ pub fn camino(dep: &Dependencias, a: &str, b: &str) -> Camino {
         n => format!(" {n} pasos son imprescindibles: cualquiera de ellos corta la union."),
     };
     let (na, nb) = (nombre(a), nombre(b));
+    // A usa B: si B tambien llega a A, es un ciclo (se dice, y es del eje Elegancia).
+    if matches!(h.union, Union::Usa | Union::EsUsado) {
+        let (desde, meta) = if h.union == Union::Usa { (&fb, &sa) } else { (&fa, &fb.iter().copied().collect::<BTreeSet<u32>>()) };
+        let r = anchura(dep, desde, false, None, Some(meta));
+        c.ciclo = meta_alcanzada(&r, meta).is_some();
+    }
     c.por_que = match h.union {
         Union::Usa if saltos == 1 => format!("{na} usa a {nb} directamente: si cambia {nb}, {na} se recompila."),
         Union::Usa => format!("{na} usa a {nb} a traves de {medio} {}: si cambia {nb}, {na} se recompila.", if medio == 1 { "archivo" } else { "archivos" }),
@@ -251,6 +259,6 @@ pub fn camino(dep: &Dependencias, a: &str, b: &str) -> Camino {
             let i = h.punto.unwrap_or(0);
             format!("Ninguno usa al otro ni comparten nada. Los junta {}, que usa a los dos.", nombre(&c.nodos[i]))
         }
-    } + &otros + &corte;
+    } + &otros + &corte + if c.ciclo { " Y la vuelta tambien existe: forman un ciclo (eje Elegancia)." } else { "" };
     c
 }
