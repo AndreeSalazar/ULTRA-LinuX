@@ -34,14 +34,24 @@ CASM toma su forma de C para leerse fácil, pero **no es C**. Su única tarea es
 El panel **Taller CASM** de ULTRA Carpetas lee las fuentes de CASM y saca cada regla
 que corta. En `src/` y `verify.py` hay **48 reglas que cortan**, repartidas entre
 anfitrión, frontend, codificador y verificador; algunas, como `SOURCE-ASCII`, cortan
-en dos etapas. **18 tienen un caso aislado en `test.py` que las provoca a propósito.**
-Las que no tienen caso salen marcadas como «sin caso aislado»: son el siguiente trabajo
-honesto.
+en dos etapas, y cada etapa se prueba por separado.
+
+**Las 48 tienen su caso aislado** en `test.py` (55 casos; con los aceptados, 61 en total):
+
+- **Frontend y codificador:** una fuente mínima que debe cortar con esa regla (27).
+- **Anfitrión:** fuente que no existe (`HOST-READ`), salida que es una carpeta
+  (`HOST-WRITE`) y memoria limitada a 256 KiB con `RLIMIT_DATA` (`HOST-MEMORY`).
+- **Verificador:** se toma una emisión buena, se altera **una sola cosa** (un byte, un
+  desplazamiento, un nombre, la ABI…) y debe cortar con **su** regla. También por línea
+  de comandos, sin publicar paquete (`RED [VERIFY] CODE-OFFSET`), más sus dos reglas
+  como programa (`OUTPUT-ALIAS` y un archivo que falta).
+
+Ningún caso vale con «algo falló»: tiene que cortar la katana que nombra. El Taller
+marca «sin caso aislado» cualquier regla nueva hasta que tenga el suyo.
 
 ## El camino
 
-1. **Un caso aislado por katana.** Ninguna regla sin su caso malo, que se rechaza, y su
-   control, que pasa.
+1. ~~**Un caso aislado por katana.**~~ Hecho: 48 de 48. Cada regla nueva entra con su caso.
 2. **Katanas en el binario**, como la sección `BKAT` de INTI. Cuando CASM tenga aritmética,
    cada trampa emitida (desbordamiento, división por cero) se declara en una tabla del
    paquete. El verificador comprueba que en ese desplazamiento hay de verdad ese bloque

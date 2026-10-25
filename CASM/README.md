@@ -21,8 +21,9 @@ commit `b5b8e88`, del mismo autor. No se modifico ni se envio nada a ese reposit
 | LANGUAGE.md | 01be4029a26fa05c5f0009a9bf8d952e5af6800d3ed53b3bfcc6fcc295193b94 |
 | examples/hello.casm | 63bb72f6eaa4722b7f91133ab8b7635d1e55290d276673ca42ebf2bc26711547 |
 
-Solo `test.py` cambia una linea: el compilador es `build/CASM/host/casmc` (Linux) en vez
-de `casmc.exe`. Los scripts de PowerShell y la prueba QEMU del puente no se copiaron.
+`test.py` cambia el compilador a `build/CASM/host/casmc` (Linux) en vez de `casmc.exe`,
+y aqui crecio: cada katana tiene su caso aislado y cada caso exige SU regla (61 casos;
+ver [SAMURAI.md](SAMURAI.md)). Los scripts de PowerShell y la prueba QEMU del puente no se copiaron.
 
 ## Aislado
 
@@ -37,7 +38,7 @@ de `casmc.exe`. Los scripts de PowerShell y la prueba QEMU del puente no se copi
 ## Uso
 
 ```bash
-CASM/probar.sh                      # 39 casos + paquete de oro (identico al .hex a mano)
+CASM/probar.sh                      # 61 casos (48 katanas) + paquete de oro (identico al .hex a mano)
 CASM/compilar.sh                    # examples/hello.casm -> build/CASM/run-*/INICIO.X86
 CASM/compilar.sh mi-programa.casm
 ```
@@ -47,6 +48,6 @@ paquete (solo si se verifico), `verified.json`, `registro.txt` (lo que dijeron e
 compilador y el verificador), `origen.txt` y `toolchain.txt`. El panel **Taller CASM**
 de ULTRA Carpetas lo lee todo.
 
-Comprobado aqui con GCC 13.3: 39/39 casos, y `hello.x86` con SHA-256
+Comprobado aqui con GCC 13.3: 61/61 casos, y `hello.x86` con SHA-256
 `b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33`, el mismo que las
 evidencias de TALK-CPU para el `.hex` escrito a mano.

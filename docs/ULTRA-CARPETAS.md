@@ -542,6 +542,12 @@ organiza solo con lo que hay en el disco, sin listas escritas a mano:
 
 ![Taller CASM: la cadena en verde, las katanas con su sitio y su caso, y hello.casm con los bytes de cada línea](maquetas/png/neon/carpetas-taller-casm.png)
 
+Las **48 katanas de CASM tienen su caso aislado** (61 casos en `CASM/probar.sh`). Cada
+caso exige que corte **su** regla, también en el verificador, alterando una sola cosa de
+una emisión buena.
+
+![Taller CASM: 48 reglas que cortan, 48 con caso de prueba aislado](maquetas/png/neon/carpetas-katanas-casm.png)
+
 ## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
 
 ![Terminal tras cargo run y carriles con 7 subidas a la GPU en 153 cuadros](maquetas/png/neon/carpetas-gpu-terminal.png)

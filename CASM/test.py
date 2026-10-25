@@ -1,6 +1,7 @@
 """Exercise source rejection, byte verification and the existing metal64 ABI."""
 import copy
 import hashlib
+import resource
 import json
 from pathlib import Path
 import struct
@@ -81,39 +82,86 @@ def main():
             'source-too-large': (b' '*65537,'SOURCE-SIZE'),
             'call-limit': (b'void metal_main(void){const char a[]="A";'+b'metal_puts(a);'*129+b'return;}','CALL-LIMIT'),
             'old-proposal': (b'target x86_64; program hello {return;}','C-SUBSET'),
+            'constant-limit': (b'void metal_main(void){'+b''.join(b'const char c%d[]="A";' % i for i in range(129))+b'return;}','CONSTANT-LIMIT'),
+            'decl-name': (b'void metal_main(void){ const char []="A"; return; }','DECL-NAME'),
+            'syntax': (b'void metal_main(void){ return }','SYNTAX'),
+            'string-size': (b'void metal_main(void){const char a[]="'+b'A'*4100+b'";return;}','STRING-SIZE'),
         }
         for name, (source, rule) in invalid.items():
             process, paths = compile_case(work/name, source)
             assert process.returncode == 1 and f'RED [{rule}]' in process.stderr, (name,process.returncode,process.stderr)
             assert not paths[1].exists() and not paths[2].exists(), name
             RESULTS.append(dict(Case=name,Passed=True,Kind='source-rejected',Rule=rule))
+        # Anfitrion: leer, memoria y escribir. Cada caso nombra su katana.
+        def sin_memoria():
+            # 256 KiB de datos: el programa arranca, pero no cabe el CasmProgram (~0,5 MiB).
+            resource.setrlimit(resource.RLIMIT_DATA, (256 * 1024, 256 * 1024))
+        ok = work/'host-ok.casm'; ok.write_bytes(HELLO)
+        (work/'host-dir.hex').mkdir()
+        host = {
+            'host-read': ('HOST-READ', [work/'no-existe.casm', work/'r.hex', work/'r.ir.json'], None),
+            'host-memory': ('HOST-MEMORY', [ok, work/'m.hex', work/'m.ir.json'], sin_memoria),
+            'host-write': ('HOST-WRITE', [ok, work/'host-dir.hex', work/'w.ir.json'], None),
+        }
+        for name, (rule, paths, limite) in host.items():
+            process = subprocess.run([str(COMPILER), *map(str, paths)], capture_output=True, text=True, timeout=10, preexec_fn=limite)
+            assert process.returncode == 1 and f'RED [{rule}]' in process.stderr, (name, process.returncode, process.stderr)
+            assert not paths[2].exists(), name
+            RESULTS.append(dict(Case=name,Passed=True,Kind='host-rejected',Rule=rule))
+        # Verificador: se altera UNA cosa de una emision buena y debe cortar con SU katana.
         original_ir = json.loads(hello_paths[2].read_text())
         original_hex = hello_paths[1].read_text()
+        original_src = hello_paths[0].read_bytes()
+        c0 = lambda ir, **k: dict(ir, Constants=[dict(ir['Constants'][0], **k)])
         mutations = {
-            'opcode': lambda h,ir: (h.replace('48 8D 35','48 89 35',1),ir),
-            'displacement': lambda h,ir: (h.replace('35 05','35 06',1),ir),
-            'return-opcode': lambda h,ir: (h.replace('10 C3','10 90',1),ir),
-            'extra-byte': lambda h,ir: (h+'90\n',ir),
-            'bad-hex': lambda h,ir: (h+'ZZ\n',ir),
-            'wrong-abi': lambda h,ir: (h,dict(ir,ABI='windows')),
-            'code-offset': lambda h,ir: (h,dict(ir,Calls=[dict(ir['Calls'][0],Offset=1)])),
-            'call-target': lambda h,ir: (h,dict(ir,Calls=[dict(ir['Calls'][0],Constant=99)])),
-            'data-offset': lambda h,ir: (h,dict(ir,Constants=[dict(ir['Constants'][0],Offset=0)])),
-            'early-nul': lambda h,ir: (h,dict(ir,Constants=[dict(ir['Constants'][0],Hex='00'+ir['Constants'][0]['Hex'][2:])])),
+            'verify-source-ascii': ('SOURCE-ASCII', lambda h,ir,s: (h, ir, s + b'\xff')),
+            'verify-artifact-size': ('ARTIFACT-SIZE', lambda h,ir,s: (h + ';' * 33000 + '\n', ir, s)),
+            'verify-hex-token': ('HEX-TOKEN', lambda h,ir,s: (h+'ZZ\n', ir, s)),
+            'verify-ir-contract': ('IR-CONTRACT', lambda h,ir,s: (h, dict(ir,ABI='windows'), s)),
+            'verify-body-limit': ('BODY-LIMIT', lambda h,ir,s: (h+'90\n', ir, s)),
+            'verify-ir-lists': ('IR-LISTS', lambda h,ir,s: (h, dict(ir,Constants={}), s)),
+            'verify-ir-limit': ('IR-LIMIT', lambda h,ir,s: (h, dict(ir,Calls=ir['Calls']*129), s)),
+            'verify-ir-name': ('IR-NAME', lambda h,ir,s: (h, c0(ir, Name='1greeting'), s)),
+            'verify-ir-duplicate': ('IR-DUPLICATE', lambda h,ir,s: (h, dict(ir,Constants=ir['Constants']*2), s)),
+            'verify-source-line': ('SOURCE-LINE', lambda h,ir,s: (h, c0(ir, Line=99), s)),
+            'verify-data-offset': ('DATA-OFFSET', lambda h,ir,s: (h, c0(ir, Offset=0), s)),
+            'verify-data-hex': ('DATA-HEX', lambda h,ir,s: (h, c0(ir, Hex=ir['Constants'][0]['Hex'].lower()), s)),
+            'verify-string-end': ('STRING-END', lambda h,ir,s: (h, c0(ir, Hex=ir['Constants'][0]['Hex'][:-2]), s)),
+            'verify-early-nul': ('STRING-ASCII', lambda h,ir,s: (h, c0(ir, Hex='00'+ir['Constants'][0]['Hex'][2:]), s)),
+            'verify-region-size': ('REGION-SIZE', lambda h,ir,s: (h+'90\n', dict(ir,BodyBytes=41), s)),
+            'verify-code-offset': ('CODE-OFFSET', lambda h,ir,s: (h, dict(ir,Calls=[dict(ir['Calls'][0],Offset=1)]), s)),
+            'verify-call-target': ('CALL-TARGET', lambda h,ir,s: (h, dict(ir,Calls=[dict(ir['Calls'][0],Constant=99)]), s)),
+            'verify-declaration-order': ('DECLARATION-ORDER', lambda h,ir,s: (h, c0(ir, Line=5), s)),
+            'verify-return-offset': ('RETURN-OFFSET', lambda h,ir,s: (h, dict(ir,Return=dict(ir['Return'],Offset=12)), s)),
+            'verify-return-order': ('RETURN-ORDER', lambda h,ir,s: (h, dict(ir,Return=dict(ir['Return'],Line=2)), s)),
+            'verify-opcode': ('EMISSION-MISMATCH', lambda h,ir,s: (h.replace('48 8D 35','48 89 35',1), ir, s)),
+            'verify-displacement': ('EMISSION-MISMATCH', lambda h,ir,s: (h.replace('35 05','35 06',1), ir, s)),
+            'verify-return-opcode': ('EMISSION-MISMATCH', lambda h,ir,s: (h.replace('10 C3','10 90',1), ir, s)),
         }
-        for name, mutate in mutations.items():
+        for name, (rule, mutate) in mutations.items():
             folder=work/('mutated-'+name); folder.mkdir()
-            hex_text, ir = mutate(original_hex,copy.deepcopy(original_ir))
-            hp,ip=folder/'body.hex',folder/'body.ir.json'
-            hp.write_text(hex_text); ip.write_text(json.dumps(ir))
-            try: verify(hello_paths[0],hp,ip)
-            except ValueError: pass
+            hex_text, ir, src = mutate(original_hex,copy.deepcopy(original_ir),original_src)
+            sp,hp,ip=folder/'source.casm',folder/'body.hex',folder/'body.ir.json'
+            sp.write_bytes(src); hp.write_text(hex_text); ip.write_text(json.dumps(ir))
+            try: verify(sp,hp,ip)
+            except ValueError as error: assert str(error).split(':')[0] == rule, (name, rule, str(error))
             else: raise AssertionError(f'Mutation accepted: {name}')
-            # The CLI also must refuse publication after verification fails.
+            # The CLI also must refuse publication after verification fails, naming the katana.
             published=folder/'INICIO.X86'
-            process=subprocess.run([sys.executable,str(ROOT/'CASM/verify.py'),str(hello_paths[0]),str(hp),str(ip),'--packet',str(published),'--report',str(folder/'verified.json')],capture_output=True,text=True,timeout=10)
-            assert process.returncode != 0 and not published.exists(),name
-            RESULTS.append(dict(Case=name,Passed=True,Kind='emission-rejected'))
+            process=subprocess.run([sys.executable,str(ROOT/'CASM/verify.py'),str(sp),str(hp),str(ip),'--packet',str(published),'--report',str(folder/'verified.json')],capture_output=True,text=True,timeout=10)
+            assert process.returncode != 0 and not published.exists() and f'RED [VERIFY] {rule}' in process.stderr, (name, process.stderr)
+            RESULTS.append(dict(Case=name,Passed=True,Kind='emission-rejected',Rule=rule))
+        # El verificador como programa: sus propias katanas.
+        folder=work/'verify-cli'; folder.mkdir()
+        cli = {
+            'verify-output-alias': ('OUTPUT-ALIAS', ['--packet', str(folder/'mismo'), '--report', str(folder/'mismo')], hello_paths[1]),
+            'verify-missing-input': ('VERIFY', ['--packet', str(folder/'p.x86'), '--report', str(folder/'r.json')], folder/'no-existe.hex'),
+        }
+        for name, (rule, salida, hex_path) in cli.items():
+            process=subprocess.run([sys.executable,str(ROOT/'CASM/verify.py'),str(hello_paths[0]),str(hex_path),str(hello_paths[2]),*salida],capture_output=True,text=True,timeout=10)
+            assert process.returncode != 0 and f'RED [VERIFY]' in process.stderr and (rule == 'VERIFY' or rule in process.stderr), (name, process.stderr)
+            assert not any(folder.glob('p.x86')) and not (folder/'mismo').exists(), name
+            RESULTS.append(dict(Case=name,Passed=True,Kind='verifier-cli-rejected',Rule=rule))
     report=dict(Passed=len(RESULTS),Total=len(RESULTS),Cases=RESULTS,
                 HelloPacketSHA256=hashlib.sha256((OUTPUT/'hello.x86').read_bytes()).hexdigest(),
                 PhysicalInstallationChanged=False)

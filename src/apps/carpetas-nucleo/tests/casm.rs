@@ -52,11 +52,16 @@ fn las_katanas_salen_de_las_fuentes_de_casm() {
     assert_eq!(indef.casos, ["undefined-name"]);
     assert!(de("EMISSION-MISMATCH", Etapa::Verificador).sitios[0].0.ends_with("verify.py"));
     assert!(de("BODY-LIMIT", Etapa::Codificador).motivo.contains("4072"));
+    assert_eq!(de("HOST-READ", Etapa::Anfitrion).motivo, "Cannot open source.", "el motivo, sin el codigo que lo rodea");
     assert!(de("SOURCE-SIZE", Etapa::Anfitrion).casos.contains(&"source-too-large".to_string()));
     // Cada caso rechazado de test.py demuestra una katana que existe.
     let casos: usize = k.iter().map(|x| x.casos.len()).sum();
-    assert_eq!(casos, 23, "{k:#?}");
+    assert_eq!(casos, 55, "{k:#?}"); // 27 de fuente, 3 del anfitrion, 23 del verificador y 2 de su programa
     assert!(k.len() >= 30, "{}", k.len());
+    // Ninguna katana sin su caso aislado.
+    let sin: Vec<String> = k.iter().filter(|x| x.casos.is_empty()).map(|x| format!("{:?} {}", x.etapa, x.regla)).collect();
+    assert!(sin.is_empty(), "katanas sin caso: {sin:?}");
+    assert!(de("BODY-LIMIT", Etapa::Verificador).casos.contains(&"verify-body-limit".to_string()), "la misma regla, probada en cada etapa");
 }
 
 #[test]

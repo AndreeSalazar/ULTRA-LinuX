@@ -219,12 +219,16 @@ pub fn katanas(archivos: &[(&str, &str)]) -> Vec<Katana> {
     for (ruta, texto) in archivos {
         let nombre = ruta.rsplit('/').next().unwrap_or(ruta);
         if nombre == "test.py" {
-            // 'caso': (b'...','REGLA'),
+            // Fuente:      'caso': (b'...','REGLA'),        -> la primera etapa que la tiene
+            // Anfitrion:   'host-x': ('REGLA', [...], ...), -> idem
+            // Verificador: 'verify-x': ('REGLA', ...),     -> el verificador
             for l in texto.lines() {
                 let l = l.trim();
                 let Some((caso, resto)) = l.strip_prefix('\'').and_then(|x| x.split_once("':")) else { continue };
+                let resto = resto.trim_start();
                 let partes = entre_comillas(resto.trim_end_matches(','));
-                if let Some(r) = partes.last().filter(|r| es_regla(r)) { if resto.trim_start().starts_with("(b") { casos.push((r.to_string(), caso.to_string())); } }
+                let regla = if resto.starts_with("(b") { partes.last() } else if resto.starts_with("('") { partes.first() } else { None };
+                if let Some(r) = regla.filter(|r| es_regla(r)) { casos.push((r.to_string(), caso.to_string())); }
             }
             continue;
         }
@@ -238,7 +242,9 @@ pub fn katanas(archivos: &[(&str, &str)]) -> Vec<Katana> {
             }
             for trozo in l.split("RED [").skip(1) {
                 if let Some((r, resto)) = trozo.split_once(']') {
-                    if es_regla(r) { hallado.push((r.to_string(), resto.trim().trim_end_matches(|c| c == '"' || c == ')' || c == ';').trim_end_matches("\\n").trim().to_string())); }
+                    // El motivo termina donde acaba la cadena de C: en el \n escrito o en la comilla.
+                    let motivo = resto.split("\\n").next().unwrap_or("").split('"').next().unwrap_or("").trim();
+                    if es_regla(r) { hallado.push((r.to_string(), motivo.to_string())); }
                 }
             }
             for trozo in l.split("require(").skip(1) {
@@ -256,8 +262,10 @@ pub fn katanas(archivos: &[(&str, &str)]) -> Vec<Katana> {
     }
     let mut v: Vec<Katana> = mapa.into_values().collect();
     for (r, caso) in casos {
-        // Un caso demuestra la regla en la primera etapa que la tiene (la que corta primero).
-        if let Some(k) = v.iter_mut().find(|k| k.regla == r) { k.casos.push(caso); }
+        // Los "verify-" prueban el verificador; el resto se compila, y corta en la primera
+        // etapa que tiene la regla (la que llega antes).
+        let verificador = caso.starts_with("verify-");
+        if let Some(k) = v.iter_mut().find(|k| k.regla == r && (k.etapa == Etapa::Verificador) == verificador) { k.casos.push(caso); }
     }
     v
 }
