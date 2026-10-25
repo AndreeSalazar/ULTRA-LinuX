@@ -1,0 +1,253 @@
+{
+  "muestras": 94,
+  "duracion_segun_uptime_s": 608.49,
+  "saltos_reloj_civil_s": [
+    18000.74
+  ],
+  "cpu_ocupado_pct_maquina": {
+    "min": 2.324,
+    "media": 55.146,
+    "max": 81.766,
+    "n": 93
+  },
+  "cpu_ocupado_pct_periodo": 58.131,
+  "intervalos_cpu_rechazados": 0,
+  "gpu_W": {
+    "min": 14.49,
+    "media": 119.723,
+    "max": 169.52,
+    "n": 94
+  },
+  "gpu_pct": {
+    "min": 0.0,
+    "media": 68.702,
+    "max": 99.0,
+    "n": 94
+  },
+  "gpu_C": {
+    "min": 49.0,
+    "media": 68.426,
+    "max": 77.0,
+    "n": 94
+  },
+  "vram_MiB": {
+    "min": 1.0,
+    "media": 3509.34,
+    "max": 5154.0,
+    "n": 94
+  },
+  "cpu_W": null,
+  "motivo_cpu_W": "El observador actual no captura energia CPU; no se infiere desde porcentaje, frecuencia ni GPU.",
+  "politicas": {
+    "policy0": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy1": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy10": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy11": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy2": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy3": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy4": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy5": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy6": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy7": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy8": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    },
+    "policy9": {
+      "scaling_driver": [
+        "amd-pstate-epp"
+      ],
+      "scaling_governor": [
+        "powersave"
+      ],
+      "energy_performance_preference": [
+        "balance_performance"
+      ]
+    }
+  },
+  "procesos_observados": [
+    "CrBrowserMain",
+    "CrRendererMain",
+    "GameThread",
+    "Hyprland",
+    "REDEngineErrorR",
+    "REDupdater.exe",
+    "Xwayland",
+    "at-spi-bus-laun",
+    "at-spi2-registr",
+    "bash",
+    "bwrap",
+    "comet",
+    "conhost.exe",
+    "dbus-daemon",
+    "dbus-run-sessio",
+    "dconf-service",
+    "eww",
+    "explorer.exe",
+    "foot",
+    "fuzzel",
+    "glycin-svg",
+    "gnome-keyring-d",
+    "gzip",
+    "heroic",
+    "less",
+    "localedef",
+    "lsass.exe",
+    "mako",
+    "nvidia-smi",
+    "pipewire",
+    "pipewire-pulse",
+    "plugplay.exe",
+    "pv-adverb",
+    "pv-locale-gen",
+    "pw-play",
+    "python",
+    "python3",
+    "rpcss.exe",
+    "services.exe",
+    "srt-bwrap",
+    "start-hyprland",
+    "svchost.exe",
+    "swaybg",
+    "tabtip.exe",
+    "ultra-ambiente",
+    "ultra-aplicacio",
+    "ultra-espacio",
+    "ultra-graficos",
+    "ultra-iniciar-e",
+    "ultra-juegos-vi",
+    "ultra-modo-jueg",
+    "ultra-pantallas",
+    "ultra-personali",
+    "ultra-tarjetas",
+    "umu-run",
+    "umu.exe",
+    "waybar",
+    "wine",
+    "wineboot.exe",
+    "winedevice.exe",
+    "wineserver",
+    "wireplumber",
+    "wl-paste",
+    "xalia.exe",
+    "xdg-desktop-por",
+    "xdg-permission-"
+  ],
+  "primera_muestra_utc": "2026-10-25T00:59:14Z",
+  "ultima_muestra_utc": "2026-10-25T06:09:24Z",
+  "limites": [
+    "Uso CPU agregado de la maquina: 100% representa todos sus hilos.",
+    "Se excluyen idle e iowait; guest ya esta incluido en user/nice y no se suma otra vez.",
+    "GPU W corresponde a la tarjeta; no al procesador ni al enchufe.",
+    "Intervalos con contadores faltantes, reiniciados o sin avance se rechazan.",
+    "Estas muestras no identifican por si mismas causas ni consumo por proceso."
+  ],
+  "informe_sha256": "44c7341b8e9fa4ac546d43befc39088d2a96e45a9bf2d8e9896924b2bd9d31f7"
+}

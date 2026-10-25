@@ -147,6 +147,12 @@ una partida de Cyberpunk. La corrección de escritorio selecciona cursor
 compuesto con NVIDIA y abre REDlauncher flotante y centrado en cada sesión.
 La comprobación visual en la RTX y la medición de vatios siguen pendientes.
 
+[Investigación de energía CPU y clic de REDlauncher](docs/ENERGIA-CPU-INVESTIGACION-2026-10-25.md):
+94 muestras físicas, 608,49 s por uptime y 58,131 % de CPU agregada en el período.
+Los 14,49–169,52 W observados son de la GPU; aún falta capturar energía del paquete
+CPU mediante RAPL. Se documentan candidatos de ahorro en efectos, monitores y
+editor, y el fallo de entrada con cursor visible, sin darlo por corregido.
+
 [Arranque de Warframe](docs/WARFRAME-INICIO-2026-10-24.md): el acceso evita
 esperar al registro si Steam ya está abierto y avisa si otra revisión está
 escribiendo las bibliotecas. El modo de diagnóstico solicita capturar antes

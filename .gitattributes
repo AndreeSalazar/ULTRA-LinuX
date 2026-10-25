@@ -94,3 +94,5 @@ evidencias/warframe-inicio/** text eol=lf whitespace=-blank-at-eol
 evidencias/main-integrado/** text eol=lf whitespace=-blank-at-eol
 evidencias/main-integrado/**/*.png binary
 docs/MAIN-INTEGRADO-2026-10-25.md text eol=lf
+docs/ENERGIA-CPU-INVESTIGACION-2026-10-25.md text eol=lf
+evidencias/energia-cpu/** text eol=lf

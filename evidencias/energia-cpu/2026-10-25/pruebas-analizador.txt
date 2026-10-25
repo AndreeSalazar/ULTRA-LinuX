@@ -1,0 +1,9 @@
+test_contador_reiniciado_no_inventa_porcentaje (__main__.EnergiaInforme.test_contador_reiniciado_no_inventa_porcentaje) ... ok
+test_delta_no_suma_guest_otra_vez_y_detecta_salto_hora (__main__.EnergiaInforme.test_delta_no_suma_guest_otra_vez_y_detecta_salto_hora) ... ok
+test_faltantes_no_son_cero_y_gpu_no_finita_se_rechaza (__main__.EnergiaInforme.test_faltantes_no_son_cero_y_gpu_no_finita_se_rechaza) ... ok
+test_media_periodo_pondera_contadores_y_no_promedia_porcentajes (__main__.EnergiaInforme.test_media_periodo_pondera_contadores_y_no_promedia_porcentajes) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.001s
+
+OK
