@@ -42,6 +42,12 @@ use std::time::{Duration, Instant};
 
 pub(crate) fn color(c: Rgb) -> Color32 { Color32::from_rgb(c[0], c[1], c[2]) }
 
+/// El color de cada eje del triangulo: Seguridad el rojo neon de los fallos, Rendimiento el
+/// ambar de los avisos (el motor) y Elegancia el acento del tema.
+pub(crate) fn color_eje(c: &Colores, e: carpetas_nucleo::museo::Eje) -> Color32 {
+    match e { carpetas_nucleo::museo::Eje::Seguridad => c.error, carpetas_nucleo::museo::Eje::Rendimiento => c.aviso, carpetas_nucleo::museo::Eje::Elegancia => c.acento }
+}
+
 fn acento() -> Rgb {
     // El mismo acento que el resto del escritorio (Personalizar); hielo si no hay.
     let salida = std::process::Command::new("ultra-personalizar").arg("acento").stdin(std::process::Stdio::null())

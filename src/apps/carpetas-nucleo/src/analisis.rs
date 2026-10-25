@@ -5,7 +5,7 @@
 
 use crate::dependencias::{aislar, conectar, Conexion, Dependencias, Rol};
 use crate::diagnosticos::Errores;
-use crate::museo::{Fuerza, Sospecha};
+use crate::museo::{eje, Eje, Fuerza, Sospecha};
 use alloc::collections::{BTreeMap, BTreeSet};
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -72,16 +72,30 @@ impl EstadoAnalisis {
             .filter(move |(k, _)| id.is_empty() || k.len() == id.len() || k.as_bytes()[id.len()] == b'/')
     }
 
-    /// (exactas, revisar) del nodo; en una carpeta, todo lo de dentro.
+    /// (exactas, revisar) de SEGURIDAD del nodo; en una carpeta, todo lo de dentro.
     pub fn conteo(&self, id: &str) -> (u32, u32) {
-        self.debajo(id).flat_map(|(_, v)| v.iter()).fold((0, 0), |(e, r), s| if s.fuerza == Fuerza::Exacto { (e + 1, r) } else { (e, r + 1) })
+        self.debajo(id).flat_map(|(_, v)| v.iter()).filter(|s| eje(s.ficha) == Eje::Seguridad)
+            .fold((0, 0), |(e, r), s| if s.fuerza == Fuerza::Exacto { (e + 1, r) } else { (e, r + 1) })
     }
 
+    /// Sospechas del nodo por eje del triangulo: [seguridad, rendimiento, elegancia].
+    pub fn conteo_ejes(&self, id: &str) -> [u32; 3] {
+        let mut c = [0u32; 3];
+        for s in self.debajo(id).flat_map(|(_, v)| v.iter()) { c[eje(s.ficha).indice()] += 1; }
+        c
+    }
+
+    /// La que mas importa: seguridad exacta, luego seguridad, luego cualquiera.
     pub fn primera<'a>(&'a self, id: &'a str) -> Option<(&'a String, &'a Sospecha)> {
-        let mut todas = self.debajo(id).flat_map(|(k, v)| v.iter().map(move |s| (k, s)));
-        let primera = todas.next()?;
-        if primera.1.fuerza == Fuerza::Exacto { return Some(primera); }
-        Some(todas.find(|(_, s)| s.fuerza == Fuerza::Exacto).unwrap_or(primera))
+        let todas = || self.debajo(id).flat_map(|(k, v)| v.iter().map(move |s| (k, s)));
+        todas().find(|(_, s)| eje(s.ficha) == Eje::Seguridad && s.fuerza == Fuerza::Exacto)
+            .or_else(|| todas().find(|(_, s)| eje(s.ficha) == Eje::Seguridad))
+            .or_else(|| todas().next())
+    }
+
+    /// Archivos con alguna sospecha de seguridad (las unicas que son fallos).
+    pub fn con_seguridad(&self) -> impl Iterator<Item = &String> {
+        self.sospechas.iter().filter(|(_, v)| v.iter().any(|s| eje(s.ficha) == Eje::Seguridad)).map(|(k, _)| k)
     }
 
     /// Las sospechas agrupadas por ficha (para el panel del museo), por id de ficha.
@@ -118,10 +132,11 @@ pub struct Conectado {
     pub clave: (u64, u64, Option<String>),
 }
 
-/// Archivos que fallan: con un error grave del compilador o una sospecha del museo.
+/// Archivos que fallan: un error grave del compilador o una sospecha de SEGURIDAD. Rendimiento
+/// y Elegancia se ensenan, pero no son fallos: una funcion larga no rompe nada.
 pub fn fallos(errores: &Errores, analisis: &EstadoAnalisis) -> BTreeSet<String> {
     let mut f: BTreeSet<String> = errores.por_nodo.iter().filter(|(_, v)| v.iter().any(|d| d.grave)).map(|(k, _)| k.clone()).collect();
-    f.extend(analisis.sospechas.keys().cloned());
+    f.extend(analisis.con_seguridad().cloned());
     f
 }
 
@@ -149,7 +164,7 @@ pub fn conectar_estado(errores: &Errores, analisis: &EstadoAnalisis, aislado: Op
         }
         _ if f.is_empty() => (Modo::Ninguno, Conexion::default(), 0),
         _ => {
-            let propios: BTreeSet<String> = analisis.sospechas.keys().cloned().collect();
+            let propios: BTreeSet<String> = analisis.con_seguridad().cloned().collect();
             (Modo::Fallos, conectar(&analisis.dep, &f, &propios), n)
         }
     }

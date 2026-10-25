@@ -75,6 +75,8 @@ pub struct Marcas {
     pub revisar: u32,
     /// "UB-003 Desplazar fuera del ancho · src/a.c:12\nmotivo" de la primera.
     pub museo: Option<String>,
+    /// Sospechas por eje del triangulo: [seguridad, rendimiento, elegancia].
+    pub ejes: [u32; 3],
 }
 
 impl Marcas {
@@ -85,14 +87,15 @@ pub fn marcas(e: &Estado, id: &str) -> Marcas {
     let (errores, avisos) = e.errores.conteo(id);
     let coincidencias = e.proyecto.conteo(id);
     let (exactas, revisar) = e.analisis.conteo(id);
-    if errores + avisos + coincidencias + exactas + revisar == 0 { return Marcas::default(); }
+    let ejes = e.analisis.conteo_ejes(id);
+    if errores + avisos + coincidencias + ejes.iter().sum::<u32>() == 0 { return Marcas::default(); }
     let primero = e.errores.primero(id).map(|(f, d)| format!("{f}:{}:{}  {}", d.linea, d.columna, d.mensaje));
     let museo = e.analisis.primera(id).map(|(f, s)| {
         let titulo = crate::museo::ficha(s.ficha).map(|x| x.titulo).unwrap_or("");
         let fuerza = if s.fuerza == crate::museo::Fuerza::Exacto { "patron exacto" } else { "revisar" };
-        format!("Museo {} · {titulo} ({fuerza})\n{f}:{}  {}\n{}", s.ficha, s.linea, s.visto, s.motivo)
+        format!("Museo {} · {titulo} ({}, {fuerza})\n{f}:{}  {}\n{}", s.ficha, crate::museo::eje(s.ficha).nombre(), s.linea, s.visto, s.motivo)
     });
-    Marcas { errores, avisos, primero, coincidencias, exactas, revisar, museo }
+    Marcas { errores, avisos, primero, coincidencias, exactas, revisar, museo, ejes }
 }
 
 /// Que une un cable: el arbol de carpetas, un fallo que se propaga o una dependencia.
@@ -242,6 +245,7 @@ fn marcas_grupo(e: &Estado, carpeta: &str, miembros: &[&Entrada]) -> Marcas {
         m.coincidencias += mx.coincidencias;
         m.exactas += mx.exactas;
         m.revisar += mx.revisar;
+        for k in 0..3 { m.ejes[k] += mx.ejes[k]; }
         if m.primero.is_none() { m.primero = mx.primero; }
         if m.museo.is_none() { m.museo = mx.museo; }
     }
@@ -319,6 +323,10 @@ pub fn nodos_y_cables(e: &Estado, tema: &crate::tema::Tema) -> (Vec<NodoGrafo>, 
         cables.push(Cable { desde, hasta, color: n.color, clase: ClaseCable::Arbol, vuelta: false });
     }
     conectar_nodos(e, tema, &lista, &mut nodos, &mut cables);
+    // Filtro del triangulo: lo que no tiene nada de ese eje pasa a segundo plano.
+    if let Some(f) = e.filtro_eje {
+        for n in nodos.iter_mut() { if !n.raiz && n.marcas.ejes[f.indice()] == 0 { n.atenuado = true; } }
+    }
     (nodos, cables)
 }
 

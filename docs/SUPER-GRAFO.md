@@ -58,7 +58,10 @@ De ellas se toman ideas y casos de prueba, no código: cada una tiene su licenci
    el binario como evidencia, como ya exige el museo.
 3. **`-fanalyzer` como segunda opinión** para lo que el SG marca «revisar».
 4. **Cada ficha con su eje** (Seguridad, Rendimiento o Elegancia) y el SG coloreado por
-   eje en el grafo y en la Ciudad.
+   eje en el grafo y en la Ciudad. **Hecho:** 42 fichas con su eje (35 Seguridad, 3
+   Rendimiento, 4 Elegancia), cuatro de ellas nuevas (R-001, R-002, E-001, E-002). Solo
+   la Seguridad cuenta como fallo. Detalle y medidas en
+   [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-triángulo-seguridad-rendimiento-y-elegancia).
 
 ## CASM: el lenguaje que exporta `.hex`
 

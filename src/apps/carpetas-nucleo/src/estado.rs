@@ -117,6 +117,8 @@ pub enum Accion {
     Taller(Option<crate::casm::Taller>),
     /// El mapa .casm -> .hex del archivo del editor (None: no hay compilacion de este texto).
     MapaCasm { id: String, resultado: Option<Result<crate::casm::MapaCasm, String>> },
+    /// Filtro del triangulo: ver solo un eje (None: los tres).
+    FiltroEje(Option<crate::museo::Eje>),
 }
 
 /// La historia de git de la carpeta abierta.
@@ -266,6 +268,8 @@ pub struct Estado {
     pub version_fallos: u64,
     /// El taller CASM (si la carpeta abierta lo tiene) y el mapa del editor.
     pub casm: EstadoCasm,
+    /// Triangulo: ver solo Seguridad, Rendimiento o Elegancia (None: los tres).
+    pub filtro_eje: Option<crate::museo::Eje>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -285,7 +289,7 @@ impl Default for Estado {
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
                  ciudad: DatosCiudad::default(), historia: EstadoHistoria::default(),
                  analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0,
-                 casm: EstadoCasm::default() }
+                 casm: EstadoCasm::default(), filtro_eje: None }
     }
 }
 
@@ -1017,6 +1021,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         Accion::Analisis(r) => { e.analisis.llegar(r); vec![] }
         Accion::Aislar(a) => { e.aislar = a; vec![] }
         Accion::Taller(t) => { e.casm.taller = t; vec![] }
+        Accion::FiltroEje(f) => { e.filtro_eje = f; vec![] }
         Accion::MapaCasm { id, resultado } => { e.casm.mapa = resultado.map(|r| (id, r)); vec![] }
         Accion::IrALinea { id, linea } => {
             e.revelar = Some(Revelar { editor: true, linea: Some(linea), ..Revelar::a(&id) });

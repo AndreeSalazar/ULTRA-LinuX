@@ -59,12 +59,13 @@ fn cada_sospecha_dice_donde_que_y_por_que() {
 fn las_fichas_son_las_del_museo() {
     let ub = include_str!("../../../../docs/museo-ub.json");
     let nuevo = include_str!("../../../../Museo/catalogo.json");
-    assert_eq!(FICHAS.len(), 38);
+    let triangulo = include_str!("../../../../Museo/triangulo.json");
+    assert_eq!(FICHAS.len(), 42);
     for f in FICHAS {
         let id = format!("\"id\": \"{}\"", f.id);
         let id2 = format!("\"id\":\"{}\"", f.id);
-        assert!(ub.contains(&id) || ub.contains(&id2) || nuevo.contains(&id) || nuevo.contains(&id2), "{} no esta en los catalogos", f.id);
-        assert!(ub.contains(f.titulo) || nuevo.contains(f.titulo), "{}: titulo distinto", f.id);
+        assert!([ub, nuevo, triangulo].iter().any(|c| c.contains(&id) || c.contains(&id2) || c.contains(&format!("\"id\": \"{}\"", f.id))), "{} no esta en los catalogos", f.id);
+        assert!([ub, nuevo, triangulo].iter().any(|c| c.contains(f.titulo)), "{}: titulo distinto", f.id);
     }
 }
 
@@ -97,4 +98,33 @@ fn nunca_entra_en_panico_con_basura() {
     for b in basura {
         for ext in ["c", "cc", "h", "S", "asm"] { let _ = analizar(&format!("x.{ext}"), b); }
     }
+}
+
+#[test]
+fn el_triangulo_reparte_las_fichas() {
+    use carpetas_nucleo::museo::{eje, Eje};
+    assert_eq!(eje("UB-001"), Eje::Seguridad);
+    assert_eq!(eje("R-001"), Eje::Rendimiento);
+    assert_eq!(eje("E-002"), Eje::Elegancia);
+    assert_eq!(eje("NOUB-002"), Eje::Elegancia, "el orden no especificado es claridad, no un fallo");
+    assert_eq!(eje("no-existe"), Eje::Seguridad, "lo desconocido, por prudencia, cuenta como seguridad");
+    let por_eje = |e: &str| FICHAS.iter().filter(|f| f.eje == e).count();
+    assert_eq!((por_eje("SEGURIDAD"), por_eje("RENDIMIENTO"), por_eje("ELEGANCIA")), (35, 3, 4));
+}
+
+#[test]
+fn recibir_para_mover_no_es_copiar_de_mas() {
+    use carpetas_nucleo::museo::analizar;
+    // El sumidero de C++ moderno: por valor y std::move. Y una declaracion sin cuerpo.
+    let sumidero = "#include <string>\n#include <utility>\nstruct A { std::string n; void pon(std::string x) { n = std::move(x); } };\nvoid f(std::string s);\n";
+    assert!(analizar("a.cc", sumidero).iter().all(|s| s.ficha != "R-002"), "{:?}", analizar("a.cc", sumidero));
+}
+
+#[test]
+fn una_clase_final_no_es_una_funcion() {
+    use carpetas_nucleo::museo::analizar;
+    // Una clase final con 120 lineas de miembros: ninguna funcion es larga.
+    let miembros: String = (0..120).map(|i| format!("    int m{i};\n")).collect();
+    let fuente = format!("class Grande final {{\n{miembros}    int f() const {{ return 1; }}\n}};\n");
+    assert!(analizar("a.h", &fuente).iter().all(|s| s.ficha != "E-001"), "{:?}", analizar("a.h", &fuente));
 }

@@ -433,9 +433,9 @@ Con un proyecto gigante el problema no es ver un error, es saber **de dónde vie
 **hasta dónde llega**. El SUPER GRAFO junta tres cosas:
 
 1. **El museo en tu código.** Las fichas del [museo de C, C++ y ASM](../Museo/README.md) y del
-   [banco de C](MUSEO-UB.md) (38 fichas, generadas desde sus catálogos con
+   [banco de C](MUSEO-UB.md) (42 fichas, generadas desde sus catálogos con
    `scripts/fichas-carpetas.py`; `--comprobar` falla si se desfasan) buscan su patrón en el
-   código del proyecto. Hay 28 con detector:
+   código del proyecto. Hay 32 con detector:
    - **C:** `free(p + 1)`, VLA.
    - **C++:** `string_view` sobre un temporal, referencia a un `vector` que crece, `new[]`
      con `delete`, `volatile` entre hilos, `f(i++, i++)`.
@@ -503,6 +503,50 @@ cuentan como fallos ni se conectan. Borrar el archivo hace que vuelvan a contar.
   16 312 dependencias resueltas. Conectar los fallos tarda 7 ms. La causa número 1 es
   `base/numerics/safe_conversions_impl.h` (`*(volatile char*)0`, un fallo provocado a
   propósito): «explica 9 · lo usan 2 524».
+
+### El triángulo: Seguridad, Rendimiento y Elegancia
+
+Cada ficha tiene un **eje** y el motivo de ese eje. Sale de
+[`Museo/triangulo.json`](../Museo/triangulo.json): las fichas son de Seguridad salvo las
+que ese archivo cambia, con su motivo (NOUB-002 y NOUB-003 son Elegancia; ASM-006,
+Rendimiento).
+
+- **Solo la Seguridad es un fallo.** Rendimiento y Elegancia son guías para revisar: no
+  se conectan, no encienden el punto rojo y no cuentan en «Aislar». Lo comprueba
+  `tests/triangulo.rs`.
+- **Cuatro fichas nuevas**, cada una con su caso `mal`/`bien` aislado:
+
+| Ficha | Eje | Qué marca | Referencia |
+|---|---|---|---|
+| R-001 | Rendimiento | `strlen` en la condición de un bucle (lineal pasa a cuadrático) | ISO C 7.24.6.3 |
+| R-002 | Rendimiento | `std::string`/`std::vector` por valor en una definición que no lo mueve | C++ Core Guidelines F.16 |
+| E-001 | Elegancia | Función de más de 100 líneas | Linux kernel coding style, 6 |
+| E-002 | Elegancia | Cuatro bloques con llaves uno dentro de otro en una función (la guía pide no pasar de 3) | Linux kernel coding style, 1 |
+
+- **En el panel Museo:** el glifo del triángulo y tres botones con su cuenta. Un clic
+  filtra por ese eje (y atenúa en el grafo los nodos que no tienen nada de él); las
+  fichas se agrupan por eje, con su color.
+- **En los nodos:** cuando hay Rendimiento o Elegancia, un triángulo pequeño junto a la
+  insignia enciende cada vértice que tiene algo (arriba Seguridad, abajo a la izquierda
+  Rendimiento, abajo a la derecha Elegancia).
+- **En la Ciudad:** COLOR → «triangulo». Cada edificio toma el color de su eje
+  dominante (Seguridad manda); los que no tienen nada del museo quedan en gris.
+
+![Panel Museo con el triángulo sobre Chromium base/: Seguridad 15, Rendimiento 48, Elegancia 369](maquetas/png/neon/carpetas-triangulo.png)
+![La Ciudad de Chromium coloreada por eje: rojo Seguridad, amarillo Rendimiento, cian Elegancia](maquetas/png/neon/carpetas-ciudad-triangulo.png)
+
+**Medido en Chromium `base/` y `third_party/zlib`:**
+
+- Seguridad sigue en 15 sospechas y el fallo conectado en los mismos 12 archivos: las
+  fichas nuevas no cambiaron nada de lo que cuenta como fallo.
+- Rendimiento 48 (todas R-002) y Elegancia 369 (E-001 226 y E-002 143).
+- Ajustes que salieron al revisarlo a mano:
+  - R-002 empezó con 117 avisos: casi todos eran declaraciones o parámetros que se mueven
+    (`std::move`). Ahora solo se mira una definición sin `move` de ese nombre.
+  - `class X final {` contaba como función: los calificadores (`const`, `final`…) solo
+    abren una función si van tras `)`. E-001 bajó de 237 a 226.
+- **No comprobado:** que R-002 sea más lento de verdad en cada sitio (no hay perfil
+  medido) ni el umbral de 100 líneas contra otro criterio. Son guías, no fallos.
 
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 

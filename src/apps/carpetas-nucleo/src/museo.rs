@@ -45,6 +45,22 @@ pub struct Sospecha {
 
 pub fn ficha(id: &str) -> Option<&'static Ficha> { FICHAS.iter().find(|f| f.id == id) }
 
+/// El triangulo: Seguridad es una regla (la llave cierra o no), Rendimiento un presupuesto
+/// que se mide y Elegancia lo que deja leer y revisar. Solo la Seguridad es un fallo.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Eje { Seguridad, Rendimiento, Elegancia }
+
+impl Eje {
+    pub const TODOS: [Eje; 3] = [Eje::Seguridad, Eje::Rendimiento, Eje::Elegancia];
+    pub fn nombre(self) -> &'static str { match self { Eje::Seguridad => "Seguridad", Eje::Rendimiento => "Rendimiento", Eje::Elegancia => "Elegancia" } }
+    pub fn indice(self) -> usize { self as usize }
+}
+
+/// El eje de una ficha (Seguridad si no se conoce: lo prudente).
+pub fn eje(id: &str) -> Eje {
+    match ficha(id).map(|f| f.eje) { Some("RENDIMIENTO") => Eje::Rendimiento, Some("ELEGANCIA") => Eje::Elegancia, _ => Eje::Seguridad }
+}
+
 /// Que lenguaje del museo es una ruta (None: no se analiza).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Idioma { C, Cpp, CoCpp, Gas { cpp: bool }, Nasm }
@@ -284,7 +300,12 @@ impl<'a> Ctx<'a> {
             let previo = if i > 0 { k[i - 1].t } else { "" };
             if x.clase == Clase::Signo && x.t == "{" {
                 let arriba = pila.last().copied().unwrap_or(false);
-                let codigo = matches!(previo, ")" | "else" | "do" | "try" | "const" | "noexcept" | "override" | "final" | "mutable")
+                // f() const {  y  [] () mutable {  son codigo; class X final {  no lo es: los
+                // calificativos solo cuentan si delante (saltandolos) hay un ')'.
+                let mut j = i;
+                while j > 0 && matches!(k[j - 1].t, "const" | "noexcept" | "override" | "final" | "mutable") { j -= 1; }
+                let tras_parentesis = j > 0 && k[j - 1].t == ")";
+                let codigo = tras_parentesis || matches!(previo, "else" | "do" | "try")
                     || (arriba && matches!(previo, ";" | "{" | "}" | ":"));
                 if codigo && !arriba { n_funcion += 1; }
                 pila.push(codigo);
@@ -318,6 +339,128 @@ impl<'a> Ctx<'a> {
         self.strncpy_sin_cero();
         self.fuera_del_arreglo();
         self.asm_en_linea();
+        // Rendimiento y Elegancia: guias para revisar, nunca fallos.
+        self.strlen_en_bucle();
+        self.contenedor_por_valor();
+        self.funcion_larga();
+        self.anidamiento();
+    }
+
+    // ---------- R-001: strlen en la condicion de un bucle ----------
+    fn strlen_en_bucle(&mut self) {
+        for i in 0..self.k.len() {
+            if !matches!(self.t(i), "for" | "while") || self.t(i + 1) != "(" { continue; }
+            let Some(c) = self.cierre(i + 1) else { continue };
+            // En un for, la condicion es el tramo entre los dos ';' de nivel superior.
+            let (a, b) = if self.t(i) == "for" {
+                let mut puntos = (i + 2..c).filter(|j| self.t(*j) == ";" && self.cierre_de(i + 1, *j));
+                match (puntos.next(), puntos.next()) { (Some(x), Some(y)) => (x + 1, y), _ => continue }
+            } else { (i + 2, c) };
+            if let Some(j) = (a..b).find(|j| self.llamada(*j, &["strlen", "wcslen"])) {
+                let m = alloc::format!("{}() recorre la cadena en cada vuelta del {}: calcular la longitud una vez, antes del bucle", self.t(j), self.t(i));
+                self.marcar("R-001", j, Fuerza::Revisar, m, i, c + 1);
+            }
+        }
+    }
+    /// El '(' que contiene al token `i` en su nivel superior, si lo hay antes de un ; { }.
+    fn abre_parentesis(&self, i: usize) -> Option<usize> {
+        let mut nivel = 0i32;
+        for x in (0..i).rev() {
+            match self.t(x) {
+                ")" | "]" => nivel += 1,
+                "(" | "[" => { if nivel == 0 { return (self.t(x) == "(").then_some(x); } nivel -= 1; }
+                ";" | "{" | "}" if nivel == 0 => return None,
+                _ => {}
+            }
+        }
+        None
+    }
+    /// El token `j` esta en el nivel superior de los parentesis que abren en `abre`.
+    fn cierre_de(&self, abre: usize, j: usize) -> bool {
+        let mut nivel = 0i32;
+        for x in abre + 1..j { match self.t(x) { "(" | "[" | "{" => nivel += 1, ")" | "]" | "}" => nivel -= 1, _ => {} } }
+        nivel == 0
+    }
+
+    // ---------- R-002: un contenedor de C++ pasado por valor ----------
+    fn contenedor_por_valor(&mut self) {
+        const CAROS: &[&str] = &["string", "wstring", "vector", "map", "set", "unordered_map", "unordered_set", "list", "deque", "multimap", "multiset"];
+        if !self.cpp { return; }
+        for i in 1..self.k.len() {
+            // ( o , delante; [const] std :: T [<...>] nombre  y despues , ) o =
+            if !matches!(self.antes(i, 1), "(" | ",") { continue; }
+            let mut j = i;
+            if self.t(j) == "const" { j += 1; }
+            if self.t(j) != "std" || self.t(j + 1) != "::" || !CAROS.contains(&self.t(j + 2)) { continue; }
+            let tipo = self.t(j + 2);
+            j += 3;
+            if self.t(j) == "<" {
+                let mut nivel = 0i32;
+                while j < self.k.len() {
+                    match self.t(j) { "<" => nivel += 1, ">" => nivel -= 1, ">>" => nivel -= 2, ";" | "{" => break, _ => {} }
+                    j += 1;
+                    if nivel <= 0 { break; }
+                }
+            }
+            if !self.ident(j) || !matches!(self.t(j + 1), "," | ")" | "=") { continue; }
+            // El parentesis que abre la lista de parametros (recorrido lineal hacia atras).
+            let Some(abre) = self.abre_parentesis(i) else { continue };
+            let Some(c) = self.cierre(abre) else { continue };
+            // Solo definiciones: ) [const|override|noexcept|final]* { cuerpo }.
+            let mut cuerpo = c + 1;
+            while matches!(self.t(cuerpo), "const" | "override" | "noexcept" | "final") { cuerpo += 1; }
+            if self.t(cuerpo) != "{" { continue; }
+            let Some(fin) = self.cierre(cuerpo) else { continue };
+            // Recibir por valor para moverlo (un sumidero) es lo correcto: no se marca.
+            let nombre = self.t(j);
+            if (cuerpo..fin).any(|x| self.t(x) == "move" && self.t(x + 1) == "(" && self.t(x + 2) == nombre) { continue; }
+            let m = alloc::format!("{} se copia entero en cada llamada: const std::{tipo}& (o una vista) si solo se lee", nombre);
+            self.marcar("R-002", i, Fuerza::Revisar, m, i, j + 1);
+        }
+    }
+
+    // ---------- E-001: funcion demasiado larga ----------
+    fn funcion_larga(&mut self) {
+        const MAX_LINEAS: u32 = 100;
+        let mut inicio: BTreeMap<u32, usize> = BTreeMap::new();
+        let mut fin: BTreeMap<u32, usize> = BTreeMap::new();
+        for (i, f) in self.funcion.iter().enumerate() {
+            if *f == 0 { continue; }
+            inicio.entry(*f).or_insert(i);
+            fin.insert(*f, i);
+        }
+        for (f, a) in inicio {
+            let b = fin[&f];
+            let lineas = self.k[b].linea.saturating_sub(self.k[a].linea) + 1;
+            if lineas > MAX_LINEAS {
+                let m = alloc::format!("la funcion ocupa {lineas} lineas (la guia del kernel pide una o dos pantallas; aqui se marca desde {MAX_LINEAS})");
+                self.marcar("E-001", a, Fuerza::Revisar, m, a.saturating_sub(4), a + 1);
+            }
+        }
+    }
+
+    // ---------- E-002: anidamiento profundo ----------
+    fn anidamiento(&mut self) {
+        // Nivel 1 = el cuerpo de la funcion. Se marca la primera vez que una funcion abre el
+        // nivel 5: cuatro bloques dentro del cuerpo (la guia del kernel pide no pasar de 3).
+        const MARCA: usize = 5;
+        let mut nivel = 0usize;
+        let mut marcada = 0u32;
+        for i in 0..self.k.len() {
+            match self.t(i) {
+                "{" if self.en_codigo[i] => {
+                    nivel += 1;
+                    if nivel == MARCA && self.funcion[i] != marcada {
+                        marcada = self.funcion[i];
+                        let m = alloc::format!("{nivel} niveles de bloques dentro de la funcion: salir pronto o extraer una funcion");
+                        self.marcar("E-002", i, Fuerza::Revisar, m, i.saturating_sub(6), i + 1);
+                    }
+                }
+                "}" if nivel > 0 && i > 0 && self.en_codigo[i] => nivel -= 1,
+                _ => {}
+            }
+            if self.funcion[i] == 0 { nivel = 0; }
+        }
     }
 
     // ---------- utilidades ----------

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "nota": "Fichas del triangulo Seguridad / Rendimiento / Elegancia para el SUPER GRAFO de ULTRA Carpetas. Las fichas del museo son de Seguridad salvo las de 'ejes'. Rendimiento y Elegancia son guias para revisar, nunca fallos.",
+  "ejes": {
+    "NOUB-002": {"eje": "ELEGANCIA", "motivo": "El orden no especificado no rompe la memoria, pero deja el codigo ambiguo al leerlo."},
+    "NOUB-003": {"eje": "ELEGANCIA", "motivo": "Depende de la implementacion: es portabilidad y claridad, no un fallo."},
+    "ASM-006": {"eje": "RENDIMIENTO", "motivo": "Un fallo de pagina atendido cuesta tiempo; no demuestra un error."}
+  },
+  "piezas": [
+    {"id": "R-001", "eje": "RENDIMIENTO", "lenguaje": "C", "clase": "RENDIMIENTO",
+     "titulo": "strlen en la condicion del bucle",
+     "regla": "strlen recorre la cadena hasta el cero cada vez que se llama; en la condicion de un for se repite en cada vuelta y el bucle pasa de lineal a cuadratico.",
+     "control": "size_t n = strlen(s); for (size_t i = 0; i < n; i++) { ... }",
+     "limite": "Si el bucle cambia la longitud de la cadena hay que recalcularla a proposito. El compilador solo puede sacar la llamada del bucle si demuestra que la cadena no cambia.",
+     "referencia": "ISO C, 7.24.6.3: strlen cuenta los caracteres que preceden al cero (borrador N1570)",
+     "url": "https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1570.pdf"},
+    {"id": "R-002", "eje": "RENDIMIENTO", "lenguaje": "C++", "clase": "RENDIMIENTO",
+     "titulo": "Copiar un contenedor al pasarlo como parametro",
+     "regla": "Un std::string o un std::vector pasado por valor se copia entero en cada llamada: reserva memoria y copia todos sus elementos.",
+     "control": "void f(const std::string& s);  // o std::string_view si solo se lee",
+     "limite": "Por valor es correcto cuando la funcion se queda con su propia copia y la mueve. Un perfil medido manda sobre esta guia.",
+     "referencia": "C++ Core Guidelines F.16: para parametros de entrada caros de copiar, referencia a const",
+     "url": "https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rf-in"},
+    {"id": "E-001", "eje": "ELEGANCIA", "lenguaje": "C", "clase": "ELEGANCIA",
+     "titulo": "Funcion demasiado larga",
+     "regla": "Una funcion que no cabe en una o dos pantallas cuesta leerla, probarla y revisarla: suele hacer varias cosas.",
+     "control": "Partirla en funciones cuyo nombre diga que hacen (static inline si importa el coste).",
+     "limite": "La guia del kernel habla de una o dos pantallas de 80x24. Aqui se marca desde 100 lineas para no ser ruido; un switch largo y simple puede estar bien.",
+     "referencia": "Linux kernel coding style, 6) Functions",
+     "url": "https://www.kernel.org/doc/html/latest/process/coding-style.html"},
+    {"id": "E-002", "eje": "ELEGANCIA", "lenguaje": "C", "clase": "ELEGANCIA",
+     "titulo": "Anidamiento profundo",
+     "regla": "Mas de tres niveles de bloques dentro de una funcion esconden el camino principal entre condiciones.",
+     "control": "Salir pronto (return, continue o un goto de limpieza) y extraer funciones.",
+     "limite": "Se cuentan llaves de bloque, no la sangria: un if sin llaves no suma un nivel.",
+     "referencia": "Linux kernel coding style, 1) Indentation",
+     "url": "https://www.kernel.org/doc/html/latest/process/coding-style.html"}
+  ]
+}

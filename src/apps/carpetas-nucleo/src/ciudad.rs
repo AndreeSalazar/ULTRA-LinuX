@@ -39,7 +39,7 @@ impl Huella {
 /// Que dice el color.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-pub enum Color { #[default] Lenguaje, Calor, Edad, Salud, Busqueda }
+pub enum Color { #[default] Lenguaje, Calor, Edad, Salud, Triangulo, Busqueda }
 
 impl Altura {
     pub fn siguiente(self) -> Self {
@@ -51,10 +51,10 @@ impl Altura {
 }
 impl Color {
     pub fn siguiente(self) -> Self {
-        match self { Color::Lenguaje => Color::Calor, Color::Calor => Color::Edad, Color::Edad => Color::Salud, Color::Salud => Color::Busqueda, Color::Busqueda => Color::Lenguaje }
+        match self { Color::Lenguaje => Color::Calor, Color::Calor => Color::Edad, Color::Edad => Color::Salud, Color::Salud => Color::Triangulo, Color::Triangulo => Color::Busqueda, Color::Busqueda => Color::Lenguaje }
     }
     pub fn nombre(self) -> &'static str {
-        match self { Color::Lenguaje => "lenguaje", Color::Calor => "calor (cambios en git)", Color::Edad => "edad (ultimo cambio)", Color::Salud => "salud (errores)", Color::Busqueda => "busqueda" }
+        match self { Color::Lenguaje => "lenguaje", Color::Calor => "calor (cambios en git)", Color::Edad => "edad (ultimo cambio)", Color::Salud => "salud (errores)", Color::Triangulo => "triangulo (seguridad, rendimiento, elegancia)", Color::Busqueda => "busqueda" }
     }
 }
 

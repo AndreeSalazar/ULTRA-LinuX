@@ -10,6 +10,7 @@ use crate::{color, Colores};
 use bytemuck::{Pod, Zeroable};
 use carpetas_nucleo::ciudad::{color_calor, color_lenguaje, leyenda_lenguajes, lineas_de, Altura, ArchivoCiudad, Ciudad, Color as ColorCiudad, Edificio, TERRAZA};
 use carpetas_nucleo::{legible, Accion, Comando, Estado, Rol};
+use carpetas_nucleo::museo::Eje;
 use eframe::egui::{self, Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use eframe::egui_wgpu::{self, wgpu, CallbackResources, CallbackTrait, ScreenDescriptor};
 use eframe::wgpu::util::DeviceExt;
@@ -124,6 +125,15 @@ fn color_edificio(e: &Edificio, modo: ColorCiudad, estado: &Estado, c: &Colores)
             let (err, av) = estado.errores.conteo(&e.ruta);
             let (exactas, revisar) = estado.analisis.conteo(&e.ruta);
             if err + exactas > 0 { [235, 70, 80] } else if av + revisar > 0 { [230, 175, 60] } else { [70, 185, 110] }
+        }
+        ColorCiudad::Triangulo => {
+            // El eje que mas pesa en el edificio (a igualdad: Seguridad, luego Rendimiento).
+            let n = estado.analisis.conteo_ejes(&e.ruta);
+            let ejes = Eje::TODOS.iter().filter(|x| estado.filtro_eje.is_none_or(|f| f == **x));
+            match ejes.filter(|x| n[x.indice()] > 0).max_by_key(|x| (n[x.indice()], core::cmp::Reverse(x.indice()))) {
+                Some(x) => { let k = crate::color_eje(c, *x); [k.r(), k.g(), k.b()] }
+                None => [52, 56, 68],
+            }
         }
         ColorCiudad::Busqueda => {
             if estado.proyecto.conteo(&e.ruta) > 0 { let a = c.acento; [a.r(), a.g(), a.b()] } else { [58, 62, 74] }
@@ -505,6 +515,15 @@ fn leyenda(ui: &mut egui::Ui, lienzo: Rect, v3: &mut Vista3, e: &Estado, c: &Col
                     muestra(ui, [230, 175, 60], "con avisos".into());
                     muestra(ui, [70, 185, 110], "sin errores conocidos".into());
                     if e.errores.total == 0 { ui.label(egui::RichText::new("Aun no se ejecuto nada (F5): todo en verde.").color(c.tenue).size(10.5)); }
+                }
+                ColorCiudad::Triangulo => {
+                    for x in Eje::TODOS {
+                        let k = crate::color_eje(c, x);
+                        let n = e.analisis.sospechas.values().flatten().filter(|s| carpetas_nucleo::museo::eje(s.ficha) == x).count();
+                        muestra(ui, [k.r(), k.g(), k.b()], format!("{} · {n}", x.nombre()));
+                    }
+                    muestra(ui, [52, 56, 68], "nada del museo".into());
+                    ui.label(egui::RichText::new("Seguridad es una regla; Rendimiento y Elegancia, guias. Solo Seguridad cuenta como fallo.").color(c.tenue).size(10.5));
                 }
                 ColorCiudad::Busqueda => {
                     let a = c.acento;

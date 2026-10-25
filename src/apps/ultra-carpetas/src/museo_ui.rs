@@ -5,7 +5,7 @@
 
 use crate::{App, Colores};
 use carpetas_nucleo::analisis::Modo as ModoConexion;
-use carpetas_nucleo::museo::{ficha, Fuerza};
+use carpetas_nucleo::museo::{eje, ficha, Eje, Fuerza};
 use carpetas_nucleo::{Accion, Comando};
 use eframe::egui::{self, Color32, RichText, Stroke};
 
@@ -80,11 +80,41 @@ impl App {
         ui.label(RichText::new("MUSEO EN TU CODIGO").color(c.acento).strong());
         ui.label(RichText::new("Analisis lexico: no compila ni ejecuta. «exacto» = lo escrito es el patron de la ficha; «revisar» = depende de tipos o valores.")
             .color(c.tenue).size(11.0));
-        let por_ficha = an.por_ficha();
+        // ---- El triangulo: cuanto hay de cada eje; clic = ver solo ese eje ----
+        let filtro = e.filtro_eje;
+        let mut cuentas = [0usize; 3];
+        for s in an.sospechas.values().flatten() { cuentas[eje(s.ficha).indice()] += 1; }
+        ui.add_space(4.0);
+        ui.horizontal(|ui| {
+            let (r, _) = ui.allocate_exact_size(egui::vec2(30.0, 28.0), egui::Sense::hover());
+            crate::pintar_grafo::triangulo(ui.painter(), c, r.center(), 22.0, [cuentas[0] as u32, cuentas[1] as u32, cuentas[2] as u32]);
+            for x in Eje::TODOS {
+                let activo = filtro == Some(x);
+                let col = crate::color_eje(c, x);
+                let texto = RichText::new(format!("{} {}", x.nombre(), cuentas[x.indice()])).size(11.5).color(if activo { c.fondo } else { col });
+                let b = egui::Button::new(texto).fill(if activo { col } else { c.superficie }).stroke(Stroke::new(1.0, col.gamma_multiply(0.7)));
+                let ayuda = match x {
+                    Eje::Seguridad => "Una regla: la llave cierra o no. Lo unico que cuenta como fallo y se conecta en rojo.",
+                    Eje::Rendimiento => "Un presupuesto que se mide: hacia donde va el motor. Guia para revisar, no un fallo.",
+                    Eje::Elegancia => "Lo que deja leer y revisar el codigo. Guia para revisar, no un fallo.",
+                };
+                if ui.add(b).on_hover_text(format!("{ayuda}\nClic: ver solo {} (en el grafo, el explorador y la Ciudad).", x.nombre())).clicked() {
+                    acciones.push(Accion::FiltroEje(if activo { None } else { Some(x) }));
+                }
+            }
+        });
+        let por_ficha: PorFicha = an.por_ficha().into_iter().filter(|(id, _)| filtro.is_none_or(|f| eje(id) == f)).collect();
         if an.listo && por_ficha.is_empty() { ui.label(RichText::new("Ningun patron de las fichas en lo leido.").color(c.verde).size(12.0)); }
         let estudio = an.estudio_por_ficha();
         egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
-            fichas(ui, c, &por_ficha, "museo", &mut acciones);
+            // Agrupadas por eje: primero lo que es fallo.
+            for x in Eje::TODOS {
+                let de: PorFicha = por_ficha.iter().filter(|(id, _)| eje(id) == x).map(|(k, v)| (*k, v.clone())).collect();
+                if de.is_empty() { continue; }
+                ui.add_space(4.0);
+                ui.label(RichText::new(x.nombre().to_uppercase()).color(crate::color_eje(c, x)).strong().size(12.0));
+                fichas(ui, c, &de, "museo", &mut acciones);
+            }
             if !estudio.is_empty() {
                 ui.add_space(8.0);
                 ui.separator();
@@ -105,9 +135,10 @@ fn fichas(ui: &mut egui::Ui, c: &Colores, por_ficha: &PorFicha, sal: &str, accio
     for (id, sitios) in por_ficha {
         let Some(f) = ficha(id) else { continue };
         let exactas = sitios.iter().filter(|(_, s)| s.fuerza == Fuerza::Exacto).count();
-        let titulo = RichText::new(format!("{id} · {} · {}", f.titulo, sitios.len())).color(if exactas > 0 { c.error } else { c.aviso }).size(12.5);
+        let col = match eje(id) { Eje::Seguridad => if exactas > 0 { c.error } else { c.aviso }, x => crate::color_eje(c, x) };
+        let titulo = RichText::new(format!("{id} · {} · {}", f.titulo, sitios.len())).color(col).size(12.5);
         egui::CollapsingHeader::new(titulo).id_salt((sal, *id)).default_open(por_ficha.len() <= 3).show(ui, |ui| {
-            ui.label(RichText::new(format!("{} · {}", f.lenguaje, f.clase)).color(c.tenue).size(10.5));
+            ui.label(RichText::new(format!("{} · {} · eje {}: {}", f.lenguaje, f.clase, eje(id).nombre(), f.motivo_eje)).color(c.tenue).size(10.5));
             ui.label(RichText::new(f.regla).color(c.texto).size(11.5));
             ui.label(RichText::new("Control valido").color(c.verde).size(11.0).strong());
             ui.label(RichText::new(f.control).monospace().color(c.texto).size(11.0));
