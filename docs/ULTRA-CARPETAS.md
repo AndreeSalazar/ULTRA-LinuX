@@ -754,10 +754,15 @@ panel Combinar sirve para **arreglar** y para **aprender**:
   encuadra solo lo seleccionado.
 - **En la Ciudad:** los del grupo con algo de Seguridad se resaltan en rojo neón; el
   resto, en blanco.
+- **Aislar el grupo:** deja solo lo conectado con los del grupo, en el grafo y en la
+  Ciudad: lo que usan (blanco) y quien los usa (rojo suave), con cables de dependencia.
+  En el grafo, la **A** con varios seleccionados aísla a todos juntos. El panel Museo dice
+  «AISLADO · 4 elegidos · usa 109 archivos · lo usan 1 990».
 
 ![Lo que señalan 4 archivos de Chromium: 8 señales, 5 de Seguridad; time.h no falla pero le llega el fallo por time.h:78 › clamped_math.h:11 › safe_conversions.h:15; en la Ciudad, los que fallan en rojo](maquetas/png/neon/carpetas-senales.png)
 ![Siguiente señal: el editor se abre en safe_conversions_impl.h:91, *(volatile char*)0 = 0](maquetas/png/neon/carpetas-senales-editor.png)
 ![Ver en el grafo: los 4 seleccionados, sus carpetas desplegadas y la cámara encuadrada en ellos](maquetas/png/neon/carpetas-grupo-grafo.png)
+![Aislar el grupo: solo lo conectado con los 4, con cables de dependencia; el resto, apagado](maquetas/png/neon/carpetas-grupo-aislado.png)
 
 **Comprobado:**
 
@@ -766,13 +771,20 @@ panel Combinar sirve para **arreglar** y para **aprender**:
 - `tests/proyecto.rs`: desde la Ciudad, «Ver en el grafo» con tres archivos en carpetas
   sin desplegar. Pide las carpetas al disco, selecciona a los tres y dibuja dos cables del
   grupo.
+- La misma prueba aísla el grupo: los tres son centro, se apaga lo que no los toca, no
+  queda ningún cable de fallo, y la **A** con los tres seleccionados aísla lo mismo.
 
 **Límites:**
 
 - Como mucho 400 señales por grupo (se dice cuántas hay) y 40 en la lista; «Siguiente»
   recorre las 400.
-- En el grafo siguen los cables rojos del fallo conectado; con **A** se aísla.
-- Aislar todavía toma un solo nodo, no el grupo entero.
+- Al aislar varios se calcula lo que usa y lo que usa a cada uno, y se juntan (como mucho
+  20 000 archivos; si no caben, el panel dice «recorte»).
+
+**Un fallo viejo que salió aquí:** cuando un botón de un panel lateral (Aislar, el filtro
+del triángulo…) cambiaba el grafo, la geometría de la GPU se marcaba con la versión nueva
+pero seguía con el dibujo viejo, y no se rehacía. Se veían los cables rojos del fallo
+estando aislado. Ahora la geometría lleva la versión de la vista de la que sale.
 
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 

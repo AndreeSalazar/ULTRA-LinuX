@@ -139,6 +139,18 @@ pub enum AccionGrupo {
     /// Ver el grupo en el grafo de nodos: se despliega el camino de cada uno y quedan
     /// todos seleccionados, con sus cables.
     AlGrafo,
+    /// Aislar el grupo entero (otra vez: quitar el aislado).
+    Aislar,
+}
+
+/// Marca de un aislado de varios: `aislar` guarda sus ids separados por esta letra.
+pub const MARCA_VARIOS: char = '\u{1}';
+
+/// El valor de `aislar` para varios archivos o carpetas a la vez.
+pub fn aislar_varios<'a>(ids: impl IntoIterator<Item = &'a String>) -> String {
+    let mut s = String::new();
+    for id in ids { s.push(MARCA_VARIOS); s.push_str(id); }
+    s
 }
 
 /// La historia de git de la carpeta abierta.
@@ -500,7 +512,10 @@ impl Estado {
             Comando::Organizar => { self.ajustes.organizar = self.ajustes.organizar.siguiente(); vec![self.guardar_ajustes()] }
             Comando::Reindexar => vec![Efecto::Reindexar { ocultos: self.ocultos }, Efecto::LeerHistoria],
             Comando::Aislar => {
-                self.aislar = if self.aislar.is_some() { None } else { Some(self.seleccion.iter().next().cloned().unwrap_or_default()) };
+                // Con varios seleccionados se aislan todos juntos.
+                self.aislar = if self.aislar.is_some() { None }
+                              else if self.seleccion.len() > 1 { Some(aislar_varios(&self.seleccion)) }
+                              else { Some(self.seleccion.iter().next().cloned().unwrap_or_default()) };
                 vec![]
             }
             Comando::Ciudad => { self.ajustes.modo = Modo::Ciudad; vec![self.guardar_ajustes()] }
@@ -815,7 +830,14 @@ impl Estado {
     fn reconectar(&mut self) {
         let clave = (self.analisis.version, self.version_fallos, self.aislar.clone());
         if clave == self.conectado.clave { return; }
-        let aislado = self.aislar.as_deref().filter(|x| !x.is_empty()).map(|id| (id, self.archivos_de(id)));
+        let varios: Vec<&str> = self.aislar.as_deref().filter(|x| x.starts_with(MARCA_VARIOS)).map(|x| x.split(MARCA_VARIOS).filter(|s| !s.is_empty()).collect()).unwrap_or_default();
+        let etiqueta = alloc::format!("{} elegidos", varios.len());
+        let aislado = if !varios.is_empty() {
+            let mut centros: Vec<String> = varios.iter().flat_map(|id| self.archivos_de(id)).collect();
+            centros.sort();
+            centros.dedup();
+            Some((etiqueta.as_str(), centros))
+        } else { self.aislar.as_deref().filter(|x| !x.is_empty()).map(|id| (id, self.archivos_de(id))) };
         let (modo, conexion, fallos) = crate::analisis::conectar_estado(&self.errores, &self.analisis, aislado);
         self.conectado = crate::analisis::Conectado { modo, conexion, fallos, clave };
         self.version_contenido = self.version_contenido.wrapping_add(1);
@@ -1112,6 +1134,10 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             let al_grafo = a == AccionGrupo::AlGrafo;
             match a {
                 AccionGrupo::AlGrafo => {}
+                AccionGrupo::Aislar => {
+                    let suyo = Some(aislar_varios(&e.grupo));
+                    e.aislar = if e.aislar.is_some() && e.aislar == suyo || e.grupo.is_empty() { None } else { suyo };
+                }
                 AccionGrupo::Alternar(id) => match e.grupo.iter().position(|x| *x == id) {
                     Some(i) => { e.grupo.remove(i); }
                     None => e.grupo.push(id),

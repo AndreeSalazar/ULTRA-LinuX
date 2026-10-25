@@ -309,4 +309,17 @@ fn el_grupo_de_la_ciudad_se_ve_en_el_grafo_con_sus_cables() {
     for g in grupo { assert!(nodos.iter().any(|n| n.id == g), "{g} visible"); }
     // Dos cables del grupo (Dependencia): de file_path.h a quien lo usa.
     assert_eq!(cables.iter().filter(|c| c.clase == ClaseCable::Dependencia).count(), 2);
+    // Aislar el grupo entero: los tres son centro y lo demas se apaga.
+    reducir(&mut s, Accion::Grupo(AccionGrupo::Aislar));
+    assert_eq!(s.conectado.modo, carpetas_nucleo::analisis::Modo::Alrededor("3 elegidos".into()));
+    for g in grupo { assert_eq!(s.conectado.conexion.roles.get(g), Some(&Rol::Causa), "{g} es centro"); }
+    let (nodos, cables) = vista(&s).grafo.unwrap();
+    assert!(!cables.iter().any(|c| c.clase == ClaseCable::Fallo), "aislado: cables de dependencia, no de fallo");
+    assert!(nodos.iter().any(|n| n.id == "DEPS" && n.atenuado), "lo que no toca al grupo se apaga");
+    assert!(nodos.iter().filter(|n| grupo.contains(&n.id.as_str())).all(|n| !n.atenuado));
+    // Otra vez: se quita. Y la A del grafo con los tres seleccionados aisla lo mismo.
+    reducir(&mut s, Accion::Grupo(AccionGrupo::Aislar));
+    assert!(s.aislar.is_none());
+    reducir(&mut s, Accion::Comando(Comando::Aislar));
+    assert_eq!(s.conectado.modo, carpetas_nucleo::analisis::Modo::Alrededor("3 elegidos".into()));
 }

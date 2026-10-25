@@ -135,6 +135,14 @@ impl App {
             if !k.del_grafo && !e.grupo.is_empty() && ui.button("Ver en el grafo").on_hover_text("Despliega el camino de cada uno en el grafo de nodos, los deja seleccionados y dibuja los cables del grupo").clicked() {
                 acciones.push(Accion::Grupo(AccionGrupo::AlGrafo));
             }
+            if !k.del_grafo && !e.grupo.is_empty() {
+                let aislado = e.aislar.as_deref().is_some_and(|x| x.starts_with(carpetas_nucleo::estado::MARCA_VARIOS));
+                let b = egui::Button::new(RichText::new(if aislado { "Quitar el aislado" } else { "Aislar el grupo" }).color(if aislado { c.fondo } else { Color32::WHITE }))
+                    .fill(if aislado { Color32::WHITE } else { c.superficie }).stroke(Stroke::new(1.0, Color32::WHITE));
+                if ui.add(b).on_hover_text("Deja solo lo conectado con el grupo: lo que usan (blanco) y quien los usa (rojo suave), en el grafo y en la Ciudad").clicked() {
+                    acciones.push(Accion::Grupo(AccionGrupo::Aislar));
+                }
+            }
             let total = k.senales.lista.len();
             if total > 0 {
                 let b = egui::Button::new(RichText::new(format!("Siguiente senal ({}/{total})", k.siguiente + 1)).color(Color32::WHITE)).fill(c.error.gamma_multiply(0.55));

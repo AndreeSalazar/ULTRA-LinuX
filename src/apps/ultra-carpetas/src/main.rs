@@ -294,8 +294,11 @@ impl App {
     fn retenido(&mut self, v: &Arc<Vista>, tema: &Tema) -> Option<pintar_grafo::Retenido> {
         if !self.gpu_ok || self.estado.ajustes.dibujo != Dibujo::Gpu { return None; }
         let (nodos, cables) = v.grafo.as_ref()?;
-        let version = self.estado.version_contenido;
-        let mismo = |g: &Geometria| g.version == version || (g.fuente.grafo == v.grafo && g.fuente.tema == v.tema);
+        // La version de la Vista de la que sale esta geometria, no la del estado: si un panel
+        // cambio el estado en este cuadro, `v` todavia es la de antes, y marcarla con la
+        // version nueva dejaba la geometria vieja en la GPU (el aislado seguia en rojo).
+        let version = match &self.cache { Some((k, c)) if Arc::ptr_eq(c, v) => *k, _ => u64::MAX };
+        let mismo = |g: &Geometria| (g.version == version && version != u64::MAX) || (g.fuente.grafo == v.grafo && g.fuente.tema == v.tema);
         match &mut self.geometria {
             Some(g) if mismo(g) => { g.version = version; g.fuente = v.clone(); }
             _ => {
