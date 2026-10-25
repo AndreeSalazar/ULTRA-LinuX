@@ -357,7 +357,9 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
     // Seleccion grupal: los del grupo en blanco, lo que comparten en el acento y quien los
     // junta en verde. Los cables se dibujan despues, sobre la ciudad.
     let grupo = !e.grupo.is_empty() && !k.del_grafo;
-    let anclas = if grupo { anclas(&v3.ciudad, k) } else { Anclas::default() };
+    let mut anclas = if grupo { anclas(&v3.ciudad, k) } else { Anclas::default() };
+    let camino = k.camino.as_ref().filter(|c| grupo && c.union.is_some());
+    if let Some(cam) = camino { anclas.camino = buscar(&v3.ciudad, &cam.nodos.iter().map(String::as_str).collect::<Vec<_>>()); }
     if grupo {
         let (a, v) = (c.acento, c.verde);
         for (i, col) in anclas.miembros.iter().map(|x| (x, [255, 255, 255]))
@@ -365,6 +367,8 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
             .chain(anclas.juntan.iter().map(|x| (x, [v.r(), v.g(), v.b()]))) {
             if let Some(Ancla::Edificio(j)) = i { resaltar(&v3.ciudad.edificios[*j], col); }
         }
+        // Los de en medio del camino, en blanco tambien: son parte de la union.
+        for a in anclas.camino.iter().flatten() { if let Ancla::Edificio(j) = a { resaltar(&v3.ciudad.edificios[*j], [255, 255, 255]); } }
     }
     if let Some(i) = bajo { let a = c.acento; resaltar(&v3.ciudad.edificios[i], [a.r(), a.g(), a.b()]); }
     let luz = [0.45, 0.85, 0.30, (v3.camara.distancia * 0.0012).clamp(0.08, 1.2)];
@@ -389,7 +393,11 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
         pintor.galley(caja.center() - g.size() / 2.0, g, Color32::WHITE);
     }
 
-    if grupo { cables(&pintor, &vp, rect, &v3.ciudad, k, &anclas, c); }
+    if grupo {
+        // Con camino, lo del grupo se apaga un poco para que el camino mande.
+        cables(&pintor, &vp, rect, &v3.ciudad, k, &anclas, c, if camino.is_some() { 0.35 } else { 1.0 });
+        if let Some(cam) = camino { camino_ciudad(ui, &pintor, &vp, rect, &v3.ciudad, cam, &anclas.camino, c, !k.quieto); }
+    }
     leyenda(ui, rect, v3, e, c, acciones);
 
     // Ficha del edificio (o del distrito) bajo el raton.
@@ -602,14 +610,21 @@ mod pruebas {
 enum Ancla { Edificio(usize), Distrito(usize) }
 
 #[derive(Default)]
-struct Anclas { miembros: Vec<Option<Ancla>>, comparten: Vec<Option<Ancla>>, juntan: Vec<Option<Ancla>> }
+struct Anclas { miembros: Vec<Option<Ancla>>, comparten: Vec<Option<Ancla>>, juntan: Vec<Option<Ancla>>, camino: Vec<Option<Ancla>> }
 
 /// Busca cada ruta del grupo (y sus puentes) en la ciudad de una pasada. Lo que esta dentro
 /// de un bloque juntado cae en ese bloque.
 fn anclas(ciudad: &Ciudad, k: &crate::combinar_ui::Cache) -> Anclas {
-    use std::collections::HashMap;
     let cb = &k.c;
     let rutas: Vec<&str> = cb.miembros.iter().map(|m| m.id.as_str()).chain(cb.comparten.iter().map(|x| x.ruta.as_str())).chain(cb.juntan.iter().map(|x| x.ruta.as_str())).collect();
+    let v = buscar(ciudad, &rutas);
+    let (m, x) = (cb.miembros.len(), cb.comparten.len());
+    Anclas { miembros: v[..m].to_vec(), comparten: v[m..m + x].to_vec(), juntan: v[m + x..].to_vec(), camino: Vec::new() }
+}
+
+/// Donde esta cada ruta en la ciudad (en el mismo orden).
+fn buscar(ciudad: &Ciudad, rutas: &[&str]) -> Vec<Option<Ancla>> {
+    use std::collections::HashMap;
     let mut hallado: HashMap<&str, Ancla> = HashMap::with_capacity(rutas.len());
     let buscados: std::collections::HashSet<&str> = rutas.iter().copied().collect();
     for (i, b) in ciudad.edificios.iter().enumerate() { if buscados.contains(b.ruta.as_str()) { hallado.insert(&ciudad.edificios[i].ruta, Ancla::Edificio(i)); } }
@@ -619,8 +634,7 @@ fn anclas(ciudad: &Ciudad, k: &crate::combinar_ui::Cache) -> Anclas {
             .or_else(|| ciudad.edificios.iter().position(|b| b.bloque && r.len() > b.ruta.len() && r.starts_with(b.ruta.as_str()) && r.as_bytes()[b.ruta.len()] == b'/').map(Ancla::Edificio));
         if let Some(a) = a { hallado.insert(r, a); }
     }
-    let de = |r: &str| hallado.get(r).copied();
-    Anclas { miembros: cb.miembros.iter().map(|m| de(&m.id)).collect(), comparten: cb.comparten.iter().map(|x| de(&x.ruta)).collect(), juntan: cb.juntan.iter().map(|x| de(&x.ruta)).collect() }
+    rutas.iter().map(|r| hallado.get(r).copied()).collect()
 }
 
 /// La azotea de un ancla (el centro de arriba del edificio o del distrito).
@@ -633,11 +647,13 @@ fn azotea(ciudad: &Ciudad, a: Ancla) -> V3 {
 
 /// Cables sobre la ciudad: arcos blancos entre los del grupo que se usan (flecha en el
 /// usado) y arcos finos del acento (o verdes) hasta lo que comparten (o quien los junta).
-fn cables(pintor: &egui::Painter, vp: &[[f32; 4]; 4], lienzo: Rect, ciudad: &Ciudad, k: &crate::combinar_ui::Cache, an: &Anclas, c: &Colores) {
+#[allow(clippy::too_many_arguments)]
+fn cables(pintor: &egui::Painter, vp: &[[f32; 4]; 4], lienzo: Rect, ciudad: &Ciudad, k: &crate::combinar_ui::Cache, an: &Anclas, c: &Colores, alfa: f32) {
     use eframe::egui::epaint::QuadraticBezierShape;
     let cb = &k.c;
     let punto = |a: Option<Ancla>| a.and_then(|a| proyectar(vp, azotea(ciudad, a), lienzo));
     let arco = |p: Pos2, q: Pos2, col: Color32, w: f32, flecha: bool| {
+        let col = col.gamma_multiply(alfa);
         let alto = ((q - p).length() * 0.35).clamp(18.0, 220.0);
         let ctl = p + (q - p) / 2.0 - Vec2::new(0.0, alto);
         if c.brillo { pintor.add(QuadraticBezierShape::from_points_stroke([p, ctl, q], false, Color32::TRANSPARENT, Stroke::new(w + 4.0, col.gamma_multiply(0.22)))); }
@@ -659,4 +675,55 @@ fn cables(pintor: &egui::Painter, vp: &[[f32; 4]; 4], lienzo: Rect, ciudad: &Ciu
     for &(a, b, veces) in &cb.directas {
         if let (Some(p), Some(q)) = (punto(an.miembros[a]), punto(an.miembros[b])) { arco(p, q, Color32::WHITE, 1.8 + (veces as f32).ln_1p(), true); }
     }
+}
+
+/// El camino sobre la ciudad: arcos de azotea a azotea con la flecha en el usado, el paso
+/// imprescindible en rojo neon y la onda de recompilacion viajando del usado al que usa.
+#[allow(clippy::too_many_arguments)]
+fn camino_ciudad(ui: &egui::Ui, pintor: &egui::Painter, vp: &[[f32; 4]; 4], lienzo: Rect, ciudad: &Ciudad, cam: &carpetas_nucleo::camino::Camino,
+                 an: &[Option<Ancla>], c: &Colores, animar: bool) {
+    use carpetas_nucleo::camino::SinPaso;
+    use eframe::egui::epaint::QuadraticBezierShape;
+    let ahora = ui.input(|i| i.time);
+    let t = crate::camino_ui::tiempos(cam);
+    let punto = |i: usize| an.get(i).copied().flatten().and_then(|a| proyectar(vp, azotea(ciudad, a), lienzo));
+    for (i, paso) in cam.pasos.iter().enumerate() {
+        let (Some(p), Some(q)) = (punto(i), punto(i + 1)) else { continue };
+        // La direccion real: del que usa al usado.
+        let (de, a) = if paso.desde == cam.nodos[i] { (p, q) } else { (q, p) };
+        if (a - de).length() < 2.0 { continue; }
+        let alto = ((a - de).length() * 0.45).clamp(30.0, 260.0);
+        let ctl = de + (a - de) / 2.0 - Vec2::new(0.0, alto);
+        let imprescindible = paso.sin == SinPaso::Imprescindible;
+        let latido = if imprescindible && animar { 0.6 + 0.4 * ((ahora * 4.0).sin() as f32).abs() } else { 1.0 };
+        let col = if imprescindible { c.error } else { Color32::WHITE };
+        pintor.add(QuadraticBezierShape::from_points_stroke([de, ctl, a], false, Color32::TRANSPARENT, Stroke::new(9.0, col.gamma_multiply(0.16 * latido))));
+        pintor.add(QuadraticBezierShape::from_points_stroke([de, ctl, a], false, Color32::TRANSPARENT, Stroke::new(2.6, col.gamma_multiply(latido))));
+        let dir = (a - ctl).normalized();
+        let lado = Vec2::new(-dir.y, dir.x);
+        pintor.add(egui::Shape::convex_polygon(vec![a, a - dir * 12.0 + lado * 6.0, a - dir * 12.0 - lado * 6.0], col, Stroke::NONE));
+        let en = |s: f32| { let u = 1.0 - s; (de.to_vec2() * u * u + ctl.to_vec2() * 2.0 * u * s + a.to_vec2() * s * s).to_pos2() };
+        if imprescindible {
+            let m = en(0.5);
+            for k in [-4.0, 4.0] { pintor.line_segment([m + Vec2::new(k - 6.0, -8.0), m + Vec2::new(k + 6.0, 8.0)], Stroke::new(2.0, c.error)); }
+        }
+        if animar {
+            if let Some(x) = crate::camino_ui::onda(cam, &t, i, ahora) {
+                // La onda sale del usado (a) y llega al que usa (de).
+                let q = en(1.0 - x);
+                let col = if imprescindible { c.error } else { c.acento };
+                for (r, al) in [(14.0, 0.10), (8.0, 0.30), (4.5, 1.0)] { pintor.circle_filled(q, r, col.gamma_multiply(al)); }
+                pintor.circle_filled(q, 2.0, Color32::WHITE);
+            }
+        }
+    }
+    // Rotulos A y B sobre sus azoteas.
+    for (i, txt) in [(0, "A"), (cam.nodos.len().saturating_sub(1), "B")] {
+        if let Some(p) = punto(i) {
+            let r = Rect::from_center_size(p - Vec2::new(0.0, 16.0), Vec2::splat(18.0));
+            pintor.rect(r, 9, Color32::WHITE, Stroke::NONE, StrokeKind::Inside);
+            pintor.text(r.center(), Align2::CENTER_CENTER, txt, FontId::proportional(12.0), Color32::BLACK);
+        }
+    }
+    if animar { ui.ctx().request_repaint_after(std::time::Duration::from_millis(33)); }
 }

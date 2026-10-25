@@ -500,9 +500,13 @@ cuentan como fallos ni se conectan. Borrar el archivo hace que vuelvan a contar.
   - Quedan 15 sospechas. Entre ellas hay aciertos, como el iterador invalidado que
     Chromium prueba a propósito con `EXPECT_DCHECK_DEATH` o `isdigit(argv[..][0])`.
 - **Carril Museo en Chromium `base/`:** 3 324 archivos (25,7 MiB) en 1,6 s en su hilo y
-  16 312 dependencias resueltas. Conectar los fallos tarda 7 ms. La causa número 1 es
+  16 268 dependencias resueltas. Conectar los fallos tarda 7 ms. La causa número 1 es
   `base/numerics/safe_conversions_impl.h` (`*(volatile char*)0`, un fallo provocado a
-  propósito): «explica 9 · lo usan 2 524».
+  propósito): «explica 7 · lo usan 1 993».
+  - Antes eran 16 312 dependencias y «lo usan 2 524». El **camino** (más abajo)
+    destapó la diferencia: `#include <features.h>` (la de la libc) se resolvía como
+    `base/features.h` por el final de la ruta. Ahora un `<x.h>` sin carpeta no se busca
+    por el nombre: salen 44 aristas falsas, y unos 530 archivos ya no «arrastran» el fallo.
 
 ### El triángulo: Seguridad, Rendimiento y Elegancia
 
@@ -582,7 +586,7 @@ conectan. Se rehace al momento, cada vez que el grupo cambia.
 ![Combinar con 42 edificios de base/strings y base/time (Shift+arrastrar): 14 directas, 26 compartidos, 34 que los juntan; 0,34 ms](maquetas/png/neon/carpetas-combinar.png)
 ![Combinar con 5 elegidos por Ctrl+clic: ninguno usa a otro, pero comparten 5 cabeceras; time_unittest.cc con borde rojo (Seguridad) y strcat_unittest.cc suelto](maquetas/png/neon/carpetas-combinar-pocos.png)
 
-**Medido** (Chromium `base/`, 16 312 dependencias):
+**Medido** (Chromium `base/`, 16 268 dependencias):
 
 - Combinar 42 miembros tarda **0,34 ms**; 5 miembros, 0,05 ms. El panel enseña el tiempo
   de cada vez.
@@ -596,6 +600,72 @@ conectan. Se rehace al momento, cada vez que el grupo cambia.
 - Las dependencias son las del análisis léxico: lo que decide el preprocesador
   (`#ifdef`, rutas `-I`) no se ve.
 - Si un archivo y su carpeta están los dos, el archivo cuenta para el primero que entró.
+
+### El camino entre dos elegidos: motivos, onda y dónde cortar
+
+Con dos en el grupo (o eligiendo **A** y **B** entre los del grupo), el panel Combinar
+busca **por dónde se unen** y lo explica:
+
+- **Elegir:**
+  - Ctrl+clic en la Ciudad.
+  - O por nombre: **Ctrl+P, escribir y Alt+Enter** mete el archivo en el grupo sin
+    moverse. Sirve para unir dos archivos que están lejos en la Ciudad.
+  - Con más de dos, dos selectores eligen A y B. **Invertir** los cambia.
+- **La unión más fuerte**, en este orden:
+  1. **A usa B** (directa o a través de otros): si cambia B, A se recompila.
+  2. **B usa A.**
+  3. **Comparten X:** ninguno usa al otro, pero los dos usan X. Se elige el X más
+     cercano a los dos.
+  4. **Los junta X:** X usa a los dos.
+  5. **Nada:** no se tocan, y el panel lo dice.
+- **Por qué se ve así:** una frase con la unión, cuántos archivos hay en medio, y cuántos
+  caminos igual de cortos existen (este es uno de ellos).
+- **Motivos:** cada paso lleva la línea exacta que lo crea, por ejemplo
+  `raw_ptr.h:52 #include "…/raw_ptr_backup_ref_impl.h"`. Clic en el paso: el editor se
+  abre en esa línea.
+- **Dónde cortar (para optimizar):** cada paso se quita y se vuelve a buscar.
+  - **Imprescindible** (rojo neón, con marca de corte): sin él, A y B se separan.
+  - Si no, el panel dice el desvío: otro camino de N saltos.
+  - Cada paso dice también cuántos archivos usan al incluido (su peso). La pista final
+    propone el paso imprescindible con menos peso.
+  - Es una pista, no una prueba: hay que compilar para comprobarlo.
+- **La animación es la onda de recompilación.** Sale de lo que cambiaría y viaja hacia
+  quien lo usa, paso a paso:
+  - A usa B: va de B hacia A.
+  - Comparten X: sale de X y se abre hacia los dos.
+  - Los junta X: entra en X desde los dos.
+
+  El punto de encuentro late con un anillo verde, y lo imprescindible late en rojo.
+  La casilla «onda» la para: entonces no se redibuja nada de más.
+- **En la Ciudad:** los mismos pasos son arcos de azotea a azotea, con la flecha en el
+  usado, los imprescindibles en rojo con su marca, la onda viajando, y A y B rotulados.
+
+![Camino en Chromium: launch_fuchsia.cc usa safe_conversions_impl.h a través de 11 archivos; 6 pasos imprescindibles en rojo, cada uno con su línea; en la Ciudad, los arcos de A a B](maquetas/png/neon/carpetas-camino.png)
+![La onda en dos cuadros: comparten time.h, y la onda sale de time.h hacia los dos a la vez](maquetas/png/neon/carpetas-camino-onda.png)
+
+**Medido** (Chromium `base/`, prueba `medir_en_carpeta`):
+
+- 300 pares repartidos por todo el proyecto en 32 ms; el peor, 0,53 ms (con el análisis de
+  cada paso).
+- Por clase de unión: usa 7, es usado 9, comparten 218, los junta 4, nada 62.
+- 81 de los 300 pares tienen al menos un paso imprescindible.
+- El camino más largo de la muestra tiene 12 saltos, de `launch_fuchsia.cc` a
+  `partition_alloc_base/numerics/safe_conversions_impl.h`.
+- Ese análisis destapó una arista falsa (`<features.h>` resuelta como `base/features.h`)
+  y se corrigió en el resolvedor.
+
+**Comprobado:**
+
+- `tests/camino.rs` cubre las cinco uniones, el conteo de caminos igual de cortos, la
+  dirección real de cada paso, los motivos, y lo imprescindible frente al desvío.
+- `analiza_este_repositorio` comprueba que el motivo de `main.rs → analisis.rs` es su
+  línea real (`mod analisis;`).
+
+**Límites:**
+
+- Es el camino más corto por número de saltos, no por coste de compilación.
+- Desvío o imprescindible se miden quitando **un** paso cada vez.
+- Se analizan los 16 primeros pasos; el resto sale «sin analizar».
 
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 

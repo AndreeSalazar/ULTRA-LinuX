@@ -29,6 +29,27 @@ pub enum ClaseRef {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Referencia { pub texto: String, pub linea: u32, pub clase: ClaseRef }
 
+/// Por que `a usa b`: la referencia escrita en `a` (su linea y su texto). Es el motivo de
+/// cada paso de un camino del SUPER GRAFO.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Motivo { pub linea: u32, pub texto: String, pub clase: ClaseRef }
+
+impl Motivo {
+    /// Como se escribio, mas o menos: `#include "x.h"`, `mod x;`, `import a.b`...
+    pub fn escrito(&self, desde: &str) -> String {
+        let asm = matches!(ext(desde), "asm" | "nasm" | "inc");
+        match self.clase {
+            ClaseRef::Comillas if asm => format!("%include \"{}\"", self.texto),
+            ClaseRef::Comillas => format!("#include \"{}\"", self.texto),
+            ClaseRef::Angulos => format!("#include <{}>", self.texto),
+            ClaseRef::ModRust => format!("mod {};", self.texto),
+            ClaseRef::UsoRust => format!("use {}", self.texto),
+            ClaseRef::Python(0) => format!("import {}", self.texto),
+            ClaseRef::Python(n) => format!("from {}{} import", ".".repeat(n as usize), self.texto),
+        }
+    }
+}
+
 fn ext(ruta: &str) -> &str { ruta.rsplit('/').next().unwrap_or(ruta).rsplit_once('.').map(|(_, e)| e).unwrap_or("") }
 
 /// Lenguajes con referencias que se siguen.
@@ -167,6 +188,9 @@ pub fn resolver(desde: &str, r: &Referencia, rutas: &dyn Rutas) -> Option<String
         ClaseRef::Comillas | ClaseRef::Angulos => {
             if r.clase == ClaseRef::Comillas { if let Some(x) = probar(unir(dir, &r.texto)) { return Some(x); } }
             if let Some(x) = probar(unir("", &r.texto)) { return Some(x); }
+            // `<features.h>` sin carpeta es del sistema (o de una -I que no se ve): buscarlo por
+            // el nombre lo confundiria con base/features.h. Solo se busca por el final con carpeta.
+            if r.clase == ClaseRef::Angulos && !r.texto.contains('/') { return None; }
             // Por el final: "linux/kernel.h" -> include/linux/kernel.h; el mas cercano al que incluye.
             let nombre = r.texto.rsplit('/').next()?;
             let cola = format!("/{}", r.texto.trim_start_matches("./"));
@@ -260,6 +284,7 @@ pub struct Dependencias {
     usa: Vec<Vec<u32>>,
     usado_por: Vec<Vec<u32>>,
     pub aristas: u64,
+    motivos: BTreeMap<(u32, u32), Motivo>,
 }
 
 impl Dependencias {
@@ -273,12 +298,18 @@ impl Dependencias {
         }
         for v in usa.iter_mut().chain(usado_por.iter_mut()) { v.sort_unstable(); v.dedup(); }
         let indice = rutas.iter().enumerate().map(|(i, r)| (r.clone(), i as u32)).collect();
-        Dependencias { rutas, indice, usa, usado_por, aristas: total }
+        Dependencias { rutas, indice, usa, usado_por, aristas: total, motivos: BTreeMap::new() }
     }
     pub fn id(&self, ruta: &str) -> Option<u32> { self.indice.get(ruta).copied() }
     pub fn ruta(&self, id: u32) -> &str { &self.rutas[id as usize] }
     pub fn usa(&self, ruta: &str) -> impl Iterator<Item = &str> { self.id(ruta).into_iter().flat_map(move |i| self.usa[i as usize].iter().map(move |j| self.ruta(*j))) }
     pub fn usado_por(&self, ruta: &str) -> impl Iterator<Item = &str> { self.id(ruta).into_iter().flat_map(move |i| self.usado_por[i as usize].iter().map(move |j| self.ruta(*j))) }
+    /// Los motivos de las aristas (en el mismo orden que `aristas`; sobran o faltan: se ignoran).
+    pub fn poner_motivos(&mut self, aristas: &[(u32, u32)], motivos: Vec<Motivo>) {
+        self.motivos = aristas.iter().copied().zip(motivos).collect();
+    }
+    /// Por que `a` usa `b` (si se sabe).
+    pub fn motivo(&self, a: u32, b: u32) -> Option<&Motivo> { self.motivos.get(&(a, b)) }
     /// Lo que usa (o quien usa) un archivo, por indice.
     pub fn usa_id(&self, i: u32) -> &[u32] { self.usa.get(i as usize).map(|v| v.as_slice()).unwrap_or(&[]) }
     pub fn usado_por_id(&self, i: u32) -> &[u32] { self.usado_por.get(i as usize).map(|v| v.as_slice()).unwrap_or(&[]) }

@@ -66,7 +66,7 @@ impl Combinacion {
 }
 
 /// Los archivos de un miembro: el propio archivo, o los de dentro de la carpeta.
-fn archivos_de(dep: &Dependencias, id: &str) -> Vec<u32> {
+pub(crate) fn archivos_de(dep: &Dependencias, id: &str) -> Vec<u32> {
     if let Some(i) = dep.id(id) { return alloc::vec![i]; }
     if id.is_empty() { return Vec::new(); }
     let prefijo = alloc::format!("{id}/");

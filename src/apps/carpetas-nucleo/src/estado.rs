@@ -132,6 +132,10 @@ pub enum AccionGrupo {
     Sumar(Vec<String>),
     Quitar(String),
     Limpiar,
+    /// Los dos extremos del camino (de A a B).
+    Extremos(String, String),
+    /// Cambiar A por B.
+    Invertir,
 }
 
 /// La historia de git de la carpeta abierta.
@@ -286,6 +290,8 @@ pub struct Estado {
     /// Seleccion grupal de la Ciudad, en el orden en que se eligio (rutas relativas de
     /// archivos o carpetas). Aparte de `seleccion`, que es la del explorador y el grafo.
     pub grupo: Vec<String>,
+    /// Extremos elegidos para el camino (None: los dos primeros del grupo).
+    pub par: Option<(String, String)>,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -305,7 +311,7 @@ impl Default for Estado {
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
                  ciudad: DatosCiudad::default(), historia: EstadoHistoria::default(),
                  analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0,
-                 casm: EstadoCasm::default(), filtro_eje: None, grupo: Vec::new() }
+                 casm: EstadoCasm::default(), filtro_eje: None, grupo: Vec::new(), par: None }
     }
 }
 
@@ -658,6 +664,12 @@ impl Estado {
                 vec![]
             }
             AccionIrA::Elegir(i) => { if let Some(ir) = &mut self.ir_a { ir.elegido = i; } self.ir_a(AccionIrA::Aceptar { editor: false }) }
+            AccionIrA::AlGrupo => {
+                let Some((ruta, _)) = self.ir_a.as_ref().and_then(|ir| ir.resultados.get(ir.elegido).cloned()) else { return vec![] };
+                self.ir_a = None;
+                self.aviso = Some(alloc::format!("al grupo (Combinar): {ruta}"));
+                reducir(self, Accion::Grupo(AccionGrupo::Alternar(ruta)))
+            }
             AccionIrA::Aceptar { editor } => {
                 // Enter mientras busca: se recuerda y se acepta el primero al llegar.
                 if let Some(ir) = &mut self.ir_a { if ir.buscando { ir.aceptar_al_llegar = Some(editor); return vec![]; } }
@@ -830,6 +842,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             e.disp = disposicion;
             e.seleccion.clear();
             e.grupo.clear();
+            e.par = None;
             e.expandidas.clear();
             e.arrastrando = false;
             e.banda = None;
@@ -1065,6 +1078,11 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                 AccionGrupo::Sumar(ids) => for id in ids { if !e.grupo.contains(&id) { e.grupo.push(id); } },
                 AccionGrupo::Quitar(id) => e.grupo.retain(|x| *x != id),
                 AccionGrupo::Limpiar => e.grupo.clear(),
+                AccionGrupo::Extremos(a, b) => { if a != b { e.par = Some((a, b)); } }
+                AccionGrupo::Invertir => {
+                    let (a, b) = e.par.clone().unwrap_or_else(|| (e.grupo.first().cloned().unwrap_or_default(), e.grupo.get(1).cloned().unwrap_or_default()));
+                    if !a.is_empty() && !b.is_empty() { e.par = Some((b, a)); }
+                }
             }
             e.grupo.retain(|x| !x.is_empty() && x.len() <= 4096);
             e.grupo.truncate(crate::combinar::MAX_GRUPO);

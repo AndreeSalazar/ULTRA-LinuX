@@ -10,7 +10,7 @@
 
 use crate::indice::leer_texto;
 use carpetas_nucleo::analisis::{ResultadoAnalisis, MARCA_ESTUDIO};
-use carpetas_nucleo::dependencias::{referencias, resolver, sigue, Referencia, Rutas};
+use carpetas_nucleo::dependencias::{referencias, resolver, sigue, Motivo, Referencia, Rutas};
 use carpetas_nucleo::museo::{analizar as museo, idioma, Sospecha};
 use carpetas_nucleo::proyecto::Indice;
 use std::collections::HashMap;
@@ -95,12 +95,15 @@ pub fn analizar(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool + S
             let Some(&kb) = rutas.todas.get(destino.as_str()) else { continue };
             let a = id(h.ruta, &mut nombres);
             let b = id(kb, &mut nombres);
-            aristas.push((a, b));
+            aristas.push((a, b, r.linea, r.texto.clone(), r.clase));
         }
         if !h.sospechas.is_empty() { sospechas.push((desde.to_string(), h.sospechas)); }
     }
-    aristas.sort_unstable();
-    aristas.dedup();
+    // Una arista por par; su motivo es la primera linea que la escribe.
+    aristas.sort_unstable_by(|x, y| (x.0, x.1, x.2).cmp(&(y.0, y.1, y.2)));
+    aristas.dedup_by(|x, y| x.0 == y.0 && x.1 == y.1);
+    let motivos = aristas.iter().map(|(_, _, linea, texto, clase)| Motivo { linea: *linea, texto: texto.clone(), clase: *clase }).collect();
+    let aristas: Vec<(u32, u32)> = aristas.into_iter().map(|(a, b, ..)| (a, b)).collect();
     // Casos de estudio: una carpeta (o una de arriba) con CASOS-MUSEO.txt. Sin seguir enlaces.
     let mut marcadas: HashMap<String, bool> = HashMap::new();
     let mut estudio = Vec::new();
@@ -113,7 +116,7 @@ pub fn analizar(indice: &Indice, base: &Path, sigue_vivo: &(dyn Fn() -> bool + S
             if marcada { estudio.push(ruta.clone()); break; }
         }
     }
-    ResultadoAnalisis { rutas: nombres, aristas, sospechas, archivos, bytes, truncado: truncado.load(Ordering::Relaxed), micros: t.elapsed().as_micros() as u64, estudio }
+    ResultadoAnalisis { rutas: nombres, aristas, motivos, sospechas, archivos, bytes, truncado: truncado.load(Ordering::Relaxed), micros: t.elapsed().as_micros() as u64, estudio }
 }
 
 #[cfg(test)]
@@ -130,6 +133,14 @@ mod pruebas {
         let arista = |a: &str, b: &str| r.aristas.iter().any(|(x, y)| r.rutas[*x as usize] == a && r.rutas[*y as usize] == b);
         assert!(arista("src/apps/ultra-carpetas/src/main.rs", "src/apps/ultra-carpetas/src/analisis.rs"), "mod analisis;");
         assert!(arista("src/apps/ultra-carpetas/src/analisis.rs", "src/apps/carpetas-nucleo/src/museo.rs"), "use carpetas_nucleo::museo");
+        // Cada arista lleva su motivo: la linea donde se escribio.
+        let mut d = carpetas_nucleo::analisis::EstadoAnalisis::default();
+        d.llegar(r.clone());
+        let (a, b) = (d.dep.id("src/apps/ultra-carpetas/src/main.rs").unwrap(), d.dep.id("src/apps/ultra-carpetas/src/analisis.rs").unwrap());
+        let m = d.dep.motivo(a, b).expect("motivo de mod analisis;");
+        let linea = std::fs::read_to_string(raiz.join("src/apps/ultra-carpetas/src/main.rs")).unwrap().lines().nth(m.linea as usize - 1).unwrap().to_string();
+        assert_eq!(m.escrito("main.rs"), "mod analisis;");
+        assert!(linea.contains("mod analisis;"), "linea {}: {linea}", m.linea);
         // Las minas del laboratorio del guardian son a proposito: el museo las ve.
         assert!(r.sospechas.iter().any(|(ruta, v)| ruta.ends_with("minas-compilacion/division-constante.c") && v.iter().any(|s| s.ficha == "UB-002")));
         assert!(r.sospechas.iter().any(|(ruta, v)| ruta == "ASM/laboratorio/abi.S" && v.iter().any(|s| s.ficha == "ASM-002")));
@@ -156,5 +167,29 @@ mod pruebas {
         eprintln!("indice {} rutas en {ti:?}; museo {} archivos, {:.1} MiB en {} ms; {n_rutas} rutas con {n_aristas} aristas; {} sospechas (+{} a proposito); conectar {:?}: {} causas, {} papeles",
                   i.len(), r.archivos, r.bytes as f64 / 1048576.0, r.micros / 1000, d.total, d.total_estudio, t2.elapsed(), c.1.causas.len(), c.1.roles.len());
         for causa in c.1.causas.iter().take(5) { eprintln!("  causa {} explica {} lo usan {}", causa.ruta, causa.explica, causa.arrastra); }
+        // Caminos entre pares repartidos por todo el proyecto: cuanto tardan y de que clase son.
+        use carpetas_nucleo::camino::{camino, SinPaso, Union};
+        let n = d.dep.len();
+        let (mut peor, mut total, mut clases, mut con_corte) = (std::time::Duration::ZERO, std::time::Duration::ZERO, [0u32; 5], 0u32);
+        let mut ejemplo: Option<carpetas_nucleo::camino::Camino> = None;
+        let pares = 300;
+        for k in 0..pares {
+            let (a, b) = ((k * 7919) % n, (k * 104729 + 13) % n);
+            if a == b { continue; }
+            let t = Instant::now();
+            let c = camino(&d.dep, &d.dep.rutas[a], &d.dep.rutas[b]);
+            let e = t.elapsed();
+            total += e;
+            peor = peor.max(e);
+            clases[match c.union { Some(Union::Usa) => 0, Some(Union::EsUsado) => 1, Some(Union::Comparten) => 2, Some(Union::Juntan) => 3, None => 4 }] += 1;
+            if c.pasos.iter().any(|p| p.sin == SinPaso::Imprescindible) { con_corte += 1; }
+            if matches!(c.union, Some(Union::Usa | Union::EsUsado)) && c.pasos.len() >= 3 && ejemplo.as_ref().is_none_or(|x| c.pasos.len() > x.pasos.len()) { ejemplo = Some(c); }
+        }
+        eprintln!("caminos: {pares} pares en {total:?} (peor {peor:?}); usa {} · es usado {} · comparten {} · los junta {} · nada {}; con paso imprescindible {con_corte}",
+                  clases[0], clases[1], clases[2], clases[3], clases[4]);
+        if let Some(c) = ejemplo {
+            eprintln!("  ejemplo: {}", c.por_que);
+            for p in &c.pasos { eprintln!("    {}:{} {}  [{:?}] lo usan {}", p.desde, p.motivo.as_ref().map(|m| m.linea).unwrap_or(0), p.motivo.as_ref().map(|m| m.escrito(&p.desde)).unwrap_or_default(), p.sin, p.lo_usan); }
+        }
     }
 }

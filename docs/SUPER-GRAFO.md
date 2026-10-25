@@ -72,8 +72,9 @@ De ellas se toman ideas y casos de prueba, no código: cada una tiene su licenci
 
 Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
 
-1. **Camino más corto entre dos elegidos.** Con dos en el grupo: la cadena de `#include`
-   que los une (A → x.h → y.h → B), pintada en el panel y en la Ciudad.
+1. ~~**Camino más corto entre dos elegidos.**~~ **Hecho:** con motivos (la línea de cada
+   paso), la onda de recompilación animada y los pasos imprescindibles (dónde cortar).
+   Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-camino-entre-dos-elegidos-motivos-onda-y-dónde-cortar).
 2. **Ciclos en el grupo.** A usa B y B usa A (por cualquier camino): marcarlos, porque un
    ciclo de cabeceras es un olor de diseño (eje Elegancia).
 3. **Peso del cambio.** Si cambia este grupo, cuántos archivos hay que recompilar (quien

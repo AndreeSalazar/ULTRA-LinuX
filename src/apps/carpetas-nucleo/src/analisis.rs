@@ -16,6 +16,8 @@ pub struct ResultadoAnalisis {
     /// Rutas con alguna arista, y las aristas (a usa b) como indices en `rutas`.
     pub rutas: Vec<String>,
     pub aristas: Vec<(u32, u32)>,
+    /// El motivo de cada arista (la linea del `#include`...), en el mismo orden.
+    pub motivos: Vec<crate::dependencias::Motivo>,
     pub sospechas: Vec<(String, Vec<Sospecha>)>,
     /// Archivos leidos (C, C++, ASM, Rust, Python) y bytes.
     pub archivos: u64,
@@ -50,6 +52,7 @@ pub struct EstadoAnalisis {
 impl EstadoAnalisis {
     pub fn llegar(&mut self, r: ResultadoAnalisis) {
         self.dep = Dependencias::nuevo(r.rutas, &r.aristas);
+        self.dep.poner_motivos(&r.aristas, r.motivos);
         let estudio: BTreeSet<String> = r.estudio.into_iter().collect();
         let (casos, reales): (Vec<_>, Vec<_>) = r.sospechas.into_iter().filter(|(_, v)| !v.is_empty()).partition(|(k, _)| estudio.contains(k));
         self.total = reales.iter().map(|(_, v)| v.len() as u32).sum();

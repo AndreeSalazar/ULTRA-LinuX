@@ -14,6 +14,7 @@ mod analisis;
 mod archivo;
 mod casm_taller;
 mod casm_ui;
+mod camino_ui;
 mod ciudad3d;
 mod combinar_ui;
 mod disco;
@@ -417,6 +418,7 @@ impl App {
             for (t, m) in pulsadas {
                 let a = match t {
                     Tecla::Escape => Some(carpetas_nucleo::proyecto::AccionIrA::Cerrar),
+                    Tecla::Enter if m.alt => Some(carpetas_nucleo::proyecto::AccionIrA::AlGrupo),
                     Tecla::Enter => Some(carpetas_nucleo::proyecto::AccionIrA::Aceptar { editor: m.command }),
                     Tecla::Arriba => Some(carpetas_nucleo::proyecto::AccionIrA::Mover(-1)),
                     Tecla::Abajo => Some(carpetas_nucleo::proyecto::AccionIrA::Mover(1)),

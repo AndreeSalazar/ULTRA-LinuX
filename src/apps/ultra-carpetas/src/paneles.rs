@@ -215,7 +215,7 @@ impl App {
                 });
                 let pie = if ir.buscando { "buscando…".to_string() }
                           else if ir.resultados.is_empty() && !self.texto_ir_a.trim().is_empty() { "nada con ese nombre".to_string() }
-                          else { "Enter: mostrar en el grafo y el explorador · Ctrl+Enter: abrir en el editor (o enfocar la carpeta) · Esc".to_string() };
+                          else { "Enter: mostrar en el grafo y el explorador · Ctrl+Enter: abrir en el editor (o enfocar la carpeta) · Alt+Enter: al grupo (Combinar) · Esc".to_string() };
                 ui.label(egui::RichText::new(pie).color(c.tenue).size(11.0));
             });
         });

@@ -17,14 +17,18 @@ use eframe::egui::{self, epaint::CubicBezierShape, Align2, Color32, FontId, Pos2
 /// La combinacion del grupo actual; se rehace solo si cambia el grupo o llega otro analisis.
 #[derive(Default)]
 pub struct Cache {
-    clave: Option<(Vec<String>, u64)>,
+    clave: Option<(Vec<String>, u64, Option<(String, String)>)>,
     pub c: Combinacion,
     /// Los ejes del triangulo de cada miembro (sumados si es una carpeta).
     pub ejes: Vec<[u32; 3]>,
     /// El grupo viene de la seleccion del grafo (no de la Ciudad).
     pub del_grafo: bool,
-    /// Lo que tardo la ultima combinacion (con los ejes).
+    /// Lo que tardo la ultima combinacion (con los ejes y el camino).
     pub micros: u64,
+    /// El camino entre los dos extremos (con dos o mas elegidos).
+    pub camino: Option<carpetas_nucleo::camino::Camino>,
+    /// La onda del camino parada (por defecto se anima).
+    pub quieto: bool,
 }
 
 /// Lo que se combina: el grupo de la Ciudad; si esta vacio, la seleccion del grafo.
@@ -36,12 +40,17 @@ fn elegidos(e: &Estado) -> (Vec<String>, bool) {
 impl Cache {
     pub fn al_dia(&mut self, e: &Estado) {
         let (grupo, del_grafo) = elegidos(e);
-        let clave = (grupo, e.analisis.version);
+        let clave = (grupo, e.analisis.version, e.par.clone());
         if self.clave.as_ref() == Some(&clave) { return; }
         let t = std::time::Instant::now();
         self.c = combinar(&e.analisis.dep, &clave.0);
         self.ejes = self.c.miembros.iter().map(|m| ejes_de(e, &m.id)).collect();
         self.del_grafo = del_grafo;
+        // Extremos: los elegidos a mano si siguen en el grupo; si no, los dos primeros.
+        let ids: Vec<&String> = self.c.miembros.iter().map(|m| &m.id).collect();
+        let par = e.par.as_ref().filter(|(a, b)| ids.contains(&a) && ids.contains(&b)).cloned()
+            .or_else(|| (ids.len() >= 2).then(|| (ids[0].clone(), ids[1].clone())));
+        self.camino = par.map(|(a, b)| carpetas_nucleo::camino::camino(&e.analisis.dep, &a, &b));
         self.clave = Some(clave);
         self.micros = t.elapsed().as_micros() as u64;
     }
@@ -101,19 +110,32 @@ impl App {
         let n = cb.miembros.len();
         ui.add_space(4.0);
         let origen = if k.del_grafo { "seleccion del grafo" } else { "grupo de la Ciudad" };
+        if n == 2 {
+            ui.label(RichText::new(format!("2 miembros ({origen}) · {:.2} ms", k.micros as f64 / 1000.0)).color(c.texto).size(12.0));
+        } else {
         ui.label(RichText::new(format!("{n} {} ({origen}) · {} directas · comparten {} · los juntan {} · {} {} · {:.2} ms",
                                        if n == 1 { "miembro" } else { "miembros" }, cb.directas.len(), cb.total_comparten, cb.total_juntan, cb.piezas,
                                        if cb.piezas == 1 { "pieza" } else { "piezas" }, k.micros as f64 / 1000.0)).color(c.texto).size(12.0));
+        }
         if n < 2 {
             ui.add_space(10.0);
             ui.label(RichText::new(if n == 0 { "Elige al menos dos para ver como se combinan." } else { "Falta uno mas: Ctrl+clic en otro edificio." }).color(c.tenue));
         }
-        if n > 0 { self::lienzo(ui, c, k, &mut acciones); }
+        // Con dos, el camino lo dice todo; con mas, el anillo y despues el camino.
+        if n > 2 { self::lienzo(ui, c, k, &mut acciones); }
+        let miembros: Vec<String> = cb.miembros.iter().map(|m| m.id.clone()).collect();
+        let mut animar = !k.quieto;
 
-        egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+        // Con tope de ancho: un ScrollArea vertical crece hasta su contenido mas ancho, y el panel
+        // con el; la Ciudad se moveria bajo el raton.
+        let tope = ui.available_width();
+        egui::ScrollArea::vertical().max_width(tope).auto_shrink([false, false]).show(ui, |ui| {
+            ui.set_max_width(tope);
+            if let Some(cam) = &k.camino { crate::camino_ui::seccion(ui, c, cam, &miembros, &mut animar, &mut acciones); }
             let fila = |ui: &mut egui::Ui, ruta: &str, detalle: String, col: Color32, acciones: &mut Vec<Accion>| {
-                ui.horizontal(|ui| {
-                    let r = ui.add(egui::Label::new(RichText::new(ruta).monospace().color(col).size(12.0)).sense(Sense::click()))
+                // Envuelve en vez de ensanchar el panel (si crece, la Ciudad se mueve bajo el raton).
+                ui.horizontal_wrapped(|ui| {
+                    let r = ui.add(egui::Label::new(RichText::new(ruta).monospace().color(col).size(12.0)).wrap().sense(Sense::click()))
                         .on_hover_text("clic: mostrar (la Ciudad lleva la camara) · Ctrl+clic: meter o sacar del grupo");
                     if r.clicked() {
                         if ui.input(|i| i.modifiers.command) { acciones.push(Accion::Grupo(AccionGrupo::Alternar(ruta.to_string()))); }
@@ -154,6 +176,7 @@ impl App {
             ui.add_space(6.0);
             ui.label(RichText::new("Analisis lexico de #include, use, import y %include: lo que decide el preprocesador no se ve.").color(c.tenue).size(10.5));
         });
+        self.combinar.quieto = !animar;
         for a in acciones { self.despachar(a); }
     }
 }

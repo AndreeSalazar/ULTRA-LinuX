@@ -26,6 +26,7 @@ pub mod analisis;
 pub mod carriles;
 pub mod casm;
 pub mod ciudad;
+pub mod camino;
 pub mod combinar;
 pub mod comandos;
 pub mod dependencias;

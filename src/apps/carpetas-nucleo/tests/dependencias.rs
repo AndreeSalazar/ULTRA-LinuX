@@ -20,6 +20,11 @@ fn c_cpp_y_asm() {
     assert_eq!(r("tools/perf.c", "#include <linux/kernel.h>\n", &p), ["tools/include/linux/kernel.h"], "el mas cercano al que incluye");
     assert_eq!(r("boot/entrada.asm", "%include \"macros.inc\"\n", &p), ["boot/macros.inc"]);
     assert_eq!(r("src/x.S", "#include \"util.h\"\n.include \"util.h\"\n", &p), ["src/util.h", "src/util.h"]);
+    // <features.h> sin carpeta es de la libc: no es base/features.h (el camino de Chromium lo
+    // destapo). Con comillas, o con carpeta, si se busca por el final.
+    let q = Proyecto(vec!["base/features.h", "pa/build_config.h", "base/memory/raw_ptr.h"]);
+    assert!(r("pa/build_config.h", "#include <features.h>\n", &q).is_empty());
+    assert_eq!(r("pa/build_config.h", "#include <memory/raw_ptr.h>\n", &q), ["base/memory/raw_ptr.h"]);
     // No sale de la raiz.
     assert_eq!(unir("a", "../../etc/passwd"), None);
     assert!(r("src/main.c", "#include \"../../../etc/passwd\"\n", &p).is_empty());

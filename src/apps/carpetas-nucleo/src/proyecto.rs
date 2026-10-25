@@ -156,7 +156,9 @@ pub struct IrA {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum AccionIrA { Abrir, Cerrar, Texto(String), Mover(i32), Elegir(usize), Aceptar { editor: bool } }
+pub enum AccionIrA { Abrir, Cerrar, Texto(String), Mover(i32), Elegir(usize), Aceptar { editor: bool },
+                     /// Alt+Enter: meter el elegido en el grupo (panel Combinar) sin moverse.
+                     AlGrupo }
 
 /// Una coincidencia de texto en un archivo.
 #[derive(Debug, Clone, PartialEq)]
