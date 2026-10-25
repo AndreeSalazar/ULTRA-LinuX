@@ -22,7 +22,9 @@ impl App {
                      else if !an.listo { "leyendo C, C++, ASM, Rust y Python (carril Museo)…".to_string() }
                      else { format!("{} archivos leidos · {} dependencias · {} sospechas en {} archivos (+{} a proposito) · {:.1} s{}",
                                     crate::paneles::miles(an.archivos), crate::paneles::miles(an.dep.aristas), an.total, an.sospechas.len(), an.total_estudio,
-                                    an.micros as f64 / 1e6, if an.truncado { " · cortado por el presupuesto" } else { "" }) };
+                                    an.micros as f64 / 1e6, if an.truncado { " · cortado por el presupuesto" } else { "" })
+                         + &if an.reutilizados > 0 { format!(" · {} de la cache (sin releer)", crate::paneles::miles(an.reutilizados)) } else { String::new() }
+                         + &an.compilacion.as_ref().map(|(o, b)| format!(" · {o} ({b} -I)")).unwrap_or_default() };
         ui.label(RichText::new(estado).color(c.tenue).size(11.0));
         ui.add_space(6.0);
 

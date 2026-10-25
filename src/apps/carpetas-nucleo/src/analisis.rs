@@ -28,6 +28,10 @@ pub struct ResultadoAnalisis {
     /// Archivos con sospechas que estan en una carpeta marcada con CASOS-MUSEO.txt (codigo
     /// malo a proposito: minas, casos de estudio): se ensenan, pero no son fallos.
     pub estudio: Vec<String>,
+    /// Archivos que no se volvieron a leer: estaban en la cache y no cambiaron.
+    pub reutilizados: u64,
+    /// El compile_commands.json usado (de donde salio y cuantas -I aporto al mapa).
+    pub compilacion: Option<(String, usize)>,
 }
 
 /// El archivo que marca una carpeta de casos de estudio (codigo malo a proposito).
@@ -49,6 +53,8 @@ pub struct EstadoAnalisis {
     pub version: u64,
     /// Ciclos de cabeceras (C, C++ y ASM), del eje Elegancia.
     pub ciclos: crate::ciclos::Ciclos,
+    pub reutilizados: u64,
+    pub compilacion: Option<(String, usize)>,
 }
 
 impl EstadoAnalisis {
@@ -63,6 +69,8 @@ impl EstadoAnalisis {
         self.sospechas = reales.into_iter().collect();
         self.estudio = casos.into_iter().collect();
         self.archivos = r.archivos;
+        self.reutilizados = r.reutilizados;
+        self.compilacion = r.compilacion.clone();
         self.bytes = r.bytes;
         self.truncado = r.truncado;
         self.micros = r.micros;

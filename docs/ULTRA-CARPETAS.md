@@ -894,6 +894,57 @@ cliente como Claude Code lo ofrece al abrir el repositorio, y pide permiso antes
 - Una línea SARIF de más de 64 KiB en la terminal se queda como texto.
 - El servidor MCP carga el análisis en memoria al arrancar; para leer cambios, `reanalizar`.
 
+### Flags reales (`compile_commands.json`) e índice incremental
+
+**`compile_commands.json`** (lo generan Bear, CMake, Meson o GN con GCC) dice cómo se
+compila de verdad cada archivo. Se busca en la raíz, `build/`, `out/Default/` y `out/`.
+
+- **En el mapa:** sus `-I` de dentro del proyecto entran en el resolvedor. Un `#include` se
+  busca ahí antes que adivinando por el final de la ruta: si hay dos `lib/util.h`, manda
+  la `-I` del compilador, no el más cercano.
+- **En GCC:** `gcc_diagnosticos` y `gcc_deps` compilan cada archivo **en su carpeta y con
+  sus flags**. La respuesta dice de dónde salen (`flags_de`).
+- **Seguro:** solo se copian flags que no ejecutan ni escriben nada (`-I`, `-isystem`,
+  `-iquote`, `-D`, `-U`, `-std=`, `-include`, `-f…`, `-m…`, `-W…`). Se descartan, y se
+  cuentan, `-fplugin`, `-B`, `-specs`, `-wrapper`, `-Wl,`, `-Werror` y los archivos de
+  respuestas `@…`.
+
+**Índice incremental:** lo que se saca de cada archivo (sus referencias y sus sospechas)
+se guarda en la caché del usuario (`$XDG_CACHE_HOME/ultra-carpetas/`, o `~/.cache`), con
+su fecha y su tamaño.
+
+- La vez siguiente solo se relee lo que cambió.
+- Las referencias se guardan sin resolver: cambiar `compile_commands.json` no obliga a
+  releer nada.
+- La caché se invalida sola si cambia el programa (otros detectores del museo).
+- Se escribe de golpe (a un temporal y renombrando).
+- `ULTRA_SIN_CACHE=1` la apaga; `ULTRA_CACHE_DIR` la cambia de sitio.
+- El panel Museo dice cuántos vinieron de la caché.
+
+**Medido en Chromium `base/`** (3 324 archivos):
+
+- **Análisis:** 348 ms la primera vez; **100 ms** con la caché (3 324 de 3 324 sin
+  releer). La caché ocupa 1,4 MB.
+- **`gcc_deps` con `compile_commands.json`** (15 archivos, 0,8 s):
+  - cobertura 100 %, precisión 58,9 %;
+  - **sin los `#include` dentro de un `#if`, precisión 100 %** (861 de 861).
+
+  El `compile_commands.json` de esta prueba lo generé a mano para los 1 730 `.cc` de
+  `base/`, con las dos `-I` que usa Chromium (`.` y
+  `base/allocator/partition_allocator/src`). No es el de una compilación real con GN.
+
+**Un fallo que salió aquí y se arregló:** GCC se quedaba bloqueado si escribía más de
+64 KiB (un SARIF grande o un `-MM` largo), porque la salida se leía al final. Se cortaba
+a los 60 s. Ahora se lee mientras corre: los 15 archivos pasaron de 300 s a 0,8 s.
+
+**Comprobado:**
+
+- `compilacion.rs`: partir órdenes de shell con comillas, solo las flags seguras con rutas
+  absolutas, y las `-I` de dentro de la raíz.
+- `analisis.rs`: la segunda pasada no relee nada; una `-I` real gana a la adivinanza;
+  cambiar un archivo solo relee ese, y un arreglo quita su sospecha.
+- `tests/dependencias.rs`: la `-I` manda sobre el más parecido.
+
 Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; referencias sin LLVM) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**

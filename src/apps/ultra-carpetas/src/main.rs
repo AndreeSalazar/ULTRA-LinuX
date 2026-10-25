@@ -19,6 +19,7 @@ mod ciclos_ui;
 mod senales_ui;
 mod ciudad3d;
 mod combinar_ui;
+mod compilacion;
 mod consultas;
 mod disco;
 mod editor_ui;

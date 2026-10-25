@@ -217,6 +217,9 @@ pub trait Rutas {
     fn existe(&self, ruta: &str) -> bool;
     /// Rutas cuyo ultimo componente es `nombre`.
     fn por_nombre(&self, nombre: &str) -> Vec<&str>;
+    /// Carpetas de busqueda del proyecto (las -I de compile_commands.json), relativas a la
+    /// raiz: un `#include` se busca en ellas antes que por el final de la ruta.
+    fn bases(&self) -> &[String] { &[] }
 }
 
 /// A que archivo del proyecto apunta una referencia hecha desde `desde`.
@@ -227,6 +230,8 @@ pub fn resolver(desde: &str, r: &Referencia, rutas: &dyn Rutas) -> Option<String
         ClaseRef::Comillas | ClaseRef::Angulos => {
             if r.clase == ClaseRef::Comillas { if let Some(x) = probar(unir(dir, &r.texto)) { return Some(x); } }
             if let Some(x) = probar(unir("", &r.texto)) { return Some(x); }
+            // Las -I del proyecto (compile_commands.json): donde de verdad busca el compilador.
+            for b in rutas.bases() { if let Some(x) = probar(unir(b, &r.texto)) { return Some(x); } }
             // `<features.h>` sin carpeta es del sistema (o de una -I que no se ve): buscarlo por
             // el nombre lo confundiria con base/features.h. Solo se busca por el final con carpeta.
             if r.clase == ClaseRef::Angulos && !r.texto.contains('/') { return None; }

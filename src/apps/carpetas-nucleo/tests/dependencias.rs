@@ -8,7 +8,7 @@ impl Rutas for Proyecto {
     fn por_nombre(&self, n: &str) -> Vec<&str> { self.0.iter().copied().filter(|r| r.rsplit('/').next() == Some(n)).collect() }
 }
 
-fn r(desde: &str, texto: &str, p: &Proyecto) -> Vec<String> {
+fn r(desde: &str, texto: &str, p: &dyn Rutas) -> Vec<String> {
     referencias(desde, texto).iter().filter_map(|x| resolver(desde, x, p)).collect()
 }
 
@@ -25,6 +25,15 @@ fn c_cpp_y_asm() {
     let q = Proyecto(vec!["base/features.h", "pa/build_config.h", "base/memory/raw_ptr.h"]);
     assert!(r("pa/build_config.h", "#include <features.h>\n", &q).is_empty());
     assert_eq!(r("pa/build_config.h", "#include <memory/raw_ptr.h>\n", &q), ["base/memory/raw_ptr.h"]);
+    // Con las -I del proyecto (compile_commands.json), <x.h> se busca alli primero.
+    struct ConBases(Proyecto, Vec<String>);
+    impl Rutas for ConBases {
+        fn existe(&self, r: &str) -> bool { self.0.existe(r) }
+        fn por_nombre(&self, n: &str) -> Vec<&str> { self.0.por_nombre(n) }
+        fn bases(&self) -> &[String] { &self.1 }
+    }
+    let pa = ConBases(Proyecto(vec!["base/allocator/pa/src/partition_alloc/raw_ptr.h", "otro/partition_alloc/raw_ptr.h", "base/x.cc"]), vec!["base/allocator/pa/src".into()]);
+    assert_eq!(r("base/x.cc", "#include \"partition_alloc/raw_ptr.h\"\n", &pa), ["base/allocator/pa/src/partition_alloc/raw_ptr.h"], "la -I manda sobre el mas parecido");
     // No sale de la raiz.
     assert_eq!(unir("a", "../../etc/passwd"), None);
     assert!(r("src/main.c", "#include \"../../../etc/passwd\"\n", &p).is_empty());

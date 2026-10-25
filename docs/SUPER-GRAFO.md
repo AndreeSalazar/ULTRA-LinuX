@@ -108,9 +108,14 @@ GRAFO conteste la pregunta, no el formato.
    sin los `#include` dentro de un `#if`.
    Además: diagnósticos de **GCC en SARIF** (con `-fanalyzer`) en las señales y el fallo
    conectado, en la terminal de la app, y **exportar el museo en SARIF**.
-4. **Índice incremental en disco**, el paso hacia los miles de millones de líneas.
-5. **Leer `compile_commands.json`** (lo generan Bear, CMake o GN con GCC), para que
-   `gcc_deps` y `gcc_diagnosticos` usen los flags reales de cada archivo.
+4. ~~**Índice incremental en disco**~~ **Hecho:** solo se relee lo que cambió. Chromium
+   `base/` pasa de 348 ms a 100 ms.
+5. ~~**Leer `compile_commands.json`**~~ **Hecho:** sus `-I` en el mapa, y sus flags y su
+   carpeta en GCC. Precisión del 100 % sin los `#if` en Chromium `base/`.
+6. **Siguiente:**
+   - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
+     verdad cada archivo);
+   - un índice partido en trozos para proyectos que no caben en memoria.
 
 Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-super-grafo-sin-ventana-consultas-en-json-y-servidor-mcp).
 

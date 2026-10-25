@@ -36,6 +36,8 @@ pub struct Mapa {
     indice: Indice,
     pub estado: Estado,
     micros: u64,
+    /// compile_commands.json, si lo hay: carpeta y flags reales de cada archivo.
+    cc: Option<crate::compilacion::Compilacion>,
 }
 
 fn limite(a: &Value) -> usize { a.get("limite").and_then(Value::as_u64).map(|n| (n as usize).clamp(1, LIMITE_MAX)).unwrap_or(LIMITE) }
@@ -106,7 +108,7 @@ impl Mapa {
     pub fn abrir(raiz: &Path) -> Result<Mapa, String> {
         let raiz = raiz.canonicalize().map_err(|e| format!("{}: {e}", raiz.display()))?;
         if !raiz.is_dir() { return Err(format!("{}: no es una carpeta", raiz.display())); }
-        let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0 };
+        let mut m = Mapa { raiz, indice: Indice::default(), estado: Estado::default(), micros: 0, cc: None };
         m.analizar();
         Ok(m)
     }
@@ -120,6 +122,7 @@ impl Mapa {
         self.indice = indice;
         self.estado = e;
         self.micros = t.elapsed().as_micros() as u64;
+        self.cc = crate::compilacion::leer(&self.raiz);
     }
 
     /// Ejecuta una herramienta. El error es un texto para quien pregunta.
@@ -166,6 +169,9 @@ impl Mapa {
                                  "se_pueden_romper": k.conexion.roles.values().filter(|r| **r == Rol::Arrastra).count() },
             "ciclos": { "total": an.ciclos.total, "archivos": an.ciclos.archivos, "dependen_de_un_if": an.ciclos.condicionales },
             "analisis_ms": self.micros / 1000,
+            "reutilizados_de_la_cache": an.reutilizados,
+            "compile_commands": an.compilacion.as_ref().map(|(o, b)| json!({ "archivo": o, "carpetas_de_busqueda": b,
+                                                                             "archivos_con_orden": self.cc.as_ref().map(|c| c.por_archivo.len()) })),
             "recortado": an.truncado,
             "siguiente": "fallos, ciclos o senales para ver lo peor; camino/peso/archivo para bajar a un archivo",
         })
@@ -310,32 +316,55 @@ impl Mapa {
     // ---------------- GCC ----------------
 
     /// Ejecuta GCC sin shell, en la carpeta, con tope de tiempo. Devuelve stdout y stderr.
-    fn gcc(&self, args: &[String]) -> Result<(String, String), String> {
-        let mut hijo = std::process::Command::new("gcc").args(args).current_dir(&self.raiz)
+    fn gcc(&self, carpeta: &Path, args: &[String]) -> Result<(String, String), String> {
+        let mut hijo = std::process::Command::new("gcc").args(args).current_dir(carpeta)
             .stdin(std::process::Stdio::null()).stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped())
             .spawn().map_err(|e| format!("no se pudo ejecutar gcc: {e}"))?;
+        // Las dos salidas se leen mientras corre: si se esperara al final, GCC se bloquearia al
+        // llenar la tuberia (64 KiB de SARIF o de -MM) y nunca acabaria.
+        let leer = |r: Option<Box<dyn std::io::Read + Send>>| std::thread::spawn(move || {
+            let mut v = Vec::new();
+            if let Some(mut r) = r { let _ = std::io::Read::read_to_end(&mut r, &mut v); }
+            String::from_utf8_lossy(&v).into_owned()
+        });
+        let salida = leer(hijo.stdout.take().map(|x| Box::new(x) as Box<dyn std::io::Read + Send>));
+        let errores = leer(hijo.stderr.take().map(|x| Box::new(x) as Box<dyn std::io::Read + Send>));
         let t = Instant::now();
         loop {
             if hijo.try_wait().map_err(|e| e.to_string())?.is_some() { break; }
-            if t.elapsed() > GCC_TIEMPO { let _ = hijo.kill(); return Err("gcc tardo mas de 60 s: cortado".into()); }
-            std::thread::sleep(Duration::from_millis(20));
+            if t.elapsed() > GCC_TIEMPO { let _ = hijo.kill(); let _ = hijo.wait(); return Err("gcc tardo mas de 60 s: cortado".into()); }
+            std::thread::sleep(Duration::from_millis(10));
         }
-        let s = hijo.wait_with_output().map_err(|e| e.to_string())?;
-        Ok((String::from_utf8_lossy(&s.stdout).into_owned(), String::from_utf8_lossy(&s.stderr).into_owned()))
+        Ok((salida.join().unwrap_or_default(), errores.join().unwrap_or_default()))
     }
 
-    fn base_gcc(&self, archivo: &str) -> Vec<String> {
-        let cpp = matches!(archivo.rsplit('.').next(), Some("cc" | "cpp" | "cxx" | "hpp" | "hh" | "hxx" | "mm"));
+    /// Donde y con que flags se compila un archivo: las de compile_commands.json si las tiene
+    /// (su carpeta, sus -I, -D, -std...); si no, unas genericas desde la raiz. Devuelve
+    /// (carpeta, flags, de donde salen) y la ruta del archivo tal como hay que pasarla.
+    fn base_gcc(&self, archivo: &str) -> (PathBuf, Vec<String>, &'static str, String) {
+        if let Some(o) = self.cc.as_ref().and_then(|c| c.por_archivo.get(archivo)) {
+            return (o.carpeta.clone(), o.flags.clone(), "compile_commands.json", self.raiz.join(archivo).display().to_string());
+        }
+        // Una cabecera .h se compila como C++ (en C tambien vale casi siempre, al reves no).
+        let cpp = matches!(archivo.rsplit('.').next(), Some("cc" | "cpp" | "cxx" | "hpp" | "hh" | "hxx" | "mm" | "h"));
         let mut v = vec![if cpp { "-std=c++20".into() } else { "-std=c17".into() }, "-I.".into()];
         if let Some((d, _)) = archivo.rsplit_once('/') { v.push(format!("-I{d}")); }
         if archivo.ends_with(".h") { v.push("-xc++".into()); } // las cabeceras de C++ suelen acabar en .h
-        v
+        (self.raiz.clone(), v, "genericas", archivo.to_string())
+    }
+
+    /// Una ruta que escribe GCC (relativa a su carpeta o absoluta) como ruta del proyecto.
+    fn del_proyecto(&self, carpeta: &Path, x: &str) -> Option<String> {
+        let p = Path::new(x);
+        let abs = if p.is_absolute() { p.to_path_buf() } else { carpeta.join(p) };
+        let abs = abs.canonicalize().unwrap_or(abs);
+        abs.strip_prefix(&self.raiz).ok().map(|r| r.to_string_lossy().to_string())
     }
 
     fn gcc_diagnosticos(&mut self, a: &Value) -> Result<Value, String> {
         let archivo = self.existe(texto(a, "archivo")?)?;
         let n = limite(a);
-        let mut args = self.base_gcc(&archivo);
+        let (carpeta, mut args, origen, entrada) = self.base_gcc(&archivo);
         args.extend(flags(a)?);
         let analizador = a.get("analizador").and_then(Value::as_bool).unwrap_or(false);
         if analizador { args.push("-fanalyzer".into()); }
@@ -343,9 +372,9 @@ impl Mapa {
         // fase y no ve los avisos que necesitan optimizar (free de un no-montón, desbordes de
         // buffer...), ni puede correr -fanalyzer.
         args.extend(["-Wall".into(), "-Wextra".into(), "-O2".into(), "-c".into(), "-o".into(), "/dev/null".into()]);
-        args.extend(["-fdiagnostics-format=sarif-stderr".into(), archivo.clone()]);
+        args.extend(["-fdiagnostics-format=sarif-stderr".into(), entrada]);
         let t = Instant::now();
-        let (_, err) = self.gcc(&args)?;
+        let (_, err) = self.gcc(&carpeta, &args)?;
         let ms = t.elapsed().as_millis();
         let diags = leer_sarif(&err, &self.raiz)?;
         // Al estado: entran en las senales y en el fallo conectado (los errores graves).
@@ -353,7 +382,7 @@ impl Mapa {
         self.estado.diagnosticos_externos(leidos);
         let errores = diags.iter().filter(|d| d.nivel == "error").count();
         Ok(json!({
-            "archivo": archivo, "gcc": format!("gcc {}", args.join(" ")), "ms": ms, "analizador": analizador,
+            "archivo": archivo, "gcc": format!("gcc {}", args.join(" ")), "flags_de": origen, "ms": ms, "analizador": analizador,
             "errores": errores, "avisos": diags.len() - errores,
             "lista": diags.iter().take(n).map(|d| json!({ "archivo": d.archivo, "linea": d.linea, "columna": d.columna, "nivel": d.nivel, "regla": d.regla, "mensaje": d.mensaje, "pasos": d.pasos })).collect::<Vec<_>>(),
             "quedan": diags.len().saturating_sub(n),
@@ -378,18 +407,20 @@ impl Mapa {
         let mut ejemplos_mapa: Vec<Value> = Vec::new();
         let mut ejemplos_gcc: Vec<Value> = Vec::new();
         let mut fallidos = 0;
+        let mut con_cc = 0;
         let t = Instant::now();
         for r in &elegidos {
-            let mut args = self.base_gcc(r);
+            let (dir, mut args, origen, entrada) = self.base_gcc(r);
+            if origen == "compile_commands.json" { con_cc += 1; }
             args.retain(|x| x != "-xc++");
             args.extend(extra.iter().cloned());
-            args.extend(["-MM".into(), "-MG".into(), r.to_string()]);
-            let Ok((salida, _)) = self.gcc(&args) else { fallidos += 1; continue };
+            args.extend(["-MM".into(), "-MG".into(), entrada]);
+            let Ok((salida, _)) = self.gcc(&dir, &args) else { fallidos += 1; continue };
             if salida.trim().is_empty() { fallidos += 1; continue; }
             // "obj.o: a.c b.h \\\n c.h": las cabeceras que existen en el proyecto.
             let deps: std::collections::BTreeSet<String> = salida.split_once(':').map(|(_, d)| d).unwrap_or("")
                 .split_whitespace().filter(|x| *x != "\\").skip(1)
-                .filter_map(|x| relativa(x).ok()).filter(|x| dep.id(x).is_some()).collect();
+                .filter_map(|x| self.del_proyecto(&dir, x)).filter(|x| dep.id(x).is_some()).collect();
             let Some(id) = dep.id(r) else { continue };
             // El mapa: todo lo que alcanza por #include (gcc -MM da el cierre transitivo).
             let mapa: std::collections::BTreeSet<String> = dep.alcance(&[id], false, 20_000).0.keys().filter(|x| **x != id).map(|x| dep.ruta(*x).to_string()).collect();
@@ -399,7 +430,7 @@ impl Mapa {
         }
         let p = |a: usize, b: usize| if a + b == 0 { Value::Null } else { json!((a as f64 / (a + b) as f64 * 1000.0).round() / 10.0) };
         Ok(json!({
-            "archivos_medidos": elegidos.len() - fallidos, "fallidos": fallidos, "ms": t.elapsed().as_millis(),
+            "archivos_medidos": elegidos.len() - fallidos, "fallidos": fallidos, "con_compile_commands": con_cc, "ms": t.elapsed().as_millis(),
             "aciertos": aciertos, "solo_en_el_mapa": solo_mapa, "solo_en_gcc": solo_gcc,
             "precision_pct": p(aciertos, solo_mapa), "cobertura_pct": p(aciertos, solo_gcc),
             "sin_los_if": { "aciertos": aciertos_fijo, "solo_en_el_mapa": solo_fijo, "precision_pct": p(aciertos_fijo, solo_fijo),
