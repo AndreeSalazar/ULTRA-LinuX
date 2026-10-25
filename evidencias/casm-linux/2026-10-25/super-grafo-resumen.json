@@ -1,0 +1,36 @@
+{
+  "analisis_ms": 1,
+  "archivos_indexados": 26,
+  "archivos_leidos": 11,
+  "cabeceras_exportadas": null,
+  "carpeta": "/home/builder/linux-reconstruido/CASM",
+  "ciclos": {
+    "archivos": 0,
+    "dependen_de_un_if": 0,
+    "total": 0
+  },
+  "compile_commands": null,
+  "dependencias": 10,
+  "diagnosticos_gcc": 0,
+  "fallo_conectado": {
+    "archivos_que_fallan": 0,
+    "causas": 0,
+    "se_pueden_romper": 0
+  },
+  "guardianes": null,
+  "megabytes": 0.1,
+  "recortado": false,
+  "reutilizados_de_la_cache": 4,
+  "revisiones_gcc": {
+    "archivos": 1,
+    "pendientes": 0
+  },
+  "siguiente": "fallos, ciclos o senales para ver lo peor; camino/peso/archivo para bajar a un archivo",
+  "sospechas": {
+    "Elegancia": 0,
+    "Rendimiento": 0,
+    "Seguridad": 0,
+    "a_proposito": 0
+  },
+  "version": 1
+}

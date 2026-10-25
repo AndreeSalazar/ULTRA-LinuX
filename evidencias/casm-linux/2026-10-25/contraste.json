@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "self_hosted": false,
+  "target_self_host": "Linux ELF x86-64",
+  "variants": [
+    {
+      "variant": "gcc-normal",
+      "passed": 108,
+      "skipped": [],
+      "hello_sha256": "b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33",
+      "binary_sha256": "b7753ca368c8f008dcec573e74ffac033b1c92a9cd46e5c702b70b8af6c582a8"
+    },
+    {
+      "variant": "gcc-diagnostico",
+      "passed": 107,
+      "skipped": [
+        "host-memory: RLIMIT_DATA incompatible con ASan"
+      ],
+      "hello_sha256": "b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33",
+      "binary_sha256": "4fc7dd61e53681a005f361e856af82f034851f6ae771394bfac8a86564069340"
+    },
+    {
+      "variant": "clang-normal",
+      "passed": 108,
+      "skipped": [],
+      "hello_sha256": "b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33",
+      "binary_sha256": "86b24377770810fadea5e2df372f8203bf4b58e5daba35cb160f057828cfa091"
+    },
+    {
+      "variant": "clang-diagnostico",
+      "passed": 107,
+      "skipped": [
+        "host-memory: RLIMIT_DATA incompatible con ASan"
+      ],
+      "hello_sha256": "b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33",
+      "binary_sha256": "6d383e3a9683cada85e2aad44bac7f659d90db4bf817334fd3c7d6b3564050f8"
+    }
+  ],
+  "differential_cases": 128,
+  "emissions_verified": 512,
+  "hex_ir_packet_equal": true,
+  "cached_compilation_without_external_compiler": true,
+  "linux_elf_executed": true,
+  "linux_elf_hex_roundtrip": true,
+  "limits": [
+    "No demuestra ausencia total de UB ni independencia de la semilla inicial.",
+    "CASM aun no puede expresar ni compilar su propio frontend C."
+  ]
+}

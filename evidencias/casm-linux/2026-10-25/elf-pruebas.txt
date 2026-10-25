@@ -1,0 +1,9 @@
+test_ejecucion_enteros_y_cadenas_con_elf_rx_y_pila_nx (__main__.ElfLinux.test_ejecucion_enteros_y_cadenas_con_elf_rx_y_pila_nx) ... ok
+test_entrada_vacia_y_texto_vacio (__main__.ElfLinux.test_entrada_vacia_y_texto_vacio) ... ok
+test_no_sobrescribe_salida (__main__.ElfLinux.test_no_sobrescribe_salida) ... ok
+test_rechaza_bytes_alterados_sin_publicar (__main__.ElfLinux.test_rechaza_bytes_alterados_sin_publicar) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.186s
+
+OK

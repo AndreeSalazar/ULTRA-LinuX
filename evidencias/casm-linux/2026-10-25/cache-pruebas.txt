@@ -1,0 +1,9 @@
+test_cambio_de_binario_invalida (__main__.CacheSemilla.test_cambio_de_binario_invalida) ... ok
+test_cambio_de_fuentes_y_perfil (__main__.CacheSemilla.test_cambio_de_fuentes_y_perfil) ... ok
+test_json_invalido_y_faltante (__main__.CacheSemilla.test_json_invalido_y_faltante) ... ok
+test_rechaza_manifiesto_y_variante_redirigidos (__main__.CacheSemilla.test_rechaza_manifiesto_y_variante_redirigidos) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.004s
+
+OK

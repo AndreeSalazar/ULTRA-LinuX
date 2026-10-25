@@ -32,14 +32,15 @@ Orden: primero seguro; luego rápido sin romper lo seguro; luego simple sin perd
   probar; una regla que no se puede comprobar no entra. Si algún día lo hay, se añade
   como alcance nuevo, con sus propias fichas.
 - **LLVM: como segundo compilador, para lo que compila Clang.** El cazador, los
-  guardianes (`perfil-gcc.sh`) y CASM siguen siendo de GCC. Pero proyectos como Chromium
+  guardianes (`perfil-gcc.sh`) siguen siendo de GCC. CASM contrasta ahora semillas
+  GCC/Clang, manteniendo su codificador propio. Proyectos como Chromium
   solo se compilan oficialmente con Clang: revisarlos con GCC sería juzgarlos con otro
   compilador. Por eso `gcc_diagnosticos` y `gcc_deps` usan el compilador que dice
   `compile_commands.json`, o el que se pida, y dicen cuál habló. Siempre se ejecuta el
   `gcc` o `clang` del sistema, nunca el binario del proyecto. Nota: el código Rust de este
   repositorio también pasa por LLVM, porque es el backend de `rustc`.
 
-## Referencias (sin LLVM; Clang solo como segundo compilador, arriba)
+## Referencias (Clang/LLVM como segundo compilador, sin backend LLVM para CASM)
 
 De ellas se toman ideas y casos de prueba, no código: cada una tiene su licencia.
 
@@ -188,8 +189,8 @@ Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
 
 ## CASM: el lenguaje que exporta `.hex`
 
-CASM vive aislado en [`CASM/`](../CASM/README.md): construido solo con GCC, solo para
-x86-64 y con su verificador aparte. Su rumbo como samurái de la CPU está en
+CASM vive aislado en [`CASM/`](../CASM/README.md): semillas GCC/Clang, destino
+x86-64 y verificador aparte, con adaptador Linux ELF opcional. Su rumbo como samurái de la CPU está en
 [CASM/SAMURAI.md](../CASM/SAMURAI.md). El SUPER GRAFO es su lupa: muestra cómo nace cada
 byte, dónde corta cada katana y qué compilaciones salieron verdes o rojas
 ([Taller CASM](ULTRA-CARPETAS.md#taller-casm-cómo-nace-el-hex-super-grafo)).

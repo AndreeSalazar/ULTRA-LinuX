@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "language": "CASM 0.2",
+  "self_hosted": false,
+  "compiler": "clang",
+  "version": "clang version 23.1.3",
+  "flags": [
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-pedantic",
+    "-O2",
+    "-D_FORTIFY_SOURCE=3",
+    "-fstack-protector-strong",
+    "-fstack-clash-protection",
+    "-fcf-protection",
+    "-fPIE",
+    "-pie",
+    "-Wl,-z,relro,-z,now,-z,noexecstack"
+  ],
+  "diagnostic": false,
+  "binary_sha256": "86b24377770810fadea5e2df372f8203bf4b58e5daba35cb160f057828cfa091",
+  "sources": {
+    "src/casm.h": "63c80dbf4eecdc491c90ff7310d4afb6700a6e1a64762099b18bdfcb9587665f",
+    "src/main.c": "ed2b2a6ebdef5290f457f47bed67cad1611d1c10af7b77d9c4b8a55ba49d2022",
+    "src/frontend.c": "eaaa2e934d51bb58e6357d6fd8d733c91b4289a81e44a9d0bcac95b563fa3f37",
+    "src/emitter.c": "aab368c3e2cca626e7e7608b13fdb8d002032fca87e850f6656358b85dfcd0d3",
+    "bootstrap.py": "7037c47f6ad625cd341a76ca4dfaf079a134b6a2312ef1074bebd32974dae597"
+  }
+}

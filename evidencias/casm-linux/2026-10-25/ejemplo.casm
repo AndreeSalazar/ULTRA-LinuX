@@ -1,0 +1,6 @@
+// CASM 0.1: a bounded C-shaped subset, compiled by our C implementation.
+void metal_main(void) {
+    const char greeting[] = "Hola mundo desde mi .hex!\r\n";
+    metal_puts(greeting);
+    return;
+}

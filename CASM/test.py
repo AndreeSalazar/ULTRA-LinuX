@@ -1,5 +1,6 @@
 """Exercise source rejection, byte verification and the existing metal64 ABI."""
 import copy
+import os
 import hashlib
 import resource
 import json
@@ -12,8 +13,10 @@ import tempfile
 from verify import verify
 
 ROOT = Path(__file__).resolve().parents[1]
-COMPILER = ROOT / 'build/CASM/host/casmc'
-OUTPUT = ROOT / 'build/CASM'
+COMPILER = Path(os.environ.get('CASM_TEST_COMPILER', ROOT / 'build/CASM/host/casmc'))
+OUTPUT = Path(os.environ.get('CASM_TEST_OUTPUT', ROOT / 'build/CASM'))
+if not OUTPUT.absolute().is_relative_to(ROOT/'build/CASM') or OUTPUT.resolve() != OUTPUT.absolute():
+    raise ValueError('CASM_TEST_OUTPUT debe estar dentro de build/CASM, sin enlaces')
 RESULTS = []
 HELLO = (ROOT / 'CASM/examples/hello.casm').read_bytes()
 ENTEROS = (ROOT / 'CASM/examples/enteros.casm').read_bytes()
@@ -159,6 +162,9 @@ def main():
             'host-write': ('HOST-WRITE', [ok, work/'host-dir.hex', work/'w.ir.json'], None),
         }
         for name, (rule, paths, limite) in host.items():
+            if limite and os.environ.get('CASM_TEST_SANITIZED') == '1':
+                # ASan necesita su mapa sombra; 256 KiB impiden arrancar el runtime.
+                continue
             process = subprocess.run([str(COMPILER), *map(str, paths)], capture_output=True, text=True, timeout=10, preexec_fn=limite)
             assert process.returncode == 1 and f'RED [{rule}]' in process.stderr, (name, process.returncode, process.stderr)
             assert not paths[2].exists(), name
@@ -240,6 +246,7 @@ def main():
             assert not any(folder.glob('p.x86')) and not (folder/'mismo').exists(), name
             RESULTS.append(dict(Case=name,Passed=True,Kind='verifier-cli-rejected',Rule=rule))
     report=dict(Passed=len(RESULTS),Total=len(RESULTS),Cases=RESULTS,
+                Skipped=['host-memory: RLIMIT_DATA incompatible con ASan'] if os.environ.get('CASM_TEST_SANITIZED') == '1' else [],
                 HelloPacketSHA256=hashlib.sha256((OUTPUT/'hello.x86').read_bytes()).hexdigest(),
                 PhysicalInstallationChanged=False)
     (OUTPUT/'test-results.json').write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')

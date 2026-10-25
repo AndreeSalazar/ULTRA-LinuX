@@ -1,0 +1,20 @@
+{
+  "analizador": true,
+  "archivo": "src/frontend.c",
+  "avisos": 0,
+  "cabeceras_vigiladas": 1,
+  "compilador": "clang",
+  "errores": 0,
+  "fallo_conectado": {
+    "archivos_que_fallan": 0
+  },
+  "flags_de": "genericas",
+  "lista": [],
+  "ms": 3663,
+  "ordenes": [
+    "clang -std=c17 -I. -Isrc -Wall -Wextra -O2 -MMD -MF /dev/stdout -c -o /dev/null -fno-color-diagnostics -fdiagnostics-show-option src/frontend.c",
+    "clang -std=c17 -I. -Isrc --analyze -Xclang -analyzer-output=sarif -o /dev/stdout src/frontend.c"
+  ],
+  "perfil": "generico",
+  "quedan": 0
+}

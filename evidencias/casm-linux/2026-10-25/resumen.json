@@ -1,0 +1,29 @@
+{
+  "casm_cases_passed": 430,
+  "sanitized_host_memory_skips": 2,
+  "differential_emissions_verified": 512,
+  "native_elf_tests_passed": 4,
+  "cache_tests_passed": 4,
+  "c_cpp_controls_passed": 44,
+  "self_hosted": false,
+  "first_self_host_target": "Linux ELF x86-64",
+  "sources_verified": [
+    "CASM/bootstrap.py",
+    "CASM/contrastar.py",
+    "CASM/elf_linux.py",
+    "CASM/probar_bootstrap.py",
+    "CASM/probar_elf_linux.py",
+    "CASM/test.py",
+    "CASM/verify.py",
+    "CASM/compilar.sh",
+    "CASM/construir.sh",
+    "CASM/probar.sh",
+    "CASM/src/casm.h",
+    "CASM/src/emitter.c",
+    "CASM/src/frontend.c",
+    "CASM/src/main.c",
+    "lab/probar_ub_compiladores.py"
+  ],
+  "physical_disks_modified": false,
+  "distro_image_rebuilt": false
+}

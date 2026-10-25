@@ -1,0 +1,10 @@
+{
+  "git_index_source_files_verified": 15,
+  "comparison": "bytes exactos o exclusivamente normalizacion CRLF a LF",
+  "eol_normalized_files": [
+    "CASM/src/casm.h",
+    "CASM/src/emitter.c",
+    "CASM/src/frontend.c",
+    "CASM/src/main.c"
+  ]
+}

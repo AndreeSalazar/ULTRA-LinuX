@@ -5,7 +5,7 @@
 set -euo pipefail
 casm="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 raiz="$(dirname "$casm")"
-"$casm/construir.sh"
+python3 -B "$casm/bootstrap.py" asegurar
 (cd "$raiz" && python3 -B "$casm/test.py")
 oro="b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33"
 hecho="$(sha256sum "$raiz/build/CASM/hello.x86" | cut -d' ' -f1)"

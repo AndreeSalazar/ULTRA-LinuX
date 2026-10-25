@@ -1,0 +1,36 @@
+
+/home/builder/linux-reconstruido/build/CASM/run-20261025-203358-3zzy/program.elf:     file format binary
+
+
+Disassembly of section .data:
+
+00000000000000b0 <.data+0xb0>:
+  b0:	4c 8d 3d 69 00 00 00 	lea    0x69(%rip),%r15        # 0x120
+  b7:	e8 7c 00 00 00       	call   0x138
+  bc:	31 ff                	xor    %edi,%edi
+  be:	b8 3c 00 00 00       	mov    $0x3c,%eax
+  c3:	0f 05                	syscall
+  c5:	31 d2                	xor    %edx,%edx
+  c7:	80 3c 16 00          	cmpb   $0x0,(%rsi,%rdx,1)
+  cb:	0f 84 08 00 00 00    	je     0xd9
+  d1:	48 ff c2             	inc    %rdx
+  d4:	e9 ee ff ff ff       	jmp    0xc7
+  d9:	48 85 d2             	test   %rdx,%rdx
+  dc:	0f 84 2b 00 00 00    	je     0x10d
+  e2:	bf 01 00 00 00       	mov    $0x1,%edi
+  e7:	b8 01 00 00 00       	mov    $0x1,%eax
+  ec:	0f 05                	syscall
+  ee:	48 83 f8 fc          	cmp    $0xfffffffffffffffc,%rax
+  f2:	0f 84 ef ff ff ff    	je     0xe7
+  f8:	48 85 c0             	test   %rax,%rax
+  fb:	0f 8e 0d 00 00 00    	jle    0x10e
+ 101:	48 01 c6             	add    %rax,%rsi
+ 104:	48 29 c2             	sub    %rax,%rdx
+ 107:	0f 85 da ff ff ff    	jne    0xe7
+ 10d:	c3                   	ret
+ 10e:	bf 4a 00 00 00       	mov    $0x4a,%edi
+ 113:	b8 3c 00 00 00       	mov    $0x3c,%eax
+ 118:	0f 05                	syscall
+ 11a:	0f 0b                	ud2
+ 11c:	00 00                	add    %al,(%rax)
+	...

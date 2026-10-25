@@ -1,0 +1,645 @@
+{
+  "Passed": 107,
+  "Total": 107,
+  "Cases": [
+    {
+      "Case": "hello",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "empty-entry",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "multiple-calls",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "unused-warning",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "comments-crlf",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "packet-4096",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "integers",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "integer-edges",
+      "Passed": true,
+      "Kind": "accepted-and-verified"
+    },
+    {
+      "Case": "unknown-operation",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "C-SUBSET"
+    },
+    {
+      "Case": "undefined-name",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-UNDEFINED"
+    },
+    {
+      "Case": "duplicate-name",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-DUPLICATE"
+    },
+    {
+      "Case": "wrong-type",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TYPE-STRING"
+    },
+    {
+      "Case": "keyword-name",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-RESERVED"
+    },
+    {
+      "Case": "runtime-name",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-RESERVED"
+    },
+    {
+      "Case": "raw-pointer",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TOKEN-UNSUPPORTED"
+    },
+    {
+      "Case": "write-to-constant",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "C-SUBSET"
+    },
+    {
+      "Case": "missing-return",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "RETURN-REQUIRED"
+    },
+    {
+      "Case": "after-return",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "AFTER-RETURN"
+    },
+    {
+      "Case": "trailing-source",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TRAILING-SOURCE"
+    },
+    {
+      "Case": "bad-escape",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "STRING-ESCAPE"
+    },
+    {
+      "Case": "newline-in-string",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "STRING-ASCII"
+    },
+    {
+      "Case": "unterminated-string",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "STRING-END"
+    },
+    {
+      "Case": "unterminated-comment",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "COMMENT-END"
+    },
+    {
+      "Case": "preprocessor",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TOKEN-UNSUPPORTED"
+    },
+    {
+      "Case": "non-ascii",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "SOURCE-ASCII"
+    },
+    {
+      "Case": "nul-source",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "SOURCE-ASCII"
+    },
+    {
+      "Case": "long-identifier",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-SIZE"
+    },
+    {
+      "Case": "body-too-large",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "BODY-LIMIT"
+    },
+    {
+      "Case": "source-too-large",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "SOURCE-SIZE"
+    },
+    {
+      "Case": "call-limit",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "CALL-LIMIT"
+    },
+    {
+      "Case": "old-proposal",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "C-SUBSET"
+    },
+    {
+      "Case": "constant-limit",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "CONSTANT-LIMIT"
+    },
+    {
+      "Case": "decl-name",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "DECL-NAME"
+    },
+    {
+      "Case": "syntax",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "SYNTAX"
+    },
+    {
+      "Case": "string-size",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "STRING-SIZE"
+    },
+    {
+      "Case": "int-sum-overflow",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-difference-underflow",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-product-overflow",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-quotient-overflow",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-negation-overflow",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-literal-range",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-negative-unsigned",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-reference-range",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "int-division-by-zero",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-DIV-ZERO"
+    },
+    {
+      "Case": "int-remainder-by-zero",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-DIV-ZERO"
+    },
+    {
+      "Case": "int-octal-literal",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-LITERAL"
+    },
+    {
+      "Case": "int-literal-too-big",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-LITERAL"
+    },
+    {
+      "Case": "int-literal-suffix",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-LITERAL"
+    },
+    {
+      "Case": "int-hex-without-digits",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-LITERAL"
+    },
+    {
+      "Case": "int-literal-too-long",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INT-LITERAL"
+    },
+    {
+      "Case": "int-string-operand",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TYPE-INT"
+    },
+    {
+      "Case": "int-string-initializer",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TYPE-INT"
+    },
+    {
+      "Case": "int-put-string",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TYPE-INT"
+    },
+    {
+      "Case": "int-put-literal",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TYPE-INT"
+    },
+    {
+      "Case": "int-puts-integer",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TYPE-STRING"
+    },
+    {
+      "Case": "int-undefined",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-UNDEFINED"
+    },
+    {
+      "Case": "int-put-undefined",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-UNDEFINED"
+    },
+    {
+      "Case": "int-duplicate",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-DUPLICATE"
+    },
+    {
+      "Case": "int-reserved-name",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "NAME-RESERVED"
+    },
+    {
+      "Case": "int-decl-name",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "DECL-NAME"
+    },
+    {
+      "Case": "int-missing-operand",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "SYNTAX"
+    },
+    {
+      "Case": "int-raw-pointer",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "TOKEN-UNSUPPORTED"
+    },
+    {
+      "Case": "int-expression-depth",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "EXPR-DEPTH"
+    },
+    {
+      "Case": "int-negation-depth",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "EXPR-DEPTH"
+    },
+    {
+      "Case": "int-expression-size",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "EXPR-SIZE"
+    },
+    {
+      "Case": "int-integer-limit",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "INTEGER-LIMIT"
+    },
+    {
+      "Case": "int-decimal-constant-limit",
+      "Passed": true,
+      "Kind": "source-rejected",
+      "Rule": "CONSTANT-LIMIT"
+    },
+    {
+      "Case": "host-read",
+      "Passed": true,
+      "Kind": "host-rejected",
+      "Rule": "HOST-READ"
+    },
+    {
+      "Case": "host-write",
+      "Passed": true,
+      "Kind": "host-rejected",
+      "Rule": "HOST-WRITE"
+    },
+    {
+      "Case": "verify-source-ascii",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "SOURCE-ASCII"
+    },
+    {
+      "Case": "verify-artifact-size",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "ARTIFACT-SIZE"
+    },
+    {
+      "Case": "verify-hex-token",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "HEX-TOKEN"
+    },
+    {
+      "Case": "verify-ir-contract",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-CONTRACT"
+    },
+    {
+      "Case": "verify-body-limit",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "BODY-LIMIT"
+    },
+    {
+      "Case": "verify-ir-lists",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-LISTS"
+    },
+    {
+      "Case": "verify-ir-limit",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-LIMIT"
+    },
+    {
+      "Case": "verify-ir-name",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-NAME"
+    },
+    {
+      "Case": "verify-ir-duplicate",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-DUPLICATE"
+    },
+    {
+      "Case": "verify-source-line",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "SOURCE-LINE"
+    },
+    {
+      "Case": "verify-data-offset",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "DATA-OFFSET"
+    },
+    {
+      "Case": "verify-data-hex",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "DATA-HEX"
+    },
+    {
+      "Case": "verify-string-end",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "STRING-END"
+    },
+    {
+      "Case": "verify-early-nul",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "STRING-ASCII"
+    },
+    {
+      "Case": "verify-region-size",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "REGION-SIZE"
+    },
+    {
+      "Case": "verify-code-offset",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "CODE-OFFSET"
+    },
+    {
+      "Case": "verify-call-target",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "CALL-TARGET"
+    },
+    {
+      "Case": "verify-declaration-order",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "DECLARATION-ORDER"
+    },
+    {
+      "Case": "verify-return-offset",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "RETURN-OFFSET"
+    },
+    {
+      "Case": "verify-return-order",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "RETURN-ORDER"
+    },
+    {
+      "Case": "verify-opcode",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "EMISSION-MISMATCH"
+    },
+    {
+      "Case": "verify-displacement",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "EMISSION-MISMATCH"
+    },
+    {
+      "Case": "verify-return-opcode",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "EMISSION-MISMATCH"
+    },
+    {
+      "Case": "verify-int-value",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-VALUE"
+    },
+    {
+      "Case": "verify-int-value-format",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-VALUE"
+    },
+    {
+      "Case": "verify-int-type",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-TYPE"
+    },
+    {
+      "Case": "verify-int-overflow",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-OVERFLOW"
+    },
+    {
+      "Case": "verify-int-div-zero",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-DIV-ZERO"
+    },
+    {
+      "Case": "verify-int-rpn-stack",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-RPN"
+    },
+    {
+      "Case": "verify-int-rpn-token",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-RPN"
+    },
+    {
+      "Case": "verify-int-rpn-forward",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "INT-RPN"
+    },
+    {
+      "Case": "verify-int-name",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-NAME"
+    },
+    {
+      "Case": "verify-int-duplicate",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-DUPLICATE"
+    },
+    {
+      "Case": "verify-data-decimal-digits",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "DATA-DECIMAL"
+    },
+    {
+      "Case": "verify-data-decimal-owner",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "DATA-DECIMAL"
+    },
+    {
+      "Case": "verify-data-kind",
+      "Passed": true,
+      "Kind": "emission-rejected",
+      "Rule": "IR-CONTRACT"
+    },
+    {
+      "Case": "verify-output-alias",
+      "Passed": true,
+      "Kind": "verifier-cli-rejected",
+      "Rule": "OUTPUT-ALIAS"
+    },
+    {
+      "Case": "verify-missing-input",
+      "Passed": true,
+      "Kind": "verifier-cli-rejected",
+      "Rule": "VERIFY"
+    }
+  ],
+  "Skipped": [
+    "host-memory: RLIMIT_DATA incompatible con ASan"
+  ],
+  "HelloPacketSHA256": "b3fd9814bcce6881f9cf3ad10b299d759f4f5b801a6526c59131a4d1c84e4b33",
+  "PhysicalInstallationChanged": false
+}

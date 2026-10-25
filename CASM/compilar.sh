@@ -7,9 +7,11 @@
 set -euo pipefail
 casm="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 raiz="$(dirname "$casm")"
+linux=0
+if [[ ${1:-} == --linux ]]; then linux=1; shift; fi
 fuente="${1:-$casm/examples/hello.casm}"
 [ -f "$fuente" ] && [ ! -L "$fuente" ] || { echo "RED [HOST-READ] No es un archivo regular: $fuente" >&2; exit 1; }
-"$casm/construir.sh"
+python3 -B "$casm/bootstrap.py" asegurar
 mkdir -p "$raiz/build/CASM"
 run="$(mktemp -d "$raiz/build/CASM/run-$(date +%Y%m%d-%H%M%S)-XXXX")"
 # La misma fuente congelada para el compilador y para el verificador.
@@ -27,5 +29,8 @@ if ! python3 -B "$casm/verify.py" "$run/source.casm" "$run/program.hex" "$run/pr
     wait; echo "RED [COMPILE] Emision rechazada. Run: $run" | tee -a "$registro" >&2; exit 1
 fi
 wait
+if [[ $linux == 1 ]]; then
+    python3 -B "$casm/elf_linux.py" "$run/source.casm" "$run/program.hex" "$run/program.ir.json" --output "$run/program.elf" | tee -a "$registro"
+fi
 echo "GREEN [READY] Paquete verificado: $run/INICIO.X86"
 echo "No se toco ningun disco, entrada de arranque ni paquete instalado."

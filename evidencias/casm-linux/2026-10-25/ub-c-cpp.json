@@ -1,0 +1,903 @@
+{
+  "schema": 1,
+  "passed": 44,
+  "total": 44,
+  "cases": [
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "desborde-signado",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "31d78b0b9a1f9b0981533a2002c317cad54c3528d3c561b2a00a351c575b7fd0",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "desborde-signado",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "6f66f37f35b39afeae3d996edf2a40fba8eaa4ce40866754c85e2406c62b9cbe",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "division-cero",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "54a40bd8b3e4bca5b3a0310a45a23b7d55aa36731e5ae6ed9772781856dcf8aa",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "division-cero",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "064fdce07ebec1fc758c9eba03603bd1e831d7ef3e2192aa04e2d161a39f9708",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "desplazamiento-ancho",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "367ca83144387ab02539fdbc45ab2de718fbd8d1c951934ba42c96d1b201c317",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "desplazamiento-ancho",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "13ddca4bbd362161892cce15cfd2146a7bff479c3a187eabb2610d4926ebddab",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "vida-util",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b6035d4c7d38938383512a777b9a773b86910a57dd03299a835515d9e0bd58f4",
+      "exit": 1,
+      "expected": "AddressSanitizer: heap-use-after-free",
+      "diagnostic_match": "AddressSanitizer: heap-use-after-free",
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "vida-util",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "f11aab5c6b47f6a8f648a5698bcae111c7f11f28e9ec8d6a8b65c65bebcb16ec",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "limite-memoria",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b63f3d5ddc3ba8f07357509be35054c8041ddb31f099ea9363f1c14338ffcb55",
+      "exit": 1,
+      "expected": [
+        "AddressSanitizer: heap-buffer-overflow",
+        "insufficient space for an object"
+      ],
+      "diagnostic_match": "insufficient space for an object",
+      "passed": true
+    },
+    {
+      "compiler": "gcc",
+      "version": "gcc (GCC) 16.2.1 20260810",
+      "language": "c17",
+      "case": "limite-memoria",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "e4089cfa741b704773d9378773ff45ee5d3afc743bc62917ce3addd307ab2681",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "desborde-signado",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "31d78b0b9a1f9b0981533a2002c317cad54c3528d3c561b2a00a351c575b7fd0",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "desborde-signado",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "6f66f37f35b39afeae3d996edf2a40fba8eaa4ce40866754c85e2406c62b9cbe",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "division-cero",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "54a40bd8b3e4bca5b3a0310a45a23b7d55aa36731e5ae6ed9772781856dcf8aa",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "division-cero",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "064fdce07ebec1fc758c9eba03603bd1e831d7ef3e2192aa04e2d161a39f9708",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "desplazamiento-ancho",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "367ca83144387ab02539fdbc45ab2de718fbd8d1c951934ba42c96d1b201c317",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "desplazamiento-ancho",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "13ddca4bbd362161892cce15cfd2146a7bff479c3a187eabb2610d4926ebddab",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "vida-util",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b6035d4c7d38938383512a777b9a773b86910a57dd03299a835515d9e0bd58f4",
+      "exit": 1,
+      "expected": "AddressSanitizer: heap-use-after-free",
+      "diagnostic_match": "AddressSanitizer: heap-use-after-free",
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "vida-util",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "f11aab5c6b47f6a8f648a5698bcae111c7f11f28e9ec8d6a8b65c65bebcb16ec",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "limite-memoria",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b63f3d5ddc3ba8f07357509be35054c8041ddb31f099ea9363f1c14338ffcb55",
+      "exit": 1,
+      "expected": [
+        "AddressSanitizer: heap-buffer-overflow",
+        "insufficient space for an object"
+      ],
+      "diagnostic_match": "insufficient space for an object",
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "limite-memoria",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "e4089cfa741b704773d9378773ff45ee5d3afc743bc62917ce3addd307ab2681",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "liberacion-cpp",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "639f8c595819b13e7ffb1ab54914f1bdc3dc046bd0d16aeb89a2944fa89aacd9",
+      "exit": 1,
+      "expected": "AddressSanitizer: alloc-dealloc-mismatch",
+      "diagnostic_match": "AddressSanitizer: alloc-dealloc-mismatch",
+      "passed": true
+    },
+    {
+      "compiler": "g++",
+      "version": "g++ (GCC) 16.2.1 20260810",
+      "language": "c++20",
+      "case": "liberacion-cpp",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "9d54a63ddafb1c25bd4e89cea9ae087aecbd14fde083dba81ac056dfe722e2fe",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "desborde-signado",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "31d78b0b9a1f9b0981533a2002c317cad54c3528d3c561b2a00a351c575b7fd0",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "desborde-signado",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "6f66f37f35b39afeae3d996edf2a40fba8eaa4ce40866754c85e2406c62b9cbe",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "division-cero",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "54a40bd8b3e4bca5b3a0310a45a23b7d55aa36731e5ae6ed9772781856dcf8aa",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "division-cero",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "064fdce07ebec1fc758c9eba03603bd1e831d7ef3e2192aa04e2d161a39f9708",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "desplazamiento-ancho",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "367ca83144387ab02539fdbc45ab2de718fbd8d1c951934ba42c96d1b201c317",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "desplazamiento-ancho",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "13ddca4bbd362161892cce15cfd2146a7bff479c3a187eabb2610d4926ebddab",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "vida-util",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b6035d4c7d38938383512a777b9a773b86910a57dd03299a835515d9e0bd58f4",
+      "exit": 1,
+      "expected": "AddressSanitizer: heap-use-after-free",
+      "diagnostic_match": "AddressSanitizer: heap-use-after-free",
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "vida-util",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "f11aab5c6b47f6a8f648a5698bcae111c7f11f28e9ec8d6a8b65c65bebcb16ec",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "limite-memoria",
+      "kind": "mal",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b63f3d5ddc3ba8f07357509be35054c8041ddb31f099ea9363f1c14338ffcb55",
+      "exit": 1,
+      "expected": [
+        "AddressSanitizer: heap-buffer-overflow",
+        "insufficient space for an object"
+      ],
+      "diagnostic_match": "AddressSanitizer: heap-buffer-overflow",
+      "passed": true
+    },
+    {
+      "compiler": "clang",
+      "version": "clang version 23.1.3",
+      "language": "c17",
+      "case": "limite-memoria",
+      "kind": "bien",
+      "flags": [
+        "-std=c17",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "e4089cfa741b704773d9378773ff45ee5d3afc743bc62917ce3addd307ab2681",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "desborde-signado",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "31d78b0b9a1f9b0981533a2002c317cad54c3528d3c561b2a00a351c575b7fd0",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "desborde-signado",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "6f66f37f35b39afeae3d996edf2a40fba8eaa4ce40866754c85e2406c62b9cbe",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "division-cero",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "54a40bd8b3e4bca5b3a0310a45a23b7d55aa36731e5ae6ed9772781856dcf8aa",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "division-cero",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "064fdce07ebec1fc758c9eba03603bd1e831d7ef3e2192aa04e2d161a39f9708",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "desplazamiento-ancho",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "367ca83144387ab02539fdbc45ab2de718fbd8d1c951934ba42c96d1b201c317",
+      "exit": 1,
+      "expected": "runtime error:",
+      "diagnostic_match": "runtime error:",
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "desplazamiento-ancho",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "13ddca4bbd362161892cce15cfd2146a7bff479c3a187eabb2610d4926ebddab",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "vida-util",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b6035d4c7d38938383512a777b9a773b86910a57dd03299a835515d9e0bd58f4",
+      "exit": 1,
+      "expected": "AddressSanitizer: heap-use-after-free",
+      "diagnostic_match": "AddressSanitizer: heap-use-after-free",
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "vida-util",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "f11aab5c6b47f6a8f648a5698bcae111c7f11f28e9ec8d6a8b65c65bebcb16ec",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "limite-memoria",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "b63f3d5ddc3ba8f07357509be35054c8041ddb31f099ea9363f1c14338ffcb55",
+      "exit": 1,
+      "expected": [
+        "AddressSanitizer: heap-buffer-overflow",
+        "insufficient space for an object"
+      ],
+      "diagnostic_match": "AddressSanitizer: heap-buffer-overflow",
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "limite-memoria",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "e4089cfa741b704773d9378773ff45ee5d3afc743bc62917ce3addd307ab2681",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "liberacion-cpp",
+      "kind": "mal",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "639f8c595819b13e7ffb1ab54914f1bdc3dc046bd0d16aeb89a2944fa89aacd9",
+      "exit": 1,
+      "expected": "AddressSanitizer: alloc-dealloc-mismatch",
+      "diagnostic_match": "AddressSanitizer: alloc-dealloc-mismatch",
+      "passed": true
+    },
+    {
+      "compiler": "clang++",
+      "version": "clang version 23.1.3",
+      "language": "c++20",
+      "case": "liberacion-cpp",
+      "kind": "bien",
+      "flags": [
+        "-std=c++20",
+        "-O1",
+        "-g",
+        "-fno-omit-frame-pointer",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all"
+      ],
+      "source_sha256": "9d54a63ddafb1c25bd4e89cea9ae087aecbd14fde083dba81ac056dfe722e2fe",
+      "exit": 0,
+      "expected": "salida limpia",
+      "diagnostic_match": null,
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Solo cubre estos casos y sus caminos ejecutados; no prueba todos los UB de C/C++.",
+    "Clang es el frontend de C/C++ de LLVM; no se modifica el compilador ni la produccion."
+  ]
+}

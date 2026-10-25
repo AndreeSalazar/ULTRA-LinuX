@@ -1,0 +1,5 @@
+GREEN [SEMILLA] gcc-normal: 108 casos; 0 omisiones declaradas
+GREEN [SEMILLA] gcc-diagnostico: 107 casos; 1 omisiones declaradas
+GREEN [SEMILLA] clang-normal: 108 casos; 0 omisiones declaradas
+GREEN [SEMILLA] clang-diagnostico: 107 casos; 1 omisiones declaradas
+GREEN [CONTRASTE] 512 emisiones identicas; compilacion con GCC/Clang bloqueados; self_hosted=false

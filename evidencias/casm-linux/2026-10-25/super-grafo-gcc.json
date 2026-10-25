@@ -1,0 +1,19 @@
+{
+  "analizador": true,
+  "archivo": "src/frontend.c",
+  "avisos": 0,
+  "cabeceras_vigiladas": 1,
+  "compilador": "gcc",
+  "errores": 0,
+  "fallo_conectado": {
+    "archivos_que_fallan": 0
+  },
+  "flags_de": "genericas",
+  "lista": [],
+  "ms": 545,
+  "ordenes": [
+    "gcc -std=c17 -I. -Isrc -Wall -Wextra -O2 -fanalyzer -MMD -MF /dev/stdout -c -o /dev/null -fdiagnostics-format=sarif-stderr src/frontend.c"
+  ],
+  "perfil": "generico",
+  "quedan": 0
+}

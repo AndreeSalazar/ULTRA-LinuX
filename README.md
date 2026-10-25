@@ -8,6 +8,11 @@
 
 ## Escritorio BMO-X // Neón
 
+**CASM hacia la autocompilación:** semillas GCC/Clang contrastadas, uso de la
+semilla vigente sin invocar esos compiladores y adaptador ELF Linux con HEX
+verificable. **Aún no se autocompila.**
+[Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).
+
 **SUPER GRAFO integrado desde main:** indice incremental, MCP, revision con GCC y
 Clang y Ciudad fantasma. La integracion corrige opciones importadas del compilador
 y evita entregar ejecutables viejos si falla una compilacion.

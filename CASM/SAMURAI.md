@@ -27,7 +27,8 @@ CASM toma su forma de C para leerse fácil, pero **no es C**. Su única tarea es
   de otra capa (allí, TITAN++); CASM habla con la CPU.
 - **«Ser compatible con todo C».** CASM adopta de C lo que puede hacer seguro y lo dice
   en [LANGUAGE.md](LANGUAGE.md); lo demás se rechaza con su regla.
-- **El compilador de CASM con otro compilador que no sea GCC** (`construir.sh` se niega).
+- **Delegar los bytes CASM en otro backend.** GCC y Clang pueden construir la
+  semilla C y contrastarla; el codificador x86-64 sigue siendo propio.
 
 ## CASM 0.2: enteros exactos
 
@@ -41,7 +42,7 @@ CASM toma su forma de C para leerse fácil, pero **no es C**. Su única tarea es
   en CASM el corte es obligatorio.
 - **Sin trampas de C:** `010` no es octal (se rechaza), la división trunca hacia cero,
   `x % 0` corta y `MIN % -1` es exactamente 0.
-- **Dos implementaciones que deben coincidir:** el compilador (C, GCC) calcula cada valor;
+- **Dos implementaciones que deben coincidir:** el compilador (C, GCC o Clang) calcula cada valor;
   el verificador (Python, enteros sin límite) lo **recalcula** desde la forma postfija de
   la IR con las mismas reglas. Si no da lo mismo, no se publica el paquete. Se probaron
   los bordes: `UINT64_MAX`, `INT64_MIN`, `0xFF`, `MIN % -1 = 0`, `-7 / 2 = -3`,
@@ -98,6 +99,11 @@ marca «sin caso aislado» cualquier regla nueva hasta que tenga el suyo.
 4. **Autoalojamiento.** CASM prepara y exporta su propio compilador. La semilla es el
    `.hex` escrito a mano, que una persona puede revisar, y GCC queda como testigo, no
    como dependencia.
+
+La prioridad acordada es **Linux ELF x86-64 primero; metal64 despues**.
+El adaptador ELF actual permite ejecutar programas acotados, pero el compilador
+todavia es C y no puede compilarse con CASM. Capacidades pendientes, pruebas y
+condicion de cierre: [AUTOCOMPILACION.md](AUTOCOMPILACION.md).
 
 ## El SUPER GRAFO como lupa
 

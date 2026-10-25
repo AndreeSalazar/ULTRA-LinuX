@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "target": "Linux ELF x86-64",
+  "self_hosted": false,
+  "adapter": "CASM 0.2 metal64 puts -> Linux write/exit",
+  "elf_sha256": "d0e2194815ab9612338a5df0631bda4429b01ffde5160fabc1e5cebcc8c51efc",
+  "payload_sha256": "2bd77f970bced7c0c18d3a646b532443d2e1bf71fe4dc96ee3dff5b751e669ef",
+  "source_sha256": "20eac0ebefc6cfd25109e42b2de52e1ff0fab6b927993f2a4efc7d07c31e6f30",
+  "adapter_sha256": "0266e73895bc1f7b9af3b715c38382a318deb4f9fc615751b1662996e2d2c114",
+  "layout": {
+    "entry_offset": 176,
+    "puts_offset": 197,
+    "table_offset": 288,
+    "payload_offset": 312,
+    "payload_bytes": 40
+  },
+  "load_flags": "RX",
+  "stack_flags": "RW, NX",
+  "dynamic_linker": false,
+  "external_assembler_or_linker": false,
+  "limits": [
+    "Direccion fija, sin PIE; laboratorio, no compilador autocompilado.",
+    "Solo acepta el contrato CASM 0.2 que verify.py valida."
+  ]
+}
