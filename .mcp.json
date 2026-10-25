@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "super-grafo": {
+      "type": "stdio",
+      "command": "sh",
+      "args": ["scripts/super-grafo-mcp.sh", "."]
+    }
+  }
+}

@@ -302,6 +302,21 @@ pub fn triangulo_play(pintor: &egui::Painter, caja: Rect, color: Color32) {
     pintor.add(egui::Shape::convex_polygon(vec![c + Vec2::new(-w * 0.8, -h), c + Vec2::new(w * 1.1, 0.0), c + Vec2::new(-w * 0.8, h)], color, Stroke::NONE));
 }
 
+/// El triangulo de un nodo: un vertice por eje (arriba Seguridad, abajo a la izquierda
+/// Rendimiento, abajo a la derecha Elegancia). Lleno si el nodo tiene algo de ese eje.
+pub fn triangulo(pintor: &egui::Painter, c: &Colores, centro: Pos2, lado: f32, ejes: [u32; 3]) {
+    use carpetas_nucleo::museo::Eje;
+    let h = lado * 0.866;
+    let v = [centro + Vec2::new(0.0, -h * 0.62), centro + Vec2::new(-lado / 2.0, h * 0.38), centro + Vec2::new(lado / 2.0, h * 0.38)];
+    let arista = Stroke::new(1.0, c.tenue.gamma_multiply(0.7));
+    pintor.add(egui::Shape::closed_line(v.to_vec(), arista));
+    for (i, e) in Eje::TODOS.iter().enumerate() {
+        let col = crate::color_eje(c, *e);
+        if ejes[i] > 0 { pintor.circle_filled(v[i], lado * 0.2, col); pintor.circle_stroke(v[i], lado * 0.2, Stroke::new(1.0, Color32::WHITE.gamma_multiply(0.6))); }
+        else { pintor.circle(v[i], lado * 0.13, c.fondo, Stroke::new(1.0, col.gamma_multiply(0.5))); }
+    }
+}
+
 /// Insignia de errores (roja) y avisos (amarilla), con la cuenta. Tamano fijo en pantalla
 /// para que se lea a cualquier zoom. Se pinta hacia la izquierda desde `derecha`.
 pub fn insignia(pintor: &egui::Painter, c: &Colores, derecha: Pos2, m: &Marcas) -> f32 {
@@ -316,6 +331,13 @@ pub fn insignia(pintor: &egui::Painter, c: &Colores, derecha: Pos2, m: &Marcas) 
         pintor.rect_filled(caja, 8, fondo);
         pintor.galley(caja.center() - g.size() / 2.0, g, letra);
         x = caja.min.x - 4.0;
+    }
+    // El triangulo, a la izquierda de las cuentas, si hay algo de Rendimiento o Elegancia
+    // (la Seguridad ya tiene su insignia blanca y roja).
+    if m.ejes[1] + m.ejes[2] > 0 {
+        let lado = 13.0;
+        triangulo(pintor, c, Pos2::new(x - lado / 2.0 - 2.0, derecha.y + 9.0), lado, m.ejes);
+        x -= lado + 6.0;
     }
     derecha.x - x
 }

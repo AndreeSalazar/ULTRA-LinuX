@@ -65,6 +65,8 @@ const POR_EXTENSION: &[(&[&str], &str, bool)] = &[
     (&["m"], "material/objective-c", true),
     (&["mm"], "material/objective-cpp", true),
     (&["s", "asm", "nasm"], "material/assembly", true),
+    // CASM (lenguaje propio que emite x86-64 exacto) y el .hex escrito a mano.
+    (&["casm", "hex"], "material/assembly", true),
     (&["zig"], "material/zig", true),
     (&["go"], "material/go", true),
     (&["py", "pyi", "pyw"], "material/python", true),

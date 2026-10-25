@@ -350,12 +350,14 @@ archivos**.
   proporcionales y nada se pisa, y hay pruebas que lo comprueban. La raíz cuadrada
   es de Newton, porque `no_std` no tiene biblioteca matemática.
 - Las **líneas** se cuentan en otro hilo, en los archivos de texto de hasta 2 MiB,
-  con un presupuesto de 1 GiB o 20 s. Hasta que terminan, se estiman por tamaño y la
+  con un presupuesto de 32 GiB o 5 min. Hasta que terminan, se estiman por tamaño y la
   ficha lo dice. Las imágenes y los binarios no tienen líneas, así que quedan bajitos
   y no parecen código.
 - **Proyectos enormes:** las carpetas hondas se juntan en **bloques** grises (clic:
-  entrar) hasta que caben 60 000 edificios, sin perder ningún archivo en la cuenta.
-  Chromium entero son 43 416 edificios y 1 489 distritos.
+  entrar) hasta que caben 600 000 edificios, sin perder ningún archivo en la cuenta.
+  Antes el tope era 60 000 y Chromium entero salía en 43 416 edificios y 1 489
+  distritos; ahora cabe cada archivo (unos 509 000). Cada edificio son 40 bytes en la
+  GPU.
   - Juntarlos tarda 0,26 s: rutas en orden alfabético y búsqueda binaria de la
     profundidad, antes 3,3 s.
   - El treemap tarda ~55 ms y solo se rehace al cambiar los datos.
@@ -433,9 +435,9 @@ Con un proyecto gigante el problema no es ver un error, es saber **de dónde vie
 **hasta dónde llega**. El SUPER GRAFO junta tres cosas:
 
 1. **El museo en tu código.** Las fichas del [museo de C, C++ y ASM](../Museo/README.md) y del
-   [banco de C](MUSEO-UB.md) (38 fichas, generadas desde sus catálogos con
+   [banco de C](MUSEO-UB.md) (43 fichas, generadas desde sus catálogos con
    `scripts/fichas-carpetas.py`; `--comprobar` falla si se desfasan) buscan su patrón en el
-   código del proyecto. Hay 28 con detector:
+   código del proyecto. Hay 32 con detector:
    - **C:** `free(p + 1)`, VLA.
    - **C++:** `string_view` sobre un temporal, referencia a un `vector` que crece, `new[]`
      con `delete`, `volatile` entre hilos, `f(i++, i++)`.
@@ -500,9 +502,866 @@ cuentan como fallos ni se conectan. Borrar el archivo hace que vuelvan a contar.
   - Quedan 15 sospechas. Entre ellas hay aciertos, como el iterador invalidado que
     Chromium prueba a propósito con `EXPECT_DCHECK_DEATH` o `isdigit(argv[..][0])`.
 - **Carril Museo en Chromium `base/`:** 3 324 archivos (25,7 MiB) en 1,6 s en su hilo y
-  16 312 dependencias resueltas. Conectar los fallos tarda 7 ms. La causa número 1 es
+  16 268 dependencias resueltas. Conectar los fallos tarda 7 ms. La causa número 1 es
   `base/numerics/safe_conversions_impl.h` (`*(volatile char*)0`, un fallo provocado a
-  propósito): «explica 9 · lo usan 2 524».
+  propósito): «explica 7 · lo usan 1 993».
+  - Antes eran 16 312 dependencias y «lo usan 2 524». El **camino** (más abajo)
+    destapó la diferencia: `#include <features.h>` (la de la libc) se resolvía como
+    `base/features.h` por el final de la ruta. Ahora un `<x.h>` sin carpeta no se busca
+    por el nombre: salen 44 aristas falsas, y unos 530 archivos ya no «arrastran» el fallo.
+
+### El triángulo: Seguridad, Rendimiento y Elegancia
+
+Cada ficha tiene un **eje** y el motivo de ese eje. Sale de
+[`Museo/triangulo.json`](../Museo/triangulo.json): las fichas son de Seguridad salvo las
+que ese archivo cambia, con su motivo (NOUB-002 y NOUB-003 son Elegancia; ASM-006,
+Rendimiento).
+
+- **Solo la Seguridad es un fallo.** Rendimiento y Elegancia son guías para revisar: no
+  se conectan, no encienden el punto rojo y no cuentan en «Aislar». Lo comprueba
+  `tests/triangulo.rs`.
+- **Cuatro fichas nuevas**, cada una con su caso `mal`/`bien` aislado:
+
+| Ficha | Eje | Qué marca | Referencia |
+|---|---|---|---|
+| R-001 | Rendimiento | `strlen` en la condición de un bucle (lineal pasa a cuadrático) | ISO C 7.24.6.3 |
+| R-002 | Rendimiento | `std::string`/`std::vector` por valor en una definición que no lo mueve | C++ Core Guidelines F.16 |
+| E-001 | Elegancia | Función de más de 100 líneas | Linux kernel coding style, 6 |
+| E-002 | Elegancia | Cuatro bloques con llaves uno dentro de otro en una función (la guía pide no pasar de 3) | Linux kernel coding style, 1 |
+
+- **En el panel Museo:** el glifo del triángulo y tres botones con su cuenta. Un clic
+  filtra por ese eje (y atenúa en el grafo los nodos que no tienen nada de él); las
+  fichas se agrupan por eje, con su color.
+- **En los nodos:** cuando hay Rendimiento o Elegancia, un triángulo pequeño junto a la
+  insignia enciende cada vértice que tiene algo (arriba Seguridad, abajo a la izquierda
+  Rendimiento, abajo a la derecha Elegancia).
+- **En la Ciudad:** COLOR → «triangulo». Cada edificio toma el color de su eje
+  dominante (Seguridad manda); los que no tienen nada del museo quedan en gris.
+
+![Panel Museo con el triángulo sobre Chromium base/: Seguridad 15, Rendimiento 48, Elegancia 369](maquetas/png/neon/carpetas-triangulo.png)
+![La Ciudad de Chromium coloreada por eje: rojo Seguridad, amarillo Rendimiento, cian Elegancia](maquetas/png/neon/carpetas-ciudad-triangulo.png)
+
+**Medido en Chromium `base/` y `third_party/zlib`:**
+
+- Seguridad sigue en 15 sospechas y el fallo conectado en los mismos 12 archivos: las
+  fichas nuevas no cambiaron nada de lo que cuenta como fallo.
+- Rendimiento 48 (todas R-002) y Elegancia 369 (E-001 226 y E-002 143).
+- Ajustes que salieron al revisarlo a mano:
+  - R-002 empezó con 117 avisos: casi todos eran declaraciones o parámetros que se mueven
+    (`std::move`). Ahora solo se mira una definición sin `move` de ese nombre.
+  - `class X final {` contaba como función: los calificadores (`const`, `final`…) solo
+    abren una función si van tras `)`. E-001 bajó de 237 a 226.
+- **No comprobado:** que R-002 sea más lento de verdad en cada sitio (no hay perfil
+  medido) ni el umbral de 100 líneas contra otro criterio. Son guías, no fallos.
+
+### Combinar: la selección grupal en vivo
+
+Varios edificios de la Ciudad se juntan en un **grupo**, y el panel **Combinar** (icono de
+tres nodos en la barra de la izquierda; lleva el número de miembros) dibuja cómo se
+conectan. Se rehace al momento, cada vez que el grupo cambia.
+
+- **Elegir en la Ciudad:**
+  - **Ctrl+clic** mete o saca un edificio (también un bloque juntado: cuenta con todos sus
+    archivos).
+  - **Shift+arrastrar** hace una banda: entran los edificios cuya azotea cae dentro.
+  - Al juntar el segundo, el panel se abre solo.
+- **En el grafo** vale la selección de siempre (la banda). Si el grupo de la Ciudad está
+  vacío, el panel usa esa selección.
+- **En el panel**, de un vistazo:
+  - **Cable blanco con flecha:** uno del grupo usa a otro (`#include`, `use`, `import`,
+    `%include`).
+  - **Abajo, en el acento:** lo que **comparten**, es decir, archivos de fuera que usan dos
+    o más del grupo.
+  - **Arriba, en verde:** **quién los junta**, es decir, archivos de fuera que usan a dos o
+    más del grupo.
+  - **Sueltos:** no se tocan con ningún otro del grupo. **Piezas:** cuántos bloques
+    separados forman.
+  - Cada miembro lleva su **triángulo**, y el borde rojo neón si tiene algo de Seguridad.
+  - Con más de 12 miembros son puntos, y solo se rotulan los más unidos.
+  - Pasar el ratón enciende sus cables y apaga el resto. Clic: la Ciudad lleva la cámara
+    allí. Ctrl+clic en algo compartido: entra al grupo. Clic derecho en un miembro: sale.
+- **En la Ciudad**, los mismos cables encima de los edificios:
+  - Los miembros, en blanco.
+  - Lo compartido, en el acento; quien los junta, en verde.
+  - Arcos blancos con flecha entre los que se usan.
+
+![Combinar con 42 edificios de base/strings y base/time (Shift+arrastrar): 14 directas, 26 compartidos, 34 que los juntan; 0,34 ms](maquetas/png/neon/carpetas-combinar.png)
+![Combinar con 5 elegidos por Ctrl+clic: ninguno usa a otro, pero comparten 5 cabeceras; time_unittest.cc con borde rojo (Seguridad) y strcat_unittest.cc suelto](maquetas/png/neon/carpetas-combinar-pocos.png)
+
+**Medido** (Chromium `base/`, 16 268 dependencias):
+
+- Combinar 42 miembros tarda **0,34 ms**; 5 miembros, 0,05 ms. El panel enseña el tiempo
+  de cada vez.
+- La lógica está en el núcleo (`carpetas-nucleo/src/combinar.rs`, `no_std`). Lo comprueba
+  `tests/combinar.rs`: directas, compartidos, quién los junta, carpetas, sueltos, piezas
+  y el reductor del grupo.
+
+**Límites:**
+
+- Como mucho 64 miembros, y 8 de cada clase de puente (el total sí se cuenta entero).
+- Las dependencias son las del análisis léxico: lo que decide el preprocesador
+  (`#ifdef`, rutas `-I`) no se ve.
+- Si un archivo y su carpeta están los dos, el archivo cuenta para el primero que entró.
+
+### El camino entre dos elegidos: motivos, onda y dónde cortar
+
+Con dos en el grupo (o eligiendo **A** y **B** entre los del grupo), el panel Combinar
+busca **por dónde se unen** y lo explica:
+
+- **Elegir:**
+  - Ctrl+clic en la Ciudad.
+  - O por nombre: **Ctrl+P, escribir y Alt+Enter** mete el archivo en el grupo sin
+    moverse. Sirve para unir dos archivos que están lejos en la Ciudad.
+  - Con más de dos, dos selectores eligen A y B. **Invertir** los cambia.
+- **La unión más fuerte**, en este orden:
+  1. **A usa B** (directa o a través de otros): si cambia B, A se recompila.
+  2. **B usa A.**
+  3. **Comparten X:** ninguno usa al otro, pero los dos usan X. Se elige el X más
+     cercano a los dos.
+  4. **Los junta X:** X usa a los dos.
+  5. **Nada:** no se tocan, y el panel lo dice.
+- **Por qué se ve así:** una frase con la unión, cuántos archivos hay en medio, y cuántos
+  caminos igual de cortos existen (este es uno de ellos).
+- **Motivos:** cada paso lleva la línea exacta que lo crea, por ejemplo
+  `raw_ptr.h:52 #include "…/raw_ptr_backup_ref_impl.h"`. Clic en el paso: el editor se
+  abre en esa línea.
+- **Dónde cortar (para optimizar):** cada paso se quita y se vuelve a buscar.
+  - **Imprescindible** (rojo neón, con marca de corte): sin él, A y B se separan.
+  - Si no, el panel dice el desvío: otro camino de N saltos.
+  - Cada paso dice también cuántos archivos usan al incluido (su peso). La pista final
+    propone el paso imprescindible con menos peso.
+  - Es una pista, no una prueba: hay que compilar para comprobarlo.
+- **La animación es la onda de recompilación.** Sale de lo que cambiaría y viaja hacia
+  quien lo usa, paso a paso:
+  - A usa B: va de B hacia A.
+  - Comparten X: sale de X y se abre hacia los dos.
+  - Los junta X: entra en X desde los dos.
+
+  El punto de encuentro late con un anillo verde, y lo imprescindible late en rojo.
+  La casilla «onda» la para: entonces no se redibuja nada de más.
+- **En la Ciudad:** los mismos pasos son arcos de azotea a azotea, con la flecha en el
+  usado, los imprescindibles en rojo con su marca, la onda viajando, y A y B rotulados.
+
+![Camino en Chromium: launch_fuchsia.cc usa safe_conversions_impl.h a través de 11 archivos; 6 pasos imprescindibles en rojo, cada uno con su línea; en la Ciudad, los arcos de A a B](maquetas/png/neon/carpetas-camino.png)
+![La onda en dos cuadros: comparten time.h, y la onda sale de time.h hacia los dos a la vez](maquetas/png/neon/carpetas-camino-onda.png)
+
+**Medido** (Chromium `base/`, prueba `medir_en_carpeta`):
+
+- 300 pares repartidos por todo el proyecto en 32 ms; el peor, 0,53 ms (con el análisis de
+  cada paso).
+- Por clase de unión: usa 7, es usado 9, comparten 218, los junta 4, nada 62.
+- 81 de los 300 pares tienen al menos un paso imprescindible.
+- El camino más largo de la muestra tiene 12 saltos, de `launch_fuchsia.cc` a
+  `partition_alloc_base/numerics/safe_conversions_impl.h`.
+- Ese análisis destapó una arista falsa (`<features.h>` resuelta como `base/features.h`)
+  y se corrigió en el resolvedor.
+
+**Comprobado:**
+
+- `tests/camino.rs` cubre las cinco uniones, el conteo de caminos igual de cortos, la
+  dirección real de cada paso, los motivos, y lo imprescindible frente al desvío.
+- `analiza_este_repositorio` comprueba que el motivo de `main.rs → analisis.rs` es su
+  línea real (`mod analisis;`).
+
+**Límites:**
+
+- Es el camino más corto por número de saltos, no por coste de compilación.
+- Desvío o imprescindible se miden quitando **un** paso cada vez.
+- Se analizan los 16 primeros pasos; el resto sale «sin analizar».
+
+### Ciclos de cabeceras (E-003, eje Elegancia)
+
+`a.h` incluye `b.h` y `b.h`, por el camino que sea, vuelve a incluir `a.h`. **Compila**
+(las guardas `#ifndef` lo permiten; GCC acepta los dos casos de prueba), pero ninguno se
+entiende ni se prueba sin el otro. Por eso es **Elegancia, nunca un fallo de Seguridad**.
+
+- **Dónde:** panel Museo, al principio de ELEGANCIA. La ficha **E-003** enseña qué es,
+  el control válido (`struct a;` en vez de incluir, si basta un puntero), su límite y
+  su referencia (C++ Core Guidelines SF.9).
+- **Cómo se buscan:**
+  - Las componentes fuertes del grafo (Tarjan, sin recursión: 200 000 archivos en
+    cadena no desbordan la pila).
+  - De cada una, la **vuelta más corta**.
+  - Solo entre C, C++ y ASM: en Rust los módulos de un crate se usan entre sí sin
+    problema.
+- **Cada paso con su motivo** (`string_util.h:663 #include "…/string_util_win.h"`); clic,
+  y el editor se abre en esa línea.
+- **Dónde cortar:** el paso cuyo incluido usan menos archivos, en rojo con su marca.
+- **La animación:** la onda da vueltas por el anillo sin salida, como un `#include` que
+  vuelve a empezar.
+- **Ver en Combinar:** mete la vuelta en el grupo. El camino dice entonces «y la vuelta
+  también existe: forman un ciclo», y la Ciudad marca A y B.
+
+**El SUPER GRAFO aprendió a leer los `#if`.** Cada `#include` guarda el `#if`, `#ifdef`,
+`#elif` o `#else` dentro del que está, sin contar la guarda de la cabecera
+(`#ifndef X_H` seguido de `#define X_H`). En el panel sale como «solo si #if …». Un ciclo
+con un paso condicional dice «depende de un #if» y va al final. El consejo cambia: suele
+ser un patrón a propósito (la parte de una plataforma al final de la cabecera).
+
+![Ciclos en Chromium base/: string_util.h y string_util_win.h, solo si #if BUILDFLAG(IS_WIN); la onda da vueltas y el paso donde cortar late en rojo](maquetas/png/neon/carpetas-ciclos.png)
+![Ver en Combinar: el camino dice que forman un ciclo y la Ciudad marca A y B](maquetas/png/neon/carpetas-ciclo-combinar.png)
+
+**Medido en Chromium `base/`:**
+
+- 2 ciclos (4 archivos), en 0,4 a 0,6 ms: `string_util.h` ↔ `string_util_win.h` y
+  `string_split.h` ↔ `string_split_win.h`.
+- **Los dos están dentro de `#if BUILDFLAG(IS_WIN)`.** Al compilar para Linux con GCC no
+  existen: Chromium `base/` no tiene ningún ciclo de cabeceras incondicional.
+- 874 de las 16 268 dependencias (5,4 %) están dentro de un `#if`.
+
+**Comprobado:** `tests/ciclos.rs`, con casos aislados en `tests/datos/ciclos/`, leídos y
+resueltos como en la aplicación:
+
+- `mal` tiene una vuelta de 3; `bien` la rompe con `struct a;`; `condicional` solo vuelve
+  dentro de `#if defined(_WIN32)`. Los tres compilan con GCC (`-std=c17 -Wall -Werror`).
+- Hay pruebas de varios ciclos, de Rust ignorado y de la cadena de 200 000 archivos.
+- `tests/dependencias.rs` comprueba la lectura de los `#if`: la guarda, `#elif`, `#else`,
+  `#ifdef`, `#pragma once`, y un `#ifndef` con código antes.
+
+**Límites:**
+
+- La vuelta es la más corta desde los 24 archivos más conectados de la componente; en
+  una de más de 2 000, desde uno solo.
+- Se calculan los 100 ciclos más grandes; el resto solo se cuenta.
+- Los `#if` se leen como texto: no se evalúan (no se sabe si `BUILDFLAG(IS_WIN)` es
+  cierto).
+- En este repositorio salen los ciclos de los casos de prueba (`tests/datos/ciclos/`):
+  `CASOS-MUSEO.txt` aparta las sospechas de las fichas, pero todavía no los ciclos.
+
+### Del grupo a los nodos y al editor: lo que señalan, cómo arreglarlo y por dónde llega
+
+Con un grupo elegido en la Ciudad (Ctrl+clic, Shift+arrastrar o Ctrl+P y Alt+Enter), el
+panel Combinar sirve para **arreglar** y para **aprender**:
+
+- **Lo que señalan:** todas las sospechas del museo y los errores del compilador de los
+  archivos del grupo (de una carpeta, lo de dentro). Van **en el orden para arreglar**:
+  1. errores del compilador;
+  2. Seguridad exacta;
+  3. Seguridad a revisar;
+  4. avisos;
+  5. Rendimiento;
+  6. Elegancia.
+
+  Cada una lleva su ficha y «qué enseña y cómo se arregla»: la regla, el control válido,
+  el límite y la referencia. Clic: el editor se abre en esa línea.
+- **Siguiente señal (n/total):** abre el editor en la siguiente, de la primera a la
+  última, para ir arreglando una a una.
+- **Por dónde le llega:** a un archivo que no falla pero se puede romper (o que falla
+  por otro) se le enseña la cadena de `#include` hasta la causa probable, cada paso con
+  su línea. Por ejemplo, `time.h:78 › clamped_math.h:11 › safe_conversions.h:15 ›
+  safe_conversions_impl.h`.
+- **Ver en el grafo:** pasa al grafo de nodos y despliega el camino de cada archivo del
+  grupo, uno detrás de otro (pidiendo al disco las carpetas que falten). Los deja todos
+  seleccionados, dibuja los **cables del grupo** en el acento (quién usa a quién) y
+  encuadra solo lo seleccionado.
+- **En la Ciudad:** los del grupo con algo de Seguridad se resaltan en rojo neón; el
+  resto, en blanco.
+- **Aislar el grupo:** deja solo lo conectado con los del grupo, en el grafo y en la
+  Ciudad: lo que usan (blanco) y quien los usa (rojo suave), con cables de dependencia.
+  En el grafo, la **A** con varios seleccionados aísla a todos juntos. El panel Museo dice
+  «AISLADO · 4 elegidos · usa 109 archivos · lo usan 1 990».
+
+![Lo que señalan 4 archivos de Chromium: 8 señales, 5 de Seguridad; time.h no falla pero le llega el fallo por time.h:78 › clamped_math.h:11 › safe_conversions.h:15; en la Ciudad, los que fallan en rojo](maquetas/png/neon/carpetas-senales.png)
+![Siguiente señal: el editor se abre en safe_conversions_impl.h:91, *(volatile char*)0 = 0](maquetas/png/neon/carpetas-senales-editor.png)
+![Ver en el grafo: los 4 seleccionados, sus carpetas desplegadas y la cámara encuadrada en ellos](maquetas/png/neon/carpetas-grupo-grafo.png)
+![Aislar el grupo: solo lo conectado con los 4, con cables de dependencia; el resto, apagado](maquetas/png/neon/carpetas-grupo-aislado.png)
+
+**Comprobado:**
+
+- `tests/senales.rs`: el orden (Seguridad antes que Elegancia), el papel de cada uno y la
+  cadena hasta la causa con sus líneas.
+- `tests/proyecto.rs`: desde la Ciudad, «Ver en el grafo» con tres archivos en carpetas
+  sin desplegar. Pide las carpetas al disco, selecciona a los tres y dibuja dos cables del
+  grupo.
+- La misma prueba aísla el grupo: los tres son centro, se apaga lo que no los toca, no
+  queda ningún cable de fallo, y la **A** con los tres seleccionados aísla lo mismo.
+
+**Límites:**
+
+- Como mucho 400 señales por grupo (se dice cuántas hay) y 40 en la lista; «Siguiente»
+  recorre las 400.
+- Al aislar varios se calcula lo que usa y lo que usa a cada uno, y se juntan (como mucho
+  1 000 000 de archivos; si no caben, el panel dice «recorte»).
+
+**Un fallo viejo que salió aquí:** cuando un botón de un panel lateral (Aislar, el filtro
+del triángulo…) cambiaba el grafo, la geometría de la GPU se marcaba con la versión nueva
+pero seguía con el dibujo viejo, y no se rehacía. Se veían los cables rojos del fallo
+estando aislado. Ahora la geometría lleva la versión de la vista de la que sale.
+
+## El SUPER GRAFO sin ventana: consultas en JSON y servidor MCP
+
+El mismo mapa contesta preguntas sin abrir la ventana, con respuestas **exactas y con
+tope**: primero las cifras y lo peor; las listas llevan `limite` (10 por defecto, como
+mucho 100) y dicen cuántos quedan. Así un proyecto de 4 000 archivos y uno gigante
+cuestan casi lo mismo a quien pregunta (una persona, un script o una IA).
+
+```bash
+ultra-carpetas --consulta resumen  <carpeta>
+ultra-carpetas --consulta camino   <carpeta> '{"a": "base/time/time.h", "b": "base/numerics/safe_conversions_impl.h"}'
+ultra-carpetas --consulta peso     <carpeta> '{"ruta": "base/time/time.h", "limite": 3}'
+ultra-carpetas --mcp <carpeta>     # servidor MCP por stdio (JSON-RPC 2.0)
+```
+
+**Herramientas** (las mismas en `--consulta` y en MCP):
+
+| Herramienta | Qué contesta |
+|---|---|
+| `resumen` | Archivos, dependencias, sospechas por eje, fallo conectado y ciclos |
+| `buscar` | Rutas por nombre, como Ctrl+P |
+| `archivo` | Lo que usa y quien lo usa (con la línea de cada `#include`), sus sospechas y su papel |
+| `fallos` | Las causas probables del fallo conectado: cuánto explica cada una y a cuántos llega |
+| `senales` | Lo que señalan unos archivos, en el orden para arreglar, con su ficha y por dónde les llega |
+| `camino` | Por dónde se unen dos archivos, con la línea de cada paso y lo imprescindible |
+| `ciclos` | Los ciclos de cabeceras, su vuelta y dónde cortar |
+| `peso` | Si cambia este archivo, cuántos se recompilan y por dónde se reparte |
+| `combinar` | Cómo se combinan varios: directas, compartidos, quién los junta |
+| `ficha` | Una ficha del museo entera |
+| `gcc_diagnosticos` | La opinión de GCC sobre un archivo, en SARIF (con `-fanalyzer` si se pide) |
+| `gcc_deps` | Cuánto acierta el mapa léxico frente a `gcc -MM -MG` |
+| `exportar_sarif` | El museo (y lo de GCC) en un archivo SARIF 2.1.0 |
+| `reanalizar` | Volver a leer la carpeta ya (el servidor MCP lo hace solo al ver cambios) |
+| `cronologia` | Cómo se construyó el proyecto desde el primer commit: crecimiento por periodos, carpetas en orden de nacimiento, vida de un archivo, qué commit añadió una dependencia o cerró un ciclo, y una verificación contra lo de hoy |
+| `guardia` | Modo guardia: mantener revisados por los guardianes todos los `.c` de una carpeta (o del proyecto), por turnos, y después solo lo que cambie |
+| `guardianes` | El perfil de los guardianes (banderas de `perfil-gcc.sh`) y las revisiones de GCC guardadas: si siguen al día |
+| `cambios` | Qué cambió desde el análisis anterior: sospechas nuevas y arregladas, fallos, causa principal, ciclos |
+| `ventana` | Lo que la persona mira ahora en la ventana (vista, grupo, selección, camino, editor), con las señales de su grupo |
+| `mostrar` | Enseñar algo en la ventana: un grupo, una línea, un camino, aislar o limpiar (solo mueve la vista) |
+
+**MCP (Model Context Protocol)** es el protocolo abierto con el que una IA llama a
+herramientas y recibe datos, no imágenes. `.mcp.json` en la raíz registra el servidor
+`super-grafo` (`scripts/super-grafo-mcp.sh`, que compila el binario la primera vez). Un
+cliente como Claude Code lo ofrece al abrir el repositorio, y pide permiso antes de usarlo.
+
+- Se habla **JSON-RPC 2.0 por stdio**: `initialize` (versiones 2025-06-18, 2025-03-26 y
+  2024-11-05), `tools/list`, `tools/call` y `ping`.
+- stdout es solo del protocolo. Un error de una herramienta va dentro del resultado
+  (`isError`); una herramienta que no existe es un error JSON-RPC.
+- El análisis arranca en otro hilo: `initialize` contesta al momento.
+
+**GCC (y Clang) hablan en datos:**
+
+- **`gcc_diagnosticos`** compila con `-Wall -Wextra -O2 -c -o /dev/null` (no escribe nada)
+  y `-fdiagnostics-format=sarif-stderr`. Con `analizador: true` añade **`-fanalyzer`**, con
+  el camino paso a paso de cada problema. Si el camino cruza archivos, cada paso dice el
+  suyo (`src/util.h:3: freed here`).
+- **`compilador: auto | gcc | clang`** (en `gcc_diagnosticos` y `gcc_deps`):
+  - `auto` usa el de `compile_commands.json`: `clang++`, o el
+    `third_party/llvm-build/.../clang++` de Chromium, es Clang. Sin él, GCC.
+  - Se ejecuta siempre el `gcc` o `clang` del sistema, nunca el binario que nombra el
+    proyecto.
+  - Con Clang:
+    - los diagnósticos se leen en texto, con su `-W`, porque el SARIF de Clang 18 es
+      «inestable» y no dice el `-W`;
+    - las notas pasan a ser pasos del aviso;
+    - `analizador: true` corre su analizador estático (`--analyze`) en SARIF, también
+      con el camino de cada fallo.
+  - La respuesta dice qué compilador habló. La revisión guardada lo recuerda y se repite
+    con el mismo.
+  - Los guardianes son de GCC: pedir `clang` con su perfil es un error.
+  - Medido en OpenSSL, con el analizador: `bss_file.c` 395 ms con GCC y 485 ms con Clang;
+    `ssl_lib.c` 3,8 s y 9,3 s, con 44 y 38 avisos.
+  - Una nota: el analizador de Clang descarta a propósito los NULL que devuelve una
+    función que él despliega (`suppress-null-return-paths`); `-fanalyzer` no.
+  - Sus errores entran en las señales y en el fallo conectado.
+  - Solo acepta flags que no escriben ni ejecutan nada: `-I` relativas, `-D`, `-std=` y `-W`.
+- **En la terminal de la aplicación**, si compilas con
+  `-fdiagnostics-format=sarif-stderr`, el bloque SARIF se convierte en diagnósticos de
+  siempre y se marcan en sus nodos.
+- **`exportar_sarif`:** las sospechas del museo, con su ficha como regla, en SARIF 2.1.0.
+  - Seguridad exacta → `error`; Seguridad a revisar → `warning`; Rendimiento y Elegancia
+    → `note`.
+  - Lo leen GitHub y los editores sin adaptadores.
+
+**Medido:**
+
+- **Respuestas MCP en Chromium `base/`**, desde un cliente JSON-RPC de prueba contra el
+  binario real:
+  - `initialize`, 2 ms;
+  - `resumen`, 197 ms (la primera espera al análisis), unos 143 tokens;
+  - `camino`, 0 ms, unos 169 tokens;
+  - `peso`, 1 ms, unos 117 tokens;
+  - `senales`, 0 ms, unos 302 tokens.
+
+  Una captura de pantalla son unos 1 500 tokens: cada respuesta cuesta de 5 a 10 veces
+  menos y es exacta.
+- **`--consulta resumen`** completo (indexar, analizar y contestar): 0,2 s con la caché de
+  disco caliente; la primera vez, 6,4 s, casi todo esperando al disco.
+- **El mapa léxico frente a `gcc -MM -MG`** (15 archivos de Chromium `base/`, con
+  `-Ibase/allocator/partition_allocator/src`):
+  - cobertura **100 %**: todo lo que GCC incluye, el mapa también lo ve;
+  - precisión 55 %;
+  - **sin los `#include` que están dentro de un `#if`, la precisión sube al 94 %**
+    (810 de 818 aciertos).
+
+  Casi todo el desacuerdo son ramas de plataforma o de configuración (`PA_BUILDFLAG`, que
+  Chromium genera al compilar), y el SUPER GRAFO ya las distingue.
+- **GCC confirma el museo:** en el caso `C-001` (`free(p + 1)`), GCC dice `'free' called on
+  pointer 'p' with nonzero offset 1` (`-Wfree-nonheap-object`). Con `-fanalyzer` añade la
+  fuga de memoria con sus 5 pasos.
+- **El SARIF del museo de Chromium:** 432 resultados en 10 reglas: 2 `error` y 13 `warning`
+  (las 15 de Seguridad), y 417 `note`.
+
+**Comprobado:**
+
+- Pruebas de `consultas.rs`:
+  - respuestas exactas y con tope;
+  - rutas fuera de la carpeta y flags peligrosas, rechazadas;
+  - lectura del SARIF de GCC;
+  - GCC confirmando C-001;
+  - el SARIF exportado.
+- Pruebas de `mcp.rs`: `initialize`, notificaciones sin respuesta, `tools/list` con sus
+  esquemas, `tools/call`, errores dentro del resultado y métodos desconocidos.
+
+**Límites:**
+
+- Las rutas se resuelven por texto (léxico); para la verdad de una compilación concreta
+  están `gcc_deps` y `gcc_diagnosticos`.
+- `gcc_deps` no conoce los flags reales del proyecto: hay que pasarle sus `-I`, y sin las
+  cabeceras generadas en la compilación algunas ramas `#if` no se pueden evaluar.
+- Una línea SARIF de más de 64 KiB en la terminal se queda como texto.
+- El servidor MCP carga el análisis en memoria al arrancar; para leer cambios, `reanalizar`.
+
+### En vivo: el servidor vigila, avisa y habla con la ventana
+
+**Vigila la carpeta al instante (inotify).** El kernel avisa de cada cambio, sin sondear.
+
+- Se vigilan todas las carpetas del índice, y una carpeta nueva se añade sola.
+- Solo despierta lo que el SUPER GRAFO lee (C, C++, ASM, Rust, Python y
+  `compile_commands.json`): un `.txt` no.
+- Se junta la ráfaga 150 ms, se confirma con una firma barata (rutas, tamaños y fechas) y
+  se reanaliza en incremental.
+- Por si se perdiera un aviso, comprueba cada 30 s.
+- Sin inotify (otro sistema o sin vigilancias libres), vuelve a sondear cada 1 a 30 s.
+
+**Recursos MCP con suscripción:** `super-grafo://resumen`, `fallos`, `ciclos`, `cambios`
+y `ventana`.
+
+- Se leen con `resources/read`; con `resources/subscribe`, el cliente recibe
+  `notifications/resources/updated` cuando su contenido cambia.
+- Con `logging/setLevel`, además, `notifications/message` con lo que cambió (por ejemplo,
+  «sospecha nueva C-001 en libera.c»).
+
+**`cambios`** compara con el análisis anterior:
+
+- sospechas nuevas y arregladas (por archivo, ficha y lo visto, que no cambia al moverse
+  de línea);
+- archivos que empiezan a fallar o dejan de fallar;
+- la causa principal, antes y ahora;
+- ciclos nuevos y rotos.
+
+**El puente con la ventana.** Una carpeta privada por proyecto
+(`$XDG_RUNTIME_DIR/ultra-carpetas/vivo-<huella>`, permisos 700).
+
+- La ventana escribe ahí **lo que se ve** (`ventana.json`): modo, panel, grupo,
+  selección, aislado, filtro, archivo y línea del editor, camino. Lo escribe al cambiar
+  y con un latido cada 5 s.
+- El MCP deja **peticiones** (`peticion-*.json`). Un hilo de la ventana las recoge cada
+  300 ms y las aplica: un grupo (en la Ciudad o en el grafo), una línea en el editor, un
+  camino, aislar o limpiar. Solo mueve la vista: nunca escribe en el proyecto ni ejecuta
+  nada.
+- Las peticiones caducan a los 2 minutos.
+
+![Pedido por MCP: la ventana enseña el camino de launch_fuchsia.cc a safe_conversions_impl.h, con sus señales; abajo, «el SUPER GRAFO (MCP) te enseña: camino»](maquetas/png/neon/carpetas-mcp-mostrar.png)
+
+**Medido, de punta a punta** (ventana abierta en Chromium `base/` y un cliente MCP contra
+el binario real):
+
+- `ventana` dice qué se mira en **unos 93 tokens**, sin capturas.
+- `mostrar` con un camino: la ventana lo aplica sola (panel Combinar, el grupo, los arcos
+  en la Ciudad, «el SUPER GRAFO (MCP) te enseña: camino»).
+- Después, `ventana` devuelve el camino, su porqué y las 2 señales del grupo, en unos
+  357 tokens.
+- **Vigía con inotify, en Chromium `base/`:** de guardar un archivo con `free(p + 1)` al
+  aviso `notifications/resources/updated` (`fallos`) pasan **291 ms**, con el reanálisis
+  incremental de 128 ms. Al arreglarlo, 293 ms y «1 arreglada». Antes, de 1 a 30 s.
+
+**Comprobado:**
+
+- `mcp.rs`: los recursos; suscribirse; que no avise sin cambios; que avise y que
+  `cambios` diga la sospecha nueva y el archivo que falla; y, al arreglarlo, la sospecha
+  arreglada.
+- `puente.rs`: ida y vuelta de la vista y de las peticiones, en orden y borradas al
+  recogerlas.
+
+**Los guardianes del proyecto en el SUPER GRAFO.** En un archivo de C, `gcc_diagnosticos`
+usa **el perfil de los guardianes**: `ULTRA_WARN` leído de
+`src/guardian/produccion/perfil-gcc.sh`, la fuente única de banderas. Revisa en dos
+pasadas, como `ultra_revisar`: `-O0 -fanalyzer` y `-O2`.
+
+- `ULTRA_WARN` lleva `-Werror`: lo que avisa el guardián es un error y entra como fallo.
+- En C++, o con `perfil: "generico"`, se usan `-Wall -Wextra -O2`.
+- **Las revisiones no se pierden:** se guardan con la fecha y el tamaño de su archivo, en
+  la caché.
+  - Al reanalizar, lo que dijo GCC de los archivos que no cambiaron vuelve a las señales
+    y al fallo conectado.
+  - Sobreviven a reiniciar el servidor.
+- **Se repiten solas:** el vigía vuelve a revisar con el mismo perfil, como mucho 4 por
+  ronda, antes de avisar, cuando cambia el archivo revisado **o cualquiera de las
+  cabeceras del proyecto que GCC leyó al revisarlo**. Así `cambios` dice si el guardián lo
+  hace fallar o ya pasa.
+  - Esas cabeceras las dice GCC (`-MMD -MF /dev/stdout`, por la salida y no al disco),
+    con los `#if` ya resueltos: son las de verdad, no las del mapa léxico.
+  - Cada revisión guarda la fecha y el tamaño de las suyas (hasta 4 000).
+  - `cambios` y `guardianes` dicen el motivo: «cambió inc/util.h».
+  - En este repositorio, `ultra_guard.c` vigila 1 cabecera y `minas.c`, 2.
+- Medido en este repositorio: `produccion/ultra_guard.c` pasa limpio, con **0 errores**.
+  `laboratorio/minas.c` da **86 errores** (VLA, `cast-align`, `format-nonliteral`…), como
+  debe un campo de minas. Unos 250 ms las dos pasadas.
+
+**Modo guardia** (`guardia`): revisa por turnos todos los archivos de C de una carpeta, o
+del proyecto, con el perfil de los guardianes. Después solo repite lo que cambie.
+
+- Guarda el **criterio** (carpeta, si incluir C++, si incluir los casos a propósito), no
+  una lista: un `.c` nuevo entra solo.
+- Si hay `compile_commands.json`, guarda lo que de verdad se compila.
+- Las carpetas con `CASOS-MUSEO.txt` quedan fuera, salvo que se pida (sus minas son a
+  propósito).
+- Va de 2 en 2 sin bloquear las preguntas, y avisa del progreso (`notifications/message`).
+- Sobrevive a reiniciar.
+- `guardianes` dice cuántos están al día y los peores.
+
+**Medido en este repositorio** (la guardia entera, por MCP): 26 archivos de C en **9,2 s**.
+
+- Fallan 2:
+  - `src/guardian/minas.c` (86 errores): la entrada que incluye las minas del
+    laboratorio, como se espera;
+  - **`src/caja/caja.c`** (4 errores): usa `LANDLOCK_SCOPE_SIGNAL` y
+    `LANDLOCK_SCOPE_ABSTRACT_UNIX_SOCKET`, de Landlock en Linux 6.12 o más nuevo, y las
+    cabeceras del kernel de esta máquina son más viejas. Es el entorno, no un fallo de
+    `caja.c`: con esas cabeceras, la caja no compila.
+- El resto pasa limpio.
+
+**Dos fallos de la primera versión, arreglados:**
+
+- Al volver a aplicar las revisiones se vaciaba la lista pero no su cuenta. Tras unas
+  rondas la cuenta llegaba al tope (500) y dejaban de contar: «0 archivos que fallan» con
+  2 que fallaban.
+- El tope se reparte con justicia: primero un error de cada archivo, después el resto de
+  errores y al final los avisos. Un archivo con más de 500 errores ya no tapa el fallo de
+  otro.
+
+Las dos pruebas se comprobaron fallando con el código anterior.
+
+**El puente:** la carpeta es 700 y sus archivos 600 (solo el usuario). Al cerrar la
+ventana se borra `ventana.json`: no queda a la vista lo que se miraba.
+
+**Límites:**
+
+- Solo se repiten solas las revisiones que ya se pidieron alguna vez (con
+  `gcc_diagnosticos`). El guardián no revisa todo el proyecto por su cuenta.
+- Las cabeceras del sistema (`<stdio.h>`) no se vigilan: `-MMD` las deja fuera.
+- El puente sigue al alcance de otros procesos **del mismo usuario** (como su `~/.cache`).
+  Solo mueve la vista.
+- inotify es de Linux. En otro sistema, el vigía vuelve a sondear.
+
+### Flags reales (`compile_commands.json`) e índice incremental
+
+**`compile_commands.json`** (lo generan Bear, CMake, Meson o GN con GCC) dice cómo se
+compila de verdad cada archivo. Se busca en la raíz, `build/`, `out/Default/` y `out/`.
+
+- **En el mapa:** sus `-I` de dentro del proyecto entran en el resolvedor. Un `#include` se
+  busca ahí antes que adivinando por el final de la ruta: si hay dos `lib/util.h`, manda
+  la `-I` del compilador, no el más cercano.
+- **En GCC:** `gcc_diagnosticos` y `gcc_deps` compilan cada archivo **en su carpeta y con
+  sus flags**. La respuesta dice de dónde salen (`flags_de`).
+- **Seguro:** solo se copian flags que no ejecutan ni escriben nada (`-I`, `-isystem`,
+  `-iquote`, `-D`, `-U`, `-std=`, `-include`, `-f…`, `-m…`, `-W…`). Se descartan, y se
+  cuentan, `-fplugin`, `-B`, `-specs`, `-wrapper`, `-Wl,`, `-Werror` y los archivos de
+  respuestas `@…`.
+
+**Índice incremental:** lo que se saca de cada archivo (sus referencias y sus sospechas)
+se guarda en la caché del usuario (`$XDG_CACHE_HOME/ultra-carpetas/`, o `~/.cache`), con
+su fecha y su tamaño.
+
+- La vez siguiente solo se relee lo que cambió.
+- Las referencias se guardan sin resolver: cambiar `compile_commands.json` no obliga a
+  releer nada.
+- La caché se invalida sola si cambia el programa (otros detectores del museo).
+- Se escribe de golpe (a un temporal y renombrando).
+- `ULTRA_SIN_CACHE=1` la apaga; `ULTRA_CACHE_DIR` la cambia de sitio.
+- El panel Museo dice cuántos vinieron de la caché.
+
+**Medido en Chromium `base/`** (3 324 archivos):
+
+- **Análisis:** 348 ms la primera vez; **100 ms** con la caché (3 324 de 3 324 sin
+  releer). La caché ocupa 1,4 MB.
+- **`gcc_deps` con `compile_commands.json`** (15 archivos, 0,8 s):
+  - cobertura 100 %, precisión 58,9 %;
+  - **sin los `#include` dentro de un `#if`, precisión 100 %** (861 de 861).
+
+  El `compile_commands.json` de esta prueba lo generé a mano para los 1 730 `.cc` de
+  `base/`, con las dos `-I` que usa Chromium (`.` y
+  `base/allocator/partition_allocator/src`). No es el de una compilación real con GN.
+
+**Un fallo que salió aquí y se arregló:** GCC se quedaba bloqueado si escribía más de
+64 KiB (un SARIF grande o un `-MM` largo), porque la salida se leía al final. Se cortaba
+a los 60 s. Ahora se lee mientras corre: los 15 archivos pasaron de 300 s a 0,8 s.
+
+**Comprobado:**
+
+- `compilacion.rs`: partir órdenes de shell con comillas, solo las flags seguras con rutas
+  absolutas, y las `-I` de dentro de la raíz.
+- `analisis.rs`: la segunda pasada no relee nada; una `-I` real gana a la adivinanza;
+  cambiar un archivo solo relee ese, y un arreglo quita su sospecha.
+- `tests/dependencias.rs`: la `-I` manda sobre el más parecido.
+
+### Proyectos grandes: OpenSSL y SpiderMonkey
+
+![La Ciudad de SpiderMonkey: 10 402 archivos, 3,5 millones de líneas](maquetas/png/neon/ciudad-spidermonkey.png)
+
+Medido con dos proyectos reales bajados de crates.io (la red de la prueba no dejaba bajar
+el kernel):
+
+- **OpenSSL 4.0.3:** 1 249 `.c` y 528 `.h`, 666 000 líneas.
+- **SpiderMonkey 153** (el motor de JavaScript de Firefox, en C++): 10 455 archivos y
+  2,3 millones de líneas de C y C++.
+
+**Velocidad y memoria** (`--consulta`, 4 núcleos):
+
+| | OpenSSL | SpiderMonkey |
+| --- | --- | --- |
+| Primer análisis | 0,19 s | 1,2 s (107 MB leídos) |
+| Con la caché | 0,03 s | 0,27 s |
+| Cada pregunta (`fallos`, `camino`, `peso`, `buscar`, `ciclos`) | — | unos 0,25 s |
+| Memoria máxima | 29 MB | 71 MB |
+| Respuesta de `resumen` | 196 tokens | 280 tokens |
+
+La ventana abre SpiderMonkey en 0,7 s. La Ciudad (10 402 edificios, 1 009 distritos)
+ocupa 267 MB de memoria con Vulkan por software. Solo se probó en la pantalla virtual,
+no con una GPU de verdad.
+
+**Exactitud de las dependencias** (`gcc_deps`, 50 archivos de OpenSSL repartidos):
+
+- Con las cabeceras generadas (`./Configure` y `make build_generated`, como el crate):
+  **cobertura 100 %, precisión 94,3 %**. Sin los `#include` que están dentro de un `#if`,
+  **precisión 100 %** (1 567 de 1 567). Lo que sobra es de otras plataformas:
+  `ebcdic.h` (mainframes de IBM) y `e_winsock.h` (Windows).
+- **Sin generarlas, la medida mentía:** daba 70 %. OpenSSL genera 28 cabeceras al
+  compilar (`x509.h`, `ssl.h`… vienen como `.h.in`). Esta máquina tiene las de OpenSSL 3
+  del sistema, así que GCC tomaba esas, de otra versión. Y con `-MM` callaba todo lo que
+  entraba a través de ellas, aunque fuera del proyecto. Arreglado en `gcc_deps`:
+  - usa `-M` en vez de `-MM`;
+  - no mide un archivo si le faltan cabeceras, o si GCC toma del sistema una que el
+    proyecto tiene como plantilla `.h.in`;
+  - lo dice en `sin_medir`: cuántos, cuáles faltan y cuáles se tomaron del sistema.
+
+  Ahora, sin generar, contesta «0 medidos: faltan 6 y 25 se tomaron del sistema» en vez
+  de un 70 % falso.
+- La medida de Chromium `base/` de arriba (58,9 %) se hizo con `-MM`. Pudo tener el mismo
+  problema; queda por repetir.
+
+**Cabeceras exportadas.** Los proyectos grandes copian sus cabeceras al compilar a otra
+carpeta, con otro prefijo. En SpiderMonkey, `mfbt/Assertions.h` se incluye como
+`"mozilla/Assertions.h"` y `js/public/Value.h` como `"js/Value.h"`. Sin compilar esa ruta
+no existe, y el mapa creía que **nadie usaba `Assertions.h`**: se perdían 5 177 de 35 938
+`#include` (15 %).
+
+Ahora se aprende del proyecto entero, en una segunda pasada:
+
+- Un prefijo (`mozilla/`) se acepta si tiene al menos 5 `#include` distintos sin resolver
+  y la mitad o más caen en un archivo del proyecto. En SpiderMonkey entran `mozilla/`
+  (60 %) y `js/` (79 %); `sys/` (2 %) no. Además, `sys/`, `linux/`, `asm/`, `bits/` y
+  similares nunca se aceptan.
+- Solo se deduce si **el nombre del archivo es único en el proyecto**. Al exportar se
+  aplanan carpetas: `mozilla/intl/Locale.h` es `intl/components/src/Locale.h`, no
+  `js/src/builtin/intl/Locale.h`, aunque este acabe en `/intl/Locale.h`. Con el nombre
+  repetido, la primera versión acertaba 41 de 86.
+- Cada flecha deducida lleva `"exportada": true` en su motivo, y `resumen` dice qué
+  prefijos se aprendieron y cuántas flechas dieron.
+
+**Contrastado con la verdad** (los `EXPORTS` de los `moz.build` de Mozilla): de 5 079
+flechas deducidas, **5 076 bien, 0 mal y 3 dudosas** (`mozilla/Logging.h`, cuyo archivo
+real no viene en el crate). `Assertions.h` pasó de «sin dependencias» a 446 archivos que
+lo usan directamente. En OpenSSL y en este repositorio no se deduce nada.
+
+**Comprobado:**
+
+- `tests/dependencias.rs`: se aprende `mozilla/` y no `sys/`; un prefijo con pocos aciertos
+  no entra; el `Locale.h` repetido no se deduce.
+- `consultas.rs`: `gcc_deps` no mide un archivo con una cabecera generada que falta, ni uno
+  que tomó del sistema la de una plantilla `.h.in`. Las dos pruebas fallan sin el arreglo.
+
+### La cronología: cómo se construyó, desde el primer commit
+
+`cronologia` reconstruye la historia **sin sacar ninguna versión vieja** (con Chromium
+serían años de trabajo). Usa dos lecturas de git, leídas en flujo, línea a línea, sin
+guardar la salida:
+
+1. `git log --reverse --name-status -M`: cuándo nace, se mueve o muere cada archivo, quién
+   lo hizo y por qué (el asunto del commit).
+2. `git log --reverse -p -U0 -G'#include|mod|use|import'`: solo los commits que tocan
+   una línea de referencias. De cada línea que entra o sale se sacan sus referencias con
+   el mismo lector que el mapa de hoy.
+
+Con eso se reproduce la historia commit a commit. En cada corte se resuelve el mapa de
+ese momento, con las reglas de hoy, y se cuentan archivos, dependencias y ciclos.
+
+| Pregunta | Qué contesta |
+| --- | --- |
+| (sin argumentos) | Crecimiento por periodos, carpetas en orden de nacimiento (`profundidad`) y la **verificación** |
+| `ruta` | Cuándo nació, quién y por qué; sus nombres anteriores; cuántas veces cambió; si murió. De una carpeta, cuántos archivos tenía en cada periodo |
+| `a` y `b` | Qué commit añadió la referencia que une a `a` con `b` |
+| `ciclos` | Qué commit cerró cada ciclo de hoy (la última referencia de su vuelta que entró) |
+
+**Se verifica sola.** Lo reconstruido al final se compara con lo que hay hoy:
+- en archivos, sin contar los ocultos;
+- en dependencias: si falta o sobra alguna, se dice cuál.
+
+Si el clon es superficial (sin el principio de la historia), lo avisa.
+
+**En este repositorio** (164 commits, del 18 al 25 de octubre de 2026), en 0,6 s:
+
+- Archivos: **2 350 de 2 350**. Dependencias: **333 de 333**, ninguna de más. Las 5 de hoy
+  que faltaban eran el código de la propia cronología, aún sin commit.
+- El orden en que nacieron las carpetas:
+  - `docs`, `evidencias` y `scripts` en el primer commit;
+  - `src` con el kernel mínimo;
+  - `C++` el día 19;
+  - `config`, `ASM` y `Museo` el 22;
+  - `CASM` el 25.
+- Los dos ciclos de hoy se cerraron en `39fb860`, el commit que añadió los casos de
+  prueba de ciclos.
+
+**A escala:** una historia sintética de **100 000 commits** (`git fast-import`; 30 106
+archivos y 73 313 dependencias al final) se lee y reproduce en **18 s con 211 MB**. Git
+se lleva unos 16 s: la lectura con `-p` sola tarda 13,6 s. Leer y reproducir los 100 000
+commits cuesta unos 1,8 s. La verificación sale perfecta en archivos y dependencias.
+Chromium (1,5 millones de commits, cambios más grandes) no se ha medido. Calculo de
+varios minutos a media hora la primera vez; cada lectura se corta a los 30 min. El
+servidor MCP la guarda en memoria hasta que cambia el último commit.
+
+**Límites (los dice cada respuesta):**
+- no se ve lo que un `#include` no escribe (macros, rutas generadas), igual que hoy;
+- no se sabe el `#if` de una línea suelta;
+- un `use` de Rust partido en varias líneas se ve a medias;
+- los merges no cuentan y el orden es el de `git log`.
+
+**Comprobado:**
+
+- `tests/cronologia.rs`: una historia a mano con nacer, mover (la fecha de nacimiento
+  sigue al archivo), borrar y cerrar un ciclo; los cortes; líneas raras que no rompen nada.
+- `consultas.rs`: un repositorio de git de verdad con tres commits. La herramienta da el
+  crecimiento, las carpetas en orden, el nombre anterior, el commit que cerró el ciclo y
+  el que añadió una dependencia, y la verificación al 100 %.
+
+### La ciudad fantasma: ver cómo se construyó
+
+![Commits 1, 40, 84 y 165 de este repositorio en la Ciudad](maquetas/png/neon/ciudad-cronologia.png)
+
+En la Ciudad, **«Ver cómo se construyó (git)»** lee la cronología, en otro hilo y una sola
+vez, y pone la ciudad en el primer commit:
+
+- Lo que **aún no existía** es un solar oscuro y bajito: se ve dónde irá.
+- Lo que **acaba de nacer** brilla en dorado, durante un 3 % de la historia.
+- **Reproducir** recorre toda la historia en unos 30 s, sea cual sea su largo. También se
+  puede mover el deslizador o ir commit a commit (`<`, `>`). **Hoy** sale.
+- El panel dice:
+  - la fecha y el asunto del commit;
+  - cuántos archivos de hoy ya existían;
+  - las últimas carpetas que nacieron (el orden en que se fue armando).
+- La ficha de cada edificio dice cuándo nació y con qué commit. Si git no lo conoce (sin
+  commit, ignorado o generado), también lo dice.
+
+**Casi no gasta en 3D.** Son los mismos edificios que ya estaban en la GPU: cada uno lleva
+su nacimiento (de 0 a 1 en la historia, 4 bytes más: 44 por edificio) y la cámara lleva
+el momento que se mira. Mover el tiempo solo cambia ese número; el shader decide qué es
+solar, qué brilla y qué es normal. No se rehace la ciudad ni se sube nada más. Lo que aún
+no existe tampoco se puede elegir con el ratón.
+
+**En este repositorio** (las cuatro fotos de arriba):
+
+| Commit | Fecha | Archivos de hoy que ya existían |
+| --- | --- | --- |
+| 1 | 18 de octubre | 7 de 2 357 (`docs`, `evidencias`, `scripts`) |
+| 40 | 19 de octubre | 285 (nacían `src/logo` y el laboratorio de C) |
+| 84 | 22 de octubre | 1 213 (`ASM/laboratorio`, las evidencias de producción) |
+| 165 | 25 de octubre | 2 357 (`CASM`) |
+
+Solo se probó en la pantalla virtual, con Vulkan por software. La Ciudad enseña los
+archivos de hoy: los que murieron por el camino no salen (la herramienta MCP `cronologia`
+sí los cuenta).
+
+**Comprobado** (`ciudad3d.rs`): cada edificio sabe cuándo nació (lo desconocido, al
+final; un bloque, por su carpeta); el tiempo solo corre con la cronología puesta; la
+instancia ocupa 44 bytes y la cámara 96.
+
+### A escala de Chromium: límites subidos y medidos
+
+![312 060 archivos y 105 millones de líneas en una sola Ciudad](maquetas/png/neon/ciudad-escala-chromium.png)
+
+Sin red para bajar Chromium, la prueba fue **30 copias de SpiderMonkey** (enlaces duros:
+no ocupan disco): 342 360 rutas, 312 060 archivos, 247 740 de código, 3,2 GB de C, C++,
+Python y Rust. Por tamaño se parece a Chromium (unos 509 000 archivos). No es Chromium:
+ni su forma ni sus `#include` son los suyos. En esta prueba no salen cabeceras
+exportadas, porque con 30 copias ningún nombre es único.
+
+**Con los límites viejos se cortaba:** el análisis paraba en 2 GiB (157 000 de 248 000
+archivos de código, `recortado: true`).
+
+| Límite | Antes | Ahora |
+| --- | --- | --- |
+| Presupuesto del análisis | 2 GiB o 60 s | 32 GiB o 10 min (`ULTRA_PRESUPUESTO_GB`, `_S`) |
+| Contar líneas | 1 GiB o 20 s | 32 GiB o 5 min |
+| Índice | 600 000 rutas | 2 000 000 |
+| Ciudad | 60 000 edificios | 600 000 |
+| Vigía (inotify) | 60 000 carpetas | 500 000 (si el sistema no deja, mira cada poco) |
+| Alcance (`peso`, aislar, fallo conectado) | 20 000 archivos | 1 000 000 |
+
+**Subirlos destapó cuatro cuellos de botella, arreglados:**
+
+1. **La caché en JSON:** 103 MB, 10 s y 1,8 GB de memoria al cargarla, más 6 s al
+   escribirla. Ahora es **binaria**, con una tabla de textos sin repetir: 50 MB, 0,3 s
+   al cargarla y 0,5 s al escribirla, en paralelo con la resolución. Si nada cambió no se
+   reescribe. Se lee comprobando cada largo: cortada o rota, se ignora y se relee todo.
+2. **Lo guardado se copiaba** a cada archivo y después se tiraba (más de 1 s y cientos
+   de MB). Ahora se mueve.
+3. **Resolver** los `#include` iba en un solo hilo (2,3 s). Ahora va repartido entre los
+   núcleos y se junta en orden (1,0 s con 4 núcleos).
+4. **El alcance** guardaba cada paso en un `BTreeMap`: 500 000 archivos costaban 0,9 s.
+   Ahora usa un arreglo plano: **51 ms**. El fallo conectado solo cuenta, y reutiliza la
+   memoria entre causas.
+
+**Medido** (4 núcleos):
+
+| | Antes | Ahora |
+| --- | --- | --- |
+| Primer análisis, sin caché | 17,5 s (cortado en 2 GiB) | 17 s (todo) |
+| Con la caché | 10 s y 1,8 GB | **3,1 s y 473 MB** |
+| Servidor MCP: arranque | — | 3,4 s, 366 MB |
+| Servidor MCP: cada pregunta | — | **0,2 a 21 ms** |
+| Del guardado al aviso en vivo | 5,9 s | 4,3 s |
+
+En el servidor MCP el mapa vive en memoria: `fallos`, `peso`, `archivo` y `ciclos` tardan
+menos de 1 ms; `buscar` (texto en 342 000 rutas), 21 ms. El aviso en vivo ya no recorre la
+carpeta dos veces (la firma y el análisis usan el mismo índice). Esa firma se toma
+**antes** de leer, así que un cambio hecho a mitad del análisis no se pierde. Antes se
+tomaba al final.
+
+**La Ciudad** con 312 060 edificios, uno por archivo, y 30 300 distritos: 1,09 GB de
+memoria (130 MB más que con bloques). Con Vulkan por software el cuadro tarda unos 21 ms.
+No se probó con una GPU de verdad.
+
+**El peor caso del fallo conectado** (`tests/escala.rs`, grafo sintético de 500 000
+archivos y 4 millones de `#include`):
+
+- 1 500 fallos repartidos: 0,4 s;
+- 300 cabeceras de base fallando a la vez, cada una arrastrando a unos 425 000 archivos:
+  **2,9 s** (antes 4,3 s). Son unos 67 millones de pasos para contar exacto. Se prefirió
+  exacto y lento en ese extremo a recortar y que el orden de las causas mienta.
+
+**Comprobado:**
+
+- `analisis.rs`: la caché binaria va y vuelve igual (referencias con su `#if`, Python con
+  puntos, sospechas), y no se lee cortada en ningún largo ni con otra huella.
+- Una prueba vieja pilló un fallo mío: al borrar la caché JSON antigua se borraba la
+  nueva si su nombre acababa en `.json`.
+- Las 107 pruebas del núcleo y las 45 de la app pasan con el alcance nuevo.
+
+**Queda:** el aviso en vivo con 312 000 archivos sigue en unos 4 s, porque cada cambio
+vuelve a resolver todos los `#include`. Lo siguiente es resolver solo lo que cambió
+cuando las rutas del índice son las mismas.
+
+Decisiones (triángulo Seguridad, Rendimiento y Elegancia; C con GCC en x86-64; Clang solo como segundo compilador) y siguiente camino: [SUPER-GRAFO.md](SUPER-GRAFO.md).
 
 **Límites:**
 
@@ -511,12 +1370,49 @@ cuentan como fallos ni se conectan. Borrar el archivo hace que vuelvan a contar.
   de tipos, valores o dialecto.
 - Fichas sin detector, porque sin compilar no se verían con honestidad: UB-006, UB-010,
   UB-013, UB-016, UB-019, UB-020, ASM-006 y las NOUB.
-- Las rutas de `-I` del compilador no se conocen: un `#include <x.h>` se resuelve por la
-  raíz o por el final de la ruta (el más cercano a quien lo incluye).
+- Sin `compile_commands.json`, las rutas de `-I` del compilador no se conocen: un
+  `#include <x.h>` se resuelve por la raíz o por el final de la ruta (el más cercano a
+  quien lo incluye). Las cabeceras exportadas se deducen solo con nombre único.
 - El ASM de 16 o 32 bits (arranque) no se juzga con la ABI de 64 bits. Una función sin
   `ret` ni salto de cola, como `_start`, tampoco.
-- Presupuesto: archivos de hasta 2 MiB, 2 GiB o 60 s en total. Si corta, el panel y F12
+- Presupuesto: archivos de hasta 2 MiB, 32 GiB o 10 min en total
+  (`ULTRA_PRESUPUESTO_GB` y `ULTRA_PRESUPUESTO_S` lo cambian). Si corta, el panel y F12
   lo dicen.
+
+## Taller CASM: cómo nace el .hex (SUPER GRAFO)
+
+[CASM](../CASM/README.md) es el lenguaje propio que prepara y exporta `.hex` exacto para
+x86-64 ([su rumbo de samurái](../CASM/SAMURAI.md)). El SUPER GRAFO lo entiende y se
+organiza solo con lo que hay en el disco, sin listas escritas a mano:
+
+- **Panel Taller CASM** (icono de la katana):
+  - la **cadena** fuente → frontend → IR → codificador x86-64 → HEX → verificador →
+    `INICIO.X86`, en verde, o con el paso donde cortó la última compilación en rojo;
+  - el resumen: bytes de cuerpo, tamaño del paquete y huella;
+  - las **katanas**, cada regla que corta, leída de las fuentes de CASM, con su archivo
+    y línea (clic: editor) y el caso de `test.py` que la demuestra, o «sin caso aislado»;
+  - las **compilaciones** de `build/CASM/run-*`.
+- **Editor:** a la derecha de cada línea de un `.casm`, sus bytes y su desplazamiento
+  (`metal_puts(greeting);` → `+00  48 8D 35 05 00 00 00 41 FF 57 10`). Sale **solo** si hay
+  una compilación verificada de ese texto exacto, y el mapa se vuelve a comprobar
+  (cuerpo completo, tramos contiguos, `LEA`/`CALL`/`RET`). Si editas sin recompilar, lo dice
+  en vez de enseñar bytes viejos.
+- **Play** en cada `.casm` y botón «Compilar el ejemplo»: `bash compilar.sh`, sin shell.
+
+![Taller CASM: la cadena en verde, las katanas con su sitio y su caso, y hello.casm con los bytes de cada línea](maquetas/png/neon/carpetas-taller-casm.png)
+
+Las **katanas de CASM tienen todas su caso aislado** (61 reglas y 108 casos en `CASM/probar.sh` desde la 0.2). Cada
+caso exige que corte **su** regla, también en el verificador, alterando una sola cosa de
+una emisión buena.
+
+![Taller CASM: 48 reglas que cortan, 48 con caso de prueba aislado](maquetas/png/neon/carpetas-katanas-casm.png)
+
+**CASM 0.2, enteros exactos:** en la línea de cada entero, el editor muestra su valor y
+su tipo (`= -14 : int64_t`), calculados por el compilador y recalculados por el
+verificador, y, si se imprime, los bytes de su decimal (`+4C  2D 31 34 00`). La caja de
+bytes nunca tapa el código: si no cabe a la derecha, va después de la línea.
+
+![enteros.casm: el valor exacto de cada entero y los bytes de cada línea](maquetas/png/neon/carpetas-casm-enteros.png)
 
 ## Dibujo retenido en la GPU: la CPU enseña una vez y la GPU redibuja sola
 
@@ -619,7 +1515,7 @@ choque con otra ni haya que pelear después con la optimización. F12 muestra el
 | **Índice** | 50 ms | 300 ms | Ctrl+P: puntuar nombres en su hilo, repartido entre los núcleos; recorrer el disco (1 s en Chromium) va aparte, solo al abrir |
 | **Búsqueda** | 2 s | 10 s | Texto dentro de los archivos en su hilo, cancelable; lotes cada 100 ms; se salta lo binario |
 | **Git** | 2 s | 15 s | `git log` en su hilo, solo lectura; como mucho 20 000 commits, 30 s y 256 MiB |
-| **Museo** | 3 s | 20 s | Museo y dependencias en su hilo (todos los núcleos), solo lectura: archivos de hasta 2 MiB, como mucho 2 GiB o 60 s |
+| **Museo** | 3 s | 20 s | Museo y dependencias en su hilo (todos los núcleos), solo lectura: archivos de hasta 2 MiB, como mucho 32 GiB o 10 min |
 | **Ciudad** | 30 ms | 150 ms | Treemap e instancias solo al cambiar los datos; girar la cámara manda 80 bytes. Los datos salen del hilo del índice (F12 muestra cuánto) |
 
 **Límites duros** (por diseño, no por suerte):

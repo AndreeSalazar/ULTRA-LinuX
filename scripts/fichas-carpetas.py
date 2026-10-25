@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: GPL-2.0-only
 """Genera la tabla de fichas del museo para ULTRA Carpetas (SUPER GRAFO).
 
-Lee las dos fuentes del museo (docs/museo-ub.json y Museo/catalogo.json) y escribe
+Lee las fuentes del museo (docs/museo-ub.json, Museo/catalogo.json y el triangulo
+Seguridad / Rendimiento / Elegancia de Museo/triangulo.json) y escribe
 src/apps/carpetas-nucleo/src/fichas.rs. No compila ni ejecuta ningun caso: solo copia
 textos. `--comprobar` falla si el archivo generado no coincide con los catalogos.
 """
@@ -21,6 +22,8 @@ def rust(s):
 def fichas():
     ub = json.loads((ROOT / 'docs/museo-ub.json').read_text(encoding='utf-8'))
     nuevo = json.loads((ROOT / 'Museo/catalogo.json').read_text(encoding='utf-8'))
+    triangulo = json.loads((ROOT / 'Museo/triangulo.json').read_text(encoding='utf-8'))
+    ejes = triangulo['ejes']
     salida = []
     for p in ub['piezas']:
         fuente = ub['fuentes'][p['fuente']]
@@ -31,6 +34,18 @@ def fichas():
         salida.append(dict(id=p['id'], lenguaje=p['lenguaje'], clase=p['clase'], titulo=p['titulo'], regla=p['regla'],
                            control=p['control'], limite=p['limite'], referencia=p['seccion'], url=p['fuente'],
                            pagina='Museo/README.md#' + p['id'].lower()))
+    # El eje del triangulo: Seguridad por defecto; las excepciones, con su motivo.
+    for f in salida:
+        e = ejes.get(f['id'])
+        f['eje'], f['motivo_eje'] = (e['eje'], e['motivo']) if e else ('SEGURIDAD', 'Comportamiento indefinido o contrato roto: puede corromper memoria o dar un resultado falso.')
+    for p in triangulo['piezas']:
+        salida.append(dict(id=p['id'], lenguaje=p['lenguaje'], clase=p['clase'], titulo=p['titulo'], regla=p['regla'],
+                           control=p['control'], limite=p['limite'], referencia=p['referencia'], url=p['url'],
+                           pagina='Museo/triangulo.json', eje=p['eje'], motivo_eje='Guia para revisar, no un fallo.'))
+    if any(f['eje'] not in ('SEGURIDAD', 'RENDIMIENTO', 'ELEGANCIA') for f in salida):
+        raise SystemExit('eje desconocido')
+    if set(ejes) - {f['id'] for f in salida}:
+        raise SystemExit('un eje apunta a una ficha que no existe')
     ids = [f['id'] for f in salida]
     if len(ids) != len(set(ids)):
         raise SystemExit('ids repetidos entre los catalogos')
@@ -39,7 +54,7 @@ def fichas():
 
 def generar():
     lineas = ['// SPDX-License-Identifier: GPL-2.0-only',
-              '//! GENERADO por scripts/fichas-carpetas.py desde docs/museo-ub.json y Museo/catalogo.json.',
+              '//! GENERADO por scripts/fichas-carpetas.py desde docs/museo-ub.json, Museo/catalogo.json y Museo/triangulo.json.',
               '//! No editar a mano: cambiar el catalogo y volver a generar (`--comprobar` lo exige).',
               '',
               '/// Una ficha del museo: lo que se ensena al detectar su patron.',
@@ -58,6 +73,10 @@ def generar():
               '    pub url: &\'static str,',
               '    /// Donde leerla en el repositorio.',
               '    pub pagina: &\'static str,',
+              '    /// Del triangulo: "SEGURIDAD", "RENDIMIENTO" o "ELEGANCIA".',
+              '    pub eje: &\'static str,',
+              '    /// Por que es de ese eje.',
+              '    pub motivo_eje: &\'static str,',
               '}',
               '',
               'pub const FICHAS: &[Ficha] = &[']

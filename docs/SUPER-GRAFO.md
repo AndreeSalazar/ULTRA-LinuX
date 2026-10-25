@@ -1,0 +1,195 @@
+# SUPER GRAFO: decisiones y camino
+
+El SUPER GRAFO (SG) de ULTRA Carpetas creció por capas:
+
+- **1D:** gestionar archivos.
+- **2D:** nodos.
+- **3D:** la Ciudad.
+
+La siguiente capa es que **se vuelva inteligente**: que cace con criterio y que se
+pueda medir cuánto acierta. Este documento fija con qué criterio. El detalle de lo
+que ya hace está en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#super-grafo-el-museo-en-tu-código-y-el-fallo-conectado).
+
+## El triángulo: Seguridad, Rendimiento y Elegancia
+
+Los tres importan, pero no son del mismo tipo y no se intercambian:
+
+| Eje | Qué es | Cómo se juzga |
+|---|---|---|
+| **Seguridad** | Una regla: la llave cierra o no cierra | Sí o no. Nunca se cambia por rendimiento: un programa rápido que se puede romper no cumple su tarea |
+| **Rendimiento** | El motor y a dónde va | Con un presupuesto medido (como los carriles con semáforo). Sin medición no hay afirmación |
+| **Elegancia** | Simplificar la vista y la lectura | Que una persona lo lea y revise fácil, sin perder los otros dos |
+
+Orden: primero seguro; luego rápido sin romper lo seguro; luego simple sin perder ninguno.
+
+## Alcance: C con GCC en x86-64
+
+- **Compilador: GCC.** Es el compilador con el que se construye este Linux, y el museo
+  ya fija el dialecto «C17 / GCC». Las fichas de ASM son de GNU extended asm, que es
+  sintaxis de GCC. Un UB se juzga contra un compilador concreto (qué avisa, qué
+  optimiza y qué instrumenta): la caza y la evidencia usan el mismo.
+- **Arquitectura: x86-64** (System V AMD64). No hay hardware RISC-V ni ARM64 donde
+  probar; una regla que no se puede comprobar no entra. Si algún día lo hay, se añade
+  como alcance nuevo, con sus propias fichas.
+- **LLVM: como segundo compilador, para lo que compila Clang.** El cazador, los
+  guardianes (`perfil-gcc.sh`) y CASM siguen siendo de GCC. Pero proyectos como Chromium
+  solo se compilan oficialmente con Clang: revisarlos con GCC sería juzgarlos con otro
+  compilador. Por eso `gcc_diagnosticos` y `gcc_deps` usan el compilador que dice
+  `compile_commands.json`, o el que se pida, y dicen cuál habló. Siempre se ejecuta el
+  `gcc` o `clang` del sistema, nunca el binario del proyecto. Nota: el código Rust de este
+  repositorio también pasa por LLVM, porque es el backend de `rustc`.
+
+## Referencias (sin LLVM; Clang solo como segundo compilador, arriba)
+
+De ellas se toman ideas y casos de prueba, no código: cada una tiene su licencia.
+
+| Referencia | Para qué |
+|---|---|
+| **Juliet Test Suite (NIST SARD)** | El examen: casos de C/C++ por CWE con versión mala y buena (el mismo formato `mal`/`bien` del museo). Se compila con GCC |
+| **SEI CERT C** | Justificar cada ficha de seguridad (el museo ya cita STR37-C) |
+| **GCC `-fanalyzer`** | Segunda opinión que sigue valores por el programa, para las sospechas «revisar» |
+| **GCC `-fsanitize=undefined,address`** | La prueba en el laboratorio: confirma que una sospecha es UB de verdad |
+| **Coccinelle, sparse, smatch** | Cómo caza bugs el kernel: patrones por la forma del C, no por texto |
+
+## Camino
+
+1. **Examen con Juliet compilado con GCC.** El SG saca su nota por CWE: cuánto caza y
+   cuántas falsas alarmas da. Cada mejora tiene que subir la caza sin subir las
+   falsas alarmas.
+2. **Botón «probar esta ficha».** Compila el caso `mal`/`bien` con GCC, UBSan y ASan en
+   el laboratorio (nunca sobre discos personales). Guarda la versión de GCC, los flags y
+   el binario como evidencia, como ya exige el museo.
+3. **`-fanalyzer` como segunda opinión** para lo que el SG marca «revisar».
+4. **Cada ficha con su eje** (Seguridad, Rendimiento o Elegancia) y el SG coloreado por
+   eje en el grafo y en la Ciudad. **Hecho:** 42 fichas con su eje (35 Seguridad, 3
+   Rendimiento, 4 Elegancia; hoy 43 con E-003, la de los ciclos), cuatro de ellas nuevas (R-001, R-002, E-001, E-002). Solo
+   la Seguridad cuenta como fallo. Detalle y medidas en
+   [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-triángulo-seguridad-rendimiento-y-elegancia).
+5. **Combinar: la selección grupal.** Varios edificios (Ctrl+clic o Shift+arrastrar en la
+   Ciudad) y el panel dibuja cómo se combinan: directas, lo que comparten, quién los junta
+   y los sueltos, con cables también sobre la Ciudad. **Hecho:** 0,34 ms con 42 miembros
+   en Chromium. Detalle en
+   [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#combinar-la-selección-grupal-en-vivo).
+
+## Cómo lo usa una IA: preguntar, no volcar
+
+Con miles de millones de líneas nadie lee el código entero, tampoco una IA. El reparto:
+
+| Pieza | Papel |
+|---|---|
+| **SUPER GRAFO** | El músculo: recorre todo, cuenta, conecta y ordena, en su hilo y sin gastar tokens |
+| **Respuesta pequeña (JSON o texto)** | Lo exacto: rutas completas, líneas, cifras y su motivo |
+| **Imagen** | La forma: patrones espaciales («todo lo rojo está en `allocator`») |
+| **La IA** | Pregunta, decide y va al código solo donde importa |
+
+**Regla:** cada respuesta tiene un **tamaño acotado**, sea cual sea el tamaño del proyecto.
+
+1. Primero las cifras y lo peor: «12 ciclos; los 5 más grandes son…».
+2. Bajar solo si hace falta: «los motivos del ciclo 3».
+3. Nunca una lista sin tope: si hay más, se dice cuántos quedan (como «comparten 26»
+   enseñando 8).
+
+Cálculo de hoy (estimado), con el camino de 12 pasos en Chromium:
+
+- Una captura de 1600 × 1000 son unos 1 500 tokens fijos, pero los nombres salen
+  cortados y solo se leen 2 pasos.
+- El texto completo de los 12 pasos son unos 600 tokens.
+- Un resumen acotado son unos 250.
+- Lo caro fueron las repeticiones: unas 10 capturas (unos 15 000 tokens) contra una
+  consulta.
+
+Volcar todo en JSON costaría más que cualquier captura: lo que ahorra es que el SUPER
+GRAFO conteste la pregunta, no el formato.
+
+**Orden de madurez:**
+
+1. ~~**Ciclos.**~~ Hecho.
+2. ~~**Consultas sin ventana**~~ **Hecho:** `--consulta` y **servidor MCP** (`--mcp`,
+   `.mcp.json`), 14 herramientas con tope. Las respuestas cuestan de 5 a 10 veces menos
+   que una captura.
+3. ~~**Comparar con `gcc -M`**~~ **Hecho:** `gcc_deps`. Cobertura 100 %; precisión 94 %
+   sin los `#include` dentro de un `#if`.
+   Además: diagnósticos de **GCC en SARIF** (con `-fanalyzer`) en las señales y el fallo
+   conectado, en la terminal de la app, y **exportar el museo en SARIF**.
+4. ~~**Índice incremental en disco**~~ **Hecho:** solo se relee lo que cambió. Chromium
+   `base/` pasa de 348 ms a 100 ms.
+5. ~~**Leer `compile_commands.json`**~~ **Hecho:** sus `-I` en el mapa, y sus flags y su
+   carpeta en GCC. Precisión del 100 % sin los `#if` en Chromium `base/`.
+6. ~~**MCP en vivo**~~ **Hecho:**
+   - el servidor vigila la carpeta y reanaliza solo;
+   - recursos con suscripción y avisos;
+   - `cambios`;
+   - el puente con la ventana: `ventana` lee lo que se mira y `mostrar` lo enseña.
+   - **mejorado:** vigía al instante con inotify (unos 290 ms del guardado al aviso en
+     Chromium);
+   - **los guardianes del proyecto** (`perfil-gcc.sh`, dos pasadas como `ultra_revisar`)
+     revisan, se guardan y se repiten solos cuando cambia el archivo **o una cabecera que
+     GCC leyó** (`-MMD`).
+   - **modo guardia:** todos los `.c` de una carpeta por turnos (26 de este repositorio en
+     9,2 s; 2 fallan, y uno es la caja con cabeceras de Landlock más viejas).
+7. ~~**Proyectos grandes**~~ **Medido:** OpenSSL (666 000 líneas) y SpiderMonkey
+   (2,3 millones):
+   - SpiderMonkey en 1,2 s la primera vez y 0,27 s con caché, con 71 MB de memoria;
+     cada pregunta en unos 0,25 s;
+   - precisión del 100 % sin los `#if` en OpenSSL, con las cabeceras generadas;
+   - **cabeceras exportadas** (`mozilla/x.h` es `mfbt/x.h`): 5 076 de 5 079 bien contra
+     los `moz.build`, 0 mal;
+   - `gcc_deps` ya no da una medida falsa cuando faltan cabeceras generadas.
+8. ~~**Límites para Chromium entero**~~ **Subidos y medidos** con 312 000 archivos y 3,2 GB
+   de código: caché binaria (de 10 s y 1,8 GB a 0,3 s), resolución en paralelo y alcance
+   18 veces más rápido. Con caché, 3,1 s; el servidor MCP contesta en 0,2 a 21 ms; la
+   Ciudad dibuja los 312 000 edificios.
+9. ~~**Clang junto a GCC**~~ **Hecho:** cada archivo se revisa con el compilador que lo
+   compila. El analizador de Clang (`--analyze`), igual que `-fanalyzer`, da el **camino
+   del fallo entre archivos** (se reserva en `a.c:3`, se libera en `util.h:3`, se usa en
+   `a.c:7`).
+10. ~~**La cronología**~~ **Hecha (datos y MCP):** cómo se construyó el proyecto desde el
+    primer commit, sin sacar versiones viejas. Se verifica sola contra lo de hoy (en este
+    repositorio: 2 350 de 2 350 archivos y 333 de 333 dependencias). 100 000 commits
+    sintéticos en 18 s.
+11. **Siguiente:**
+    - ~~la cronología en la Ciudad~~ **hecha:** la ciudad fantasma con deslizador y
+      «Reproducir» (los mismos edificios en la GPU, 4 bytes más cada uno; mover el tiempo
+      solo cambia un número);
+    - en la ciudad fantasma, las dependencias y los ciclos de cada momento (hoy salen en el
+      MCP, no en 3D);
+    - resolver solo lo que cambió (el aviso en vivo con 312 000 archivos sigue en unos 4 s);
+    - evaluar los `#if` con las `-D` de `compile_commands.json` (saber qué rama toma de
+      verdad cada archivo);
+    - un índice partido en trozos para proyectos que no caben en memoria.
+
+Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-super-grafo-sin-ventana-consultas-en-json-y-servidor-mcp).
+
+## Siguientes ideas para educar al SUPER GRAFO
+
+Hecho también: **del grupo a los nodos y al editor**. Lo que señalan los archivos del
+grupo, en el orden para arreglar, con lo que enseña cada ficha; «Siguiente señal» abre el
+editor en cada una; la cadena de `#include` hasta la causa; y «Ver en el grafo» con los
+cables del grupo. Detalle en
+[ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#del-grupo-a-los-nodos-y-al-editor-lo-que-señalan-cómo-arreglarlo-y-por-dónde-llega).
+También **aislar el grupo entero** (botón en Combinar, o **A** con varios seleccionados).
+Y las **consultas sin ventana** con su **servidor MCP**: ver el orden de madurez.
+
+Ordenadas por lo que más enseñan con menos riesgo. Ninguna toca CASM.
+
+1. ~~**Camino más corto entre dos elegidos.**~~ **Hecho:** con motivos (la línea de cada
+   paso), la onda de recompilación animada y los pasos imprescindibles (dónde cortar).
+   Detalle en [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#el-camino-entre-dos-elegidos-motivos-onda-y-dónde-cortar).
+2. ~~**Ciclos.**~~ **Hecho:** Tarjan, la vuelta más corta con sus motivos, dónde cortar,
+   el anillo animado y la ficha E-003. Además el SUPER GRAFO aprendió a leer los `#if`:
+   los 2 ciclos de Chromium `base/` solo existen al compilar para Windows. Detalle en
+   [ULTRA-CARPETAS.md](ULTRA-CARPETAS.md#ciclos-de-cabeceras-e-003-eje-elegancia).
+3. **Peso del cambio.** Si cambia este grupo, cuántos archivos hay que recompilar (quien
+   los usa, directa o indirectamente): una cifra de Rendimiento medible con GCC.
+4. **Fronteras de carpeta.** Contar cuántas dependencias cruzan de un distrito a otro: un
+   módulo que todos usan, o uno que usa a todos.
+5. **Grupos guardados.** Ponerle nombre a un grupo («red», «arranque») y volver a él.
+
+
+## CASM: el lenguaje que exporta `.hex`
+
+CASM vive aislado en [`CASM/`](../CASM/README.md): construido solo con GCC, solo para
+x86-64 y con su verificador aparte. Su rumbo como samurái de la CPU está en
+[CASM/SAMURAI.md](../CASM/SAMURAI.md). El SUPER GRAFO es su lupa: muestra cómo nace cada
+byte, dónde corta cada katana y qué compilaciones salieron verdes o rojas
+([Taller CASM](ULTRA-CARPETAS.md#taller-casm-cómo-nace-el-hex-super-grafo)).

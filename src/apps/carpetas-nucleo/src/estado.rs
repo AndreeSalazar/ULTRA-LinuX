@@ -113,6 +113,44 @@ pub enum Accion {
     Aislar(Option<String>),
     /// Revelar un archivo y abrirlo en el editor en esa linea (sospecha del museo).
     IrALinea { id: String, linea: u32 },
+    /// El taller CASM de la carpeta abierta (katanas y compilaciones), o que no hay.
+    Taller(Option<crate::casm::Taller>),
+    /// El mapa .casm -> .hex del archivo del editor (None: no hay compilacion de este texto).
+    MapaCasm { id: String, resultado: Option<Result<crate::casm::MapaCasm, String>> },
+    /// Filtro del triangulo: ver solo un eje (None: los tres).
+    FiltroEje(Option<crate::museo::Eje>),
+    /// Seleccion grupal (Ciudad: Ctrl+clic o Shift+arrastrar) para el panel Combinar.
+    Grupo(AccionGrupo),
+}
+
+/// Cambios del grupo que se combina.
+#[derive(Debug, Clone, PartialEq)]
+pub enum AccionGrupo {
+    /// Meterlo si no esta; sacarlo si esta.
+    Alternar(String),
+    /// Meter varios (la banda de la Ciudad).
+    Sumar(Vec<String>),
+    Quitar(String),
+    Limpiar,
+    /// Los dos extremos del camino (de A a B).
+    Extremos(String, String),
+    /// Cambiar A por B.
+    Invertir,
+    /// Ver el grupo en el grafo de nodos: se despliega el camino de cada uno y quedan
+    /// todos seleccionados, con sus cables.
+    AlGrafo,
+    /// Aislar el grupo entero (otra vez: quitar el aislado).
+    Aislar,
+}
+
+/// Marca de un aislado de varios: `aislar` guarda sus ids separados por esta letra.
+pub const MARCA_VARIOS: char = '\u{1}';
+
+/// El valor de `aislar` para varios archivos o carpetas a la vez.
+pub fn aislar_varios<'a>(ids: impl IntoIterator<Item = &'a String>) -> String {
+    let mut s = String::new();
+    for id in ids { s.push(MARCA_VARIOS); s.push_str(id); }
+    s
 }
 
 /// La historia de git de la carpeta abierta.
@@ -158,7 +196,7 @@ impl Revelar {
 
 /// Que muestra el panel de la izquierda.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub enum Lateral { #[default] Explorador, Buscar, Museo }
+pub enum Lateral { #[default] Explorador, Buscar, Museo, Casm, Combinar }
 
 /// Estado del indice de todo el proyecto (lo lleva la plataforma en su hilo).
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -260,6 +298,25 @@ pub struct Estado {
     pub conectado: crate::analisis::Conectado,
     /// Sube cuando cambian los errores atrapados (para recalcular la conexion).
     pub version_fallos: u64,
+    /// El taller CASM (si la carpeta abierta lo tiene) y el mapa del editor.
+    pub casm: EstadoCasm,
+    /// Triangulo: ver solo Seguridad, Rendimiento o Elegancia (None: los tres).
+    pub filtro_eje: Option<crate::museo::Eje>,
+    /// Seleccion grupal de la Ciudad, en el orden en que se eligio (rutas relativas de
+    /// archivos o carpetas). Aparte de `seleccion`, que es la del explorador y el grafo.
+    pub grupo: Vec<String>,
+    /// Extremos elegidos para el camino (None: los dos primeros del grupo).
+    pub par: Option<(String, String)>,
+    /// Lo que falta por revelar de un grupo (uno detras de otro, sumando a la seleccion).
+    pub por_revelar: Vec<String>,
+    /// Revelando un grupo: cada revelado se suma a la seleccion.
+    pub revelar_suma: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct EstadoCasm {
+    pub taller: Option<crate::casm::Taller>,
+    pub mapa: Option<(String, Result<crate::casm::MapaCasm, String>)>,
 }
 
 impl Default for Estado {
@@ -272,7 +329,8 @@ impl Default for Estado {
                  editor: Pestanas::default(), procesos: Vec::new(), ir_a: None, proyecto: BusquedaProyecto::default(),
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
                  ciudad: DatosCiudad::default(), historia: EstadoHistoria::default(),
-                 analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0 }
+                 analisis: Default::default(), aislar: None, conectado: Default::default(), version_fallos: 0,
+                 casm: EstadoCasm::default(), filtro_eje: None, grupo: Vec::new(), par: None, por_revelar: Vec::new(), revelar_suma: false }
     }
 }
 
@@ -347,6 +405,21 @@ impl Estado {
         let (min, max) = limites(self);
         let (w, h) = ((max[0] - min[0]).max(1.0), (max[1] - min[1]).max(1.0));
         let zoom = ((self.lienzo[0] - 80.0) / w).min((self.lienzo[1] - 80.0) / h).clamp(0.2, 1.5);
+        self.camara = Camara { zoom, x: min[0] - (self.lienzo[0] / zoom - w) / 2.0, y: min[1] - (self.lienzo[1] / zoom - h) / 2.0 };
+    }
+
+    /// Encuadra solo lo seleccionado (si no hay nada, todo).
+    fn encuadrar_seleccion(&mut self) {
+        let pos = acomodar(self);
+        let mut puntos = self.seleccion.iter().filter_map(|id| pos.get(id));
+        let Some(p0) = puntos.next() else { return self.encuadrar() };
+        let (mut min, mut max) = (*p0, [p0[0] + NODO[0], p0[1] + NODO[1]]);
+        for p in puntos {
+            min = [min[0].min(p[0]), min[1].min(p[1])];
+            max = [max[0].max(p[0] + NODO[0]), max[1].max(p[1] + NODO[1])];
+        }
+        let (w, h) = ((max[0] - min[0]).max(1.0), (max[1] - min[1]).max(1.0));
+        let zoom = ((self.lienzo[0] - 160.0) / w).min((self.lienzo[1] - 160.0) / h).clamp(0.2, 1.2);
         self.camara = Camara { zoom, x: min[0] - (self.lienzo[0] / zoom - w) / 2.0, y: min[1] - (self.lienzo[1] / zoom - h) / 2.0 };
     }
 
@@ -439,7 +512,10 @@ impl Estado {
             Comando::Organizar => { self.ajustes.organizar = self.ajustes.organizar.siguiente(); vec![self.guardar_ajustes()] }
             Comando::Reindexar => vec![Efecto::Reindexar { ocultos: self.ocultos }, Efecto::LeerHistoria],
             Comando::Aislar => {
-                self.aislar = if self.aislar.is_some() { None } else { Some(self.seleccion.iter().next().cloned().unwrap_or_default()) };
+                // Con varios seleccionados se aislan todos juntos.
+                self.aislar = if self.aislar.is_some() { None }
+                              else if self.seleccion.len() > 1 { Some(aislar_varios(&self.seleccion)) }
+                              else { Some(self.seleccion.iter().next().cloned().unwrap_or_default()) };
                 vec![]
             }
             Comando::Ciudad => { self.ajustes.modo = Modo::Ciudad; vec![self.guardar_ajustes()] }
@@ -541,9 +617,26 @@ impl Estado {
         self.camara = Camara { zoom: z, x: p[0] + NODO[0] / 2.0 - self.lienzo[0] / 2.0 / z, y: p[1] + NODO[1] / 2.0 - self.lienzo[1] / 2.0 / z };
     }
 
+    /// Revela lo pedido; si es un grupo, sigue con el siguiente cuando termina cada uno.
+    fn avanzar_revelar(&mut self) -> Vec<Efecto> {
+        let mut efectos = self.avanzar_revelar_uno();
+        while self.revelar.is_none() && self.revelar_suma {
+            match self.por_revelar.pop() {
+                Some(id) => { self.revelar = Some(Revelar::a(&id)); efectos.extend(self.avanzar_revelar_uno()); }
+                None => {
+                    // Terminado: el grafo encuadra lo seleccionado (no todo el arbol desplegado).
+                    self.revelar_suma = false;
+                    if self.en_grafo() { self.encuadrar_seleccion(); }
+                    self.aviso = Some(alloc::format!("grupo en el grafo: {} seleccionados", self.seleccion.len()));
+                }
+            }
+        }
+        efectos
+    }
+
     /// Sigue abriendo el camino hacia lo que se revela; cada carpeta que falta se pide al
     /// disco y se continua cuando llega su contenido.
-    fn avanzar_revelar(&mut self) -> Vec<Efecto> {
+    fn avanzar_revelar_uno(&mut self) -> Vec<Efecto> {
         let Some(Revelar { id, editor, linea, rango, enfocar }) = self.revelar.clone() else { return vec![] };
         let tramos: Vec<&str> = id.split('/').collect();
         // Las carpetas de encima (y la propia si hay que enfocarla).
@@ -581,7 +674,7 @@ impl Estado {
         // Si quedo fuera de la carpeta enfocada, se quita el foco para poder verlo.
         let raiz = raiz_vista(self).to_string();
         if !raiz.is_empty() && !id.starts_with(&(raiz + "/")) { self.disp.foco.clear(); }
-        self.seleccion = [id.clone()].into();
+        if self.revelar_suma { self.seleccion.insert(id.clone()); } else { self.seleccion = [id.clone()].into(); }
         self.revelado = (id.clone(), self.revelado.1 + 1);
         self.version_contenido = self.version_contenido.wrapping_add(1);
         if self.en_grafo() { self.centrar(&id); }
@@ -625,6 +718,12 @@ impl Estado {
                 vec![]
             }
             AccionIrA::Elegir(i) => { if let Some(ir) = &mut self.ir_a { ir.elegido = i; } self.ir_a(AccionIrA::Aceptar { editor: false }) }
+            AccionIrA::AlGrupo => {
+                let Some((ruta, _)) = self.ir_a.as_ref().and_then(|ir| ir.resultados.get(ir.elegido).cloned()) else { return vec![] };
+                self.ir_a = None;
+                self.aviso = Some(alloc::format!("al grupo (Combinar): {ruta}"));
+                reducir(self, Accion::Grupo(AccionGrupo::Alternar(ruta)))
+            }
             AccionIrA::Aceptar { editor } => {
                 // Enter mientras busca: se recuerda y se acepta el primero al llegar.
                 if let Some(ir) = &mut self.ir_a { if ir.buscando { ir.aceptar_al_llegar = Some(editor); return vec![]; } }
@@ -731,7 +830,14 @@ impl Estado {
     fn reconectar(&mut self) {
         let clave = (self.analisis.version, self.version_fallos, self.aislar.clone());
         if clave == self.conectado.clave { return; }
-        let aislado = self.aislar.as_deref().filter(|x| !x.is_empty()).map(|id| (id, self.archivos_de(id)));
+        let varios: Vec<&str> = self.aislar.as_deref().filter(|x| x.starts_with(MARCA_VARIOS)).map(|x| x.split(MARCA_VARIOS).filter(|s| !s.is_empty()).collect()).unwrap_or_default();
+        let etiqueta = alloc::format!("{} elegidos", varios.len());
+        let aislado = if !varios.is_empty() {
+            let mut centros: Vec<String> = varios.iter().flat_map(|id| self.archivos_de(id)).collect();
+            centros.sort();
+            centros.dedup();
+            Some((etiqueta.as_str(), centros))
+        } else { self.aislar.as_deref().filter(|x| !x.is_empty()).map(|id| (id, self.archivos_de(id))) };
         let (modo, conexion, fallos) = crate::analisis::conectar_estado(&self.errores, &self.analisis, aislado);
         self.conectado = crate::analisis::Conectado { modo, conexion, fallos, clave };
         self.version_contenido = self.version_contenido.wrapping_add(1);
@@ -782,6 +888,7 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
                        | Accion::CerrarPestana(_) | Accion::ArchivoLeido { .. } | Accion::Guardado { .. } | Accion::IrA(_)
                        | Accion::ResultadosIrA { .. } | Accion::Indice(_) | Accion::Lateral(_) | Accion::ResultadosProyecto { .. }
                        | Accion::DatosCiudad { .. } | Accion::LineasListas { .. } | Accion::Historia { .. }
+                       | Accion::Taller(_) | Accion::MapaCasm { .. }
                        | Accion::Proyecto(AccionProyecto::Patron(_) | AccionProyecto::Mayusculas | AccionProyecto::Palabra
                                           | AccionProyecto::Filtro(_) | AccionProyecto::Lanzar | AccionProyecto::Limpiar | AccionProyecto::Plegar(_))) {
         e.version_contenido = e.version_contenido.wrapping_add(1);
@@ -795,6 +902,8 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             e.entradas = entradas;
             e.disp = disposicion;
             e.seleccion.clear();
+            e.grupo.clear();
+            e.par = None;
             e.expandidas.clear();
             e.arrastrando = false;
             e.banda = None;
@@ -1002,6 +1111,9 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
         }
         Accion::Analisis(r) => { e.analisis.llegar(r); vec![] }
         Accion::Aislar(a) => { e.aislar = a; vec![] }
+        Accion::Taller(t) => { e.casm.taller = t; vec![] }
+        Accion::FiltroEje(f) => { e.filtro_eje = f; vec![] }
+        Accion::MapaCasm { id, resultado } => { e.casm.mapa = resultado.map(|r| (id, r)); vec![] }
         Accion::IrALinea { id, linea } => {
             e.revelar = Some(Revelar { editor: true, linea: Some(linea), ..Revelar::a(&id) });
             e.avanzar_revelar()
@@ -1017,10 +1129,58 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             vec![]
         }
         Accion::Lateral(l) => { e.lateral = l; if !e.ajustes.explorador { e.ajustes.explorador = true; } vec![] }
+        Accion::Grupo(a) => {
+            let antes = e.grupo.len();
+            let al_grafo = a == AccionGrupo::AlGrafo;
+            match a {
+                AccionGrupo::AlGrafo => {}
+                AccionGrupo::Aislar => {
+                    let suyo = Some(aislar_varios(&e.grupo));
+                    e.aislar = if e.aislar.is_some() && e.aislar == suyo || e.grupo.is_empty() { None } else { suyo };
+                }
+                AccionGrupo::Alternar(id) => match e.grupo.iter().position(|x| *x == id) {
+                    Some(i) => { e.grupo.remove(i); }
+                    None => e.grupo.push(id),
+                },
+                AccionGrupo::Sumar(ids) => for id in ids { if !e.grupo.contains(&id) { e.grupo.push(id); } },
+                AccionGrupo::Quitar(id) => e.grupo.retain(|x| *x != id),
+                AccionGrupo::Limpiar => e.grupo.clear(),
+                AccionGrupo::Extremos(a, b) => { if a != b { e.par = Some((a, b)); } }
+                AccionGrupo::Invertir => {
+                    let (a, b) = e.par.clone().unwrap_or_else(|| (e.grupo.first().cloned().unwrap_or_default(), e.grupo.get(1).cloned().unwrap_or_default()));
+                    if !a.is_empty() && !b.is_empty() { e.par = Some((b, a)); }
+                }
+            }
+            e.grupo.retain(|x| !x.is_empty() && x.len() <= 4096);
+            e.grupo.truncate(crate::combinar::MAX_GRUPO);
+            // Al juntar el segundo, se abre el panel Combinar (despues manda quien lo usa).
+            if antes < 2 && e.grupo.len() >= 2 { e.lateral = Lateral::Combinar; e.ajustes.explorador = true; }
+            if al_grafo && !e.grupo.is_empty() {
+                let mut ef = Vec::new();
+                if !e.en_grafo() { e.ajustes.modo = Modo::Grafo; ef.push(e.guardar_ajustes()); }
+                e.seleccion.clear();
+                // Fuera del foco no se verian: se quita el foco.
+                e.disp.foco.clear();
+                e.por_revelar = e.grupo.iter().rev().cloned().collect();
+                e.revelar_suma = true;
+                e.revelar = None;
+                ef.extend(e.avanzar_revelar());
+                return ef;
+            }
+            vec![]
+        }
     }
 }
 
 impl Estado {
+    /// Diagnosticos que llegan de fuera de la terminal (GCC en SARIF, por ejemplo): se
+    /// anotan como los de la salida y se reconecta el fallo.
+    pub fn diagnosticos_externos(&mut self, leidos: Vec<(String, crate::diagnosticos::Diagnostico)>) -> Vec<Efecto> {
+        let ef = self.notar_errores(leidos);
+        self.reconectar();
+        ef
+    }
+
     /// Errores nuevos de la salida: se marcan en sus nodos y se despliega el camino.
     fn notar_errores(&mut self, leidos: Vec<(String, crate::diagnosticos::Diagnostico)>) -> Vec<Efecto> {
         if leidos.is_empty() { return vec![]; }

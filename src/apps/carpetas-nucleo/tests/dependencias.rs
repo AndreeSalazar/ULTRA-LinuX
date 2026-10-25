@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
-use carpetas_nucleo::dependencias::{aislar, conectar, referencias, resolver, unir, ClaseRef, Dependencias, Rol, Rutas};
+use carpetas_nucleo::dependencias::{aislar, conectar, exportada, prefijos_exportados, referencias, resolver, unir, ClaseRef, Dependencias, Rol, Rutas, MIN_EXPORTADAS};
 use std::collections::BTreeSet;
 
 struct Proyecto(Vec<&'static str>);
@@ -8,7 +8,7 @@ impl Rutas for Proyecto {
     fn por_nombre(&self, n: &str) -> Vec<&str> { self.0.iter().copied().filter(|r| r.rsplit('/').next() == Some(n)).collect() }
 }
 
-fn r(desde: &str, texto: &str, p: &Proyecto) -> Vec<String> {
+fn r(desde: &str, texto: &str, p: &dyn Rutas) -> Vec<String> {
     referencias(desde, texto).iter().filter_map(|x| resolver(desde, x, p)).collect()
 }
 
@@ -20,9 +20,60 @@ fn c_cpp_y_asm() {
     assert_eq!(r("tools/perf.c", "#include <linux/kernel.h>\n", &p), ["tools/include/linux/kernel.h"], "el mas cercano al que incluye");
     assert_eq!(r("boot/entrada.asm", "%include \"macros.inc\"\n", &p), ["boot/macros.inc"]);
     assert_eq!(r("src/x.S", "#include \"util.h\"\n.include \"util.h\"\n", &p), ["src/util.h", "src/util.h"]);
+    // <features.h> sin carpeta es de la libc: no es base/features.h (el camino de Chromium lo
+    // destapo). Con comillas, o con carpeta, si se busca por el final.
+    let q = Proyecto(vec!["base/features.h", "pa/build_config.h", "base/memory/raw_ptr.h"]);
+    assert!(r("pa/build_config.h", "#include <features.h>\n", &q).is_empty());
+    assert_eq!(r("pa/build_config.h", "#include <memory/raw_ptr.h>\n", &q), ["base/memory/raw_ptr.h"]);
+    // Con las -I del proyecto (compile_commands.json), <x.h> se busca alli primero.
+    struct ConBases(Proyecto, Vec<String>);
+    impl Rutas for ConBases {
+        fn existe(&self, r: &str) -> bool { self.0.existe(r) }
+        fn por_nombre(&self, n: &str) -> Vec<&str> { self.0.por_nombre(n) }
+        fn bases(&self) -> &[String] { &self.1 }
+    }
+    let pa = ConBases(Proyecto(vec!["base/allocator/pa/src/partition_alloc/raw_ptr.h", "otro/partition_alloc/raw_ptr.h", "base/x.cc"]), vec!["base/allocator/pa/src".into()]);
+    assert_eq!(r("base/x.cc", "#include \"partition_alloc/raw_ptr.h\"\n", &pa), ["base/allocator/pa/src/partition_alloc/raw_ptr.h"], "la -I manda sobre el mas parecido");
     // No sale de la raiz.
     assert_eq!(unir("a", "../../etc/passwd"), None);
     assert!(r("src/main.c", "#include \"../../../etc/passwd\"\n", &p).is_empty());
+}
+
+#[test]
+fn cada_include_sabe_de_que_if_depende() {
+    let texto = "// licencia\n#ifndef X_H\n#define X_H\n#include \"siempre.h\"\n#if BUILDFLAG(IS_WIN)\n#include \"win.h\"\n#elif BUILDFLAG(IS_POSIX)\n#include \"posix.h\"\n#else\n#include \"otro.h\"\n#endif\n#ifdef DEBUG\n#  include <a/depura.h>\n#endif\n#endif\n";
+    let c: Vec<(String, Option<String>)> = referencias("x.h", texto).into_iter().map(|r| (r.texto, r.condicion)).collect();
+    let s = |x: &str| x.to_string();
+    // La guarda (#ifndef X_H / #define X_H) no cuenta: siempre.h no depende de nada.
+    assert_eq!(c, vec![(s("siempre.h"), None), (s("win.h"), Some(s("#if BUILDFLAG(IS_WIN)"))), (s("posix.h"), Some(s("#elif BUILDFLAG(IS_POSIX)"))),
+                       (s("otro.h"), Some(s("#else de #elif BUILDFLAG(IS_POSIX)"))), (s("a/depura.h"), Some(s("#ifdef DEBUG")))]);
+    // Sin guarda (#pragma once), un #ifndef de verdad si cuenta.
+    let c = referencias("y.h", "#pragma once\n#ifndef NO_RED\n#include \"red.h\"\n#endif\n");
+    assert_eq!(c[0].condicion.as_deref(), Some("#ifndef NO_RED"));
+    // Un #ifndef con codigo antes no es la guarda.
+    let c = referencias("z.c", "int x;\n#ifndef SOLO\n#include \"z.h\"\n#endif\n");
+    assert_eq!(c[0].condicion.as_deref(), Some("#ifndef SOLO"));
+}
+
+#[test]
+fn cabeceras_exportadas_se_aprenden_del_proyecto() {
+    // Como SpiderMonkey: mfbt/X.h se incluye como "mozilla/X.h" (se copia al compilar).
+    let mut v: Vec<&'static str> = vec!["mfbt/Assertions.h", "mfbt/Types.h", "mfbt/Maybe.h", "mfbt/Vector.h", "mfbt/Span.h",
+        "js/public/Value.h", "js/src/builtin/intl/Locale.h", "intl/components/src/Locale.h", "src/types.h"];
+    let p = Proyecto(std::mem::take(&mut v));
+    assert_eq!(exportada("mozilla/Assertions.h", &p).as_deref(), Some("mfbt/Assertions.h"));
+    assert_eq!(exportada("js/Value.h", &p).as_deref(), Some("js/public/Value.h"));
+    // Al exportar se aplanan carpetas: con dos Locale.h, el que acaba en /intl/Locale.h no
+    // es el bueno (lo es intl/components/src/Locale.h). Con el nombre repetido, nada.
+    assert_eq!(exportada("mozilla/intl/Locale.h", &p), None);
+    assert_eq!(exportada("mozilla/NoExiste.h", &p), None);
+    let sin = ["mozilla/Assertions.h", "mozilla/Types.h", "mozilla/Maybe.h", "mozilla/Vector.h", "mozilla/Span.h", "mozilla/Generado.h",
+               "sys/types.h", "sys/types.h", "otro/a.h", "otro/b.h", "otro/c.h", "otro/d.h", "otro/Value.h"];
+    let pre = prefijos_exportados(sin.iter().copied(), &p);
+    assert_eq!(pre.get("mozilla"), Some(&(5, 6)), "5 de 6 caen en un archivo: {pre:?}");
+    assert!(!pre.contains_key("sys"), "sys/ es del sistema aunque haya src/types.h");
+    assert!(!pre.contains_key("otro"), "1 de 5: no se aprende ({pre:?})");
+    assert!(!prefijos_exportados(["poco/Assertions.h"], &p).contains_key("poco"), "menos de {MIN_EXPORTADAS} distintos");
 }
 
 #[test]

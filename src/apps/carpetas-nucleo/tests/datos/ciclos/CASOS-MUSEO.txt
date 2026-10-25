@@ -1,0 +1,2 @@
+Casos de estudio a proposito: ciclos de cabeceras (E-003). mal/ tiene una vuelta
+a.h -> b.h -> c.h -> a.h; bien/ la rompe con una declaracion adelantada.

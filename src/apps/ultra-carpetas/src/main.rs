@@ -12,18 +12,31 @@
 mod almacen;
 mod analisis;
 mod archivo;
+mod casm_taller;
+mod casm_ui;
+mod camino_ui;
+mod ciclos_ui;
+mod senales_ui;
 mod ciudad3d;
+mod combinar_ui;
+mod compilacion;
+mod consultas;
 mod disco;
 mod editor_ui;
 mod entradas;
 mod git;
+mod guardianes;
 mod gpu;
 mod indice;
+mod mcp;
 mod museo_ui;
 mod paneles;
 mod pintar_grafo;
 mod proceso;
+mod puente;
 mod svg;
+mod vigia;
+mod vivo;
 mod vivos;
 
 use carpetas_nucleo::carriles::{luz, presupuesto, Carril, Luz, MAX_COINCIDENCIAS, MAX_DESPLEGADAS, MAX_DIAGNOSTICOS, MAX_ENTRADAS, MAX_INDICE, MAX_LINEAS_POR_CUADRO, MAX_NODOS, MAX_PROCESOS};
@@ -39,6 +52,12 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 pub(crate) fn color(c: Rgb) -> Color32 { Color32::from_rgb(c[0], c[1], c[2]) }
+
+/// El color de cada eje del triangulo: Seguridad el rojo neon de los fallos, Rendimiento el
+/// ambar de los avisos (el motor) y Elegancia el acento del tema.
+pub(crate) fn color_eje(c: &Colores, e: carpetas_nucleo::museo::Eje) -> Color32 {
+    match e { carpetas_nucleo::museo::Eje::Seguridad => c.error, carpetas_nucleo::museo::Eje::Rendimiento => c.aviso, carpetas_nucleo::museo::Eje::Elegancia => c.acento }
+}
 
 fn acento() -> Rgb {
     // El mismo acento que el resto del escritorio (Personalizar); hielo si no hay.
@@ -58,6 +77,9 @@ struct Medidas { ultimo: [u64; 14], maximo: [u64; 14] }
 impl Medidas {
     fn anotar(&mut self, c: Carril, us: u64) { let i = c as usize; self.ultimo[i] = us; self.maximo[i] = self.maximo[i].max(us); }
 }
+
+/// (carpeta, panel del taller abierto, compilando, (archivo .casm, carga, sin guardar)).
+type ClaveCasm = (PathBuf, bool, bool, Option<(String, u64, bool)>);
 
 struct App {
     estado: Estado,
@@ -97,11 +119,17 @@ struct App {
     revelado_visto: u64,
     /// Vista Ciudad: la ciudad armada, sus instancias y su camara.
     ciudad: ciudad3d::Vista3,
+    /// Panel Combinar: la seleccion grupal y como se conecta.
+    combinar: combinar_ui::Cache,
+    /// Puente en vivo con el servidor MCP (lo que se ve y lo que pide ensenar).
+    vivo: vivo::Vivo,
     ciudad_ok: bool,
     micros_datos_ciudad: u64,
     /// Historia de git (su hilo) y que pedido es el ultimo.
     git: git::Git,
     pedido_git: u64,
+    /// Lo ultimo que se miro del taller CASM (para no releer el disco cada cuadro).
+    casm_clave: Option<ClaveCasm>,
 }
 
 /// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
@@ -128,8 +156,8 @@ impl App {
             vivos: vivos::Muestreador::nuevo(move || ctx_vivos.request_repaint()), editor: editor_ui::PanelEditor::default(), huellas: Default::default(),
             proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
             texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
-            ciudad: ciudad3d::Vista3::default(), ciudad_ok, micros_datos_ciudad: 0,
-            git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0,
+            ciudad: ciudad3d::Vista3::default(), combinar: combinar_ui::Cache::default(), vivo: vivo::Vivo::nuevo(cc.egui_ctx.clone()), ciudad_ok, micros_datos_ciudad: 0,
+            git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0, casm_clave: None,
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
@@ -275,8 +303,11 @@ impl App {
     fn retenido(&mut self, v: &Arc<Vista>, tema: &Tema) -> Option<pintar_grafo::Retenido> {
         if !self.gpu_ok || self.estado.ajustes.dibujo != Dibujo::Gpu { return None; }
         let (nodos, cables) = v.grafo.as_ref()?;
-        let version = self.estado.version_contenido;
-        let mismo = |g: &Geometria| g.version == version || (g.fuente.grafo == v.grafo && g.fuente.tema == v.tema);
+        // La version de la Vista de la que sale esta geometria, no la del estado: si un panel
+        // cambio el estado en este cuadro, `v` todavia es la de antes, y marcarla con la
+        // version nueva dejaba la geometria vieja en la GPU (el aislado seguia en rojo).
+        let version = match &self.cache { Some((k, c)) if Arc::ptr_eq(c, v) => *k, _ => u64::MAX };
+        let mismo = |g: &Geometria| (g.version == version && version != u64::MAX) || (g.fuente.grafo == v.grafo && g.fuente.tema == v.tema);
         match &mut self.geometria {
             Some(g) if mismo(g) => { g.version = version; g.fuente = v.clone(); }
             _ => {
@@ -320,6 +351,25 @@ impl App {
         }
     }
 
+    /// El taller CASM y el mapa .casm -> .hex del editor. Solo relee el disco cuando cambia
+    /// algo que lo puede cambiar: abrir el panel, terminar una compilacion o guardar.
+    fn recoger_casm(&mut self) {
+        let e = &self.estado;
+        let taller = e.ajustes.explorador && e.lateral == carpetas_nucleo::estado::Lateral::Casm;
+        let ed = e.editor.activa().filter(|x| x.id.ends_with(".casm") && x.cargado);
+        let clave: ClaveCasm = (self.carpeta.clone(), taller, e.terminal.en_curso.is_some(), ed.map(|x| (x.id.clone(), x.carga, x.sucio)));
+        if self.casm_clave.as_ref() == Some(&clave) { return; }
+        self.casm_clave = Some(clave);
+        let mapa = ed.map(|x| (x.id.clone(), if x.sucio { None } else { casm_taller::mapa_para(&self.carpeta, &x.texto) }));
+        let habia_mapa = e.casm.mapa.is_some();
+        if taller { let t = casm_taller::explorar(&self.carpeta); self.despachar(Accion::Taller(t)); }
+        match mapa {
+            Some((id, resultado)) => self.despachar(Accion::MapaCasm { id, resultado }),
+            None if habia_mapa => self.despachar(Accion::MapaCasm { id: String::new(), resultado: None }),
+            None => {}
+        }
+    }
+
     /// La historia de git, cuando llega (solo la del ultimo pedido).
     fn recoger_git(&mut self) {
         for (g, micros, resultado) in self.git.recoger() {
@@ -346,7 +396,11 @@ impl App {
         let quedan = mensajes.len() == MAX_LINEAS_POR_CUADRO;
         for m in mensajes {
             match m {
-                proceso::Mensaje::Linea(linea, error) => self.despachar(Accion::Salida { linea, error }),
+                // GCC con -fdiagnostics-format=sarif-stderr: el SARIF pasa a lineas de diagnostico.
+                proceso::Mensaje::Linea(linea, error) => match consultas::sarif_a_lineas(&linea) {
+                    Some(lineas) => for l in lineas { self.despachar(Accion::Salida { linea: l, error: true }); },
+                    None => self.despachar(Accion::Salida { linea, error }),
+                },
                 proceso::Mensaje::Fin(codigo) => { self.proceso = None; self.vivos.seguir(None); self.despachar(Accion::Termino(codigo)); }
             }
         }
@@ -382,6 +436,7 @@ impl App {
             for (t, m) in pulsadas {
                 let a = match t {
                     Tecla::Escape => Some(carpetas_nucleo::proyecto::AccionIrA::Cerrar),
+                    Tecla::Enter if m.alt => Some(carpetas_nucleo::proyecto::AccionIrA::AlGrupo),
                     Tecla::Enter => Some(carpetas_nucleo::proyecto::AccionIrA::Aceptar { editor: m.command }),
                     Tecla::Arriba => Some(carpetas_nucleo::proyecto::AccionIrA::Mover(-1)),
                     Tecla::Abajo => Some(carpetas_nucleo::proyecto::AccionIrA::Mover(1)),
@@ -939,6 +994,8 @@ impl eframe::App for App {
         self.recoger_vivos();
         self.recoger_proyecto();
         self.recoger_git();
+        self.recoger_casm();
+        self.puente_vivo();
         self.teclado(&ctx);
         if self.estado.panel_ajustes && ctx.input(|i| i.key_pressed(Key::Escape)) { self.despachar(Accion::Comando(Comando::Ajustes)); }
         let tema = self.estado.ajustes.tema(self.estado.acento);
@@ -985,6 +1042,8 @@ impl eframe::App for App {
                     carpetas_nucleo::estado::Lateral::Explorador => self.explorador(ui, &v, &c),
                     carpetas_nucleo::estado::Lateral::Buscar => self.panel_buscar(ui, &c),
                     carpetas_nucleo::estado::Lateral::Museo => self.panel_museo(ui, &c),
+                    carpetas_nucleo::estado::Lateral::Casm => self.panel_casm(ui, &c),
+                    carpetas_nucleo::estado::Lateral::Combinar => self.panel_combinar(ui, &c),
                 });
         }
         egui::CentralPanel::default().frame(egui::Frame::new().fill(c.fondo)).show(ui, |ui| {
@@ -999,7 +1058,8 @@ impl eframe::App for App {
             } else if v.modo == Modo::Ciudad {
                 let mut acciones = Vec::new();
                 let antes = self.ciudad.micros;
-                ciudad3d::pintar(ui, &mut self.ciudad, &self.estado, &c, self.ciudad_ok, &mut acciones);
+                self.combinar.al_dia(&self.estado);
+                ciudad3d::pintar(ui, &mut self.ciudad, &self.estado, &self.combinar, &c, self.ciudad_ok, &mut acciones);
                 if self.ciudad.micros != antes { self.medidas.anotar(Carril::Ciudad, self.ciudad.micros); }
                 for a in acciones { self.despachar(a); }
             } else {
@@ -1018,6 +1078,16 @@ impl eframe::App for App {
 }
 
 fn main() -> eframe::Result {
+    // Sin ventana: preguntas en JSON (--consulta) o servidor MCP por stdio (--mcp).
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    match args.first().map(String::as_str) {
+        Some("--consulta") => std::process::exit(consultas::linea_de_ordenes(&args[1..])),
+        Some("--mcp") => {
+            let carpeta = args.get(1).map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."));
+            std::process::exit(mcp::servir(carpeta));
+        }
+        _ => {}
+    }
     let carpeta = std::env::args_os().nth(1).map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| "/".into())));
     let opciones = eframe::NativeOptions {

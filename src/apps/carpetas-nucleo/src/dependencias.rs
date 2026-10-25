@@ -27,7 +27,44 @@ pub enum ClaseRef {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Referencia { pub texto: String, pub linea: u32, pub clase: ClaseRef }
+pub struct Referencia {
+    pub texto: String,
+    pub linea: u32,
+    pub clase: ClaseRef,
+    /// El `#if` (o `#ifdef`, `#elif`, `#else`) dentro del que esta, sin contar la guarda de
+    /// la cabecera: el `#include` solo existe si se cumple (por ejemplo, solo en Windows).
+    pub condicion: Option<String>,
+}
+
+/// Por que `a usa b`: la referencia escrita en `a` (su linea y su texto). Es el motivo de
+/// cada paso de un camino del SUPER GRAFO.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Motivo {
+    pub linea: u32,
+    pub texto: String,
+    pub clase: ClaseRef,
+    pub condicion: Option<String>,
+    /// Deducida: el `#include` nombra una cabecera exportada (`mozilla/Assertions.h` es
+    /// `mfbt/Assertions.h`), ver `prefijos_exportados`.
+    pub exportada: bool,
+}
+
+impl Motivo {
+    pub fn de(r: &Referencia) -> Motivo { Motivo { linea: r.linea, texto: r.texto.clone(), clase: r.clase, condicion: r.condicion.clone(), exportada: false } }
+    /// Como se escribio, mas o menos: `#include "x.h"`, `mod x;`, `import a.b`...
+    pub fn escrito(&self, desde: &str) -> String {
+        let asm = matches!(ext(desde), "asm" | "nasm" | "inc");
+        match self.clase {
+            ClaseRef::Comillas if asm => format!("%include \"{}\"", self.texto),
+            ClaseRef::Comillas => format!("#include \"{}\"", self.texto),
+            ClaseRef::Angulos => format!("#include <{}>", self.texto),
+            ClaseRef::ModRust => format!("mod {};", self.texto),
+            ClaseRef::UsoRust => format!("use {}", self.texto),
+            ClaseRef::Python(0) => format!("import {}", self.texto),
+            ClaseRef::Python(n) => format!("from {}{} import", ".".repeat(n as usize), self.texto),
+        }
+    }
+}
 
 fn ext(ruta: &str) -> &str { ruta.rsplit('/').next().unwrap_or(ruta).rsplit_once('.').map(|(_, e)| e).unwrap_or("") }
 
@@ -44,6 +81,10 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
     let python = e == "py" || e == "pyi";
     let mut path_attr: Option<String> = None;
     let mut en_comentario = false;
+    // C: la pila de #if abiertos (texto, es la guarda) y la guarda candidata.
+    let mut condiciones: Vec<(String, bool)> = Vec::new();
+    let mut guarda: Option<String> = None;
+    let mut visto_codigo = false;
     for (k, crudo) in texto.lines().enumerate() {
         let linea = k as u32 + 1;
         let mut l = crudo.trim();
@@ -59,7 +100,7 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
                 let nombre = resto.trim_end().strip_suffix(';').map(str::trim);
                 if let Some(n) = nombre.filter(|n| es_nombre(n)) {
                     let texto = path_attr.take().map(|p| format!("#{p}")).unwrap_or_else(|| n.to_string());
-                    v.push(Referencia { texto, linea, clase: ClaseRef::ModRust });
+                    v.push(Referencia { texto, linea, clase: ClaseRef::ModRust, condicion: None });
                 }
                 continue;
             }
@@ -67,7 +108,7 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
             if let Some(resto) = sin_pub.strip_prefix("use ") {
                 // use a::b::{c, d::e}; -> a::b::c, a::b::d::e (un nivel de llaves)
                 let resto = resto.trim_end().trim_end_matches(';').trim();
-                for camino in expandir_use(resto) { v.push(Referencia { texto: camino, linea, clase: ClaseRef::UsoRust }); }
+                for camino in expandir_use(resto) { v.push(Referencia { texto: camino, linea, clase: ClaseRef::UsoRust, condicion: None }); }
             }
             continue;
         }
@@ -80,34 +121,61 @@ pub fn referencias(ruta: &str, texto: &str) -> Vec<Referencia> {
                 if m.is_empty() {
                     for n in nombres.trim_matches(|c| c == '(' || c == ')' || c == ' ').split(',') {
                         let n = n.split_whitespace().next().unwrap_or("");
-                        if es_nombre(n) { v.push(Referencia { texto: n.to_string(), linea, clase: ClaseRef::Python(puntos) }); }
+                        if es_nombre(n) { v.push(Referencia { texto: n.to_string(), linea, clase: ClaseRef::Python(puntos), condicion: None }); }
                     }
                 } else if m.split('.').all(es_nombre) {
                     // from pkg.sub import b: b puede ser un submodulo (pkg/sub/b.py); si no, vale pkg/sub.
                     let antes = v.len();
                     for n in nombres.trim_matches(|c| c == '(' || c == ')' || c == ' ').split(',') {
                         let n = n.split_whitespace().next().unwrap_or("");
-                        if es_nombre(n) { v.push(Referencia { texto: format!("{m}.{n}"), linea, clase: ClaseRef::Python(puntos) }); }
+                        if es_nombre(n) { v.push(Referencia { texto: format!("{m}.{n}"), linea, clase: ClaseRef::Python(puntos), condicion: None }); }
                     }
-                    if v.len() == antes { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(puntos) }); }
+                    if v.len() == antes { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(puntos), condicion: None }); }
                 }
             } else if let Some(resto) = l.strip_prefix("import ") {
                 for m in resto.split(',') {
                     let m = m.split_whitespace().next().unwrap_or("");
-                    if !m.is_empty() && m.split('.').all(es_nombre) { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(0) }); }
+                    if !m.is_empty() && m.split('.').all(es_nombre) { v.push(Referencia { texto: m.to_string(), linea, clase: ClaseRef::Python(0), condicion: None }); }
                 }
             }
             continue;
         }
-        // C, C++ y ASM
+        // C, C++ y ASM. Primero los condicionales: de que #if depende cada #include.
+        if let Some(d) = l.strip_prefix('#').map(str::trim_start) {
+            let palabra = d.split(|c: char| !c.is_ascii_alphanumeric() && c != '_').next().unwrap_or("");
+            let resto = d[palabra.len()..].split("//").next().unwrap_or("").trim();
+            match palabra {
+                "if" | "ifdef" | "ifndef" => {
+                    // La guarda: el primer #ifndef X seguido de #define X (se marca al ver el #define).
+                    condiciones.push((alloc::format!("#{palabra} {resto}"), false));
+                    if palabra == "ifndef" && condiciones.len() == 1 && v.is_empty() && !visto_codigo { guarda = Some(resto.to_string()); } else { guarda = None; }
+                    continue;
+                }
+                "elif" => { if let Some(c) = condiciones.last_mut() { c.0 = alloc::format!("#elif {resto}"); } continue; }
+                "else" => { if let Some(c) = condiciones.last_mut() { c.0 = alloc::format!("#else de {}", c.0); } continue; }
+                "endif" => { condiciones.pop(); continue; }
+                "define" => {
+                    let una = condiciones.len() == 1;
+                    if let (Some(g), Some(c)) = (guarda.take(), condiciones.last_mut()) {
+                        if una && resto.split_whitespace().next() == Some(g.as_str()) { c.1 = true; }
+                    }
+                    continue;
+                }
+                _ => {}
+            }
+        } else if !l.is_empty() && !l.starts_with("//") {
+            visto_codigo = true;
+            guarda = None;
+        }
+        let condicion = condiciones.iter().rev().find(|c| !c.1).map(|c| c.0.clone());
         let directiva = l.strip_prefix('#').map(str::trim_start).and_then(|r| r.strip_prefix("include").or_else(|| r.strip_prefix("import")))
             .or_else(|| l.strip_prefix("%include")).or_else(|| l.strip_prefix(".include"));
         let Some(resto) = directiva else { continue };
         let resto = resto.trim_start();
         if let Some(r) = resto.strip_prefix('"') {
-            if let Some((x, _)) = r.split_once('"') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Comillas }); } }
+            if let Some((x, _)) = r.split_once('"') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Comillas, condicion: condicion.clone() }); } }
         } else if let Some(r) = resto.strip_prefix('<') {
-            if let Some((x, _)) = r.split_once('>') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Angulos }); } }
+            if let Some((x, _)) = r.split_once('>') { if !x.is_empty() { v.push(Referencia { texto: x.to_string(), linea, clase: ClaseRef::Angulos, condicion }); } }
         }
     }
     v
@@ -157,6 +225,9 @@ pub trait Rutas {
     fn existe(&self, ruta: &str) -> bool;
     /// Rutas cuyo ultimo componente es `nombre`.
     fn por_nombre(&self, nombre: &str) -> Vec<&str>;
+    /// Carpetas de busqueda del proyecto (las -I de compile_commands.json), relativas a la
+    /// raiz: un `#include` se busca en ellas antes que por el final de la ruta.
+    fn bases(&self) -> &[String] { &[] }
 }
 
 /// A que archivo del proyecto apunta una referencia hecha desde `desde`.
@@ -167,6 +238,11 @@ pub fn resolver(desde: &str, r: &Referencia, rutas: &dyn Rutas) -> Option<String
         ClaseRef::Comillas | ClaseRef::Angulos => {
             if r.clase == ClaseRef::Comillas { if let Some(x) = probar(unir(dir, &r.texto)) { return Some(x); } }
             if let Some(x) = probar(unir("", &r.texto)) { return Some(x); }
+            // Las -I del proyecto (compile_commands.json): donde de verdad busca el compilador.
+            for b in rutas.bases() { if let Some(x) = probar(unir(b, &r.texto)) { return Some(x); } }
+            // `<features.h>` sin carpeta es del sistema (o de una -I que no se ve): buscarlo por
+            // el nombre lo confundiria con base/features.h. Solo se busca por el final con carpeta.
+            if r.clase == ClaseRef::Angulos && !r.texto.contains('/') { return None; }
             // Por el final: "linux/kernel.h" -> include/linux/kernel.h; el mas cercano al que incluye.
             let nombre = r.texto.rsplit('/').next()?;
             let cola = format!("/{}", r.texto.trim_start_matches("./"));
@@ -227,6 +303,50 @@ pub fn resolver(desde: &str, r: &Referencia, rutas: &dyn Rutas) -> Option<String
     }
 }
 
+/// Prefijos que son del sistema aunque el proyecto tenga un archivo con ese nombre.
+const PREFIJOS_DEL_SISTEMA: &[&str] = &[
+    "sys", "bits", "linux", "asm", "asm-generic", "net", "netinet", "netinet6", "arpa", "machine",
+    "mach", "mach-o", "gnu", "libkern", "os", "CoreFoundation", "x86_64-linux-gnu", "aarch64-linux-gnu", "i386-linux-gnu",
+];
+
+/// Cuantos `#include` distintos sin resolver necesita un prefijo para aprenderlo.
+pub const MIN_EXPORTADAS: u32 = 5;
+
+/// Cabeceras exportadas: los proyectos grandes copian sus cabeceras al compilar a otra
+/// carpeta con otro prefijo (Mozilla: `mfbt/Assertions.h` se incluye como
+/// `"mozilla/Assertions.h"`; `js/public/Value.h` como `"js/Value.h"`). Sin compilar, esa
+/// ruta no existe. Esto da el archivo del proyecto que acaba en lo que va detras del
+/// prefijo (`/Assertions.h`) si es el unico con ese nombre; si hay varios, nada: al
+/// exportar se aplanan carpetas (`mozilla/intl/Locale.h` es `intl/components/src/Locale.h`,
+/// no `js/src/builtin/intl/Locale.h`, que tambien acaba en `/intl/Locale.h`). Medido contra
+/// los moz.build de SpiderMonkey: con nombre repetido acertaba 41 de 86.
+pub fn exportada(texto: &str, rutas: &dyn Rutas) -> Option<String> {
+    let (_, resto) = texto.trim_start_matches("./").split_once('/')?;
+    let nombre = resto.rsplit('/').next()?;
+    let cola = format!("/{resto}");
+    let todos = rutas.por_nombre(nombre);
+    let [uno] = todos.as_slice() else { return None };
+    (uno.ends_with(&cola) || *uno == resto).then(|| uno.to_string())
+}
+
+/// Que prefijos se exportan, aprendido del proyecto entero: los que tienen al menos
+/// `MIN_EXPORTADAS` `#include` distintos sin resolver y en la mitad o mas cae un unico
+/// archivo (`exportada`). En SpiderMonkey: `mozilla/` (60 %) y `js/` (79 %); `sys/` (2 %)
+/// no. Da prefijo -> (los que caen, los distintos).
+pub fn prefijos_exportados<'a>(sin_resolver: impl IntoIterator<Item = &'a str>, rutas: &dyn Rutas) -> BTreeMap<String, (u32, u32)> {
+    let distintos: BTreeSet<&str> = sin_resolver.into_iter().collect();
+    let mut por: BTreeMap<String, (u32, u32)> = BTreeMap::new();
+    for t in distintos {
+        let Some((p, _)) = t.trim_start_matches("./").split_once('/') else { continue };
+        if p.is_empty() || p == ".." || PREFIJOS_DEL_SISTEMA.contains(&p) { continue; }
+        let e = por.entry(p.to_string()).or_default();
+        e.1 += 1;
+        if exportada(t, rutas).is_some() { e.0 += 1; }
+    }
+    por.retain(|_, (caen, total)| *total >= MIN_EXPORTADAS && *caen * 2 >= *total);
+    por
+}
+
 /// La carpeta `src` del crate de un archivo de Rust (la que tiene lib.rs o main.rs).
 fn raiz_crate(desde: &str, rutas: &dyn Rutas) -> Option<String> {
     let mut d = dir_de(desde);
@@ -260,6 +380,7 @@ pub struct Dependencias {
     usa: Vec<Vec<u32>>,
     usado_por: Vec<Vec<u32>>,
     pub aristas: u64,
+    motivos: BTreeMap<(u32, u32), Motivo>,
 }
 
 impl Dependencias {
@@ -273,32 +394,56 @@ impl Dependencias {
         }
         for v in usa.iter_mut().chain(usado_por.iter_mut()) { v.sort_unstable(); v.dedup(); }
         let indice = rutas.iter().enumerate().map(|(i, r)| (r.clone(), i as u32)).collect();
-        Dependencias { rutas, indice, usa, usado_por, aristas: total }
+        Dependencias { rutas, indice, usa, usado_por, aristas: total, motivos: BTreeMap::new() }
     }
     pub fn id(&self, ruta: &str) -> Option<u32> { self.indice.get(ruta).copied() }
     pub fn ruta(&self, id: u32) -> &str { &self.rutas[id as usize] }
     pub fn usa(&self, ruta: &str) -> impl Iterator<Item = &str> { self.id(ruta).into_iter().flat_map(move |i| self.usa[i as usize].iter().map(move |j| self.ruta(*j))) }
     pub fn usado_por(&self, ruta: &str) -> impl Iterator<Item = &str> { self.id(ruta).into_iter().flat_map(move |i| self.usado_por[i as usize].iter().map(move |j| self.ruta(*j))) }
+    /// Los motivos de las aristas (en el mismo orden que `aristas`; sobran o faltan: se ignoran).
+    pub fn poner_motivos(&mut self, aristas: &[(u32, u32)], motivos: Vec<Motivo>) {
+        self.motivos = aristas.iter().copied().zip(motivos).collect();
+    }
+    /// Por que `a` usa `b` (si se sabe).
+    pub fn motivo(&self, a: u32, b: u32) -> Option<&Motivo> { self.motivos.get(&(a, b)) }
+    /// Lo que usa (o quien usa) un archivo, por indice.
+    pub fn usa_id(&self, i: u32) -> &[u32] { self.usa.get(i as usize).map(|v| v.as_slice()).unwrap_or(&[]) }
+    pub fn usado_por_id(&self, i: u32) -> &[u32] { self.usado_por.get(i as usize).map(|v| v.as_slice()).unwrap_or(&[]) }
+    /// Los archivos cuya ruta empieza por `prefijo` (los de una carpeta: "dir/").
+    pub fn con_prefijo<'a>(&'a self, prefijo: &'a str) -> impl Iterator<Item = u32> + 'a {
+        self.indice.range::<str, _>((core::ops::Bound::Included(prefijo), core::ops::Bound::Unbounded))
+            .take_while(move |(r, _)| r.starts_with(prefijo)).map(|(_, i)| *i)
+    }
     pub fn len(&self) -> usize { self.rutas.len() }
     pub fn is_empty(&self) -> bool { self.rutas.is_empty() }
 
     /// Recorrido en anchura desde `origen`: hacia lo que usan (`arriba` = false) o hacia
     /// quien los usa (`arriba` = true). Devuelve id -> distancia (como mucho `max`).
     pub fn alcance(&self, origen: &[u32], arriba: bool, max: usize) -> (BTreeMap<u32, u16>, bool) {
-        let mut vistos: BTreeMap<u32, u16> = BTreeMap::new();
+        // La distancia en un arreglo plano (uno por archivo) y el mapa ordenado al final, de
+        // golpe: con un BTreeMap en cada paso, 500 000 archivos costaban 0,9 s.
+        const NO: u16 = u16::MAX;
+        let n = self.usa.len();
+        let mut dist: Vec<u16> = alloc::vec![NO; n];
+        let mut orden: Vec<u32> = Vec::new();
         let mut cola: VecDeque<u32> = VecDeque::new();
-        for o in origen { if vistos.insert(*o, 0).is_none() { cola.push_back(*o); } }
-        while let Some(x) = cola.pop_front() {
-            let d = vistos[&x];
+        for &o in origen {
+            if (o as usize) < n && dist[o as usize] == NO { dist[o as usize] = 0; orden.push(o); cola.push_back(o); }
+        }
+        let mut recortado = false;
+        'bfs: while let Some(x) = cola.pop_front() {
+            let d = dist[x as usize];
             let vecinos = if arriba { &self.usado_por[x as usize] } else { &self.usa[x as usize] };
-            for y in vecinos {
-                if vistos.contains_key(y) { continue; }
-                if vistos.len() >= max { return (vistos, true); }
-                vistos.insert(*y, d.saturating_add(1));
-                cola.push_back(*y);
+            for &y in vecinos {
+                if dist[y as usize] != NO { continue; }
+                if orden.len() >= max { recortado = true; break 'bfs; }
+                dist[y as usize] = d.saturating_add(1).min(NO - 1);
+                orden.push(y);
+                cola.push_back(y);
             }
         }
-        (vistos, false)
+        orden.sort_unstable();
+        (orden.into_iter().map(|x| (x, dist[x as usize])).collect(), recortado)
     }
 }
 
@@ -334,7 +479,7 @@ pub struct Conexion {
     pub truncada: bool,
 }
 
-pub const MAX_ALCANCE: usize = 20_000;
+pub const MAX_ALCANCE: usize = 1_000_000;
 pub const MAX_ARISTAS: usize = 4_000;
 pub const MAX_CAUSAS: usize = 300;
 
@@ -361,13 +506,17 @@ pub fn conectar(dep: &Dependencias, fallos: &BTreeSet<String>, propios: &BTreeSe
             _ => { c.roles.insert(f.clone(), Rol::Causa); causas.push(Causa { ruta: f.clone(), explica: 0, arrastra: 0 }); }
         }
     }
-    // Cuanto explica cada causa (las primeras MAX_CAUSAS; el resto queda en 0).
+    // Cuanto explica cada causa (las primeras MAX_CAUSAS; el resto queda en 0). Solo se
+    // cuenta, con la memoria del recorrido reutilizada: 300 cabeceras de base que arrastran
+    // a 400 000 archivos cada una costaban 4,3 s armando un mapa por causa.
+    let mut r = Recorrido::nuevo(dep.usa.len());
+    let fallan: Vec<bool> = { let mut v = alloc::vec![false; dep.usa.len()]; for &i in &ids { v[i as usize] = true; } v };
     for causa in causas.iter_mut().take(MAX_CAUSAS) {
         let Some(i) = dep.id(&causa.ruta) else { continue };
-        let (arriba, t) = dep.alcance(&[i], true, MAX_ALCANCE);
+        let (total, explica, t) = r.contar(dep, i, MAX_ALCANCE, &fallan);
         c.truncada |= t;
-        causa.explica = arriba.keys().filter(|x| **x != i && ids.contains(x)).count() as u32;
-        causa.arrastra = arriba.len().saturating_sub(1) as u32;
+        causa.explica = explica;
+        causa.arrastra = total.saturating_sub(1);
     }
     // Un ciclo en el que todos fallan: no hay uno solo que explique al resto; todos son causa.
     if causas.is_empty() {
@@ -383,6 +532,36 @@ pub fn conectar(dep: &Dependencias, fallos: &BTreeSet<String>, propios: &BTreeSe
     c.causas = causas;
     c.aristas = aristas_entre(dep, &c.roles, &mut c.truncada);
     c
+}
+
+/// Un recorrido hacia arriba (quien usa a quien) que solo cuenta, con su memoria
+/// reutilizable: cada pasada marca con su turno, asi no hay que limpiar nada entre causas.
+struct Recorrido { turno: Vec<u32>, actual: u32, cola: VecDeque<u32> }
+
+impl Recorrido {
+    fn nuevo(n: usize) -> Recorrido { Recorrido { turno: alloc::vec![0; n], actual: 0, cola: VecDeque::new() } }
+
+    /// Cuantos alcanza desde `origen` (el incluido), cuantos de ellos fallan (sin contar el
+    /// origen) y si se corto en `max`.
+    fn contar(&mut self, dep: &Dependencias, origen: u32, max: usize, fallan: &[bool]) -> (u32, u32, bool) {
+        self.actual += 1;
+        let marca = self.actual;
+        self.cola.clear();
+        self.turno[origen as usize] = marca;
+        self.cola.push_back(origen);
+        let (mut total, mut explica) = (1usize, 0u32);
+        while let Some(x) = self.cola.pop_front() {
+            for &y in &dep.usado_por[x as usize] {
+                if self.turno[y as usize] == marca { continue; }
+                if total >= max { return (total as u32, explica, true); }
+                self.turno[y as usize] = marca;
+                total += 1;
+                if fallan[y as usize] { explica += 1; }
+                self.cola.push_back(y);
+            }
+        }
+        (total as u32, explica, false)
+    }
 }
 
 /// Aisla un archivo: lo que usa (Base) y quien lo usa (Arrastra), con el en el centro.

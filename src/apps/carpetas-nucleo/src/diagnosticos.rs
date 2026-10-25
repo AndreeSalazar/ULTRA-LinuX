@@ -182,6 +182,14 @@ pub struct Errores {
 impl Errores {
     pub fn empezar(&mut self, base: &str) { *self = Errores { base: base.to_string(), ..Errores::default() }; }
 
+    /// Olvida los diagnosticos anotados (lista, cuenta y recorrido F8), sin tocar el lector
+    /// ni la carpeta base: para volver a anotarlos de cero desde otra fuente.
+    pub fn olvidar_diagnosticos(&mut self) {
+        self.por_nodo.clear();
+        self.total = 0;
+        self.cursor = 0;
+    }
+
     /// Anota; devuelve true si entro algo nuevo (y si alguno es grave).
     pub fn anotar(&mut self, lista: Vec<(String, Diagnostico)>, raiz: &str) -> (bool, bool) {
         let (mut nuevo, mut grave) = (false, false);

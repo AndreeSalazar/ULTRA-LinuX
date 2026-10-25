@@ -1,0 +1,399 @@
+diff --git a/CASM/examples/tics.casm b/CASM/examples/tics.casm
+new file mode 100644
+index 0000000..ed87a79
+--- /dev/null
++++ b/CASM/examples/tics.casm
+@@ -0,0 +1,11 @@
++// CASM 0.3: the first runtime value. metal_tics() reads the CPU time-stamp counter (rdtsc).
++void metal_main(void) {
++    const char texto[] = "tics: ";
++    const char salto[] = "\r\n";
++    const uint64_t t = metal_tics();
++    const uint64_t siguiente = t + 1;
++    metal_puts(texto);
++    metal_put_int(siguiente);
++    metal_puts(salto);
++    return;
++}
+diff --git a/CASM/src/casm.h b/CASM/src/casm.h
+index d34ed9b..2871aee 100644
+--- a/CASM/src/casm.h
++++ b/CASM/src/casm.h
+@@ -36,13 +36,36 @@ typedef struct {
+     unsigned rpn_tokens;
+     int used;
+     long decimal;        /* constant index of its decimal rendering, or -1 */
++    int runtime;         /* value known only at run time (reads metal_tics) */
++    int slot;            /* frame slot for a runtime integer, else -1 */
+ } CasmInteger;
+ typedef struct { size_t constant; unsigned line; } CasmCall;
++
++/* CASM 0.3 runtime: a program that reads metal_tics() (rdtsc) runs real x86-64.
++ * The body is an ordered op stream; both the emitter and the independent verifier
++ * turn it into the same bytes. A checked op that can overflow emits a trap block. */
++#define CASM_OPS_MAX 1024
++enum {
++    OP_TICS,   /* rdtsc -> rax (edx:eax combined) */
++    OP_CONST,  /* mov rax, imm (imm holds the value) */
++    OP_LOAD,   /* mov rax, [frame + slot] */
++    OP_TORCX,  /* mov rcx, rax (keep the left operand) */
++    OP_ADD, OP_SUB, OP_MUL,  /* rax = rax (op) rcx, then jc -> trap (trap = katana index) */
++    OP_STORE,  /* mov [frame + slot], rax */
++    OP_PUTS,   /* lea rsi,[rip+data]; call [r15+16]  (slot = constant index) */
++    OP_PRINT   /* load slot, print rax as unsigned decimal through puts */
++};
++typedef struct { int kind; unsigned line; uint64_t imm; int slot; int trap; } CasmOp;
++typedef struct { unsigned code_offset, length, line; } CasmTrap; /* where a katana cuts */
++
+ typedef struct {
+     CasmConstant constants[CASM_ITEMS_MAX];
+     CasmCall calls[CASM_ITEMS_MAX];
+     CasmInteger integers[CASM_ITEMS_MAX];
+-    size_t constant_count, call_count, integer_count;
++    CasmOp ops[CASM_OPS_MAX];
++    CasmTrap traps[CASM_ITEMS_MAX];
++    size_t constant_count, call_count, integer_count, op_count, trap_count;
++    size_t runtime_count;          /* integers computed by the CPU, not the compiler */
+     unsigned return_line;
+ } CasmProgram;
+ 
+diff --git a/CASM/src/emitter.c b/CASM/src/emitter.c
+index 6fe0cf2..d3b37bc 100644
+--- a/CASM/src/emitter.c
++++ b/CASM/src/emitter.c
+@@ -5,10 +5,153 @@
+ static void put32(unsigned char *out, uint32_t value) {
+     size_t i; for(i=0;i<4;i++) out[i]=(unsigned char)(value>>(8*i));
+ }
++/* ---------- CASM 0.3: runtime code ----------
++ * Frame: push r13; sub rsp,F; mov r13,rsp. r13 is the frame base (buffer at [r13+0..23],
++ * runtime slot i at [r13+24+8i]); RBP, R15 and the stack are preserved for the bridge.
++ * F keeps rsp 16-aligned at each call to puts. Every instruction has a fixed length, so
++ * the layout is computed first and then written. */
++#define BUF_END 23u
++static unsigned frame_bytes(size_t slots) { unsigned f = (unsigned)(24 + 8 * slots); f = (f + 15u) & ~15u; return f + 8u; }
++static unsigned slot_disp(int slot) { return 24u + 8u * (unsigned)slot; }
++static size_t op_length(const CasmOp *o) {
++    switch (o->kind) {
++    case OP_TICS: return 9; case OP_CONST: return 10; case OP_LOAD: case OP_STORE: return 7;
++    case OP_TORCX: return 3; case OP_ADD: case OP_SUB: case OP_MUL: return 9;
++    case OP_PUTS: return 11; case OP_PRINT: return 47; default: return 0;
++    }
++}
++static size_t imm_rsp_length(unsigned f) { return f <= 127 ? 4 : 7; }
++static size_t put_imm_rsp(unsigned char *b, unsigned char op_ext, unsigned f) {
++    /* sub rsp,F (/5 -> EC) or add rsp,F (/0 -> C4) */
++    if (f <= 127) { b[0]=0x48; b[1]=0x83; b[2]=op_ext; b[3]=(unsigned char)f; return 4; }
++    b[0]=0x48; b[1]=0x81; b[2]=op_ext; put32(b+3,f); return 7;
++}
++static int emit_runtime(const CasmProgram *program, unsigned char *body, size_t *size_out, size_t *offsets,
++                        CasmTrap *traps, size_t *trap_count, unsigned *frame_out) {
++    unsigned f = frame_bytes(program->runtime_count);
++    size_t at, i, code, trap_off, data, n_traps = 0;
++    int any_trap = 0;
++    code = 2 + imm_rsp_length(f) + 3;
++    for (i = 0; i < program->op_count; i++) { code += op_length(&program->ops[i]); if (program->ops[i].trap) any_trap = 1; }
++    code += imm_rsp_length(f) + 2 + 1;
++    trap_off = code;
++    data = code + (any_trap ? 3 : 0);
++    for (i = 0; i < program->constant_count; i++) {
++        if (program->constants[i].length > CASM_BODY_MAX || data > CASM_BODY_MAX - program->constants[i].length) {
++            fprintf(stderr,"RED [BODY-LIMIT] Code and data exceed 4072 bytes.\n"); return 0;
++        }
++        offsets[i] = data; data += program->constants[i].length;
++    }
++    memset(body, 0, CASM_BODY_MAX);
++    at = 0;
++    body[at++]=0x41; body[at++]=0x55;                       /* push r13 */
++    at += put_imm_rsp(body+at, 0xEC, f);                    /* sub rsp,F */
++    body[at++]=0x49; body[at++]=0x89; body[at++]=0xE5;      /* mov r13,rsp */
++    for (i = 0; i < program->op_count; i++) {
++        const CasmOp *o = &program->ops[i];
++        size_t start = at;
++        switch (o->kind) {
++        case OP_TICS:  /* rdtsc; shl rdx,32; or rax,rdx */
++            memcpy(body+at,"\x0f\x31\x48\xc1\xe2\x20\x48\x09\xd0",9); at+=9; break;
++        case OP_CONST: { size_t k; body[at++]=0x48; body[at++]=0xB8; for (k=0;k<8;k++) body[at++]=(unsigned char)(o->imm>>(8*k)); break; }
++        case OP_LOAD:  body[at++]=0x49; body[at++]=0x8B; body[at++]=0x85; put32(body+at,slot_disp(o->slot)); at+=4; break;
++        case OP_STORE: body[at++]=0x49; body[at++]=0x89; body[at++]=0x85; put32(body+at,slot_disp(o->slot)); at+=4; break;
++        case OP_TORCX: memcpy(body+at,"\x48\x89\xc1",3); at+=3; break;
++        case OP_ADD: case OP_SUB: case OP_MUL:
++            if (o->kind==OP_ADD) memcpy(body+at,"\x48\x01\xc8",3);
++            else if (o->kind==OP_SUB) memcpy(body+at,"\x48\x29\xc8",3);
++            else memcpy(body+at,"\x48\xf7\xe1",3);
++            at+=3;
++            /* jc trap: carry = unsigned overflow (add/mul) or borrow (sub) */
++            traps[n_traps].code_offset=(unsigned)at; traps[n_traps].length=6; traps[n_traps].line=o->line; n_traps++;
++            body[at++]=0x0F; body[at++]=0x82; put32(body+at,(uint32_t)(trap_off-(at+4))); at+=4;
++            break;
++        case OP_PUTS:
++            body[at++]=0x48; body[at++]=0x8D; body[at++]=0x35; put32(body+at,(uint32_t)(offsets[o->slot]-(at+4))); at+=4;
++            memcpy(body+at,"\x41\xff\x57\x10",4); at+=4; break;
++        case OP_PRINT: {
++            size_t loop;
++            body[at++]=0x49; body[at++]=0x8B; body[at++]=0x85; put32(body+at,slot_disp(o->slot)); at+=4;  /* mov rax,[r13+slot] */
++            body[at++]=0x49; body[at++]=0x8D; body[at++]=0xBD; put32(body+at,BUF_END); at+=4;            /* lea rdi,[r13+23] */
++            memcpy(body+at,"\xc6\x07\x00",3); at+=3;                                                     /* mov byte [rdi],0 */
++            loop = at;
++            memcpy(body+at,"\x48\xff\xcf\x31\xd2\xb9\x0a\x00\x00\x00\x48\xf7\xf1\x80\xc2\x30\x88\x17\x48\x85\xc0",21); at+=21;
++            body[at++]=0x75; body[at]=(unsigned char)(int)((long)loop-(long)(at+1)); at++;                 /* jnz loop */
++            memcpy(body+at,"\x48\x89\xfe\x41\xff\x57\x10",7); at+=7;                                 /* mov rsi,rdi; call [r15+16] */
++            break; }
++        default: fprintf(stderr,"RED [OPS-LIMIT] Unknown runtime operation.\n"); return 0;
++        }
++        if (at - start != op_length(o)) { fprintf(stderr,"RED [EMISSION] Internal length mismatch.\n"); return 0; }
++    }
++    at += put_imm_rsp(body+at, 0xC4, f);                    /* add rsp,F */
++    body[at++]=0x41; body[at++]=0x5D;                       /* pop r13 */
++    body[at++]=0xC3;                                        /* ret */
++    if (any_trap) { body[at++]=0xF4; body[at++]=0xEB; body[at++]=0xFD; }  /* trap: hlt; jmp back to hlt */
++    for (i = 0; i < program->constant_count; i++) { memcpy(body+offsets[i],program->constants[i].bytes,program->constants[i].length); at = offsets[i]+program->constants[i].length; }
++    *size_out = data; *trap_count = n_traps; *frame_out = f;
++    return 1;
++}
++static const char *op_name(int k) {
++    switch (k) { case OP_TICS: return "tics"; case OP_CONST: return "const"; case OP_LOAD: return "load"; case OP_STORE: return "store";
++                 case OP_TORCX: return "torcx"; case OP_ADD: return "add"; case OP_SUB: return "sub"; case OP_MUL: return "mul";
++                 case OP_PUTS: return "puts"; case OP_PRINT: return "print"; default: return "?"; }
++}
++static int write_runtime(const CasmProgram *program, const char *hex_path, const char *ir_path) {
++    unsigned char body[CASM_BODY_MAX];
++    size_t offsets[CASM_ITEMS_MAX], size, i, j, n_traps;
++    CasmTrap traps[CASM_OPS_MAX];
++    unsigned f;
++    FILE *hex, *ir;
++    if (!emit_runtime(program, body, &size, offsets, traps, &n_traps, &f)) return 0;
++    hex=fopen(hex_path,"wb");
++    if(!hex) { fprintf(stderr,"RED [HOST-WRITE] Cannot create HEX output.\n"); return 0; }
++    fprintf(hex,"; CASM body only: x86-64 / metal64 runtime. Verify before packaging.\n");
++    for(i=0;i<size;i++) fprintf(hex,"%02X%c",body[i],(i%16==15 || i+1==size)?'\n':' ');
++    if(ferror(hex)) { fclose(hex); return 0; }
++    if(fclose(hex)) return 0;
++    ir=fopen(ir_path,"wb");
++    if(!ir) { fprintf(stderr,"RED [HOST-WRITE] Cannot create IR output.\n"); return 0; }
++    fprintf(ir,"{\n\"Schema\":3,\"Target\":\"x86_64\",\"ABI\":\"metal64\",\"Frame\":%u,\"Constants\":[",f);
++    for(i=0;i<program->constant_count;i++) {
++        const CasmConstant *c=&program->constants[i];
++        fprintf(ir,"%s{\"Name\":\"%s\",\"Kind\":\"%s\",",i?",":"",c->name,c->kind==CASM_DECIMAL?"decimal":"ascii");
++        if(c->kind==CASM_DECIMAL) fprintf(ir,"\"Integer\":\"%s\",",program->integers[c->integer].name);
++        fprintf(ir,"\"Line\":%u,\"Offset\":%zu,\"Hex\":\"",c->line,offsets[i]);
++        for(j=0;j<c->length;j++) fprintf(ir,"%02X",c->bytes[j]);
++        fprintf(ir,"\"}");
++    }
++    fprintf(ir,"],\n\"Integers\":[");
++    for(i=0;i<program->integer_count;i++) {
++        const CasmInteger *n=&program->integers[i];
++        if(n->runtime) fprintf(ir,"%s{\"Name\":\"%s\",\"Type\":\"%s\",\"Line\":%u,\"Runtime\":true,\"Slot\":%d}",i?",":"",n->name,casm_int_types[n->type].name,n->line,n->slot);
++        else fprintf(ir,"%s{\"Name\":\"%s\",\"Type\":\"%s\",\"Line\":%u,\"Value\":\"%s%llu\",\"Rpn\":\"%s\"}",i?",":"",n->name,
++                     casm_int_types[n->type].name,n->line,n->negative?"-":"",(unsigned long long)n->magnitude,n->rpn);
++    }
++    fprintf(ir,"],\n\"Ops\":[");
++    for(i=0;i<program->op_count;i++) {
++        const CasmOp *o=&program->ops[i];
++        fprintf(ir,"%s{\"Kind\":\"%s\",\"Line\":%u",i?",":"",op_name(o->kind),o->line);
++        if(o->kind==OP_CONST) fprintf(ir,",\"Imm\":\"%llu\"",(unsigned long long)o->imm);
++        if(o->kind==OP_LOAD||o->kind==OP_STORE||o->kind==OP_PRINT) fprintf(ir,",\"Slot\":%d",o->slot);
++        if(o->kind==OP_PUTS) fprintf(ir,",\"Constant\":%d",o->slot);
++        fprintf(ir,"}");
++    }
++    fprintf(ir,"],\n\"Traps\":[");
++    for(i=0;i<n_traps;i++) fprintf(ir,"%s{\"Rule\":\"INT-OVERFLOW\",\"Offset\":%u,\"Length\":%u,\"Line\":%u}",i?",":"",traps[i].code_offset,traps[i].length,traps[i].line);
++    fprintf(ir,"],\n\"Return\":{\"Line\":%u},\"BodyBytes\":%zu\n}\n",program->return_line,size);
++    if(ferror(ir)) { fclose(ir); return 0; }
++    if(fclose(ir)) return 0;
++    if(size>3500) printf("YELLOW [BODY-MARGIN] %zu of 4072 bytes occupied.\n",size);
++    printf("GREEN [EMISSION] %zu body bytes of runtime x86-64; %zu trap(s) declared; unverified HEX and IR written.\n",size,n_traps);
++    return 1;
++}
++
+ int casm_emit(const CasmProgram *program, const char *hex_path, const char *ir_path) {
+     unsigned char body[CASM_BODY_MAX];
+     size_t offsets[CASM_ITEMS_MAX], size=program->call_count*11+1, i,j,at;
+     FILE *hex,*ir;
++    /* A program with runtime values is emitted as real code; without them, exactly as 0.2. */
++    if(program->runtime_count) return write_runtime(program,hex_path,ir_path);
+     for(i=0;i<program->constant_count;i++) {
+         if(program->constants[i].length>CASM_BODY_MAX-size) {
+             fprintf(stderr,"RED [BODY-LIMIT] Code and data exceed 4072 bytes.\n"); return 0;
+diff --git a/CASM/src/frontend.c b/CASM/src/frontend.c
+index b07382a..6445e75 100644
+--- a/CASM/src/frontend.c
++++ b/CASM/src/frontend.c
+@@ -111,7 +111,7 @@ static int word(Parser *p, const char *name) {
+     return next(p);
+ }
+ static int reserved(const char *name) {
+-    static const char *names[] = {"auto","break","case","char","const","continue","default","do","double","else","enum","extern","float","for","goto","if","inline","int","long","register","restrict","return","short","signed","sizeof","static","struct","switch","typedef","union","unsigned","void","volatile","while","_Alignas","_Alignof","_Atomic","_Bool","_Complex","_Generic","_Imaginary","_Noreturn","_Static_assert","_Thread_local","metal_main","metal_puts","metal_put_int",
++    static const char *names[] = {"auto","break","case","char","const","continue","default","do","double","else","enum","extern","float","for","goto","if","inline","int","long","register","restrict","return","short","signed","sizeof","static","struct","switch","typedef","union","unsigned","void","volatile","while","_Alignas","_Alignof","_Atomic","_Bool","_Complex","_Generic","_Imaginary","_Noreturn","_Static_assert","_Thread_local","metal_main","metal_puts","metal_put_int","metal_tics",
+         "uint8_t","uint16_t","uint32_t","uint64_t","int8_t","int16_t","int32_t","int64_t"};
+     size_t i;
+     for (i = 0; i < sizeof(names)/sizeof(names[0]); i++) if (!strcmp(name, names[i])) return 1;
+@@ -288,10 +288,117 @@ static int name_taken(const CasmProgram *program, const char *name) {
+     for (i = 0; i < program->integer_count; i++) if (!strcmp(program->integers[i].name, name)) return 1;
+     return 0;
+ }
++
++/* ---------- CASM 0.3: runtime integers ----------
++ * A declaration whose value comes from metal_tics() (rdtsc) runs on the CPU. The compiler
++ * cannot know the value, so it emits x86-64 that computes it with the SAME checked rules,
++ * and every operation that can overflow emits a trap block. Scope in 0.3: uint64_t only,
++ * one operation per expression, operands are metal_tics(), a runtime integer, another
++ * uint64 value, or a literal. */
++static int add_op(Parser *p, CasmProgram *program, int kind, unsigned line, uint64_t imm, int slot, int trap) {
++    CasmOp *o;
++    if (program->op_count >= CASM_OPS_MAX) return fail(p, "OPS-LIMIT", "Too many runtime operations.");
++    o = &program->ops[program->op_count++];
++    o->kind = kind; o->line = line; o->imm = imm; o->slot = slot; o->trap = trap;
++    return 1;
++}
++typedef struct { int kind; uint64_t imm; int slot; } Leaf; /* kind: OP_TICS / OP_CONST / OP_LOAD */
++static int uint64_of(Parser *p, const CasmInteger *n, uint64_t *out) {
++    if (n->negative && n->magnitude) return fail(p, "INT-OVERFLOW", "A negative value does not fit in uint64_t.");
++    *out = n->magnitude; return 1;
++}
++/* A leaf of a runtime expression. Returns 1 and whether it is a runtime read (tics/var). */
++static int parse_leaf(Parser *p, CasmProgram *program, Leaf *leaf, int *is_runtime) {
++    size_t i;
++    *is_runtime = 0;
++    if (is_name(p, "metal_tics")) {
++        if (!next(p) || !expect(p, '(') || !expect(p, ')')) return 0;
++        leaf->kind = OP_TICS; *is_runtime = 1; return 1;
++    }
++    if (p->token == TOK_NUMBER) {
++        uint64_t m;
++        if (!integer_literal(p, &m)) return 0;
++        leaf->kind = OP_CONST; leaf->imm = m; return next(p);
++    }
++    if (p->token == TOK_NAME) {
++        for (i = 0; i < program->integer_count; i++) if (!strcmp(program->integers[i].name, p->name)) {
++            CasmInteger *r = &program->integers[i];
++            r->used = 1;
++            if (r->runtime) { leaf->kind = OP_LOAD; leaf->slot = r->slot; *is_runtime = 1; return next(p); }
++            if (!uint64_of(p, r, &leaf->imm)) return 0;
++            leaf->kind = OP_CONST; return next(p);
++        }
++        for (i = 0; i < program->constant_count; i++) if (program->constants[i].kind == CASM_ASCII && !strcmp(p->name, program->constants[i].name))
++            return fail(p, "TYPE-INT", "A string cannot take part in integer arithmetic.");
++        return fail(p, "NAME-UNDEFINED", "Integer must be declared before use.");
++    }
++    return fail(p, "SYNTAX", "Expected metal_tics(), an integer literal or a declared integer.");
++}
++static int emit_leaf(Parser *p, CasmProgram *program, const Leaf *leaf, unsigned line) {
++    return add_op(p, program, leaf->kind, line, leaf->imm, leaf->slot, 0);
++}
++/* const uint64_t name = <leaf> [ (+|-|*) <leaf> ] ;  (runtime) */
++static int runtime_declaration(Parser *p, CasmProgram *program, int type, unsigned line) {
++    CasmInteger *n;
++    Leaf left, right;
++    int lr, rr, op;
++    if (type != 3) return fail(p, "INT-RUNTIME-TYPE", "Runtime integers are uint64_t in CASM 0.3.");
++    if (program->integer_count >= CASM_ITEMS_MAX) return fail(p, "INTEGER-LIMIT", "Too many integer constants.");
++    if (!next(p)) return 0;
++    if (p->token != TOK_NAME) return fail(p, "DECL-NAME", "Expected an integer identifier.");
++    if (reserved(p->name)) return fail(p, "NAME-RESERVED", "C keywords, underscore names and runtime names cannot be declared.");
++    if (name_taken(program, p->name)) return fail(p, "NAME-DUPLICATE", "Identifier already declared in this scope.");
++    n = &program->integers[program->integer_count];
++    memset(n, 0, sizeof(*n)); memcpy(n->name, p->name, strlen(p->name) + 1);
++    n->line = line; n->type = type; n->decimal = -1; n->runtime = 1; n->slot = (int)program->runtime_count;
++    if (!next(p) || !expect(p, '=')) return 0;
++    if (!parse_leaf(p, program, &left, &lr)) return 0;
++    op = p->token;
++    if (op == ';') {
++        if (!lr) return fail(p, "C-SUBSET", "A compile-time value must not use the runtime path.");
++        if (!emit_leaf(p, program, &left, line)) return 0;
++    } else if (op == '+' || op == '-' || op == '*') {
++        if (!next(p) || !parse_leaf(p, program, &right, &rr)) return 0;
++        if (!lr && !rr) return fail(p, "C-SUBSET", "A compile-time value must not use the runtime path.");
++        /* Evaluate right into rax, keep it in rcx, then left into rax: result = left OP right. */
++        if (!emit_leaf(p, program, &right, line) || !add_op(p, program, OP_TORCX, line, 0, 0, 0)) return 0;
++        if (!emit_leaf(p, program, &left, line)) return 0;
++        if (!add_op(p, program, op == '+' ? OP_ADD : op == '-' ? OP_SUB : OP_MUL, line, 0, 0, 1)) return 0;
++    } else if (op == '/' || op == '%') {
++        return fail(p, "INT-RUNTIME-DIV", "Runtime division is not in CASM 0.3 yet.");
++    } else {
++        return fail(p, "EXPR-RUNTIME", "A runtime expression is one operation in CASM 0.3.");
++    }
++    if (p->token != ';') return fail(p, "EXPR-RUNTIME", "A runtime expression is one operation in CASM 0.3.");
++    if (!add_op(p, program, OP_STORE, line, 0, n->slot, 0)) return 0;
++    n->magnitude = 0; program->runtime_count++; program->integer_count++;
++    return expect(p, ';');
++}
++/* Look ahead over the initializer (on a copy of the parser) for a runtime read. */
++static int initializer_is_runtime(const Parser *src, const CasmProgram *program) {
++    Parser p = *src;
++    int depth = 0;
++    p.failed = 0;
++    while (next(&p) && !p.failed) {
++        if (p.token == TOK_EOF) break;
++        if (p.token == '(') depth++;
++        else if (p.token == ')') { if (depth == 0) break; depth--; }
++        else if (p.token == ';' && depth == 0) break;
++        else if (p.token == TOK_NAME) {
++            size_t i;
++            if (!strcmp(p.name, "metal_tics")) return 1;
++            for (i = 0; i < program->integer_count; i++)
++                if (program->integers[i].runtime && !strcmp(p.name, program->integers[i].name)) return 1;
++        }
++    }
++    return 0;
++}
+ /* const <int type> name = expression; */
+ static int integer_declaration(Parser *p, CasmProgram *program, int type, unsigned line) {
+     CasmInteger *n;
+     Value v;
++    Parser save = *p;
++    if (initializer_is_runtime(&save, program)) return runtime_declaration(p, program, type, line);
+     if (program->integer_count >= CASM_ITEMS_MAX) return fail(p, "INTEGER-LIMIT", "Too many integer constants.");
+     if (!next(p)) return 0;
+     if (p->token != TOK_NAME) return fail(p, "DECL-NAME", "Expected an integer identifier.");
+@@ -300,7 +407,7 @@ static int integer_declaration(Parser *p, CasmProgram *program, int type, unsign
+     n = &program->integers[program->integer_count];
+     memset(n, 0, sizeof(*n));
+     memcpy(n->name, p->name, strlen(p->name) + 1);
+-    n->line = line; n->type = type; n->decimal = -1;
++    n->line = line; n->type = type; n->decimal = -1; n->slot = -1;
+     if (!next(p) || !expect(p, '=')) return 0;
+     if (p->token == TOK_STRING) return fail(p, "TYPE-INT", "An integer requires an integer expression, not a string.");
+     memset(&v, 0, sizeof v);
+@@ -322,6 +429,12 @@ static int put_int(Parser *p, CasmProgram *program) {
+     for (i = 0; i < program->constant_count; i++) if (program->constants[i].kind == CASM_ASCII && !strcmp(program->constants[i].name, p->name)) return fail(p, "TYPE-INT", "metal_put_int prints integers; use metal_puts for strings.");
+     if (!n) return fail(p, "NAME-UNDEFINED", "Integer must be declared before use.");
+     n->used = 1;
++    if (n->runtime) {
++        /* Known only at run time: the CPU converts it to decimal and prints it with puts. */
++        if (!add_op(p, program, OP_PRINT, line, 0, n->slot, 0)) return 0;
++        program->call_count++;
++        return next(p) && expect(p, ')') && expect(p, ';');
++    }
+     if (n->decimal < 0) {
+         /* Its decimal rendering is data, emitted once and shared by every call. */
+         CasmConstant *c;
+@@ -336,6 +449,7 @@ static int put_int(Parser *p, CasmProgram *program) {
+         c->line = n->line; c->kind = CASM_DECIMAL; c->integer = (size_t)(n - program->integers);
+         n->decimal = (long)program->constant_count++;
+     }
++    if (!add_op(p, program, OP_PUTS, line, 0, (int)n->decimal, 0)) return 0;
+     program->calls[program->call_count].constant = (size_t)n->decimal;
+     program->calls[program->call_count++].line = line;
+     return next(p) && expect(p, ')') && expect(p, ';');
+@@ -370,6 +484,7 @@ static int call(Parser *p, CasmProgram *program) {
+     for (i=0; i<program->integer_count; i++) if (!strcmp(p->name,program->integers[i].name)) return fail(p,"TYPE-STRING","metal_puts prints strings; use metal_put_int for integers.");
+     for (i=0; i<program->constant_count; i++) if (program->constants[i].kind == CASM_ASCII && !strcmp(p->name,program->constants[i].name)) break;
+     if (i == program->constant_count) return fail(p,"NAME-UNDEFINED","String must be declared before use.");
++    if (!add_op(p, program, OP_PUTS, line, 0, (int)i, 0)) return 0;
+     program->calls[program->call_count].constant=i;
+     program->calls[program->call_count++].line=line;
+     return next(p) && expect(p,')') && expect(p,';');
+diff --git a/CASM/verify.py b/CASM/verify.py
+index fd2e522..0ae5193 100644
+--- a/CASM/verify.py
++++ b/CASM/verify.py
+@@ -67,6 +67,8 @@ def verify(source_path, hex_path, ir_path):
+     require(all(re.fullmatch(r'[0-9A-Fa-f]{2}', t) for t in tokens), 'HEX-TOKEN')
+     body = bytes(int(t, 16) for t in tokens)
+     ir = json.loads(ir_path.read_text(encoding='ascii'))
++    if ir.get('Schema') == 3:
++        return verify_runtime(source, body, ir)
+     require(ir['Schema'] == 2 and ir['Target'] == 'x86_64' and ir['ABI'] == 'metal64', 'IR-CONTRACT')
+     require(1 <= len(body) <= 4072 and ir['BodyBytes'] == len(body), 'BODY-LIMIT')
+     constants, calls, integers = ir['Constants'], ir['Calls'], ir['Integers']

@@ -8,7 +8,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 /// Rutas como mucho en el indice (Chromium entero son 511 951 archivos + 46 370 carpetas).
-pub const MAX_INDICE: usize = 600_000;
+pub const MAX_INDICE: usize = 2_000_000;
 pub const MAX_RESULTADOS_IR_A: usize = 50;
 /// Coincidencias de texto como mucho en todo el proyecto, y por archivo.
 pub const MAX_COINCIDENCIAS: usize = 20_000;
@@ -156,7 +156,9 @@ pub struct IrA {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum AccionIrA { Abrir, Cerrar, Texto(String), Mover(i32), Elegir(usize), Aceptar { editor: bool } }
+pub enum AccionIrA { Abrir, Cerrar, Texto(String), Mover(i32), Elegir(usize), Aceptar { editor: bool },
+                     /// Alt+Enter: meter el elegido en el grupo (panel Combinar) sin moverse.
+                     AlGrupo }
 
 /// Una coincidencia de texto en un archivo.
 #[derive(Debug, Clone, PartialEq)]

@@ -10,6 +10,7 @@ use crate::{color, Colores};
 use bytemuck::{Pod, Zeroable};
 use carpetas_nucleo::ciudad::{color_calor, color_lenguaje, leyenda_lenguajes, lineas_de, Altura, ArchivoCiudad, Ciudad, Color as ColorCiudad, Edificio, TERRAZA};
 use carpetas_nucleo::{legible, Accion, Comando, Estado, Rol};
+use carpetas_nucleo::museo::Eje;
 use eframe::egui::{self, Align2, Color32, FontId, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2};
 use eframe::egui_wgpu::{self, wgpu, CallbackResources, CallbackTrait, ScreenDescriptor};
 use eframe::wgpu::util::DeviceExt;
@@ -17,11 +18,88 @@ use std::sync::Arc;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable, PartialEq)]
-pub struct Instancia { pub suelo: [f32; 4], pub alto: [f32; 2], pub color: [f32; 4] }
+pub struct Instancia { pub suelo: [f32; 4], pub alto: [f32; 2], pub color: [f32; 4], pub nace: f32 }
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable, PartialEq)]
-pub struct UniformeCiudad { pub vp: [[f32; 4]; 4], pub luz: [f32; 4] }
+pub struct UniformeCiudad { pub vp: [[f32; 4]; 4], pub luz: [f32; 4], pub tiempo: [f32; 4] }
+
+/// La cronologia de la ciudad: cuando nacio cada archivo y carpeta de hoy (de git, sin
+/// sacar versiones viejas: `carpetas_nucleo::cronologia`).
+pub struct LineaTiempo {
+    /// (id corto, fecha, asunto) de cada commit, en orden.
+    pub commits: Vec<(String, u64, String)>,
+    pub nace: std::collections::HashMap<String, u32>,
+    pub carpetas: std::collections::HashMap<String, u32>,
+    /// Los nacimientos de los archivos de hoy, ordenados (para contar los que ya existian).
+    pub orden: Vec<u32>,
+    pub ms: u128,
+}
+
+impl LineaTiempo {
+    /// Cuando nacio (0..1 por commits); lo que git no conoce, al final.
+    fn de(&self, ruta: &str, carpeta: bool) -> f32 {
+        let n = self.commits.len().saturating_sub(1).max(1) as f32;
+        let i = if carpeta { self.carpetas.get(ruta) } else { self.nace.get(ruta).or_else(|| self.carpetas.get(ruta)) };
+        i.map(|&i| i as f32 / n).unwrap_or(1.0)
+    }
+}
+
+/// El deslizador del tiempo y su cronologia (que se lee en otro hilo).
+#[derive(Default)]
+pub struct Tiempo {
+    pub activo: bool,
+    /// El commit que se mira (con decimales mientras se reproduce).
+    pub t: f32,
+    pub jugando: bool,
+    pub datos: Option<Arc<LineaTiempo>>,
+    pub error: Option<String>,
+    pedido: Option<(String, std::sync::mpsc::Receiver<Result<LineaTiempo, String>>, std::time::Instant)>,
+    /// Para que las instancias rehagan su fecha de nacimiento al llegar la cronologia.
+    version: u64,
+}
+
+impl Tiempo {
+    fn pedir(&mut self, raiz: &str, ctx: &egui::Context) {
+        if self.pedido.as_ref().is_some_and(|(r, ..)| r == raiz) { return; }
+        let (tx, rx) = std::sync::mpsc::channel();
+        let (base, ctx) = (std::path::PathBuf::from(raiz), ctx.clone());
+        std::thread::Builder::new().name("ultra-cronologia".into()).spawn(move || {
+            let t = std::time::Instant::now();
+            let r = crate::git::cronologia(&base).and_then(|(c, ..)| {
+                if c.commits.is_empty() { return Err("el repositorio no tiene commits".into()); }
+                let rep = carpetas_nucleo::cronologia::reproducir(&c, 1);
+                let nace: std::collections::HashMap<String, u32> = rep.vivos.iter().filter_map(|k| Some((c.ruta_de(*k).to_string(), rep.vidas.get(k)?.nace))).collect();
+                let mut orden: Vec<u32> = nace.values().copied().collect();
+                orden.sort_unstable();
+                Ok(LineaTiempo { commits: c.commits.iter().map(|x| (x.id.clone(), x.fecha, x.asunto.clone())).collect(), nace,
+                                 carpetas: rep.carpetas.into_iter().collect(), orden, ms: t.elapsed().as_millis() })
+            });
+            let _ = tx.send(r);
+            ctx.request_repaint();
+        }).ok();
+        self.pedido = Some((raiz.to_string(), rx, std::time::Instant::now()));
+        self.datos = None;
+        self.error = None;
+    }
+
+    fn recoger(&mut self) {
+        let Some((_, rx, _)) = &self.pedido else { return };
+        match rx.try_recv() {
+            Ok(Ok(d)) => { self.t = 0.0; self.datos = Some(Arc::new(d)); self.version += 1; }
+            Ok(Err(e)) => self.error = Some(e),
+            Err(_) => {}
+        }
+    }
+
+    /// El momento que mira la GPU: 0..1, o -1 si no hay cronologia en marcha.
+    fn ahora(&self) -> f32 {
+        match (&self.datos, self.activo) {
+            (Some(d), true) => self.t / d.commits.len().saturating_sub(1).max(1) as f32,
+            _ => -1.0,
+        }
+    }
+}
 
 // ---------- Matematicas (sin dependencias) ----------
 type V3 = [f32; 3];
@@ -125,6 +203,15 @@ fn color_edificio(e: &Edificio, modo: ColorCiudad, estado: &Estado, c: &Colores)
             let (exactas, revisar) = estado.analisis.conteo(&e.ruta);
             if err + exactas > 0 { [235, 70, 80] } else if av + revisar > 0 { [230, 175, 60] } else { [70, 185, 110] }
         }
+        ColorCiudad::Triangulo => {
+            // El eje que mas pesa en el edificio (a igualdad: Seguridad, luego Rendimiento).
+            let n = estado.analisis.conteo_ejes(&e.ruta);
+            let ejes = Eje::TODOS.iter().filter(|x| estado.filtro_eje.is_none_or(|f| f == **x));
+            match ejes.filter(|x| n[x.indice()] > 0).max_by_key(|x| (n[x.indice()], core::cmp::Reverse(x.indice()))) {
+                Some(x) => { let k = crate::color_eje(c, *x); [k.r(), k.g(), k.b()] }
+                None => [52, 56, 68],
+            }
+        }
         ColorCiudad::Busqueda => {
             if estado.proyecto.conteo(&e.ruta) > 0 { let a = c.acento; [a.r(), a.g(), a.b()] } else { [58, 62, 74] }
         }
@@ -142,7 +229,15 @@ pub struct Vista3 {
     revelado_visto: u64,
     raiz_vista: String,
     pub micros: u64,
+    /// Shift+arrastrar: donde empezo la banda de la seleccion grupal.
+    banda: Option<Pos2>,
+    /// La cronologia (ciudad fantasma) y la version de ella con la que se hicieron las instancias.
+    pub tiempo: Tiempo,
+    nace_hecho: u64,
 }
+
+/// Cajas resaltadas como mucho: lo elegido, lo de debajo del raton y el grupo con sus puentes.
+const MAX_RESALTES: usize = 128;
 
 impl Vista3 {
     /// Rehace la ciudad y sus instancias si cambio algo que se ve (no la camara).
@@ -150,7 +245,10 @@ impl Vista3 {
         let a = c.acento;
         let clave = (e.ciudad.version, e.ajustes.altura_ciudad, e.ajustes.color_ciudad, e.ajustes.huella_ciudad, e.errores.total, e.proyecto.generacion, e.proyecto.total, [a.r(), a.g(), a.b()], e.historia.version,
                      e.conectado.clave.clone(), e.analisis.version);
-        if self.clave.as_ref() == Some(&clave) { return; }
+        if self.clave.as_ref() == Some(&clave) && self.nace_hecho == self.tiempo.version { return; }
+        self.nace_hecho = self.tiempo.version;
+        let linea = self.tiempo.datos.clone();
+        let nace = |r: &str, carpeta: bool| linea.as_ref().map(|l| l.de(r, carpeta)).unwrap_or(0.0);
         let t = std::time::Instant::now();
         let medida = |r: &str| match e.ajustes.altura_ciudad {
             Altura::Errores => { let (x, y) = e.errores.conteo(r); x * 3 + y }
@@ -165,7 +263,7 @@ impl Vista3 {
             let k = (0.10 + d.nivel as f32 * 0.05).min(0.35);
             let base = [c.superficie.r(), c.superficie.g(), c.superficie.b()];
             let col = [(base[0] as f32 * (1.0 + k)) as u8, (base[1] as f32 * (1.0 + k)) as u8, ((base[2] as f32 * (1.0 + k)) as u8).saturating_add(6)];
-            v.push(Instancia { suelo: d.rect, alto: [d.base - TERRAZA, TERRAZA], color: rgba(col, 1.0) });
+            v.push(Instancia { suelo: d.rect, alto: [d.base - TERRAZA, TERRAZA], color: rgba(col, 1.0), nace: if d.ruta.is_empty() { 0.0 } else { nace(&d.ruta, true) } });
         }
         for b in &ciudad.edificios {
             let col = match (e.aislar.is_some(), e.conectado.conexion.roles.get(&b.ruta)) {
@@ -177,7 +275,7 @@ impl Vista3 {
                 (true, None) => [34, 36, 44],
                 _ => color_edificio(b, e.ajustes.color_ciudad, e, c),
             };
-            v.push(Instancia { suelo: b.rect, alto: [b.base, b.altura], color: rgba(col, 1.0) });
+            v.push(Instancia { suelo: b.rect, alto: [b.base, b.altura], color: rgba(col, 1.0), nace: nace(&b.ruta, b.bloque) });
         }
         if self.raiz_vista != ciudad.raiz { self.camara = Camara3::default(); self.raiz_vista = ciudad.raiz.clone(); }
         self.ciudad = Arc::new(ciudad);
@@ -190,7 +288,11 @@ impl Vista3 {
     /// Edificio (o distrito) bajo el raton: el mas cercano que toca el rayo.
     fn elegir(&self, o: V3, d: V3) -> (Option<usize>, Option<usize>) {
         let mut mejor = (f32::MAX, None);
+        // Con la cronologia en marcha, lo que aun no nacio no se elige (es un solar).
+        let ahora = self.tiempo.ahora();
+        let distritos = self.ciudad.distritos.len();
         for (i, b) in self.ciudad.edificios.iter().enumerate() {
+            if ahora >= 0.0 && self.instancias.get(distritos + i).is_some_and(|x| x.nace > ahora + 1e-6) { continue; }
             let min = [b.rect[0], b.base, b.rect[1]];
             let max = [b.rect[0] + b.rect[2], b.base + b.altura, b.rect[1] + b.rect[3]];
             if let Some(t) = rayo_caja(o, d, min, max) { if t < mejor.0 { mejor = (t, Some(i)); } }
@@ -223,7 +325,7 @@ pub fn instalar(rs: &egui_wgpu::RenderState, profundidad: Option<wgpu::TextureFo
     let grupo = d.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("ciudad"), layout: &disposicion,
         entries: &[wgpu::BindGroupEntry { binding: 0, resource: uniforme.as_entire_binding() }] });
     let capas = d.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor { label: Some("ciudad"), bind_group_layouts: &[Some(&disposicion)], immediate_size: 0 });
-    let atributos = wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4];
+    let atributos = wgpu::vertex_attr_array![0 => Float32x4, 1 => Float32x2, 2 => Float32x4, 3 => Float32];
     let pipeline = d.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some("ciudad"), layout: Some(&capas),
         vertex: wgpu::VertexState { module: &shader, entry_point: Some("vs"), compilation_options: Default::default(),
@@ -237,7 +339,7 @@ pub fn instalar(rs: &egui_wgpu::RenderState, profundidad: Option<wgpu::TextureFo
         multiview_mask: None,
         cache: None,
     });
-    let resaltes = d.create_buffer(&wgpu::BufferDescriptor { label: Some("ciudad resaltes"), size: (std::mem::size_of::<Instancia>() * 4) as u64,
+    let resaltes = d.create_buffer(&wgpu::BufferDescriptor { label: Some("ciudad resaltes"), size: (std::mem::size_of::<Instancia>() * MAX_RESALTES) as u64,
         usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
     rs.renderer.write().callback_resources.insert(Recursos { pipeline, uniforme, grupo, instancias: None, cantidad: 0, version: u64::MAX, resaltes, n_resaltes: 0 });
     true
@@ -255,7 +357,7 @@ impl CallbackTrait for Pintor {
             r.version = self.version;
         }
         queue.write_buffer(&r.uniforme, 0, bytemuck::bytes_of(&self.uniforme));
-        r.n_resaltes = self.resaltes.len().min(4) as u32;
+        r.n_resaltes = self.resaltes.len().min(MAX_RESALTES) as u32;
         if r.n_resaltes > 0 { queue.write_buffer(&r.resaltes, 0, bytemuck::cast_slice(&self.resaltes[..r.n_resaltes as usize])); }
         Vec::new()
     }
@@ -277,7 +379,7 @@ impl CallbackTrait for Pintor {
 fn por(x: f32) -> String { if x >= 10.0 { format!("{x:.0} %") } else if x >= 0.1 { format!("{x:.1} %") } else { "<0.1 %".into() } }
 
 /// Pinta la ciudad, su leyenda y etiquetas; traduce el raton a acciones.
-pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: bool, acciones: &mut Vec<Accion>) {
+pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combinar_ui::Cache, c: &Colores, gpu: bool, acciones: &mut Vec<Accion>) {
     let (rect, resp) = ui.allocate_exact_size(ui.available_size(), Sense::click_and_drag());
     let pintor = ui.painter_at(rect);
     pintor.rect_filled(rect, 0.0, c.fondo);
@@ -290,11 +392,25 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         pintor.text(rect.center(), Align2::CENTER_CENTER, t, FontId::proportional(15.0), c.tenue);
         if e.ciudad.archivos.is_empty() { return; }
     }
+    // La cronologia: recoger lo que llego y avanzar si se esta reproduciendo (toda la
+    // historia en unos 30 s, sea cual sea su largo).
+    v3.tiempo.recoger();
+    if v3.tiempo.activo && v3.tiempo.jugando {
+        if let Some(d) = v3.tiempo.datos.clone() {
+            let fin = d.commits.len().saturating_sub(1) as f32;
+            let dt = ui.input(|i| i.stable_dt).min(0.1);
+            v3.tiempo.t = (v3.tiempo.t + dt * (fin / 30.0).max(1.0)).min(fin);
+            if v3.tiempo.t >= fin { v3.tiempo.jugando = false; }
+            ui.ctx().request_repaint();
+        }
+    }
     v3.preparar(e, c);
     let aspecto = rect.width() / rect.height().max(1.0);
     // Camara: arrastrar = girar; central o derecho = mover; rueda = acercar.
+    let shift = ui.input(|i| i.modifiers.shift);
+    if resp.drag_started_by(egui::PointerButton::Primary) && shift { v3.banda = ui.input(|i| i.pointer.press_origin()); }
     let cam = &mut v3.camara;
-    if resp.dragged_by(egui::PointerButton::Primary) {
+    if resp.dragged_by(egui::PointerButton::Primary) && v3.banda.is_none() {
         let d = resp.drag_delta();
         cam.giro -= d.x * 0.008;
         cam.inclinacion = (cam.inclinacion + d.y * 0.006).clamp(0.12, 1.5);
@@ -333,13 +449,34 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
     let mut resaltes = Vec::new();
     let mut resaltar = |b: &Edificio, col: [u8; 3]| {
         let g = 0.4;
-        resaltes.push(Instancia { suelo: [b.rect[0] - g, b.rect[1] - g, b.rect[2] + 2.0 * g, b.rect[3] + 2.0 * g], alto: [b.base, b.altura + g], color: rgba(col, 1.0) });
+        resaltes.push(Instancia { suelo: [b.rect[0] - g, b.rect[1] - g, b.rect[2] + 2.0 * g, b.rect[3] + 2.0 * g], alto: [b.base, b.altura + g], color: rgba(col, 1.0), nace: 0.0 });
     };
     let sel = e.seleccion.iter().next();
     if let Some(b) = sel.and_then(|s| v3.ciudad.edificios.iter().find(|b| &b.ruta == s)) { resaltar(b, [255, 255, 255]); }
+    // Seleccion grupal: los del grupo en blanco, lo que comparten en el acento y quien los
+    // junta en verde. Los cables se dibujan despues, sobre la ciudad.
+    let grupo = !e.grupo.is_empty() && !k.del_grafo;
+    let mut anclas = if grupo { anclas(&v3.ciudad, k) } else { Anclas::default() };
+    let camino = k.camino.as_ref().filter(|c| grupo && c.union.is_some());
+    if let Some(cam) = camino { anclas.camino = buscar(&v3.ciudad, &cam.nodos.iter().map(String::as_str).collect::<Vec<_>>()); }
+    if grupo {
+        let (a, v) = (c.acento, c.verde);
+        // Los del grupo en blanco; los que tienen algo de Seguridad, en rojo neon.
+        let rojo = [c.error.r(), c.error.g(), c.error.b()];
+        for (i, col) in anclas.miembros.iter().enumerate().map(|(m, x)| (x, if k.ejes.get(m).is_some_and(|e| e[0] > 0) { rojo } else { [255, 255, 255] }))
+            .chain(anclas.comparten.iter().map(|x| (x, [a.r(), a.g(), a.b()])))
+            .chain(anclas.juntan.iter().map(|x| (x, [v.r(), v.g(), v.b()]))) {
+            if let Some(Ancla::Edificio(j)) = i { resaltar(&v3.ciudad.edificios[*j], col); }
+        }
+        // Los de en medio del camino, en blanco tambien: son parte de la union.
+        for a in anclas.camino.iter().flatten() { if let Ancla::Edificio(j) = a { resaltar(&v3.ciudad.edificios[*j], [255, 255, 255]); } }
+    }
     if let Some(i) = bajo { let a = c.acento; resaltar(&v3.ciudad.edificios[i], [a.r(), a.g(), a.b()]); }
     let luz = [0.45, 0.85, 0.30, (v3.camara.distancia * 0.0012).clamp(0.08, 1.2)];
-    pintor.add(egui_wgpu::Callback::new_paint_callback(rect, Pintor { version: v3.version_gpu, instancias: v3.instancias.clone(), uniforme: UniformeCiudad { vp, luz }, resaltes }));
+    // El brillo de lo recien nacido dura un 3 % de la historia (al menos un commit).
+    let brillo = v3.tiempo.datos.as_ref().map(|d| (0.03f32).max(1.0 / d.commits.len().max(1) as f32)).unwrap_or(0.0);
+    let tiempo = [v3.tiempo.ahora(), brillo, 0.0, 0.0];
+    pintor.add(egui_wgpu::Callback::new_paint_callback(rect, Pintor { version: v3.version_gpu, instancias: v3.instancias.clone(), uniforme: UniformeCiudad { vp, luz, tiempo }, resaltes }));
 
     // Etiquetas de distritos: los de arriba siempre que quepan; mas hondos si se ven grandes.
     let mut ocupadas: Vec<Rect> = Vec::new();
@@ -360,6 +497,11 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         pintor.galley(caja.center() - g.size() / 2.0, g, Color32::WHITE);
     }
 
+    if grupo {
+        // Con camino, lo del grupo se apaga un poco para que el camino mande.
+        cables(&pintor, &vp, rect, &v3.ciudad, k, &anclas, c, if camino.is_some() { 0.35 } else { 1.0 });
+        if let Some(cam) = camino { camino_ciudad(ui, &pintor, &vp, rect, &v3.ciudad, cam, &anclas.camino, c, !k.quieto); }
+    }
     leyenda(ui, rect, v3, e, c, acciones);
 
     // Ficha del edificio (o del distrito) bajo el raton.
@@ -374,6 +516,14 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         if err + av > 0 { t += &format!("\n{err} errores · {av} avisos"); }
         let n = e.proyecto.conteo(&b.ruta);
         if n > 0 { t += &format!("\n{n} resultados de la busqueda"); }
+        // La cronologia: cuando nacio y con que commit (el porque).
+        if let Some(d) = &v3.tiempo.datos {
+            let i = if b.bloque { d.carpetas.get(&b.ruta) } else { d.nace.get(&b.ruta) };
+            t += &match i.and_then(|i| d.commits.get(*i as usize)) {
+                Some((id, f, a)) => format!("\nnacio el {} ({id}): {a}", crate::consultas::fecha_iso(*f)),
+                None => "\ngit no lo conoce (sin commit, ignorado o generado)".to_string(),
+            };
+        }
         if e.historia.lista && e.historia.sin.is_none() {
             let h = e.historia.datos.de(&b.ruta);
             t += &if h.veces == 0 { "\nsin cambios en la historia leida".to_string() }
@@ -392,8 +542,23 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         let t = format!("{}/\n{} archivos · {} · {} del total\ndoble clic: enfocar", if d.ruta.is_empty() { "(raiz)" } else { &d.ruta }, d.archivos, legible(d.tam), por(d.porcentaje));
         ficha(&pintor, rect, p, &t, c);
     }
-    // Clics.
-    if resp.clicked() {
+    // Shift+arrastrar: banda; al soltar, al grupo los edificios cuya azotea cae dentro.
+    if let Some(inicio) = v3.banda {
+        let fin = ui.input(|i| i.pointer.interact_pos()).unwrap_or(inicio);
+        let caja = Rect::from_two_pos(inicio, fin);
+        pintor.rect(caja, 2, c.acento.gamma_multiply(0.10), Stroke::new(1.0, c.acento), StrokeKind::Inside);
+        if resp.drag_stopped() || !ui.input(|i| i.pointer.primary_down()) {
+            v3.banda = None;
+            let dentro: Vec<String> = v3.ciudad.edificios.iter()
+                .filter(|b| proyectar(&vp, [b.rect[0] + b.rect[2] / 2.0, b.base + b.altura, b.rect[1] + b.rect[3] / 2.0], rect).is_some_and(|q| caja.contains(q)))
+                .take(carpetas_nucleo::combinar::MAX_GRUPO).map(|b| b.ruta.clone()).collect();
+            if !dentro.is_empty() { acciones.push(Accion::Grupo(carpetas_nucleo::AccionGrupo::Sumar(dentro))); }
+        }
+    }
+    // Clics. Ctrl+clic: meter o sacar del grupo (archivos y bloques).
+    if resp.clicked() && ui.input(|i| i.modifiers.command) {
+        if let Some(b) = bajo.map(|i| &v3.ciudad.edificios[i]) { acciones.push(Accion::Grupo(carpetas_nucleo::AccionGrupo::Alternar(b.ruta.clone()))); }
+    } else if resp.clicked() {
         match bajo.map(|i| &v3.ciudad.edificios[i]) {
             Some(b) if b.bloque => acciones.push(Accion::Enfocar(b.ruta.clone())),
             Some(b) => acciones.push(Accion::Revelar { id: b.ruta.clone(), editor: false }),
@@ -407,7 +572,7 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores, gpu: 
         if let Some(d) = distrito.map(|i| &v3.ciudad.distritos[i]) { if !d.ruta.is_empty() && bajo.is_none() { acciones.push(Accion::Enfocar(d.ruta.clone())); } }
     }
     pintor.text(rect.left_bottom() + Vec2::new(10.0, -8.0), Align2::LEFT_BOTTOM,
-                "arrastrar: girar · central/derecho: mover · rueda: acercar · clic: mostrar en el explorador · clic derecho: editor · doble clic en un distrito: enfocar · U: subir",
+                "arrastrar: girar · central/derecho: mover · rueda: acercar · clic: mostrar · Ctrl+clic o Shift+arrastrar: grupo (panel Combinar) · clic derecho: editor · doble clic en un distrito: enfocar · U: subir",
                 FontId::proportional(11.0), c.tenue);
 }
 
@@ -506,6 +671,15 @@ fn leyenda(ui: &mut egui::Ui, lienzo: Rect, v3: &mut Vista3, e: &Estado, c: &Col
                     muestra(ui, [70, 185, 110], "sin errores conocidos".into());
                     if e.errores.total == 0 { ui.label(egui::RichText::new("Aun no se ejecuto nada (F5): todo en verde.").color(c.tenue).size(10.5)); }
                 }
+                ColorCiudad::Triangulo => {
+                    for x in Eje::TODOS {
+                        let k = crate::color_eje(c, x);
+                        let n = e.analisis.sospechas.values().flatten().filter(|s| carpetas_nucleo::museo::eje(s.ficha) == x).count();
+                        muestra(ui, [k.r(), k.g(), k.b()], format!("{} · {n}", x.nombre()));
+                    }
+                    muestra(ui, [52, 56, 68], "nada del museo".into());
+                    ui.label(egui::RichText::new("Seguridad es una regla; Rendimiento y Elegancia, guias. Solo Seguridad cuenta como fallo.").color(c.tenue).size(10.5));
+                }
                 ColorCiudad::Busqueda => {
                     let a = c.acento;
                     muestra(ui, [a.r(), a.g(), a.b()], format!("con resultados de «{}»", e.proyecto.patron));
@@ -518,8 +692,70 @@ fn leyenda(ui: &mut egui::Ui, lienzo: Rect, v3: &mut Vista3, e: &Estado, c: &Col
                 if ui.small_button("Encuadrar").clicked() { v3.camara = Camara3::default(); }
                 if !ciudad.raiz.is_empty() && ui.small_button("Subir [U]").clicked() { acciones.push(Accion::Comando(Comando::SubirFoco)); }
             });
+            tiempo_ui(ui, v3, e, c);
         });
     });
+}
+
+/// La seccion TIEMPO de la leyenda: ver como se construyo, desde el primer commit.
+fn tiempo_ui(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores) {
+    ui.add_space(6.0);
+    ui.separator();
+    let tm = &mut v3.tiempo;
+    if !tm.activo {
+        if ui.button(egui::RichText::new("Ver como se construyo (git)").color(c.acento)).on_hover_text("La ciudad desde el primer commit: lo que aun no existe es un solar oscuro y lo recien nacido brilla. Lee la historia de git una vez (sin sacar versiones viejas).").clicked() {
+            tm.activo = true;
+            tm.jugando = false;
+            if tm.datos.is_none() { tm.pedir(&e.raiz_absoluta, ui.ctx()); }
+        }
+        return;
+    }
+    ui.label(egui::RichText::new("TIEMPO // como se construyo").color(c.acento).strong().size(12.5));
+    if let Some(m) = &tm.error {
+        ui.label(egui::RichText::new(format!("Sin cronologia: {m}")).color(c.aviso).size(11.0));
+        if ui.small_button("Volver a hoy").clicked() { tm.activo = false; }
+        return;
+    }
+    let Some(d) = tm.datos.clone() else {
+        let s = tm.pedido.as_ref().map(|(_, _, t)| t.elapsed().as_secs()).unwrap_or(0);
+        ui.label(egui::RichText::new(format!("leyendo la historia de git… {s} s")).color(c.tenue).size(11.0));
+        ui.ctx().request_repaint_after(std::time::Duration::from_millis(500));
+        return;
+    };
+    let fin = d.commits.len().saturating_sub(1) as f32;
+    let i = (tm.t.round() as usize).min(d.commits.len().saturating_sub(1));
+    let (id, fecha, asunto) = &d.commits[i];
+    ui.label(egui::RichText::new(format!("{} · commit {} de {} · {id}", crate::consultas::fecha_iso(*fecha), i + 1, d.commits.len())).color(c.texto).size(11.5));
+    ui.label(egui::RichText::new(asunto.as_str()).color(c.tenue).size(11.0)).on_hover_text(asunto.as_str());
+    // Cuantos archivos de hoy ya existian en ese commit.
+    let ya = d.orden.partition_point(|x| *x as usize <= i);
+    ui.label(egui::RichText::new(format!("{} de {} archivos de hoy ya existian", crate::paneles::miles(ya as u64), crate::paneles::miles(d.nace.len() as u64))).color(c.texto).size(11.0));
+    let mut t = tm.t;
+    ui.spacing_mut().slider_width = 276.0;
+    ui.add(egui::Slider::new(&mut t, 0.0..=fin.max(0.0)).show_value(false).text(""));
+    if t != tm.t { tm.t = t; tm.jugando = false; }
+    ui.horizontal(|ui| {
+        if ui.small_button("|<").on_hover_text("El primer commit").clicked() { tm.t = 0.0; tm.jugando = false; }
+        if ui.small_button("<").on_hover_text("Un commit atras").clicked() { tm.t = (tm.t.round() - 1.0).max(0.0); tm.jugando = false; }
+        let jugar = if tm.jugando { "Pausa" } else { "Reproducir" };
+        if ui.small_button(jugar).on_hover_text("Toda la historia en unos 30 s").clicked() {
+            if !tm.jugando && tm.t >= fin { tm.t = 0.0; }
+            tm.jugando = !tm.jugando;
+        }
+        if ui.small_button(">").on_hover_text("Un commit adelante").clicked() { tm.t = (tm.t.round() + 1.0).min(fin); tm.jugando = false; }
+        if ui.small_button("Hoy").on_hover_text("Salir de la cronologia").clicked() { tm.activo = false; tm.jugando = false; }
+    });
+    // Las ultimas carpetas que nacieron hasta ese momento: el orden en que se fue armando.
+    let mut nacidas: Vec<(&String, &u32)> = d.carpetas.iter().filter(|(k, n)| **n as usize <= i && k.split('/').count() <= 2).collect();
+    nacidas.sort_by_key(|(k, n)| (std::cmp::Reverse(**n), (*k).clone()));
+    if !nacidas.is_empty() {
+        ui.label(egui::RichText::new("ULTIMAS CARPETAS NACIDAS").color(c.tenue).size(10.5));
+        for (k, n) in nacidas.into_iter().take(4) {
+            let (_, f, a) = &d.commits[*n as usize];
+            ui.label(egui::RichText::new(format!("{k}  ·  {}", crate::consultas::fecha_iso(*f))).color(c.texto).size(11.0)).on_hover_text(a.as_str());
+        }
+    }
+    ui.label(egui::RichText::new(format!("leida en {:.1} s · oscuro = aun no existia · dorado = recien nacido", d.ms as f32 / 1000.0)).color(c.tenue).size(10.0));
 }
 
 #[cfg(test)]
@@ -540,5 +776,170 @@ mod pruebas {
         // Un punto alto se ve mas arriba en pantalla.
         let alto = proyectar(&vp, [500.0, 100.0, 500.0], lienzo).unwrap();
         assert!(alto.y < p.y);
+    }
+}
+
+/// Donde esta en la ciudad algo del grupo: un edificio (archivo o bloque) o un distrito.
+#[derive(Clone, Copy, PartialEq)]
+enum Ancla { Edificio(usize), Distrito(usize) }
+
+#[derive(Default)]
+struct Anclas { miembros: Vec<Option<Ancla>>, comparten: Vec<Option<Ancla>>, juntan: Vec<Option<Ancla>>, camino: Vec<Option<Ancla>> }
+
+/// Busca cada ruta del grupo (y sus puentes) en la ciudad de una pasada. Lo que esta dentro
+/// de un bloque juntado cae en ese bloque.
+fn anclas(ciudad: &Ciudad, k: &crate::combinar_ui::Cache) -> Anclas {
+    let cb = &k.c;
+    let rutas: Vec<&str> = cb.miembros.iter().map(|m| m.id.as_str()).chain(cb.comparten.iter().map(|x| x.ruta.as_str())).chain(cb.juntan.iter().map(|x| x.ruta.as_str())).collect();
+    let v = buscar(ciudad, &rutas);
+    let (m, x) = (cb.miembros.len(), cb.comparten.len());
+    Anclas { miembros: v[..m].to_vec(), comparten: v[m..m + x].to_vec(), juntan: v[m + x..].to_vec(), camino: Vec::new() }
+}
+
+/// Donde esta cada ruta en la ciudad (en el mismo orden).
+fn buscar(ciudad: &Ciudad, rutas: &[&str]) -> Vec<Option<Ancla>> {
+    use std::collections::HashMap;
+    let mut hallado: HashMap<&str, Ancla> = HashMap::with_capacity(rutas.len());
+    let buscados: std::collections::HashSet<&str> = rutas.iter().copied().collect();
+    for (i, b) in ciudad.edificios.iter().enumerate() { if buscados.contains(b.ruta.as_str()) { hallado.insert(&ciudad.edificios[i].ruta, Ancla::Edificio(i)); } }
+    let faltan: Vec<&str> = rutas.iter().copied().filter(|r| !hallado.contains_key(r)).collect();
+    for r in faltan {
+        let a = ciudad.distritos.iter().position(|d| d.ruta == r).map(Ancla::Distrito)
+            .or_else(|| ciudad.edificios.iter().position(|b| b.bloque && r.len() > b.ruta.len() && r.starts_with(b.ruta.as_str()) && r.as_bytes()[b.ruta.len()] == b'/').map(Ancla::Edificio));
+        if let Some(a) = a { hallado.insert(r, a); }
+    }
+    rutas.iter().map(|r| hallado.get(r).copied()).collect()
+}
+
+/// La azotea de un ancla (el centro de arriba del edificio o del distrito).
+fn azotea(ciudad: &Ciudad, a: Ancla) -> V3 {
+    match a {
+        Ancla::Edificio(i) => { let b = &ciudad.edificios[i]; [b.rect[0] + b.rect[2] / 2.0, b.base + b.altura, b.rect[1] + b.rect[3] / 2.0] }
+        Ancla::Distrito(i) => { let d = &ciudad.distritos[i]; [d.rect[0] + d.rect[2] / 2.0, d.base, d.rect[1] + d.rect[3] / 2.0] }
+    }
+}
+
+/// Cables sobre la ciudad: arcos blancos entre los del grupo que se usan (flecha en el
+/// usado) y arcos finos del acento (o verdes) hasta lo que comparten (o quien los junta).
+#[allow(clippy::too_many_arguments)]
+fn cables(pintor: &egui::Painter, vp: &[[f32; 4]; 4], lienzo: Rect, ciudad: &Ciudad, k: &crate::combinar_ui::Cache, an: &Anclas, c: &Colores, alfa: f32) {
+    use eframe::egui::epaint::QuadraticBezierShape;
+    let cb = &k.c;
+    let punto = |a: Option<Ancla>| a.and_then(|a| proyectar(vp, azotea(ciudad, a), lienzo));
+    let arco = |p: Pos2, q: Pos2, col: Color32, w: f32, flecha: bool| {
+        let col = col.gamma_multiply(alfa);
+        let alto = ((q - p).length() * 0.35).clamp(18.0, 220.0);
+        let ctl = p + (q - p) / 2.0 - Vec2::new(0.0, alto);
+        if c.brillo { pintor.add(QuadraticBezierShape::from_points_stroke([p, ctl, q], false, Color32::TRANSPARENT, Stroke::new(w + 4.0, col.gamma_multiply(0.22)))); }
+        pintor.add(QuadraticBezierShape::from_points_stroke([p, ctl, q], false, Color32::TRANSPARENT, Stroke::new(w, col)));
+        if flecha {
+            let dir = (q - ctl).normalized();
+            let lado = Vec2::new(-dir.y, dir.x);
+            pintor.add(egui::Shape::convex_polygon(vec![q, q - dir * 10.0 + lado * 5.0, q - dir * 10.0 - lado * 5.0], col, Stroke::NONE));
+        }
+    };
+    for (i, x) in cb.comparten.iter().enumerate() {
+        let Some(q) = punto(an.comparten[i]) else { continue };
+        for &m in &x.miembros { if let Some(p) = punto(an.miembros[m]) { arco(p, q, c.acento.gamma_multiply(0.75), 1.3, false); } }
+    }
+    for (i, x) in cb.juntan.iter().enumerate() {
+        let Some(q) = punto(an.juntan[i]) else { continue };
+        for &m in &x.miembros { if let Some(p) = punto(an.miembros[m]) { arco(q, p, c.verde.gamma_multiply(0.75), 1.3, false); } }
+    }
+    for &(a, b, veces) in &cb.directas {
+        if let (Some(p), Some(q)) = (punto(an.miembros[a]), punto(an.miembros[b])) { arco(p, q, Color32::WHITE, 1.8 + (veces as f32).ln_1p(), true); }
+    }
+}
+
+/// El camino sobre la ciudad: arcos de azotea a azotea con la flecha en el usado, el paso
+/// imprescindible en rojo neon y la onda de recompilacion viajando del usado al que usa.
+#[allow(clippy::too_many_arguments)]
+fn camino_ciudad(ui: &egui::Ui, pintor: &egui::Painter, vp: &[[f32; 4]; 4], lienzo: Rect, ciudad: &Ciudad, cam: &carpetas_nucleo::camino::Camino,
+                 an: &[Option<Ancla>], c: &Colores, animar: bool) {
+    use carpetas_nucleo::camino::SinPaso;
+    use eframe::egui::epaint::QuadraticBezierShape;
+    let ahora = ui.input(|i| i.time);
+    let t = crate::camino_ui::tiempos(cam);
+    let punto = |i: usize| an.get(i).copied().flatten().and_then(|a| proyectar(vp, azotea(ciudad, a), lienzo));
+    for (i, paso) in cam.pasos.iter().enumerate() {
+        let (Some(p), Some(q)) = (punto(i), punto(i + 1)) else { continue };
+        // La direccion real: del que usa al usado.
+        let (de, a) = if paso.desde == cam.nodos[i] { (p, q) } else { (q, p) };
+        if (a - de).length() < 2.0 { continue; }
+        let alto = ((a - de).length() * 0.45).clamp(30.0, 260.0);
+        let ctl = de + (a - de) / 2.0 - Vec2::new(0.0, alto);
+        let imprescindible = paso.sin == SinPaso::Imprescindible;
+        let latido = if imprescindible && animar { 0.6 + 0.4 * ((ahora * 4.0).sin() as f32).abs() } else { 1.0 };
+        let col = if imprescindible { c.error } else { Color32::WHITE };
+        pintor.add(QuadraticBezierShape::from_points_stroke([de, ctl, a], false, Color32::TRANSPARENT, Stroke::new(9.0, col.gamma_multiply(0.16 * latido))));
+        pintor.add(QuadraticBezierShape::from_points_stroke([de, ctl, a], false, Color32::TRANSPARENT, Stroke::new(2.6, col.gamma_multiply(latido))));
+        let dir = (a - ctl).normalized();
+        let lado = Vec2::new(-dir.y, dir.x);
+        pintor.add(egui::Shape::convex_polygon(vec![a, a - dir * 12.0 + lado * 6.0, a - dir * 12.0 - lado * 6.0], col, Stroke::NONE));
+        let en = |s: f32| { let u = 1.0 - s; (de.to_vec2() * u * u + ctl.to_vec2() * 2.0 * u * s + a.to_vec2() * s * s).to_pos2() };
+        if imprescindible {
+            let m = en(0.5);
+            for k in [-4.0, 4.0] { pintor.line_segment([m + Vec2::new(k - 6.0, -8.0), m + Vec2::new(k + 6.0, 8.0)], Stroke::new(2.0, c.error)); }
+        }
+        if animar {
+            if let Some(x) = crate::camino_ui::onda(cam, &t, i, ahora) {
+                // La onda sale del usado (a) y llega al que usa (de).
+                let q = en(1.0 - x);
+                let col = if imprescindible { c.error } else { c.acento };
+                for (r, al) in [(14.0, 0.10), (8.0, 0.30), (4.5, 1.0)] { pintor.circle_filled(q, r, col.gamma_multiply(al)); }
+                pintor.circle_filled(q, 2.0, Color32::WHITE);
+            }
+        }
+    }
+    // Rotulos A y B sobre sus azoteas.
+    for (i, txt) in [(0, "A"), (cam.nodos.len().saturating_sub(1), "B")] {
+        if let Some(p) = punto(i) {
+            let r = Rect::from_center_size(p - Vec2::new(0.0, 16.0), Vec2::splat(18.0));
+            pintor.rect(r, 9, Color32::WHITE, Stroke::NONE, StrokeKind::Inside);
+            pintor.text(r.center(), Align2::CENTER_CENTER, txt, FontId::proportional(12.0), Color32::BLACK);
+        }
+    }
+    if animar { ui.ctx().request_repaint_after(std::time::Duration::from_millis(33)); }
+}
+
+#[cfg(test)]
+mod pruebas_tiempo {
+    use super::*;
+
+    fn linea() -> LineaTiempo {
+        LineaTiempo {
+            commits: (0..5).map(|i| (format!("c{i}"), 100 + i as u64, format!("paso {i}"))).collect(),
+            nace: [("src/a.c".to_string(), 0u32), ("src/b.c".to_string(), 4)].into_iter().collect(),
+            carpetas: [("src".to_string(), 0u32), ("docs".to_string(), 2)].into_iter().collect(),
+            orden: vec![0, 4],
+            ms: 0,
+        }
+    }
+
+    #[test]
+    fn cada_edificio_sabe_cuando_nacio() {
+        let l = linea();
+        assert_eq!(l.de("src/a.c", false), 0.0, "el primer commit");
+        assert_eq!(l.de("src/b.c", false), 1.0, "el ultimo");
+        assert_eq!(l.de("docs", true), 0.5, "una carpeta (bloque o distrito), por su nacimiento");
+        assert_eq!(l.de("docs", false), 0.5, "un bloque sin archivo propio: el de su carpeta");
+        assert_eq!(l.de("generado.h", false), 1.0, "lo que git no conoce, al final");
+        assert_eq!(l.orden.partition_point(|x| *x <= 2), 1, "en el commit 2 existia uno de los dos");
+    }
+
+    #[test]
+    fn el_tiempo_solo_corre_con_la_cronologia_puesta() {
+        let mut t = Tiempo { t: 2.0, ..Tiempo::default() };
+        assert_eq!(t.ahora(), -1.0, "sin datos: hoy");
+        t.datos = Some(Arc::new(linea()));
+        assert_eq!(t.ahora(), -1.0, "con datos pero apagado: hoy");
+        t.activo = true;
+        assert_eq!(t.ahora(), 0.5, "commit 2 de 0..4");
+    }
+
+    #[test]
+    fn la_instancia_lleva_su_nacimiento_en_44_bytes() {
+        assert_eq!(std::mem::size_of::<Instancia>(), 44);
+        assert_eq!(std::mem::size_of::<UniformeCiudad>(), 96);
     }
 }

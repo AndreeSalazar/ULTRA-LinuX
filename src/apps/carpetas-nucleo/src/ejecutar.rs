@@ -78,6 +78,19 @@ pub fn lanzador(e: &Estado, id: &str) -> Option<Lanzador> {
         ("Makefile" | "makefile", _) => Some(Lanzador { titulo: String::from("make"), programa: "make", args: vec![], carpeta: padre.to_string() }),
         (_, "py") => Some(Lanzador { titulo: format!("python3 {nombre}"), programa: "python3", args: vec![nombre.to_string()], carpeta: padre.to_string() }),
         (_, "sh") => Some(Lanzador { titulo: format!("bash {nombre}"), programa: "bash", args: vec![nombre.to_string()], carpeta: padre.to_string() }),
+        (_, "casm") => {
+            // CASM: se compila con el compilar.sh de la carpeta de CASM mas cercana hacia arriba.
+            let mut carpeta = padre;
+            loop {
+                if contiene(e, carpeta, "compilar.sh") && contiene(e, carpeta, "verify.py") {
+                    let rel = id.strip_prefix(carpeta).map(|r| r.trim_start_matches('/')).unwrap_or(id);
+                    return Some(Lanzador { titulo: format!("CASM: compilar {nombre}"), programa: "bash",
+                                           args: vec![String::from("compilar.sh"), rel.to_string()], carpeta: carpeta.to_string() });
+                }
+                if carpeta.is_empty() { return None; }
+                carpeta = carpeta.rsplit_once('/').map(|(a, _)| a).unwrap_or("");
+            }
+        }
         _ => None,
     }
 }

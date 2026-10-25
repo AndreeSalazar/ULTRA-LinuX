@@ -163,6 +163,19 @@ impl PanelEditor {
             if !m.1.is_empty() { m.1.push('\n'); }
             m.1.push_str(&d.mensaje);
         }
+        // CASM: el mapa linea -> bytes, solo si la compilacion verificada es de ESTE texto exacto.
+        let casm = ed.id.ends_with(".casm");
+        let mapa_casm = e.casm.mapa.as_ref().filter(|(id, _)| *id == ed.id).map(|(_, m)| m);
+        let mapa_ok = mapa_casm.and_then(|m| m.as_ref().ok()).filter(|m| m.fuente == self.texto);
+        if casm {
+            let (txt, col) = match (mapa_casm, mapa_ok) {
+                (_, Some(m)) => (format!("CASM -> .hex: {} bytes de cuerpo, verificados ({}). A la derecha, los bytes de cada linea.", m.cuerpo, m.run), c.verde),
+                (Some(Err(motivo)), _) => (format!("CASM -> .hex: el mapa no cuadra con lo verificado: {motivo}"), c.error),
+                _ if ed.sucio => (String::from("CASM -> .hex: sin guardar. Guarda y pulsa play para compilar y ver los bytes."), c.aviso),
+                _ => (String::from("CASM -> .hex: no hay compilacion verificada de este texto exacto. Play para compilar (CASM/compilar.sh)."), c.tenue),
+            };
+            ui.label(egui::RichText::new(txt).size(11.0).color(col));
+        }
         let len = lenguaje(&ed.id);
         let lineas_total = self.texto.matches('\n').count() + 1;
         let margen = 18.0 + 8.0 * (lineas_total.max(10).ilog10() + 1) as f32;
@@ -223,6 +236,29 @@ impl PanelEditor {
                         ui.interact(gut, ui.make_persistent_id(("editor-marca", linea)), Sense::hover()).on_hover_text(msg.as_str());
                     }
                     pintor.text(Pos2::new(x_num, r.center().y), Align2::RIGHT_CENTER, linea.to_string(), FontId::monospace(LETRA - 1.5), col);
+                    if let Some(m) = mapa_ok {
+                        // Los bytes de esta linea, pegados a la derecha (con su desplazamiento en el cuerpo).
+                        let tramos: Vec<_> = m.de_linea(linea).collect();
+                        let entero = m.enteros.iter().find(|e| e.linea == linea);
+                        if !tramos.is_empty() || entero.is_some() {
+                            // Un entero: su valor exacto; si se imprime, tambien los bytes de su decimal.
+                            let mut partes: Vec<String> = Vec::new();
+                            if let Some(e) = entero { partes.push(format!("= {} : {}", e.valor, e.tipo)); }
+                            partes.extend(tramos.iter().map(|t| format!("+{:02X}  {}", t.offset, carpetas_nucleo::casm::hex_corto(&t.bytes, 12))));
+                            if entero.is_some() && tramos.is_empty() { partes.push(String::from("(no emite bytes)")); }
+                            let txt = partes.join("   ");
+                            let g = pintor.layout_no_wrap(txt, FontId::monospace(LETRA - 1.5), c.acento);
+                            // A la derecha del todo, pero nunca encima del codigo de esa linea (si no cabe, despues de el).
+                            let x = (visible.max.x - g.size().x - 14.0).max(r.max.x + 16.0);
+                            let caja = Rect::from_min_size(Pos2::new(x, r.center().y - g.size().y / 2.0 - 1.0), g.size() + Vec2::new(10.0, 2.0));
+                            pintor.rect_filled(caja, 3.0, c.fondo.gamma_multiply(0.92));
+                            pintor.rect_stroke(caja, 3.0, Stroke::new(1.0, c.acento.gamma_multiply(0.4)), egui::StrokeKind::Inside);
+                            pintor.galley(caja.min + Vec2::new(5.0, 1.0), g, c.acento);
+                            let mut tip = entero.map(|e| format!("{} : {} = {}\ncalculado por el compilador con aritmetica comprobada y recalculado por el verificador\npostfija: {}", e.nombre, e.tipo, e.valor, e.postfija)).unwrap_or_default();
+                            for t in &tramos { if !tip.is_empty() { tip.push_str("\n\n"); } tip.push_str(&format!("+0x{:02X}  {}\n{}", t.offset, carpetas_nucleo::casm::hex_corto(&t.bytes, 64), t.lectura)); }
+                            ui.interact(caja, ui.make_persistent_id(("casm-bytes", linea)), Sense::hover()).on_hover_text(tip);
+                        }
+                    }
                 }
                 nueva = fila.ends_with_newline;
                 if nueva { linea += 1; }
