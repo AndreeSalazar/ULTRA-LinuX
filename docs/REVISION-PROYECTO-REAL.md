@@ -1,5 +1,7 @@
 # Revision de los archivos reales de ULTRA
 
+Ampliacion actual: [estados en el Museo e identidad de dependencias y herramientas](ESTADOS-Y-VIGENCIA.md).
+
 Esta entrega aplica el banco al codigo propio. Se seleccionan 18 unidades C:
 arranque/PID 1, particiones, hardware, tarjeta, EFI, perfiles, logo, sistema,
 red, recursos, caja, implementaciones de guardianes y tres archivos del

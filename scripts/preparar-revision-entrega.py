@@ -8,6 +8,8 @@ import hashlib
 import importlib.util
 import json
 import shutil
+import os
+import subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -20,7 +22,15 @@ def main():
     spec=importlib.util.spec_from_file_location('revision',ROOT/'scripts/revisar-proyecto.py')
     review=importlib.util.module_from_spec(spec);spec.loader.exec_module(review)
     review.validate()
-    record=review.OUT/'current.json';raw=record.read_bytes();identifier=hashlib.sha256(raw).hexdigest()[:16]
+    # Review using the destination's real compiler, includes and libraries. The
+    # outer reviewer stays unprivileged; Bubblewrap mounts that sysroot read-only.
+    uid=ROOT.stat().st_uid;gid=ROOT.stat().st_gid
+    if uid==0:raise SystemExit('El repositorio debe pertenecer al usuario del taller')
+    stage_report=ROOT/'build/revision-contexto-pc'
+    command=['/usr/bin/setpriv','--reuid='+str(uid),'--regid='+str(gid),'--clear-groups','/usr/bin/python3',
+             str(ROOT/'scripts/revisar-proyecto.py'),'revisar','--sistema',str(stage),'--salida',str(stage_report)]
+    subprocess.run(command,check=True,timeout=600)
+    record=stage_report/'current.json';raw=record.read_bytes();identifier=hashlib.sha256(raw).hexdigest()[:16]
     target=stage/'usr/share/ultra/proyecto-revisado'
     target.mkdir(parents=True,exist_ok=True)
     for path in review.inputs():
@@ -38,6 +48,8 @@ def main():
         w=csv.DictWriter(f,fieldnames=['file','category']);w.writeheader();w.writerows(review.inventory())
     helper=stage/'usr/local/bin/ultra-revisar-proyecto';helper.parent.mkdir(parents=True,exist_ok=True)
     shutil.copyfile(ROOT/'src/rootfs/bin/ultra-revisar-proyecto',helper);helper.chmod(0o755)
+    engine=stage/'usr/share/ultra/revision-engine';engine.mkdir(parents=True,exist_ok=True)
+    for name in ['revisar-proyecto.py','revision_vigencia.py']:shutil.copyfile(ROOT/'scripts'/name,engine/name)
     for directory in ['usr/share/applications','etc/ultra']:
         dest=stage/directory/'ultra-revision.desktop';dest.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(ROOT/'src/rootfs/desktop/ultra-revision.desktop',dest)

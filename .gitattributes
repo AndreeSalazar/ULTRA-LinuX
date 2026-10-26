@@ -107,3 +107,4 @@ evidencias/casm-freestanding/** text eol=lf
 evidencias/llvm-sg/** text eol=lf
 evidencias/revision-real/** text eol=lf
 evidencias/revision-real/**/*.png binary
+evidencias/vigencia/** text eol=lf

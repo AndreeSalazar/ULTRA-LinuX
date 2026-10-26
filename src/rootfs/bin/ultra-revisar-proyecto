@@ -13,10 +13,12 @@ if [[ ! -d $destino ]]; then
     cp -a "$origen/." "$temporal/"
     mv -T "$temporal" "$destino"
 fi
-python3 "$destino/scripts/revisar-proyecto.py" preparar
+engine=/usr/share/ultra/revision-engine/revisar-proyecto.py
+python3 -I -S "$engine" preparar --raiz "$destino"
 case ${1:-estado} in
     abrir) exec /usr/local/bin/ultra-carpetas "$destino" ;;
-    revisar) exec python3 "$destino/scripts/revisar-proyecto.py" revisar ;;
-    estado) exec python3 "$destino/scripts/revisar-proyecto.py" validar ;;
+    revisar) exec python3 -I -S "$engine" revisar --raiz "$destino" ;;
+    estado) exec python3 -I -S "$engine" validar --raiz "$destino" ;;
+    estado-json) exec python3 -I -S "$engine" estado-json --raiz "$destino" ;;
     *) echo 'Uso: ultra-revisar-proyecto [estado|abrir|revisar]'; exit 2 ;;
 esac

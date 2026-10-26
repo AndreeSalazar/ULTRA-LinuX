@@ -1,0 +1,12 @@
+{
+  "scripts/revisar-proyecto.py": "e01bfab20456ae7e55a86961181438541629c5fcaf7355dec9ce94138c754acc",
+  "scripts/revision_vigencia.py": "6bcb6e52e07da57f5da5c2e0ff6f73084fd043e1d266ce5ab8c56f1ea9890f5b",
+  "scripts/probar_revision_vigencia.py": "17e7ee5d01b5bae6ca4f833f83cfed523dd3c9935404cc5e3cb1f8cc454480b5",
+  "scripts/preparar-revision-entrega.py": "fa7e0789fccf50cbea9a84e9837b4412befb4bc1d65939878d84bf520d136059",
+  "scripts/probar_revision_instalada.py": "c8285db2ec3d698491ac1aff7c03734ef7ae49fd29019d6a4fcdbdf2f2f47cca",
+  "src/apps/ultra-carpetas/src/revision_ui.rs": "85734544a0c209ba11aeefe078cfd3a482be79a124abbdc6779467efe661ae72",
+  "src/apps/ultra-carpetas/src/museo_ui.rs": "a870e8920c46a190e89f8bcb13612a2b1f0bbefff0bb1384891269c0257a98d6",
+  "src/apps/ultra-carpetas/src/main.rs": "a55875c1b47d039ce9a50f6b014f849158dd0be65dbcec42fc4fa5c0e2f0b88a",
+  "src/apps/ultra-carpetas/src/consultas.rs": "0a9399d603aeb602c67a377febdb88cec380c22757a9810c92d57d36a5e2bcc6",
+  "src/rootfs/bin/ultra-revisar-proyecto": "6ac1aee0c7924865708f87038d724df29a1ea36308b8153359e16e7ede6c78c0"
+}

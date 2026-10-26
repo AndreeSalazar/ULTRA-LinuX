@@ -1,0 +1,10 @@
+{
+  "report": "/home/builder/linux-reconstruido/build/revision-contexto-pc/run-9cg8yoas/report.json",
+  "translation_units": 18,
+  "dependencies": 290,
+  "checks": {
+    "clean": 72
+  }
+}
+REVISION-VIGENTE: contenido, dependencias, configuracion y herramientas coinciden; alcance estatico seleccionado
+REVISION-ENTREGADA 0320900e52d9d3b6

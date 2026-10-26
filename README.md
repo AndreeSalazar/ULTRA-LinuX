@@ -17,6 +17,8 @@ El frontend metal64 0.2 sigue escrito en C.
 [Revision de archivos reales instalada en el perfil PC](docs/REVISION-PROYECTO-REAL.md):
 `ultra-revisar-proyecto abrir` abre la fotografia propia en SUPER GRAFO; `estado`
 detecta cambios y `revisar` repite GCC/Clang con aislamiento y limites.
+[Estados y vigencia por contenido](docs/ESTADOS-Y-VIGENCIA.md): fuentes, cabeceras,
+configuracion y herramientas registradas; una revision caduca si cambia su contexto.
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).
 
 **SUPER GRAFO integrado desde main:** indice incremental, MCP, revision con GCC y

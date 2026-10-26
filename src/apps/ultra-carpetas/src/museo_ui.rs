@@ -13,6 +13,9 @@ const MAX_SITIOS: usize = 60;
 
 impl App {
     pub(crate) fn panel_museo(&mut self, ui: &mut egui::Ui, c: &Colores) {
+        if let Some(file)=self.revision.show(ui,c,std::path::Path::new(&self.estado.raiz_absoluta),self.estado.analisis.version){
+            self.despachar(Accion::Revelar{id:file,editor:true});
+        }
         let mut acciones = Vec::new();
         let e = &self.estado;
         let an = &e.analisis;
@@ -41,7 +44,7 @@ impl App {
         });
         ui.add_space(4.0);
         match &k.modo {
-            ModoConexion::Ninguno => { ui.label(RichText::new("Nada falla: sin errores atrapados ni sospechas del museo.").color(c.verde).size(12.0)); }
+            ModoConexion::Ninguno => { ui.label(RichText::new("Sin señales en este analisis; no demuestra ausencia de errores.").color(c.tenue).size(12.0)); }
             ModoConexion::Fallos => {
                 let n_arrastra = k.conexion.roles.values().filter(|r| **r == carpetas_nucleo::Rol::Arrastra).count();
                 ui.label(RichText::new(format!("FALLO CONECTADO · {} archivos fallan · {} se pueden romper con ellos{}", k.fallos, n_arrastra,

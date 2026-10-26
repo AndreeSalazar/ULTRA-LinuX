@@ -3,6 +3,7 @@
 Ampliacion actual: [banco LLVM C17/C++20, consulta de cobertura y ruta CASM](EVOLUCION-CASM-LLVM-SG.md).
 `cobertura_ub` lee evidencia historica acotada; no ejecuta minas ni certifica produccion.
 Aplicacion a las fuentes propias: [revision real, vigencia y acceso desde ULTRA](REVISION-PROYECTO-REAL.md).
+[Estados visibles y contexto de dependencias por contenido](ESTADOS-Y-VIGENCIA.md).
 
 El SUPER GRAFO (SG) de ULTRA Carpetas creció por capas:
 

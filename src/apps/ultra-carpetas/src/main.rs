@@ -31,6 +31,7 @@ mod gpu;
 mod indice;
 mod mcp;
 mod museo_ui;
+mod revision_ui;
 mod paneles;
 mod pintar_grafo;
 mod proceso;
@@ -131,6 +132,7 @@ struct App {
     pedido_git: u64,
     /// Lo ultimo que se miro del taller CASM (para no releer el disco cada cuadro).
     casm_clave: Option<ClaveCasm>,
+    revision: revision_ui::Panel,
 }
 
 /// Geometria del grafo ya en la GPU y de que Vista salio. Si la Vista cambia pero el grafo
@@ -158,7 +160,7 @@ impl App {
             proyecto: indice::Proyecto::nuevo(move || ctx_proyecto.request_repaint()), texto_ir_a: String::new(), texto_buscar: String::new(),
             texto_filtro: String::new(), foco_buscar_visto: 0, revelado_visto: 0,
             ciudad: ciudad3d::Vista3::default(), combinar: combinar_ui::Cache::default(), vivo: vivo::Vivo::nuevo(cc.egui_ctx.clone()), ciudad_ok, micros_datos_ciudad: 0,
-            git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0, casm_clave: None,
+            git: git::Git::nuevo(move || ctx_git.request_repaint()), pedido_git: 0, casm_clave: None, revision: Default::default(),
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));

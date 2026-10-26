@@ -1,0 +1,1 @@
+REVISION-INSTALADA-OK: cabecera con fecha/tamano conservados, identidad de herramienta y motor local distinguidos
