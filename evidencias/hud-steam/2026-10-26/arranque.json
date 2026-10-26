@@ -1,0 +1,14 @@
+{
+  "qemu_exit_code": 0,
+  "perfil": "pc",
+  "verdes": 189,
+  "serial_sha256": "76cf874e3b16bb4ee637320ff71d388355b2ed1504935977b27ca61c218220af",
+  "comprobaciones": [
+    "capturas reales pantalla/ventana/region, clipboard, Esc",
+    "Heronite abre y HUD nativo carga",
+    "frontera Steam instalada restaura entorno y carga MangoHud en Vulkan",
+    "overlay visible en captura inspeccionada",
+    "persistencia entre arranques y apagado limpio"
+  ],
+  "alcance": "QEMU software; sonda sustituye cliente Steam solamente en namespace desechable. Steam/Proton/NVIDIA fisicos pendientes."
+}

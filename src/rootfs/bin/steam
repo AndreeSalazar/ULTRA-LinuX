@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Heronite intentionally sanitizes MANGOHUD* for Steam's protocol handler.
+# Restore ULTRA's explicit preference at the native client boundary. Keep the
+# packaged launcher, its arguments and Steam's runtime; never wrap recursively.
+exec /usr/local/bin/ultra-hud ejecutar /usr/bin/steam "$@"

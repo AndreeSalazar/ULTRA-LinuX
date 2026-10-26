@@ -21,6 +21,8 @@ detecta cambios y `revisar` repite GCC/Clang con aislamiento y limites.
 configuracion y herramientas registradas; una revision caduca si cambia su contexto.
 [VIGILANTE de juegos](docs/VIGILANTE.md): observa CPU, memoria, I/O y carga de
 MangoHud por proceso, con historial acotado; informa sin bloquear ni ajustar el kernel.
+[MangoHud al iniciar Steam desde Heronite](docs/MANGOHUD-STEAM.md): restaura la
+preferencia de ULTRA tras el saneamiento del entorno; conserva opciones particulares.
 [Centro SUPER, dock y capturas](docs/SUPER-ACCESOS-CAPTURAS.md): accesos con iconos,
 atajos visibles y menus animados; el PNG guardado se conserva si falla el portapapeles.
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).

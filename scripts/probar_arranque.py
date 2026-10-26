@@ -377,7 +377,7 @@ def check_hyprland(conn, failures):
     transcript = ''
     conn.sendall(b'ultra-escritorio --hyprland --software > /tmp/hyprland-session.log 2>&1 &\n')
     transcript += read_until(conn, 'ultra:', 10)
-    ipc = 'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j clients'
+    clients_ipc = 'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j clients'
 
     def response(marker, timeout=15):
         out = read_until(conn, marker, timeout)
@@ -387,7 +387,7 @@ def check_hyprland(conn, failures):
 
     def clients():
         nonlocal transcript
-        conn.sendall(ipc.encode() + b'; echo HYPR-IPC-$((4+3))\n')
+        conn.sendall(clients_ipc.encode() + b'; echo HYPR-IPC-$((4+3))\n')
         out = response('HYPR-IPC-7')
         transcript += out
         try:
@@ -1179,6 +1179,37 @@ print('HUD-NATIVO-FIXTURE')"""
                         transcript += run(conn,[(f'ultra-entrar /usr/bin/kill -TERM {game_app["pid"]}; echo HUD-BANCO-CERRADO','HUD-BANCO-CERRADO')],failures)
                 transcript += run(conn, [(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo HERONITE-CIERRE-SOLICITADO', 'HERONITE-CIERRE-SOLICITADO')], failures)
             transcript += run(conn, [('cat /arch/tmp/heronite-ui.log; echo HERONITE-LOG-FIN', 'HERONITE-LOG-FIN')], failures)
+        if '--hud-steam' in sys.argv:
+            # Disposable bank only. The real installed Steam boundary runs in a
+            # mount namespace: its native client is replaced by a Vulkan probe,
+            # never a logged-in client or a personal game library.
+            fixture = "from pathlib import Path;p=Path('/tmp/steam-hud-probe');p.write_text('#!/usr/bin/bash\\n[[ $1 == -applaunch && $2 == 230410 ]] || exit 2\\nexec /usr/bin/vkcube\\n');p.chmod(0o755);print('STEAM-HUD-FIXTURE')"
+            transcript += run(conn, [('ultra-entrar /usr/bin/python -c '+shlex.quote(fixture), 'STEAM-HUD-FIXTURE')], failures)
+            payload = ('env HOME=/juegos/usuarios/ultra /usr/bin/bwrap --unshare-user --ro-bind / / '
+                       '--dev-bind /dev /dev --proc /proc --bind /tmp /tmp '
+                       '--bind /juegos/usuarios/ultra /juegos/usuarios/ultra '
+                       '--ro-bind /tmp/steam-hud-probe /usr/bin/steam -- '
+                       '/usr/bin/env -u MANGOHUD -u MANGOHUD_CONFIGFILE '
+                       '/usr/local/bin/steam -applaunch 230410 >/tmp/steam-hud-probe.log 2>&1')
+            code = 'hl.exec_cmd('+json.dumps(payload)+')'
+            transcript += run(conn, [('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code), 'ok')], failures)
+            apps = wait_apps(lambda apps: any('vkcube' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower() for a in apps))
+            expect(bool(apps), 'Steam HUD: frontera instalada lanza Vulkan tras entorno saneado')
+            if apps:
+                app = next(a for a in apps if 'vkcube' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower())
+                transcript += run(conn, [(f"grep -qi libMangoHud /proc/{app['pid']}/maps && echo STEAM-HUD-CAPA-CARGADA", 'STEAM-HUD-CAPA-CARGADA')], failures)
+                time.sleep(3)
+                target = pathlib.Path(tempfile.gettempdir())/'ultra-steam-hud.png'; target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot: shot.verify()
+                        break
+                    except (OSError, SyntaxError): time.sleep(.1)
+                else: raise ValueError('captura Steam HUD incompleta')
+                shutil.copyfile(target, LOG.with_name(LOG.stem+'-steam-hud.png'))
+                transcript += run(conn, [(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo STEAM-HUD-BANCO-CERRADO', 'STEAM-HUD-BANCO-CERRADO')], failures)
+            transcript += run(conn, [('cat /arch/tmp/steam-hud-probe.log; echo STEAM-HUD-LOG-FIN', 'STEAM-HUD-LOG-FIN')], failures)
         if '--limites' in sys.argv:
             encoded=base64.b64encode((ROOT/'scripts/banco_limites.py').read_bytes()).decode()
             conn.sendall(b': > /arch/tmp/limites.b64; echo LIM-CARGA-$((40+6))\n');transcript+=response('LIM-CARGA-46')

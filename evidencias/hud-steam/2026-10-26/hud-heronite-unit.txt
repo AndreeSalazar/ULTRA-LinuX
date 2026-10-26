@@ -1,0 +1,10 @@
+test_enables_native_hud_but_preserves_limits_prefix_and_runner (__main__.Hud.test_enables_native_hud_but_preserves_limits_prefix_and_runner) ... ok
+test_explicit_disable_survives_initialization (__main__.Hud.test_explicit_disable_survives_initialization) ... ok
+test_malformed_config_causes_no_partial_game_write (__main__.Hud.test_malformed_config_causes_no_partial_game_write) ... ok
+test_running_ui_defers_native_writes (__main__.Hud.test_running_ui_defers_native_writes) ... ok
+test_symlink_rejected (__main__.Hud.test_symlink_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.007s
+
+OK

@@ -1,0 +1,15 @@
+{
+  "informe_sha256": "ff17f2e91c2c7b8880082dbd7c0c18a3a346fe247d4a9486f5cdfbe46d4b678f",
+  "muestras": 112,
+  "muestras_warframe": 107,
+  "hud_cargado_muestras": 0,
+  "hud_solicitado_muestras": 0,
+  "hud_desactivado_muestras": 0,
+  "captura": {
+    "resultado": "guardada",
+    "fecha": "2026-10-26 10:57:14",
+    "portapapeles": true,
+    "imagen_inspeccionada": false
+  },
+  "alcance": "Metadatos del informe; no se abrieron imagenes ni cuentas personales"
+}

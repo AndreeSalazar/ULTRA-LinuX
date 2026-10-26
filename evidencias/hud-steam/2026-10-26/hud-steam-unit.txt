@@ -1,0 +1,1 @@
+VERDE: Steam restaura HUD tras entorno saneado; desactivar, argumentos y limites conservados

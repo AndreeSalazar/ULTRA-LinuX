@@ -1,0 +1,7 @@
+{
+  "src/rootfs/bin/steam": "4cf377b904e934f84452f4b2e7687b14b658a88e99a7cd412fe10b81d5ba075a",
+  "src/rootfs/bin/ultra-hud": "175b32dfa1b001785b69909044eda5966afff0710f947cfb38f84590e9b9e63e",
+  "scripts/build-baseline.sh": "bb872e5ef40a9b11be6b8ea3a566aedbc96a1608ef0e677b3645c2ec85762efb",
+  "scripts/probar_arranque.py": "e4db3a68ea0c8277cd45f4684747b5f620d754e66bffbf154396c0aeecbbb5ac",
+  "scripts/probar_hud_steam.py": "7be41ee53030185e085104990ffacb4644efc1a11b1125d5a7f12e01dadc0be7"
+}
