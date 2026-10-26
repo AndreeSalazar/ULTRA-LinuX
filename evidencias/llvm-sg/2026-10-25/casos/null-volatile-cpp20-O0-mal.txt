@@ -1,0 +1,17 @@
+UndefinedBehaviorSanitizer:DEADLYSIGNAL
+==2==ERROR: UndefinedBehaviorSanitizer: SEGV on unknown address 0x000000000000 (pc 0x55a8ba61c356 bp 0x7fffd77d0d70 sp 0x7fffd77d0d70 T2)
+==2==The signal is caused by a READ memory access.
+==2==HINT: address points to the zero page.
+    #0 0x55a8ba61c356 in main /work/case.cpp:1:58
+    #1 0x7f63faa27780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #2 0x7f63faa278b8 in __libc_start_main (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x55a8ba5ed104 in _start (/work/case.elf+0x5104) (BuildId: 176d2378e77068895ebb173c9eb6d705b5875c15)
+
+==2==Register values:
+rax = 0x0000000000000000  rbx = 0x0000000000000000  rcx = 0x000055a8ba6324d8  rdx = 0x00007fffd77d0eb8
+rdi = 0x0000000000000001  rsi = 0x00007fffd77d0ea8  rbp = 0x00007fffd77d0d70  rsp = 0x00007fffd77d0d70
+ r8 = 0x00007f63fac19680   r9 = 0x00007f63fac1afa0  r10 = 0x0000000000012000  r11 = 0x00007f63fb2c8a90
+r12 = 0x00007fffd77d0ea8  r13 = 0x0000000000000001  r14 = 0x00007f63fb2c9000  r15 = 0x000055a8ba6324d8
+UndefinedBehaviorSanitizer can not provide additional info.
+SUMMARY: UndefinedBehaviorSanitizer: SEGV /work/case.cpp:1:58 in main
+==2==ABORTING

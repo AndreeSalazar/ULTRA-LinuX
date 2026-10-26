@@ -1,0 +1,2 @@
+case.c:1:80: runtime error: shift exponent 64 is too large for 64-bit type 'unsigned long long'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior case.c:1:80

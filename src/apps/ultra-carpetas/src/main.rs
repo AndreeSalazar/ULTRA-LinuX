@@ -20,6 +20,7 @@ mod senales_ui;
 mod ciudad3d;
 mod combinar_ui;
 mod compilacion;
+mod cobertura_ub;
 mod consultas;
 mod disco;
 mod editor_ui;

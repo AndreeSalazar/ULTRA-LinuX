@@ -1,0 +1,113 @@
+{
+  "aislamiento": "Declarado por el informe; esta consulta no lo autentica ni ejecuta herramientas.",
+  "casos": [
+    {
+      "estado": "known_gap",
+      "id": "alignment-volatile-c17-O0-mal",
+      "lenguaje": "c17",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "known_gap",
+      "id": "alignment-volatile-c17-O2-mal",
+      "lenguaje": "c17",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "known_gap",
+      "id": "null-volatile-c17-O0-mal",
+      "lenguaje": "c17",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "known_gap",
+      "id": "null-volatile-c17-O2-mal",
+      "lenguaje": "c17",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "known_gap",
+      "id": "alignment-volatile-cpp20-O0-mal",
+      "lenguaje": "cpp20",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "known_gap",
+      "id": "alignment-volatile-cpp20-O2-mal",
+      "lenguaje": "cpp20",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "known_gap",
+      "id": "null-volatile-cpp20-O0-mal",
+      "lenguaje": "cpp20",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "known_gap",
+      "id": "null-volatile-cpp20-O2-mal",
+      "lenguaje": "cpp20",
+      "perfil": "ubsan",
+      "variante": "mal"
+    },
+    {
+      "estado": "passed",
+      "id": "signed-overflow-c17-O0-bien",
+      "lenguaje": "c17",
+      "perfil": "ubsan",
+      "variante": "bien"
+    },
+    {
+      "estado": "passed",
+      "id": "signed-overflow-c17-O0-mal",
+      "lenguaje": "c17",
+      "perfil": "ubsan",
+      "variante": "mal"
+    }
+  ],
+  "estado": "evidencia_laboratorio",
+  "estados": {
+    "known_gap": 8,
+    "passed": 68
+  },
+  "grupos": [
+    {
+      "cumplidos": 12,
+      "grupo": "c17/asan",
+      "total": 12
+    },
+    {
+      "cumplidos": 20,
+      "grupo": "c17/ubsan",
+      "total": 24
+    },
+    {
+      "cumplidos": 12,
+      "grupo": "cpp20/asan",
+      "total": 12
+    },
+    {
+      "cumplidos": 24,
+      "grupo": "cpp20/ubsan",
+      "total": 28
+    }
+  ],
+  "informe": "build/llvm-ub/current.json",
+  "pendientes": [
+    "tsan",
+    "msan",
+    "libfuzzer",
+    "cfi-lto"
+  ],
+  "production_certified": false,
+  "restantes": 66,
+  "total": 76,
+  "vigencia": "Historica: repetir al cambiar fuentes, entradas, compilador o banderas; no acredita el proyecto abierto."
+}

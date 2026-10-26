@@ -1,5 +1,9 @@
 # Cobertura de C17 y GCC
 
+El [banco LLVM separado para C17/C++20](EVOLUCION-CASM-LLVM-SG.md) agrega pares
+mal/bien con ASan/UBSan y evidencia por dialecto y optimizacion. No sustituye las
+medidas historicas GCC ni convierte sus resultados en proteccion de produccion.
+
 La [primera entrega de cadenas acotadas](CADENAS-ACOTADAS.md) agrega una API
 con limites en ambos lados, rechazo sin modificar destino y soporte de alias.
 Pasaron 10368 combinaciones por cada uno de cuatro perfiles en QEMU del taller,

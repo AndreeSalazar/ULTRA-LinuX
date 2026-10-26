@@ -1,0 +1,106 @@
+{
+  "schema": 1,
+  "cases": [
+    {
+      "id": "signed-overflow",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "ubsan",
+      "marker": "signed integer overflow",
+      "source": "#include <limits.h>\nint main(void){volatile int x=BAD?INT_MAX:42; volatile int y=x+1; (void)y; return 0;}\n"
+    },
+    {
+      "id": "shift-width",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "ubsan",
+      "marker": "shift exponent",
+      "source": "int main(void){volatile unsigned n=BAD?64:3; volatile unsigned long long x=1ULL<<n; (void)x; return 0;}\n"
+    },
+    {
+      "id": "alignment",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "ubsan",
+      "marker": "misaligned address",
+      "source": "int main(void){int words[4]={0}; volatile unsigned off=BAD?1:0; int *p=(int*)((unsigned char*)words+off); *p=7; return *p==7?0:1;}\n"
+    },
+    {
+      "id": "null",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "ubsan",
+      "marker": "null pointer",
+      "source": "int main(void){int x=7; int *p=BAD?0:&x; return *p==7?0:1;}\n"
+    },
+    {
+      "id": "heap-use-after-free",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "asan",
+      "marker": "heap-use-after-free",
+      "source": "#include <stdlib.h>\nint main(void){volatile int *p=(volatile int*)malloc(sizeof(int)); if(!p)return 2; *p=7;\n#if BAD\nfree((void*)p);\n#endif\nint v=*p;\n#if !BAD\nfree((void*)p);\n#endif\nreturn v==7?0:1;}\n"
+    },
+    {
+      "id": "heap-buffer-overflow",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "asan",
+      "marker": "heap-buffer-overflow",
+      "source": "#include <stdlib.h>\nint main(void){volatile int *p=(volatile int*)malloc(4*sizeof(int)); if(!p)return 2; p[3]=7; volatile unsigned n=BAD?4:3; int v=p[n]; free((void*)p); return v==7?0:1;}\n"
+    },
+    {
+      "id": "stack-use-after-return",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "asan",
+      "marker": "stack-use-after-return",
+      "source": "#if BAD\n__attribute__((noinline)) int *f(void){int x=7; return &x;}\n#else\nint x=7; __attribute__((noinline)) int *f(void){return &x;}\n#endif\nint main(void){volatile int *p=f(); return *p==7?0:1;}\n"
+    },
+    {
+      "id": "cpp-vptr",
+      "languages": [
+        "cpp20"
+      ],
+      "profile": "ubsan",
+      "marker": "downcast of address",
+      "source": "struct B {virtual ~B() {}}; struct D:B {int x=7;}; int main(){\n#if BAD\nB *b=new B;\n#else\nB *b=new D;\n#endif\nD *d=static_cast<D*>(b); int v=d->x; delete b; return v==7?0:1;}\n"
+    },
+    {
+      "id": "alignment-volatile",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "ubsan",
+      "marker": "misaligned address",
+      "source": "int main(void){int words[4]={0}; volatile unsigned off=BAD?1:0; volatile int *p=(volatile int*)((unsigned char*)words+off); *p=7; return *p==7?0:1;}\n",
+      "known_gap": "Clang UBSan excludes pointers to volatile-qualified types"
+    },
+    {
+      "id": "null-volatile",
+      "languages": [
+        "c17",
+        "cpp20"
+      ],
+      "profile": "ubsan",
+      "marker": "null pointer",
+      "source": "int main(void){int x=7; volatile int *p=BAD?0:&x; return *p==7?0:1;}\n",
+      "known_gap": "Clang UBSan excludes pointers to volatile-qualified types"
+    }
+  ]
+}

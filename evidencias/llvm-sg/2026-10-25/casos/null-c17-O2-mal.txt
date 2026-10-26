@@ -1,0 +1,2 @@
+case.c:1:49: runtime error: load of null pointer of type 'int'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior case.c:1:49

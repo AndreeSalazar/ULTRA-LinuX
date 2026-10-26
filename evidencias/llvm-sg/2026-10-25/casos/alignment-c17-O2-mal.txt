@@ -1,0 +1,5 @@
+case.c:1:107: runtime error: store to misaligned address 0x7ffcdb903a31 for type 'int', which requires 4 byte alignment
+0x7ffcdb903a31: note: pointer points here
+ 00 00 00  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  b0 3a 90 db fc 7f 00 00  00 a5 52 5e 42
+              ^
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior case.c:1:107

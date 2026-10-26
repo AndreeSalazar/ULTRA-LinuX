@@ -1,0 +1,6 @@
+case.cpp:7:6: runtime error: downcast of address 0x55d2fd28e050 which does not point to an object of type 'D'
+0x55d2fd28e050: note: object is of type 'B'
+ 00 00 00 00  98 8b e8 c6 d2 55 00 00  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  01 03 00 00
+              ^~~~~~~~~~~~~~~~~~~~~~~
+              vptr for 'B'
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior case.cpp:7:6

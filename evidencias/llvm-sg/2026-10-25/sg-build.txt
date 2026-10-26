@@ -1,0 +1,2 @@
+   Compiling ultra-carpetas v0.1.0 (/home/builder/linux-reconstruido/src/apps/ultra-carpetas)
+    Finished `release` profile [optimized] target(s) in 2m 06s

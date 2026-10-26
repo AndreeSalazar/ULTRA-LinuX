@@ -1,0 +1,49 @@
+=================================================================
+==2==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x7b93eb3e0020 at pc 0x5614628d4332 bp 0x7ffe75457b20 sp 0x7ffe75457b18
+READ of size 4 at 0x7b93eb3e0020 thread T0
+    #0 0x5614628d4331  (/work/case.elf+0x127331) (BuildId: a240105b31e626dfd7d38f737d5291a5a22f59fa)
+    #1 0x7f73ec227780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #2 0x7f73ec2278b8  (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x5614627db0e4  (/work/case.elf+0x2e0e4) (BuildId: a240105b31e626dfd7d38f737d5291a5a22f59fa)
+
+0x7b93eb3e0020 is located 0 bytes after 16-byte region [0x7b93eb3e0010,0x7b93eb3e0020)
+allocated by thread T0 here:
+    #0 0x56146288e4b4  (/work/case.elf+0xe14b4) (BuildId: a240105b31e626dfd7d38f737d5291a5a22f59fa)
+    #1 0x5614628d4288  (/work/case.elf+0x127288) (BuildId: a240105b31e626dfd7d38f737d5291a5a22f59fa)
+    #2 0x7f73ec227780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x7f73ec2278b8  (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #4 0x5614627db0e4  (/work/case.elf+0x2e0e4) (BuildId: a240105b31e626dfd7d38f737d5291a5a22f59fa)
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow (/work/case.elf+0x127331) (BuildId: a240105b31e626dfd7d38f737d5291a5a22f59fa)
+Shadow bytes around the buggy address:
+  0x7b93eb3dfd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93eb3dfe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93eb3dfe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93eb3dff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93eb3dff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7b93eb3e0000: fa fa 00 00[fa]fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93eb3e0080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93eb3e0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93eb3e0180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93eb3e0200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93eb3e0280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==2==ABORTING

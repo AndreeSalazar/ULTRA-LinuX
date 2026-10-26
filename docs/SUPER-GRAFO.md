@@ -1,5 +1,8 @@
 # SUPER GRAFO: decisiones y camino
 
+Ampliacion actual: [banco LLVM C17/C++20, consulta de cobertura y ruta CASM](EVOLUCION-CASM-LLVM-SG.md).
+`cobertura_ub` lee evidencia historica acotada; no ejecuta minas ni certifica produccion.
+
 El SUPER GRAFO (SG) de ULTRA Carpetas creció por capas:
 
 - **1D:** gestionar archivos.

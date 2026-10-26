@@ -1,0 +1,56 @@
+=================================================================
+==2==ERROR: AddressSanitizer: heap-use-after-free on address 0x7b93053e0010 at pc 0x55a91e3b4cc4 bp 0x7fff3322f7c0 sp 0x7fff3322f7b8
+READ of size 4 at 0x7b93053e0010 thread T0
+    #0 0x55a91e3b4cc3  (/work/case.elf+0x124cc3) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+    #1 0x7f7306227780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #2 0x7f73062278b8  (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x55a91e2bd0c4  (/work/case.elf+0x2d0c4) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+
+0x7b93053e0010 is located 0 bytes inside of 4-byte region [0x7b93053e0010,0x7b93053e0014)
+freed by thread T0 here:
+    #0 0x55a91e36fe79  (/work/case.elf+0xdfe79) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+    #1 0x55a91e3b4c79  (/work/case.elf+0x124c79) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+    #2 0x7f7306227780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x7f73062278b8  (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #4 0x55a91e2bd0c4  (/work/case.elf+0x2d0c4) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+
+previously allocated by thread T0 here:
+    #0 0x55a91e370494  (/work/case.elf+0xe0494) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+    #1 0x55a91e3b4c50  (/work/case.elf+0x124c50) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+    #2 0x7f7306227780  (/usr/lib/libc.so.6+0x27780) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #3 0x7f73062278b8  (/usr/lib/libc.so.6+0x278b8) (BuildId: d320029ad1a23be2f4bce117fd321cbd23a2014b)
+    #4 0x55a91e2bd0c4  (/work/case.elf+0x2d0c4) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+
+SUMMARY: AddressSanitizer: heap-use-after-free (/work/case.elf+0x124cc3) (BuildId: 75aeef1137d72e38117ad4e6465cb5e26acc67b6)
+Shadow bytes around the buggy address:
+  0x7b93053dfd80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93053dfe00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93053dfe80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93053dff00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x7b93053dff80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x7b93053e0000: fa fa[fd]fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93053e0080: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93053e0100: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93053e0180: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93053e0200: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+  0x7b93053e0280: fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa fa
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==2==ABORTING

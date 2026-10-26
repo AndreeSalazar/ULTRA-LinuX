@@ -1,0 +1,7 @@
+{
+  "src/guardian/laboratorio/llvm/casos.json": "282add166debe326e1fc8588eea7bb057644613d359950f0a627a086cfd7c34d",
+  "src/guardian/laboratorio/llvm/probar.py": "7ce9c2f71b0c3c31d36106490b806c3dee1934eb721fd5e1dea540338187dc88",
+  "src/apps/ultra-carpetas/src/cobertura_ub.rs": "dd3a4d8b098b0fc38b37eb3192c52ca61b9dda7bc292645870e598eef77203cc",
+  "src/apps/ultra-carpetas/src/main.rs": "c384ed3bdb6fe57b7d12fef19f6bf216d8933b26cb93db745c2bc6c22fbfb66a",
+  "src/apps/ultra-carpetas/src/consultas.rs": "cb1265f82ad28f279799867d98b2c1dc97027a685a55bdf78c88402f350dd88e"
+}

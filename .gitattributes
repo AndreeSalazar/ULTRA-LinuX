@@ -104,3 +104,4 @@ evidencias/casm-linux/**/ejemplo.casm -text whitespace=cr-at-eol
 CASM/native/*.casm text eol=lf
 evidencias/casm-native/** text eol=lf
 evidencias/casm-freestanding/** text eol=lf
+evidencias/llvm-sg/** text eol=lf

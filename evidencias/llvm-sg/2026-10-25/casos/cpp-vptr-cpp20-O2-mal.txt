@@ -1,0 +1,5 @@
+case.cpp:7:6: runtime error: downcast of address 0x55a7b4862050 with insufficient space for an object of type 'D'
+0x55a7b4862050: note: pointer points here
+ 00 00 00 00  90 9b af 77 a7 55 00 00  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  01 03 00 00
+              ^
+SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior case.cpp:7:6
