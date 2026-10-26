@@ -29,13 +29,20 @@
     "custom/apps": {
       "format": "  BMO-X",
       "tooltip-format": "Centro BMO-X · Super+Space",
-      "on-click": "ultra-ambiente menu"
+      "on-click": "ultra-super menu"
     },
     "hyprland/workspaces": {
       "format": "{icon}",
       "format-icons": {
-        "1": "01", "2": "02", "3": "03", "4": "04", "5": "05",
-        "6": "06", "7": "07", "8": "08", "9": "09"
+        "1": "01",
+        "2": "02",
+        "3": "03",
+        "4": "04",
+        "5": "05",
+        "6": "06",
+        "7": "07",
+        "8": "08",
+        "9": "09"
       },
       "all-outputs": false,
       "persistent-workspaces": {
@@ -64,7 +71,9 @@
     },
     "cpu": {
       "format": "<span color='#00f0ff' size='small'>CPU</span> {usage}%",
-      "states": { "alerta": 80 },
+      "states": {
+        "alerta": 80
+      },
       "interval": 3,
       "tooltip": true,
       "tooltip-format": "CPU {usage}% · carga {load} · {avg_frequency} GHz\nClic: lo que mas consume y cerrarlo o frenarlo\nClic derecho: administrador ordenado por CPU",
@@ -124,16 +133,18 @@
     "layer": "top",
     "position": "bottom",
     "height": 56,
-    "width": 440,
+    "width": 580,
     "margin-bottom": 12,
     "spacing": 4,
     "exclusive": true,
     "modules-center": [
+      "custom/super",
       "custom/browser",
       "custom/games",
       "custom/files",
       "custom/terminal",
       "custom/editor",
+      "custom/capture",
       "custom/help"
     ],
     "custom/browser": {
@@ -165,6 +176,18 @@
       "format": "",
       "tooltip-format": "Juegos · Super+J",
       "on-click": "ultra-juegos menu"
+    },
+    "custom/super": {
+      "format": "",
+      "tooltip-format": "SUPER · Super+Espacio\nDerecho: atajos · Super+F1",
+      "on-click": "ultra-super menu",
+      "on-click-right": "ultra-super atajos"
+    },
+    "custom/capture": {
+      "format": "",
+      "tooltip-format": "Capturar · Super+S\nRegion: Super+Shift+S",
+      "on-click": "ultra-super captura",
+      "on-click-right": "ultra-captura abrir"
     }
   }
 ]

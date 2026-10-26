@@ -1,0 +1,1 @@
+CAPTURA-REAL-OK: PNG pantalla/ventana/region, clipboard y Esc; sin datos personales

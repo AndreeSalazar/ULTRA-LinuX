@@ -64,6 +64,10 @@ tmp=$out.$$
             env HOME=/juegos/usuarios/ultra timeout -k 1 3 /usr/local/bin/ultra-vigilante informe "$vigilante_inicio" 2>/dev/null || printf 'VIGILANTE NA sin informe de la sesion\n'
     else printf 'VIGILANTE NA inicio de sesion no registrado\n'; fi
     printf '\n[/VIGILANTE]\n'
+    printf '\n[CAPTURA: ultimo resultado; sin exportar imagenes]\n'
+    setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
+        --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+        env HOME=/juegos/usuarios/ultra timeout -k 1 3 /usr/local/bin/ultra-captura estado 2>/dev/null || printf 'CAPTURA NA registro no disponible\n'
     printf '\n[PUNTERO RED: solo reparaciones de imagen transparente]\n'
     setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
         --inh-caps=-all --ambient-caps=-all --bounding-set=-all \

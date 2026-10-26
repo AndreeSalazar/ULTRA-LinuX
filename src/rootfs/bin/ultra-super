@@ -1,0 +1,91 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Compact keyboard menus. Fixed argv only; labels and search never become commands."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+MENUS = {
+    'menu': ('BMO-X // SUPER', 'c03bffff', [
+        ('', 'Brave', 'Super+B', ['ultra-brave']),
+        ('', 'Archivos', 'Super+E', ['thunar']),
+        ('', 'Terminal', 'Super+Enter', ['foot']),
+        ('', 'Juegos', 'Super+J', ['ultra-juegos','menu']),
+        ('', 'Capturar', 'Super+S', ['ultra-super','captura']),
+        ('', 'Audio', 'Super+A', ['ultra-audio','menu']),
+        ('', 'VIGILANTE', 'Super+F10', ['ultra-vigilante','panel']),
+        ('', 'Atajos', 'Super+F1', ['ultra-super','atajos']),
+        ('', 'Categorias', 'Super+Shift+Espacio', ['ultra-ambiente','menu']),
+        ('', 'Personalizar', 'Super+Shift+P', ['ultra-personalizar','menu']),
+    ]),
+    'captura': ('BMO-X // CAPTURA', '3dff9aff', [
+        ('', 'Seleccionar region', 'Super+Shift+S', ['ultra-captura','region']),
+        ('', 'Pantalla activa', 'Impr Pant', ['ultra-captura','pantalla']),
+        ('', 'Ventana activa', 'Super+Impr Pant', ['ultra-captura','ventana']),
+        ('', 'Abrir capturas', '', ['ultra-captura','abrir']),
+        ('', 'Ultimo resultado', '', ['ultra-super','estado-captura']),
+    ]),
+    'atajos': ('BMO-X // ATAJOS', '00f0ffff', [
+        ('', 'Centro SUPER', 'Super+Espacio', ['ultra-super','menu']),
+        ('', 'Buscar aplicaciones', 'Super+R', ['ultra-personalizar','lanzador']),
+        ('', 'Archivos', 'Super+E', ['thunar']),
+        ('', 'Navegador', 'Super+B', ['ultra-brave']),
+        ('', 'Terminal', 'Super+Enter', ['foot']),
+        ('', 'Editor', 'Super+N', ['mousepad']),
+        ('', 'Juegos', 'Super+J', ['ultra-juegos','menu']),
+        ('', 'Capturas', 'Super+S', ['ultra-super','captura']),
+        ('', 'Audio', 'Super+A', ['ultra-audio','menu']),
+        ('', 'VIGILANTE', 'Super+F10', ['ultra-vigilante','panel']),
+        ('', 'Energia CPU', 'Super+F8', ['ultra-energia','menu']),
+        ('', 'Resolucion / Hz', 'Super+P', ['ultra-pantallas','menu']),
+        ('', 'Personalizar', 'Super+Shift+P', ['ultra-personalizar','menu']),
+        ('', 'Todos los atajos', 'Super+H', ['foot','/usr/bin/less','/etc/ultra/AYUDA.txt']),
+    ]),
+}
+
+
+def selected(action):
+    title, color, rows = MENUS[action]
+    text = '\n'.join(f'{icon}  {name:<23} {key}' for icon,name,key,_ in rows)+'\n'
+    result = subprocess.run(['fuzzel','--dmenu','--index','--only-match','--no-sort',
+        '--namespace=ultra-super-'+action, '--width=56', '--lines='+str(min(10,len(rows))),
+        '--prompt='+title+' / ', '--border-color='+color, '--prompt-color='+color,
+        '--selection-color='+color, '--selection-text-color=06050aff'],
+        input=text,text=True,capture_output=True,check=False)
+    if result.returncode != 0:
+        return None
+    value = result.stdout.strip()
+    if not value.isascii() or not value.isdecimal() or len(value)>3 or int(value)>=len(rows):
+        raise ValueError('seleccion fuera del menu')
+    return rows[int(value)][3]
+
+
+def status():
+    try:
+        result=subprocess.run(['ultra-captura','estado'],capture_output=True,text=True,check=True,timeout=3)
+        data=json.loads(result.stdout)
+        message='\n'.join(str(data.get(k,''))[:500] for k in ('fecha','resultado','archivo','error'))
+    except (OSError,ValueError,subprocess.SubprocessError):
+        message='Todavia no hay un resultado de captura. Prueba Seleccionar region o Pantalla activa.'
+    subprocess.run(['notify-send','--app-name=ULTRA','--icon=camera-photo','Captura / ultimo resultado',message],check=False,timeout=5)
+
+
+def main():
+    if os.geteuid()!=1000: raise ValueError('Abrir como usuario del escritorio')
+    action=sys.argv[1] if len(sys.argv)>1 else 'menu'
+    if action=='estado-captura': return status()
+    if action not in MENUS: raise ValueError('Uso: ultra-super menu|captura|atajos')
+    command=selected(action)
+    if command:
+        if action=='captura': time.sleep(.2) # Release the menu grab before selecting/capturing.
+        if command[0]=='ultra-vigilante': command=['foot','--title=ULTRA / VIGILANTE',*command]
+        os.execvp(command[0], command)
+
+
+if __name__=='__main__':
+    try: main()
+    except (OSError,ValueError,subprocess.SubprocessError) as error:
+        print('SUPER:',error,file=sys.stderr);sys.exit(1)

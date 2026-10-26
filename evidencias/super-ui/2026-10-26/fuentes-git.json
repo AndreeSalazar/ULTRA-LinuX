@@ -1,0 +1,16 @@
+{
+  "src/rootfs/bin/ultra-super": "e68aa0738c31a74d8177fcbfe3415a734520b61f3c14608c94d4f88177c7fca4",
+  "src/rootfs/bin/ultra-captura": "0d064f1a0f31d4752ac3c5f52d9b5783754218a9f8861acbe0c840144b0ce574",
+  "src/rootfs/bin/ultra-personalizar": "d7b5b9921a3d7ae83b3a75fd116456ad5c2d8f7a7555ead179a0ab59cef6a7a0",
+  "src/rootfs/bin/ultra-informe-gpu": "747eb2f1b362437fc04cc53d6fab93338bce4e3b1a05f9e20cc17c6c06fd3973",
+  "src/rootfs/desktop/hyprland.lua": "ddee1ec7c41b83c4992f1439cf5b902e8d6f9f896c80a698e172d26205d61546",
+  "src/rootfs/desktop/waybar.css": "b6713df5ea0d2e00957548327bcdc69148b02ba0a02036a9ffab36ed193d646e",
+  "src/rootfs/desktop/waybar.jsonc": "32f97b6fcd83c03efe3ace12ce19f454114c09012127e1ff73349d979be31bff",
+  "src/rootfs/desktop/AYUDA.txt": "17ce5925f6bf876603a1b47cc417ad9a674772e5d8f412a03b73406fc16c8aab",
+  "scripts/probar_super.py": "c8ada0315dbe13374319671d9cf2c2c93853c35539458452755965a87611e805",
+  "scripts/probar_captura.py": "c8cd81199e3837d578da820ba3ab64e610391c9236d697c34e72a7786e742992",
+  "scripts/probar_personalizar.py": "763d15b5514dd87f2dc83308231368d973b4d42467c60ef3c0951d00249c056e",
+  "scripts/probar_captura_instalada.py": "6e21186aebf9956e5b6a6d778acf88c6126a835867127f9647a7c71de433fddd",
+  "scripts/probar_arranque.py": "6e4d7e286209d53aafe1d71e51997121fbb65b1953decfcfe0deed5a71d69c04",
+  "scripts/build-baseline.sh": "1126876e063811396b504659f0791e67b53b2f26c5a95509ebd3b18e922cb596"
+}

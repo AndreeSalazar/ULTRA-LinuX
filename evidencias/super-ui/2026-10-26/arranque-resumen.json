@@ -1,0 +1,18 @@
+{
+  "qemu_exit_code": 0,
+  "profile": "pc",
+  "boot": "FAT32 UEFI virtual image",
+  "green_checks": 171,
+  "serial_log_sha256": "2fea7e224adf2cfdcc7c76a6d0b144bec1a30fe026008bc4c8511877602f25b5",
+  "checks": [
+    "production guardians",
+    "Hyprland and compact SUPER menu",
+    "keyboard shortcuts Super+F1 and Super+S",
+    "PNG content from actual grim screen/window/region capture",
+    "Wayland image clipboard",
+    "Slurp Escape cancellation",
+    "data persisted across reboot",
+    "clean shutdown"
+  ],
+  "gpu": "QEMU software; physical NVIDIA validation remains pending"
+}

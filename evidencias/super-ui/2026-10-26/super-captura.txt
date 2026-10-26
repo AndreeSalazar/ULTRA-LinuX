@@ -1,0 +1,1 @@
+VERDE: captura region, ventana y pantalla; Esc cancela; geometria rara rechazada

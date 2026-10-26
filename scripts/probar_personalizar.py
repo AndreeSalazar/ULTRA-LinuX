@@ -204,6 +204,7 @@ def main():
         correr('poner', 'efectos', 'reducidos')
         css = (tema / 'waybar.css').read_text()
         assert 'animation: latido' not in css and 'animation: linea' not in css and 'animation: alerta' in css
+        assert 'animation: dock-' not in css
         correr('poner', 'efectos', 'vivos')
         assert 'animation: latido' in (tema / 'waybar.css').read_text()
         # Cada elemento tiene su sonido y su volumen; 'basicos' calla los de ventanas.

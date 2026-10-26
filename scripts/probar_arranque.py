@@ -690,7 +690,7 @@ def check_hyprland(conn, failures):
         prompts = ['Aplicaciones / ACENTO', 'Discos / CYAN', 'Juegos / ROJO',
                    'Pantalla / VERDE', 'Audio / VIOLETA', 'Ambiente / AMARILLO', 'Sistema / CORAL']
         for number, color in enumerate(colores, 1):
-            mon.sendall(b'sendkey meta_l-spc\n')
+            mon.sendall(b'sendkey meta_l-shift-spc\n')
             esperar_menu('BMO-X // Categorias')
             mon.sendall(f'sendkey {number}\n'.encode()); time.sleep(.15)
             mon.sendall(b'sendkey ret\n')
@@ -721,14 +721,14 @@ def check_hyprland(conn, failures):
             mon.sendall(b'sendkey esc\n'); time.sleep(.5)
         # Drive the actual Super+Space menu. A fresh VM has no personal storage;
         # its first panel must explain the temporary HOME instead of closing.
-        mon.sendall(b'sendkey meta_l-spc\n')
+        mon.sendall(b'sendkey meta_l-shift-spc\n')
         time.sleep(.7)
         for key in ('d','i','s','c','o','s','ret'):
             mon.sendall(('sendkey '+key+'\n').encode()); time.sleep(.12)
         time.sleep(.6)
         mon.sendall(b'sendkey ret\n')  # First action in the Discos category.
         disk_apps = wait_apps(lambda apps: any(a.get('title')=='ULTRA / Discos y bibliotecas' for a in apps))
-        expect(bool(disk_apps), 'Discos: Super+Space abre el panel')
+        expect(bool(disk_apps), 'Discos: Super+Shift+Space abre el panel')
         mon.sendall(b'sendkey esc\n'); time.sleep(.5)
         # Only this disposable VM's RAM tree: no host or personal disk attached.
         transcript += run(conn, [('mkdir -p /arch/juegos/usuarios/ultra; chown 1000:1000 /arch/juegos/usuarios/ultra; echo DISCOS-HOME-$((9+1))', 'DISCOS-HOME-10')], failures)
@@ -1015,6 +1015,49 @@ def check_hyprland(conn, failures):
             for perfil in ('original', 'fresco', 'eficiente'):
                 probe = "import json; from pathlib import Path; assert json.loads(Path('/run/ultra-energia/estado.json').read_text())['solicitado']=="+repr(perfil)+"; print('ENERGIA-PERFIL-VERIFICADO')"
                 transcript += run(conn, [('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/local/bin/ultra-energia '+perfil+'; sleep 3; ultra-entrar /usr/bin/python -c '+shlex.quote(probe), 'ENERGIA-PERFIL-VERIFICADO')], failures)
+        if '--super-ui' in sys.argv:
+            mon.sendall(b'sendkey meta_l-1\n');time.sleep(1) # Return to a workspace with real windows.
+            for keys, namespace in [('meta_l-f1','ultra-super-atajos'),('meta_l-s','ultra-super-captura')]:
+                mon.sendall(('sendkey '+keys+'\n').encode());time.sleep(.9)
+                command='for p in $(pidof fuzzel); do grep -aqF '+shlex.quote(namespace)+' /proc/$p/cmdline && echo SUPER-UI-$((40+5)); done'
+                transcript += run(conn,[(command,'SUPER-UI-45')],failures)
+                target=pathlib.Path(tempfile.gettempdir())/(namespace+'.png');target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot:shot.verify()
+                        break
+                    except (OSError,SyntaxError):time.sleep(.1)
+                else:raise ValueError('captura de menu SUPER incompleta')
+                shutil.copyfile(target,LOG.with_name(LOG.stem+'-'+namespace+'.png'))
+                mon.sendall(b'sendkey esc\n');time.sleep(.4)
+            encoded = base64.b64encode((ROOT/'scripts/probar_captura_instalada.py').read_bytes()).decode()
+            transcript += run(conn, [(': > /arch/tmp/captura.b64; echo CAP-CARGA-$((40+5))', 'CAP-CARGA-45')], failures)
+            for offset in range(0, len(encoded), 192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/captura.b64; echo CAP-CARGA-$((40+5))\n").encode())
+                transcript += response('CAP-CARGA-45')
+            transcript += run(conn, [('base64 -d /arch/tmp/captura.b64 > /arch/tmp/captura.py; echo CAP-CARGA-$((40+5))','CAP-CARGA-45')],failures)
+            ipc = 'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '
+            command='python3 /tmp/captura.py > /tmp/captura-resultado.txt 2>&1'
+            conn.sendall((ipc+shlex.quote('hl.exec_cmd('+json.dumps(command)+')')+'; echo CAP-INICIO-$((40+5))\n').encode())
+            transcript += response('CAP-INICIO-45')
+            dragged=cancelled=False;capture_result=''
+            for _ in range(60):
+                conn.sendall(b'cat /arch/tmp/captura-resultado.txt; echo CAP-LECTURA-$((40+5))\n')
+                capture_result=response('CAP-LECTURA-45');transcript+=capture_result
+                if 'CAPTURA-ESPERA-REGION' in capture_result and not dragged:
+                    time.sleep(1)
+                    for position,button in [((120,160),True),((420,360),False)]:
+                        code='hl.dispatch(hl.dsp.cursor.move({x='+str(position[0])+',y='+str(position[1])+'}))'
+                        conn.sendall((ipc+shlex.quote(code)+'; echo CAP-MOVER-$((40+5))\n').encode())
+                        transcript+=response('CAP-MOVER-45');time.sleep(.2)
+                        mon.sendall(('mouse_button '+('1' if button else '0')+'\n').encode());time.sleep(.3)
+                    dragged=True
+                if 'CAPTURA-ESPERA-CANCELAR' in capture_result and not cancelled:
+                    time.sleep(.7);mon.sendall(b'sendkey esc\n');cancelled=True
+                if 'CAPTURA-REAL-OK:' in capture_result or 'Traceback (most recent call last)' in capture_result:break
+                time.sleep(.5)
+            expect('CAPTURA-REAL-OK:' in capture_result,'Capturas reales: pantalla, ventana, region, portapapeles y cancelar')
         if '--vigilante' in sys.argv:
             encoded = base64.b64encode((ROOT/'scripts/probar_vigilante_instalado.py').read_bytes()).decode()
             transcript += run(conn, [(': > /arch/tmp/vigilante.b64; echo VIG-CARGA-$((40+5))', 'VIG-CARGA-45')], failures)

@@ -4,6 +4,8 @@ local vivo = os.getenv("ULTRA_EFECTOS") ~= "sobrio"
 -- NVIDIA + XWayland/Wine: preferir cursor compuesto hasta validar el plano HW.
 -- ULTRA_RENDER_MODE lo entrega ultra-sesion segun el dispositivo real.
 local cursor_compatible = os.getenv("ULTRA_RENDER_MODE") == "nvidia"
+-- Only the installed capture tool gets this explicit permission; no wildcard apps.
+hl.permission("^/usr/bin/grim$", "screencopy", "allow")
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = 1 })
 hl.config({
     debug = { enable_stdout_logs = true },
@@ -38,6 +40,10 @@ hl.animation({ leaf = "fade", enabled = true, speed = 2, bezier = "ultraEase" })
 hl.animation({ leaf = "layers", enabled = true, speed = 2.5, bezier = "ultraEase", style = "slide" })
 hl.animation({ leaf = "workspaces", enabled = true, speed = 4, bezier = "ultraEase", style = "slide" })
 hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 4, bezier = "ultraEase", style = "slidevert" })
+-- Short, distinct menu entrances; global reduced/game mode still disables animations.
+hl.layer_rule({ name = "ultra-super-menu", match = { namespace = "^ultra-super-menu$" }, animation = "popin 92%" })
+hl.layer_rule({ name = "ultra-super-captura", match = { namespace = "^ultra-super-captura$" }, animation = "slide top" })
+hl.layer_rule({ name = "ultra-super-atajos", match = { namespace = "^ultra-super-atajos$" }, animation = "slide right" })
 hl.animation({ leaf = "border", enabled = true, speed = 3, bezier = "ultraEase" })
 -- Borde que gira (6 s por vuelta). Redibuja mientras haya una ventana con borde visible;
 -- con efectos reducidos (Super+Shift+A) se detiene junto con el resto de animaciones.
@@ -57,7 +63,10 @@ hl.bind("SUPER + N", hl.dsp.exec_cmd("mousepad"))
 hl.bind("SUPER + B", hl.dsp.exec_cmd("ultra-brave"))
 hl.bind("SUPER + G", hl.dsp.exec_cmd("ultra-brave brave://gpu"))
 hl.bind("SUPER + H", hl.dsp.exec_cmd("foot /usr/bin/less /etc/ultra/AYUDA.txt"))
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("ultra-ambiente menu"))
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("ultra-super menu"))
+hl.bind("SUPER + SHIFT + SPACE", hl.dsp.exec_cmd("ultra-ambiente menu"))
+hl.bind("SUPER + F1", hl.dsp.exec_cmd("ultra-super atajos"))
+hl.bind("SUPER + S", hl.dsp.exec_cmd("ultra-super captura"))
 hl.bind("SUPER + SHIFT + A", hl.dsp.exec_cmd("ultra-ambiente alternar"))
 hl.bind("SUPER + SHIFT + P", hl.dsp.exec_cmd("ultra-personalizar menu"))
 hl.bind("SUPER + SHIFT + I", hl.dsp.exec_cmd("ultra-incidente guardar"))

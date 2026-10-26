@@ -36,14 +36,34 @@ tooltip label { color: #ece9dc; padding: 6px; font-family: "Chakra Petch", "Deja
 #custom-logout:hover { background-image: linear-gradient(115deg, transparent 14px, #ff6b85 14px); }
 
 window#waybar.dock > box { background: rgba(6, 5, 10, .94); border-top: 2px solid #5ad8ff; padding: 6px 10px; box-shadow: 0 -2px 14px rgba(90, 216, 255, .12); }
-.dock #custom-browser, .dock #custom-games, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help {
+.dock #custom-super, .dock #custom-capture, .dock #custom-browser, .dock #custom-games, .dock #custom-files, .dock #custom-terminal, .dock #custom-editor, .dock #custom-help {
   font-size: 23px; min-width: 34px; padding: 6px 12px; margin: 0 3px; background: #0f0e16; border: 1px solid #2a2733; border-bottom: 2px solid #2a2733;
   transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease; }
 #custom-browser, #custom-files, #custom-editor { color: #00f0ff; }
 #custom-games, #custom-terminal { color: #5ad8ff; }
 #custom-help { color: #a19eae; }
-.dock #custom-browser:hover, .dock #custom-games:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover {
+.dock #custom-super:hover, .dock #custom-capture:hover, .dock #custom-browser:hover, .dock #custom-games:hover, .dock #custom-files:hover, .dock #custom-terminal:hover, .dock #custom-editor:hover, .dock #custom-help:hover {
   color: #bff3ff; background: #0a1a22; border-color: #5ad8ff; border-bottom-color: #5ad8ff; box-shadow: 0 0 12px rgba(90, 216, 255, .35); }
+
+/* Finite hover accents: no idle loop or geometry change for the dock. */
+.dock #custom-super { color: #c03bff; }
+.dock #custom-capture { color: #3dff9a; }
+.dock #custom-super:hover { animation: dock-super 260ms ease-out; border-color: #c03bff; }
+.dock #custom-capture:hover { animation: dock-capture 220ms ease-out; border-color: #3dff9a; }
+.dock #custom-browser:hover { animation: dock-browser 240ms ease-out; }
+.dock #custom-games:hover { animation: dock-games 280ms ease-out; border-color: #3dff9a; }
+.dock #custom-files:hover { animation: dock-files 200ms ease-out; }
+.dock #custom-terminal:hover { animation: dock-terminal 180ms ease-out; border-color: #c03bff; }
+.dock #custom-editor:hover { animation: dock-editor 240ms ease-out; }
+.dock #custom-help:hover { animation: dock-help 260ms ease-out; }
+@keyframes dock-super { from { box-shadow: inset 0 0 0 #c03bff; } to { box-shadow: inset 0 -3px #c03bff; } }
+@keyframes dock-capture { from { color: #ffffff; } to { color: #3dff9a; } }
+@keyframes dock-browser { from { border-bottom-color: #06050a; } to { border-bottom-color: #00f0ff; } }
+@keyframes dock-games { from { text-shadow: 0 0 0 #3dff9a; } to { text-shadow: 0 0 9px #3dff9a; } }
+@keyframes dock-files { from { background-color: #10211a; } to { background-color: #0a1a22; } }
+@keyframes dock-terminal { from { color: #c03bff; } to { color: #bff3ff; } }
+@keyframes dock-editor { from { box-shadow: inset 3px 0 #00f0ff; } to { box-shadow: inset 0 0 #00f0ff; } }
+@keyframes dock-help { from { text-shadow: 0 0 8px #c03bff; } to { text-shadow: 0 0 0 #c03bff; } }
 
 @keyframes alerta { from { color: #ff2a4f; } to { color: #ffffff; } }
 /* Vida: el escritorio activo late, el nombre del autor brilla y la linea de la barra

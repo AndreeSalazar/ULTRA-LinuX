@@ -13,7 +13,10 @@ SUPER + Shift + G   Graficos: informe Vulkan/OpenGL, cubo y validacion
 SUPER + P           Pantallas: resolucion, Hz y escala por monitor
 SUPER + Shift + E   Abrir Windows NVMe en solo lectura (/windows)
 SUPER + H           Esta ayuda
-SUPER + Space       Centro BMO-X: aplicaciones y ambiente
+SUPER + Space       Centro SUPER: accesos rapidos con iconos
+SUPER + Shift+Space Categorias completas
+SUPER + F1          Atajos con iconos
+SUPER + S           Menu de capturas y ultimo resultado
 SUPER + Shift + A   Alternar efectos vivos / reducidos
 SUPER + Shift + P   Personalizar: colores, fondo, ventanas, barra, dock, avisos y letra
 SUPER + Shift + I   Guardar incidente: eventos del kernel, memoria y registros del momento

@@ -218,7 +218,7 @@ def generar(estado):
             linea = linea.replace('border-top: 2px solid', 'border-bottom: 2px solid').replace('0 -2px 14px', '0 2px 14px')
         if abajo and linea.startswith('@keyframes linea'): linea = linea.replace('border-bottom-color', 'border-top-color')
         # Efectos reducidos: la barra queda quieta; solo parpadean las alertas.
-        if estado['efectos'] == 'reducidos': linea = re.sub(r' animation: (latido|aura|linea) [^;]*;', '', linea)
+        if estado['efectos'] == 'reducidos': linea = re.sub(r' animation: (latido|aura|linea|dock-[a-z]+) [^;]*;', '', linea)
         lineas.append(linea)
     escribir(TEMA / 'waybar.css', '\n'.join(lineas) + '\n')
     barras = json.loads((ETC / 'waybar.jsonc').read_text())

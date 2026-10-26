@@ -1,0 +1,12 @@
+{
+  "perfil": "pc",
+  "kernel_sha256": "bb6fb30bba98ebea759ac3623d04b723bc5cf952d37680c56cf53ba0649300cc",
+  "sistema_sha256": "6662347c9de13c1c28318045a2b89fd6b2d686c4fde6f08625e22c69ff0226db",
+  "datos_sha256": "0961025f4f5f68c89cf5f0045170646146d484599a3fb3eccf5a6cacdd8581d6",
+  "datos_preservados": true,
+  "kernel_y_sistema_verificados": true,
+  "qemu_boot_exit": 0,
+  "volumen": "A: FAT32 BMO",
+  "revision_estatica_C_conservada": "0320900e52d9d3b6",
+  "feature": "SUPER-UI-v1"
+}

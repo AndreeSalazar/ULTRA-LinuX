@@ -12,13 +12,49 @@ import re
 import subprocess
 import sys
 import time
+import tempfile
+import stat
 
 HOME = Path(os.environ.get('HOME', '/home/ultra'))
 CARPETA = HOME / 'Imágenes' / 'Capturas'
+ESTADO = HOME / '.cache/ultra/captura-estado.json'
 
 
 def correr(cmd, entrada=None, timeout=120):
     return subprocess.run(cmd, input=entrada, capture_output=True, timeout=timeout, check=False)
+
+
+def registrar(datos):
+    """One bounded status record. No screenshot data, environment or append-only log."""
+    try:
+        ESTADO.parent.mkdir(parents=True, exist_ok=True)
+        fd, nombre = tempfile.mkstemp(prefix='.captura-', dir=ESTADO.parent)
+        try:
+            with os.fdopen(fd, 'w') as stream:
+                os.fchmod(stream.fileno(), 0o600)
+                json.dump(dict(datos, fecha=time.strftime('%Y-%m-%d %H:%M:%S')), stream)
+                stream.write('\n')
+            os.replace(nombre, ESTADO)
+        finally:
+            if os.path.exists(nombre): os.unlink(nombre)
+    except OSError:
+        pass
+
+
+def detalle(resultado):
+    return ''.join(c for c in resultado.stderr.decode('utf-8', 'replace') if c.isprintable())[:400]
+
+
+def estado():
+    if not ESTADO.exists(): return {'resultado':'sin_registro'}
+    fd=os.open(ESTADO,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+    with os.fdopen(fd,'rb') as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode): raise ValueError('registro no regular')
+        raw=stream.read(8193)
+    if len(raw)>8192: raise ValueError('registro demasiado grande')
+    doc=json.loads(raw)
+    if not isinstance(doc,dict): raise ValueError('registro sin formato')
+    return {k:doc[k] for k in ('modo','resultado','fecha','archivo','portapapeles','error') if k in doc}
 
 
 def acento():
@@ -44,14 +80,21 @@ def pantalla_activa():
 
 
 def capturar(modo):
+    # Runs as the desktop user: allow a deliberately relocated Pictures folder.
+    # Resolve once and create unique files there; never overwrite a named PNG.
     CARPETA.mkdir(parents=True, exist_ok=True)
-    if CARPETA.is_symlink() or CARPETA.resolve() != CARPETA: raise ValueError('carpeta de capturas redirigida')
-    destino = CARPETA / time.strftime('captura_%Y-%m-%d_%H-%M-%S.png')
+    carpeta = CARPETA.resolve(strict=True)
+    if not carpeta.is_dir(): raise ValueError('carpeta de capturas no disponible')
     cmd = ['grim']
     if modo == 'region':
         color = acento()
         seleccion = correr(['slurp', '-d', '-b', '06050aaa', '-c', color, '-s', '00000000', '-w', '2'])
-        if seleccion.returncode != 0: return None  # Esc: cancelada, sin aviso.
+        if seleccion.returncode != 0:
+            mensaje = detalle(seleccion).strip()
+            if seleccion.returncode != 1 or (mensaje and mensaje.casefold() != 'selection cancelled'):
+                raise ValueError('slurp: '+(mensaje or 'codigo '+str(seleccion.returncode)))
+            registrar({'modo':modo, 'resultado':'cancelada'})
+            return None  # Esc: cancelada, sin aviso.
         geometria = seleccion.stdout.decode().strip()
         if not re.fullmatch(r'-?[0-9]+,-?[0-9]+ [0-9]+x[0-9]+', geometria): raise ValueError('seleccion no valida')
         cmd += ['-g', geometria]
@@ -62,12 +105,31 @@ def capturar(modo):
         if nombre: cmd += ['-o', nombre]
     else:
         raise ValueError('uso: ultra-captura region|pantalla|ventana')
-    resultado = correr(cmd + [str(destino)])
-    if resultado.returncode != 0 or not destino.is_file(): raise ValueError('grim no pudo capturar')
-    destino.chmod(0o600)
-    with destino.open('rb') as f:
-        correr(['wl-copy', '--type', 'image/png'], entrada=f.read(), timeout=10)
-    return destino
+    fd, nombre = tempfile.mkstemp(prefix=time.strftime('captura_%Y-%m-%d_%H-%M-%S_'), suffix='.png', dir=carpeta)
+    os.close(fd); destino = Path(nombre)
+    try:
+        resultado = correr(cmd + [str(destino)], timeout=20)
+        if resultado.returncode != 0:
+            raise ValueError('grim: '+(detalle(resultado) or 'fallo sin detalle; revisar permiso de captura de Hyprland'))
+        from PIL import Image
+        with Image.open(destino) as imagen:
+            if imagen.format != 'PNG': raise ValueError('grim no produjo un PNG')
+            imagen.verify()
+        destino.chmod(0o600)
+    except Exception:
+        destino.unlink(missing_ok=True)
+        raise
+    copiada = False
+    try:
+        # wl-copy forks to own the selection. No captured pipes held by its daemon.
+        with destino.open('rb') as stream:
+            resultado = subprocess.run(['wl-copy', '--type', 'image/png'], stdin=stream,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
+        copiada = resultado.returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        pass  # The saved PNG remains a success, independently of the clipboard.
+    registrar({'modo':modo, 'resultado':'guardada', 'archivo':str(destino), 'portapapeles':copiada})
+    return destino, copiada
 
 
 def avisar(titulo, texto, icono='camera-photo', critico=False):
@@ -80,16 +142,25 @@ def avisar(titulo, texto, icono='camera-photo', critico=False):
 def main():
     if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
     os.umask(0o077)
-    destino = capturar(sys.argv[1] if len(sys.argv) > 1 else 'region')
+    modo = sys.argv[1] if len(sys.argv) > 1 else 'region'
+    if modo == 'abrir':
+        CARPETA.mkdir(parents=True,exist_ok=True)
+        os.execvp('thunar',['thunar',str(CARPETA.resolve(strict=True))])
+    if modo == 'estado': print(json.dumps(estado()));return
+    if modo == 'menu': os.execvp('ultra-super', ['ultra-super', 'captura'])
+    destino = capturar(modo)
     if destino:
+        destino, copiada = destino
         try: correr(['ultra-personalizar', 'sonar', 'captura'], timeout=5)
         except (OSError, subprocess.SubprocessError): pass
-        avisar('Captura guardada', f'~/Imágenes/Capturas/{destino.name} · copiada al portapapeles', icono=str(destino))
+        texto = f'{destino}' + (' · copiada al portapapeles' if copiada else ' · portapapeles no disponible; PNG conservado')
+        avisar('Captura guardada', texto, icono=str(destino))
         print(destino)
 
 
 if __name__ == '__main__':
     try: main()
     except (OSError, ValueError, subprocess.SubprocessError) as error:
+        registrar({'resultado':'fallo', 'error':str(error)[:500]})
         avisar('Captura no guardada', str(error), critico=True)
         print('CAPTURA:', error, file=sys.stderr); sys.exit(1)

@@ -109,3 +109,5 @@ evidencias/revision-real/** text eol=lf
 evidencias/revision-real/**/*.png binary
 evidencias/vigencia/** text eol=lf
 evidencias/vigilante/** text eol=lf
+evidencias/super-ui/** text eol=lf
+evidencias/super-ui/**/*.png binary
