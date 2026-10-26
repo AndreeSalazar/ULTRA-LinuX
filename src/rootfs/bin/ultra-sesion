@@ -36,6 +36,8 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 # Do not attribute a previous client log to a fresh failed preparation.
 rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log /run/ultra-escritorio/medicion.log /run/ultra-escritorio/medicion.stop /run/ultra-escritorio/red.log
+read -r vigilante_inicio _ < /proc/uptime
+printf '%s\n' "$vigilante_inicio" > /run/ultra-escritorio/vigilante-inicio
 [[ ! -e /run/seatd.sock && ! -L /run/seatd.sock ]] || { echo 'ROJO [SESION]: socket seatd ya ocupado'; exit 1; }
 export SYSTEMD_IGNORE_CHROOT=1
 # devtmpfs supplies devices; these conventional links normally come from a distro init.

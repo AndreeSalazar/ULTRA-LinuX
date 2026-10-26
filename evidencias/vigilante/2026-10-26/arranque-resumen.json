@@ -1,0 +1,18 @@
+{
+  "qemu_exit_code": 0,
+  "profile": "pc",
+  "boot": "FAT32 UEFI virtual image",
+  "green_checks": 168,
+  "serial_log_sha256": "ec88387cf5b9d33449627ab3ae39b12733f401420894f1188dcaf5494816510a",
+  "checks": [
+    "production guardians",
+    "Hyprland and categories",
+    "installed VIGILANTE under UID1000",
+    "PID-based real counter deltas and HUD load observation",
+    "private environment sentinel excluded",
+    "previous session rejected",
+    "data persisted across reboot",
+    "clean shutdown"
+  ],
+  "gpu": "QEMU software; no physical RTX game or FPS validation"
+}

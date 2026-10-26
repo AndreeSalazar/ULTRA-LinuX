@@ -1,0 +1,180 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""VIGILANTE: bounded observations, never a resource policy or a UB detector."""
+import json
+import math
+import os
+from pathlib import Path
+import re
+import stat
+import sys
+
+CGROUP = Path('/sys/fs/cgroup/ultra-usuario')
+ENERGY = Path('/run/ultra-energia/estado.json')
+MAX_GAMES = 16
+MAX_HISTORY_BYTES = 1048576
+
+
+def read(path, limit=65536):
+    fd = os.open(path, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0) | getattr(os, 'O_NONBLOCK', 0))
+    with os.fdopen(fd, 'rb') as stream:
+        if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
+            raise ValueError('entrada no regular')
+        raw = stream.read(limit+1)
+    if len(raw) > limit:
+        raise ValueError('entrada limitada')
+    return raw
+
+
+def stat_start(path):
+    raw = read(path/'stat', 8192).decode()
+    return int(raw[raw.rfind(')')+2:].split()[19])
+
+
+def delta(value, old, elapsed):
+    if elapsed <= 0 or elapsed > 120 or not isinstance(value, int) or not isinstance(old, int) or value < old:
+        return None
+    return value-old
+
+
+def hud(path):
+    result = {'mapped': None, 'requested': None, 'disabled': None, 'env_hidden': None}
+    try:
+        maps = read(path/'maps', 1048576)
+        result['mapped'] = bool(re.search(rb'/libMangoHud(?:_opengl|_shim)?\.so(?:\s|$)', maps, re.M))
+    except (OSError, ValueError):
+        pass
+    try:
+        # Inspect only these switches; never return the environment or config text.
+        env = {}
+        for row in read(path/'environ').split(b'\0'):
+            key, _, value = row.partition(b'=')
+            if key in (b'MANGOHUD', b'DISABLE_MANGOHUD', b'MANGOHUD_CONFIG'):
+                env[key] = value
+        result['requested'] = env.get(b'MANGOHUD') == b'1'
+        result['disabled'] = env.get(b'DISABLE_MANGOHUD') == b'1'
+        result['env_hidden'] = bool(re.search(rb'(?:^|,)\s*no_display(?:=1)?\s*(?:,|$)', env.get(b'MANGOHUD_CONFIG', b'')))
+    except (OSError, ValueError):
+        pass
+    return result
+
+
+def enrich(current, previous, proc):
+    old_state = (previous or {}).get('vigilante', {})
+    elapsed = current['monotonic']-(previous or {}).get('monotonic', current['monotonic'])
+    report = {'schema': 1, 'role': 'VIGILANTE', 'monotonic_s': current['monotonic'],
+              'observations_only': True, 'automatic_tuning': False, 'fps': None,
+              'scope': 'UID1000: contadores por proceso, no funciones ni instrucciones; HUD cargado no implica visible',
+              'processes': [], 'limited': bool(current.get('limited')), 'memory_events': None,
+              'memory_events_delta': None, 'cpu_energy': None}
+    try:
+        counters = dict((k, int(v)) for k,v in re.findall(r'^(high|max|oom|oom_kill)[ \t]+(\d+)[ \t\r]*$',
+            read(CGROUP/'memory.events', 4096).decode(), re.M))
+        # Device/inode identifies a recreated cgroup: a new group is a new baseline.
+        meta = (CGROUP/'memory.events').stat()
+        report['memory_identity'] = [meta.st_dev, meta.st_ino]
+        report['memory_events'] = counters
+        before = old_state.get('memory_events') or {}
+        if old_state.get('memory_identity') == report['memory_identity']:
+            report['memory_events_delta'] = {k: delta(v, before.get(k), elapsed) for k,v in counters.items()}
+    except (OSError, ValueError):
+        pass
+    try:
+        energy = json.loads(read(ENERGY, 65536))
+        if not isinstance(energy, dict) or not isinstance(energy.get('termica'), dict):
+            raise ValueError('energia sin contrato')
+        age = current['monotonic']-energy['monotonic_s']
+        if not math.isfinite(age) or not 0 <= age <= 5:
+            raise ValueError('energia caducada')
+        def numeric(value):
+            return value if type(value) in (int, float) and math.isfinite(value) and value >= 0 else None
+        report['cpu_energy'] = {'package_W': numeric(energy.get('cpu_paquete_W')),
+            'temperature_C': numeric(energy.get('termica', {}).get('cpu_C')), 'age_s': round(age, 3)}
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    old = {(p['pid'], p['start']): p for p in old_state.get('processes', [])}
+    selected = sorted((p for p in current['processes'] if p.get('game_id')),
+                      key=lambda p: p.get('cpu_pct') or 0, reverse=True)
+    report['limited'] |= len(selected) > MAX_GAMES
+    for item in selected[:MAX_GAMES]:
+        path = proc/str(item['pid'])
+        row = {k: item.get(k) for k in ('pid', 'start', 'name', 'game_id', 'cpu_pct', 'io_read_Bps', 'io_write_Bps')}
+        row.update(minor_faults=item.get('minor_faults'), major_faults=item.get('major_faults'))
+        try:
+            status = read(path/'status', 16384).decode()
+            for name in ('voluntary_ctxt_switches', 'nonvoluntary_ctxt_switches'):
+                match = re.search(r'^'+name+r':[ \t]+(\d+)[ \t\r]*$', status, re.M)
+                row[name] = int(match[1]) if match else None
+            row['hud'] = hud(path)
+            if stat_start(path) != item['start']:
+                continue  # Process exited or PID reused during the extra reads.
+        except (OSError, ValueError, IndexError):
+            continue
+        before = old.get((item['pid'], item['start']), {})
+        row['interval_s'] = round(elapsed, 3) if 0 < elapsed <= 120 else None
+        row['deltas'] = {k: delta(row.get(k), before.get(k), elapsed) for k in
+            ('minor_faults', 'major_faults', 'voluntary_ctxt_switches', 'nonvoluntary_ctxt_switches')}
+        row['observations'] = []
+        if row['hud']['mapped'] is False:
+            row['observations'].append('MangoHud no observado en maps de este proceso; comprobar el proceso que presenta cuadros')
+        if (row['deltas'].get('major_faults') or 0) > 0:
+            row['observations'].append('Fallos mayores durante el intervalo; no demuestran UB ni causa de tiron')
+        report['processes'].append(row)
+    current['vigilante'] = report
+    return report
+
+
+def boot_identity():
+    try:
+        value = read(Path('/proc/sys/kernel/random/boot_id'), 128).decode().strip()
+        return value if re.fullmatch(r'[0-9a-f-]{36}', value) else None
+    except (OSError, ValueError):
+        return None
+
+
+def history_document(samples):
+    rows = list(samples)[-120:]
+    doc = {'schema': 1, 'role': 'VIGILANTE', 'boot_id': boot_identity(), 'observations_only': True, 'automatic_tuning': False,
+           'retention': 'Ultimas 120 muestras de la sesion; escritura cada 30 s; sin entorno completo, pilas ni credenciales',
+           'samples': rows}
+    while len(json.dumps(doc).encode())+1 > MAX_HISTORY_BYTES and rows:
+        rows.pop(0)
+    return doc
+
+
+def session_history(doc, minimum):
+    if doc.get('boot_id') != boot_identity():
+        raise ValueError('informe de otro arranque')
+    if not math.isfinite(minimum) or minimum < 0:
+        raise ValueError('inicio de sesion invalido')
+    rows = [s for s in doc['samples'] if isinstance(s, dict) and
+            type(s.get('monotonic_s')) in (float, int) and math.isfinite(s['monotonic_s']) and s['monotonic_s'] >= minimum]
+    if not rows:
+        raise ValueError('sin muestras de esta sesion')
+    return history_document(rows)
+
+
+def main():
+    if os.geteuid() != 1000:
+        raise ValueError('Abrir como usuario del escritorio')
+    action = sys.argv[1] if len(sys.argv) > 1 else 'panel'
+    if action == 'panel':
+        os.execv('/usr/local/bin/ultra-juegos-vivo', ['ultra-juegos-vivo', 'panel'])
+    if action != 'informe':
+        raise ValueError('Uso: ultra-vigilante panel|informe')
+    path = Path(os.environ.get('HOME', '/home/ultra'))/'.cache/ultra/vigilante.json'
+    doc = json.loads(read(path, MAX_HISTORY_BYTES))
+    if doc.get('schema') != 1 or doc.get('role') != 'VIGILANTE' or not isinstance(doc.get('samples'), list):
+        raise ValueError('Informe no reconocido')
+    if boot_identity() is None:
+        raise ValueError('arranque no identificado')
+    minimum = float(sys.argv[2]) if len(sys.argv) > 2 else 0
+    print(json.dumps(session_history(doc, minimum)))
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError) as error:
+        print('VIGILANTE: '+str(error), file=sys.stderr)
+        sys.exit(1)

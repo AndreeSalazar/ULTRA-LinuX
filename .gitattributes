@@ -108,3 +108,4 @@ evidencias/llvm-sg/** text eol=lf
 evidencias/revision-real/** text eol=lf
 evidencias/revision-real/**/*.png binary
 evidencias/vigencia/** text eol=lf
+evidencias/vigilante/** text eol=lf

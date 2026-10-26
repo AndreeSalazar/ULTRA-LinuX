@@ -5,9 +5,10 @@ set -euo pipefail
 state="$HOME/.config/ultra/hud-desactivado"
 action=${1:-menu}; shift || true
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Ver juegos y consumo en vivo' 'Activar HUD para nuevos lanzamientos' 'Desactivar HUD para nuevos lanzamientos' 'Abrir registros de FPS' |
-        fuzzel --dmenu --only-match --prompt='FPS / Rendimiento / ' --lines=4) || exit 0
+    choice=$(printf '%s\n' 'VIGILANTE: juegos, CPU y estado del HUD' 'Ver juegos y consumo en vivo' 'Activar HUD para nuevos lanzamientos' 'Desactivar HUD para nuevos lanzamientos' 'Abrir registros de FPS' |
+        fuzzel --dmenu --only-match --prompt='FPS / Rendimiento / ' --lines=5) || exit 0
     case $choice in
+        'VIGILANTE: juegos, CPU y estado del HUD') exec foot --title='ULTRA / VIGILANTE' ultra-vigilante panel;;
         'Ver juegos y consumo en vivo') exec foot --title='ULTRA / Juegos en vivo' ultra-juegos-vivo panel;;
         'Activar HUD para nuevos lanzamientos') action=activar;;
         'Desactivar HUD para nuevos lanzamientos') action=desactivar;;

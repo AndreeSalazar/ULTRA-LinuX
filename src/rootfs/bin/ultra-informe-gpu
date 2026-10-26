@@ -57,6 +57,13 @@ tmp=$out.$$
     setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
         --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
         env HOME=/juegos/usuarios/ultra timeout -k 1 3 ultra-hud-heronite estado 2>/dev/null || true
+    printf '\n[VIGILANTE: observaciones recientes; sin ajustes automaticos]\n'
+    if read -r vigilante_inicio < /run/ultra-escritorio/vigilante-inicio; then
+        setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
+            --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
+            env HOME=/juegos/usuarios/ultra timeout -k 1 3 /usr/local/bin/ultra-vigilante informe "$vigilante_inicio" 2>/dev/null || printf 'VIGILANTE NA sin informe de la sesion\n'
+    else printf 'VIGILANTE NA inicio de sesion no registrado\n'; fi
+    printf '\n[/VIGILANTE]\n'
     printf '\n[PUNTERO RED: solo reparaciones de imagen transparente]\n'
     setpriv --reuid=1000 --regid=1000 --init-groups --no-new-privs \
         --inh-caps=-all --ambient-caps=-all --bounding-set=-all \

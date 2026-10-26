@@ -19,6 +19,8 @@ El frontend metal64 0.2 sigue escrito en C.
 detecta cambios y `revisar` repite GCC/Clang con aislamiento y limites.
 [Estados y vigencia por contenido](docs/ESTADOS-Y-VIGENCIA.md): fuentes, cabeceras,
 configuracion y herramientas registradas; una revision caduca si cambia su contexto.
+[VIGILANTE de juegos](docs/VIGILANTE.md): observa CPU, memoria, I/O y carga de
+MangoHud por proceso, con historial acotado; informa sin bloquear ni ajustar el kernel.
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).
 
 **SUPER GRAFO integrado desde main:** indice incremental, MCP, revision con GCC y

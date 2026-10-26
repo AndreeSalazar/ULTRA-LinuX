@@ -1,0 +1,12 @@
+{
+  "src/rootfs/bin/ultra-vigilante": "6c96d092cfa835dd9a9b02dd67a7ba22ba80bd3a85857449e6f44b9a150eabb1",
+  "src/rootfs/bin/ultra-juegos-vivo": "e20bd4d9b5e32696a2ad0e2d40419ceb147ec33e173a871b97befecb3c46db8e",
+  "src/rootfs/bin/ultra-hud": "175b32dfa1b001785b69909044eda5966afff0710f947cfb38f84590e9b9e63e",
+  "src/rootfs/bin/ultra-informe-gpu": "b055ad4fb2ebbce398c4a36f4e900888692c38225830dea8b0bb885486a5ac82",
+  "src/rootfs/bin/ultra-sesion": "ba240c0624926d29c9bb11b192e81c7af42fc67a547ce6e3541f704ad127fd34",
+  "scripts/probar_vigilante.py": "8e7a4d0f2aacc0dd64f3a92be15a6507a6f83807ccbfda7b46ca952000cb5584",
+  "scripts/probar_vigilante_instalado.py": "c4cb9b01026b336bf48ca685b5b94578a06f365572fd57dde53a11852ed8c7f5",
+  "scripts/probar_juegos_vivo.py": "2d01deb6759a1564b9ec39fe17c71364ace20a60164bce97c45713e9d3dc07c0",
+  "scripts/probar_hud_lanzador.py": "b9436ccedb0844dd2f8d0012742ff0f826409b54e23ac5fb2c2db97bf93c0458",
+  "scripts/build-baseline.sh": "f2ba52886f01a1af41aca78b0169350d74d1b13cd86f858d207fcdb79a2dadda"
+}

@@ -1,0 +1,12 @@
+{
+  "perfil": "pc",
+  "kernel_sha256": "bb6fb30bba98ebea759ac3623d04b723bc5cf952d37680c56cf53ba0649300cc",
+  "sistema_sha256": "268336edb789dc4dc1612cd6530116372c8e71c0fda3c6bf3e5342f9e2eefb09",
+  "datos_sha256": "0961025f4f5f68c89cf5f0045170646146d484599a3fb3eccf5a6cacdd8581d6",
+  "datos_preservados": true,
+  "kernel_y_sistema_verificados": true,
+  "qemu_boot_exit": 0,
+  "volumen": "A: FAT32 BMO",
+  "revision_estatica_C_conservada": "0320900e52d9d3b6",
+  "feature": "VIGILANTE-v1"
+}

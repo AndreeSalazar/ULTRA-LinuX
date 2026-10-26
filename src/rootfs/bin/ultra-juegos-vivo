@@ -18,6 +18,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections import deque
 
 PROC = Path('/proc')
 HOME = Path(os.environ.get('HOME', '/home/ultra'))
@@ -30,6 +31,9 @@ def load(name, path):
     module = importlib.util.module_from_spec(spec)
     loader.exec_module(module)
     return module
+
+
+vigilante = load('ultra_vigilante', Path(__file__).with_name('ultra-vigilante'))
 
 
 def text(value, limit=160):
@@ -257,6 +261,7 @@ def sample(previous=None, now=None, measure_pss=True):
         if not group.pop('pss_complete'):
             group['pss_bytes'] = None
         state['games'].append(group)
+    vigilante.enrich(state, previous, PROC)
     return state
 
 
@@ -302,6 +307,8 @@ def watch(lib, disks):
                 except BlockingIOError:
                     pass
         previous, signature, refreshed, inventory, gpu = None, None, -30, {}, None
+        history, saved = deque(maxlen=120), -30
+        lib.atomic_json(output.with_name('vigilante.json'), vigilante.history_document([]))
         while True:
             begin = time.monotonic()
             if begin-refreshed >= 30:
@@ -321,6 +328,10 @@ def watch(lib, disks):
             current.update(catalogue=inventory, gpu=gpu, gpu_sample_age_s=round(begin-refreshed, 1),
                            free_GiB=round(shutil.disk_usage(HOME).free/2**30, 1))
             lib.atomic_json(output, current)
+            history.append(current['vigilante'])
+            if begin-saved >= 30:
+                lib.atomic_json(output.with_name('vigilante.json'), vigilante.history_document(history))
+                saved = begin
             previous = current
             time.sleep(max(1, 5-(time.monotonic()-begin)))
 
@@ -329,11 +340,12 @@ def display(state):
     def fmt(value, suffix=''):
         return 'NA' if value is None else str(round(value, 1))+suffix
     age = max(0, time.time()-state.get('updated', 0))
-    rows = ['ULTRA / JUEGOS Y CONSUMO EN VIVO',
+    rows = ['ULTRA / VIGILANTE / JUEGOS Y CONSUMO EN VIVO',
         f'Lectura hace {age:.0f} s | recursos cada 5 s | bibliotecas y GPU cada 30 s',
         'CPU sistema: '+fmt(state.get('cpu_system_pct'), '%')+' | RAM sistema: '+fmt(state.get('ram_used_MiB'), ' MiB')+
         ' | libre Linux: '+fmt(state.get('free_GiB'), ' GiB'),
-        'FPS/frametime: dentro del juego con MangoHud. Shift derecho+F12: mostrar/ocultar.',
+        'VIGILANTE informa; no bloquea ni ajusta el kernel. Los contadores no explican cada funcion.',
+        'FPS/frametime: MangoHud dentro del juego. Shift derecho+F12 solo sirve si el HUD esta cargado.',
         'Shift izquierdo+F2: grabar CSV local hasta 10 min. No se sube a Internet.',
         'CPU por juego: 100% = un nucleo. PSS reparte memoria compartida; RSS puede contarla varias veces.', '']
     for gpu in state.get('gpu') or []:
@@ -348,6 +360,18 @@ def display(state):
             ' | RSS '+fmt(game['rss_bytes']/2**20, ' MiB')+' | procesos '+str(len(game['pids'])))
     if not state.get('games'):
         rows.append('Ninguno identificado. Un proceso sin identidad puede aparecer en la lista general.')
+    observation = state.get('vigilante', {})
+    rows.extend(['', 'VIGILANTE / EVIDENCIA DEL INTERVALO:'])
+    energy = observation.get('cpu_energy') or {}
+    rows.append('CPU paquete '+fmt(energy.get('package_W'), ' W')+' | temperatura '+fmt(energy.get('temperature_C'), ' C'))
+    events = observation.get('memory_events_delta')
+    rows.append('Eventos de memoria nuevos: '+(str(events) if events is not None else 'NA; requiere dos muestras del mismo grupo'))
+    for item in observation.get('processes', []):
+        loaded = item.get('hud', {}).get('mapped')
+        hud_state = 'cargado; visibilidad no confirmada' if loaded is True else 'no observado en este proceso' if loaded is False else 'NA; sin acceso o lectura limitada'
+        rows.append(f"{item['pid']} {text(item['name'],32)} | MangoHud {hud_state} | fallos mayores nuevos {item['deltas']['major_faults']}")
+    if observation.get('limited'):
+        rows.append('VIGILANTE: detalle limitado a 16 procesos de juegos; muestra parcial.')
     rows.extend(['', 'PROCESOS DEL USUARIO (mayor CPU, maximo 10):'])
     for process in sorted(state.get('processes', []), key=lambda p:p.get('cpu_pct') or 0, reverse=True)[:10]:
         rows.append(f"{process['pid']} {text(process['name'],32)} | CPU {fmt(process.get('cpu_pct'),'%')} | RSS {fmt(process['rss']/2**20,' MiB')} | disco R/W {fmt(process.get('io_read_Bps'),' B/s')}/{fmt(process.get('io_write_Bps'),' B/s')}")

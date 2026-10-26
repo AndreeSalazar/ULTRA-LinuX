@@ -1015,6 +1015,13 @@ def check_hyprland(conn, failures):
             for perfil in ('original', 'fresco', 'eficiente'):
                 probe = "import json; from pathlib import Path; assert json.loads(Path('/run/ultra-energia/estado.json').read_text())['solicitado']=="+repr(perfil)+"; print('ENERGIA-PERFIL-VERIFICADO')"
                 transcript += run(conn, [('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/local/bin/ultra-energia '+perfil+'; sleep 3; ultra-entrar /usr/bin/python -c '+shlex.quote(probe), 'ENERGIA-PERFIL-VERIFICADO')], failures)
+        if '--vigilante' in sys.argv:
+            encoded = base64.b64encode((ROOT/'scripts/probar_vigilante_instalado.py').read_bytes()).decode()
+            transcript += run(conn, [(': > /arch/tmp/vigilante.b64; echo VIG-CARGA-$((40+5))', 'VIG-CARGA-45')], failures)
+            for offset in range(0, len(encoded), 192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/vigilante.b64; echo VIG-CARGA-$((40+5))\n").encode())
+                transcript += response('VIG-CARGA-45')
+            transcript += run(conn, [('base64 -d /arch/tmp/vigilante.b64 > /arch/tmp/vigilante.py; ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups /usr/bin/python3 /tmp/vigilante.py', 'VIGILANTE-INSTALADO-OK')], failures)
         if '--super-grafo' in sys.argv:
             encoded = base64.b64encode((ROOT/'scripts/probar_super_grafo_instalado.py').read_bytes()).decode()
             transcript += run(conn, [(': > /arch/tmp/sg-banco.b64; echo SG-CARGA-$((40+5))', 'SG-CARGA-45')], failures)
