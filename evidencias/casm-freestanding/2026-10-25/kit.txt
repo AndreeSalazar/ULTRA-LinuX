@@ -1,0 +1,9 @@
+GREEN [CASM-FREESTANDING] /home/builder/linux-reconstruido/build/kit-native-rq0zyowp/puro.module.json
+GREEN [CASM-NATIVE] /home/builder/linux-reconstruido/build/kit-native-rq0zyowp/build/CASM/native/run-w5_r0e1h/program.hex
+ELF: /home/builder/linux-reconstruido/build/kit-native-rq0zyowp/build/CASM/native/run-w5_r0e1h/program.elf
+Verificacion: /home/builder/linux-reconstruido/build/kit-native-rq0zyowp/build/CASM/native/run-w5_r0e1h/verified-native.json
+GREEN [CASM-NATIVE] /home/builder/linux-reconstruido/build/kit-native-rq0zyowp/build/CASM/native/run-4ve56r1l/program.hex
+ELF: /home/builder/linux-reconstruido/build/kit-native-rq0zyowp/build/CASM/native/run-4ve56r1l/program.elf
+Verificacion: /home/builder/linux-reconstruido/build/kit-native-rq0zyowp/build/CASM/native/run-4ve56r1l/verified-native.json
+GREEN [KIT] ejemplo y autocompilacion con publicador; FIFO y enlace rechazados
+GREEN [KIT-OS] publicador, adaptador freestanding y retorno 20 verificados

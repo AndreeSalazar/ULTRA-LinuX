@@ -1,0 +1,16 @@
+{
+  "CASM/native/FREESTANDING.md": "f7a08a9bf8f9c01d2e162fa09950f696bada6d32cb81b817791e0fa1c6eb9044",
+  "CASM/native/README.md": "ec22e9f523393a976c702274fd0e85615bd825dc105e05f3d2368af879f9d703",
+  "CASM/native/compiler.body.casm": "e6bcd9991a3a9c864b86c3f4459c371bbf1290d625a12127398b6d0d74dc3459",
+  "CASM/native/compiler.casm": "80cdd9e0f282fb8b1608b359fa5610f3edcc55abc9a891daa06b502745bcfd1e",
+  "CASM/native/driver.py": "6883cc8fbef9eb0cfbd6d0d2d7e750b6781950db1ddcaa3898b6fd681b7a4334",
+  "CASM/native/ejemplo-puro.casm": "17de2e811d6b18aef295b93d59ce84b98ec5f0963c1aae930cf5a39cfe75d73a",
+  "CASM/native/ejemplo.casm": "7a5b9c3c99c9f9e78e0973076d6cc8f551b2a586ee0174d10567ca146a731748",
+  "CASM/native/freestanding.py": "a6a51fe182c7974643422a57ced60bd843a98962ec885f9367e306ab51ba52ad",
+  "CASM/native/runtime.py": "d0a8104f500a036a2799463eab1a4d7c8bda775da51af52c295b94d5bf4575d0",
+  "CASM/native/sealed.sh": "d20b14c2fc4d4fbc7b503ed0efac99d0491d7f638a57d25f51c56c771cdc4b16",
+  "CASM/native/seed.py": "11368974e0bca5b209f7cffaa638d8f4dbb43fe3d28058f59ad6551bedcad0df",
+  "CASM/native/test.py": "b14eceb6155d9b15a6415f3feea60b97486c6171937c58cf0526ded93a415673",
+  "CASM/native/test_freestanding.py": "0c7bc79d33288e06716ff9ee957205028a390a2d11d89be74793ed14638f8e84",
+  "CASM/native/verify.py": "c23dce74e3ea8c6793230cecb298203bf678c0a4002a696a0f7bead866f70f29"
+}

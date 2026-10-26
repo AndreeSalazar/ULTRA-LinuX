@@ -1,0 +1,16 @@
+{
+  "target": "casm-freestanding-x86-64-v1",
+  "module_linux_services": false,
+  "compiler_host": "Linux",
+  "bare_metal_boot_tested": false,
+  "bootable": false,
+  "executions": 75,
+  "service_rejections": 6,
+  "module_mutations_rejected": 12,
+  "native_regression_cases": 60,
+  "native_regression_mutations": 12,
+  "self_hosted_compiler_sha256": "4131db7e05dcee684962b62a199ffe83383e600023b947ac08c363566e5493bc",
+  "kit_sha256": "66cafcb3415bbb800b8169a7a16cc0df6ab356f125afc826a8d828d8a6818acd",
+  "kit_verified": true,
+  "boot_image_changed": false
+}

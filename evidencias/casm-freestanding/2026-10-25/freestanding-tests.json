@@ -1,0 +1,408 @@
+{
+  "target": "casm-freestanding-x86-64-v1",
+  "execution_environment": "QEMU Linux process harness; not a bare-metal boot",
+  "compiler_host": "Linux",
+  "module_linux_services": false,
+  "bootable": false,
+  "executions": [
+    {
+      "case": "differential-0",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-1",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-2",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-3",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-4",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-5",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-6",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-7",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-8",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-9",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-10",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-11",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-12",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-13",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-14",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-15",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-16",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-17",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-18",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-19",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-20",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-21",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-22",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-23",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-24",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-25",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-26",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-27",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-28",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-29",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-30",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-31",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-32",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-33",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-34",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-35",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-36",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-37",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-38",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-39",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-40",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-41",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-42",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-43",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-44",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-45",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-46",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-47",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-48",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-49",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-50",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-51",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-52",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-53",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-54",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-55",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-56",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-57",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-58",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-59",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-60",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-61",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-62",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "differential-63",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "max-u64",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "arrays-functions",
+      "passed": true,
+      "kind": "u64-differential"
+    },
+    {
+      "case": "add-overflow",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "underflow",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "multiply-overflow",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "divide-zero",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "modulo-zero",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "shift-width",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "shift-overflow",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "bounds",
+      "passed": true,
+      "kind": "trap-UD2"
+    },
+    {
+      "case": "depth",
+      "passed": true,
+      "kind": "trap-UD2"
+    }
+  ],
+  "service_rejections": [
+    "print",
+    "panic",
+    "input",
+    "output",
+    "hexout",
+    "unreachable-service"
+  ],
+  "mutation_rejections": [
+    "target",
+    "entry",
+    "rw-code",
+    "short-data",
+    "address",
+    "code",
+    "data",
+    "trap",
+    "stack",
+    "extra",
+    "hash",
+    "provenance-size"
+  ],
+  "sample_source_elf_sha256": "3492b62a2bf04a02d4ebb801d77932a9038375363b76a0512b91442ef484775a",
+  "evidence_source": "max-u64 example, not compiler binary"
+}

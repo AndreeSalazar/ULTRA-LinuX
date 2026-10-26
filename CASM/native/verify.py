@@ -23,7 +23,7 @@ def require(ok,reason):
 def hx(s):return bytes.fromhex(s)
 
 
-def audit(blob):
+def audit(blob, *, layout=False):
     require(HEADER<len(blob)<=LIMIT,'ELF-SIZE')
     require(blob[:16]==b'\x7fELF'+bytes([2,1,1,0])+bytes(8),'ELF-IDENT')
     fields=struct.unpack_from('<HHIQQQIHHHHHH',blob,16)
@@ -200,10 +200,17 @@ def audit(blob):
                     old=states[target];require(len(old[0])==len(s),'STACK-DEPTH-MERGE')
                     merged=(tuple(join_value(a,b) for a,b in zip(old[0],s)),join_value(old[1],rax),old[2]&initialized)
                     if merged!=old:states[target]=merged;todo.append(target)
-    return {'schema':1,'profile':'CASM Native x86-64','verified':True,
+    report={'schema':1,'profile':'CASM Native x86-64','verified':True,
             'sha256':hashlib.sha256(blob).hexdigest(),'bytes':len(blob),'functions':len(functions),
             'instruction_groups':len(instructions),'max_expression_stack':max_stack,
             'rx_text':True,'rw_data':True,'nx_stack':True,'no_dynamic_linker':True,
             'guard_scope':'closed templates, bounds, arithmetic traps, frames, calls and expression-stack flow',
             'limits':['Shared runtime template; no general x86 proof or proof of compiler source semantics.',
                       'Fixed addresses, no PIE or CET activation property. Laboratory profile.']}
+    if layout:
+        report['layout']={'entry_offset':main,'text_end':end,'data_offset':data_offset,
+                          'data_size':data_size,'runtime_size':len(rt),
+                          'service_calls':sorted({runtime_calls[ins['value'][0]]
+                              for ins in instructions.values() if ins['kind']=='call'
+                              and ins['value'][0] in runtime_calls})}
+    return report

@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "profile": "CASM Native x86-64",
+  "external_seed": "clang",
+  "self_hosted_seed": false,
+  "source_sha256": "80cdd9e0f282fb8b1608b359fa5610f3edcc55abc9a891daa06b502745bcfd1e",
+  "flags": [
+    "-std=c11",
+    "-D_GNU_SOURCE",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-Wno-misleading-indentation",
+    "-O1",
+    "-fstack-protector-strong",
+    "-fstack-clash-protection",
+    "-fcf-protection=full",
+    "-fPIE",
+    "-pie",
+    "-Wl,-z,relro,-z,now,-z,noexecstack",
+    "-g",
+    "-fsanitize=address,undefined",
+    "-fno-sanitize-recover=all",
+    "-fno-omit-frame-pointer"
+  ],
+  "compiler_version": "clang version 23.1.3",
+  "binary_sha256": "e94f4c84cdeb3e174dd722a29e46a82fbeb197c6b874578cfd0b79dd754bd2d1"
+}

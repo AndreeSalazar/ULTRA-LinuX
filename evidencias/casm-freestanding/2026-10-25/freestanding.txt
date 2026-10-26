@@ -1,0 +1,1 @@
+GREEN [FREESTANDING] 75 executions; 6 service rejections; 12 mutations

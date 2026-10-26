@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "profile": "CASM Native x86-64",
+  "external_seed": "gcc",
+  "self_hosted_seed": false,
+  "source_sha256": "80cdd9e0f282fb8b1608b359fa5610f3edcc55abc9a891daa06b502745bcfd1e",
+  "flags": [
+    "-std=c11",
+    "-D_GNU_SOURCE",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-Wno-misleading-indentation",
+    "-O2",
+    "-fstack-protector-strong",
+    "-fstack-clash-protection",
+    "-fcf-protection=full",
+    "-fPIE",
+    "-pie",
+    "-Wl,-z,relro,-z,now,-z,noexecstack"
+  ],
+  "compiler_version": "gcc (GCC) 16.2.1 20260810",
+  "binary_sha256": "724d595c956140fa6cce4d50a440390739c4ed053a3e2a963fc6defd822a66ed"
+}

@@ -1,0 +1,442 @@
+{
+  "schema": 1,
+  "profile": "CASM Native 0.1 x86-64",
+  "self_hosted": true,
+  "legacy_metal64_frontend_self_hosted": false,
+  "source_sha256": "80cdd9e0f282fb8b1608b359fa5610f3edcc55abc9a891daa06b502745bcfd1e",
+  "compiler_sha256": "4131db7e05dcee684962b62a199ffe83383e600023b947ac08c363566e5493bc",
+  "external_seeds": [
+    "gcc",
+    "clang"
+  ],
+  "generations_per_seed": 3,
+  "all_generations_equal": true,
+  "cases": [
+    {
+      "case": "empty",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "print",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "precedence",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "bits",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "comparisons",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "max",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "locals",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "while",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "break",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "nested-break",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "if-else",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "forward",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "eight-args",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "value-args",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "recursion",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "buffers",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "zero-bss",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "global",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "lhs-call",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "return-status",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "default-return",
+      "kind": "accepted",
+      "passed": true
+    },
+    {
+      "case": "add",
+      "kind": "runtime-trap",
+      "status": 70,
+      "passed": true
+    },
+    {
+      "case": "sub",
+      "kind": "runtime-trap",
+      "status": 70,
+      "passed": true
+    },
+    {
+      "case": "mul",
+      "kind": "runtime-trap",
+      "status": 70,
+      "passed": true
+    },
+    {
+      "case": "div",
+      "kind": "runtime-trap",
+      "status": 71,
+      "passed": true
+    },
+    {
+      "case": "mod",
+      "kind": "runtime-trap",
+      "status": 71,
+      "passed": true
+    },
+    {
+      "case": "shift-width",
+      "kind": "runtime-trap",
+      "status": 70,
+      "passed": true
+    },
+    {
+      "case": "shift-overflow",
+      "kind": "runtime-trap",
+      "status": 70,
+      "passed": true
+    },
+    {
+      "case": "shift-right-width",
+      "kind": "runtime-trap",
+      "status": 70,
+      "passed": true
+    },
+    {
+      "case": "empty",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "other-entry",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "unknown",
+      "kind": "source-rejected",
+      "status": 69,
+      "passed": true
+    },
+    {
+      "case": "undefined",
+      "kind": "source-rejected",
+      "status": 69,
+      "passed": true
+    },
+    {
+      "case": "self-init",
+      "kind": "source-rejected",
+      "status": 69,
+      "passed": true
+    },
+    {
+      "case": "branch-local",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "duplicate-local",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "duplicate-function",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "duplicate-param",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "reserved",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "argc",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "entry-args",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "bare-array",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "zero-array",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "large-array",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "initializer",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "break-outside",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "pointer",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "preprocessor",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "literal",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "unterminated",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "shadow-buffer",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "deep",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "non-ascii",
+      "kind": "source-rejected",
+      "status": 65,
+      "passed": true
+    },
+    {
+      "case": "bounds",
+      "kind": "runtime-trap",
+      "status": 72,
+      "passed": true
+    },
+    {
+      "case": "bounds-store",
+      "kind": "runtime-trap",
+      "status": 72,
+      "passed": true
+    },
+    {
+      "case": "depth",
+      "kind": "runtime-trap",
+      "status": 73,
+      "passed": true
+    },
+    {
+      "case": "io-multiblock",
+      "kind": "io",
+      "bytes": 130816,
+      "passed": true
+    },
+    {
+      "case": "io-no-overwrite",
+      "kind": "io",
+      "passed": true
+    },
+    {
+      "case": "io-no-symlink",
+      "kind": "io",
+      "passed": true
+    },
+    {
+      "case": "io-byte-range",
+      "kind": "runtime-trap",
+      "status": 70,
+      "passed": true
+    }
+  ],
+  "mutation_rejections": [
+    {
+      "case": "machine",
+      "rule": "ELF-CONTRACT"
+    },
+    {
+      "case": "writable-code",
+      "rule": "TEXT-RX"
+    },
+    {
+      "case": "exec-stack",
+      "rule": "STACK-NX"
+    },
+    {
+      "case": "runtime-opcode",
+      "rule": "RUNTIME-BYTES"
+    },
+    {
+      "case": "arity",
+      "rule": "FRAME-ARGS"
+    },
+    {
+      "case": "frame",
+      "rule": "FRAME-LOCALS"
+    },
+    {
+      "case": "depth-guard",
+      "rule": "FRAME-DEPTH-GUARD"
+    },
+    {
+      "case": "overflow-guard",
+      "rule": "ARITHMETIC-GUARD"
+    },
+    {
+      "case": "bounds-guard",
+      "rule": "BUFFER-GUARD"
+    },
+    {
+      "case": "return-stack",
+      "rule": "RETURN-STACK"
+    },
+    {
+      "case": "uninitialized-local",
+      "rule": "LOCAL-UNINITIALIZED"
+    },
+    {
+      "case": "saved-return-address",
+      "rule": "LOCAL-RANGE"
+    }
+  ],
+  "native_audit": {
+    "schema": 1,
+    "profile": "CASM Native x86-64",
+    "verified": true,
+    "sha256": "4131db7e05dcee684962b62a199ffe83383e600023b947ac08c363566e5493bc",
+    "bytes": 46992,
+    "functions": 38,
+    "instruction_groups": 4282,
+    "max_expression_stack": 4,
+    "rx_text": true,
+    "rw_data": true,
+    "nx_stack": true,
+    "no_dynamic_linker": true,
+    "guard_scope": "closed templates, bounds, arithmetic traps, frames, calls and expression-stack flow",
+    "limits": [
+      "Shared runtime template; no general x86 proof or proof of compiler source semantics.",
+      "Fixed addresses, no PIE or CET activation property. Laboratory profile."
+    ]
+  },
+  "empty_root_execution": {
+    "passed": true,
+    "uid": 1000,
+    "libraries_present": false,
+    "external_tools_present": false,
+    "only_inputs": [
+      "casmc",
+      "compiler.casm",
+      "program.casm"
+    ],
+    "new_generations_equal": true,
+    "different_program_output": "2026",
+    "source_sha256": "80cdd9e0f282fb8b1608b359fa5610f3edcc55abc9a891daa06b502745bcfd1e"
+  },
+  "sanitized_seeds_checked": [
+    "gcc",
+    "clang"
+  ],
+  "publisher_example_passed": true,
+  "publisher_rejection_passed": true
+}

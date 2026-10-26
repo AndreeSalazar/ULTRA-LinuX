@@ -12,3 +12,5 @@ B10,Servicios Linux de archivos para compilar fuentes,implementado Native,lectur
 B11,Fuente del compilador escrita en CASM,implementado Native,compiler.casm contiene analizador simbolos emisor y escritor ELF
 B12,Autocompilacion real Linux,verificado Native,3 generaciones iguales desde cada semilla y 2 mas en raiz vacia
 B13,Autocompilacion metal64,pendiente,servicios BMO X y ABI validados en QEMU y hardware
+B14,Modulo Native sin runtime Linux,verificado en arnes QEMU Linux,75 ejecuciones 6 rechazos de servicios y 12 mutaciones; no es arranque metal
+B15,Cargador y servicios anfitriones BMO X,pendiente,memoria permisos excepciones y ABI versionado antes de portar el compilador

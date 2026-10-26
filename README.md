@@ -13,6 +13,7 @@ generaciones idénticas desde semillas GCC/Clang y prueba en una raíz sin
 compiladores ni bibliotecas. Emite ELF + HEX con verificación de instrucciones.
 El frontend metal64 0.2 sigue escrito en C.
 [Perfil Native y uso](CASM/native/README.md).
+[Modulos x86-64 sin servicios Linux y contrato para un OS propio](CASM/native/FREESTANDING.md).
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).
 
 **SUPER GRAFO integrado desde main:** indice incremental, MCP, revision con GCC y

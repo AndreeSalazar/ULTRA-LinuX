@@ -13,6 +13,10 @@ Este cierre corresponde al **perfil Native**. El perfil **metal64 0.2** conserva
 su frontend C; no es compatible automaticamente con la nueva gramatica. El
 traspaso metal64 y la ampliacion de tipos/bibliotecas siguen pendientes.
 
+Primer paso fuera de Linux: [modulos Native freestanding](native/FREESTANDING.md),
+sin servicios Linux en la imagen ejecutable. El anfitrion del compilador permanece
+Linux; faltan cargador BMO-X y ABI de servicios para repetir alli la autocompilacion.
+
 ## Estado del perfil metal64 0.2 y primer tramo anterior
 
 **Este frontend metal64 todavia no se autocompila.** Su frontend y codificador son C11.

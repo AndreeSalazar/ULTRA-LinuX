@@ -9,6 +9,10 @@ El perfil **metal64 0.2** de `CASM/src/*.c` conserva su frontend C. Native no af
 compilar ese C, ni todo C/C++, ni los programas metal64 de la gramatica anterior.
 Es la primera ruta de autocompilacion acordada: Linux primero, metal64 despues.
 
+Ahora existe ademas una [salida freestanding x86-64](FREESTANDING.md): modulos
+de calculo y buffers sin runtime Linux. El compilador anfitrion sigue en Linux;
+no se declara autocompilado en BMO-X ni arrancable ese nuevo formato.
+
 ## Prueba de autocompilacion
 
 `test.py` construye la misma fuente CASM como semilla externa C compatible con GCC

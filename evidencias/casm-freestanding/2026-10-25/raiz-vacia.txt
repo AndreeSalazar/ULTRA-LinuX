@@ -1,0 +1,1 @@
+GREEN [AISLADO]: UID 1000, sin GCC/Clang/Python/libc; dos generaciones iguales y programa distinto ejecutado

@@ -1,0 +1,9 @@
+// Modulo sin servicios del OS: retorno de 64 bits, arrays y funciones.
+u64 valores[3] = {4,7,9};
+u64 sumar(u64 n) {
+    u64 i=0;
+    u64 total=0;
+    while(i<n) { total=total+valores[i]; i=i+1; }
+    return total;
+}
+u64 casm_main() { return sumar(3); }

@@ -1,0 +1,3 @@
+GREEN [SELF-HOST] gcc 3 generaciones identicas 4131db7e05dcee684962b62a199ffe83383e600023b947ac08c363566e5493bc
+GREEN [SELF-HOST] clang 3 generaciones identicas 4131db7e05dcee684962b62a199ffe83383e600023b947ac08c363566e5493bc
+GREEN [NATIVE] 60 casos, 12 mutaciones; self_hosted=true (perfil Native)
