@@ -1,0 +1,4 @@
+/project/src/efi.c:341:26: warning: The left operand of '!=' is a garbage value [core.UndefinedBinaryOperatorResult]
+  341 |             if (order[i] != num) order[kept++] = order[i];
+      |                 ~~~~~~~~ ^
+1 warning generated.

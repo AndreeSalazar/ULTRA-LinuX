@@ -1,0 +1,17 @@
+{
+  "translation_units": 18,
+  "static_checks": 72,
+  "static_findings_final": 0,
+  "efi_size_capacity_pairs_per_profile": 132355,
+  "efi_profiles": [
+    "GCC hardened/traps",
+    "Clang ASan/UBSan"
+  ],
+  "installed_profile": "pc",
+  "a_installed_verified": true,
+  "data_preserved_by_installer": true,
+  "image_bytes": 2057428992,
+  "image_growth_bytes": 327680,
+  "scope": "Own selected C sources; not kernel UB coverage, external C++ projects or games",
+  "production_certified": false
+}

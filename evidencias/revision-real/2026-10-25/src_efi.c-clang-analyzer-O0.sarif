@@ -1,0 +1,543 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/cos02/schemas/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "artifacts": [
+        {
+          "length": 13371,
+          "location": {
+            "index": 0,
+            "uri": "file:///project/src/efi.c"
+          },
+          "mimeType": "text/plain",
+          "roles": [
+            "resultFile"
+          ]
+        },
+        {
+          "length": 6977,
+          "location": {
+            "index": 1,
+            "uri": "file:///project/src/guardian/produccion/ultra_guard.h"
+          },
+          "mimeType": "text/plain",
+          "roles": [
+            "resultFile"
+          ]
+        }
+      ],
+      "columnKind": "unicodeCodePoints",
+      "results": [
+        {
+          "codeFlows": [
+            {
+              "threadFlows": [
+                {
+                  "locations": [
+                    {
+                      "importance": "important",
+                      "location": {
+                        "message": {
+                          "text": "Assuming 'num' is >= 0"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 16,
+                            "endLine": 336,
+                            "startColumn": 9,
+                            "startLine": 336
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Left side of '||' is false"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 16,
+                            "endLine": 336,
+                            "startColumn": 9,
+                            "startLine": 336
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "important",
+                      "location": {
+                        "message": {
+                          "text": "Assuming 'num' is <= 65535"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 32,
+                            "endLine": 336,
+                            "startColumn": 20,
+                            "startLine": 336
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Taking false branch"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 5,
+                            "startColumn": 5,
+                            "startLine": 336
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "Calling 'order_read'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 52,
+                            "endLine": 339,
+                            "startColumn": 9,
+                            "startLine": 339
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "'len' is >= 0"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 9,
+                            "startColumn": 9,
+                            "startLine": 289
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Taking false branch"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 5,
+                            "startColumn": 5,
+                            "startLine": 289
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "important",
+                      "location": {
+                        "message": {
+                          "text": "Assuming the condition is false"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 30,
+                            "endLine": 290,
+                            "startColumn": 9,
+                            "startLine": 290
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Taking false branch"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 5,
+                            "startColumn": 5,
+                            "startLine": 290
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "Calling 'ultra_memcpy'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 1,
+                            "endLine": 0,
+                            "startColumn": 5,
+                            "startLine": 292
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "important",
+                      "location": {
+                        "message": {
+                          "text": "Assuming 'n' is <= 'dsize'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 1,
+                            "uri": "file:///project/src/guardian/produccion/ultra_guard.h"
+                          },
+                          "region": {
+                            "endColumn": 18,
+                            "endLine": 140,
+                            "startColumn": 9,
+                            "startLine": 140
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Taking false branch"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 1,
+                            "uri": "file:///project/src/guardian/produccion/ultra_guard.h"
+                          },
+                          "region": {
+                            "endColumn": 5,
+                            "startColumn": 5,
+                            "startLine": 140
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "important",
+                      "location": {
+                        "message": {
+                          "text": "Assuming 'n' is 0"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 1,
+                            "uri": "file:///project/src/guardian/produccion/ultra_guard.h"
+                          },
+                          "region": {
+                            "endColumn": 9,
+                            "startColumn": 9,
+                            "startLine": 142
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Left side of '&&' is false"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 1,
+                            "uri": "file:///project/src/guardian/produccion/ultra_guard.h"
+                          },
+                          "region": {
+                            "endColumn": 11,
+                            "startColumn": 11,
+                            "startLine": 142
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "Returning without writing to '*d'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 1,
+                            "uri": "file:///project/src/guardian/produccion/ultra_guard.h"
+                          },
+                          "region": {
+                            "endColumn": 5,
+                            "startColumn": 5,
+                            "startLine": 143
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "Returning from 'ultra_memcpy'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 1,
+                            "endLine": 0,
+                            "startColumn": 5,
+                            "startLine": 292
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "Returning without writing to '*order'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 5,
+                            "startColumn": 5,
+                            "startLine": 293
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "Returning from 'order_read'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 52,
+                            "endLine": 339,
+                            "startColumn": 9,
+                            "startLine": 339
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Taking true branch"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 5,
+                            "startColumn": 5,
+                            "startLine": 339
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "'i' initialized to 0"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 22,
+                            "endLine": 340,
+                            "startColumn": 14,
+                            "startLine": 340
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "important",
+                      "location": {
+                        "message": {
+                          "text": "Assuming 'i' is < 'count'"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 37,
+                            "endLine": 340,
+                            "startColumn": 28,
+                            "startLine": 340
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "unimportant",
+                      "location": {
+                        "message": {
+                          "text": "Loop condition is true.  Entering loop body"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 9,
+                            "startColumn": 9,
+                            "startLine": 340
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "importance": "essential",
+                      "location": {
+                        "message": {
+                          "text": "The left operand of '!=' is a garbage value"
+                        },
+                        "physicalLocation": {
+                          "artifactLocation": {
+                            "index": 0,
+                            "uri": "file:///project/src/efi.c"
+                          },
+                          "region": {
+                            "endColumn": 26,
+                            "startColumn": 26,
+                            "startLine": 341
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "index": 0,
+                  "uri": "file:///project/src/efi.c"
+                },
+                "region": {
+                  "endColumn": 26,
+                  "startColumn": 26,
+                  "startLine": 341
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "The left operand of '!=' is a garbage value"
+          },
+          "partialFingerprints": {
+            "clang/issueHash/v1": "d6726716da992050f00babaaa498c241"
+          },
+          "ruleId": "core.UndefinedBinaryOperatorResult",
+          "ruleIndex": 0
+        }
+      ],
+      "tool": {
+        "driver": {
+          "fullName": "clang static analyzer",
+          "informationUri": "https://clang.llvm.org/docs/UsersManual.html",
+          "language": "en-US",
+          "name": "clang",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "enabled": true,
+                "level": "warning",
+                "rank": -1
+              },
+              "fullDescription": {
+                "text": "Check for undefined results of binary operators"
+              },
+              "helpUri": "https://clang.llvm.org/docs/analyzer/checkers.html#core-undefinedbinaryoperatorresult",
+              "id": "core.UndefinedBinaryOperatorResult",
+              "name": "core.UndefinedBinaryOperatorResult"
+            }
+          ],
+          "version": "clang version 23.1.3"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

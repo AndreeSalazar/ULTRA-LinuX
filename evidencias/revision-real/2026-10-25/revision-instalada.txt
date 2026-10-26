@@ -1,0 +1,1 @@
+REVISION-INSTALADA-OK: UID sin root; fuente actual y cabecera cambiada/restaurada distinguidas

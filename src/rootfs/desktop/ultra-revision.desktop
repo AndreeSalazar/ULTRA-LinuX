@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ULTRA · Revisión del código
+Comment=Abrir las fuentes propias revisadas en SUPER GRAFO
+Exec=/usr/local/bin/ultra-revisar-proyecto abrir
+Icon=applications-development
+Terminal=false
+Categories=Development;Utility;

@@ -1,0 +1,7 @@
+{
+  "report": "/home/builder/linux-reconstruido/build/revision-proyecto/run-iosq3h5a/report.json",
+  "translation_units": 18,
+  "checks": {
+    "clean": 72
+  }
+}

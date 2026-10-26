@@ -134,8 +134,9 @@ static void mount_fs(const char *type, const char *target, unsigned long flags) 
     mount_fs_data(type, target, flags, NULL);
 }
 
-/* A console descriptor that landed on 0..2 stays open for the life of the process. */
-static int console_fd = -1;
+/* Descriptors 0..2 intentionally escape into process stdio. Keep an ownership
+ * marker for GCC's fd analyzer; it is not read as application state. */
+static int console_fd __attribute__((unused)) = -1;
 
 static void attach_tty(const char *dev) {
     int fd = open(dev, O_RDWR);

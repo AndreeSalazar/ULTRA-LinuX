@@ -1,0 +1,14 @@
+{
+  "qemu_exit_code": 0,
+  "profile": "pc",
+  "boot": "FAT32 UEFI virtual image",
+  "serial_log_sha256": "f1303f238549b5049be2f99077e5fc69705eed67683cc48eb51a33498f9c3b94",
+  "checks": [
+    "boot and production guardians",
+    "Hyprland and installed SUPER GRAFO",
+    "installed revision freshness test",
+    "persisted data across reboot",
+    "clean shutdown"
+  ],
+  "gpu": "software Vulkan in QEMU; no RTX performance claim"
+}

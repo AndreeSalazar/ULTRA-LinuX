@@ -14,6 +14,9 @@ compiladores ni bibliotecas. Emite ELF + HEX con verificación de instrucciones.
 El frontend metal64 0.2 sigue escrito en C.
 [Perfil Native y uso](CASM/native/README.md).
 [Modulos x86-64 sin servicios Linux y contrato para un OS propio](CASM/native/FREESTANDING.md).
+[Revision de archivos reales instalada en el perfil PC](docs/REVISION-PROYECTO-REAL.md):
+`ultra-revisar-proyecto abrir` abre la fotografia propia en SUPER GRAFO; `estado`
+detecta cambios y `revisar` repite GCC/Clang con aislamiento y limites.
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).
 
 **SUPER GRAFO integrado desde main:** indice incremental, MCP, revision con GCC y

@@ -1,0 +1,4 @@
+/project/src/init.c:138:12: warning: variable 'console_fd' set but not used [-Wunused-but-set-global]
+  138 | static int console_fd = -1;
+      |            ^
+1 warning generated.

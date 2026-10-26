@@ -22,6 +22,11 @@ fi
 (cd "$fuente" && CARGO_TARGET_DIR="$destino" cargo test --release --locked) > "$art/carpetas-pruebas.log" 2>&1 ||
     { tail -20 "$art/carpetas-pruebas.log"; echo 'ROJO [CARPETAS]: fallan las pruebas'; exit 1; }
 sudo install -m 0755 "$destino/release/ultra-carpetas" "$sistema/usr/local/bin/ultra-carpetas"
+# Review the selected real C sources before shipping the project viewer. A stale
+# or missing report must not be silently labelled as the current source tree.
+python3 "$base/scripts/revisar-proyecto.py" revisar > "$art/revision-proyecto.log" 2>&1 ||
+    { tail -20 "$art/revision-proyecto.log"; echo 'ROJO: fuentes propias pendientes de revision'; exit 1; }
+sudo python3 "$base/scripts/preparar-revision-entrega.py" "$sistema"
 sudo chroot "$sistema" /usr/bin/ldd /usr/local/bin/ultra-carpetas > "$art/carpetas-bibliotecas.txt"
 ! grep -q 'not found' "$art/carpetas-bibliotecas.txt" || { echo 'ROJO [CARPETAS]: faltan bibliotecas en la imagen'; exit 1; }
 echo "VERDE [CARPETAS]: $(sha256sum "$destino/release/ultra-carpetas" | cut -c1-16) instalado"

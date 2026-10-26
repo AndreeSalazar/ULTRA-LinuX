@@ -16,7 +16,7 @@ export CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-2}
 sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q nvidia-utils lib32-nvidia-utils > "$art/main-nvidia-antes.txt" 2>/dev/null || [[ $perfil != pc ]]
 # Los proyectos C/C++ necesitan las cabeceras que la imagen reducida omitía.
 sed 's@usr/include/\*@@g' "$art/pacman-sistema.conf" > "$art/pacman-main.conf"
-runtime=(rustup gcc clang git pkgconf gtk3 gtk-layer-shell libdbusmenu-gtk3 python-pillow vulkan-swrast perf webkit2gtk-4.1 libxkbcommon-x11)
+runtime=(rustup gcc clang bubblewrap git pkgconf gtk3 gtk-layer-shell libdbusmenu-gtk3 python-pillow vulkan-swrast perf webkit2gtk-4.1 libxkbcommon-x11)
 sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \
     -S --needed --noconfirm --ignore nvidia-utils,lib32-nvidia-utils "${runtime[@]}" > "$art/main-runtime.log" 2>&1
 sudo pacman --config "$art/pacman-main.conf" --root "$stage" --dbpath "$stage/var/lib/pacman" \

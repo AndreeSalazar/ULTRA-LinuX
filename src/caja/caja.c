@@ -134,7 +134,7 @@ static void apply_seccomp(const struct caja *c) {
     ULTRA_CHECK(prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &fprog) == 0, "CAJA-SECCOMP", "filtro rechazado por el kernel");
 }
 
-static void limit(int resource, rlim_t value) {
+static void limit(__rlimit_resource_t resource, rlim_t value) {
     struct rlimit r = {value, value};
     ULTRA_CHECK(setrlimit(resource, &r) == 0, "CAJA-LIMITE", "setrlimit rechazado");
 }

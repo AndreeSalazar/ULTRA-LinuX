@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only
+# Work on a per-user copy; the delivered snapshot remains read-only in EROFS.
+set -euo pipefail
+[[ $(id -u) -ne 0 ]] || { echo 'Usar desde el escritorio como usuario, sin sudo.'; exit 1; }
+origen=/usr/share/ultra/proyecto-revisado
+id=$(cat "$origen/REVISION-ID")
+[[ $id =~ ^[0-9a-f]{16}$ ]]
+destino="${XDG_DATA_HOME:-$HOME/.local/share}/ultra/proyectos/ultra-$id"
+if [[ ! -d $destino ]]; then
+    mkdir -p "${destino%/*}"
+    temporal=$(mktemp -d "${destino%/*}/.ultra-revision.XXXXXXXX")
+    cp -a "$origen/." "$temporal/"
+    mv -T "$temporal" "$destino"
+fi
+python3 "$destino/scripts/revisar-proyecto.py" preparar
+case ${1:-estado} in
+    abrir) exec /usr/local/bin/ultra-carpetas "$destino" ;;
+    revisar) exec python3 "$destino/scripts/revisar-proyecto.py" revisar ;;
+    estado) exec python3 "$destino/scripts/revisar-proyecto.py" validar ;;
+    *) echo 'Uso: ultra-revisar-proyecto [estado|abrir|revisar]'; exit 2 ;;
+esac

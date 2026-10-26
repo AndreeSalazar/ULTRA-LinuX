@@ -1,0 +1,3115 @@
+{
+  "schema": 1,
+  "kind": "ultra-project-review",
+  "created_unix": 1792986108,
+  "sources": {
+    "CASM/src/casm.h": "63c80dbf4eecdc491c90ff7310d4afb6700a6e1a64762099b18bdfcb9587665f",
+    "CASM/src/emitter.c": "aab368c3e2cca626e7e7608b13fdb8d002032fca87e850f6656358b85dfcd0d3",
+    "CASM/src/frontend.c": "eaaa2e934d51bb58e6357d6fd8d733c91b4289a81e44a9d0bcac95b563fa3f37",
+    "CASM/src/main.c": "ed2b2a6ebdef5290f457f47bed67cad1611d1c10af7b77d9c4b8a55ba49d2022",
+    "scripts/revisar-proyecto.py": "14fba2930a7f7b9dcf977a8016990f33de5681de04b2233e9bdf03ea2cf6031c",
+    "src/caja/caja.c": "e0b79835c6d34a8c81ee7336db48054aac817a019bfa88093db3638df2ee9989",
+    "src/caja/identidad-politica.h": "c37ce5df66f75283cb4f7418544fbe47b9e2c68567da252c6769dbc1774c2bc1",
+    "src/caja/seccomp-politica.h": "8605dbbc08939bcf7cb08a1788031bd6e93af8ddb264f2a39929ab12fd3e7fac",
+    "src/caja/stdio-politica.h": "a7924bfe8f1fe8e43658de29777576d2acb34e6c06d0eddfde8471cc260f3b08",
+    "src/caja/syscalls-politica.h": "0d120fcd2b4524772b5c3bc58dcfcb2fc0eba701f4e1e5121d357fb36097f62e",
+    "src/caja/syscalls-x86_64.h": "753c914022069e7ddcc773a936f6a954a47ac42138de01cad5e0d0eae8c8af05",
+    "src/efi-order.h": "2ff4b23e50e56fb20966db9f524c0856a4537093c371bd051f474a0b74c70556",
+    "src/efi.c": "21d832716b24c67335138272113a5d6f6273987bdc909b3f8a68c63fb472e877",
+    "src/guardian/produccion/perfil-gcc.sh": "3e758f2882b2f89238852a120b6d41f3e1d28356604d4e27d9dfc4fef2de3a25",
+    "src/guardian/produccion/ultra_buffer.h": "dc290c814ef55a9832697ff72b592cd526ae4e7f4f17f3b714ef3367748bf0f8",
+    "src/guardian/produccion/ultra_custodia.c": "7bfc4e5687bc85f8bc0929475c1b11fce512a6d120af6d6607fa50fd7eb09b11",
+    "src/guardian/produccion/ultra_custodia.h": "fd24843396d4a661e69d63e5747284d371cb9fdc4e57de06f36962bac2cfae13",
+    "src/guardian/produccion/ultra_guard.c": "a8ea792c1e7f3e302d3ca3e1f1cfa2baa1a31a02f1f6c11267f38fd4cdcd2d4d",
+    "src/guardian/produccion/ultra_guard.h": "6f145bc087b0ded2aa87e2c83c1bf1ace30f58c0a801c307c9fc9d6690e8fd12",
+    "src/guardian/produccion/ultra_owner.c": "49ad20419412e9756bc29ebb840a1ec3d5c506f28896e99ae0f7a00331c5cd22",
+    "src/guardian/produccion/ultra_owner.h": "146d5cc1596cda46a441a66db4e26d68f081789758ff9120811c8c05908d3ff7",
+    "src/guardian/produccion/ultra_string.h": "dd0177e90113e0c8b9908173c186b95070d1d2f315112db16b31d3b43224322a",
+    "src/guardian/ultra_guard.h": "cbc0e88a28c4f4e375252b171982ba5831726862eb0759f9fd3cc79427122032",
+    "src/hardware.c": "c7df995edb76fbd87903a1ccaf5b29b001beb1a7d6f02954af667aaef4fafaf8",
+    "src/init.c": "6dd9d1db63fd908e481442dd85a8fe2a03b15b14963947a2a377309215e54a74",
+    "src/init.h": "426a8c97175d81928185f0da4a748c9a9c7c34ec0d5c9ec1a9367bc78d381b17",
+    "src/logo.c": "6b8100c927a4c34c0c74a19d4547a7c73439aed439584f0b66ec2e9a78be634d",
+    "src/particiones.c": "51346c009f94e27c27f6c17324cb55f7cfc9158993cdcb73f65f756f319b7871",
+    "src/perfil.c": "6a785d372cf781c33ba41448295bb6c49c527a34ff8882bc9a2368747f34c24c",
+    "src/raiz.c": "fc97e500004f41014c526a369fac6b24d96a1b4a7b1427562c5c9635785691cb",
+    "src/recursos.c": "a05b9cc4c216cb2ba4d31013946a883781125b50527767ba617cb85c4cfae3db",
+    "src/red.c": "9365af4e6151c0cfc6d65cb2142828cacf600770fe881742ffb5863d2c269769",
+    "src/sistema.c": "0901763f2b114b96829006d72cbc8cff6c133c1f65032e5ab78ceb884cfa07ad",
+    "src/tarjeta.c": "afab2c64c57767a1ae1cd2c7bd56f2a3550953b466392d091930e56fc09fd6a4"
+  },
+  "toolchains": {
+    "gcc": "gcc (GCC) 16.2.1 20260810",
+    "clang": "clang version 23.1.3"
+  },
+  "inventory": [
+    {
+      "file": "CASM/examples/enteros.casm",
+      "category": "casm-verificador-propio"
+    },
+    {
+      "file": "CASM/examples/hello.casm",
+      "category": "casm-verificador-propio"
+    },
+    {
+      "file": "CASM/native/compiler.body.casm",
+      "category": "casm-verificador-propio"
+    },
+    {
+      "file": "CASM/native/compiler.casm",
+      "category": "casm-verificador-propio"
+    },
+    {
+      "file": "CASM/native/ejemplo-puro.casm",
+      "category": "casm-verificador-propio"
+    },
+    {
+      "file": "CASM/native/ejemplo.casm",
+      "category": "casm-verificador-propio"
+    },
+    {
+      "file": "CASM/src/casm.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "CASM/src/emitter.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "CASM/src/frontend.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "CASM/src/main.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/examples/katanas_casm.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/examples/medir_ciudad.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/examples/medir_ir_a.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/examples/medir_museo.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/ajustes.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/analisis.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/camino.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/carriles.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/casm.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/ciclos.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/ciudad.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/comandos.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/combinar.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/cronologia.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/dependencias.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/diagnosticos.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/disposicion.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/editor.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/ejecutar.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/estado.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/fichas.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/grafo.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/historia.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/iconos.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/lib.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/museo.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/organizar.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/procesos.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/proyecto.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/senales.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/tema.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/tipos.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/src/vista.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/camino.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/casm.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/ciclos.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/ciudad.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/combinar.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/cronologia.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/casm/enteros.casm",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/casm/hello.casm",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/bien/a.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/bien/b.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/bien/c.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/bien/main.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/condicional/a.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/condicional/b.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/condicional/main.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/mal/a.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/mal/b.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/mal/c.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/ciclos/mal/main.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-001/bien.S",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-001/mal.S",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-002/bien.S",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-002/mal.S",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-003/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-003/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-004/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/ASM-004/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/C-001/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/C-001/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/C-002/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/C-002/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/C-003/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/C-003/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-001/bien.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-001/mal.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-002/bien.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-002/mal.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-003/bien.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-003/mal.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-004/bien.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-004/mal.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-005/bien.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/CXX-005/mal.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/E-001/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/E-001/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/E-002/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/E-002/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/R-001/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/R-001/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/R-002/bien.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/R-002/mal.cpp",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-001/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-001/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-002/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-002/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-003/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-003/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-004/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-004/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-005/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-005/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-007/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-007/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-008/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-008/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-009/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-009/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-011/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-011/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-012/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-012/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-014/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-014/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-015/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-015/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-017/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-017/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-018/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-018/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-021/bien.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/datos/museo/UB-021/mal.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/dependencias.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/diagnosticos.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/editor.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/errores.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/escala.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/grafo.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/historia.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/iconos.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/museo.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/organizar.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/proyecto.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/reducer.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/senales.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/temas.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/carpetas-nucleo/tests/triangulo.rs",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/almacen.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/analisis.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/archivo.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/camino_ui.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/casm_taller.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/casm_ui.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/ciclos_ui.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/ciudad3d.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/cobertura_ub.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/combinar_ui.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/compilacion.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/consultas.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/disco.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/editor_ui.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/entradas.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/git.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/gpu.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/guardianes.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/indice.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/main.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/mcp.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/museo_ui.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/paneles.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/pintar_grafo.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/proceso.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/puente.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/senales_ui.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/svg.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/vigia.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/vivo.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/apps/ultra-carpetas/src/vivos.rs",
+      "category": "rust-no-revisado-por-clang"
+    },
+    {
+      "file": "src/caja/caja.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/caja/identidad-politica.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/caja/probar-guardian-pid1.c",
+      "category": "otro-componente"
+    },
+    {
+      "file": "src/caja/probar-identidad.c",
+      "category": "otro-componente"
+    },
+    {
+      "file": "src/caja/probar-seccomp.c",
+      "category": "otro-componente"
+    },
+    {
+      "file": "src/caja/probar-stdio.c",
+      "category": "otro-componente"
+    },
+    {
+      "file": "src/caja/seccomp-politica.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/caja/stdio-politica.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/caja/syscalls-politica.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/caja/syscalls-x86_64.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/efi-order.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/efi.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/guardian/laboratorio/buffer-ignorado.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/cadena-ignorada.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/control-aislamiento.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/controles.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/custodia/medir-custodia.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/custodia/probar-custodia.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/custodia/probar-fronteras.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/custodia/probar-secuencias.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/custodia/ultra_custodia.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/custodia/ultra_custodia.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/alloca.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/analizador-doble-free.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/analizador-nulo.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/analizador-uso-tras-free.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/atoi.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/caida-switch.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/cast-desalineado.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/cast-funcion.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/comparar-signo.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/constante-desborda.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/copia-constante.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/declaracion-implicita.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/desplazamiento-constante.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/division-constante.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/formato.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/fuga.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/funcion-anidada.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/indice-constante.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/len-puntero.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/memcpy-solapado-constante.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/memset-puntero.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/puntero-a-int.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/puntero-colgante.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/punto-secuencia.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/quitar-const.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/retorna-local.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/signo.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/sin-inicializar.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/sin-return.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/sizeof-parametro.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/sombra.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/sprintf.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/strcpy.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/strncpy.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/truncado.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-compilacion/vla.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas-hilos.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/minas.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-buffers.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-cadena-tarjeta.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-cadenas.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-ctype.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-efi-io.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-efi-order.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-instalacion.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-owner-agotamiento.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-owner.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/probar-red.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/punteros-limites.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/revisar-cargador.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/laboratorio/ultra_guard.h",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/minas.c",
+      "category": "laboratorio-no-produccion"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_buffer.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_custodia.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_custodia.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_guard.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_guard.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_owner.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_owner.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_string.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/guardian/ultra_guard.c",
+      "category": "puente-incluye-implementacion-produccion"
+    },
+    {
+      "file": "src/guardian/ultra_guard.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/hardware.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/init.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/init.h",
+      "category": "cabecera-propia"
+    },
+    {
+      "file": "src/logo.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/particiones.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/perfil.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/raiz.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/recursos.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/red.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/sistema.c",
+      "category": "propio-revisable"
+    },
+    {
+      "file": "src/tarjeta.c",
+      "category": "propio-revisable"
+    }
+  ],
+  "checks": [
+    {
+      "file": "CASM/src/emitter.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "-I/project/src",
+        "/project/CASM/src/emitter.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_emitter.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/emitter.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-I/project/src",
+        "/project/CASM/src/emitter.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_emitter.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/emitter.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/CASM/src/emitter.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_emitter.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/emitter.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/CASM/src/emitter.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_emitter.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/frontend.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "-I/project/src",
+        "/project/CASM/src/frontend.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_frontend.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/frontend.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-I/project/src",
+        "/project/CASM/src/frontend.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_frontend.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/frontend.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/CASM/src/frontend.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_frontend.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/frontend.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/CASM/src/frontend.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_frontend.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/main.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O0",
+        "-I/project/src",
+        "/project/CASM/src/main.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_main.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/main.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-pedantic",
+        "-O2",
+        "-I/project/src",
+        "/project/CASM/src/main.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_main.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/main.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/CASM/src/main.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_main.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "CASM/src/main.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/CASM/src/main.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/CASM_src_main.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/caja/caja.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/caja/caja.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_caja_caja.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/caja/caja.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/caja/caja.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_caja_caja.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/caja/caja.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/caja/caja.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_caja_caja.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/caja/caja.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/caja/caja.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_caja_caja.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/efi.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/efi.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_efi.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/efi.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/efi.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_efi.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/efi.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/efi.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_efi.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/efi.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/efi.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_efi.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_custodia.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_custodia.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_custodia.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_custodia.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_custodia.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_custodia.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_custodia.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_custodia.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_custodia.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_custodia.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_custodia.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_custodia.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_guard.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_guard.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_guard.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_guard.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_guard.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_guard.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_guard.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_guard.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_guard.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_guard.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_guard.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_guard.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_owner.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_owner.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_owner.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_owner.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_owner.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_owner.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_owner.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_owner.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_owner.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/guardian/produccion/ultra_owner.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/guardian/produccion/ultra_owner.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_guardian_produccion_ultra_owner.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/hardware.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/hardware.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_hardware.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/hardware.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/hardware.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_hardware.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/hardware.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/hardware.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_hardware.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/hardware.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/hardware.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_hardware.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/init.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/init.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_init.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/init.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/init.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_init.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/init.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/init.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_init.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/init.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/init.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_init.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/logo.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/logo.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_logo.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/logo.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/logo.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_logo.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/logo.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/logo.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_logo.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/logo.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/logo.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_logo.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/particiones.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/particiones.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_particiones.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/particiones.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/particiones.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_particiones.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/particiones.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/particiones.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_particiones.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/particiones.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/particiones.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_particiones.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/perfil.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/perfil.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_perfil.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/perfil.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/perfil.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_perfil.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/perfil.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/perfil.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_perfil.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/perfil.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/perfil.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_perfil.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/raiz.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/raiz.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_raiz.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/raiz.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/raiz.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_raiz.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/raiz.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/raiz.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_raiz.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/raiz.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/raiz.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_raiz.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/recursos.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/recursos.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_recursos.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/recursos.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/recursos.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_recursos.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/recursos.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/recursos.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_recursos.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/recursos.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/recursos.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_recursos.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/red.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/red.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_red.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/red.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/red.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_red.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/red.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/red.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_red.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/red.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/red.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_red.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/sistema.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/sistema.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_sistema.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/sistema.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/sistema.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_sistema.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/sistema.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/sistema.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_sistema.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/sistema.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/sistema.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_sistema.c-clang-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/tarjeta.c",
+      "compiler": "gcc",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O0",
+        "-I/project/src",
+        "/project/src/tarjeta.c",
+        "-fanalyzer",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_tarjeta.c-gcc-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/tarjeta.c",
+      "compiler": "gcc",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wconversion",
+        "-Wsign-conversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-Wvla",
+        "-Wnull-dereference",
+        "-Wimplicit-fallthrough",
+        "-Wstrict-prototypes",
+        "-Walloca",
+        "-Wcast-qual",
+        "-Wcast-align=strict",
+        "-Wtrampolines",
+        "-O2",
+        "-I/project/src",
+        "/project/src/tarjeta.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_tarjeta.c-gcc-warnings-O2/diagnostics.txt"
+    },
+    {
+      "file": "src/tarjeta.c",
+      "compiler": "clang",
+      "phase": "analyzer-O0",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O0",
+        "-I/project/src",
+        "/project/src/tarjeta.c",
+        "--analyze",
+        "-Xclang",
+        "-analyzer-output=sarif",
+        "-o",
+        "/work/analysis.sarif"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_tarjeta.c-clang-analyzer-O0/diagnostics.txt"
+    },
+    {
+      "file": "src/tarjeta.c",
+      "compiler": "clang",
+      "phase": "warnings-O2",
+      "status": "clean",
+      "exit_code": 0,
+      "findings": 0,
+      "flags": [
+        "-std=c17",
+        "-Wall",
+        "-Wextra",
+        "-Wconversion",
+        "-Wshadow",
+        "-Wformat=2",
+        "-O2",
+        "-I/project/src",
+        "/project/src/tarjeta.c",
+        "-c",
+        "-o",
+        "/dev/null"
+      ],
+      "log": "build/revision-proyecto/run-iosq3h5a/src_tarjeta.c-clang-warnings-O2/diagnostics.txt"
+    }
+  ],
+  "production_certified": false,
+  "scope": "Own selected C translation units and headers. No kernel, upstream libraries or games. No production programs executed."
+}

@@ -1,0 +1,11 @@
+{
+  "perfil": "pc",
+  "kernel_sha256": "bb6fb30bba98ebea759ac3623d04b723bc5cf952d37680c56cf53ba0649300cc",
+  "sistema_sha256": "e0ce77acaf5f114c42af27b766857ad10b54548971ce2d363145c49bb64085d9",
+  "datos_sha256": "cb08669796b4a90dcac5182c26fb5014764b9d81d54ba8a816c6e9c29e566f55",
+  "datos_preservados_por_instalador": true,
+  "kernel_y_sistema_verificados": true,
+  "qemu_boot_exit": 0,
+  "volumen": "A: FAT32 BMO",
+  "revision": "dee48e698a1feaff"
+}

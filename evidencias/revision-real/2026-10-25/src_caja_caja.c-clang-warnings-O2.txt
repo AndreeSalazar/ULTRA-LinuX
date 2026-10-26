@@ -1,0 +1,4 @@
+/project/src/caja/caja.c:139:27: warning: implicit conversion changes signedness: 'int' to '__rlimit_resource_t' (aka 'enum __rlimit_resource') [-Wsign-conversion]
+  139 |     ULTRA_CHECK(setrlimit(resource, &r) == 0, "CAJA-LIMITE", "setrlimit rechazado");
+      |                 ~~~~~~~~~ ^~~~~~~~
+1 warning generated.

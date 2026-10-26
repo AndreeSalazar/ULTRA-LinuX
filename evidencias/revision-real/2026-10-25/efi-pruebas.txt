@@ -1,0 +1,3 @@
+EFI-ORDER: 132355 size/capacity pairs + 4 null/empty contracts passed
+EFI-ORDER: 132355 size/capacity pairs + 4 null/empty contracts passed
+EFI-IO: missing, valid, capacity, odd, oversized, read failure and deletion fail-closed passed

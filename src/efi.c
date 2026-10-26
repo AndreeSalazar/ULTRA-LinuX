@@ -18,10 +18,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "init.h"
+#include "efi-order.h"
 /* Last: it poisons unsafe functions after the system headers are parsed. */
 #include "guardian/ultra_guard.h"
 
+#ifndef EFIVARS
 #define EFIVARS "/sys/firmware/efi/efivars"
+#endif
 #define GLOBAL "8be4df61-93ca-11d2-aa0d-00e098032b8c"
 /* Non-volatile, boot service and runtime access: what boot variables carry. */
 #define EFI_ATTR 0x7u
@@ -43,13 +46,17 @@ static bool var_path(char *out, size_t cap, const char *name) {
 /* The variable's data, without the 4 attribute bytes efivarfs puts first. -1 if absent. */
 static ssize_t var_read(const char *name, uint8_t *buf, size_t cap) {
     char path[160];
-    uint8_t raw[VAR_MAX + 4];
-    if (!var_path(path, sizeof(path), name)) return -1;
+    uint8_t raw[VAR_MAX + 5]; /* One excess byte makes an oversized payload fail. */
+    if (!var_path(path, sizeof(path), name)) { errno = ENAMETOOLONG; return -1; }
     int fd = open(path, O_RDONLY | O_CLOEXEC);
     if (fd < 0) return -1;
-    ssize_t n = read(fd, raw, sizeof(raw));
+    ssize_t n;
+    do { n = read(fd, raw, sizeof(raw)); } while (n < 0 && errno == EINTR);
+    int saved_errno = errno;
     close(fd);
-    if (n < 4 || (size_t)(n - 4) > cap) return -1;
+    if (n < 0) { errno = saved_errno; return -1; }
+    if (n < 4) { errno = EBADMSG; return -1; }
+    if ((size_t)(n - 4) > cap) { errno = EOVERFLOW; return -1; }
     memcpy(buf, raw + 4, (size_t)(n - 4));
     return n - 4;
 }
@@ -286,11 +293,8 @@ static bool order_read(uint16_t *order, size_t cap, size_t *count) {
     uint8_t v[VAR_MAX];
     ssize_t len = var_read("BootOrder", v, sizeof(v));
     *count = 0;
-    if (len < 0) return true;
-    if ((size_t)len / 2 > cap) return false;
-    *count = (size_t)len / 2;
-    memcpy(order, v, *count * 2);
-    return true;
+    if (len < 0) return errno == ENOENT;
+    return ultra_efi_order_decode(v, (size_t)len, order, cap, count);
 }
 
 int efi_create_entry(const char *devpath, const char *file, const char *title) {
@@ -325,7 +329,10 @@ int efi_create_entry(const char *devpath, const char *file, const char *title) {
     if (!var_write(name, buf, o.len)) return -1;
     uint16_t order[256];
     size_t count;
-    if (!order_read(order, ULTRA_LEN(order) - 1, &count)) return free_num;
+    if (!order_read(order, ULTRA_LEN(order) - 1, &count)) {
+        report("AMARILLO", "PERFIL", "entrada creada; BootOrder ilegible o invalido, no se modifica");
+        return free_num;
+    }
     order[count++] = (uint16_t)free_num;
     /* Last in the order: Windows keeps being the default boot. */
     if (!var_write("BootOrder", (const uint8_t *)order, count * 2)) report("AMARILLO", "PERFIL", "la entrada existe, pero no se pudo añadir a BootOrder");
@@ -336,11 +343,10 @@ bool efi_delete_entry(int num) {
     if (num < 0 || num > 0xFFFF) return false;
     uint16_t order[256];
     size_t count, kept = 0;
-    if (order_read(order, ULTRA_LEN(order), &count)) {
-        for (size_t i = 0; i < count; i++)
-            if (order[i] != num) order[kept++] = order[i];
-        if (kept != count && !var_write("BootOrder", (const uint8_t *)order, kept * 2)) return false;
-    }
+    if (!order_read(order, ULTRA_LEN(order), &count)) return false;
+    for (size_t i = 0; i < count; i++)
+        if (order[i] != num) order[kept++] = order[i];
+    if (kept != count && !var_write("BootOrder", (const uint8_t *)order, kept * 2)) return false;
     char name[16];
     snprintf(name, sizeof(name), "Boot%04X", (unsigned)num);
     return var_delete(name);

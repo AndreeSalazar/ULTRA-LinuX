@@ -35,6 +35,7 @@ def main():
             assert result['compilador'] == compiler and result['errores'] == 0, result
         history = query('cronologia', {'periodos': 2})
         assert history, 'cronologia vacia'
+        run('/usr/bin/python3', '/usr/share/ultra/probar_revision_instalada.py')
         print('SUPER-GRAFO-INSTALADO-OK: indice, dependencias, cache, GCC, Clang y cronologia')
 
 
