@@ -10,6 +10,8 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
+from unittest.mock import patch
 
 assert os.geteuid() == 0
 assert Path('/proc/self/ns/mnt').readlink() != Path('/proc/1/ns/mnt').readlink(), 'Ejecutar con unshare --mount --fork en el taller desechable'
@@ -36,6 +38,12 @@ def user_write(path, text):
                     str(path), text], check=True)
 
 
+def game_manifest(build):
+    return mod.write_vdf({'AppState': {'appid':'22', 'name':'Juego banco',
+                         'buildid':str(build), 'StateFlags':'4', 'SizeOnDisk':'100',
+                         'installdir':'Juego'}})
+
+
 try:
     subprocess.run(['mount', '-t', 'tmpfs', '-o', 'mode=0755', 'tmpfs', str(source)], check=True)
     folder = source/'Juegos, dos Ω'
@@ -46,7 +54,9 @@ try:
     (folder/'steamapps/compatdata/windows.txt').write_text('NO USAR COMO PREFIJO LINUX')
     (folder/'steamapps/shadercache/windows.txt').write_text('CACHE WINDOWS')
     manifest = folder/'steamapps/appmanifest_22.acf'
-    manifest.write_text('"AppState" { "buildid" "12345" }')
+    manifest.write_text(game_manifest(12345))
+    (folder/'steamapps/common/Juego').mkdir(parents=True)
+    (folder/'steamapps/common/Juego/game.exe').write_text('ORIGINAL')
     (folder/'juego.exe').write_text('ORIGINAL')
     (source/'redirigido').symlink_to('/etc', target_is_directory=True)
     secret = source/'privado-root'
@@ -98,7 +108,7 @@ try:
         raise AssertionError('ruta simbolica admitida')
     subprocess.run(['umount', str(target)], check=True)
     subprocess.run(['mount', '-o', 'remount,rw', str(source)], check=True)
-    manifest.write_text('"AppState" { "buildid" "67890" }')
+    manifest.write_text(game_manifest(67890))
     subprocess.run(['mount', '-o', 'remount,ro,nosuid,nodev,noexec', str(source)], check=True)
     target = Path(mod.prepare_folder(item, volume))
     assert not (target/'nuevo.txt').exists()
@@ -114,6 +124,54 @@ try:
     assert (target/'steamapps/common/Proton - Experimental/proton').read_text() == 'RUNTIME LINUX'
     assert (target/'steamapps/appmanifest_1493710.acf').read_text() == runtime_manifest
     passed('Proton completo y su manifiesto sobreviven al cambio de generacion sin descargar otra copia')
+    active_store = mod.PRIVATE/item['id']
+    active_state = mod.read_json(active_store/'source.json')
+    with patch.object(mod.shutil, 'disk_usage', return_value=SimpleNamespace(free=0)):
+        try:
+            mod.rotate_changed_store(active_store, {**active_state, 'version':'sin-espacio'})
+        except ValueError as error:
+            assert 'GiB libres' in str(error)
+        else:
+            raise AssertionError('renovacion admitida sin espacio')
+    assert mod.read_json(active_store/'source.json') == active_state
+    assert len(list(mod.PRIVATE.glob(item['id']+'.anterior-*'))) == 1
+    passed('falta de espacio conserva estado activo sin crear otra generacion')
+    # A single backup used to make the next Windows update hide the entire
+    # library. Renew repeatedly without discarding any previous generation.
+    for generation in range(2, mod.MAX_PREVIOUS_STORES+1):
+        subprocess.run(['umount', str(target)], check=True)
+        subprocess.run(['mount', '-o', 'remount,rw', str(source)], check=True)
+        manifest.write_text(game_manifest(67890+generation))
+        subprocess.run(['mount', '-o', 'remount,ro,nosuid,nodev,noexec', str(source)], check=True)
+        target = Path(mod.prepare_folder(item, volume))
+        assert len(list(mod.PRIVATE.glob(item['id']+'.anterior-*'))) == generation
+        assert (archives[0]/'upper/nuevo.txt').read_text() == 'PERSISTENTE'
+        assert (target/'steamapps/compatdata/linux.txt').read_text() == 'PREFIJO'
+        assert (target/'steamapps/shadercache/linux.txt').read_text() == 'CACHE LINUX'
+        assert (target/'steamapps/common/Proton - Experimental/proton').read_text() == 'RUNTIME LINUX'
+        assert (target/'steamapps/appmanifest_1493710.acf').read_text() == runtime_manifest
+        client = data/'cliente-steam'; client.mkdir(exist_ok=True)
+        registry = client/'libraryfolders.vdf'
+        mod.register_steam_file(registry, client/'no-existe.vdf', client,
+                                {'folders':[{**item, 'status':'activa', 'path':str(target)}]})
+        libraries = mod.read_vdf(registry)['libraryfolders'].values()
+        assert any(v['path'] == str(target) and v['apps'].get('22') == '100' for v in libraries)
+    passed('actualizaciones Windows sucesivas no ocultan biblioteca; prefijos, cache, runtime y respaldos conservados')
+    subprocess.run(['umount', str(target)], check=True)
+    subprocess.run(['mount', '-o', 'remount,rw', str(source)], check=True)
+    manifest.write_text(game_manifest(99999))
+    subprocess.run(['mount', '-o', 'remount,ro,nosuid,nodev,noexec', str(source)], check=True)
+    before = (mod.PRIVATE/item['id']/'source.json').read_bytes()
+    try:
+        mod.prepare_folder(item, volume)
+    except ValueError as error:
+        assert 'limite de' in str(error)
+    else:
+        raise AssertionError('limite de respaldos ignorado')
+    assert (mod.PRIVATE/item['id']/'source.json').read_bytes() == before
+    assert len(list(mod.PRIVATE.glob(item['id']+'.anterior-*'))) == mod.MAX_PREVIOUS_STORES
+    assert (mod.PRIVATE/item['id']/'upper/steamapps/compatdata/linux.txt').read_text() == 'PREFIJO'
+    passed('cuota agotada conserva generacion activa y respaldos; explica revision sin borrar ni inventar instalacion')
     bad_old, bad_new = data/'old-malicioso', data/'new-seguro'
     for store in (bad_old, bad_new):
         mod.checked_dir(store, 0o700)

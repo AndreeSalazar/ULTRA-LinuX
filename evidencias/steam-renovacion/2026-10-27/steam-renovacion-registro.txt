@@ -1,0 +1,13 @@
+PASS: registra biblioteca y juegos en config y steamapps; conserva originales, otros campos y respaldo; es idempotente
+PASS: completa indice vacio de biblioteca ya registrada sin perder campos ni duplicarla
+STEAM: ya abierto; se conservan sus bibliotecas sin esperar al registro
+PASS: Steam abierto impide cambios
+STEAM: ya abierto; se conservan sus bibliotecas sin esperar al registro
+PASS: bloqueo real ocupado no retiene el arranque; Steam abierto sale antes de adquirirlo; VDF intacto
+STEAM: ya abierto; cierra Steam completamente para registrar nuevas bibliotecas
+PASS: Steam que aparece durante la adquisicion impide la escritura
+STEAM: 0 bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad
+STEAM: 0 bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad
+PASS: biblioteca indisponible informa causa sin borrar registro, juego ni falsear manifiesto
+PASS: VDF incompleto, ambiguo, desconocido y excesivo rechazado
+RESULTADO: pruebas de registro Steam correctas; no acredita reconocimiento por un cliente autenticado

@@ -1,0 +1,15 @@
+{
+  "perfil": "pc",
+  "kernel_sha256": "bb6fb30bba98ebea759ac3623d04b723bc5cf952d37680c56cf53ba0649300cc",
+  "sistema_sha256": "4e99ffcbfa6b2db8e9b5d2277e8f843e032d32f98e6a8f7aa720aad97a58da7e",
+  "datos_sha256": "f69a3acdbc48ecbea452e4b92ec05672f12f762fa78fe99f6897b534bb1b9d7a",
+  "datos_preservados": true,
+  "kernel_y_sistema_verificados": true,
+  "qemu_boot_exit": 0,
+  "volumen": "A: FAT32 BMO",
+  "revision": "0320900e52d9d3b6",
+  "feature": "Steam library renewal v2",
+  "qemu_green_checks": 189,
+  "max_previous_stores": 3,
+  "physical_steam_recognition": "pending next boot"
+}

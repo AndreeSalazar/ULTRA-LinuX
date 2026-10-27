@@ -81,6 +81,15 @@ with tempfile.TemporaryDirectory() as temp:
         assert m.register_steam() is False
     assert path.read_bytes() == first
     print('PASS: Steam que aparece durante la adquisicion impide la escritura')
+    saved_catalog = m.CATALOG.read_bytes()
+    m.CATALOG.write_text(json.dumps({'folders':[{**item, 'status':'no disponible: cuota agotada'}]}))
+    with patch.object(m,'user_config',return_value=[]), patch.object(m.subprocess,'run',return_value=subprocess.CompletedProcess([],1)), patch.dict(m.os.environ,{'WAYLAND_DISPLAY':''}), contextlib.redirect_stderr(io.StringIO()) as warning:
+        m.register_steam()
+    assert 'no estan montadas' in warning.getvalue()
+    assert 'no demuestra que se borraron' in warning.getvalue()
+    assert path.read_bytes() == first and manifest.read_bytes() == original_manifest
+    m.CATALOG.write_bytes(saved_catalog)
+    print('PASS: biblioteca indisponible informa causa sin borrar registro, juego ni falsear manifiesto')
     for bad in ('"libraryfolders" {', '"a" "x" "a" "y"', '"a" { "b" "c" }}', '"a" unquoted', 'x'*(m.LIMIT+1)):
         path.write_text(bad)
         try:

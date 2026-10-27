@@ -1,0 +1,13 @@
+{
+  "informe_sha256": "b10290a78edfe046e6452d2809b7248020647dba4a5f57e95019d6fafd34cee4",
+  "sintoma_usuario": "Steam muestra Instalar para Warframe",
+  "bibliotecas_steam": [
+    {
+      "id": "5f9b020e65d5dfb89025",
+      "status": "no disponible: ya existe una capa anterior; respaldarla y revisar antes de duplicar otra version"
+    }
+  ],
+  "warframe_overlay_presente": true,
+  "espacio_informe": "188 GiB disponibles; no evidencia de disco lleno",
+  "alcance": "Informe de arranque; no se accedio a cuentas, partidas ni particion fisica"
+}

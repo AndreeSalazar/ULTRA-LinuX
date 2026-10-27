@@ -635,10 +635,9 @@ def check_hyprland(conn, failures):
             time.sleep(1)
         expect(launcher, 'Hyprland: Super+R abre Fuzzel')
         # QEMU may still hold Super+R when pidof first sees the launcher.
-        time.sleep(.3)
+        time.sleep(.7)
         mon.sendall(b'sendkey esc\n')
-        time.sleep(.4)
-        transcript += run(conn, [('test -z "$(pidof fuzzel)" && echo BMO-APPS-CERRADO-$((10+6))', 'BMO-APPS-CERRADO-16')], failures)
+        transcript += run(conn, [('for i in $(seq 1 50); do if test -z "$(pidof fuzzel)"; then echo BMO-APPS-CERRADO-$((10+6)); break; fi; sleep .1; done', 'BMO-APPS-CERRADO-16')], failures)
         mon.sendall(b'sendkey meta_l-j\n')
         time.sleep(1)
         transcript += run(conn, [('test -n "$(pidof fuzzel)" && echo JUEGOS-MENU-$((10+7))', 'JUEGOS-MENU-17')], failures)

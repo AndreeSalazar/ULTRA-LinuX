@@ -1,0 +1,7 @@
+{
+  "src/rootfs/bin/ultra-bibliotecas.py": "23e81bdeb8cafe8873abad3921188847c6922791850836f2aaa94972f3cdae44",
+  "scripts/probar_bibliotecas_linux.py": "4b8f6a37e0c9fa68a22d944d61d1128b30b7d039b8bf107e8bc9210853aabb68",
+  "scripts/probar_registro_steam.py": "2a56a380c321494b504f8a0381d337a38a831a6eb58649ae724886630192c979",
+  "scripts/probar_bibliotecas.py": "f7e5e807dd58df7a810c90941a93f63c64cf0b3346d3bb4e0234f7a162e15928",
+  "scripts/probar_arranque.py": "83c993da942cfce7b5d4ba9e043a77b9c1c6d01dab4bb66650a3d83327d7bba5"
+}

@@ -1,0 +1,30 @@
+PASS 1 FD fijado y alias permiten espacio, coma y Unicode sin inyectar opciones
+PASS 2 prefijos y caches Windows ocultos por directorios opacos Linux
+PASS 3 UID1000 escribe la capa ext4 sin modificar origen protegido
+PASS 4 Steam puede crear metadatos y prefijos sobre ext4
+PASS 5 remontar conserva cambios y reconoce el origen
+PASS 6 rechaza componente simbolico antes del bind privilegiado
+CAPA CONSERVADA: 60f4ae8d233d27e59046.anterior-1793119109591417758 ; origen actualizado, se crea una vista limpia
+ESTADO LINUX CONSERVADO: 2 directorios de prefijos/cache; 1 runtimes
+PASS 7 cambio Windows conserva prefijos y cache Linux activos sin revelar datos Windows
+PASS 8 Proton completo y su manifiesto sobreviven al cambio de generacion sin descargar otra copia
+PASS 9 falta de espacio conserva estado activo sin crear otra generacion
+CAPA CONSERVADA: 60f4ae8d233d27e59046.anterior-1793119109637322260 ; origen actualizado, se crea una vista limpia
+ESTADO LINUX CONSERVADO: 2 directorios de prefijos/cache; 1 runtimes
+STEAM: biblioteca Juegos, dos Ω; juegos con manifiesto instalado: 1
+  Juego banco
+STEAM: 1 bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad
+CAPA CONSERVADA: 60f4ae8d233d27e59046.anterior-1793119109687925221 ; origen actualizado, se crea una vista limpia
+ESTADO LINUX CONSERVADO: 2 directorios de prefijos/cache; 1 runtimes
+STEAM: biblioteca Juegos, dos Ω; juegos con manifiesto instalado: 1
+  Juego banco
+STEAM: 0 bibliotecas nuevas registradas; Steam verificara los archivos y la compatibilidad
+PASS 10 actualizaciones Windows sucesivas no ocultan biblioteca; prefijos, cache, runtime y respaldos conservados
+PASS 11 cuota agotada conserva generacion activa y respaldos; explica revision sin borrar ni inventar instalacion
+PASS 12 runtime simbolico se rechaza antes de mover prefijos; sin recorrido root de enlaces
+PASS 13 manifiesto con escape se rechaza sin alterar prefijos
+PASS 14 respeta permisos de lectura Unix en privado-root
+PASS 15 respeta permisos de lectura Unix en privado-root/hijo-publico
+PASS 16 biblioteca publica no revela steamapps privado
+RESULTADO 16 sin discos fisicos; descubrimiento se prueba en arranque nativo
+Banco conservado: /var/tmp/ultra-bibliotecas-vfsqv63i

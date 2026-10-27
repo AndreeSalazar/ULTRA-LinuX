@@ -1,0 +1,10 @@
+{
+  "qemu_exit_code": 0,
+  "perfil": "pc",
+  "verdes": 189,
+  "serial_sha256": "f3681956cbb7f55c9903e2a7c9ad655463576b4a139ad0c42d9f738448ec8f0f",
+  "banco_montajes": 16,
+  "banco_validacion": 18,
+  "banco_registro": 7,
+  "alcance": "Montajes reales sobre ext4 desechable y arranque QEMU; sin cliente autenticado ni datos personales. Confirmacion fisica pendiente."
+}

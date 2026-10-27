@@ -25,6 +25,7 @@ TARGETS = Path('/juegos/Bibliotecas')
 PRIVATE = Path('/juegos/.ultra-bibliotecas')
 LOWERS = Path('/run/ultra-bibliotecas/fuentes')
 LIMIT = 262144
+MAX_PREVIOUS_STORES = 3
 UUID = re.compile(r'[A-Za-z0-9-]{1,64}')
 EXCLUDED = {'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
             'e3c9e316-0b5c-4db8-817d-f92df00215ae',
@@ -138,8 +139,10 @@ def rotate_changed_store(store, identity):
             {k: v for k, v in identity.items() if k != 'version'}):
         raise ValueError('identidad de origen cambio; revisar la capa anterior')
     # Keep a recoverable layer, but never accumulate unlimited generations.
-    if any(store.parent.glob(store.name+'.anterior-*')):
-        raise ValueError('ya existe una capa anterior; respaldarla y revisar antes de duplicar otra version')
+    previous = list(store.parent.glob(store.name+'.anterior-*'))
+    if len(previous) >= MAX_PREVIOUS_STORES:
+        raise ValueError(f'limite de {MAX_PREVIOUS_STORES} capas anteriores conservadas; '
+                         'archivar y revisar desde Discos antes de renovar; no se borro el juego')
     free = shutil.disk_usage(store.parent).free
     if free < 4*1024**3:
         raise ValueError('menos de 4 GiB libres; no se crea otra capa de biblioteca')
@@ -641,6 +644,18 @@ def _register_steam():
         print('STEAM: ya abierto; cierra Steam completamente para registrar nuevas bibliotecas')
         return False
     catalog = read_json(CATALOG)
+    unavailable = sum(item.get('kind') == 'steam' and item.get('status') != 'activa'
+                      for item in catalog.get('folders', []))
+    if unavailable:
+        print(f'STEAM: {unavailable} bibliotecas seleccionadas no estan montadas; '
+              'Instalar no demuestra que se borraron los juegos. Revisa Discos y carpetas.', file=sys.stderr)
+        if os.geteuid() == 1000 and os.environ.get('WAYLAND_DISPLAY'):
+            try:
+                subprocess.run(['notify-send', 'Steam: biblioteca no disponible',
+                                'Hay una biblioteca seleccionada sin montar. Revisa Discos y carpetas antes de reinstalar.'],
+                               timeout=3, check=False)
+            except (OSError, subprocess.SubprocessError):
+                pass
     root = HOME/'.local/share/Steam'
     root.mkdir(parents=True, exist_ok=True)
     canonical, legacy = root/'config/libraryfolders.vdf', root/'steamapps/libraryfolders.vdf'
