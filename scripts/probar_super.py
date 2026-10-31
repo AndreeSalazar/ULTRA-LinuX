@@ -32,6 +32,16 @@ class Super(unittest.TestCase):
         for key,cmd in [('SUPER + SPACE','ultra-super menu'),('SUPER + SHIFT + SPACE','ultra-ambiente menu'),
                         ('SUPER + F1','ultra-super atajos'),('SUPER + S','ultra-super captura')]:
             self.assertIn('hl.bind("'+key+'", hl.dsp.exec_cmd("'+cmd+'"))',lua)
+    def test_input_shortcut_preserves_session_exit(self):
+        lua=(ROOT/'src/rootfs/desktop/hyprland.lua').read_text()
+        self.assertIn('hl.bind("SUPER + CTRL + M", hl.dsp.exec_cmd("ultra-entrada"))',lua)
+        self.assertEqual(lua.count('hl.bind("SUPER + CTRL + M",'),1)
+        self.assertIn('hl.bind("SUPER + SHIFT + M", hl.dsp.exit())',lua)
+    def test_clipboard_shortcut_keeps_float_action_separate(self):
+        lua=(ROOT/'src/rootfs/desktop/hyprland.lua').read_text()
+        self.assertIn('hl.bind("SUPER + V", hl.dsp.exec_cmd("ultra-portapapeles menu"))',lua)
+        self.assertEqual(lua.count('hl.bind("SUPER + V",'),1)
+        self.assertIn('hl.bind("SUPER + CTRL + V", hl.dsp.window.float',lua)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

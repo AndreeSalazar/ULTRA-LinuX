@@ -1,0 +1,82 @@
+{
+  "base_commit": "89dd6e2bef9d3054c31780f4912778620092abb3",
+  "encoding": "UTF-8, LF",
+  "files": [
+    {
+      "path": "src/rootfs/bin/ultra-entrada",
+      "sha256": "44ad7f78e4b2e96d0700bff80941f4b1de14e03405209b5faf410892f620a792"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-portapapeles",
+      "sha256": "468363fee6adc5b666ef243c0d2826d105999edc09044adab930b5fd31f00fc2"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-super",
+      "sha256": "81b423eb6a4281e1e9359fe42a21a84467bcf65fa1d266fee00b00628d2a37e6"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-iniciar-escritorio",
+      "sha256": "e129cb26e32dd21fc989fff82c64ae337bc57a9891342c563ddb3cc91a3291fc"
+    },
+    {
+      "path": "src/rootfs/desktop/ultra-entrada.desktop",
+      "sha256": "de0503515b87bbc53c857af928b17f99a681e9ec252343ae3f9a33e4d33c1686"
+    },
+    {
+      "path": "src/rootfs/desktop/ultra-portapapeles.desktop",
+      "sha256": "72fed5a1de30ef5d0de0b7c4ab4d665c5bd325d0976d9956a2811524c2979a66"
+    },
+    {
+      "path": "src/rootfs/desktop/hyprland.lua",
+      "sha256": "9208893d1aaa10c7c997562f27fd12b770e1d5e4ce969ad0a8812e5e27f24d4c"
+    },
+    {
+      "path": "src/rootfs/desktop/AYUDA.txt",
+      "sha256": "cce9435e2e826303e656e456d4c93dd426f4f6230114c84067d044ec5df38a38"
+    },
+    {
+      "path": "src/apps/ultra-carpetas/src/bin/ultra-entrada-ui.rs",
+      "sha256": "fb84459737ed5697cf72959805c79cfb7625c36c2d87bbfefc091136896587e0"
+    },
+    {
+      "path": "src/apps/ultra-carpetas/src/bin/ultra-portapapeles-ui.rs",
+      "sha256": "6ea377160e500fc4413af0beb64fb4cb098f660c5dc7c365ad6c60b7097729ad"
+    },
+    {
+      "path": "src/apps/ultra-carpetas/Cargo.toml",
+      "sha256": "db8c44a8695ff82f7efc7441d05cf9936ada4c6f95c343726421cdf79789e56a"
+    },
+    {
+      "path": "scripts/probar_entrada.py",
+      "sha256": "d1e5771fc7f680db2df475c7a8801536342af6dc21bdb881659bc6cb5606cf4e"
+    },
+    {
+      "path": "scripts/probar_portapapeles.py",
+      "sha256": "694072fc07d6ef2caebe88da00e2c189160e054ba03d7c8ba600818904ef9299"
+    },
+    {
+      "path": "scripts/probar_super.py",
+      "sha256": "3b630ec0808ad90752eadfd8a1c76a94a84e32b792f3ebabc412da8a6180ff3d"
+    },
+    {
+      "path": "scripts/build-baseline.sh",
+      "sha256": "07cd916b5e7550e57ff50fc50acf83257bb3bcd9d838dba08b91905c5a4363d5"
+    },
+    {
+      "path": "scripts/instalar-carpetas.sh",
+      "sha256": "ae783b6367d4fc4aeaab16511840beb07dae9887d71c67bbb2d282cb81114a70"
+    },
+    {
+      "path": "scripts/probar_entrada_instalada.py",
+      "sha256": "7100383110936f2a14255a3ec9d6d0e6f87122ee2c0c9b0802ff5bbe7ad3fe04"
+    },
+    {
+      "path": "scripts/probar_portapapeles_instalado.py",
+      "sha256": "f0c0708889d2596c92768d474e996b9b754e60cb499860cfb385cf6c8db8438e"
+    },
+    {
+      "path": "scripts/probar_arranque.py",
+      "sha256": "50b57fb06115f9336e2cf9393673ed51b9ef46c5fd9bc25f7e58dd08053183a2"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Mouse y teclado ULTRA
+Comment=Velocidad, aceleracion, rueda y distribucion del teclado
+Exec=/usr/local/bin/ultra-entrada
+Icon=input-mouse
+Terminal=false
+Categories=Settings;HardwareSettings;

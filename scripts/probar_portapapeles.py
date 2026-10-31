@@ -1,64 +1,94 @@
 #!/usr/bin/env python3
-# SPDX-License-Identifier: GPL-2.0-only
-"""Prueba ultra-portapapeles con cliphist, fuzzel, wl-copy y wl-paste falsos."""
+"""Disposable SQLite history: pins, byte budget, images, restart and concurrency."""
+from concurrent.futures import ThreadPoolExecutor
+import importlib.machinery
+import importlib.util
+import io
 import os
 from pathlib import Path
-import subprocess
-import sys
 import tempfile
+import unittest
+from unittest.mock import patch
 
-RAIZ = Path(__file__).resolve().parents[1]
-
-
-def main():
-    with tempfile.TemporaryDirectory(prefix='ultra-portapapeles-') as tmp:
-        tmp = Path(tmp); bin_ = tmp / 'bin'; bin_.mkdir(); reg = tmp / 'llamadas'
-        runtime = tmp / 'run'; runtime.mkdir(mode=0o700)
-        falsos = {
-            # Dos entradas en la lista; decode devuelve el texto de la 1.
-            'cliphist': 'printf "cliphist %s\\n" "$*" >> REG; case " $* " in *" list "*) printf "1\\thola mundo\\n2\\tclave\\n";; '
-                        '*" decode "*) read -r l; [[ $l == 1* ]] && printf "hola mundo";; esac',
-            'fuzzel': 'cat > TMP/entrada; printf "fuzzel %s\\n" "$*" >> REG; cat TMP/eleccion',
-            'wl-copy': 'printf "wl-copy %s\\n" "$(cat)" >> REG',
-            'wl-paste': 'printf "wl-paste %s\\n" "$*" >> REG',
-            'notify-send': 'printf "aviso %s\\n" "$*" >> REG',
-            'ultra-personalizar': 'echo 3dff9aff',
-        }
-        for nombre, cuerpo in falsos.items():
-            (bin_ / nombre).write_text('#!/bin/bash\n' + cuerpo.replace('REG', str(reg)).replace('TMP', str(tmp)) + '\n')
-            (bin_ / nombre).chmod(0o755)
-        herramienta = tmp / 'ultra-portapapeles'
-        herramienta.write_text((RAIZ / 'src/rootfs/bin/ultra-portapapeles').read_text().replace('if os.geteuid() != 1000:', 'if False:'))
-        entorno = dict(os.environ, PATH=f'{bin_}:{os.environ["PATH"]}', XDG_RUNTIME_DIR=str(runtime))
-        db = runtime / 'ultra-portapapeles.db'
-
-        def correr(*args, eleccion='', ok=True, env=entorno):
-            reg.write_text(''); (tmp / 'eleccion').write_bytes(eleccion.encode())
-            r = subprocess.run([sys.executable, '-I', str(herramienta), *args], env=env, capture_output=True, text=True, timeout=30)
-            assert (r.returncode == 0) == ok, (args, r.returncode, r.stderr)
-            return reg.read_text()
-
-        # Vigilar: wl-paste --watch guarda en RAM (XDG_RUNTIME_DIR) con limite.
-        llamadas = correr('vigilar')
-        assert f'wl-paste --watch cliphist -db-path {db} -max-items 200 store' in llamadas
-        # Elegir la entrada 1: se decodifica y vuelve al portapapeles; el menu usa el acento.
-        llamadas = correr('menu', eleccion='1\thola mundo\n')
-        assert f'cliphist -db-path {db} -max-items 200 decode' in llamadas and 'wl-copy hola mundo' in llamadas
-        assert '--selection-color=3dff9aff' in llamadas
-        assert (tmp / 'entrada').read_text().endswith('Borrar todo el historial\n')
-        # Borrar desde el menu.
-        llamadas = correr('menu', eleccion='Borrar todo el historial\n')
-        assert 'wipe' in llamadas and 'aviso' in llamadas and 'wl-copy' not in llamadas
-        # Esc o una linea inventada no copian nada.
-        assert 'decode' not in correr('menu')
-        llamadas = correr('menu', eleccion='9\tinventada\n')
-        assert 'decode' not in llamadas and 'wl-copy' not in llamadas
-        # Sin XDG_RUNTIME_DIR no se guarda en disco.
-        sin = {k: v for k, v in entorno.items() if k != 'XDG_RUNTIME_DIR'}
-        correr('vigilar', ok=False, env=sin)
-        correr('nada', ok=False)
-    print('VERDE: portapapeles en RAM, elegir, borrar y rechazar entradas inventadas')
+ROOT=Path(__file__).resolve().parents[1]
+loader=importlib.machinery.SourceFileLoader('clipboard',str(ROOT/'src/rootfs/bin/ultra-portapapeles'))
+spec=importlib.util.spec_from_loader(loader.name,loader);m=importlib.util.module_from_spec(spec);loader.exec_module(m)
 
 
-if __name__ == '__main__':
-    main()
+@unittest.skipUnless(os.name=='posix','Linux private files')
+class History(unittest.TestCase):
+    def setUp(self):
+        self.tmp=tempfile.TemporaryDirectory();self.home=Path(self.tmp.name).resolve();self.db=m.database(self.home)
+    def tearDown(self):self.db.close();self.tmp.cleanup()
+    def test_more_than_200_items_and_pagination(self):
+        for n in range(250):m.store(self.db,f'copia {n}'.encode())
+        first=m.list_entries(self.db);self.assertEqual(first['total'],250)
+        self.assertEqual(len(first['entries']),30);self.assertTrue(first['more'])
+        self.assertEqual(len(m.list_entries(self.db,page=8)['entries']),10)
+    def test_pin_deduplicate_clear_and_reopen(self):
+        m.store(self.db,b'conservar');entry=m.list_entries(self.db)['entries'][0]['id'];m.pin(self.db,entry)
+        m.store(self.db,b'conservar');m.store(self.db,b'temporal');m.delete(self.db)
+        self.assertEqual(m.list_entries(self.db)['total'],1)
+        self.db.close();self.db=m.database(self.home)
+        row=m.list_entries(self.db)['entries'][0]
+        self.assertTrue(row['pinned']);self.assertEqual(row['id'],entry)
+        m.delete(self.db,entry);self.assertEqual(m.list_entries(self.db)['pins'],1)
+    def test_eviction_preserves_pins_and_bounds_database(self):
+        with self.db:m.set_option(self.db,'quota_mib',1)
+        m.set_page_budget(self.db)
+        m.store(self.db,b'pin');entry=m.list_entries(self.db)['entries'][0]['id'];m.pin(self.db,entry)
+        for n in range(100):m.store(self.db,(str(n)+'x'*20000).encode())
+        self.assertTrue(self.db.execute('SELECT pinned FROM entries WHERE id=?',(entry,)).fetchone()[0])
+        self.assertLessEqual(m.option(self.db,'used'),1024**2)
+        path=self.home/'.local/share/ultra/portapapeles/historial.sqlite3'
+        self.assertLessEqual(path.stat().st_size,1024**2)
+    def test_pins_full_rolls_back_without_deleting_anything(self):
+        with self.db:m.set_option(self.db,'quota_mib',1)
+        m.store(self.db,b'p'*900000);entry=m.list_entries(self.db)['entries'][0]['id'];m.pin(self.db,entry)
+        m.store(self.db,b'u'*40000);before=self.db.execute('SELECT id,cost FROM entries').fetchall()
+        with self.assertRaises(ValueError):m.store(self.db,b'n'*1024**2)
+        self.assertEqual(before,self.db.execute('SELECT id,cost FROM entries').fetchall())
+        self.assertEqual(m.option(self.db,'used'),sum(r[1] for r in before))
+    def test_images_are_exact_and_preview_is_bounded(self):
+        from PIL import Image
+        out=io.BytesIO();Image.new('RGBA',(32,24),(0,240,255,255)).save(out,format='PNG');raw=out.getvalue()
+        m.store(self.db,raw);row=m.list_entries(self.db)['entries'][0]
+        self.assertEqual(row['mime'],'image/png');self.assertEqual(row['thumbnail']['width'],32)
+        self.assertEqual(self.db.execute('SELECT content FROM entries').fetchone()[0],raw)
+        self.assertLessEqual(len(row['thumbnail']['rgba']),96*64*4)
+        self.assertFalse(m.store(self.db,b'\0\xffunknown'))
+    def test_sensitive_pause_and_payload_limits(self):
+        self.assertFalse(m.store(self.db,b'no guardar',sensitive=True))
+        with self.db:m.set_option(self.db,'paused',1)
+        self.assertFalse(m.store(self.db,b'pausado'))
+        with self.db:m.set_option(self.db,'paused',0)
+        with self.assertRaises(ValueError):m.store(self.db,b'x'*(m.MAX_ITEM+1))
+        with patch.object(m.os,'geteuid',return_value=1000),patch.dict(m.os.environ,{'CLIPBOARD_STATE':'sensitive'}),patch.object(m.sys,'argv',['clip','guardar']),patch.object(m,'database') as database:
+            m.main();database.assert_not_called()
+        self.assertEqual(m.list_entries(self.db)['total'],0)
+    def test_sql_text_is_data_and_ids_never_recycle(self):
+        data=b"'; DROP TABLE entries; -- $(touch no-ejecutar)"
+        m.store(self.db,data);entry=m.list_entries(self.db)['entries'][0]['id']
+        self.assertEqual(m.list_entries(self.db,"DROP TABLE")['entries'][0]['id'],entry)
+        m.delete(self.db,entry);m.store(self.db,b'nuevo')
+        self.assertGreater(m.list_entries(self.db)['entries'][0]['id'],entry)
+        self.assertFalse((self.home/'no-ejecutar').exists())
+    def test_private_files_and_reject_symlinks(self):
+        folder=self.home/'.local/share/ultra/portapapeles'
+        self.assertEqual(folder.stat().st_mode & 0o777,0o700)
+        self.assertEqual((folder/'historial.sqlite3').stat().st_mode & 0o777,0o600)
+        other=self.home/'other';other.mkdir();(other/'.local').symlink_to(folder)
+        with self.assertRaises(ValueError):m.database(other)
+    def test_concurrent_first_copies_are_preserved(self):
+        home=self.home/'concurrent'
+        def write(n):
+            db=m.database(home)
+            try:m.store(db,('paralelo '+str(n)).encode())
+            finally:db.close()
+        with ThreadPoolExecutor(max_workers=4) as pool:list(pool.map(write,range(12)))
+        db=m.database(home)
+        try:self.assertEqual(m.list_entries(db)['total'],12)
+        finally:db.close()
+
+
+if __name__=='__main__':unittest.main(verbosity=2)

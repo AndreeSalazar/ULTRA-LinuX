@@ -1,0 +1,14 @@
+test_concurrent_first_copies_are_preserved (__main__.History.test_concurrent_first_copies_are_preserved) ... ok
+test_eviction_preserves_pins_and_bounds_database (__main__.History.test_eviction_preserves_pins_and_bounds_database) ... ok
+test_images_are_exact_and_preview_is_bounded (__main__.History.test_images_are_exact_and_preview_is_bounded) ... ok
+test_more_than_200_items_and_pagination (__main__.History.test_more_than_200_items_and_pagination) ... ok
+test_pin_deduplicate_clear_and_reopen (__main__.History.test_pin_deduplicate_clear_and_reopen) ... ok
+test_pins_full_rolls_back_without_deleting_anything (__main__.History.test_pins_full_rolls_back_without_deleting_anything) ... ok
+test_private_files_and_reject_symlinks (__main__.History.test_private_files_and_reject_symlinks) ... ok
+test_sensitive_pause_and_payload_limits (__main__.History.test_sensitive_pause_and_payload_limits) ... ok
+test_sql_text_is_data_and_ids_never_recycle (__main__.History.test_sql_text_is_data_and_ids_never_recycle) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.343s
+
+OK

@@ -1,98 +1,243 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # SPDX-License-Identifier: GPL-2.0-only
-"""Historial del portapapeles para UID 1000 (Super+Shift+V).
-
-vigilar: guarda cada copia con cliphist en $XDG_RUNTIME_DIR, que esta en RAM;
-         el historial se borra al cerrar la sesion o apagar.
-menu:    elige una entrada con fuzzel y la vuelve a copiar; tambien borra todo.
-borrar:  vacia el historial.
-Sin root, red ni shell. Las copias que una app marca como sensibles no se guardan.
-"""
+"""Private clipboard history: no item-count cap; byte budget and protected pins."""
+import hashlib
+import io
+import json
 import os
+import signal
 from pathlib import Path
-import re
+import sqlite3
+import stat
 import subprocess
 import sys
+import time
+import warnings
 
-MAX = 200
-BORRAR = 'Borrar todo el historial'
-
-
-def base_datos():
-    runtime = os.environ.get('XDG_RUNTIME_DIR')
-    if not runtime or not Path(runtime).is_dir(): raise ValueError('sin XDG_RUNTIME_DIR')
-    return Path(runtime) / 'ultra-portapapeles.db'
+MAX_ITEM = 16 * 1024**2
+PAGE_SIZE = 30
 
 
-def cliphist(*args, entrada=None):
-    return subprocess.run(['cliphist', '-db-path', str(base_datos()), '-max-items', str(MAX), *args],
-                          input=entrada, capture_output=True, timeout=20, check=False)
-
-
-def acento():
+def database(home):
+    folder = home/'.local/share/ultra/portapapeles'
+    if folder.resolve() != folder: raise ValueError('Carpeta del historial redirigida')
+    folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if folder.stat().st_uid != os.getuid(): raise ValueError('Historial de otro usuario')
+    folder.chmod(0o700)
+    path = folder/'historial.sqlite3'
     try:
-        salida = subprocess.run(['ultra-personalizar', 'acento'], capture_output=True, text=True, timeout=10, check=False).stdout.strip()
-    except (OSError, subprocess.SubprocessError):
-        salida = ''
-    return salida if re.fullmatch(r'[0-9a-f]{8}', salida) else '5ad8ffff'
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        os.close(fd)
+    except FileExistsError: pass
+    info = path.lstat()
+    if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid():
+        raise ValueError('Base de datos no regular o ajena')
+    path.chmod(0o600)
+    db = sqlite3.connect(path, timeout=3)
+    db.execute('PRAGMA secure_delete=ON')
+    db.execute('PRAGMA auto_vacuum=FULL')
+    db.execute('BEGIN IMMEDIATE')
+    version = db.execute('PRAGMA user_version').fetchone()[0]
+    if version == 0 and not db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+        db.execute('''CREATE TABLE entries(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, digest TEXT UNIQUE NOT NULL,
+            mime TEXT NOT NULL, content BLOB NOT NULL, preview TEXT NOT NULL, cost INTEGER NOT NULL,
+            seen REAL NOT NULL, pinned INTEGER NOT NULL DEFAULT 0 CHECK(pinned IN (0,1)))''')
+        db.execute('CREATE INDEX recent ON entries(pinned DESC,seen DESC,id DESC)')
+        db.execute('CREATE TABLE settings(key TEXT PRIMARY KEY,value INTEGER NOT NULL)')
+        db.executemany('INSERT INTO settings VALUES(?,?)',[('quota_mib',256),('used',0),('paused',0)])
+        db.execute('PRAGMA user_version=1')
+    elif version != 1:
+        db.close(); raise ValueError('Version del historial desconocida')
+    db.commit()
+    set_page_budget(db)
+    return db
 
 
-def avisar(texto):
+def option(db, key):
+    row = db.execute('SELECT value FROM settings WHERE key=?', (key,)).fetchone()
+    if row is None: raise ValueError('Historial incompleto')
+    return row[0]
+
+
+def set_option(db, key, value):
+    db.execute('UPDATE settings SET value=? WHERE key=?', (value,key))
+
+
+def set_page_budget(db):
+    size=db.execute('PRAGMA page_size').fetchone()[0]
+    pages=option(db,'quota_mib')*1024**2//size
+    db.execute('PRAGMA max_page_count='+str(pages))
+
+
+def prune(db, need=0):
+    used = option(db,'used'); budget = option(db,'quota_mib')*1024**2
+    while used + need > budget:
+        row = db.execute('SELECT id,cost FROM entries WHERE pinned=0 ORDER BY seen,id LIMIT 1').fetchone()
+        if row is None: raise ValueError('El presupuesto esta ocupado por pines. Amplialo o retira algun pin.')
+        db.execute('DELETE FROM entries WHERE id=?',(row[0],)); used -= row[1]
+    set_option(db,'used',used)
+
+
+def image(data):
+    from PIL import Image
     try:
-        subprocess.run(['notify-send', '--app-name=ULTRA', '--icon=edit-paste', 'BMO-X / Portapapeles', texto],
-                       capture_output=True, timeout=5, check=False)
-    except (OSError, subprocess.SubprocessError):
-        pass
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(data)) as im:
+                if im.width * im.height > 16_000_000: raise ValueError('Imagen demasiado grande para el historial')
+                mime = {'PNG':'image/png','JPEG':'image/jpeg','GIF':'image/gif','WEBP':'image/webp','BMP':'image/bmp'}.get(im.format)
+                if not mime: raise ValueError('Formato de imagen no admitido')
+                size = (im.width,im.height); im.verify()
+    except Image.DecompressionBombError as error:
+        raise ValueError('Imagen excesiva') from error
+    return mime, 'Imagen '+str(size[0])+' x '+str(size[1])
 
 
-def sonar(evento):
-    try: subprocess.run(['ultra-personalizar', 'sonar', evento], capture_output=True, timeout=5, check=False)
-    except (OSError, subprocess.SubprocessError): pass
+def store(db, data, sensitive=False):
+    if sensitive or option(db,'paused') or not data: return False
+    if len(data) > MAX_ITEM: raise ValueError('Copia mayor de 16 MiB: se conserva en el portapapeles, no en el historial')
+    try:
+        text = data.decode('utf-8')
+        if '\0' in text: raise UnicodeError('binario')
+        mime = 'text/plain;charset=utf-8'
+        preview = ''.join(c if c.isprintable() else ' ' for c in text.replace('\n',' ↵ '))[:384]
+    except UnicodeError:
+        try: mime, preview = image(data)
+        except (OSError, ValueError, Warning): return False
+    digest = hashlib.sha256(mime.encode()+b'\0'+data).hexdigest()
+    cost=len(data)+len(preview.encode('utf-8'))+1024+(len(data)+255)//256
+    reserve=0
+    for _ in range(8):
+        try:
+            with db:
+                row = db.execute('SELECT id FROM entries WHERE digest=?',(digest,)).fetchone()
+                if row:
+                    db.execute('UPDATE entries SET seen=? WHERE id=?',(time.time(),row[0])); return True
+                prune(db,cost+reserve)
+                db.execute('INSERT INTO entries(digest,mime,content,preview,cost,seen) VALUES(?,?,?,?,?,?)',
+                           (digest,mime,data,preview,cost,time.time()))
+                set_option(db,'used',option(db,'used')+cost)
+            return True
+        except sqlite3.Error as error:
+            if getattr(error,'sqlite_errorcode',None)!=sqlite3.SQLITE_FULL: raise
+            # Page fragmentation can exceed the estimate. Roll back before
+            # reserving extra space; pins and the previous history stay intact.
+            reserve+=max(8192,len(data)//8)
+    raise ValueError('No cabe la copia con los pines y el presupuesto actuales')
 
 
-def vigilar():
-    datos = base_datos()
-    os.execvp('wl-paste', ['wl-paste', '--watch', 'cliphist', '-db-path', str(datos), '-max-items', str(MAX), 'store'])
+def pin(db, entry):
+    with db:
+        if not db.execute('UPDATE entries SET pinned=1-pinned WHERE id=?',(entry,)).rowcount:
+            raise ValueError('La entrada ya no existe')
 
 
-def borrar():
-    cliphist('wipe')
-    sonar('proceso')
-    avisar('Historial borrado.')
+def delete(db, entry=None):
+    with db:
+        where, params = ('pinned=0',()) if entry is None else ('id=? AND pinned=0',(entry,))
+        size = db.execute('SELECT coalesce(sum(cost),0) FROM entries WHERE '+where,params).fetchone()[0]
+        db.execute('DELETE FROM entries WHERE '+where,params)
+        set_option(db,'used',option(db,'used')-size)
 
 
-def menu():
-    lista = cliphist('list').stdout
-    filas = [f for f in lista.split(b'\n') if f.strip()]
-    color = acento()
-    cmd = ['fuzzel', '--dmenu', '--width=70', f'--lines={min(15, len(filas) + 1)}', '--prompt=PORTAPAPELES // ',
-           '--background-color=06050af7', '--text-color=ece9dcff', f'--selection-color={color}',
-           '--selection-text-color=000000ff', f'--border-color={color}', f'--prompt-color={color}', '--match-color=ff2a4fff']
-    entrada = b'\n'.join(filas + [BORRAR.encode()]) + b'\n'
-    resultado = subprocess.run(cmd, input=entrada, capture_output=True, timeout=600, check=False)
-    eleccion = resultado.stdout.rstrip(b'\n')
-    if resultado.returncode != 0 or not eleccion: return
-    if eleccion == BORRAR.encode():
-        borrar(); return
-    # cliphist list escribe "ID<TAB>vista previa"; solo se aceptan entradas que estaban en la lista.
-    if eleccion not in filas or not re.fullmatch(rb'[0-9]+\t.*', eleccion, flags=re.S): return
-    contenido = cliphist('decode', entrada=eleccion + b'\n')
-    if contenido.returncode != 0: raise ValueError('no se pudo recuperar la entrada')
-    subprocess.run(['wl-copy'], input=contenido.stdout, timeout=10, check=False)
-    sonar('portapapeles')
+def list_entries(db, query='', page=0):
+    if not isinstance(query,str) or len(query)>80 or type(page)is not int or not 0<=page<=1_000_000:
+        raise ValueError('Busqueda fuera de rango')
+    rows = db.execute('SELECT id,mime,preview,seen,pinned,length(content) FROM entries WHERE preview LIKE ? '
+                      'ORDER BY pinned DESC,seen DESC,id DESC LIMIT ? OFFSET ?',('%'+query+'%',PAGE_SIZE+1,page*PAGE_SIZE)).fetchall()
+    entries=[]; thumbs=0
+    for row in rows[:PAGE_SIZE]:
+        item=dict(id=row[0],mime=row[1],preview=row[2],seen=row[3],pinned=bool(row[4]),bytes=row[5])
+        if row[1].startswith('image/') and thumbs<6:
+            try:
+                from PIL import Image
+                raw=db.execute('SELECT content FROM entries WHERE id=?',(row[0],)).fetchone()[0]
+                with Image.open(io.BytesIO(raw)) as im:
+                    im.thumbnail((96,64)); rgba=im.convert('RGBA')
+                    item['thumbnail']=dict(width=rgba.width,height=rgba.height,rgba=list(rgba.tobytes()))
+                thumbs+=1
+            except (OSError, ValueError): pass
+        entries.append(item)
+    return dict(entries=entries,more=len(rows)>PAGE_SIZE,page=page,query=query,
+                total=db.execute('SELECT count(*) FROM entries').fetchone()[0],
+                pins=db.execute('SELECT count(*) FROM entries WHERE pinned=1').fetchone()[0],
+                used_bytes=option(db,'used'),quota_mib=option(db,'quota_mib'),paused=bool(option(db,'paused')))
+
+
+def watch():
+    # Explicit types prevent an application's text representation from hiding
+    # its image. Supervise both watchers and their copy helpers as one service.
+    children=[]
+    def stop(_signum, _frame): raise SystemExit(0)
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP): signal.signal(sig,stop)
+    try:
+        for kind in ('text','image'):
+            children.append(subprocess.Popen(['wl-paste','--type',kind,'--watch',
+                '/usr/local/bin/ultra-portapapeles','guardar'],start_new_session=True))
+        os.wait()
+        raise ValueError('El observador Wayland termino; vuelve a abrir el escritorio')
+    finally:
+        for child in children:
+            try: os.killpg(child.pid,signal.SIGTERM)
+            except ProcessLookupError: pass
+        for child in children:
+            try: child.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                try: os.killpg(child.pid,signal.SIGKILL)
+                except ProcessLookupError: pass
+                child.wait()
 
 
 def main():
-    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    if os.geteuid()!=1000: raise ValueError('Abrir como usuario del escritorio')
     os.umask(0o077)
-    accion = sys.argv[1] if len(sys.argv) > 1 else 'menu'
-    if accion == 'vigilar': vigilar()
-    elif accion == 'menu': menu()
-    elif accion == 'borrar': borrar()
-    else: raise ValueError('uso: ultra-portapapeles vigilar|menu|borrar')
+    action=sys.argv[1] if len(sys.argv)>1 else 'menu'
+    if action=='menu': os.execvp('ultra-portapapeles-ui',['ultra-portapapeles-ui'])
+    if action=='vigilar':
+        watch(); return
+    if action not in ('guardar','listar','copiar','pin','eliminar','borrar','presupuesto','pausa'):
+        raise ValueError('Accion desconocida')
+    if action=='guardar' and os.environ.get('CLIPBOARD_STATE') in ('sensitive','clear','nil'): return
+    db=database(Path(os.environ['HOME']))
+    try:
+        if action=='guardar':
+            if option(db,'paused'): return
+            store(db,sys.stdin.buffer.read(MAX_ITEM+1)); return
+        request={}
+        if action not in ('listar','borrar'):
+            raw=sys.stdin.read(8193)
+            if len(raw.encode())>8192: raise ValueError('Peticion demasiado grande')
+            request=json.loads(raw)
+            if not isinstance(request,dict): raise ValueError('Peticion desconocida')
+        elif action=='listar' and len(sys.argv)>2:
+            if len(sys.argv[2])>1024: raise ValueError('Busqueda demasiado grande')
+            request=json.loads(sys.argv[2])
+            if not isinstance(request,dict): raise ValueError('Peticion desconocida')
+        if action in ('copiar','pin','eliminar'):
+            entry=request.get('id')
+            if type(entry)is not int or not 1<=entry<2**63: raise ValueError('Entrada invalida')
+            if action=='pin': pin(db,entry)
+            elif action=='eliminar': delete(db,entry)
+            else:
+                row=db.execute('SELECT mime,content FROM entries WHERE id=?',(entry,)).fetchone()
+                if not row: raise ValueError('La entrada ya no existe')
+                subprocess.run(['wl-copy','--type',row[0]],input=row[1],stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL,timeout=5,check=True)
+        elif action=='borrar': delete(db)
+        elif action=='presupuesto':
+            value=request.get('mib')
+            if type(value)is not int or not 32<=value<=4096: raise ValueError('Presupuesto entre 32 y 4096 MiB')
+            with db: set_option(db,'quota_mib',value); prune(db)
+            set_page_budget(db)
+        elif action=='pausa':
+            if type(request.get('paused'))is not bool: raise ValueError('Estado invalido')
+            with db: set_option(db,'paused',int(request['paused']))
+        print(json.dumps(list_entries(db,request.get('query',''),request.get('page',0))))
+    finally: db.close()
 
 
-if __name__ == '__main__':
+if __name__=='__main__':
     try: main()
-    except (OSError, ValueError, subprocess.SubprocessError) as error:
-        print('PORTAPAPELES:', error, file=sys.stderr); sys.exit(1)
+    except (OSError,ValueError,sqlite3.Error,subprocess.SubprocessError) as error:
+        print('Portapapeles: '+str(error),file=sys.stderr);sys.exit(1)

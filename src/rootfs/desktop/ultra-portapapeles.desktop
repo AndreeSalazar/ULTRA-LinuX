@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Portapapeles ULTRA
+Comment=Historial persistente de texto e imagenes con pines
+Exec=/usr/local/bin/ultra-portapapeles menu
+Icon=edit-paste
+Terminal=false
+Categories=Utility;

@@ -25,7 +25,8 @@ SUPER + Shift + S   Captura de una region; Esc cancela
 SUPER + Impr Pant   Captura de la ventana activa
 SUPER + C           Limpiar notificaciones
 SUPER + Shift + N   Recuperar el ultimo aviso cerrado (repetir para mas)
-SUPER + Shift + V   Historial del portapapeles (en RAM; se borra al apagar)
+SUPER + V           Portapapeles persistente: texto, imagenes y pines
+SUPER + Shift + V   Portapapeles (atajo anterior compatible)
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo
 SUPER + F9          Tarjetas de equipo en vivo (eww): mostrar u ocultar
@@ -38,7 +39,7 @@ Shift izquierdo+F2  Grabar FPS/frametime a CSV local (hasta 10 min)
 SUPER + J           Juegos: Heronite (Steam/GOG), Cyberpunk y espacio disponible
 Teclas multimedia   Volumen maestro +/- y silencio
 SUPER + Q           Cerrar la ventana activa
-SUPER + V           Alternar ventana flotante
+SUPER + Ctrl + V    Alternar ventana flotante
 SUPER + flechas     Cambiar el foco
 SUPER + 1..9        Cambiar de escritorio
 SUPER + Shift + 1..9  Mover ventana a otro escritorio
@@ -88,3 +89,4 @@ Rust: la primera vez, en una terminal, "rustup default stable" (descarga unos
 300 MB al home). Con almacenamiento persistente queda guardado; con home en
 RAM se pierde al apagar. Los proyectos con rust-toolchain.toml, como BMO-X,
 eligen su propia version solos.
+SUPER + Ctrl + M     Mouse y teclado: velocidad, rueda y distribucion

@@ -1,0 +1,11 @@
+test_atomic_persistence_and_restore_failure (__main__.Input.test_atomic_persistence_and_restore_failure) ... ok
+test_fixed_lua_no_shell (__main__.Input.test_fixed_lua_no_shell) ... ok
+test_invalid_never_changes_compositor (__main__.Input.test_invalid_never_changes_compositor) ... ok
+test_links_and_oversized_profile_rejected (__main__.Input.test_links_and_oversized_profile_rejected) ... ok
+test_ranges_types_and_injection (__main__.Input.test_ranges_types_and_injection) ... ok
+test_snapshot_requires_all_fields (__main__.Input.test_snapshot_requires_all_fields) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.004s
+
+OK

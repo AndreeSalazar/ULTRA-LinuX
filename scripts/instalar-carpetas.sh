@@ -22,6 +22,12 @@ fi
 (cd "$fuente" && CARGO_TARGET_DIR="$destino" cargo test --release --locked) > "$art/carpetas-pruebas.log" 2>&1 ||
     { tail -20 "$art/carpetas-pruebas.log"; echo 'ROJO [CARPETAS]: fallan las pruebas'; exit 1; }
 sudo install -m 0755 "$destino/release/ultra-carpetas" "$sistema/usr/local/bin/ultra-carpetas"
+sudo install -m 0755 "$destino/release/ultra-entrada-ui" "$sistema/usr/local/bin/ultra-entrada-ui"
+sudo install -m 0755 "$destino/release/ultra-portapapeles-ui" "$sistema/usr/local/bin/ultra-portapapeles-ui"
+sudo chroot "$sistema" /usr/bin/ldd /usr/local/bin/ultra-entrada-ui > "$art/entrada-bibliotecas.txt"
+! grep -q 'not found' "$art/entrada-bibliotecas.txt" || { echo 'ROJO [ENTRADA]: faltan bibliotecas'; exit 1; }
+sudo chroot "$sistema" /usr/bin/ldd /usr/local/bin/ultra-portapapeles-ui > "$art/portapapeles-bibliotecas.txt"
+! grep -q 'not found' "$art/portapapeles-bibliotecas.txt" || { echo 'ROJO [PORTAPAPELES]: faltan bibliotecas'; exit 1; }
 # Review the selected real C sources before shipping the project viewer. A stale
 # or missing report must not be silently labelled as the current source tree.
 python3 "$base/scripts/revisar-proyecto.py" revisar > "$art/revision-proyecto.log" 2>&1 ||

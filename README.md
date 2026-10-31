@@ -25,6 +25,10 @@ MangoHud por proceso, con historial acotado; informa sin bloquear ni ajustar el 
 preferencia de ULTRA tras el saneamiento del entorno; conserva opciones particulares.
 [Renovacion de bibliotecas Steam](docs/STEAM-RENOVACION.md): cambios sucesivos
 del origen Windows conservan generaciones y estado Linux con limites de espacio.
+[Mouse y teclado ULTRA](docs/ENTRADA.md): ventana nativa con velocidad del puntero,
+aceleracion, rueda, distribucion y repeticion; perfil persistente con Super+Ctrl+M.
+[Portapapeles con pines](docs/PORTAPAPELES.md): Super+V, texto e imagenes
+persistentes, busqueda y presupuesto de espacio; limpiar conserva los fijados.
 [Centro SUPER, dock y capturas](docs/SUPER-ACCESOS-CAPTURAS.md): accesos con iconos,
 atajos visibles y menus animados; el PNG guardado se conserva si falla el portapapeles.
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).
@@ -127,8 +131,8 @@ Diseño y autoría: <b>Eddi Salazar</b>.</p>
 - **Tarjetas de equipo con eww** (Super+F9): CPU por núcleo, RAM, GPU, red, discos y
   temperatura, con anillos y gráficas en vivo ([captura de esta compilación](evidencias/main-integrado/2026-10-25/equipo.png)).
   La terminal sigue tu acento. **Modo juego automático**: con un juego en pantalla completa
-  se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+Shift+V)
-  con historial en RAM; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,
+  se apagan los efectos y los avisos, y al salir vuelven. **Portapapeles** (Super+V)
+  con historial persistente y pines; **Super+Shift+N** recupera avisos cerrados. **Capturas**: Impr Pant,
   Super+Shift+S y Super+Impr Pant. **Incidentes** (Super+Shift+I):
   foto de lo que se cruzó cuando algo falla ([detalle](docs/INCIDENTES.md)).
 - **Perfil del autor**: módulo **EDDI** en la barra, emblema propio

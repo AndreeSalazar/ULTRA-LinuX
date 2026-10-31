@@ -782,9 +782,9 @@ def check_hyprland(conn, failures):
         expect({'Hyprland', 'foot', 'mousepad', 'thunar'} <= secured,
                'Hyprland y apps: UID/GID 1000, capacidades cero, NNP=1')
         expect(focus_app('thunar'), 'Hyprland: archivos enfocado antes de probar atajos')
-        mon.sendall(b'sendkey meta_l-v\n')
+        mon.sendall(b'sendkey meta_l-ctrl-v\n')
         floated = wait_apps(lambda apps: any('thunar' in a.get('class', '').lower() and a.get('floating') for a in apps))
-        expect(bool(floated), 'Hyprland: Super+V convierte archivos en ventana flotante')
+        expect(bool(floated), 'Hyprland: Super+Ctrl+V convierte archivos en ventana flotante')
         mon.sendall(b'sendkey meta_l-shift-2\n')
         moved = wait_apps(lambda apps: any('thunar' in a.get('class', '').lower() and a.get('workspace', {}).get('id') == 2 for a in apps))
         expect(bool(moved), 'Hyprland: mover ventana al escritorio 2')
@@ -1209,6 +1209,71 @@ print('HUD-NATIVO-FIXTURE')"""
                 shutil.copyfile(target, LOG.with_name(LOG.stem+'-steam-hud.png'))
                 transcript += run(conn, [(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo STEAM-HUD-BANCO-CERRADO', 'STEAM-HUD-BANCO-CERRADO')], failures)
             transcript += run(conn, [('cat /arch/tmp/steam-hud-probe.log; echo STEAM-HUD-LOG-FIN', 'STEAM-HUD-LOG-FIN')], failures)
+        if '--entrada' in sys.argv:
+            encoded=base64.b64encode((ROOT/'scripts/probar_entrada_instalada.py').read_bytes()).decode()
+            transcript += run(conn,[(': > /arch/tmp/entrada.b64; echo ENTR-CARGA-$((40+5))','ENTR-CARGA-45')],failures)
+            for offset in range(0,len(encoded),192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/entrada.b64; echo ENTR-CARGA-$((40+5))\n").encode())
+                transcript+=response('ENTR-CARGA-45')
+            transcript+=run(conn,[('base64 -d /arch/tmp/entrada.b64 > /arch/tmp/entrada.py; echo ENTR-CARGA-$((40+5))','ENTR-CARGA-45')],failures)
+            code='hl.exec_cmd("python3 /tmp/entrada.py > /tmp/entrada-resultado.txt 2>&1")'
+            transcript+=run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+            result=''
+            for _ in range(30):
+                conn.sendall(b'cat /arch/tmp/entrada-resultado.txt; echo ENTR-RESULTADO-$((40+5))\n');result=response('ENTR-RESULTADO-45');transcript+=result
+                if 'ENTRADA-REAL-OK:' in result or 'Traceback' in result:break
+                time.sleep(.5)
+            expect('ENTRADA-REAL-OK:' in result,'Entrada: ajustes reales, perfil y recuperacion tras recarga')
+            mon.sendall(b'sendkey meta_l-ctrl-m\n')
+            opened=wait_apps(lambda apps:any(a.get('class')=='ultra-entrada' for a in apps))
+            expect(bool(opened),'Entrada: Super+Ctrl+M abre la ventana nativa')
+            if opened:
+                app=next(a for a in opened if a.get('class')=='ultra-entrada')
+                time.sleep(3)
+                target=pathlib.Path(tempfile.gettempdir())/'ultra-entrada.png';target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot:shot.verify()
+                        break
+                    except (OSError,SyntaxError):time.sleep(.1)
+                else:raise ValueError('captura Entrada incompleta')
+                shutil.copyfile(target,LOG.with_name(LOG.stem+'-entrada.png'))
+                transcript+=run(conn,[(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo ENTRADA-UI-CERRADA','ENTRADA-UI-CERRADA')],failures)
+            code='hl.exec_cmd("python3 /tmp/entrada.py concluir > /tmp/entrada-concluir.txt 2>&1")'
+            transcript+=run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+            transcript+=run(conn,[('for i in $(seq 1 50); do grep -q ENTRADA-BANCO-RESTAURADO /arch/tmp/entrada-concluir.txt 2>/dev/null && break; sleep .1; done; cat /arch/tmp/entrada-concluir.txt','ENTRADA-BANCO-RESTAURADO')],failures)
+        if '--portapapeles' in sys.argv:
+            encoded=base64.b64encode((ROOT/'scripts/probar_portapapeles_instalado.py').read_bytes()).decode()
+            transcript+=run(conn,[(': > /arch/tmp/clipboard.b64; echo CLIP-CARGA-$((40+5))','CLIP-CARGA-45')],failures)
+            for offset in range(0,len(encoded),192):
+                conn.sendall(("printf '%s' '"+encoded[offset:offset+192]+"' >> /arch/tmp/clipboard.b64; echo CLIP-CARGA-$((40+5))\n").encode())
+                transcript+=response('CLIP-CARGA-45')
+            transcript+=run(conn,[('base64 -d /arch/tmp/clipboard.b64 > /arch/tmp/clipboard.py; echo CLIP-CARGA-$((40+5))','CLIP-CARGA-45')],failures)
+            code='hl.exec_cmd("python3 /tmp/clipboard.py > /tmp/clipboard-resultado.txt 2>&1")'
+            transcript+=run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+            result=''
+            for _ in range(45):
+                conn.sendall(b'cat /arch/tmp/clipboard-resultado.txt; echo CLIP-RESULTADO-$((40+5))\n');result=response('CLIP-RESULTADO-45');transcript+=result
+                if 'PORTAPAPELES-REAL-OK:' in result or 'Traceback' in result:break
+                time.sleep(.5)
+            expect('PORTAPAPELES-REAL-OK:' in result,'Portapapeles: copias Wayland, texto/PNG, pines, pausa y persistencia')
+            mon.sendall(b'sendkey meta_l-v\n')
+            opened=wait_apps(lambda apps:any(a.get('class')=='ultra-portapapeles' for a in apps))
+            expect(bool(opened),'Portapapeles: Super+V abre las tarjetas nativas')
+            if opened:
+                app=next(a for a in opened if a.get('class')=='ultra-portapapeles')
+                time.sleep(3)
+                target=pathlib.Path(tempfile.gettempdir())/'ultra-portapapeles.png';target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot:shot.verify()
+                        break
+                    except (OSError,SyntaxError):time.sleep(.1)
+                else:raise ValueError('captura Portapapeles incompleta')
+                shutil.copyfile(target,LOG.with_name(LOG.stem+'-portapapeles.png'))
+                transcript+=run(conn,[(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo PORTAPAPELES-UI-CERRADA','PORTAPAPELES-UI-CERRADA')],failures)
         if '--limites' in sys.argv:
             encoded=base64.b64encode((ROOT/'scripts/banco_limites.py').read_bytes()).decode()
             conn.sendall(b': > /arch/tmp/limites.b64; echo LIM-CARGA-$((40+6))\n');transcript+=response('LIM-CARGA-46')

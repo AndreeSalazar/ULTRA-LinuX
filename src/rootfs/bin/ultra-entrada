@@ -1,0 +1,151 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""User-only, bounded Hyprland input settings. No raw device access or macros."""
+import fcntl
+import json
+import math
+import os
+from pathlib import Path
+import re
+import stat
+import subprocess
+import sys
+import tempfile
+
+DEFAULT = dict(sensitivity=0.0, accel_profile='', scroll_factor=1.0,
+               left_handed=False, natural_scroll=False, kb_layout='us',
+               kb_options='', repeat_rate=25, repeat_delay=600)
+
+
+def valid(data):
+    if not isinstance(data, dict) or set(data) != set(DEFAULT):
+        raise ValueError('Formato de ajustes desconocido')
+    for key, low, high in [('sensitivity', -1, 1), ('scroll_factor', .1, 5)]:
+        v = data[key]
+        if type(v) not in (float, int) or not math.isfinite(v) or not low <= v <= high:
+            raise ValueError('Valor fuera de rango: '+key)
+    for key in ('left_handed', 'natural_scroll'):
+        if type(data[key]) is not bool: raise ValueError('Valor booleano requerido: '+key)
+    for key, low, high in [('repeat_rate', 1, 80), ('repeat_delay', 100, 1500)]:
+        if type(data[key]) is not int or not low <= data[key] <= high:
+            raise ValueError('Valor fuera de rango: '+key)
+    if data['accel_profile'] not in ('', 'flat', 'adaptive'):
+        raise ValueError('Perfil de aceleracion no admitido')
+    if not isinstance(data['kb_layout'], str) or not re.fullmatch(r'[a-z]{2,8}(?:,[a-z]{2,8}){0,3}', data['kb_layout']):
+        raise ValueError('Distribucion de teclado no admitida')
+    if not isinstance(data['kb_options'], str) or not re.fullmatch(r'[A-Za-z0-9_:,+-]{0,160}', data['kb_options']):
+        raise ValueError('Opciones de teclado no admitidas')
+    return dict(data)
+
+
+def run(args):
+    result = subprocess.run(args, capture_output=True, text=True, timeout=3, check=False)
+    if result.returncode or len(result.stdout) > 65536:
+        raise ValueError('Hyprland no respondio al ajuste')
+    return result.stdout
+
+
+def snapshot():
+    values = {}
+    for key, default in DEFAULT.items():
+        row = json.loads(run(['hyprctl', '-j', 'getoption', 'input:'+key]))
+        if not isinstance(row, dict): raise ValueError('Respuesta de Hyprland desconocida')
+        kind = 'bool' if type(default) is bool else 'int' if type(default) is int else 'float' if type(default) is float else 'str'
+        if kind not in row: raise ValueError('Opcion no disponible: '+key)
+        v = row[kind]
+        if kind == 'str' and v == '[[EMPTY]]': v = ''
+        if kind == 'bool' and type(v) is int and v in (0, 1): v = bool(v)
+        values[key] = v
+    return valid(values)
+
+
+def apply(data):
+    data = valid(data)
+    lua = 'hl.config({input={'+','.join(k+'='+json.dumps(v) for k,v in data.items())+'}})'
+    out = run(['hyprctl', 'eval', lua])
+    if 'error' in out.lower(): raise ValueError('Hyprland rechazo los ajustes')
+
+
+def matches(a, b):
+    return all(abs(a[k]-b[k]) < .0001 if type(DEFAULT[k]) is float else a[k] == b[k] for k in DEFAULT)
+
+
+def read(path):
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as stream:
+        info = os.fstat(stream.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid():
+            raise ValueError('Perfil no regular o propietario distinto')
+        raw = stream.read(8193)
+    if len(raw) > 8192: raise ValueError('Perfil demasiado grande')
+    doc = json.loads(raw)
+    if not isinstance(doc, dict) or set(doc) != {'schema', 'settings'} or doc['schema'] != 1:
+        raise ValueError('Version del perfil desconocida')
+    return valid(doc['settings'])
+
+
+def folder(home):
+    path = home/'.config/ultra'
+    if path.resolve() != path: raise ValueError('Carpeta del perfil redirigida')
+    path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if path.resolve() != path or path.stat().st_uid != os.getuid():
+        raise ValueError('Carpeta del perfil redirigida o ajena')
+    return path
+
+
+def save(path, data):
+    if path.is_symlink(): raise ValueError('Perfil redirigido')
+    fd, name = tempfile.mkstemp(prefix='.entrada-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w') as stream:
+            os.fchmod(stream.fileno(), 0o600)
+            json.dump({'schema':1, 'settings':valid(data)}, stream); stream.write('\n')
+            stream.flush(); os.fsync(stream.fileno())
+        os.replace(name, path)
+    finally:
+        if os.path.exists(name): os.unlink(name)
+
+
+def commit(path, settings, persist):
+    settings = valid(settings)
+    if path.is_symlink(): raise ValueError('Perfil redirigido')
+    before = snapshot()
+    try:
+        apply(settings)
+        if not matches(settings, snapshot()): raise ValueError('No se confirmaron todos los ajustes')
+        if persist: save(path, settings)
+    except Exception as error:
+        try: apply(before)
+        except Exception: raise ValueError('Fallo al aplicar y al recuperar; abre Entrada y restaura los ajustes') from error
+        raise
+    return settings
+
+
+def main():
+    if os.geteuid() != 1000: raise ValueError('Abrir como usuario del escritorio')
+    action = sys.argv[1] if len(sys.argv) == 2 else 'ventana'
+    if action == 'ventana': os.execvp('ultra-entrada-ui', ['ultra-entrada-ui'])
+    if action not in ('estado', 'guardar', 'restaurar'): raise ValueError('Accion desconocida')
+    home = Path(os.environ['HOME']); config = folder(home); path = config/'entrada.json'
+    fd = os.open(config/'entrada.lock', os.O_CREAT | os.O_WRONLY | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
+    with os.fdopen(fd, 'w') as lock:
+        if not stat.S_ISREG(os.fstat(lock.fileno()).st_mode): raise ValueError('Bloqueo no regular')
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        if action == 'estado':
+            saved = read(path) if path.exists() or path.is_symlink() else None
+            print(json.dumps({'schema':1, 'actual':snapshot(), 'guardado':saved})); return
+        if action == 'restaurar' and not (path.exists() or path.is_symlink()):
+            print(json.dumps({'sin_perfil':True})); return
+        if action == 'guardar':
+            raw = sys.stdin.read(8193)
+            if len(raw.encode()) > 8192: raise ValueError('Ajustes demasiado grandes')
+            settings = valid(json.loads(raw))
+        else: settings = read(path)
+        result = commit(path, settings, action == 'guardar')
+        print(json.dumps({'schema':1, 'actual':result, 'guardado':result}))
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('Entrada: '+str(error), file=sys.stderr); sys.exit(1)

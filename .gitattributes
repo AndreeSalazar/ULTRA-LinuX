@@ -114,3 +114,5 @@ evidencias/super-ui/**/*.png binary
 evidencias/hud-steam/** text eol=lf
 evidencias/hud-steam/**/*.png binary
 evidencias/steam-renovacion/** text eol=lf
+evidencias/entrada/** text eol=lf
+evidencias/entrada/**/*.png binary
