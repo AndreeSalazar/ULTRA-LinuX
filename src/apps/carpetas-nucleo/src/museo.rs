@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
-//! El museo dentro del codigo (SUPER GRAFO). Busca en C, C++ y ASM los patrones de las
-//! fichas del museo (docs/MUSEO-UB.md y Museo/README.md) y dice cual, donde y por que.
+//! El museo dentro del codigo (SUPER GRAFO). Busca en C, C++, ASM y Rust los patrones de
+//! las fichas del museo (docs/MUSEO-UB.md, Museo/README.md y Museo/triangulo.json) y dice
+//! cual, donde y por que. En C y C++ se saltan las ramas `#if` que ningun GCC ni Clang
+//! compila (`#if 0`, el `#else` tras `defined(__GNUC__)`); lo dudoso se sigue leyendo.
 //!
 //! Reglas de honestidad, las mismas del museo:
 //!
@@ -63,7 +65,7 @@ pub fn eje(id: &str) -> Eje {
 
 /// Que lenguaje del museo es una ruta (None: no se analiza).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Idioma { C, Cpp, CoCpp, Gas { cpp: bool }, Nasm }
+pub enum Idioma { C, Cpp, CoCpp, Gas { cpp: bool }, Nasm, Rust }
 
 pub fn idioma(ruta: &str) -> Option<Idioma> {
     let nombre = ruta.rsplit('/').next().unwrap_or(ruta);
@@ -71,6 +73,7 @@ pub fn idioma(ruta: &str) -> Option<Idioma> {
     match ext {
         "c" => Some(Idioma::C),
         "h" => Some(Idioma::CoCpp),
+        "rs" => Some(Idioma::Rust),
         "S" | "sx" => Some(Idioma::Gas { cpp: true }),
         _ => {
             let e = ext.to_ascii_lowercase();
@@ -90,7 +93,7 @@ pub fn analizar(ruta: &str, texto: &str) -> Vec<Sospecha> {
     let Some(id) = idioma(ruta) else { return Vec::new() };
     let mut out = match id {
         Idioma::C | Idioma::Cpp | Idioma::CoCpp => {
-            let toks = tokens(texto);
+            let toks = sin_ramas_muertas(tokens(texto));
             let cpp = match id { Idioma::Cpp => true, Idioma::C => false, _ => parece_cpp(&toks) };
             let mut c = Ctx::nuevo(&toks, cpp);
             c.todo();
@@ -98,6 +101,7 @@ pub fn analizar(ruta: &str, texto: &str) -> Vec<Sospecha> {
         }
         Idioma::Gas { cpp } => asm_archivo(texto, false, cpp),
         Idioma::Nasm => asm_archivo(texto, true, false),
+        Idioma::Rust => rust_archivo(ruta, texto),
     };
     out.sort_by(|a, b| (a.linea, a.columna, a.ficha).cmp(&(b.linea, b.columna, b.ficha)));
     let mut vistos = BTreeSet::new();
@@ -261,6 +265,109 @@ fn cuerpo_define(texto: &str, a: usize, b: usize) -> Option<usize> {
     (i < b).then_some(i)
 }
 
+// ====================================================================================
+// Ramas del preprocesador que no compila ningun GCC ni Clang. Solo se decide lo evidente:
+// `#if 0`, `#if 1` y `__GNUC__` / `__clang__` (definidos por los dos). Todo lo demas
+// (_MSC_VER, que clang-cl tambien define; versiones; macros del proyecto) queda como
+// "no se sabe" y su rama se sigue leyendo.
+// ====================================================================================
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Tri { Si, No, NoSe }
+
+impl Tri {
+    fn no(self) -> Tri { match self { Tri::Si => Tri::No, Tri::No => Tri::Si, Tri::NoSe => Tri::NoSe } }
+    fn y(self, o: Tri) -> Tri { if self == Tri::No || o == Tri::No { Tri::No } else if self == Tri::Si && o == Tri::Si { Tri::Si } else { Tri::NoSe } }
+    fn o(self, o: Tri) -> Tri { if self == Tri::Si || o == Tri::Si { Tri::Si } else if self == Tri::No && o == Tri::No { Tri::No } else { Tri::NoSe } }
+}
+
+fn macro_del_compilador(n: &str) -> Tri { if matches!(n, "__GNUC__" | "__clang__") { Tri::Si } else { Tri::NoSe } }
+
+/// Valor de una condicion de `#if` / `#elif` con GCC o Clang.
+fn condicion(expr: &str) -> Tri {
+    // Tokens: identificadores, numeros, ( ) ! && ||. Cualquier otra cosa (==, <, +...) es NoSe.
+    let b = expr.as_bytes();
+    let mut t: Vec<&str> = Vec::new();
+    let mut i = 0;
+    while i < b.len() {
+        let c = b[i];
+        if c.is_ascii_whitespace() { i += 1; continue; }
+        if es_ident(c) { let a = i; while i < b.len() && es_ident(b[i]) { i += 1; } t.push(&expr[a..i]); continue; }
+        if expr[i..].starts_with("&&") || expr[i..].starts_with("||") { t.push(&expr[i..i + 2]); i += 2; continue; }
+        if matches!(c, b'(' | b')' | b'!') && !expr[i..].starts_with("!=") { t.push(&expr[i..i + 1]); i += 1; continue; }
+        return Tri::NoSe;
+    }
+    let mut p = 0;
+    let v = cond_o(&t, &mut p);
+    if p == t.len() { v } else { Tri::NoSe }
+}
+
+fn cond_o(t: &[&str], p: &mut usize) -> Tri {
+    let mut v = cond_y(t, p);
+    while t.get(*p) == Some(&"||") { *p += 1; v = v.o(cond_y(t, p)); }
+    v
+}
+
+fn cond_y(t: &[&str], p: &mut usize) -> Tri {
+    let mut v = cond_uno(t, p);
+    while t.get(*p) == Some(&"&&") { *p += 1; v = v.y(cond_uno(t, p)); }
+    v
+}
+
+fn cond_uno(t: &[&str], p: &mut usize) -> Tri {
+    let Some(&x) = t.get(*p) else { return Tri::NoSe };
+    *p += 1;
+    match x {
+        "!" => cond_uno(t, p).no(),
+        "(" => { let v = cond_o(t, p); if t.get(*p) == Some(&")") { *p += 1; v } else { *p = t.len() + 1; Tri::NoSe } }
+        "defined" => {
+            let con_parentesis = t.get(*p) == Some(&"(");
+            if con_parentesis { *p += 1; }
+            let Some(&n) = t.get(*p) else { return Tri::NoSe };
+            *p += 1;
+            if con_parentesis { if t.get(*p) == Some(&")") { *p += 1; } else { *p = t.len() + 1; return Tri::NoSe; } }
+            macro_del_compilador(n)
+        }
+        _ if x.bytes().all(|c| c.is_ascii_digit()) => if x.bytes().all(|c| c == b'0') { Tri::No } else { Tri::Si },
+        _ if x.bytes().next().is_some_and(|c| c.is_ascii_digit()) => Tri::NoSe,
+        _ => macro_del_compilador(x),
+    }
+}
+
+/// Quita los tokens de las ramas `#if/#elif/#else` que ningun GCC ni Clang compila.
+pub fn sin_ramas_muertas(toks: Vec<Tok<'_>>) -> Vec<Tok<'_>> {
+    struct Rama { padre_muerto: bool, alguna_si: bool, muerta: bool }
+    let mut pila: Vec<Rama> = Vec::new();
+    let mut out = Vec::with_capacity(toks.len());
+    for x in toks {
+        if x.clase == Clase::Directiva {
+            let s = x.t[1..].trim_start();
+            let clave_fin = s.find(|c: char| !c.is_ascii_alphabetic()).unwrap_or(s.len());
+            let (clave, resto) = (&s[..clave_fin], s[clave_fin..].trim());
+            let muerto = pila.last().is_some_and(|r| r.muerta);
+            match clave {
+                "if" | "ifdef" | "ifndef" => {
+                    let v = match clave { "if" => condicion(resto), "ifdef" => macro_del_compilador(resto), _ => macro_del_compilador(resto).no() };
+                    pila.push(Rama { padre_muerto: muerto, alguna_si: v == Tri::Si, muerta: muerto || v == Tri::No });
+                    continue;
+                }
+                "elif" | "elifdef" | "elifndef" | "else" => {
+                    if let Some(r) = pila.last_mut() {
+                        let v = match clave { "else" => Tri::Si, "elif" => condicion(resto), "elifdef" => macro_del_compilador(resto), _ => macro_del_compilador(resto).no() };
+                        r.muerta = r.padre_muerto || r.alguna_si || v == Tri::No;
+                        r.alguna_si |= v == Tri::Si;
+                    }
+                    continue;
+                }
+                "endif" => { pila.pop(); continue; }
+                _ => {}
+            }
+        }
+        if !pila.last().is_some_and(|r| r.muerta) { out.push(x); }
+    }
+    out
+}
+
 /// Un .h es C++ si usa algo que solo existe en C++.
 fn parece_cpp(t: &[Tok]) -> bool {
     t.iter().any(|x| x.clase == Clase::Ident && matches!(x.t, "class" | "namespace" | "template" | "typename" | "nullptr" | "constexpr" | "public" | "private"))
@@ -285,8 +392,26 @@ struct Ctx<'a> {
     en_codigo: Vec<bool>,
     /// Para cada token: indice de la funcion (cuerpo de nivel superior) en la que esta.
     funcion: Vec<u32>,
+    /// Para cada funcion: el token '{' que abre su cuerpo (la 0 es "fuera de funciones").
+    inicios: Vec<usize>,
     out: Vec<Sospecha>,
 }
+
+/// Una declaracion de arreglo vista por UB-004.
+struct Decl<'a> {
+    funcion: u32,
+    /// El tamano si es un literal o una MACRO; None si se calcula.
+    tam: Option<&'a str>,
+    /// `T x[0];` / `T x[1];` al final de una estructura: la reserva real es mayor.
+    flexible: bool,
+    en: usize,
+}
+
+/// Tipos de C++ que se devuelven por valor y copian lo que se les da (`return buf;` crea uno nuevo).
+const PROPIETARIOS: &[&str] = &["string", "wstring", "u16string", "u32string", "u8string", "basic_string", "String", "AtomicString",
+    "vector", "Vector", "optional", "StringBuilder"];
+/// Vistas: devolverlas desde un bufer local si deja la direccion colgando.
+const VISTAS: &[&str] = &["string_view", "wstring_view", "u16string_view", "basic_string_view", "span", "StringPiece", "StringView", "StringPiece16"];
 
 impl<'a> Ctx<'a> {
     fn nuevo(k: &'a [Tok<'a>], cpp: bool) -> Ctx<'a> {
@@ -296,6 +421,7 @@ impl<'a> Ctx<'a> {
         let (mut en_codigo, mut funcion) = (Vec::with_capacity(k.len()), Vec::with_capacity(k.len()));
         let mut pila: Vec<bool> = Vec::new();
         let mut n_funcion = 0u32;
+        let mut inicios = vec![0usize];
         for (i, x) in k.iter().enumerate() {
             let previo = if i > 0 { k[i - 1].t } else { "" };
             if x.clase == Clase::Signo && x.t == "{" {
@@ -307,14 +433,14 @@ impl<'a> Ctx<'a> {
                 let tras_parentesis = j > 0 && k[j - 1].t == ")";
                 let codigo = tras_parentesis || matches!(previo, "else" | "do" | "try")
                     || (arriba && matches!(previo, ";" | "{" | "}" | ":"));
-                if codigo && !arriba { n_funcion += 1; }
+                if codigo && !arriba { n_funcion += 1; inicios.push(i); }
                 pila.push(codigo);
             }
             en_codigo.push(pila.last().copied().unwrap_or(false));
             funcion.push(if pila.iter().any(|c| *c) { n_funcion } else { 0 });
             if x.clase == Clase::Signo && x.t == "}" { pila.pop(); }
         }
-        Ctx { k, cpp, hilos, en_codigo, funcion, out: Vec::new() }
+        Ctx { k, cpp, hilos, en_codigo, funcion, inicios, out: Vec::new() }
     }
 
     fn todo(&mut self) {
@@ -763,12 +889,62 @@ impl<'a> Ctx<'a> {
             let (amp, n) = if self.t(i + 1) == "&" { (true, i + 2) } else { (false, i + 1) };
             if !self.ident(n) || self.t(n + 1) != ";" { continue; }
             if let Some(arreglo) = locales.get(self.t(n)) {
-                if amp || *arreglo {
+                // `std::string f() { char buf[8]; ...; return buf; }` copia el bufer: no cuelga.
+                if amp || (*arreglo && !self.devuelve_propietario(i)) {
                     let m = alloc::format!("{} es local: su vida termina al salir de la funcion y la direccion queda colgando", self.t(n));
                     self.marcar("UB-005", i, Fuerza::Exacto, m, i, n + 2);
                 }
             }
         }
+    }
+
+    /// La funcion que contiene el token devuelve por valor un tipo que copia lo recibido
+    /// (`std::string`, `String`, `std::vector`...) y no una vista ni un puntero.
+    fn devuelve_propietario(&self, i: usize) -> bool {
+        if !self.cpp { return false; }
+        let f = self.funcion.get(i).copied().unwrap_or(0) as usize;
+        let Some(&abre) = self.inicios.get(f) else { return false };
+        if f == 0 { return false; }
+        let tipo = self.tipo_de_retorno(abre);
+        tipo.iter().any(|t| PROPIETARIOS.contains(t))
+            && !tipo.iter().any(|t| matches!(*t, "*" | "&" | "&&") || VISTAS.contains(t))
+    }
+
+    /// Los tokens del tipo de retorno de la funcion cuyo cuerpo abre en `abre`
+    /// (`std::string A::f(int) const {` -> std :: string; `auto f() -> T {` -> T).
+    fn tipo_de_retorno(&self, abre: usize) -> Vec<&'a str> {
+        let mut j = abre;
+        while j > 0 && matches!(self.t(j - 1), "const" | "noexcept" | "override" | "final" | "mutable") { j -= 1; }
+        // Tipo final: ") -> T {"
+        if let Some(flecha) = (j.saturating_sub(16)..j).rev().take_while(|m| self.t(*m) != ")").find(|m| self.t(*m) == "->") {
+            return (flecha + 1..j).map(|m| self.t(m)).collect();
+        }
+        if j == 0 || self.t(j - 1) != ")" { return Vec::new(); }
+        let Some(p) = self.apertura(j - 1) else { return Vec::new() };
+        // El nombre, quizas calificado (A::B::f) o un destructor (~A).
+        let mut n = p;
+        if n == 0 || !self.ident(n - 1) { return Vec::new(); }
+        n -= 1;
+        while n >= 2 && self.t(n - 1) == "::" && (self.ident(n - 2) || self.t(n - 2) == ">") { n -= 2; }
+        let mut tipo = Vec::new();
+        let mut m = n;
+        while m > 0 && n - m < 24 {
+            let t = self.t(m - 1);
+            if matches!(t, "" | ";" | "{" | "}" | ")" | ":" | "public" | "private" | "protected") { break; }
+            tipo.push(t);
+            m -= 1;
+        }
+        tipo.reverse();
+        tipo
+    }
+
+    /// El '(' / '[' / '{' que abre el que cierra en `cierra`.
+    fn apertura(&self, cierra: usize) -> Option<usize> {
+        let mut nivel = 0i32;
+        for j in (cierra.saturating_sub(4000)..=cierra).rev() {
+            match self.t(j) { ")" | "]" | "}" => nivel += 1, "(" | "[" | "{" => { nivel -= 1; if nivel == 0 { return Some(j); } } _ => {} }
+        }
+        None
     }
 
     // ---------- UB-012: va_arg con un tipo que se promueve ----------
@@ -979,25 +1155,43 @@ impl<'a> Ctx<'a> {
 
     // ---------- UB-004: fuera del arreglo (indice literal o bucle hasta <=) ----------
     fn fuera_del_arreglo(&mut self) {
-        // nombre -> (tamano, token del tamano); los nombres repetidos no cuentan.
-        let mut tam: BTreeMap<&str, Option<(&str, usize)>> = BTreeMap::new();
+        // nombre -> cada declaracion: (funcion, tamano si es un literal o una MACRO, indice).
+        // Un tamano calculado (`iov[kCrashIovSize]`, `buf[N + 3]`) tambien es una
+        // declaracion: sin ella se mediria contra otro arreglo del mismo nombre.
+        let mut decl: BTreeMap<&str, Vec<Decl<'a>>> = BTreeMap::new();
         for i in 1..self.k.len() {
-            if self.ident(i) && self.t(i + 1) == "[" && (self.numero(i + 2) || (self.ident(i + 2) && es_macro(self.t(i + 2)))) && self.t(i + 3) == "]"
-               && matches!(self.t(i + 4), ";" | "=" | "," | "[") && (TIPOS.contains(&self.antes(i, 1)) || self.ident(i - 1) && !matches!(self.antes(i, 1), "return" | "sizeof" | "new" | "delete" | "case")) {
-                let e = tam.entry(self.t(i)).or_insert(Some((self.t(i + 2), i)));
-                if e.is_some_and(|(_, d)| d != i) { *e = None; }
-            }
+            if !self.ident(i) || self.t(i + 1) != "[" { continue; }
+            let Some(c) = self.cierre(i + 1) else { continue };
+            if !matches!(self.t(c + 1), ";" | "=" | "," | "[") { continue; }
+            let p = self.antes(i, 1);
+            let es_decl = TIPOS.contains(&p)
+                || (self.ident(i - 1) && !matches!(p, "return" | "sizeof" | "new" | "delete" | "case" | "else" | "do" | "throw" | "co_return"))
+                // `struct { ... } campo[32];`: miembro de una estructura anonima.
+                || (p == "}" && !self.en_codigo[i - 1]);
+            if !es_decl { continue; }
+            let fija = c == i + 3 && (self.numero(i + 2) || (self.ident(i + 2) && es_macro(self.t(i + 2))));
+            // `T x[0];` o `T x[1];` como ultimo miembro: arreglo flexible (la reserva es mayor).
+            let flexible = !self.en_codigo[i] && self.t(c + 1) == ";" && self.t(c + 2) == "}" && fija && matches!(self.t(i + 2), "0" | "1");
+            decl.entry(self.t(i)).or_default().push(Decl { funcion: self.funcion[i], tam: fija.then(|| self.t(i + 2)), flexible, en: i });
         }
+        // La declaracion que vale para un uso: la de su funcion; si no hay, la unica de fuera.
+        let tam_de = |nombre: &str, i: usize| -> Option<&'a str> {
+            let lista = decl.get(nombre)?;
+            let f = self.funcion[i];
+            let propias: Vec<&Decl> = lista.iter().filter(|d| f != 0 && d.funcion == f).collect();
+            let elegidas = if propias.is_empty() { lista.iter().filter(|d| d.funcion == 0).collect() } else { propias };
+            match elegidas.as_slice() { [d] if d.en != i && !d.flexible => d.tam, _ => None }
+        };
+        let mut marcas: Vec<(usize, Fuerza, String, usize, usize)> = Vec::new();
         for i in 1..self.k.len() {
             // a[K] con K literal >= tamano.
             if self.ident(i) && self.t(i + 1) == "[" && self.numero(i + 2) && self.t(i + 3) == "]" && self.es_acceso(i) {
-                if let Some(Some((n, decl))) = tam.get(self.t(i)) {
-                    if *decl != i {
-                        if let (Some((k, _, _)), Some((n, _, _))) = (literal(self.k[i + 2].t), literal(n)) {
-                            if k >= n && self.antes(i, 1) != "&" {
-                                let m = alloc::format!("{}[{k}] con {n} elementos: el ultimo indice valido es {}", self.t(i), n - 1);
-                                self.marcar("UB-004", i, Fuerza::Exacto, m, i, i + 4);
-                            }
+                if let Some(n) = tam_de(self.t(i), i) {
+                    if let (Some((k, _, _)), Some((n, _, _))) = (literal(self.k[i + 2].t), literal(n)) {
+                        // n == 0 es un arreglo de longitud cero (extension de GNU): sin limite que medir.
+                        if n > 0 && k >= n && self.antes(i, 1) != "&" {
+                            let m = alloc::format!("{}[{k}] con {n} elementos: el ultimo indice valido es {}", self.t(i), n - 1);
+                            marcas.push((i, Fuerza::Exacto, m, i, i + 4));
                         }
                     }
                 }
@@ -1011,23 +1205,24 @@ impl<'a> Ctx<'a> {
                 let fin = if self.t(c + 1) == "{" { self.cierre(c + 1).unwrap_or(c + 1) } else { (c..self.k.len().min(c + 40)).find(|j| self.t(*j) == ";").unwrap_or(c) };
                 for j in c..fin {
                     if self.ident(j) && self.t(j + 1) == "[" && self.t(j + 2) == var && self.t(j + 3) == "]" {
-                        if let Some(Some((n, _))) = tam.get(self.t(j)) {
-                            if *n == limite {
-                                let m = alloc::format!("el bucle llega a {var} == {limite} y {}[{limite}] ya esta fuera (el ultimo es {limite} - 1)", self.t(j));
-                                self.marcar("UB-004", le, Fuerza::Revisar, m, i, c + 1);
-                                break;
-                            }
+                        if tam_de(self.t(j), j) == Some(limite) {
+                            let m = alloc::format!("el bucle llega a {var} == {limite} y {}[{limite}] ya esta fuera (el ultimo es {limite} - 1)", self.t(j));
+                            marcas.push((le, Fuerza::Revisar, m, i, c + 1));
+                            break;
                         }
                     }
                 }
             }
         }
+        for (en, fuerza, m, a, b) in marcas { self.marcar("UB-004", en, fuerza, m, a, b); }
     }
 
     /// `a[4]` es un acceso (no una declaracion ni un parametro): lo que hay delante es un
     /// operador, o una coma dentro de los parentesis de una llamada.
     fn es_acceso(&self, i: usize) -> bool {
         let p = self.antes(i, 1);
+        // `} campo[32];` tras cerrar una estructura es una declaracion, no un acceso.
+        if p == "}" && !self.en_codigo[i - 1] { return false; }
         if p == "," {
             let mut nivel = 0i32;
             for j in (0..i).rev() {
@@ -1144,6 +1339,180 @@ fn desescapar(t: &str) -> String {
     let s = t.strip_prefix('"').unwrap_or(t);
     let s = s.strip_suffix('"').unwrap_or(s);
     s.replace("\\n", "\n").replace("\\t", " ").replace("\\\"", "\"")
+}
+
+// ====================================================================================
+// Rust: lexer propio (vidas 'a, cadenas crudas r#"..."#, comentarios anidados) y una
+// funcion por ficha RS-*. Igual de lexico que el resto: no ve tipos ni el borrow checker.
+// ====================================================================================
+
+pub fn tokens_rust(texto: &str) -> Vec<Tok<'_>> {
+    let b = texto.as_bytes();
+    let mut v = Vec::new();
+    let (mut i, mut linea, mut ini) = (0usize, 1u32, 0usize);
+    // Avanza hasta `fin` contando lineas.
+    let saltar = |desde: usize, fin: usize, linea: &mut u32, ini: &mut usize| {
+        for (j, c) in b[desde..fin].iter().enumerate() { if *c == b'\n' { *linea += 1; *ini = desde + j + 1; } }
+    };
+    while i < b.len() {
+        let c = b[i];
+        if c == b'\n' { linea += 1; i += 1; ini = i; continue; }
+        if c.is_ascii_whitespace() { i += 1; continue; }
+        let col = (i - ini) as u32 + 1;
+        let l0 = linea;
+        if c == b'/' && b.get(i + 1) == Some(&b'/') { while i < b.len() && b[i] != b'\n' { i += 1; } continue; }
+        if c == b'/' && b.get(i + 1) == Some(&b'*') {
+            let a = i;
+            let mut nivel = 0usize;
+            while i < b.len() {
+                if b[i] == b'/' && b.get(i + 1) == Some(&b'*') { nivel += 1; i += 2; continue; }
+                if b[i] == b'*' && b.get(i + 1) == Some(&b'/') { nivel -= 1; i += 2; if nivel == 0 { break; } continue; }
+                i += 1;
+            }
+            i = i.min(b.len());
+            saltar(a, i, &mut linea, &mut ini);
+            continue;
+        }
+        // Cadena cruda: r"..", r#".."#, br#".."#, cr"..".
+        if matches!(c, b'r' | b'b' | b'c') {
+            let mut j = i + 1;
+            if c != b'r' && b.get(j) == Some(&b'r') { j += 1; }
+            if c == b'r' || b.get(i + 1) == Some(&b'r') {
+                let h0 = j;
+                while b.get(j) == Some(&b'#') { j += 1; }
+                let hashes = j - h0;
+                if b.get(j) == Some(&b'"') {
+                    let mut k = j + 1;
+                    while k < b.len() && !(b[k] == b'"' && b[k + 1..].iter().take(hashes).filter(|x| **x == b'#').count() == hashes && b.len() - k > hashes) { k += 1; }
+                    let fin = (k + 1 + hashes).min(b.len());
+                    v.push(Tok { clase: Clase::Cadena, t: corte(texto, i, fin), linea: l0, col });
+                    saltar(i, fin, &mut linea, &mut ini);
+                    i = fin;
+                    continue;
+                }
+            }
+        }
+        // b"..", c"..", "..": pueden ocupar varias lineas.
+        let prefijo = matches!(c, b'b' | b'c') && b.get(i + 1) == Some(&b'"');
+        if c == b'"' || prefijo {
+            let a = i;
+            i += if prefijo { 2 } else { 1 };
+            while i < b.len() && b[i] != b'"' { if b[i] == b'\\' { i += 1; } i += 1; }
+            i = (i + 1).min(b.len());
+            v.push(Tok { clase: Clase::Cadena, t: corte(texto, a, i), linea: l0, col });
+            saltar(a, i, &mut linea, &mut ini);
+            continue;
+        }
+        // 'x', '\n', b'x' son caracteres; 'a y 'etiqueta son vidas.
+        let byte = c == b'b' && b.get(i + 1) == Some(&b'\'');
+        if c == b'\'' || byte {
+            let a = i;
+            let q = if byte { i + 1 } else { i };
+            let largo = texto.get(q + 1..).and_then(|r| r.chars().next()).map_or(1, char::len_utf8);
+            if b.get(q + 1) == Some(&b'\\') {
+                // Saltar la barra y el caracter escapado ('\'' tambien es un caracter).
+                i = (q + 3).min(b.len());
+                while i < b.len() && b[i] != b'\'' && b[i] != b'\n' { i += 1; }
+                i = (i + 1).min(b.len());
+                v.push(Tok { clase: Clase::Caracter, t: corte(texto, a, i), linea: l0, col });
+            } else if b.get(q + 1 + largo) == Some(&b'\'') {
+                i = q + 2 + largo;
+                v.push(Tok { clase: Clase::Caracter, t: corte(texto, a, i), linea: l0, col });
+            } else {
+                i = q + 1;
+                while i < b.len() && es_ident(b[i]) { i += 1; }
+                v.push(Tok { clase: Clase::Ident, t: corte(texto, a, i), linea: l0, col });
+            }
+            continue;
+        }
+        if c.is_ascii_digit() {
+            let a = i;
+            while i < b.len() && (es_ident(b[i]) || (b[i] == b'.' && b.get(i + 1).is_some_and(u8::is_ascii_digit))) { i += 1; }
+            v.push(Tok { clase: Clase::Numero, t: corte(texto, a, i), linea: l0, col });
+            continue;
+        }
+        if es_ident(c) {
+            let a = i;
+            // r#identificador crudo
+            if c == b'r' && b.get(i + 1) == Some(&b'#') && b.get(i + 2).is_some_and(|x| es_ident(*x)) { i += 2; }
+            while i < b.len() && es_ident(b[i]) { i += 1; }
+            v.push(Tok { clase: Clase::Ident, t: corte(texto, a, i), linea: l0, col });
+            continue;
+        }
+        const R3: &[&str] = &["..=", "...", "<<=", ">>="];
+        const R2: &[&str] = &["::", "->", "=>", "==", "!=", "<=", ">=", "&&", "||", "+=", "-=", "*=", "/=", "%=", "^=", "&=", "|=", "<<", ">>", ".."];
+        let resto = &b[i..];
+        let largo = if R3.iter().any(|s| resto.starts_with(s.as_bytes())) { 3 } else if R2.iter().any(|s| resto.starts_with(s.as_bytes())) { 2 } else { 1 };
+        v.push(Tok { clase: Clase::Signo, t: corte(texto, i, i + largo), linea: l0, col });
+        i += largo;
+    }
+    v
+}
+
+fn rust_archivo(ruta: &str, texto: &str) -> Vec<Sospecha> {
+    let k = tokens_rust(texto);
+    let lineas: Vec<&str> = texto.lines().collect();
+    let t = |i: usize| -> &str { match k.get(i) { Some(x) if x.clase != Clase::Cadena => x.t, _ => "" } };
+    let ruta_de_prueba = ruta.split('/').any(|p| matches!(p, "tests" | "benches" | "examples" | "testing")) || ruta.ends_with("_test.rs") || ruta.ends_with("tests.rs");
+    // Tokens dentro de #[cfg(test)] mod ... { } o de #[test] fn ... { }.
+    let mut prueba = vec![ruta_de_prueba; k.len()];
+    if !ruta_de_prueba {
+        for i in 0..k.len() {
+            let atributo = t(i) == "#" && t(i + 1) == "[" && ((t(i + 2) == "test" && t(i + 3) == "]") || (t(i + 2) == "cfg" && t(i + 3) == "(" && t(i + 4) == "test" && t(i + 5) == ")"));
+            if !atributo { continue; }
+            let Some(abre) = (i + 3..k.len().min(i + 400)).find(|j| matches!(t(*j), "{" | ";")) else { continue };
+            if t(abre) == ";" { continue; }
+            let mut nivel = 0i32;
+            for j in abre..k.len() {
+                match t(j) { "{" => nivel += 1, "}" => { nivel -= 1; } _ => {} }
+                prueba[j] = true;
+                if nivel == 0 { break; }
+            }
+        }
+    }
+    let mut out = Vec::new();
+    let mut marcar = |ficha: &'static str, i: usize, fuerza: Fuerza, motivo: String, hasta: usize| {
+        let x = &k[i];
+        let visto: String = (i..hasta.min(k.len())).map(|j| k[j].t).collect::<Vec<_>>().join(" ").replace(" :: ", "::").replace(" (", "(").replace("( ", "(").replace(" )", ")");
+        out.push(Sospecha { ficha, linea: x.linea, columna: x.col, fuerza, visto, motivo });
+    };
+    let llamada = |i: usize| t(i + 1) == "(" || (t(i + 1) == "::" && t(i + 2) == "<");
+    for i in 0..k.len() {
+        match t(i) {
+            // RS-001: unsafe { sin // SAFETY: en la linea o en las 3 anteriores.
+            "unsafe" if t(i + 1) == "{" => {
+                let l = k[i].linea as usize;
+                let documentado = (l.saturating_sub(4)..l).any(|n| lineas.get(n).is_some_and(|s| s.to_ascii_uppercase().contains("SAFETY")));
+                if !documentado {
+                    marcar("RS-001", i, Fuerza::Revisar, String::from("bloque unsafe sin un comentario // SAFETY: que diga que invariante lo hace correcto"), i + 2);
+                }
+            }
+            // RS-002: transmute(...) o transmute::<A, B>(...)
+            "transmute" | "transmute_copy" if llamada(i) && t(i.wrapping_sub(1)) != "." => {
+                marcar("RS-002", i, Fuerza::Revisar, alloc::format!("{} no comprueba que los bytes formen un valor valido del tipo destino", t(i)), i + 2);
+            }
+            // RS-003: static mut NOMBRE
+            "static" if t(i + 1) == "mut" => {
+                marcar("RS-003", i, Fuerza::Exacto, alloc::format!("{} es un static mut: cualquier referencia a el puede ser una carrera de datos", t(i + 2)), i + 3);
+            }
+            // RS-004: mem::uninitialized / mem::zeroed
+            "uninitialized" | "zeroed" if llamada(i) && t(i.wrapping_sub(1)) == "::" => {
+                let (fuerza, m) = if t(i) == "uninitialized" { (Fuerza::Exacto, "mem::uninitialized es comportamiento indefinido para casi todo tipo: usar MaybeUninit") }
+                                  else { (Fuerza::Revisar, "mem::zeroed es UB si el tipo tiene referencias, Box, NonNull, fn o un enum sin variante cero") };
+                marcar("RS-004", i, fuerza, String::from(m), i + 2);
+            }
+            // RS-005: slice::from_raw_parts(_mut)
+            "from_raw_parts" | "from_raw_parts_mut" if llamada(i) && t(i.wrapping_sub(1)) == "::" => {
+                marcar("RS-005", i, Fuerza::Revisar, String::from("el slice confia en que el puntero sea valido y alineado y en que len elementos esten inicializados"), i + 2);
+            }
+            // RS-006: .unwrap() / .expect(..) fuera de las pruebas
+            "unwrap" | "expect" if t(i.wrapping_sub(1)) == "." && t(i + 1) == "(" && !prueba[i] => {
+                marcar("RS-006", i, Fuerza::Revisar, alloc::format!("{} convierte un error en panic: devolver el error con ? si el dato viene de fuera", t(i)), i + 2);
+            }
+            _ => {}
+        }
+    }
+    out
 }
 
 // ====================================================================================

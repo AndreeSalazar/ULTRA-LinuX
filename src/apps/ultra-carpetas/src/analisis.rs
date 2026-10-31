@@ -67,8 +67,8 @@ struct Hoja { ruta: u32, refs: Vec<Referencia>, sospechas: Vec<Sospecha>, bytes:
 
 // ---------------- Cache incremental ----------------
 
-/// Sube si cambia lo que se guarda por archivo.
-const VERSION_CACHE: u32 = 2;
+/// Sube si cambia lo que se guarda por archivo o lo que detecta el museo.
+const VERSION_CACHE: u32 = 3;
 
 /// Donde va la cache de una carpeta (None: apagada).
 pub fn ruta_cache(base: &Path) -> Option<std::path::PathBuf> {

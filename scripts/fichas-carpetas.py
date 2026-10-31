@@ -41,7 +41,8 @@ def fichas():
     for p in triangulo['piezas']:
         salida.append(dict(id=p['id'], lenguaje=p['lenguaje'], clase=p['clase'], titulo=p['titulo'], regla=p['regla'],
                            control=p['control'], limite=p['limite'], referencia=p['referencia'], url=p['url'],
-                           pagina='Museo/triangulo.json', eje=p['eje'], motivo_eje='Guia para revisar, no un fallo.'))
+                           pagina='Museo/triangulo.json', eje=p['eje'],
+                           motivo_eje=p.get('motivo_eje', 'Guia para revisar, no un fallo.')))
     if any(f['eje'] not in ('SEGURIDAD', 'RENDIMIENTO', 'ELEGANCIA') for f in salida):
         raise SystemExit('eje desconocido')
     if set(ejes) - {f['id'] for f in salida}:
@@ -61,7 +62,7 @@ def generar():
               '#[derive(Debug, Clone, Copy, PartialEq, Eq)]',
               'pub struct Ficha {',
               '    pub id: &\'static str,',
-              '    /// "C", "C++" o "ASM".',
+              '    /// "C", "C++", "ASM" o "Rust".',
               '    pub lenguaje: &\'static str,',
               '    pub clase: &\'static str,',
               '    pub titulo: &\'static str,',

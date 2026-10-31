@@ -33,7 +33,7 @@ fn main() {
         }
     }
     let ms = t.elapsed().as_millis();
-    println!("{archivos} archivos C/C++/ASM, {:.1} MiB en {ms} ms", bytes as f64 / 1048576.0);
+    println!("{archivos} archivos C/C++/ASM/Rust, {:.1} MiB en {ms} ms", bytes as f64 / 1048576.0);
     for (f, (ex, rev, m)) in &por {
         println!("{f}: {ex} exactas, {rev} revisar");
         for x in m { println!("    {x}"); }
