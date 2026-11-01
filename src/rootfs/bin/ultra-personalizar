@@ -7,6 +7,7 @@ copias del tema en ~/.config/ultra/tema-personal/ y se aplican en vivo.
 Sin elecciones guardadas no se genera nada: el escritorio usa /etc/ultra tal cual.
 """
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -31,7 +32,7 @@ ACENTOS = {'hielo': '#5ad8ff', 'amarillo': '#fcee0a', 'cyan': '#00f0ff', 'rojo':
            'verde': '#3dff9a', 'violeta': '#c03bff', 'coral': '#ff7a90', 'blanco': '#ece9dc'}
 OPCIONES = {
     'acento': list(ACENTOS) + ['propio'],
-    'fondo': ['neon', 'demonio', 'vivo', 'vivo-demonio', 'ciudad-3d', 'auto', 'nucleo', 'imagen', 'imagen-viva', 'liso'],
+    'fondo': ['neon', 'ciudad-cyan', 'ciudad-violeta', 'ciudad-verde', 'demonio', 'vivo', 'vivo-demonio', 'ciudad-3d', 'auto', 'nucleo', 'imagen', 'imagen-viva', 'liso'],
     'efectos': ['vivos', 'reducidos'],
     'borde': ['gira', 'quieto'],
     'huecos': ['compacto', 'normal', 'amplio'],
@@ -65,6 +66,9 @@ TITULOS = dict(acento='Acento', fondo='Fondo', efectos='Efectos', borde='Borde d
 # Perfiles de un toque: se parte del defecto y se cambian solo estas claves.
 PERFILES = {
     'neon-hielo': {},
+    'neon-cyan': dict(acento='cyan', fondo='ciudad-cyan', efectos='reducidos', borde='quieto'),
+    'neon-violeta': dict(acento='violeta', fondo='ciudad-violeta', efectos='reducidos', borde='quieto'),
+    'neon-verde': dict(acento='verde', fondo='ciudad-verde', efectos='reducidos', borde='quieto'),
     'demonio': dict(acento='rojo', fondo='demonio', borde='gira', esquinas='rectas', desenfoque='ligero', inactivas='92'),
     # Todo vivo: ciudad 3D, sonidos, tarjetas y borde que gira.
     'ciudad-3d': dict(fondo='ciudad-3d', borde='gira', sonidos='si', tarjetas='visibles', desenfoque='ligero', inactivas='92'),
@@ -267,7 +271,12 @@ def fondo_efectivo(estado, hora=None):
 def rutas_fondo(estado, hora=None):
     acento = color_acento(estado)
     fondo = fondo_efectivo(estado, hora)
-    rutas = dict(FONDO=ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    base = ETC / 'wallpaper.png'
+    rutas = dict(FONDO=base if base.is_file() else ETC / 'wallpaper.svg', FONDO_MODO='fill')
+    if fondo in ('ciudad-cyan','ciudad-violeta','ciudad-verde'):
+        path=ETC/f'wallpaper-{fondo}.png'
+        if path.is_file(): rutas['FONDO']=path
+        return rutas
     if fondo == 'ciudad-3d':
         # Ciudad 3D pre-renderizada: el Neon quieto hasta que el bucle esta listo.
         rutas.update(VIVO='ciudad3d', VIVO_ACENTO=acento)
@@ -282,7 +291,8 @@ def rutas_fondo(estado, hora=None):
         rutas.update(VIVO='imagen', VIVO_ACENTO=acento, VIVO_IMAGEN=estado['imagen'])
         fondo = 'imagen'
     if fondo == 'nucleo':
-        rutas['FONDO'] = ETC / 'wallpaper-nucleo.svg'
+        base = ETC / 'wallpaper-nucleo.png'
+        rutas['FONDO'] = base if base.is_file() else ETC / 'wallpaper-nucleo.svg'
     elif fondo == 'demonio':
         rutas['FONDO'] = ETC / 'wallpaper-demonio.png'
     elif fondo == 'imagen' and imagen_valida(estado['imagen']):
@@ -294,8 +304,31 @@ def rutas_fondo(estado, hora=None):
                                    capture_output=True, text=True, timeout=60, check=True)
         if not resultado.stdout.startswith('<svg'): raise ValueError('fondo generado invalido')
         escribir(TEMA / 'fondo.svg', resultado.stdout)
-        rutas['FONDO'] = TEMA / 'fondo.svg'
+        rutas['FONDO'] = fondo_png(resultado.stdout)
     return rutas
+
+
+def fondo_png(svg):
+    """Render own generated SVG once per content; one PNG, no growing cache."""
+    carpeta_segura(TEMA)
+    png, receipt = TEMA/'fondo.png', TEMA/'fondo.png.sha256'
+    digest = hashlib.sha256(('1920x1080-v1\n'+svg).encode()).hexdigest()
+    if (not png.is_symlink() and png.is_file() and png.stat().st_size <= 32*1024**2 and not receipt.is_symlink()
+            and receipt.is_file() and receipt.stat().st_size < 128
+            and receipt.read_text().strip() == digest):
+        with png.open('rb') as f:
+            head=f.read(24)
+            if (head[:8]==b'\x89PNG\r\n\x1a\n' and len(head)==24
+                    and int.from_bytes(head[16:20],'big')==1920
+                    and int.from_bytes(head[20:24],'big')==1080): return png
+    with tempfile.TemporaryDirectory(prefix='.raster-', dir=TEMA) as tmp:
+        target=Path(tmp)/'fondo.png'
+        subprocess.run(['rsvg-convert','-w','1920','-h','1080','-o',str(target)],
+                       input=svg.encode(),capture_output=True,timeout=30,check=True)
+        if target.stat().st_size > 32*1024**2: raise ValueError('Fondo rasterizado excesivo')
+        target.chmod(0o600); os.replace(target,png)
+    escribir(receipt,digest+'\n')
+    return png
 
 
 def rutas_sesion():
@@ -408,7 +441,7 @@ def aplicar(estado, reiniciar=True):
 
 
 def restablecer():
-    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg', 'eww/eww.yuck', 'eww/eww.scss'):
+    for nombre in ('waybar.css', 'waybar.jsonc', 'mako.conf', 'fuzzel.ini', 'fondo.svg', 'fondo.png', 'fondo.png.sha256', 'eww/eww.yuck', 'eww/eww.scss'):
         try: (TEMA / nombre).unlink()
         except FileNotFoundError: pass
     try: ESTADO.unlink()

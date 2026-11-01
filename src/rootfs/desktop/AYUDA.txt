@@ -26,6 +26,7 @@ SUPER + Impr Pant   Captura de la ventana activa
 SUPER + C           Limpiar notificaciones
 SUPER + Shift + N   Recuperar el ultimo aviso cerrado (repetir para mas)
 SUPER + V           Portapapeles persistente: texto, imagenes y pines
+SUPER + Tab         Elegir escritorio 1..9; guia de organizacion
 SUPER + Shift + V   Portapapeles (atajo anterior compatible)
 SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo

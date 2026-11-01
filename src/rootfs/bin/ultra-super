@@ -32,6 +32,7 @@ MENUS = {
     ]),
     'atajos': ('BMO-X // ATAJOS', '00f0ffff', [
         ('', 'Centro SUPER', 'Super+Espacio', ['ultra-super','menu']),
+        ('', 'Escritorios y ventanas', 'Super+Tab', ['ultra-super','escritorios']),
         ('', 'Buscar aplicaciones', 'Super+R', ['ultra-personalizar','lanzador']),
         ('', 'Archivos', 'Super+E', ['thunar']),
         ('', 'Navegador', 'Super+B', ['ultra-brave']),
@@ -49,6 +50,11 @@ MENUS = {
         ('', 'Todos los atajos', 'Super+H', ['foot','/usr/bin/less','/etc/ultra/AYUDA.txt']),
     ]),
 }
+MENUS['escritorios'] = ('BMO-X // ESCRITORIOS', '3dff9aff', [
+    ('', f'{i:02d} · {name}', f'Super+{i}', ['ultra-escritorio-ir',str(i)])
+    for i,name in enumerate(('Trabajo','Web','Juegos','Archivos','Laboratorio',
+                             'Libre','Libre','Libre','Libre'),1)
+])
 
 
 def selected(action):

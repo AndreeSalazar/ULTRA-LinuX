@@ -1,0 +1,2 @@
+VERDE [ELF]: seis ejecutables auditados y HEX del lector ligados al manifiesto.
+VERDE: SHA256 de entrega y ELF completos

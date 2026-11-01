@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Same numbered focus action as Super+1..9, from the shortcut menu."""
+import os
+import sys
+if os.geteuid()!=1000 or len(sys.argv)!=2 or sys.argv[1] not in tuple('123456789'):
+    sys.exit('Uso: ultra-escritorio-ir 1..9, como usuario del escritorio')
+os.execvp('hyprctl',['hyprctl','dispatch','hl.dsp.focus({ workspace = '+sys.argv[1]+' })'])

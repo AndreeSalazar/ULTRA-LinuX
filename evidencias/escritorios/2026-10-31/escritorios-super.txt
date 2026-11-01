@@ -1,0 +1,12 @@
+test_cancel_dispatches_nothing (__main__.Super.test_cancel_dispatches_nothing) ... ok
+test_catalogue_has_matching_runtime_bindings (__main__.Super.test_catalogue_has_matching_runtime_bindings) ... ok
+test_clipboard_shortcut_keeps_float_action_separate (__main__.Super.test_clipboard_shortcut_keeps_float_action_separate) ... ok
+test_fixed_selection_and_namespace (__main__.Super.test_fixed_selection_and_namespace) ... ok
+test_input_shortcut_preserves_session_exit (__main__.Super.test_input_shortcut_preserves_session_exit) ... ok
+test_invalid_or_injected_selection_rejected (__main__.Super.test_invalid_or_injected_selection_rejected) ... ok
+test_workspace_menu_covers_nine_numbered_desktops (__main__.Super.test_workspace_menu_covers_nine_numbered_desktops) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.001s
+
+OK

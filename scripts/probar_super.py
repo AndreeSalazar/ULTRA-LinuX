@@ -42,6 +42,9 @@ class Super(unittest.TestCase):
         self.assertIn('hl.bind("SUPER + V", hl.dsp.exec_cmd("ultra-portapapeles menu"))',lua)
         self.assertEqual(lua.count('hl.bind("SUPER + V",'),1)
         self.assertIn('hl.bind("SUPER + CTRL + V", hl.dsp.window.float',lua)
+    def test_workspace_menu_covers_nine_numbered_desktops(self):
+        rows=app.MENUS['escritorios'][2]
+        self.assertEqual([row[3] for row in rows],[['ultra-escritorio-ir',str(i)] for i in range(1,10)])
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

@@ -260,6 +260,7 @@ if [[ -n $cmdline ]]; then
     bash "$lab/instalar-heronite.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-eww.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-carpetas.sh" "$sistema" "$art" "$base"
+    bash "$lab/instalar-waybar-lua.sh" "$sistema" "${ULTRA_BUILD_CACHE:-$base}/waybar-lua"
     # Fixed session identity; render nodes only. KMS/input go through root seatd.
     sudo systemd-sysusers --root="$sistema"
     sudo chroot "$sistema" /usr/bin/groupadd -f -r render
@@ -289,13 +290,17 @@ if [[ -n $cmdline ]]; then
     sudo install -m 0644 "$lab/rootfs/fuentes/"*.ttf "$sistema/usr/share/fonts/ultra-neon/"
     sudo install -m 0644 "$lab/rootfs/fuentes/"OFL-*.txt "$sistema/usr/share/licenses/ultra-neon/"
     sudo chroot "$sistema" /usr/bin/fc-cache -f > /dev/null
+    for name in wallpaper wallpaper-nucleo; do
+        sudo chroot "$sistema" /usr/bin/rsvg-convert -w 1920 -h 1080 -o "/etc/ultra/$name.png" "/etc/ultra/$name.svg"
+    done
+    sudo python3 "$lab/preparar-fondos.py" "$sistema"
     sudo install -m 0644 "$art/sistema-paquetes.txt" "$sistema/etc/ultra/sistema-paquetes.txt"
     sudo install -d -m 0755 "$sistema/usr/local/bin" "$sistema/usr/share/applications"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-brave" "$sistema/usr/local/bin/ultra-brave"
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
     for helper in ultra-audio ultra-juegos ultra-heronite ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-vigilante ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura ultra-super ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$sistema/usr/local/bin/ultra-energia"
-    for helper in steam ultra-entrada ultra-hud-heronite ultra-puntero-red; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in steam ultra-entrada ultra-escritorio-ir ultra-hud-heronite ultra-puntero-red; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     for helper in ultra-cpu-control ultra_termica.py; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null

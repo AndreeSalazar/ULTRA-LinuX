@@ -29,6 +29,8 @@ del origen Windows conservan generaciones y estado Linux con limites de espacio.
 aceleracion, rueda, distribucion y repeticion; perfil persistente con Super+Ctrl+M.
 [Portapapeles con pines](docs/PORTAPAPELES.md): Super+V, texto e imagenes
 persistentes, busqueda y presupuesto de espacio; limpiar conserva los fijados.
+[Escritorios y fondos preparados](docs/ESCRITORIOS-Y-FONDOS.md): nueve destinos,
+Super+Tab, clic numerico compatible con Lua y ciudades estaticas cyan/violeta/verde.
 [Centro SUPER, dock y capturas](docs/SUPER-ACCESOS-CAPTURAS.md): accesos con iconos,
 atajos visibles y menus animados; el PNG guardado se conserva si falla el portapapeles.
 [Estado, bancos C/C++ y pasos pendientes](CASM/AUTOCOMPILACION.md).

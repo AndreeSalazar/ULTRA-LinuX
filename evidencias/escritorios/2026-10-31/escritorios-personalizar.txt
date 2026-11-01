@@ -1,0 +1,1 @@
+VERDE: personalizar genera, aplica, rechaza entradas invalidas y restablece

@@ -71,7 +71,7 @@ def main():
         assert ['waybar', '-c', str(tema / 'waybar.jsonc'), '-s', str(tema / 'waybar.css')] in cmds
         assert (runtime / 'ultra-efectos').read_text().strip() == 'vivo'
         assert ['mako', '--config', str(tema / 'mako.conf')] in cmds
-        assert ['swaybg', '-i', str(tema / 'fondo.svg'), '-m', 'fill'] in cmds
+        assert ['swaybg', '-i', str(tema / 'fondo.png'), '-m', 'fill'] in cmds
         assert correr('acento')[0].strip() == 'fcee0aff'
         # Opciones de forma: huecos, borde quieto, cursor, barra, ventanas inactivas.
         for clave, valor in (('huecos', 'amplio'), ('borde', 'quieto'), ('cursor', '48'), ('barra', 'grande'), ('inactivas', '85')):
@@ -164,7 +164,12 @@ def main():
         assert 'selection-background=ff2a4f' in texto and 'cursor=000000 ff2a4f' in texto and 'bright4=5ad8ff' in texto
         # Fondo auto: Neon de dia (con el acento), Demonio de noche; vigilar cambia al pasar la hora.
         correr('poner', 'fondo', 'auto')
-        assert f'FONDO={tema / "fondo.svg"}' in correr('rutas', HORAS_PRUEBA='12')[0]
+        assert f'FONDO={tema / "fondo.png"}' in correr('rutas', HORAS_PRUEBA='12')[0]
+        png=tema/'fondo.png'
+        assert png.read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
+        stamp=png.stat().st_mtime_ns
+        correr('rutas', HORAS_PRUEBA='12')
+        assert png.stat().st_mtime_ns==stamp, 'El mismo fondo no debe volver a rasterizarse'
         assert f'FONDO={RAIZ / "src/rootfs/desktop/wallpaper-demonio.png"}' in correr('rutas', HORAS_PRUEBA='22')[0]
         _, cmds = correr('vigilar', HORAS_PRUEBA='18,18,19,19')
         assert ['swaybg', '-i', str(RAIZ / 'src/rootfs/desktop/wallpaper-demonio.png'), '-m', 'fill'] in cmds

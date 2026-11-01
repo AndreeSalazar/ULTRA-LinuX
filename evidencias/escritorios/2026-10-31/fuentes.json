@@ -1,0 +1,70 @@
+{
+  "base_commit": "678019c010606bcdbbe74253afcb111bd9e2887e",
+  "normalization": "UTF-8 LF",
+  "files": [
+    {
+      "path": "scripts/instalar-waybar-lua.sh",
+      "sha256": "861f72c8051fd0969e1ff6b9ed26a4b7058a738f029b743b3f39b00d15ec42a9"
+    },
+    {
+      "path": "scripts/waybar-numericos-lua.py",
+      "sha256": "ba072d80b36083577cf8d59e73fcd3909a15e49f9964fd54529b2e990f8d3f15"
+    },
+    {
+      "path": "scripts/preparar-fondos.py",
+      "sha256": "76ce986b9990cf388be85034ea3d3de554cf65a48debb7e18b052fb06f16ca69"
+    },
+    {
+      "path": "scripts/probar_personalizar.py",
+      "sha256": "515cf402f2dbf77fe3fabe0e0672c732f77a43a3d2782bef8e8d5f219d5e4fc4"
+    },
+    {
+      "path": "scripts/probar_super.py",
+      "sha256": "e2c47ae40ba94dd0f54854b43fa9c18cec9ab8d2268c42ed6549bf4575b73b01"
+    },
+    {
+      "path": "scripts/probar_arranque.py",
+      "sha256": "2ee1202d3def3ef6acac2fd57dff9a17367e1e85b2f8901d88bca88606e62a1b"
+    },
+    {
+      "path": "scripts/build-baseline.sh",
+      "sha256": "23e8337d0d89c2f7584ab23da933269c23c441a71d372762928af82c6c254aa0"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-personalizar",
+      "sha256": "deea3d47ff50f3e755802feb9df7bdecce9fdda11e9370fd70924d1008cf45fe"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-super",
+      "sha256": "03039b9a50128c148bc9bb6a963c5d267e533bed422dda00c4ea0fcd4309a424"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-iniciar-escritorio",
+      "sha256": "886009186b6a55551039104282b57ce1604fde043fcc17a5ad842fe203adcc24"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-escritorio-ir",
+      "sha256": "8f3d9f9fa036a43267a2af1352a179dae49c619e9bb2da2b46bc3f8b54dde786"
+    },
+    {
+      "path": "src/rootfs/desktop/waybar.jsonc",
+      "sha256": "7fe5f5bcfcddef74a0f818d240306d28617ce8f29d81ee672de169b29ee8ff34"
+    },
+    {
+      "path": "src/rootfs/desktop/hyprland.lua",
+      "sha256": "0725e4457450403e4d14f1629b2b047ba3f1e663076100c7573edd43c7c98b3b"
+    },
+    {
+      "path": "src/rootfs/desktop/AYUDA.txt",
+      "sha256": "eaeb50ee03fa6298e113de1b74bde16e2efaa01c0b4f0d8f3b634950c45ca23c"
+    },
+    {
+      "path": "src/rootfs/bin/ultra-fondo-vivo",
+      "sha256": "11c54285c2c22612cb3254057058023861aa50881d09a2e47bf0eca4f5f181cb"
+    },
+    {
+      "path": "scripts/crear-disco-bmo-pruebas.sh",
+      "sha256": "f718e16bc758d7b3f2321fe05f68b716fc1c215a8f78a548dc96ec51b400ce4b"
+    }
+  ]
+}

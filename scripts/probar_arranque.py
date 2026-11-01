@@ -444,6 +444,49 @@ def check_hyprland(conn, failures):
             if panels_ready: break
             time.sleep(.25)
         expect(panels_ready, 'BMO-X: barra y dock mapeados en Wayland')
+        if '--escritorios' in sys.argv:
+            def workspace_is(number):
+                nonlocal transcript
+                for _ in range(12):
+                    conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 -j activeworkspace; echo ESCRITORIO-ACTIVO-$((70+1))\n')
+                    state=response('ESCRITORIO-ACTIVO-71');transcript+=state
+                    if re.search(r'"id"\s*:\s*'+str(number)+r'\s*[,}]',state):return True
+                    time.sleep(.2)
+                return False
+            # Coordinates belong to this fixed 1280x800 bank and its base theme.
+            # Drive an actual pointer click, not the focus command being tested.
+            for number,x in ((2,210),(9,504),(1,168)):
+                code=f'hl.dispatch(hl.dsp.cursor.move({{x={x},y=20}}))'
+                transcript+=run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+                mon.sendall(b'mouse_button 1\n');time.sleep(.15);mon.sendall(b'mouse_button 0\n')
+                expect(workspace_is(number),f'Escritorios: clic real en {number:02d} cambia el escritorio')
+            mon.sendall(b'sendkey meta_l-9\n')
+            expect(workspace_is(9),'Escritorios: Super+9 conserva la misma seleccion')
+            mon.sendall(b'sendkey meta_l-tab\n');time.sleep(1)
+            transcript+=run(conn,[("for p in $(pidof fuzzel); do grep -aqF ultra-super-escritorios /proc/$p/cmdline && echo ESCRITORIOS-MENU-$((70+4)); done",'ESCRITORIOS-MENU-74')],failures)
+            mon.sendall(b'sendkey esc\n');time.sleep(.5)
+            for color in ('cyan','violeta','verde'):
+                command=f'ultra-personalizar perfil aplicar neon-{color} && echo FONDO-APLICADO-$((70+3))'
+                # Group redirection so the completion marker is captured too.
+                code='hl.exec_cmd('+json.dumps('('+command+f') > /tmp/fondo-{color}.log 2>&1')+')'
+                transcript+=run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+                transcript+=run(conn,[(f'for i in $(seq 1 60); do grep -q "^FONDO-APLICADO-" /arch/tmp/fondo-{color}.log 2>/dev/null && break; sleep .1; done; cat /arch/tmp/fondo-{color}.log','FONDO-APLICADO-73')],failures)
+                transcript+=run(conn,[(f'ultra-entrar /usr/bin/pgrep -af swaybg | grep -F wallpaper-ciudad-{color}.png >/dev/null && echo FONDO-CHECK-$((70+2))','FONDO-CHECK-72')],failures)
+                time.sleep(1)
+                target=pathlib.Path(tempfile.gettempdir())/f'ultra-fondo-{color}.png';target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        from PIL import Image
+                        with Image.open(target) as shot:shot.verify()
+                        break
+                    except (OSError,SyntaxError):time.sleep(.1)
+                else:raise ValueError('captura de fondo incompleta')
+                shutil.copyfile(target,LOG.with_name(LOG.stem+f'-fondo-{color}.png'))
+            code='hl.exec_cmd("ultra-personalizar restablecer")'
+            transcript+=run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+            time.sleep(2);mon.sendall(b'sendkey meta_l-1\n')
+            expect(workspace_is(1),'Escritorios: vuelta al escritorio inicial')
         conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval \'hl.exec_cmd("ultra-graficos informe")\'; echo GRAFICA-INICIO-$((40+1))\n')
         transcript += response('GRAFICA-INICIO-41')
         report_ready = False
