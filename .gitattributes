@@ -118,3 +118,5 @@ evidencias/entrada/** text eol=lf
 evidencias/entrada/**/*.png binary
 evidencias/escritorios/** text eol=lf
 evidencias/escritorios/**/*.png binary
+evidencias/clientes/** text eol=lf
+evidencias/clientes/**/*.png binary

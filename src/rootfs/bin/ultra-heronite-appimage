@@ -1,0 +1,64 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Seed the official launcher once; preserve its signed, per-user updates."""
+import fcntl
+import hashlib
+import os
+from pathlib import Path
+import stat
+import sys
+import tempfile
+
+SEED = Path('/usr/share/ultra/heronite/Heronite.AppImage')
+SHA256 = '21b98fd88a11a87a64fcd6b2d0e8c5e02bd329ea4423e7283af7db65f1a7b095'
+
+
+def private_directory(path):
+    path.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if path.is_symlink() or path.resolve() != path or path.stat().st_uid != os.getuid():
+        raise ValueError('Directorio de Heronite ajeno o enlazado')
+    path.chmod(0o700)
+
+
+def seed(directory):
+    private_directory(directory)
+    target = directory/'Heronite.AppImage'
+    lockfd = os.open(directory/'inicio.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(lockfd, 'w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        if not target.exists() and not target.is_symlink():
+            digest = hashlib.sha256()
+            fd, temporary = tempfile.mkstemp(prefix='.semilla-', dir=directory)
+            try:
+                with os.fdopen(fd, 'wb') as output, SEED.open('rb') as source:
+                    for block in iter(lambda: source.read(1024*1024), b''):
+                        digest.update(block); output.write(block)
+                    output.flush(); os.fsync(output.fileno())
+                if digest.hexdigest() != SHA256:
+                    raise ValueError('La semilla oficial de Heronite no coincide')
+                os.chmod(temporary, 0o700)
+                os.replace(temporary, target)
+            finally:
+                if os.path.exists(temporary): os.unlink(temporary)
+        info = target.lstat()
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.getuid() or info.st_mode & 0o022:
+            raise ValueError('AppImage no privada o no regular')
+    return target
+
+
+def main():
+    home = Path(os.environ.get('HOME', ''))
+    if os.getuid() != 1000 or home != Path('/juegos/usuarios/ultra'):
+        raise ValueError('Heronite requiere el usuario y home persistentes de ULTRA')
+    os.umask(0o077)
+    target = seed(home/'.local/share/ultra/apps/heronite')
+    temporary = home/'.cache/ultra/heronite-extract'
+    private_directory(temporary)
+    env = dict(os.environ, APPIMAGE_EXTRACT_AND_RUN='1', TMPDIR=str(temporary))
+    os.execve(target, [str(target), *sys.argv[1:]], env)
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError) as error:
+        print('Heronite:', error, file=sys.stderr); sys.exit(1)

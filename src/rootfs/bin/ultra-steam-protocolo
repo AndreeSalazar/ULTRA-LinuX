@@ -1,0 +1,25 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Repair only Steam URI routing. Never edits libraries, accounts or prefixes."""
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+def prepare():
+    if os.getuid()!=1000:raise ValueError('Abrir como usuario del escritorio')
+    for tool in ('xdg-open','xdg-mime'):
+        if not shutil.which(tool):raise ValueError('Falta '+tool+' en la imagen ULTRA')
+    if not Path('/usr/bin/steam').is_file():raise ValueError('Falta el cliente Steam en la imagen ULTRA')
+    for protocol in ('steam','steamlink'):
+        subprocess.run(['xdg-mime','default','ultra-steam-enlaces.desktop','x-scheme-handler/'+protocol],
+                       check=True,timeout=8,stdout=subprocess.DEVNULL)
+        result=subprocess.run(['xdg-mime','query','default','x-scheme-handler/'+protocol],
+                              check=True,timeout=8,capture_output=True,text=True)
+        if result.stdout.strip()!='ultra-steam-enlaces.desktop':raise ValueError('No se confirmo el enlace '+protocol)
+
+if __name__=='__main__':
+    try:prepare()
+    except (OSError,ValueError,subprocess.SubprocessError) as error:
+        print('Enlace Steam: '+str(error),file=sys.stderr);sys.exit(1)

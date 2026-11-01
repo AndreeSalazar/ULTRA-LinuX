@@ -1,0 +1,15 @@
+{
+  "main_window": {
+    "class": "discord",
+    "title": " - Discord",
+    "size": [
+      618,
+      324
+    ]
+  },
+  "uid": 1000,
+  "no_new_privs": true,
+  "account_login_performed": false,
+  "qemu_exit": 0,
+  "main_window_mapped": true
+}

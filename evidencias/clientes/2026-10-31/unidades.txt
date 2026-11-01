@@ -1,0 +1,37 @@
+test_bad_config_preserved (__main__.Prepare.test_bad_config_preserved) ... ok
+test_no_write_when_config_is_current (__main__.Prepare.test_no_write_when_config_is_current) ... ok
+test_only_obsolete_bundled_tools_are_changed_not_prefix_or_custom_runner (__main__.Prepare.test_only_obsolete_bundled_tools_are_changed_not_prefix_or_custom_runner) ... ok
+test_symlink_data_rejected_before_native_migration (__main__.Prepare.test_symlink_data_rejected_before_native_migration) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.006s
+
+OK
+VERDE: Steam restaura HUD tras entorno saneado; desactivar, argumentos y limites conservados
+test_appimage_symlink_rejected_without_changing_target (__main__.Launcher.test_appimage_symlink_rejected_without_changing_target) ... ok
+test_bad_seed_never_published (__main__.Launcher.test_bad_seed_never_published) ... ok
+test_initial_seed_verified_and_self_update_preserved (__main__.Launcher.test_initial_seed_verified_and_self_update_preserved) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.003s
+
+OK
+test_cancel_dispatches_nothing (__main__.Super.test_cancel_dispatches_nothing) ... ok
+test_catalogue_has_matching_runtime_bindings (__main__.Super.test_catalogue_has_matching_runtime_bindings) ... ok
+test_clipboard_shortcut_keeps_float_action_separate (__main__.Super.test_clipboard_shortcut_keeps_float_action_separate) ... ok
+test_fixed_selection_and_namespace (__main__.Super.test_fixed_selection_and_namespace) ... ok
+test_input_shortcut_preserves_session_exit (__main__.Super.test_input_shortcut_preserves_session_exit) ... ok
+test_invalid_or_injected_selection_rejected (__main__.Super.test_invalid_or_injected_selection_rejected) ... ok
+test_workspace_menu_covers_nine_numbered_desktops (__main__.Super.test_workspace_menu_covers_nine_numbered_desktops) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.003s
+
+OK
+test_echoed_command_does_not_count (__main__.Output.test_echoed_command_does_not_count) ... ok
+test_execution_output_does_count (__main__.Output.test_execution_output_does_count) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.001s
+
+OK

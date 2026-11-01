@@ -22,6 +22,7 @@ MENUS = {
         ('', 'Atajos', 'Super+F1', ['ultra-super','atajos']),
         ('', 'Categorias', 'Super+Shift+Espacio', ['ultra-ambiente','menu']),
         ('', 'Personalizar', 'Super+Shift+P', ['ultra-personalizar','menu']),
+        ('', 'Discord', 'Super+D', ['ultra-discord']),
     ]),
     'captura': ('BMO-X // CAPTURA', '3dff9aff', [
         ('', 'Seleccionar region', 'Super+Shift+S', ['ultra-captura','region']),
@@ -48,6 +49,7 @@ MENUS = {
         ('', 'Mouse y teclado', 'Super+Ctrl+M', ['ultra-entrada']),
         ('', 'Personalizar', 'Super+Shift+P', ['ultra-personalizar','menu']),
         ('', 'Todos los atajos', 'Super+H', ['foot','/usr/bin/less','/etc/ultra/AYUDA.txt']),
+        ('', 'Discord', 'Super+D', ['ultra-discord']),
     ]),
 }
 MENUS['escritorios'] = ('BMO-X // ESCRITORIOS', '3dff9aff', [

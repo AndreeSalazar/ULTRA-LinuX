@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Steam (enlaces ULTRA)
+Exec=/usr/local/bin/steam %U
+TryExec=/usr/bin/steam
+Icon=steam
+Terminal=false
+NoDisplay=true
+MimeType=x-scheme-handler/steam;x-scheme-handler/steamlink;
+Categories=Game;

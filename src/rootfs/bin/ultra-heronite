@@ -17,7 +17,7 @@ BIN = '/usr/bin/heronite-rs'
 def running():
     for proc in Path('/proc').glob('[0-9]*'):
         try:
-            if proc.stat().st_uid == os.getuid() and (proc/'exe').resolve() == Path(BIN):
+            if proc.stat().st_uid == os.getuid() and (proc/'exe').resolve().name == 'heronite-rs':
                 return True
         except (OSError, RuntimeError):
             pass
@@ -26,7 +26,7 @@ def running():
 
 def prepare():
     # --help runs upstream's transactional migration before exiting, without
-    # opening a window, logging in or launching a game (pinned 0.15.0 source).
+    # opening a window, logging in or launching a game (verified 1.0.0 CLI).
     if DATA.exists() and DATA.resolve() != DATA:
         raise ValueError('datos Heronite redirigidos; se conserva la configuracion')
     subprocess.run([BIN, '--help'], check=True, stdout=subprocess.DEVNULL, timeout=300)
@@ -70,6 +70,7 @@ def main():
     fd = os.open(cache/'heronite-inicio.lock', os.O_CREAT | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
+        subprocess.run(['/usr/local/bin/ultra-steam-protocolo'],check=True,timeout=40)
         if not running():
             result = subprocess.run(['/usr/local/bin/ultra-bibliotecas', 'registrar-steam'], timeout=60)
             if result.returncode == 75:

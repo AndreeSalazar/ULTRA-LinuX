@@ -48,14 +48,18 @@ identificados y suspensión de monitores de fondo durante el juego.
 Instalado en A: (perfil PC) y verificado con 201 comprobaciones QEMU; falta
 medir el ahorro y la temperatura con el Ryzen físico a los mismos FPS.
 
-**Heronite 0.15.0 instalado en A: (perfil PC):** biblioteca principal de Steam y
+**Heronite 1.0.0 (perfil PC):** biblioteca principal de Steam y
 GOG; la interfaz Electron de Heroic se retiró de la imagen. Steam se conserva
 como cliente necesario para sus juegos. El primer inicio importa la configuración
 anterior a datos propios, conservando el original, prefijos y partidas.
 MangoHud excluye la interfaz del launcher y sigue disponible para los juegos.
 [Migración y validación](docs/HERONITE-MIGRACION-2026-10-25.md).
 La integración inicial pasó 180 comprobaciones QEMU y bancos de migración.
-Los informes físicos posteriores muestran Heronite y Cyberpunk en ejecución;
+La AppImage oficial se instala en el home persistente para permitir sus propias
+actualizaciones. Los enlaces `steam://` disponen de un manejador dedicado y del
+cliente nativo. **Discord oficial** se abre con **Super+D** y desde el centro SUPER.
+[Integración, actualizaciones y comprobaciones](docs/CLIENTES-STEAM-DISCORD.md).
+Los informes físicos anteriores muestran Heronite y Cyberpunk en ejecución;
 falta una comparación controlada de RAM/vatios. La actualización de SUPER GRAFO
 pasó 181 comprobaciones y quedó copiada en A: junto con esta integración.
 
@@ -69,7 +73,7 @@ controles de ULTRA que sincronizan Heronite. El rescate del cursor se limita al
 lanzador XWayland; falta confirmar el caso real con NVIDIA.
 
 <p align="center">
-  <img src="evidencias/heronite/2026-10-25/heronite-wayland.png" alt="Heronite real en Wayland, prueba QEMU sin cuentas ni juegos personales y con renderizado software" width="1000">
+  <img src="evidencias/clientes/2026-10-31/heronite.png" alt="Heronite 1.0.0 real en Wayland, prueba QEMU sin cuentas ni juegos personales y con renderizado software" width="1000">
 </p>
 
 <p align="center">

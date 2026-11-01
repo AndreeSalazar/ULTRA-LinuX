@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
+set -euo pipefail
+[[ $(id -u) == 1000 && $HOME == /juegos/usuarios/ultra ]] || {
+    notify-send 'Discord: falta almacenamiento' 'Abre el escritorio con su home persistente; no se guardara la sesion en RAM.' || true
+    exit 1
+}
+(( $# <= 1 )) || exit 2
+if (( $# )); then [[ $1 == discord:* && ${#1} -le 4096 ]] || exit 2; fi
+[[ -n ${WAYLAND_DISPLAY:-} && -n ${XDG_RUNTIME_DIR:-} ]] || exit 1
+umask 077
+mkdir -p "$HOME/.cache/ultra"
+exec /usr/share/discord/discord --ozone-platform=wayland "$@" >> "$HOME/.cache/ultra/discord.log" 2>&1

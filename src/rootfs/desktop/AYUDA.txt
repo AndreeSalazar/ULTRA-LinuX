@@ -91,3 +91,5 @@ Rust: la primera vez, en una terminal, "rustup default stable" (descarga unos
 RAM se pierde al apagar. Los proyectos con rust-toolchain.toml, como BMO-X,
 eligen su propia version solos.
 SUPER + Ctrl + M     Mouse y teclado: velocidad, rueda y distribucion
+Discord oficial: Super+D. Su instalacion y sesion se conservan en el home persistente.
+Heronite usa la AppImage oficial actualizable en ~/.local/share/ultra/apps/heronite.

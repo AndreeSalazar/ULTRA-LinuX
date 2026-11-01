@@ -230,7 +230,7 @@ if [[ -n $cmdline ]]; then
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
         pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
         steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk procps-ng vulkan-tools e2fsprogs
-        mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret
+        mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret xdg-utils desktop-file-utils zenity
         mangohud=0.8.4-1 lib32-mangohud=0.8.4-1
         # Rust para el usuario: rustup instala las versiones en el home persistente; gcc enlaza.
         rustup gcc clang bubblewrap git pkgconf
@@ -258,6 +258,7 @@ if [[ -n $cmdline ]]; then
     bash "$lab/instalar-brave.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-heroic.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-heronite.sh" "$sistema" "$art" "$base"
+    bash "$lab/instalar-discord.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-eww.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-carpetas.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-waybar-lua.sh" "$sistema" "${ULTRA_BUILD_CACHE:-$base}/waybar-lua"
@@ -300,7 +301,7 @@ if [[ -n $cmdline ]]; then
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
     for helper in ultra-audio ultra-juegos ultra-heronite ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-vigilante ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura ultra-super ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$sistema/usr/local/bin/ultra-energia"
-    for helper in steam ultra-entrada ultra-escritorio-ir ultra-hud-heronite ultra-puntero-red; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in steam ultra-entrada ultra-escritorio-ir ultra-hud-heronite ultra-puntero-red ultra-steam-protocolo ultra-discord; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     for helper in ultra-cpu-control ultra_termica.py; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null
@@ -310,6 +311,7 @@ if [[ -n $cmdline ]]; then
     sudo install -d -m 0755 "$sistema/etc/wireplumber/wireplumber.conf.d"
     sudo install -m 0644 "$lab/rootfs/desktop/wireplumber-usb.conf" "$sistema/etc/wireplumber/wireplumber.conf.d/51-ultra-usb.conf"
     sudo install -m 0644 "$lab/rootfs/desktop/"*.desktop "$sistema/usr/share/applications/"
+    sudo chroot "$sistema" /usr/bin/update-desktop-database /usr/share/applications
     for config in foot fuzzel gtk-3.0; do sudo install -d -m 0755 "$sistema/home/ultra/.config/$config"; done
     sudo install -m 0644 "$lab/rootfs/desktop/foot.ini" "$sistema/home/ultra/.config/foot/foot.ini"
     sudo install -m 0644 "$lab/rootfs/desktop/fuzzel.ini" "$sistema/home/ultra/.config/fuzzel/fuzzel.ini"

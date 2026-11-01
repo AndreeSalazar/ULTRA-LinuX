@@ -3,4 +3,5 @@
 # Heronite intentionally sanitizes MANGOHUD* for Steam's protocol handler.
 # Restore ULTRA's explicit preference at the native client boundary. Keep the
 # packaged launcher, its arguments and Steam's runtime; never wrap recursively.
+if [[ ${TMPDIR:-} == "$HOME/.cache/ultra/heronite-extract" ]]; then unset TMPDIR; fi
 exec /usr/local/bin/ultra-hud ejecutar /usr/bin/steam "$@"

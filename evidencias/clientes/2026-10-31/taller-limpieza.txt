@@ -1,0 +1,4 @@
+{"generated_workshop_bytes_removed": 4682433962, "stage_sources_cache_and_toolchains_preserved": true}
+/var/tmp/ultra-main-work: 14 GiB (15036571648 bytes) trimmed
+/: 18.9 GiB (20247318528 bytes) trimmed
+Connection to 127.0.0.1 closed by remote host.

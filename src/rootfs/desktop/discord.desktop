@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Discord
+Comment=Discord oficial de Linux; perfil y actualizaciones persistentes
+Exec=/usr/local/bin/ultra-discord %u
+Icon=discord
+Terminal=false
+StartupWMClass=discord
+Categories=Network;InstantMessaging;
+MimeType=x-scheme-handler/discord;

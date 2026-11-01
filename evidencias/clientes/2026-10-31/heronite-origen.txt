@@ -1,0 +1,6 @@
+version=1.0.0
+url=https://github.com/RafaelGoulartB/Heronite/releases/download/v1.0.0/heronite-1.0.0-1-x86_64.pkg.tar.zst
+sha256=a25a3cdab9ebbd685fc3d734c82864421dbead4992d84c627dba0c569cb9fa3c
+appimage_url=https://github.com/RafaelGoulartB/Heronite/releases/download/v1.0.0/Heronite-x86_64.AppImage
+appimage_sha256=21b98fd88a11a87a64fcd6b2d0e8c5e02bd329ea4423e7283af7db65f1a7b095
+source_tag=v1.0.0

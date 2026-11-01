@@ -157,8 +157,8 @@ printf 'PSI-CRECIO-%s\n' "$((4+5))"
 if '--gog-cyberpunk' in sys.argv:
     # Disposable ext4 + overlay wholly inside the guest; no host game or account.
     BOOT1 += [
-        ('cat /sistema/etc/ultra/heronite-version; test ! -e /sistema/opt/heroic/heroic && echo SIN-ELECTRON-HEROIC', '0.15.0'),
-        ('ultra-entrar /usr/bin/truncate -s 64M /tmp/gog-fixture.ext4; ultra-entrar /usr/bin/mkfs.ext4 -q -F /tmp/gog-fixture.ext4; echo GOG-FS-$?', 'GOG-FS-0'),
+        ('cat /sistema/etc/ultra/heronite-version; test ! -e /sistema/opt/heroic/heroic && echo SIN-ELECTRON-HEROIC', '1.0.0'),
+        ('ultra-entrar /usr/bin/truncate -s 512M /tmp/gog-fixture.ext4; ultra-entrar /usr/bin/mkfs.ext4 -q -F /tmp/gog-fixture.ext4; echo GOG-FS-$?', 'GOG-FS-0'),
         ('ultra-entrar /usr/bin/bash -c \'set -e; umask 022; mkdir -p /juegos; mount -o loop,nosuid,nodev /tmp/gog-fixture.ext4 /juegos; mkdir -p /juegos/usuarios/ultra /juegos/overlay/upper /juegos/overlay/work /juegos/Cyberpunk2077 /tmp/gog-lower/bin/x64; printf MZ-fixture > /tmp/gog-lower/bin/x64/Cyberpunk2077.exe; chown -R 1000:1000 /juegos/usuarios; echo GOG-FIXTURE-$((6*7))\'', 'GOG-FIXTURE-42'),
         ('ultra-entrar /usr/bin/bash -c '+shlex.quote('printf \'%s\' \'{"gameId":"1423049311","rootGameId":"1423049311","buildId":"12345","languages":["en-US"]}\' > /tmp/gog-lower/goggame-1423049311.info; chmod 644 /tmp/gog-lower/goggame-1423049311.info; mount -t overlay overlay -o lowerdir=/tmp/gog-lower,upperdir=/juegos/overlay/upper,workdir=/juegos/overlay/work /juegos/Cyberpunk2077; echo GOG-OVERLAY-$?'), 'GOG-OVERLAY-0'),
         ('ultra-entrar /usr/bin/setpriv --reuid=1000 --regid=1000 --clear-groups --no-new-privs --bounding-set=-all /usr/bin/env HOME=/juegos/usuarios/ultra /usr/bin/heronite-rs --help', '--launch'),
@@ -231,11 +231,18 @@ def check_kernel():
 def run(conn, checks, failures):
     transcript = ''
     for command, expected in checks:
-        conn.sendall(command.encode() + b'\n')
-        out = read_until(conn, 'ultra:', 30)
+        token = secrets.token_hex(8)
+        begin, end = 'ULTRA-CHECK-BEGIN-'+token, 'ULTRA-CHECK-END-'+token
+        # The tty echoes commands. Only the delimited execution output counts;
+        # a marker mentioned in a failed grep/echo command is not evidence.
+        wrapped = "printf '\\nULTRA-CHECK-BEGIN-%s\\n' " + token + '; ' + command + "; printf '\\nULTRA-CHECK-END-%s\\n' " + token
+        conn.sendall(wrapped.encode() + b'\n')
+        out = read_until(conn, end, 30)
+        if 'ultra:' not in out.rsplit(end, 1)[-1]: out += read_until(conn, 'ultra:', 10)
         transcript += out
-        print(('VERDE' if expected in out else 'ROJO'), f'[{command}]')
-        if expected not in out: failures.append(command)
+        actual = out.split(begin, 1)[-1].split(end, 1)[0]
+        print(('VERDE' if expected in actual else 'ROJO'), f'[{command}]')
+        if expected not in actual: failures.append(command)
     return transcript
 
 def expect_boot(boot, expected, label, failures):
@@ -1225,18 +1232,24 @@ print('HUD-NATIVO-FIXTURE')"""
             # Disposable bank only. The real installed Steam boundary runs in a
             # mount namespace: its native client is replaced by a Vulkan probe,
             # never a logged-in client or a personal game library.
-            fixture = "from pathlib import Path;p=Path('/tmp/steam-hud-probe');p.write_text('#!/usr/bin/bash\\n[[ $1 == -applaunch && $2 == 230410 ]] || exit 2\\nexec /usr/bin/vkcube\\n');p.chmod(0o755);print('STEAM-HUD-FIXTURE')"
+            for _ in range(50):
+                if not any('vkcube' in str(a.get('class','')).lower() for a in clients()): break
+                time.sleep(.2)
+            expect(not any('vkcube' in str(a.get('class','')).lower() for a in clients()), 'Steam: banco Vulkan anterior cerrado antes de probar el enlace')
+            fixture = "from pathlib import Path;p=Path('/tmp/steam-hud-probe');p.write_text('#!/usr/bin/bash\\n[[ $# == 1 && $1 == steam://rungameid/230410 ]] || exit 2\\nprintf STEAM-URI-RECIBIDO > /tmp/steam-uri-ok\\nexec /usr/bin/vkcube\\n');p.chmod(0o755);print('STEAM-HUD-FIXTURE')"
             transcript += run(conn, [('ultra-entrar /usr/bin/python -c '+shlex.quote(fixture), 'STEAM-HUD-FIXTURE')], failures)
-            payload = ('env HOME=/juegos/usuarios/ultra /usr/bin/bwrap --unshare-user --ro-bind / / '
+            payload = ('env HOME=/juegos/usuarios/ultra XDG_CONFIG_HOME=/juegos/usuarios/ultra/.config XDG_DATA_HOME=/juegos/usuarios/ultra/.local/share XDG_CACHE_HOME=/juegos/usuarios/ultra/.cache /usr/bin/bwrap --unshare-user --ro-bind / / '
                        '--dev-bind /dev /dev --proc /proc --bind /tmp /tmp '
                        '--bind /juegos/usuarios/ultra /juegos/usuarios/ultra '
                        '--ro-bind /tmp/steam-hud-probe /usr/bin/steam -- '
                        '/usr/bin/env -u MANGOHUD -u MANGOHUD_CONFIGFILE '
-                       '/usr/local/bin/steam -applaunch 230410 >/tmp/steam-hud-probe.log 2>&1')
+                       '/usr/bin/bash -c '+shlex.quote('ultra-steam-protocolo && exec xdg-open steam://rungameid/230410')+
+                       ' >/tmp/steam-hud-probe.log 2>&1')
             code = 'hl.exec_cmd('+json.dumps(payload)+')'
             transcript += run(conn, [('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code), 'ok')], failures)
             apps = wait_apps(lambda apps: any('vkcube' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower() for a in apps))
-            expect(bool(apps), 'Steam HUD: frontera instalada lanza Vulkan tras entorno saneado')
+            expect(bool(apps), 'Steam HUD: xdg-open real resuelve steam:// y lanza Vulkan tras entorno saneado')
+            transcript += run(conn, [('cat /arch/tmp/steam-uri-ok', 'STEAM-URI-RECIBIDO')], failures)
             if apps:
                 app = next(a for a in apps if 'vkcube' in (str(a.get('class',''))+' '+str(a.get('title',''))).lower())
                 transcript += run(conn, [(f"grep -qi libMangoHud /proc/{app['pid']}/maps && echo STEAM-HUD-CAPA-CARGADA", 'STEAM-HUD-CAPA-CARGADA')], failures)
@@ -1252,6 +1265,31 @@ print('HUD-NATIVO-FIXTURE')"""
                 shutil.copyfile(target, LOG.with_name(LOG.stem+'-steam-hud.png'))
                 transcript += run(conn, [(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo STEAM-HUD-BANCO-CERRADO', 'STEAM-HUD-BANCO-CERRADO')], failures)
             transcript += run(conn, [('cat /arch/tmp/steam-hud-probe.log; echo STEAM-HUD-LOG-FIN', 'STEAM-HUD-LOG-FIN')], failures)
+        if '--discord' in sys.argv:
+            command = 'env HOME=/juegos/usuarios/ultra XDG_CONFIG_HOME=/juegos/usuarios/ultra/.config XDG_CACHE_HOME=/juegos/usuarios/ultra/.cache ultra-discord'
+            code = 'hl.exec_cmd('+json.dumps(command)+')'
+            transcript += run(conn, [('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code), 'ok')], failures)
+            opened = []
+            for _ in range(120):
+                opened = [a for a in clients() if 'discord' in str(a.get('class','')).lower()]
+                if opened: break
+                time.sleep(1)
+            expect(bool(opened), 'Discord: aplicacion oficial presenta ventana sin iniciar sesion')
+            if opened:
+                app = opened[0]
+                transcript += run(conn, [(f"grep -Eq '^Uid:[[:space:]]+1000[[:space:]]+1000' /proc/{app['pid']}/status && grep -q '^NoNewPrivs:[[:space:]]*1' /proc/{app['pid']}/status && echo DISCORD-USUARIO-SEGURO", 'DISCORD-USUARIO-SEGURO')], failures)
+                time.sleep(3)
+                target = pathlib.Path(tempfile.gettempdir())/'ultra-discord.png'; target.unlink(missing_ok=True)
+                mon.sendall(f'screendump {target} -f png\n'.encode())
+                for _ in range(50):
+                    try:
+                        with Image.open(target) as shot: shot.verify()
+                        break
+                    except (OSError, SyntaxError): time.sleep(.1)
+                else: raise ValueError('captura Discord incompleta')
+                shutil.copyfile(target, LOG.with_name(LOG.stem+'-discord.png'))
+                transcript += run(conn, [(f'ultra-entrar /usr/bin/kill -TERM {app["pid"]}; echo DISCORD-CIERRE', 'DISCORD-CIERRE')], failures)
+            transcript += run(conn, [('tail -n 60 /arch/juegos/usuarios/ultra/.cache/ultra/discord.log; echo DISCORD-LOG-FIN', 'DISCORD-LOG-FIN')], failures)
         if '--entrada' in sys.argv:
             encoded=base64.b64encode((ROOT/'scripts/probar_entrada_instalada.py').read_bytes()).decode()
             transcript += run(conn,[(': > /arch/tmp/entrada.b64; echo ENTR-CARGA-$((40+5))','ENTR-CARGA-45')],failures)
@@ -1465,7 +1503,7 @@ def main():
                 'GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on']
     def start():
         proc = subprocess.Popen([str(QEMU), '-machine', 'pc', '-accel', 'whpx', '-cpu', 'host', '-smp', '1', '-m', str(RAM_MIB),
-                                 *boot, '-vga', 'virtio', '-nic', 'user,model=virtio-net-pci' if BRAVE else 'none', '-display', 'none', '-no-reboot',
+                                 *boot, '-vga', 'virtio', '-nic', 'user,model=virtio-net-pci' if BRAVE or '--discord' in sys.argv else 'none', '-display', 'none', '-no-reboot',
                                  '-serial', f'tcp:127.0.0.1:{PORT},server=on,wait=on',
                                  '-monitor', f'tcp:127.0.0.1:{PORT + 1},server=on,wait=off'],
                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -1514,7 +1552,7 @@ def main():
                                         ('grep -q "^PROCESO .*nombre=Hyprland .*pss_kB=[0-9]" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo PSS-CLIENTE-$((3+4))', 'PSS-CLIENTE-7'),
                                         ('grep -q "^GPU NA modo_software_o_nodos_ausentes" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && test ! -S /arch/run/seatd.sock && echo OBSERVADOR-FINAL-$((4+4))', 'OBSERVADOR-FINAL-8'),
                                         ('grep -q "ETHERNET: estado posterior" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && grep -q "contadores globales acumulados" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RED-EXPORTADA-$((4+5))', 'RED-EXPORTADA-9')], failures)
-                if BRAVE:
+                if BRAVE or '--discord' in sys.argv:
                     transcript += run(conn, [('grep -Eq "^RED iface=.* rx_bytes=[0-9]+ rx_packets=[0-9]+" /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo RED-C-MEDIDA-$((5+5))', 'RED-C-MEDIDA-10')], failures)
                 if '--puntero' in sys.argv:
                     transcript += run(conn, [('grep -Eq \'"reparaciones_transparentes": [1-9][0-9]*\' /bmo/ULTRA/informe/gpu-$(uname -r)-software-hyprland.txt && echo PUNTERO-EXPORTADO-SIN-ROOT', 'PUNTERO-EXPORTADO-SIN-ROOT')], failures)

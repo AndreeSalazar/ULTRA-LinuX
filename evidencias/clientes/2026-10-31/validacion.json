@@ -1,0 +1,33 @@
+{
+  "qemu_boot_exit": 0,
+  "green_checks": 192,
+  "red_checks": 0,
+  "steam_real_xdg_open_and_uri_verified": true,
+  "mangohud_mapped_in_new_vulkan_process": true,
+  "heronite_version": "1.0.0",
+  "personal_accounts_used": false,
+  "physical_disks_attached": false,
+  "artifacts_sha256": {
+    "bzImage-tiny64": "bb6fb30bba98ebea759ac3623d04b723bc5cf952d37680c56cf53ba0649300cc",
+    "datos.ext4": "c6261e1c2afbdb57d661b2574407f46a10bd0d6f869154ac24e5f9dd01ee0273",
+    "disco-bmo.img": "d5c791ac855c7d7d71294ec56512a83d310ebaeec3ffb1e8c3f79e72cf08cf2f",
+    "sistema-a.erofs": "d625ead51e9004eeb1d4a138d590e5d277a4e2b91a845f98c23225d6f1b11bf0"
+  },
+  "runtime_sources_sha256": {
+    "src/rootfs/desktop/hyprland.lua": "67faa7570f41b8cad3a3a3543e78f524026714e600119f8add311f3d490d2469",
+    "src/rootfs/bin/ultra-super": "ce5572a744e290e0999e52643c068588546103aa5e45933485d4f3b13790ece0",
+    "src/rootfs/desktop/AYUDA.txt": "21c78ad6b47c2c12945ffd3fdb2adddfe598ad366e458da22e187fb378bfe81f",
+    "src/rootfs/bin/steam": "86b64c658077f610eaebb33c2c90b62eabb27cb380cd8c9e2845a4f570e3224a",
+    "src/rootfs/bin/ultra-discord": "58f0138535fae374d51908ac5d1c43a28742a4a2709596279b4e27825162849c",
+    "src/rootfs/bin/ultra-heronite": "21a2f416839c5c40009e8afa81577b9de9be3554989dbcee0a34e5dab18531cc",
+    "src/rootfs/bin/ultra-heronite-appimage": "f2f3d8e33fc18d0cbd812aafc8607bf1fffed3ec3eac1c8e660928918cfd3138",
+    "src/rootfs/bin/ultra-hud-heronite": "8814bbf9d34cbb504854cd6d090f73061e17c96a130aa4579233d9e3f2e35a5b",
+    "src/rootfs/bin/ultra-steam-protocolo": "b98447458f57eab8dfef6db64617fbacdeb8d7a302fec21d5342ddb205509f73",
+    "src/rootfs/desktop/discord.desktop": "7049c8ad765072594c40ac32dfc52cb38c6ae504f05f67eade8ed2735ddca95f",
+    "src/rootfs/desktop/steam.desktop": "5c5506cdc985cf1e42f152cb8f96ed77bb21d5065841dec9842cb966cbed787d",
+    "src/rootfs/desktop/ultra-steam-enlaces.desktop": "e6ab69b3440e7a50bef79a82c00b9e3d3156afe977a324724671690462eac9ca"
+  },
+  "artifacts_role": "disposable_qemu_template",
+  "real_installation_receipt": "instalacion.json",
+  "discord_main_window_probe": "discord-principal.json"
+}

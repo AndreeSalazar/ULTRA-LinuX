@@ -1,9 +1,11 @@
 [Desktop Entry]
 Type=Application
-Name=Steam en Heronite
-Comment=Biblioteca Steam desde Heronite; Steam se conserva como cliente
-Exec=/usr/local/bin/ultra-juegos steam
+Name=Steam (cliente y enlaces)
+Comment=Abre enlaces steam:// en el cliente nativo; la biblioteca unificada sigue en Heronite
+Exec=/usr/local/bin/steam %U
+TryExec=/usr/bin/steam
 Icon=steam
 Terminal=false
 NoDisplay=true
 Categories=Game;
+MimeType=x-scheme-handler/steam;x-scheme-handler/steamlink;

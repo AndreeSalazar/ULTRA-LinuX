@@ -1,0 +1,12 @@
+{
+  "generated_bytes_removed": 9476594254.0,
+  "removed": [
+    "build/clientes-pc",
+    "build/pc/almacen-nativo-fuentes.sha256.antes-escritorios-20261031",
+    "build/pc/disco-bmo.img.antes-escritorios-20261031",
+    "build/pc/SHA256SUMS.antes-escritorios-20261031",
+    "build/pc/sistema-a.erofs.antes-escritorios-20261031"
+  ],
+  "latest_rollback_preserved": true,
+  "games_and_accounts_untouched": true
+}
