@@ -123,9 +123,13 @@ def main():
             if hud.returncode:warnings.append('No se pudo sincronizar el HUD; se conserva su configuracion')
             # Only refresh installed metadata after migration, while UI is closed.
             if (Path('/juegos/Cyberpunk2077')/'goggame-1423049311.info').is_file():
-                result = subprocess.run(['/usr/local/bin/ultra-gog-cyberpunk'], timeout=15)
+                result = subprocess.run(['/usr/local/bin/ultra-gog-cyberpunk'], timeout=15,
+                                        capture_output=True, text=True, errors='replace')
                 if result.returncode:
-                    warnings.append('No se pudo registrar Cyberpunk; consulta el registro GOG')
+                    # Keep the concrete reason in Estado/informe instead of a vague hint.
+                    reason = (result.stderr.strip().splitlines() or ['sin detalle'])[-1]
+                    reason = reason.removeprefix('GOG / Cyberpunk:').strip()[:160]
+                    warnings.append(f'No se pudo registrar Cyberpunk: {reason}')
         record('interfaz','entregado',warnings=warnings)
     args = [BIN] if action == 'biblioteca' else [BIN, '--launch', 'sideload_steam_230410']
     os.execvp('ultra-hud', ['ultra-hud', 'ejecutar', *args])

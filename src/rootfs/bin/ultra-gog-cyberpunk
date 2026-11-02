@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # SPDX-License-Identifier: GPL-2.0-only
-"""Register verified GOG Cyberpunk files in Heronite 0.15.0 (legacy Heroic fallback).
+"""Register verified GOG Cyberpunk files in Heronite 0.15/1.x (legacy Heroic fallback).
 
 Offline installed-game metadata only. No credentials, catalogue ownership,
 downloads, game files, prefixes or saves are changed.
@@ -20,6 +20,10 @@ APP = '1423049311'
 VERSION = Path('/etc/ultra/heroic-version')
 HERONITE_VERSION = Path('/etc/ultra/heronite-version')
 LIMIT = 2*1024*1024
+# Heronite keeps Heroic's gog_store/installed.json layout from 0.15 through 1.x
+# (checked against upstream v1.0.0). Its AppImage may update itself inside 1.x.
+HERONITE_COMPATIBLE = re.compile(r'(0\.15|1)\.[0-9]{1,4}(\.[0-9]{1,4})?')
+HERONITE_PROCESS = 'heronite-rs'
 
 
 def read_json(path, limit=LIMIT):
@@ -33,7 +37,7 @@ def read_json(path, limit=LIMIT):
     return json.loads(raw)
 
 
-def game_metadata():
+def game_metadata(heronite=False):
     if GAME.resolve() != GAME or not GAME.is_dir():
         raise ValueError('Cyberpunk no esta preparado: revisa el montaje /juegos/Cyberpunk2077')
     exe = GAME/'bin/x64/Cyberpunk2077.exe'
@@ -62,7 +66,9 @@ def game_metadata():
         raise ValueError('idioma GOG invalido')
     # Field names and root-directory executable follow Heroic v2.22.4's
     # GOGLibraryManager.importGame. buildId is the local version fallback.
-    return dict(appName=APP, install_path=str(GAME), executable=str(GAME),
+    # Heronite always writes executable="" and rewrites other values to it.
+    executable = '' if heronite else str(GAME)
+    return dict(appName=APP, install_path=str(GAME), executable=executable,
                 is_dlc=False, version=build, platform='windows', buildId=build,
                 language=language, installedDLCs=sorted(set(dlcs)), installedWithDLCs=bool(dlcs))
 
@@ -72,7 +78,12 @@ def heroic_running():
         if index >= 8192:
             raise ValueError('demasiados procesos para comprobar Heroic')
         try:
-            if proc.stat().st_uid == 1000 and (proc/'exe').resolve() in (Path('/opt/heroic/heroic'), Path('/usr/bin/heronite-rs')):
+            if proc.stat().st_uid != 1000:
+                continue
+            exe = (proc/'exe').resolve()
+            # The ULTRA wrapper execs the per-user AppImage (extract-and-run),
+            # so the live binary is heronite-rs outside /usr/bin.
+            if exe == Path('/opt/heroic/heroic') or exe.name == HERONITE_PROCESS:
                 return True
         except (OSError, RuntimeError):
             continue
@@ -93,8 +104,9 @@ def atomic(path, value):
 
 
 def register():
-    metadata = game_metadata()
-    store = HOME/('.local/share/heronite/gog_store' if HERONITE_VERSION.exists() else '.config/heroic/gog_store')
+    heronite = HERONITE_VERSION.exists()
+    metadata = game_metadata(heronite)
+    store = HOME/('.local/share/heronite/gog_store' if heronite else '.config/heroic/gog_store')
     store.mkdir(parents=True, exist_ok=True, mode=0o700)
     if store.resolve() != store:
         raise ValueError('configuracion Heroic redirigida')
@@ -126,8 +138,9 @@ def main():
     if os.geteuid() != 1000 or Path(os.environ.get('HOME', '')) != HOME:
         raise ValueError('se requiere el usuario del escritorio con home persistente')
     if HERONITE_VERSION.exists():
-        if HERONITE_VERSION.read_text().strip() != '0.15.0':
-            raise ValueError('version Heronite no compatible; usar su importador')
+        version = HERONITE_VERSION.read_text().strip()
+        if not HERONITE_COMPATIBLE.fullmatch(version):
+            raise ValueError(f'version Heronite {version[:20]} no compatible; usar su importador')
         if not (HOME/'.local/share/heronite').is_dir():
             raise ValueError('primero completar la migracion nativa de Heronite')
     elif VERSION.read_text().strip() != '2.22.4':

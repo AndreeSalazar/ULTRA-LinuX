@@ -94,5 +94,44 @@ class Import(unittest.TestCase):
             self.assertIn('ya reconocido', app.register())
         self.assertEqual(self.file.read_bytes(), before)
 
+    def test_heronite_1_store_uses_upstream_executable_contract(self):
+        version = self.root/'heronite-version'; version.write_text('1.0.0\n')
+        with patch.object(app, 'HERONITE_VERSION', version):
+            self.assertIn('registrado', app.register())
+            target = self.home/'.local/share/heronite/gog_store/installed.json'
+            entry = json.loads(target.read_text())['installed'][0]
+            # Heronite writes executable="" itself; a different value would
+            # force a rewrite on every launch.
+            self.assertEqual((entry['executable'], entry['install_path']), ('', str(self.game)))
+            before = (target.read_bytes(), target.stat().st_mtime_ns)
+            self.assertIn('ya reconocido', app.register())
+            self.assertEqual(before, (target.read_bytes(), target.stat().st_mtime_ns))
+
+    def test_heronite_version_policy(self):
+        for good in ('0.15.0', '1.0.0', '1.2', '1.10.3'):
+            self.assertTrue(app.HERONITE_COMPATIBLE.fullmatch(good), good)
+        for bad in ('0.14.9', '2.0.0', '1', '1.0.0-rc1', '', '1.0.0 ; x'):
+            self.assertFalse(app.HERONITE_COMPATIBLE.fullmatch(bad), bad)
+
+    def test_appimage_process_counts_as_running(self):
+        self.patches[-1].stop()
+        try:
+            proc = self.root/'proc'; (proc/'41').mkdir(parents=True)
+            fake = self.root/'heronite-extract/appimage_extracted_x/usr/bin/heronite-rs'
+            fake.parent.mkdir(parents=True); fake.write_bytes(b'')
+            real_path = app.Path
+            class Stat:
+                st_uid = 1000
+            def fake_path(*args):
+                return proc if args == ('/proc',) else real_path(*args)
+            def resolve(self, *a, **k):
+                return fake if self.name == 'exe' else real_path.resolve(self, *a, **k)
+            with patch.object(app, 'Path', side_effect=fake_path), \
+                 patch.object(real_path, 'stat', lambda self, *a, **k: Stat()), \
+                 patch.object(real_path, 'resolve', resolve):
+                self.assertTrue(app.heroic_running())
+        finally:
+            self.patches[-1].start()
+
 
 if __name__=='__main__': unittest.main(verbosity=2)
