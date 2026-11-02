@@ -50,14 +50,20 @@ if($Accion -eq 'Compilar'){
     $sourceList=Join-Path $project 'build/revision-fuentes-lista.txt'
     $sourceArchive=Join-Path $project 'build/revision-fuentes.tar.gz'
     New-Item -ItemType Directory -Force (Split-Path $sourceList) | Out-Null
-    $sourceNames=@(& git ls-files --cached --others --exclude-standard -- src CASM scripts | Sort-Object -Unique)
+    # Museo/ and docs/museo-ub.json: the folder core's tests compare its rules with them.
+    $sourceNames=@(& git ls-files --cached --others --exclude-standard -- src CASM scripts Museo docs/museo-ub.json | Sort-Object -Unique)
     if($LASTEXITCODE -ne 0 -or $sourceNames.Count -eq 0){throw 'ROJO: inventario de fuentes vacio'}
     [IO.File]::WriteAllLines($sourceList,$sourceNames,(New-Object Text.UTF8Encoding $false))
     & tar.exe -czf $sourceArchive -C $project -T $sourceList
     if($LASTEXITCODE -ne 0){throw 'ROJO: no se pudo empaquetar el arbol de fuentes'}
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known $sourceArchive 'builder@127.0.0.1:/var/tmp/revision-fuentes.tar.gz'
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia del arbol de fuentes incompleta'}
-    Invoke-Guest 'mkdir -p /home/builder/linux-reconstruido/lab/rootfs && tar xzf /var/tmp/revision-fuentes.tar.gz -C /home/builder/linux-reconstruido'
+    # -m: extraction time as mtime. Windows checkouts keep old dates, and Cargo would
+    # otherwise reuse a cached test binary built from an older include_str! file.
+    Invoke-Guest 'mkdir -p /home/builder/linux-reconstruido/lab/rootfs && tar xzmf /var/tmp/revision-fuentes.tar.gz -C /home/builder/linux-reconstruido'
+    # Every installer the build calls from lab/ comes from this tree, never from a
+    # copy left over in the workshop by an earlier manual transfer.
+    Invoke-Guest 'cd /home/builder/linux-reconstruido && cp -f scripts/instalar-*.sh scripts/preparar-fondos.py lab/'
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/init.c') (Join-Path $project 'src/init.h') (Join-Path $project 'src/modopciones.h') (Join-Path $project 'src/particiones.c') (Join-Path $project 'src/hardware.c') (Join-Path $project 'src/tarjeta.c') (Join-Path $project 'src/efi.c') (Join-Path $project 'src/perfil.c') (Join-Path $project 'src/logo.c') (Join-Path $project 'src/sistema.c') (Join-Path $project 'scripts/build-baseline.sh') (Join-Path $project 'scripts/guardianes.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia de fuentes incompleta.'}
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/efi-order.h') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'

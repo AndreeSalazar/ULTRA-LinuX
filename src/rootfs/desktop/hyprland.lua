@@ -1,5 +1,5 @@
 -- SPDX-License-Identifier: GPL-2.0-only
--- ULTRA / BMO-X Neon: shell original para Hyprland 0.56.2. Acento hielo, esquinas rectas.
+-- ULTRA / BMO-X Neon: shell original para Hyprland 0.57. Acento hielo, esquinas rectas.
 local vivo = os.getenv("ULTRA_EFECTOS") ~= "sobrio"
 -- NVIDIA + XWayland/Wine: preferir cursor compuesto hasta validar el plano HW.
 -- ULTRA_RENDER_MODE lo entrega ultra-sesion segun el dispositivo real.

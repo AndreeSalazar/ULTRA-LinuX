@@ -227,7 +227,7 @@ if [[ -n $cmdline ]]; then
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
     arch_pkgs=(filesystem glibc bash coreutils grep sed less cage foot seatd systemd ttf-dejavu ttf-jetbrains-mono util-linux shadow perf
-        hyprland=0.56.2-4 fuzzel waybar thunar mousepad dbus tzdata chrony swaybg librsvg
+        hyprland=SERIE fuzzel waybar thunar mousepad dbus tzdata chrony swaybg librsvg
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
         pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
@@ -247,8 +247,20 @@ if [[ -n $cmdline ]]; then
     [[ $perfil = pc ]] && arch_pkgs+=("nvidia-utils=$nv_ver")
     if [[ $perfil = pc ]]; then arch_pkgs+=("lib32-nvidia-utils=$nv_ver");
     else arch_pkgs+=(vulkan-swrast lib32-vulkan-swrast lib32-mesa); fi
+    # Hyprland: the Lua config (hyprland.lua) is validated per minor series. Arch rebuilds
+    # change the pkgrel (0.57.0-1, -3...), so the pin is the series, resolved on the fresh sync;
+    # a new series (0.58) stops the build instead of shipping an untested config API.
+    hypr_series=0.57
     sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \
-        -Sy --noconfirm "${arch_pkgs[@]}" > "$art/pacman-sistema.log" 2>&1 ||
+        -Sy > "$art/pacman-sistema.log" 2>&1 || { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo sincronizar'; exit 1; }
+    hypr_ver=$(pacman --config "$art/pacman-sistema.conf" --dbpath "$sistema/var/lib/pacman" -Si hyprland |
+        sed -n 's/^Version *: *//p')
+    [[ $hypr_ver == "$hypr_series".* ]] ||
+        { echo "ROJO: Arch ofrece Hyprland $hypr_ver, fuera de la serie validada $hypr_series"; exit 1; }
+    echo "VERDE [HYPRLAND]: $hypr_ver (serie $hypr_series)"
+    arch_pkgs=("${arch_pkgs[@]/#hyprland=*/hyprland=$hypr_ver}")
+    sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \
+        -S --noconfirm "${arch_pkgs[@]}" >> "$art/pacman-sistema.log" 2>&1 ||
         { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo instalar el sistema base de Arch'; exit 1; }
     # Reproductor del fondo vivo: awww (antes swww). Opcional: sin el, el fondo queda estatico.
     for motor in awww swww; do
