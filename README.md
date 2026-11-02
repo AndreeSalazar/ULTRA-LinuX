@@ -534,3 +534,6 @@ Fuentes de los componentes: [Linux upstream](https://git.kernel.org/pub/scm/linu
 [Arch Boxes](https://github.com/archlinux/arch-boxes),
 [Hyprland](https://github.com/hyprwm/Hyprland) y
 [Heroic](https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher).
+## Última actualización
+
+El menú de sesión ahora agrupa apagar, reiniciar, suspender y volver a consola; las acciones de energía se validan con un contrato fijo entre el usuario y el supervisor de la sesión. El menú de juegos también incorpora la ruta directa de Steam y el estado seguro del último inicio de Heronite. Véase [Sesión y lanzadores](docs/SESION-Y-LANZADOR.md).

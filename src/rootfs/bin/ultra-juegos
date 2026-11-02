@@ -4,7 +4,7 @@ set -euo pipefail
 [[ $(id -u) == 1000 ]] || exit 1
 action=${1:-menu}
 if [[ $action == menu ]]; then
-    choice=$(printf '%s\n' 'Heronite / Steam y GOG' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'Importar juegos GOG' 'Cyberpunk 2077' 'Cyberpunk / recuperacion y diagnostico' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Warframe / diagnostico' 'Warframe / panel de recursos' 'Warframe / capturas guardadas' |
+    choice=$(printf '%s\n' 'Heronite / Steam y GOG' 'Elegir carpetas y discos' 'Mis carpetas y bibliotecas' 'Importar juegos GOG' 'Cyberpunk 2077' 'Cyberpunk / recuperacion y diagnostico' 'Revisar bibliotecas de juegos' 'Warframe / Steam' 'Estado y espacio' 'Registros de juegos' 'Juegos y consumo en vivo' 'FPS y HUD' 'Warframe / diagnostico' 'Warframe / panel de recursos' 'Warframe / capturas guardadas' 'Estado del lanzador' 'Steam / cliente directo' |
         fuzzel --dmenu --prompt='Juegos /' --lines=16) || exit 0
     case $choice in
         'Heronite / Steam y GOG') action=gog;; 'Cyberpunk 2077') action=cyberpunk;;
@@ -16,6 +16,8 @@ if [[ $action == menu ]]; then
         'Revisar bibliotecas de juegos') exec foot --fullscreen --title='ULTRA / Discos y bibliotecas' /usr/local/bin/ultra-discos panel;;
         'Estado y espacio') exec foot --hold /usr/local/bin/ultra-juegos estado;;
         'Registros de juegos') exec foot --hold /usr/local/bin/ultra-juegos registros;;
+        'Estado del lanzador') exec foot --hold /usr/local/bin/ultra-heronite estado;;
+        'Steam / cliente directo') action=steam-directo;;
         'Juegos y consumo en vivo') exec foot --title='ULTRA / Juegos en vivo' ultra-juegos-vivo panel;;
         'FPS y HUD') exec ultra-hud menu;;
         'Warframe / diagnostico') action=warframe-diagnostico;;
@@ -85,7 +87,7 @@ if [[ ! $available_kib =~ ^[0-9]+$ ]] || ((available_kib < 2097152)); then
     [[ $action != warframe && $action != cyberpunk && $action != cyberpunk-directo ]] || exit 1
 fi
 mkdir -p "$HOME/.cache/ultra"
-if [[ $action == steam || $action == warframe ]]; then
+if [[ $action == steam || $action == steam-directo || $action == warframe ]]; then
     registro_rc=0
     ultra-bibliotecas registrar-steam > "$HOME/.cache/ultra/steam-bibliotecas.log" 2>&1 || registro_rc=$?
     if (( registro_rc == 75 )); then
@@ -96,6 +98,9 @@ if [[ $action == steam || $action == warframe ]]; then
     fi
 fi
 case $action in
+    steam-directo)
+        ultra-espacio permitir-juegos || exit 1
+        exec /usr/local/bin/steam >> "$HOME/.cache/ultra/steam.log" 2>&1;;
     steam)
         ultra-espacio permitir-juegos || exit 1
         exec ultra-heronite biblioteca >> "$HOME/.cache/ultra/heronite.log" 2>&1;;

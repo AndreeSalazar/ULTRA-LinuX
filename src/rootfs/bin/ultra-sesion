@@ -15,8 +15,10 @@ seat_pid=''
 meter_pid=''
 kernel_pid=''
 energia_pid=''
+sesion_control_pid=''
 frames_mounted=0
 cleanup() {
+    if [[ -n $sesion_control_pid ]]; then kill "$sesion_control_pid" 2>/dev/null || true; wait "$sesion_control_pid" 2>/dev/null || true; fi
     if [[ -n $energia_pid ]]; then kill "$energia_pid" 2>/dev/null || true; wait "$energia_pid" 2>/dev/null || true; fi
     if [[ -n $meter_pid ]]; then
         touch /run/ultra-escritorio/medicion.stop
@@ -36,6 +38,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 # Do not attribute a previous client log to a fresh failed preparation.
 rm -f /run/ultra-escritorio/ultima.log /run/ultra-escritorio/seatd.log /run/ultra-escritorio/nodos.log /run/ultra-escritorio/medicion.log /run/ultra-escritorio/medicion.stop /run/ultra-escritorio/red.log
+rm -f /run/ultra-escritorio/power-action /run/user/1000/ultra-sesion-peticion
 read -r vigilante_inicio _ < /proc/uptime
 printf '%s\n' "$vigilante_inicio" > /run/ultra-escritorio/vigilante-inicio
 [[ ! -e /run/seatd.sock && ! -L /run/seatd.sock ]] || { echo 'ROJO [SESION]: socket seatd ya ocupado'; exit 1; }
@@ -88,6 +91,10 @@ fi
 install -d -m 0700 -o 1000 -g 1000 /run/user/1000 || exit 1
 /usr/bin/python -I /usr/local/libexec/ultra-cpu-control > /run/ultra-escritorio/cpu-control.log 2>&1 9>&- &
 energia_pid=$!
+if [[ $compositor == hyprland ]]; then
+    /usr/bin/python3 -I /usr/local/bin/ultra-sesion-control --supervisor > /run/ultra-escritorio/sesion-control.log 2>&1 9>&- &
+    sesion_control_pid=$!
+fi
 if [[ ! -L /run/ultra-cuadros ]] && ! mountpoint -q /run/ultra-cuadros; then
     install -d -m 0700 -o 0 -g 0 /run/ultra-cuadros
     if mount -t tmpfs -o size=64M,mode=0700,uid=1000,gid=1000,nosuid,nodev,noexec ultra-cuadros /run/ultra-cuadros; then frames_mounted=1; fi

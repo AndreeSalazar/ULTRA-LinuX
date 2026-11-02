@@ -43,7 +43,9 @@ for binary in heronite-rs heronite-epic-login; do
     sudo chroot "$sistema" /usr/bin/ldd "/usr/bin/$binary" | tee "$art/$binary-bibliotecas.txt"
     ! grep -q 'not found' "$art/$binary-bibliotecas.txt"
 done
-sudo install -m 0755 "$(dirname "$0")/../src/rootfs/bin/ultra-heronite-appimage" "$sistema/usr/bin/heronite-rs"
+launcher="$(dirname "$0")/rootfs/bin/ultra-heronite-appimage"
+[[ -f $launcher ]] || launcher="$(dirname "$0")/../src/rootfs/bin/ultra-heronite-appimage"
+sudo install -m 0755 "$launcher" "$sistema/usr/bin/heronite-rs"
 # Only the extracted system image's known application directory is removed.
 if [[ -e $sistema/opt/heroic || -L $sistema/opt/heroic ]]; then
     [[ $(realpath "$sistema/opt/heroic") == "$sistema/opt/heroic" && -d $sistema/opt/heroic && ! -L $sistema/opt/heroic ]]

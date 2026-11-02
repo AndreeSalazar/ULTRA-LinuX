@@ -53,6 +53,7 @@ while :; do
                 /usr/bin/bash /usr/local/libexec/ultra-sesion software foot > /run/ultra-escritorio/lanzador.log 2>&1
             fi
             result=$?
+            [[ ! -f /run/ultra-escritorio/power-action ]] || exit "$result"
             printf '\nSesion terminada (codigo %d).\n' "$result"
             (( result == 0 )) || /usr/bin/tail -n 8 /run/ultra-escritorio/lanzador.log
             ;;

@@ -1388,6 +1388,18 @@ print('HUD-NATIVO-FIXTURE')"""
                 finished_auto = True; break
             time.sleep(1)
         expect(finished_auto, 'Discos: revision automatica de 60 s termina sin bloquear el escritorio')
+        if '--sesion-control' in sys.argv:
+            code='hl.dispatch(hl.dsp.cursor.move({x=1260,y=20}))'
+            transcript+=run(conn,[('ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 eval '+shlex.quote(code),'ok')],failures)
+            mon.sendall(b'mouse_button 1\n');time.sleep(.15);mon.sendall(b'mouse_button 0\n');time.sleep(.8)
+            transcript+=run(conn,[("for p in $(pidof fuzzel); do grep -aqF 'BMO-X // SESION' /proc/$p/cmdline && echo SESION-MENU-$((80+1)); done",'SESION-MENU-81')],failures)
+            mon.sendall(b'sendkey ret\n');time.sleep(.7)
+            transcript+=run(conn,[("for p in $(pidof fuzzel); do grep -aqF 'Confirmar apagar' /proc/$p/cmdline && echo SESION-CONFIRMAR-$((80+2)); done",'SESION-CONFIRMAR-82')],failures)
+            target=pathlib.Path(tempfile.gettempdir())/'ultra-sesion.png';target.unlink(missing_ok=True)
+            mon.sendall(f'screendump {target} -f png\n'.encode());time.sleep(.5)
+            shutil.copyfile(target,LOG.with_name(LOG.stem+'-sesion.png'))
+            mon.sendall(b'sendkey esc\n');time.sleep(.5)
+            transcript+=run(conn,[("test ! -e /arch/run/ultra-escritorio/power-action && test ! -e /arch/run/user/1000/ultra-sesion-peticion && echo SESION-CANCELADA-$((80+3))",'SESION-CANCELADA-83')],failures)
         mon.sendall(b'sendkey meta_l-shift-m\n')
         time.sleep(4)
         conn.sendall(b'echo HYPR-SINC-$((3+4))\n')

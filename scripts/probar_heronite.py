@@ -3,6 +3,8 @@
 import importlib.machinery
 import importlib.util
 import json
+import contextlib
+import io
 from pathlib import Path
 import tempfile
 import unittest
@@ -56,6 +58,15 @@ class Prepare(unittest.TestCase):
         with patch.object(app.subprocess, 'run'):
             with self.assertRaises(ValueError): app.prepare()
         self.assertEqual(self.config.read_text(), '{broken')
+
+    def test_public_start_status_never_exports_other_configuration(self):
+        folder=self.root/'.cache/ultra';folder.mkdir(parents=True)
+        (folder/'heronite-inicio.json').write_text(json.dumps({'fase':'hud','resultado':'error',
+            'error':'ejemplo','access_token':'DO-NOT-EXPORT','advertencias':['aviso']}))
+        output=io.StringIO()
+        with patch.object(app,'HOME',self.root),contextlib.redirect_stdout(output):app.status()
+        self.assertNotIn('DO-NOT-EXPORT',output.getvalue())
+        self.assertEqual(json.loads(output.getvalue())['fase'],'hud')
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)

@@ -111,8 +111,8 @@
     },
     "custom/logout": {
       "format": "",
-      "tooltip-format": "Volver a la consola",
-      "on-click": "hyprctl dispatch 'hl.dsp.exit()'"
+      "tooltip-format": "Sesion: apagar, reiniciar, suspender o volver a consola",
+      "on-click": "ultra-sesion-control menu"
     },
     "pulseaudio": {
       "format": "<span color='#00f0ff' size='small'>VOL</span> {volume}%",

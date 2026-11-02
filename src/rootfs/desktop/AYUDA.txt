@@ -93,3 +93,5 @@ eligen su propia version solos.
 SUPER + Ctrl + M     Mouse y teclado: velocidad, rueda y distribucion
 Discord oficial: Super+D. Su instalacion y sesion se conservan en el home persistente.
 Heronite usa la AppImage oficial actualizable en ~/.local/share/ultra/apps/heronite.
+Boton de encendido (arriba): Apagar, Reiniciar, Suspender o Volver a consola.
+Juegos: Estado del lanzador muestra la etapa del ultimo inicio; Steam / cliente directo abre el cliente nativo.

@@ -23,6 +23,7 @@ MENUS = {
         ('', 'Categorias', 'Super+Shift+Espacio', ['ultra-ambiente','menu']),
         ('', 'Personalizar', 'Super+Shift+P', ['ultra-personalizar','menu']),
         ('', 'Discord', 'Super+D', ['ultra-discord']),
+        ('', 'Sesion / encendido', '', ['ultra-sesion-control','menu']),
     ]),
     'captura': ('BMO-X // CAPTURA', '3dff9aff', [
         ('', 'Seleccionar region', 'Super+Shift+S', ['ultra-captura','region']),

@@ -1,0 +1,11 @@
+{
+  "fecha": "2026-11-01",
+  "perfil": "pc",
+  "kernel_sha256": "1c1d2596e6861fc8368a91c7d8d9c4d1bb293be011a218647df36b64ace58ee9",
+  "sistema_sha256": "cd107978fd66c18e5582b3e46c23171f8f9aebe32996dd24787afcb35c44e0d6",
+  "datos_sha256": "34eef755001d3f84f320843c3c7988f132a1a81773d134ddb9e5f2eb038e0a19",
+  "datos_preservados": true,
+  "control_sesion": "apagar,reiniciar,suspender",
+  "heronite_diagnostico": true,
+  "arranque_aislado": "ok"
+}

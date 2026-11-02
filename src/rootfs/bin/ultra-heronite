@@ -12,6 +12,40 @@ import tempfile
 HOME = Path(os.environ.get('HOME', '/home/ultra'))
 DATA = HOME/'.local/share/heronite'
 BIN = '/usr/bin/heronite-rs'
+PHASE = 'inicio'
+
+
+def record(phase, result='preparando', error='', warnings=()):
+    global PHASE
+    PHASE = phase
+    if os.getuid() != 1000 or HOME != Path('/juegos/usuarios/ultra'): return
+    try:
+        folder = HOME/'.cache/ultra'; folder.mkdir(parents=True,exist_ok=True)
+        fd, name = tempfile.mkstemp(prefix='.heronite-inicio-',dir=folder)
+        try:
+            with os.fdopen(fd,'w') as stream:
+                os.fchmod(stream.fileno(),0o600)
+                json.dump({'fase':phase,'resultado':result,'error':error[:240],
+                           'advertencias':list(warnings)[-8:]},stream);stream.write('\n')
+            os.replace(name,folder/'heronite-inicio.json')
+        finally:
+            if os.path.exists(name): os.unlink(name)
+    except OSError: pass
+
+
+def status():
+    path=HOME/'.cache/ultra/heronite-inicio.json'
+    result={'fase':'sin_registro','resultado':'desconocido'}
+    if path.is_file() and not path.is_symlink() and path.stat().st_size<=4096:
+        doc=json.loads(path.read_text())
+        if not isinstance(doc,dict):raise ValueError('estado de inicio no valido')
+        for key in ('fase','resultado','error'):
+            if isinstance(doc.get(key),str):result[key]=doc[key][:240]
+        warnings=doc.get('advertencias',[])
+        result['advertencias']=[x[:240] for x in warnings if isinstance(x,str)][:8] if isinstance(warnings,list) else []
+    result['xdg_open_presente']=Path('/usr/bin/xdg-open').is_file()
+    result['appimage_presente']=(HOME/'.local/share/ultra/apps/heronite/Heronite.AppImage').is_file()
+    print(json.dumps(result))
 
 
 def running():
@@ -63,6 +97,7 @@ def main():
     if os.getuid() != 1000 or HOME != Path('/juegos/usuarios/ultra'):
         raise ValueError('se requiere el home persistente del escritorio')
     action = sys.argv[1] if len(sys.argv) > 1 else 'biblioteca'
+    if action == 'estado': return status()
     if action not in ('biblioteca', 'warframe'):
         raise ValueError('accion Heronite desconocida')
     cache = HOME/'.cache/ultra'
@@ -70,18 +105,28 @@ def main():
     fd = os.open(cache/'heronite-inicio.lock', os.O_CREAT | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        subprocess.run(['/usr/local/bin/ultra-steam-protocolo'],check=True,timeout=40)
+        warnings=[]
+        record('protocolo_steam')
+        routing=subprocess.run(['/usr/local/bin/ultra-steam-protocolo'],timeout=40)
+        if routing.returncode:
+            if action=='warframe':raise ValueError('no se pudo preparar el enlace Steam')
+            warnings.append('Enlace Steam no disponible; revisa Estado del lanzador')
         if not running():
+            record('bibliotecas')
             result = subprocess.run(['/usr/local/bin/ultra-bibliotecas', 'registrar-steam'], timeout=60)
             if result.returncode == 75:
                 raise ValueError('bibliotecas en preparacion; espera a que termine y vuelve a abrir')
+            record('migracion')
             prepare()
-            subprocess.run(['/usr/local/bin/ultra-hud-heronite','iniciar'],check=True,timeout=15)
+            record('hud')
+            hud=subprocess.run(['/usr/local/bin/ultra-hud-heronite','iniciar'],timeout=15)
+            if hud.returncode:warnings.append('No se pudo sincronizar el HUD; se conserva su configuracion')
             # Only refresh installed metadata after migration, while UI is closed.
             if (Path('/juegos/Cyberpunk2077')/'goggame-1423049311.info').is_file():
                 result = subprocess.run(['/usr/local/bin/ultra-gog-cyberpunk'], timeout=15)
                 if result.returncode:
-                    raise ValueError('no se pudo registrar Cyberpunk; consulta el registro GOG')
+                    warnings.append('No se pudo registrar Cyberpunk; consulta el registro GOG')
+        record('interfaz','entregado',warnings=warnings)
     args = [BIN] if action == 'biblioteca' else [BIN, '--launch', 'sideload_steam_230410']
     os.execvp('ultra-hud', ['ultra-hud', 'ejecutar', *args])
 
@@ -90,6 +135,14 @@ if __name__ == '__main__':
     try:
         main()
     except (OSError, ValueError, subprocess.SubprocessError) as error:
+        specific=False
+        try:
+            path=HOME/'.cache/ultra/heronite-inicio.json'
+            if path.is_file() and not path.is_symlink() and path.stat().st_size<=4096:
+                last=json.loads(path.read_text())
+                specific=isinstance(last,dict) and last.get('fase')=='appimage' and last.get('resultado')=='error'
+        except (OSError,ValueError):pass
+        if not specific:record(PHASE,'error',str(error))
         print('Heronite:', error, file=sys.stderr)
         try:
             subprocess.run(['notify-send', 'Heronite: revisar inicio', 'Consulta Juegos > Registros de juegos. Se conservaron configuraciones y partidas.'], timeout=2)

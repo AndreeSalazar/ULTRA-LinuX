@@ -3,6 +3,17 @@
 # auto: NVIDIA GLES when a real NVIDIA DRM device exists, software otherwise.
 mode=auto
 compositor=cage
+terminar() {
+    result=$?
+    exportar_informe
+    action_file=/arch/run/ultra-escritorio/power-action
+    if [ -f "$action_file" ] && [ ! -L "$action_file" ]; then
+        action=$(cat "$action_file")
+        rm -f "$action_file"
+        case "$action" in apagar) kill -USR2 1;; reiniciar) kill -TERM 1;; esac
+    fi
+    return "$result"
+}
 exportar_informe() {
     source=/arch/run/ultra-escritorio/informe-gpu.txt
     [ -r "$source" ] || return 0
@@ -40,7 +51,8 @@ fi
 case "${1:-}" in
     --menu)
         [ $# -eq 1 ] || { echo 'Uso: ultra-escritorio --menu'; exit 2; }
-        trap exportar_informe EXIT
+        rm -f /arch/run/ultra-escritorio/power-action
+        trap terminar EXIT
         /bin/ultra-raiz /arch /usr/bin/env -i PATH=/usr/local/bin:/usr/bin \
             GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
             /usr/bin/bash /usr/local/libexec/ultra-menu
@@ -58,7 +70,8 @@ esac
 [ -x /arch/usr/local/libexec/ultra-sesion ] || { echo 'ROJO [ESCRITORIO]: falta ultra-sesion en Arch'; exit 1; }
 [ $# -gt 0 ] || set -- foot
 [ "$compositor" != hyprland ] || set -- --hyprland "$@"
-trap exportar_informe EXIT
+rm -f /arch/run/ultra-escritorio/power-action
+trap terminar EXIT
 /bin/ultra-raiz /arch /usr/bin/env -i PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
     GLIBC_TUNABLES="${GLIBC_TUNABLES:-}" LANG=C.UTF-8 TERM=linux \
     /usr/bin/bash /usr/local/libexec/ultra-sesion "$mode" "$@"

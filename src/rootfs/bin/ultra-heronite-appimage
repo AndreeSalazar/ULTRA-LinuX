@@ -3,6 +3,7 @@
 """Seed the official launcher once; preserve its signed, per-user updates."""
 import fcntl
 import hashlib
+import json
 import os
 from pathlib import Path
 import stat
@@ -61,4 +62,12 @@ def main():
 if __name__ == '__main__':
     try: main()
     except (OSError, ValueError) as error:
+        if os.getuid()==1000 and os.environ.get('HOME')=='/juegos/usuarios/ultra':
+            try:
+                folder=Path.home()/'.cache/ultra';private_directory(folder)
+                fd, temporary=tempfile.mkstemp(prefix='.heronite-inicio-',dir=folder)
+                with os.fdopen(fd,'w') as output:
+                    json.dump({'fase':'appimage','resultado':'error','error':str(error)[:240]},output)
+                os.replace(temporary,folder/'heronite-inicio.json')
+            except OSError: pass
         print('Heronite:', error, file=sys.stderr); sys.exit(1)

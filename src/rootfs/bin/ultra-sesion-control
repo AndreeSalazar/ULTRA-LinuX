@@ -1,0 +1,160 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Three fixed session requests; no sudo, shell commands or arbitrary paths."""
+import json
+import math
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+
+REQUEST = Path('/run/user/1000/ultra-sesion-peticion')
+PUBLIC = Path('/run/ultra-sesion-control')
+PENDING = Path('/run/ultra-escritorio/power-action')
+ACTIONS = ('apagar', 'reiniciar', 'suspender')
+
+
+def atomic(path, value, mode=0o644):
+    fd, temporary = tempfile.mkstemp(prefix='.sesion-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w') as output:
+            os.fchmod(output.fileno(), mode)
+            output.write(value); output.flush(); os.fsync(output.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary): os.unlink(temporary)
+
+
+def decode_request(path=REQUEST, now=None):
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as source:
+        info = os.fstat(source.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != 1000 or info.st_nlink != 1 or info.st_size > 512 or info.st_mode & 0o077:
+            raise ValueError('peticion no privada o demasiado grande')
+        doc = json.loads(source.read(513))
+    if not isinstance(doc, dict) or set(doc) != {'accion','id','monotonic'}:
+        raise ValueError('contrato de peticion desconocido')
+    moment = doc['monotonic']
+    if not isinstance(moment, (int,float)) or not math.isfinite(moment) or not 0 <= (time.monotonic() if now is None else now)-moment <= 30:
+        raise ValueError('peticion caducada')
+    if doc['accion'] not in ACTIONS or not isinstance(doc['id'],str) or not re.fullmatch('[0-9a-f]{32}',doc['id']):
+        raise ValueError('accion o identificador no permitido')
+    return doc
+
+
+def supports_suspend():
+    try: return 'mem' in Path('/sys/power/state').read_text().split()
+    except OSError: return False
+
+
+def perform(action):
+    if action not in ACTIONS: raise ValueError('accion no permitida')
+    if action == 'suspender':
+        if not supports_suspend(): raise ValueError('el kernel no ofrece suspension mem')
+        os.sync()
+        Path('/sys/power/state').write_text('mem')
+        return 'reanudado'
+    atomic(PENDING, action+'\n', 0o600)
+    try:
+        subprocess.run(['/usr/bin/setpriv','--reuid=1000','--regid=1000','--clear-groups','--no-new-privs',
+            '--inh-caps=-all','--ambient-caps=-all','--bounding-set=-all','/usr/bin/env','XDG_RUNTIME_DIR=/run/user/1000',
+            '/usr/bin/hyprctl','-i','0','dispatch','hl.dsp.exit()'],check=True,timeout=8,capture_output=True)
+    except (OSError, subprocess.SubprocessError):
+        PENDING.unlink(missing_ok=True); raise
+    return 'cerrando_sesion'
+
+
+def supervise():
+    if os.geteuid() != 0: raise ValueError('supervisor reservado a la sesion root')
+    PUBLIC.mkdir(mode=0o755,exist_ok=True)
+    info = PUBLIC.lstat()
+    if PUBLIC.is_symlink() or not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise ValueError('directorio publico inseguro')
+    stop = False
+    def terminate(*_):
+        nonlocal stop
+        stop = True
+    signal.signal(signal.SIGTERM,terminate); signal.signal(signal.SIGINT,terminate)
+    atomic(PUBLIC/'estado.json',json.dumps({'activo':True,'suspension_disponible':supports_suspend()})+'\n')
+    seen = []; rejected = 0
+    while not stop:
+        try:
+            doc = decode_request()
+            REQUEST.unlink(missing_ok=True)
+            if doc['id'] in seen: raise ValueError('peticion repetida')
+            seen = (seen+[doc['id']])[-32:]
+            result = {'id':doc['id'],'accion':doc['accion'],'ok':True,'fase':'aceptado'}
+            atomic(PUBLIC/'resultado.json',json.dumps(result)+'\n')
+            try: result['fase'] = perform(doc['accion'])
+            except (OSError, ValueError, subprocess.SubprocessError) as error:
+                result.update(ok=False,fase='error',error=str(error)[:240])
+            atomic(PUBLIC/'resultado.json',json.dumps(result)+'\n')
+        except FileNotFoundError: pass
+        except (OSError,ValueError,TypeError) as error:
+            try: REQUEST.unlink(missing_ok=True)
+            except OSError: pass
+            if rejected < 16: print('Sesion: peticion rechazada:',str(error)[:160],flush=True)
+            rejected += 1
+        time.sleep(.3)
+    atomic(PUBLIC/'estado.json',json.dumps({'activo':False,'suspension_disponible':False})+'\n')
+
+
+def request(action):
+    if os.geteuid() != 1000 or action not in ACTIONS: raise ValueError('usuario o accion no permitidos')
+    runtime = REQUEST.parent.lstat()
+    if REQUEST.parent.is_symlink() or runtime.st_uid != 1000: raise ValueError('runtime no disponible')
+    status = json.loads((PUBLIC/'estado.json').read_text())
+    if not status.get('activo'): raise ValueError('supervisor de sesion no disponible')
+    if action == 'suspender' and not status.get('suspension_disponible'): raise ValueError('suspension no disponible en este kernel')
+    token = secrets.token_hex(16)
+    atomic(REQUEST,json.dumps({'accion':action,'id':token,'monotonic':time.monotonic()})+'\n',0o600)
+    for _ in range(40):
+        try:
+            result = json.loads((PUBLIC/'resultado.json').read_text())
+            if result.get('id') == token:
+                if not result.get('ok'): raise ValueError(result.get('error','no se pudo aplicar'))
+                return result
+        except FileNotFoundError: pass
+        time.sleep(.1)
+    raise ValueError('el supervisor no respondio; no se elevan permisos')
+
+
+def choose(title, labels):
+    result = subprocess.run(['fuzzel','--dmenu','--index','--only-match','--no-sort','--prompt='+title+' > '],
+        input='\n'.join(labels)+'\n',capture_output=True,text=True,timeout=180)
+    if result.returncode: return None
+    value = result.stdout.strip()
+    if not value.isascii() or not value.isdecimal() or not 0 <= int(value) < len(labels): raise ValueError('seleccion invalida')
+    return int(value)
+
+
+def menu():
+    index = choose('BMO-X // SESION',['  Apagar','  Reiniciar','  Suspender','  Volver a la consola','Cancelar'])
+    if index is None or index == 4: return
+    if index == 3:
+        subprocess.run(['hyprctl','dispatch','hl.dsp.exit()'],check=True,timeout=8); return
+    action = ACTIONS[index]
+    if choose('Confirmar '+action,['Cancelar',action.capitalize()+' · guarda primero tu trabajo']) == 1:
+        request(action)
+
+
+if __name__ == '__main__':
+    try:
+        if sys.argv[1:] == ['--supervisor']: supervise()
+        elif os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+        elif sys.argv[1:] == ['estado']: print((PUBLIC/'estado.json').read_text(),end='')
+        elif len(sys.argv) == 3 and sys.argv[1] == 'solicitar': print(json.dumps(request(sys.argv[2])))
+        elif sys.argv[1:] in ([],['menu']): menu()
+        else: raise ValueError('Uso: ultra-sesion-control menu|estado|solicitar ACCION')
+    except (OSError,ValueError,subprocess.SubprocessError) as error:
+        print('Sesion:',error,file=sys.stderr)
+        if os.geteuid() == 1000:
+            try: subprocess.run(['notify-send','Sesion / revisar',str(error)[:240]],timeout=3)
+            except (OSError,subprocess.SubprocessError): pass
+        sys.exit(1)
