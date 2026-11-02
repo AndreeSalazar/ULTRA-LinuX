@@ -7,7 +7,7 @@ out="${ULTRA_REVISION_OUT:?asignar un directorio por revision}"
 mkdir -p "$out/fixture"
 exec > >(tee "$out/informe.txt") 2>&1
 gcc --version | head -1
-sha256sum "$lab/hardware.c" "$lab/init.h" "$lab/guardian/produccion/ultra_guard.c" > "$out/fuentes.sha256"
+sha256sum "$lab/hardware.c" "$lab/init.h" "$lab/modopciones.h" "$lab/guardian/produccion/ultra_guard.c" > "$out/fuentes.sha256"
 cat "$out/fuentes.sha256"
 printf 'kernel/ultra-audit-inert.ko:\n' > "$out/fixture/modules.dep"
 gcc "${ULTRA_WARN[@]}" "${ULTRA_PROD[@]}" -ffunction-sections -fdata-sections -Wl,--gc-sections -static-pie \

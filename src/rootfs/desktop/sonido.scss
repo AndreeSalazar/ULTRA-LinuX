@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: GPL-2.0-only
+// BMO-X / Neon: ULTRA Sonido (eww, GTK3 CSS). Mismos colores y letras que las tarjetas.
+$panel: rgba(15, 14, 22, .90); $linea: #2a2733;
+$acento: #5ad8ff; $claro: #bff3ff;
+$cyan: #00f0ff; $rojo: #ff2a4f; $verde: #3dff9a; $violeta: #c03bff; $amarillo: #fcee0a; $coral: #ff7a90;
+$texto: #ece9dc; $tenue: #a19eae; $apagado: #625f70;
+
+* { all: unset; font-family: "Chakra Petch", "DejaVu Sans"; color: $texto; }
+
+.panel {
+  background-color: rgba(6, 5, 10, .92);
+  border: 1px solid $linea; border-top: 2px solid $violeta;
+  padding: 16px; margin: 4px;
+  box-shadow: 0 0 22px rgba(192, 59, 255, .22);
+  animation: respira 5s ease-in-out infinite alternate;
+}
+.panel.apagado { border-top-color: $apagado; box-shadow: none; animation: none; }
+.cabecera .marca { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 20px; letter-spacing: 3px; color: $violeta; }
+.cerrar { font-size: 14px; color: $tenue; padding: 0 6px; }
+.cerrar:hover { color: $rojo; }
+.subtitulo { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 1px; color: $apagado; }
+.seccion { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 12px; letter-spacing: 3px; color: $tenue; margin-top: 4px; }
+
+.maestro { background-color: $panel; border: 1px solid $linea; border-left: 3px solid $acento; padding: 10px 12px; }
+.maestro .cifra { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; min-width: 44px; }
+.silencio { font-family: "JetBrains Mono", "Symbols Nerd Font", monospace; font-size: 18px; color: $acento; }
+.silencio.mudo { color: $rojo; }
+
+.interruptor { padding: 2px 2px; }
+.interruptor .nombre { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 13px; letter-spacing: 2px; }
+.boton {
+  font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 12px; letter-spacing: 2px;
+  padding: 4px 14px; border: 1px solid $apagado; color: $tenue;
+  transition: all 200ms ease;
+}
+.boton.encendido { border-color: $verde; color: $verde; background-color: rgba(61, 255, 154, .10); box-shadow: 0 0 10px rgba(61, 255, 154, .25); }
+
+.chip {
+  font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 11px; letter-spacing: 1px;
+  padding: 5px 4px; border: 1px solid $linea; background-color: $panel; color: $tenue;
+  transition: all 200ms ease;
+}
+.chip:hover { border-color: $violeta; color: $texto; }
+.chip.elegido { border-color: $violeta; color: $violeta; background-color: rgba(192, 59, 255, .14); box-shadow: 0 0 10px rgba(192, 59, 255, .30); }
+.chip.personal { color: $apagado; }
+.chip.personal.elegido { color: $amarillo; border-color: $amarillo; background-color: rgba(252, 238, 10, .08); box-shadow: none; }
+
+.control { background-color: $panel; border: 1px solid $linea; border-left: 3px solid $acento; padding: 8px 10px; }
+.control .nombre { font-family: "Rajdhani", "DejaVu Sans Condensed"; font-weight: 700; font-size: 13px; letter-spacing: 2px; }
+.control .cifra { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; }
+.control .detalle, .pie .detalle { font-size: 9px; color: $apagado; }
+
+// Barras: canal oscuro, relleno de color con brillo, perilla redonda.
+.barra { margin: 6px 0 4px 0; }
+.barra trough { background-color: $linea; min-height: 4px; border-radius: 2px; }
+.barra highlight { background-color: $acento; min-height: 4px; border-radius: 2px; box-shadow: 0 0 8px rgba(90, 216, 255, .55); }
+.barra slider { background-color: $claro; min-width: 12px; min-height: 12px; margin: -5px 0; border-radius: 7px; box-shadow: 0 0 8px rgba(90, 216, 255, .7); }
+
+@mixin tono($c, $r, $g, $b) {
+  border-left-color: $c;
+  .nombre { color: $c; }
+  .barra highlight { background-color: $c; box-shadow: 0 0 8px rgba($r, $g, $b, .55); }
+  .barra slider { box-shadow: 0 0 8px rgba($r, $g, $b, .7); }
+}
+.control.graves { @include tono($rojo, 255, 42, 79); }
+.control.eq { @include tono($cyan, 0, 240, 255); }
+.control.tresd { @include tono($verde, 61, 255, 154); }
+.panel.apagado .control { border-left-color: $apagado; }
+.panel.apagado .control .nombre { color: $apagado; }
+
+.pie { margin-top: 2px; }
+.enlace { font-family: "JetBrains Mono", monospace; font-size: 10px; color: $acento; border-bottom: 1px solid $acento; }
+.enlace:hover { color: $claro; }
+
+@keyframes respira { from { box-shadow: 0 0 10px rgba(192, 59, 255, .10); } to { box-shadow: 0 0 26px rgba(192, 59, 255, .34); } }

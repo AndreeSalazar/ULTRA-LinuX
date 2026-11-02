@@ -18,6 +18,9 @@ REQUEST = Path('/run/user/1000/ultra-sesion-peticion')
 PUBLIC = Path('/run/ultra-sesion-control')
 PENDING = Path('/run/ultra-escritorio/power-action')
 ACTIONS = ('apagar', 'reiniciar', 'suspender')
+POWER = Path('/sys/power')
+NVIDIA = Path('/proc/driver/nvidia')
+NVIDIA_TMP = Path('/juegos/.ultra-nvidia')
 
 
 def atomic(path, value, mode=0o644):
@@ -49,16 +52,44 @@ def decode_request(path=REQUEST, now=None):
 
 
 def supports_suspend():
-    try: return 'mem' in Path('/sys/power/state').read_text().split()
+    try: return 'mem' in (POWER/'state').read_text().split()
     except OSError: return False
+
+
+def nvidia_preserves():
+    """True/False with the NVIDIA driver loaded, None without it."""
+    try: params = (NVIDIA/'params').read_text()
+    except OSError: return None
+    return any(line.replace(' ', '') == 'PreserveVideoMemoryAllocations:1' for line in params.splitlines())
+
+
+def suspend():
+    """S3 when the firmware offers it; NVIDIA saves VRAM first (no systemd here)."""
+    try:
+        modes = (POWER/'mem_sleep').read_text().split()
+        if '[deep]' not in modes and 'deep' in modes: (POWER/'mem_sleep').write_text('deep')
+    except OSError: pass
+    gpu = (NVIDIA/'suspend').exists()
+    if gpu:
+        if not nvidia_preserves():
+            raise ValueError('NVIDIA sin PreserveVideoMemoryAllocations: se evita volver con pantalla negra')
+        NVIDIA_TMP.mkdir(mode=0o700, exist_ok=True)
+        info = NVIDIA_TMP.lstat()
+        if NVIDIA_TMP.is_symlink() or info.st_uid != 0 or info.st_mode & 0o077:
+            raise ValueError('carpeta temporal NVIDIA insegura')
+    os.sync()
+    if gpu: (NVIDIA/'suspend').write_text('suspend')
+    try:
+        (POWER/'state').write_text('mem')
+    finally:
+        if gpu: (NVIDIA/'suspend').write_text('resume')
 
 
 def perform(action):
     if action not in ACTIONS: raise ValueError('accion no permitida')
     if action == 'suspender':
         if not supports_suspend(): raise ValueError('el kernel no ofrece suspension mem')
-        os.sync()
-        Path('/sys/power/state').write_text('mem')
+        suspend()
         return 'reanudado'
     atomic(PENDING, action+'\n', 0o600)
     try:
@@ -81,7 +112,7 @@ def supervise():
         nonlocal stop
         stop = True
     signal.signal(signal.SIGTERM,terminate); signal.signal(signal.SIGINT,terminate)
-    atomic(PUBLIC/'estado.json',json.dumps({'activo':True,'suspension_disponible':supports_suspend()})+'\n')
+    atomic(PUBLIC/'estado.json',json.dumps({'activo':True,'suspension_disponible':supports_suspend() and nvidia_preserves() is not False})+'\n')
     seen = []; rejected = 0
     while not stop:
         try:

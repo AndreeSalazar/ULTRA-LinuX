@@ -11,7 +11,7 @@ try {
     $guest='builder@127.0.0.1'
     & ssh.exe @opts -p 12222 $guest "mkdir -p $remote"
     if($LASTEXITCODE -ne 0){throw 'No se pudo acceder al taller.'}
-    & scp.exe @opts -P 12222 src/hardware.c src/init.h scripts/guardianes.sh scripts/aislar-mina.sh scripts/auditar-cargador.sh "${guest}:$remote/"
+    & scp.exe @opts -P 12222 src/hardware.c src/init.h src/modopciones.h scripts/guardianes.sh scripts/aislar-mina.sh scripts/auditar-cargador.sh "${guest}:$remote/"
     if($LASTEXITCODE -ne 0){throw 'No se completo el snapshot.'}
     & scp.exe @opts -P 12222 -r src/guardian "${guest}:$remote/"
     if($LASTEXITCODE -ne 0){throw 'No se completaron las herramientas de revision.'}

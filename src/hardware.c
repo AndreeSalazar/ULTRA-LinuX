@@ -24,6 +24,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "init.h"
+#include "modopciones.h"
 /* Last: it poisons unsafe functions after the system headers are parsed. */
 #include "guardian/ultra_guard.h"
 
@@ -278,6 +279,73 @@ static const struct dep *find_dep(const char *name) {
     return NULL;
 }
 
+/* A small file whose size is unknown in advance (/proc reports 0): NUL-terminated,
+ * returns the bytes read, or cap if it did not fit (the caller then drops it). */
+static size_t read_small(const char *path, char *buf, size_t cap) {
+    buf[0] = 0;
+    int fd = open(path, O_RDONLY | O_CLOEXEC);
+    if (fd < 0) return 0;
+    size_t got = 0;
+    while (got < cap - 1) {
+        ssize_t n = read(fd, buf + got, cap - 1 - got);
+        if (n < 0 && errno == EINTR) continue;
+        if (n <= 0) break;
+        got += (size_t)n;
+    }
+    char extra;
+    bool more = got == cap - 1 && read(fd, &extra, 1) == 1;
+    close(fd);
+    buf[got] = 0;
+    return more ? cap : got;
+}
+
+/* modprobe.d text of the system image (usr/lib first, etc last so it wins) and
+ * the kernel command line, read once. finit_module ignores both on its own. */
+static char mod_conf[32768];
+static char mod_cmdline[4096];
+static bool mod_ready;
+
+static void read_modprobe_dir(const char *dir) {
+    struct dirent **list = NULL;
+    int n = scandir(dir, &list, visible, alphasort);
+    for (int i = 0; i < n; i++) {
+        const char *file = list[i]->d_name;
+        size_t len = strlen(file), used = strlen(mod_conf);
+        char path[512];
+        int plen = snprintf(path, sizeof(path), "%s/%s", dir, file);
+        if (len > 5 && strcmp(file + len - 5, ".conf") == 0 && plen > 0 && (size_t)plen < sizeof(path) &&
+            used + 2 < sizeof(mod_conf)) {
+            size_t room = sizeof(mod_conf) - used - 1;
+            size_t got = read_small(path, mod_conf + used, room);
+            if (got >= room - 1) {
+                mod_conf[used] = 0;  /* never parse half a file */
+                say("AMARILLO", "%s: opciones de modulos demasiado largas; se ignora", path);
+            } else {
+                mod_conf[used + got] = '\n';
+                mod_conf[used + got + 1] = 0;
+            }
+        }
+        free(list[i]);
+    }
+    free(list);
+}
+
+static void module_params(const char *name, char *out, size_t cap) {
+    if (!mod_ready) {
+        mod_ready = true;
+        read_modprobe_dir("/sistema/usr/lib/modprobe.d");
+        read_modprobe_dir("/sistema/etc/modprobe.d");
+        if (read_small("/proc/cmdline", mod_cmdline, sizeof(mod_cmdline)) >= sizeof(mod_cmdline)) mod_cmdline[0] = 0;
+    }
+    out[0] = 0;
+    if (!ultra_mod_from_conf(mod_conf, name, out, cap) || !ultra_mod_from_cmdline(mod_cmdline, name, out, cap)) {
+        say("AMARILLO", "%s: opciones demasiado largas; se carga sin opciones", name);
+        out[0] = 0;
+    } else if (out[0]) {
+        say("VERDE", "%s: opciones %s", name, out);
+    }
+}
+
 /* Dependencies first, then the module, straight from its file with finit_module. */
 static bool load_module(const char *name, unsigned depth) {
     if (depth > DEP_DEPTH) {
@@ -323,7 +391,9 @@ static bool load_module(const char *name, unsigned depth) {
         nfailed++;
         return false;
     }
-    long r = syscall(SYS_finit_module, fd, "", 0);
+    char params[512];
+    module_params(name, params, sizeof(params));
+    long r = syscall(SYS_finit_module, fd, params, 0);
     int err = errno;
     close(fd);
     if (r != 0 && err != EEXIST) {

@@ -17,6 +17,9 @@ import time
 
 HOME = Path('/juegos/usuarios/ultra')
 LOCAL = HOME/'.local/share/ultra/respaldos'
+# Disco Personal (antiguo D:): otro SSD fisico, la copia diaria va alli si existe.
+PERSONAL = Path('/personal/ultra')
+KEEP_PERSONAL = 10
 USB_DIR = 'ULTRA-respaldos'
 PREFIX = 'ULTRA-respaldo-'
 KEEP_LOCAL, KEEP_USB = 5, 3
@@ -127,6 +130,16 @@ def create(folder, keep):
     return final, manifest
 
 
+def destination():
+    """Personal disk when mounted and ours; otherwise the local folder."""
+    try:
+        if (os.path.ismount('/personal') and PERSONAL.is_dir() and not PERSONAL.is_symlink()
+                and PERSONAL.stat().st_uid == os.geteuid() and os.access(PERSONAL, os.W_OK)):
+            return PERSONAL/'respaldos', KEEP_PERSONAL
+    except OSError: pass
+    return LOCAL, KEEP_LOCAL
+
+
 def notify(title, text, urgency='normal'):
     try: subprocess.run(['notify-send', '--app-name=ULTRA', '--icon=document-save', f'--urgency={urgency}', title, text], timeout=5)
     except (OSError, subprocess.SubprocessError): pass
@@ -166,11 +179,12 @@ def main():
         raise ValueError('se requiere el usuario del escritorio con home persistente')
     args = sys.argv[1:]
     if args[:1] == ['crear']:
+        folder, keep = destination()
         if '--auto' in args:
-            last = backups(LOCAL)[-1:] if LOCAL.is_dir() else []
+            last = backups(folder)[-1:] if folder.is_dir() else []
             if last and time.time()-last[0].stat().st_mtime < DAY:
                 print('Respaldo: el ultimo tiene menos de 24 h; nada que hacer'); return
-        final, manifest = create(LOCAL, KEEP_LOCAL)
+        final, manifest = create(folder, keep)
         print(f'Respaldo: {final} ({summary(manifest)})')
         if '--auto' not in args: notify('Respaldo listo', summary(manifest))
     elif len(args) == 2 and args[0] == 'usb':
@@ -178,7 +192,7 @@ def main():
         final, manifest = create(usb_folder(args[1]), KEEP_USB)
         notify('Respaldo en USB listo', f'{summary(manifest)}. Expulsa con Super+U antes de retirarla.')
     elif args == ['lista']:
-        for item in backups(LOCAL) if LOCAL.is_dir() else []:
+        for item in [b for f, _ in (destination(), (LOCAL, KEEP_LOCAL)) if f.is_dir() for b in backups(f)]:
             print(item, f'{item.stat().st_size/1024**2:.0f} MB')
     elif len(args) == 2 and args[0] == 'restaurar':
         target = restore(args[1])

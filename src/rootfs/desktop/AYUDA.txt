@@ -92,10 +92,17 @@ RAM se pierde al apagar. Los proyectos con rust-toolchain.toml, como BMO-X,
 eligen su propia version solos.
 SUPER + Ctrl + M     Mouse y teclado: velocidad, rueda y distribucion
 Discord oficial: Super+D. Su instalacion y sesion se conservan en el home persistente.
+Sonido: Super+A abre ULTRA Sonido: volumen, graves, ecualizador de 5 bandas,
+  amplitud 3D y Auriculares 3D, con perfiles (Musica, Juegos, Cine, Voz...).
+  Funciona en cualquier salida y evita la saturacion. Super+Alt+A: menu clasico.
 USB: Super+U abre, respalda o expulsa pendrives y discos USB (vfat, exFAT, NTFS, ext4).
   Se montan solos en /run/media/ultra; expulsa siempre antes de retirarlos.
-Respaldo: cada dia se guarda configuracion, llavero y partidas en
-  ~/.local/share/ultra/respaldos (ultimos 5). 'ultra-respaldo restaurar ARCHIVO'
+Disco Personal: el antiguo D: puede ser ext4 de ULTRA. Una vez, en la consola y sin
+  escritorio: ultra-entrar ultra-personal formatear (solo si D: esta vacio; pide
+  escribir FORMATEAR D). Luego se monta solo en /personal y ~/Personal.
+Respaldo: cada dia se guarda configuracion, llavero y partidas en /personal/ultra/respaldos
+  (otro SSD, ultimos 10) o, sin disco Personal, en ~/.local/share/ultra/respaldos
+  (ultimos 5). 'ultra-respaldo restaurar ARCHIVO'
   extrae en ~/Restaurado sin sobrescribir nada.
 Heronite usa la AppImage oficial actualizable en ~/.local/share/ultra/apps/heronite.
 Boton de encendido (arriba): Apagar, Reiniciar, Suspender o Volver a consola.

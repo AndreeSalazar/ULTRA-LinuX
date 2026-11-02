@@ -38,13 +38,14 @@ fi
 { find "$lab/rootfs/bin" "$lab/rootfs/desktop" "$lab/rootfs/fuentes" -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum;
   sha256sum "$lab/actualizar-escritorio.sh"; } > fuentes-escritorio.sha256
 sudo install -m 0644 "$lab/rootfs/desktop/"* "$art/sistema-a/etc/ultra/"
+sudo install -D -m 0644 "$lab/rootfs/modprobe/ultra-nvidia.conf" "$art/sistema-a/etc/modprobe.d/ultra-nvidia.conf"
 sudo install -m 0644 fuentes-escritorio.sha256 "$art/sistema-a/etc/ultra/escritorio-fuentes.sha256"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$art/sistema-a/usr/local/bin/ultra-ambiente"
 sudo install -m 0755 "$lab/rootfs/bin/ultra-hyprland" "$art/sistema-a/usr/local/libexec/ultra-hyprland"
-for helper in ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-crear-fondo ultra-preparar-limites; do
+for helper in ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-crear-fondo ultra-preparar-limites ultra-salud ultra-comprobar-datos ultra-personal; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/libexec/$helper"
 done
-for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas ultra-pantallas ultra-discos ultra-personalizar ultra-aplicaciones ultra-espacio ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas ultra-usb ultra-respaldo; do
+for helper in ultra-graficos ultra-windows ultra-steam-warframe ultra-bibliotecas ultra-pantallas ultra-discos ultra-personalizar ultra-aplicaciones ultra-espacio ultra-incidente ultra-captura ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas ultra-usb ultra-respaldo ultra-sonido ultra-personal; do
     sudo install -m 0755 "$lab/rootfs/bin/$helper" "$art/sistema-a/usr/local/bin/$helper"
 done
 for helper in "$lab/rootfs/bin/"*; do

@@ -20,10 +20,14 @@ trap finish EXIT
 # create/unlock an encrypted keyring; never feed an empty password to the daemon.
 gnome-keyring-daemon --start --foreground --components=secrets \
     > "$HOME/.cache/ultra/llavero.log" 2>&1 & children+=("$!")
+# ULTRA Sonido: write the filter-chain with saved settings before PipeWire reads its config.
+ultra-sonido preparar 2> "$HOME/.cache/ultra/sonido.log" || true
 pipewire > "$HOME/.cache/ultra/pipewire.log" 2>&1 & children+=("$!")
 pipewire-pulse > "$HOME/.cache/ultra/pipewire-pulse.log" 2>&1 & children+=("$!")
 wireplumber > "$HOME/.cache/ultra/wireplumber.log" 2>&1 & children+=("$!")
 if [[ $HOME == /juegos/usuarios/ultra ]]; then
+    # Acceso directo al disco Personal (ext4 en el antiguo D:) cuando esta montado.
+    [[ -e $HOME/Personal || -L $HOME/Personal || ! -d /personal/ultra || ! -O /personal/ultra ]] || ln -s /personal/ultra "$HOME/Personal"
     ultra-juegos-vivo vigilar > "$HOME/.cache/ultra/juegos-vivo.log" 2>&1 & children+=("$!")
     # Daily local backup of settings and saves, idle I/O priority, after login settles.
     (sleep 180; exec nice -n 19 ionice -c 3 ultra-respaldo crear --auto)         > "$HOME/.cache/ultra/respaldo.log" 2>&1 & children+=("$!")

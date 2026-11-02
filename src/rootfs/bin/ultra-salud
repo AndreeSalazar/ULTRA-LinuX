@@ -1,0 +1,164 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Semaforo del informe: lee el informe terminado y resume lo importante arriba.
+
+    ultra-salud INFORME      imprime el bloque [SALUD] (verde, amarillo, rojo)
+
+Solo lee texto; no ejecuta nada ni consulta el sistema. Cada regla explica que
+hacer en una linea, para leer el informe desde Windows en segundos.
+"""
+import json
+import re
+import sys
+import time
+
+VERDE, AMARILLO, ROJO = 'VERDE', 'AMARILLO', 'ROJO'
+
+
+def section(text, title):
+    match = re.search(r'^\[' + re.escape(title) + r'[^\n]*\]\n(.*?)(?=^\[/?[A-Z]{3,}|\Z)', text, re.S | re.M)
+    return match.group(1) if match else ''
+
+
+def value(text, key):
+    match = re.search(r'^' + re.escape(key) + r'=(.*)$', text, re.M)
+    return match.group(1).strip() if match else ''
+
+
+def check_session(text):
+    exit_code = value(text, 'salida')
+    comp = value(text, 'compositor') or 'escritorio'
+    if exit_code == '0': return VERDE, 'Sesion', f'{comp} termino bien (salida 0)'
+    return ROJO, 'Sesion', f'{comp} termino con salida {exit_code or "?"}: mira LANZAMIENTO DEL CLIENTE'
+
+
+def check_gpu(text):
+    if 'AUSENTE /dev/nvidia' in text: return ROJO, 'GPU', 'faltan nodos NVIDIA: driver no cargado'
+    model = re.search(r'^Model:\s*(.+)$', text, re.M)
+    if not model: return AMARILLO, 'GPU', 'sin datos del driver NVIDIA'
+    return VERDE, 'GPU', f'{model.group(1).strip()} con driver cargado'
+
+
+def check_audio(text):
+    audio = section(text, 'AUDIO')
+    sink = re.search(r'Sinks:\s*\n[^\n]*\*\s+\d+\.\s+(.+?)\s+\[vol: ([\d.]+)', audio)
+    rt_ok = 'VERDE [AUDIO-RT]' in text
+    rt_off = 'Realtime scheduling disabled' in audio or 'AMARILLO [AUDIO-RT]' in text
+    results = []
+    if not sink: results.append((AMARILLO, 'Audio', 'sin salida de audio por defecto'))
+    else:
+        name, vol = sink.group(1), float(sink.group(2))
+        if vol > 1.5:
+            results.append((AMARILLO, 'Volumen', f'{name} al {vol*100:.0f}%: puede distorsionar; usa Graves en Super+A'))
+        else:
+            results.append((VERDE, 'Audio', f'{name} al {vol*100:.0f}%'))
+    if rt_ok: results.append((VERDE, 'Audio RT', 'PipeWire con prioridad de tiempo real'))
+    elif rt_off: results.append((AMARILLO, 'Audio RT', 'PipeWire sin tiempo real: posibles cortes en juegos'))
+    return results
+
+
+def check_network(text):
+    if 'VERDE [RED]' not in text: return AMARILLO, 'Red', 'sin red preparada en esta sesion'
+    speed = re.search(r'speed_Mbps=(\d+)', text)
+    supports_gbit = '1000baseT/Full' in section(text, 'INTERFAZ')
+    if speed and int(speed.group(1)) < 1000 and supports_gbit:
+        return AMARILLO, 'Red', f'enlace a {speed.group(1)} Mb/s y la tarjeta admite 1000: revisa cable o puerto'
+    return VERDE, 'Red', f'conectada{f" a {speed.group(1)} Mb/s" if speed else ""}'
+
+
+def check_games(text):
+    if 'ROJO [JUEGOS]' in text: return ROJO, 'Juegos', 'almacenamiento de juegos no preparado'
+    if 'VERDE [JUEGOS]' in text: return VERDE, 'Juegos', '/juegos montado y home persistente'
+    return AMARILLO, 'Juegos', 'sin /juegos: el escritorio uso un home temporal'
+
+
+def check_launcher(text):
+    raw = section(text, 'HERONITE').strip().splitlines()
+    try: doc = json.loads(raw[0]) if raw else {}
+    except ValueError: doc = {}
+    if not doc: return None
+    if doc.get('resultado') == 'error': return ROJO, 'Heronite', f'fallo en {doc.get("fase")}: {doc.get("error", "")[:90]}'
+    if doc.get('advertencias'): return AMARILLO, 'Heronite', doc['advertencias'][0][:110]
+    return VERDE, 'Heronite', 'inicio sin avisos'
+
+
+def check_memory(text):
+    kills = re.search(r'^oom_kill (\d+)', text, re.M)
+    if kills and int(kills.group(1)) > 0: return ROJO, 'Memoria', f'{kills.group(1)} procesos cerrados por falta de RAM'
+    return VERDE, 'Memoria', 'sin cierres por falta de RAM'
+
+
+def check_temperature(text):
+    temps = [float(t) for t in re.findall(r'"cpu_max_C": ([\d.]+)', text)]
+    if not temps: return None
+    peak = max(temps)
+    if peak >= 95: return ROJO, 'Temperatura', f'CPU llego a {peak:.0f} °C: revisa ventilacion'
+    if peak >= 85: return AMARILLO, 'Temperatura', f'CPU llego a {peak:.0f} °C'
+    return VERDE, 'Temperatura', f'CPU maxima {peak:.0f} °C'
+
+
+def check_disks(text):
+    raw = section(text, 'DATOS Y RESPALDOS')
+    match = re.search(r'^DISCOS (\[.*\])$', raw, re.M)
+    if not match: return []
+    try: disks = json.loads(match.group(1))
+    except ValueError: return [(AMARILLO, 'Discos', 'comprobacion ilegible')]
+    results = []
+    for disk in disks:
+        if not disk.get('montado'):
+            if disk.get('punto') != '/personal': results.append((AMARILLO, f'Disco {disk.get("punto")}', 'no montado'))
+            continue
+        if disk.get('sistema') != 'ext4': continue
+        state, errors = disk.get('estado', ''), disk.get('errores', 0) or 0
+        if 'error' in state or (isinstance(errors, int) and errors > 0):
+            results.append((ROJO, f'Disco {disk["punto"]}', f'ext4 con errores ({errors}): apaga con poweroff y avisa para repararlo'))
+        elif state and state != 'clean':
+            results.append((AMARILLO, f'Disco {disk["punto"]}', f'estado "{state}": hubo un cierre brusco'))
+        else:
+            results.append((VERDE, f'Disco {disk["punto"]}', 'ext4 limpio'))
+    return results
+
+
+def check_backups(text, now):
+    raw = section(text, 'DATOS Y RESPALDOS')
+    stamps = re.findall(r'ULTRA-respaldo-(\d{8}-\d{6})', raw)
+    if not raw: return None
+    if not stamps: return AMARILLO, 'Respaldo', 'todavia no hay respaldos'
+    newest = max(time.mktime(time.strptime(s, '%Y%m%d-%H%M%S')) for s in stamps)
+    days = (now-newest)/86400
+    where = 'disco Personal' if '/personal/' in raw else 'mismo disco que /juegos'
+    if days > 7: return AMARILLO, 'Respaldo', f'el ultimo tiene {days:.0f} dias ({where})'
+    level = VERDE if where == 'disco Personal' else AMARILLO
+    note = '' if level == VERDE else '; prepara D: para tener copia en otro disco'
+    return level, 'Respaldo', f'hace {max(days, 0)*24:.0f} h en {where}{note}'
+
+
+def check_red_lines(text):
+    lines = [l for l in re.findall(r'ROJO \[[^\]]+\][^\n]*', text)]
+    if not lines: return None
+    return ROJO, 'Avisos rojos', f'{len(lines)}: {lines[0][:100]}'
+
+
+def summary(text, now=None):
+    now = time.time() if now is None else now
+    checks = [check_session, check_gpu, check_audio, check_network, check_games, check_launcher,
+              check_memory, check_temperature, check_disks, lambda t: check_backups(t, now), check_red_lines]
+    results = []
+    for rule in checks:
+        found = rule(text)
+        if found is None: continue
+        results.extend(found if isinstance(found, list) else [found])
+    count = {level: sum(r[0] == level for r in results) for level in (VERDE, AMARILLO, ROJO)}
+    order = {ROJO: 0, AMARILLO: 1, VERDE: 2}
+    lines = ['[SALUD: resumen de esta sesion; rojo y amarillo primero]']
+    for level, name, detail in sorted(results, key=lambda r: order[r[0]]):
+        lines.append(f'{level:<9}{name:<14}{detail}')
+    lines.append(f'total: {count[VERDE]} verde, {count[AMARILLO]} amarillo, {count[ROJO]} rojo')
+    lines.append('[/SALUD]\n')
+    return '\n'.join(lines)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2: print('Uso: ultra-salud INFORME', file=sys.stderr); sys.exit(2)
+    with open(sys.argv[1], encoding='utf-8', errors='replace') as source:
+        print(summary(source.read(8*1024**2)))

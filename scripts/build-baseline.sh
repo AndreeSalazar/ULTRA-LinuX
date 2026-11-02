@@ -269,7 +269,7 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render,audio -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
-    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-medir-recursos ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-eventos-kernel ultra-preparar-limites ultra-crear-fondo; do
+    for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-medir-recursos ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-eventos-kernel ultra-preparar-limites ultra-crear-fondo ultra-salud ultra-comprobar-datos ultra-personal; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"
     done
     sudo install -m 0755 "$user/ultra-red-contadores" "$sistema/usr/local/libexec/ultra-red-contadores"
@@ -284,6 +284,8 @@ if [[ -n $cmdline ]]; then
         { echo 'ROJO: falta firmware Ethernet RTL8168h'; exit 1; }
     sudo install -d -m 0755 "$sistema/etc/ultra"
     sudo install -m 0644 "$lab/rootfs/desktop/"* "$sistema/etc/ultra/"
+    # Module options for the init (modopciones.h): NVIDIA suspend support.
+    sudo install -D -m 0644 "$lab/rootfs/modprobe/ultra-nvidia.conf" "$sistema/etc/modprobe.d/ultra-nvidia.conf"
     sudo pacman -S --noconfirm --needed librsvg xorg-xcursorgen > "$art/tema-herramientas.log" 2>&1
     sudo python "$lab/rootfs/crear-tema.py" "$sistema"
     # Tema Neon: Rajdhani y Chakra Petch (OFL) viajan con el proyecto; JetBrains Mono viene de Arch.
@@ -301,7 +303,7 @@ if [[ -n $cmdline ]]; then
     sudo install -m 0755 "$lab/rootfs/bin/ultra-ambiente" "$sistema/usr/local/bin/ultra-ambiente"
     for helper in ultra-audio ultra-juegos ultra-heronite ultra-bibliotecas ultra-steam-warframe ultra-graficos ultra-windows ultra-hora ultra-pantallas ultra-discos ultra-hud ultra-juegos-vivo ultra-vigilante ultra-gog-cyberpunk ultra-diagnostico-juego ultra-equipo ultra-tema ultra-aplicaciones ultra-espacio ultra-personalizar ultra-incidente ultra-captura ultra-super ultra-portapapeles ultra-modo-juego ultra-fondo-vivo ultra-tarjetas; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     sudo install -m 0755 "$lab/rootfs/bin/ultra-energia" "$sistema/usr/local/bin/ultra-energia"
-    for helper in steam ultra-entrada ultra-escritorio-ir ultra-hud-heronite ultra-puntero-red ultra-steam-protocolo ultra-discord ultra-sesion-control ultra-usb ultra-respaldo; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
+    for helper in steam ultra-entrada ultra-escritorio-ir ultra-hud-heronite ultra-puntero-red ultra-steam-protocolo ultra-discord ultra-sesion-control ultra-usb ultra-respaldo ultra-sonido ultra-personal; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/bin/$helper"; done
     for helper in ultra-cpu-control ultra_termica.py; do sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"; done
     sudo ln -sfn /usr/share/zoneinfo/America/Lima "$sistema/etc/localtime"
     printf 'America/Lima\n' | sudo tee "$sistema/etc/timezone" > /dev/null

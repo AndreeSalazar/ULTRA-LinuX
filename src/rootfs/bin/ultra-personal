@@ -1,0 +1,145 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Disco Personal (D: de Windows) como almacenamiento Linux de ULTRA.
+
+    ultra-entrar ultra-personal formatear   una sola vez, en la consola, sin escritorio
+    ultra-personal montar | desmontar       lo usa ultra-sesion (root)
+    ultra-personal estado
+
+formatear solo acepta la particion NTFS cuyo UUID figura como volumen de juego
+en /etc/ultra/juegos.conf, que no este montada, no sea USB y siga vacia
+(solo $RECYCLE.BIN y System Volume Information). Pide escribir la confirmacion.
+Marca la particion como "Linux filesystem" para que Windows no la ofrezca para
+formatear y crea ext4 con etiqueta ULTRA-PERSONAL. Nada mas en el disco cambia.
+"""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+
+LABEL = 'ULTRA-PERSONAL'
+TARGET = Path('/personal')
+USER_DIR = TARGET/'ultra'
+CONFIG = Path('/etc/ultra/juegos.conf')
+LINUX_TYPE = '0fc63daf-8483-4772-8e79-3d69d8477de4'
+WINDOWS_LEFTOVERS = {'$RECYCLE.BIN', 'System Volume Information'}
+EMPTY_LIMIT = 16*1024**2
+CONFIRM = 'FORMATEAR D'
+
+
+def run(*args, **kwargs):
+    return subprocess.run(args, check=True, text=True, capture_output=True, timeout=600, **kwargs).stdout
+
+
+def blocks():
+    doc = json.loads(run('/usr/bin/lsblk', '-J', '-b', '-p', '-o',
+                         'NAME,TYPE,SIZE,FSTYPE,UUID,LABEL,PARTTYPE,TRAN,MOUNTPOINTS,PKNAME,PARTN'))
+    rows = []
+    def visit(nodes, tran=None):
+        for node in nodes:
+            node['tran'] = node.get('tran') or tran
+            rows.append(node)
+            visit(node.get('children', []), node['tran'])
+    visit(doc['blockdevices'])
+    return rows
+
+
+def personal_uuid():
+    for line in CONFIG.read_text().splitlines():
+        key, _, value = line.partition('=')
+        if key.strip() == 'game_uuid' and len(value.strip()) == 16: return value.strip().upper()
+    raise ValueError('juegos.conf no nombra el volumen Personal')
+
+
+def mounted(node):
+    return any(m for m in node.get('mountpoints') or [] if m)
+
+
+def find_ntfs(rows, uuid):
+    found = [r for r in rows if r.get('type') == 'part' and r.get('fstype') == 'ntfs' and (r.get('uuid') or '').upper() == uuid]
+    if len(found) != 1: raise ValueError('no se encontro exactamente un volumen Personal NTFS; nada cambia')
+    part = found[0]
+    if part.get('tran') == 'usb': raise ValueError('el volumen Personal esta en USB; no se toca')
+    if mounted(part): raise ValueError('el volumen Personal esta montado; cierra el escritorio y vuelve a intentarlo')
+    if not 80*10**9 <= int(part['size']) <= 140*10**9: raise ValueError('tamano inesperado para D:; nada cambia')
+    return part
+
+
+def check_empty(device):
+    with tempfile.TemporaryDirectory(prefix='ultra-personal-') as view:
+        run('/usr/bin/mount', '-t', 'ntfs3', '-o', 'ro,nosuid,nodev,noexec', device, view)
+        try:
+            extra = sorted(set(os.listdir(view)) - WINDOWS_LEFTOVERS)
+            total = 0
+            for current, _, files in os.walk(view):
+                for name in files:
+                    try: total += os.lstat(os.path.join(current, name)).st_size
+                    except OSError: pass
+        finally:
+            run('/usr/bin/umount', view)
+    if extra: raise ValueError('D: no esta vacio ('+', '.join(extra[:5])+'); copia esos archivos antes')
+    if total > EMPTY_LIMIT: raise ValueError('la papelera de D: tiene datos; vaciala en Windows antes')
+
+
+def format_personal(confirm=input):
+    if os.geteuid() != 0: raise ValueError('ejecutar como root: ultra-entrar ultra-personal formatear')
+    part = find_ntfs(blocks(), personal_uuid())
+    device, disk, number = part['name'], part['pkname'], str(part['partn'])
+    check_empty(device)
+    size = int(part['size'])/10**9
+    print(f'\nDisco Personal: {device} ({size:.0f} GB, NTFS {part["uuid"]}), vacio.')
+    print('Se borrara el sistema de archivos NTFS y Windows dejara de ver D:.')
+    print('Pasara a ser ext4 de ULTRA en /personal (archivos y respaldos).')
+    if confirm(f'Escribe {CONFIRM} para continuar: ').strip() != CONFIRM:
+        print('Cancelado: nada cambio.'); return 1
+    run('/usr/bin/sfdisk', '--part-type', disk, number, LINUX_TYPE)
+    run('/usr/bin/mkfs.ext4', '-F', '-q', '-L', LABEL, '-m', '1', device)
+    print(f'VERDE [PERSONAL]: {device} es ext4 {LABEL}; se monta en /personal al entrar al escritorio')
+    return 0
+
+
+def find_personal(rows):
+    found = [r for r in rows if r.get('type') == 'part' and r.get('fstype') == 'ext4' and r.get('label') == LABEL
+             and r.get('tran') != 'usb']
+    if len(found) > 1: raise ValueError('hay mas de un ULTRA-PERSONAL; no se monta ninguno')
+    return found[0] if found else None
+
+
+def mount_personal():
+    part = find_personal(blocks())
+    if not part: print('AMARILLO [PERSONAL]: sin disco Personal Linux (ultra-entrar ultra-personal formatear)'); return 0
+    if os.path.ismount(TARGET):
+        print('VERDE [PERSONAL]: /personal ya montado'); return 0
+    if mounted(part): raise ValueError('ULTRA-PERSONAL ya esta montado en otra ruta')
+    TARGET.mkdir(mode=0o755, exist_ok=True)
+    if TARGET.is_symlink(): raise ValueError('/personal es un enlace; no se monta')
+    run('/usr/bin/mount', '-t', 'ext4', '-o', 'rw,nosuid,nodev,noatime', part['name'], str(TARGET))
+    if USER_DIR.is_symlink(): raise ValueError('/personal/ultra es un enlace')
+    USER_DIR.mkdir(mode=0o700, exist_ok=True)
+    os.chown(USER_DIR, 1000, 1000); os.chmod(USER_DIR, 0o700)
+    free = os.statvfs(TARGET); gb = free.f_bavail*free.f_frsize/10**9
+    print(f'VERDE [PERSONAL]: {part["name"]} en /personal; libres {gb:.0f} GB')
+    return 0
+
+
+def main():
+    action = sys.argv[1] if len(sys.argv) > 1 else 'estado'
+    if action == 'formatear': return format_personal()
+    if action == 'estado':
+        part = find_personal(blocks())
+        print(json.dumps({'disco': part['name'] if part else None, 'montado': os.path.ismount(TARGET)}))
+        return 0
+    if os.geteuid() != 0: raise ValueError('montar y desmontar requieren root (ultra-sesion)')
+    if action == 'montar': return mount_personal()
+    if action == 'desmontar':
+        if os.path.ismount(TARGET): os.sync(); run('/usr/bin/umount', str(TARGET))
+        return 0
+    raise ValueError('Uso: ultra-personal formatear|montar|desmontar|estado')
+
+
+if __name__ == '__main__':
+    try: sys.exit(main())
+    except (OSError, ValueError, subprocess.SubprocessError, KeyError) as error:
+        print('ROJO [PERSONAL]:', error, file=sys.stderr); sys.exit(1)

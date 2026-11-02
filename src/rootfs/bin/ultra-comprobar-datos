@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Salud de los ext4 de ULTRA sin tocarlos: lee solo el superbloque (dumpe2fs -h).
+
+Un ext4 montado no se puede reparar con seguridad; esto detecta a tiempo un
+cierre brusco o errores que el kernel registro (/datos, /juegos, /personal).
+Salida: JSON, una lista; ultra-informe-gpu la copia y ultra-salud la evalua.
+"""
+import json
+import subprocess
+import sys
+
+TARGETS = ('/datos', '/juegos', '/personal')
+FIELDS = {'Filesystem state': 'estado', 'FS Error count': 'errores', 'Last error time': 'ultimo_error',
+          'First error function': 'funcion_error', 'Mount count': 'montajes', 'Last checked': 'revisado',
+          'Filesystem volume name': 'etiqueta'}
+
+
+def run(*args):
+    return subprocess.run(args, check=True, text=True, capture_output=True, timeout=20).stdout
+
+
+def parse(text):
+    result = {}
+    for line in text.splitlines():
+        key, sep, value = line.partition(':')
+        if sep and key.strip() in FIELDS: result[FIELDS[key.strip()]] = value.strip()[:120]
+    if 'errores' in result:
+        try: result['errores'] = int(result['errores'])
+        except ValueError: pass
+    return result
+
+
+def check(target):
+    entry = {'punto': target}
+    try:
+        source, fstype = run('/usr/bin/findmnt', '-n', '-o', 'SOURCE,FSTYPE', '--mountpoint', target).split()[:2]
+    except (subprocess.SubprocessError, ValueError, OSError):
+        entry['montado'] = False; return entry
+    entry.update(montado=True, sistema=fstype)
+    if fstype != 'ext4': return entry
+    try: entry.update(parse(run('/usr/bin/dumpe2fs', '-h', source)))
+    except (subprocess.SubprocessError, OSError) as error: entry['lectura'] = str(error)[:120]
+    return entry
+
+
+if __name__ == '__main__':
+    print(json.dumps([check(t) for t in TARGETS]))
+    sys.exit(0)
