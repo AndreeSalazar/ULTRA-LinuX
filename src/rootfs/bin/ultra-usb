@@ -1,0 +1,368 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""USB storage for the desktop: root mounts, user opens and ejects.
+
+The root supervisor only touches block devices that sit on a USB bus, are not
+already used by anything else and carry vfat/exfat/ntfs/ext4. It never
+formats, repairs or follows paths from the user; requests name a device that
+the supervisor itself published. Mounts are nosuid,nodev,noexec under
+/run/media/ultra and are all released when the session ends.
+"""
+import json
+import math
+import os
+from pathlib import Path
+import re
+import secrets
+import signal
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+
+SYS = Path('/sys')
+MOUNTINFO = Path('/proc/self/mountinfo')
+MEDIA = Path('/run/media/ultra')
+PUBLIC = Path('/run/ultra-usb')
+REQUEST = Path('/run/user/1000/ultra-usb-peticion')
+ACTIONS = ('expulsar',)
+FILESYSTEMS = {'vfat': 'vfat', 'exfat': 'exfat', 'ntfs': 'ntfs3', 'ext4': 'ext4'}
+EFI = 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b'
+PROTECTED_LABELS = re.compile(r'(ULTRA-.*|BMO)', re.I)
+DEVICE = re.compile(r'sd[a-z]{1,2}[0-9]{0,3}')
+
+
+def run(*args, **kwargs):
+    return subprocess.run(args, check=True, text=True, capture_output=True, timeout=20, **kwargs).stdout
+
+
+def atomic(path, value, mode=0o644):
+    fd, temporary = tempfile.mkstemp(prefix='.usb-', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w') as output:
+            os.fchmod(output.fileno(), mode)
+            output.write(value); output.flush(); os.fsync(output.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary): os.unlink(temporary)
+
+
+def read(path, default=''):
+    try: return path.read_text().strip()
+    except OSError: return default
+
+
+def mounted_sources():
+    """major:minor -> mount points, for every mount the kernel knows."""
+    result = {}
+    for line in read(MOUNTINFO).splitlines():
+        fields = line.split()
+        if len(fields) > 4:
+            point = fields[4].replace('\\040', ' ')
+            result.setdefault(fields[2], []).append(point)
+    return result
+
+
+def usb_disks():
+    """Whole disks whose sysfs path runs through a USB host controller."""
+    for entry in sorted((SYS/'block').glob('sd*')):
+        if not DEVICE.fullmatch(entry.name): continue
+        try: real = str(entry.resolve())
+        except OSError: continue
+        if '/usb' in real: yield entry
+
+
+def parts(disk):
+    found = sorted(p for p in disk.iterdir() if p.name.startswith(disk.name) and (p/'partition').exists())
+    return found or [disk]
+
+
+def probe(device):
+    raw = run('/usr/bin/blkid', '-p', '-o', 'export', f'/dev/{device}')
+    return dict(line.split('=', 1) for line in raw.splitlines() if '=' in line)
+
+
+def safe_name(props, device, taken):
+    label = re.sub(r'[^A-Za-z0-9._-]+', '_', props.get('LABEL', '')).strip('._-')[:32]
+    base = label or re.sub(r'[^A-Za-z0-9-]', '', props.get('UUID', ''))[:16] or device
+    name, n = base, 2
+    while name in taken: name, n = f'{base}-{n}', n+1
+    return name
+
+
+def options(fs, writable):
+    common = ['rw' if writable else 'ro', 'nosuid', 'nodev', 'noexec', 'relatime']
+    if fs in ('vfat', 'exfat', 'ntfs'):
+        common += ['uid=1000', 'gid=1000', 'fmask=0133', 'dmask=0022']
+    if fs == 'vfat': common += ['flush', 'utf8']
+    if fs == 'ntfs': common += ['iocharset=utf8']
+    return ','.join(common)
+
+
+class Supervisor:
+    def __init__(self):
+        self.ours = {}       # device -> public entry
+        self.skip = set()    # devices refused until unplugged (no re-probing)
+        self.ejected = set() # devices the user ejected; wait for unplug
+        self.seen = []
+
+    def scan(self):
+        sources = mounted_sources()
+        present = set()
+        for disk in usb_disks():
+            devices = parts(disk)
+            for part in devices: present.add(part.name)
+            # Any foreign use of this disk (system boot, loop image, another
+            # mount) means hands off the whole stick.
+            nodes = [disk] + devices
+            foreign = any(p for node in nodes for p in sources.get(read(node/'dev'), [])
+                          if not p.startswith(str(MEDIA)+'/'))
+            holders = any(any((node/'holders').glob('*')) for node in nodes if (node/'holders').is_dir())
+            if foreign or holders: continue
+            for part in devices:
+                if part.name not in self.ours and part.name not in self.ejected:
+                    self.attach(part, read(disk/'ro') == '1' or read(part/'ro') == '1')
+        for device in list(self.ours):
+            if device not in present:
+                self.release(device, lazy=True)
+                print(f'USB: {device} retirado sin expulsar', flush=True)
+        self.ejected &= present
+        self.skip &= present
+
+    def attach(self, part, readonly):
+        device = part.name
+        if device in self.skip: return
+        try: props = probe(device)
+        except (OSError, subprocess.SubprocessError): return
+        key = device
+        fs = props.get('TYPE', '')
+        if (fs not in FILESYSTEMS or PROTECTED_LABELS.fullmatch(props.get('LABEL', ''))
+                or props.get('PART_ENTRY_TYPE', '').lower() == EFI):
+            self.skip.add(key); return
+        name = safe_name(props, device, {e['nombre'] for e in self.ours.values()})
+        target = MEDIA/name
+        target.mkdir(mode=0o755, exist_ok=True)
+        if target.is_symlink() or any(target.iterdir()):
+            self.skip.add(key); return
+        writable = not readonly
+        for attempt in ((True, False) if writable else (False,)):
+            try:
+                run('/usr/bin/mount', '-i', '-t', FILESYSTEMS[fs], '-o', options(fs, attempt),
+                    f'/dev/{device}', str(target))
+                writable = attempt
+                break
+            except (OSError, subprocess.SubprocessError):
+                continue
+        else:
+            # Unreadable or dirty filesystem: report once, never repair.
+            try: target.rmdir()
+            except OSError: pass
+            self.skip.add(key)
+            print(f'USB: {device} ({fs}) no se pudo montar', flush=True)
+            return
+        size = int(read(part/'size', '0') or 0)*512
+        self.ours[device] = {'dispositivo': device, 'nombre': name, 'ruta': str(target),
+                             'etiqueta': props.get('LABEL', '')[:64], 'sistema': fs,
+                             'bytes': size, 'escritura': writable}
+        print(f'USB: {device} montado en {target} ({fs}, {"escritura" if writable else "lectura"})', flush=True)
+
+    def release(self, device, lazy=False):
+        entry = self.ours.get(device)
+        if not entry: return
+        os.sync()
+        args = ['/usr/bin/umount'] + (['-l'] if lazy else []) + [entry['ruta']]
+        try: run(*args)
+        except (OSError, subprocess.SubprocessError):
+            # A vanished stick must not stay listed; a busy eject must.
+            if not lazy: raise
+        try: Path(entry['ruta']).rmdir()
+        except OSError: pass
+        del self.ours[device]
+
+    def eject(self, device):
+        if device not in self.ours: raise ValueError('dispositivo no montado por ULTRA')
+        try: self.release(device)
+        except subprocess.CalledProcessError:
+            raise ValueError('en uso: cierra archivos y ventanas de esa unidad')
+        self.ejected.add(device)
+        try: run('/usr/bin/blockdev', '--flushbufs', f'/dev/{device}')
+        except (OSError, subprocess.SubprocessError): pass
+
+    def publish(self, extra=None):
+        doc = {'activo': True, 'unidades': sorted(self.ours.values(), key=lambda e: e['dispositivo']),
+               'expulsados': sorted(self.ejected)}
+        if extra: doc.update(extra)
+        atomic(PUBLIC/'estado.json', json.dumps(doc)+'\n')
+
+    def handle(self):
+        doc = decode_request()
+        REQUEST.unlink(missing_ok=True)
+        if doc['id'] in self.seen: raise ValueError('peticion repetida')
+        self.seen = (self.seen+[doc['id']])[-32:]
+        result = {'id': doc['id'], 'ok': True}
+        try: self.eject(doc['dispositivo'])
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            result.update(ok=False, error=str(error)[:200])
+        atomic(PUBLIC/'resultado.json', json.dumps(result)+'\n')
+
+
+def decode_request(path=None, now=None):
+    fd = os.open(path or REQUEST, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, 'rb') as source:
+        info = os.fstat(source.fileno())
+        if (not stat.S_ISREG(info.st_mode) or info.st_uid != 1000 or info.st_nlink != 1
+                or info.st_size > 512 or info.st_mode & 0o077):
+            raise ValueError('peticion no privada o demasiado grande')
+        doc = json.loads(source.read(513))
+    if not isinstance(doc, dict) or set(doc) != {'accion', 'id', 'monotonic', 'dispositivo'}:
+        raise ValueError('contrato de peticion desconocido')
+    moment = doc['monotonic']
+    if (not isinstance(moment, (int, float)) or not math.isfinite(moment)
+            or not 0 <= (time.monotonic() if now is None else now)-moment <= 30):
+        raise ValueError('peticion caducada')
+    if (doc['accion'] not in ACTIONS or not isinstance(doc['id'], str) or not re.fullmatch('[0-9a-f]{32}', doc['id'])
+            or not isinstance(doc['dispositivo'], str) or not DEVICE.fullmatch(doc['dispositivo'])):
+        raise ValueError('accion o dispositivo no permitido')
+    return doc
+
+
+def secure_dir(path, mode):
+    path.mkdir(mode=mode, parents=True, exist_ok=True)
+    info = path.lstat()
+    if path.is_symlink() or not stat.S_ISDIR(info.st_mode) or info.st_uid != 0 or info.st_mode & 0o022:
+        raise ValueError(f'directorio inseguro: {path}')
+
+
+def supervise():
+    if os.geteuid() != 0: raise ValueError('supervisor reservado a la sesion root')
+    secure_dir(PUBLIC, 0o755); secure_dir(MEDIA, 0o755)
+    sup = Supervisor(); stop = False
+    def terminate(*_):
+        nonlocal stop
+        stop = True
+    signal.signal(signal.SIGTERM, terminate); signal.signal(signal.SIGINT, terminate)
+    rejected = 0; last = None
+    while not stop:
+        try: sup.scan()
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            print('USB: revision fallida:', str(error)[:160], flush=True)
+        try: sup.handle()
+        except FileNotFoundError: pass
+        except (OSError, ValueError, TypeError) as error:
+            try: REQUEST.unlink(missing_ok=True)
+            except OSError: pass
+            if rejected < 16: print('USB: peticion rechazada:', str(error)[:160], flush=True)
+            rejected += 1
+        state = (tuple(sorted(sup.ours)), tuple(sorted(sup.ejected)))
+        if state != last:
+            sup.publish(); last = state
+        time.sleep(1.5)
+    for device in list(sup.ours):
+        try: sup.release(device)
+        except (OSError, subprocess.SubprocessError):
+            try: sup.release(device, lazy=True)
+            except (OSError, subprocess.SubprocessError): pass
+    atomic(PUBLIC/'estado.json', json.dumps({'activo': False, 'unidades': [], 'expulsados': []})+'\n')
+
+
+# ---- user side -------------------------------------------------------------
+
+def status():
+    try: return json.loads((PUBLIC/'estado.json').read_text())
+    except (OSError, ValueError): return {'activo': False, 'unidades': [], 'expulsados': []}
+
+
+def notify(title, text, urgency='normal'):
+    try: subprocess.run(['notify-send', '--app-name=ULTRA', '--icon=drive-removable-media',
+                         f'--urgency={urgency}', title, text], timeout=5)
+    except (OSError, subprocess.SubprocessError): pass
+
+
+def human(n):
+    for unit in ('B', 'KB', 'MB', 'GB', 'TB'):
+        if n < 1024 or unit == 'TB': return f'{n:.0f} {unit}' if unit == 'B' else f'{n:.1f} {unit}'
+        n /= 1024
+
+
+def request(device):
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    if not status().get('activo'): raise ValueError('el supervisor USB no esta activo')
+    runtime = REQUEST.parent.lstat()
+    if REQUEST.parent.is_symlink() or runtime.st_uid != 1000: raise ValueError('runtime no disponible')
+    token = secrets.token_hex(16)
+    atomic(REQUEST, json.dumps({'accion': 'expulsar', 'id': token, 'monotonic': time.monotonic(),
+                                'dispositivo': device})+'\n', 0o600)
+    for _ in range(80):
+        try:
+            result = json.loads((PUBLIC/'resultado.json').read_text())
+            if result.get('id') == token:
+                if not result.get('ok'): raise ValueError(result.get('error', 'no se pudo expulsar'))
+                return
+        except (FileNotFoundError, json.JSONDecodeError): pass
+        time.sleep(.1)
+    raise ValueError('el supervisor USB no respondio')
+
+
+def watch():
+    """Notify on changes; runs inside the desktop session."""
+    known = {e['dispositivo']: e for e in status().get('unidades', [])}
+    while True:
+        time.sleep(2)
+        doc = status()
+        now = {e['dispositivo']: e for e in doc.get('unidades', [])}
+        now_ejected = set(doc.get('expulsados', []))
+        for device, entry in now.items():
+            if device not in known:
+                mode = '' if entry.get('escritura') else ' (solo lectura)'
+                notify(f'USB conectado: {entry["nombre"]}', f'{human(entry["bytes"])} {entry["sistema"]}{mode}. Super+U para abrir, respaldar o expulsar.')
+        for device, entry in known.items():
+            if device not in now:
+                if device in now_ejected: notify('USB expulsado', f'{entry["nombre"]}: ya puedes retirarlo.')
+                else: notify('USB retirado sin expulsar', f'{entry["nombre"]}: la proxima vez usa Super+U > Expulsar para no perder datos.', 'critical')
+        known = now
+
+
+def menu():
+    units = status().get('unidades', [])
+    if not units:
+        notify('USB', 'No hay unidades USB montadas. Conecta un pendrive o disco y espera unos segundos.')
+        return
+    labels, actions = [], []
+    for e in units:
+        tag = f'{e["nombre"]} · {human(e["bytes"])} {e["sistema"]}'
+        labels.append(f'  Abrir {tag}'); actions.append(('abrir', e))
+        if e.get('escritura'):
+            labels.append(f'  Respaldar ULTRA en {e["nombre"]}'); actions.append(('respaldar', e))
+        labels.append(f'  Expulsar {e["nombre"]}'); actions.append(('expulsar', e))
+    labels.append('Cancelar')
+    result = subprocess.run(['fuzzel', '--dmenu', '--index', '--only-match', '--no-sort', '--prompt=USB > '],
+                            input='\n'.join(labels)+'\n', capture_output=True, text=True, timeout=180)
+    value = result.stdout.strip()
+    if result.returncode or not value.isdecimal() or not 0 <= int(value) < len(actions): return
+    action, entry = actions[int(value)]
+    if action == 'abrir':
+        subprocess.Popen(['thunar', entry['ruta']], start_new_session=True)
+    elif action == 'respaldar':
+        subprocess.Popen(['ultra-respaldo', 'usb', entry['dispositivo']], start_new_session=True)
+    else:
+        request(entry['dispositivo'])
+
+
+def main():
+    args = sys.argv[1:]
+    if args == ['--supervisor']: return supervise()
+    if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
+    if args == ['estado']: print(json.dumps(status()))
+    elif args == ['vigilar']: watch()
+    elif args in ([], ['menu']): menu()
+    elif len(args) == 2 and args[0] == 'expulsar' and DEVICE.fullmatch(args[1]): request(args[1])
+    else: raise ValueError('Uso: ultra-usb menu|estado|vigilar|expulsar sdX1')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('USB:', error, file=sys.stderr)
+        if os.geteuid() == 1000: notify('USB / revisar', str(error)[:240])
+        sys.exit(1)

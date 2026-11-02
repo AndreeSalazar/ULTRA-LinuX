@@ -1,0 +1,196 @@
+#!/usr/bin/python3
+# SPDX-License-Identifier: GPL-2.0-only
+"""Backups of what is hard to rebuild: settings, keyring, notes and game saves.
+
+Runs as the desktop user. Never deletes or changes the originals; restoring
+extracts into a new folder (~/Restaurado/<fecha>) for the user to copy back.
+Local copies keep the last 5; a USB stick keeps the last 3 in ULTRA-respaldos.
+"""
+import json
+import os
+from pathlib import Path
+import shutil
+import signal
+import subprocess
+import sys
+import time
+
+HOME = Path('/juegos/usuarios/ultra')
+LOCAL = HOME/'.local/share/ultra/respaldos'
+USB_DIR = 'ULTRA-respaldos'
+PREFIX = 'ULTRA-respaldo-'
+KEEP_LOCAL, KEEP_USB = 5, 3
+FILE_LIMIT = 512*1024**2
+BUDGET = 8*1024**3
+DAY = 24*3600
+TAR = '/usr/bin/tar'  # GNU tar: --null -T, --ignore-failed-read, --force-local
+
+# (relative root, excluded directory names below it)
+CACHES = {'Cache', 'cache', 'Code Cache', 'GPUCache', 'GrShaderCache', 'ShaderCache', 'DawnCache',
+          'DawnGraphiteCache', 'DawnWebGPUCache', 'Service Worker', 'CacheStorage', 'Crashpad',
+          'shadercache', 'Temp', 'CrashDumps', 'D3DSCache', 'NVIDIA', 'DXCache', 'GLCache',
+          'logs', 'Logs', '__pycache__'}
+ROOTS = [
+    ('.config', CACHES),
+    ('.local/share/keyrings', set()),
+    ('.local/share/heronite', CACHES | {'images', 'media', 'sandbox', 'artwork'}),
+    ('.local/share/ultra', CACHES | {'apps', 'respaldos'}),
+    ('.local/share/Steam/userdata', CACHES),
+    ('.ssh', set()), ('.gnupg', CACHES),
+    ('Documentos', CACHES), ('Documents', CACHES), ('Escritorio', CACHES), ('Desktop', CACHES),
+]
+# Wine/Proton user folders that hold saves; searched below these roots.
+PREFIX_ROOTS = ['.local/share/Steam/steamapps/compatdata', '.local/share/heronite/sandbox', 'Games/Heroic/Prefixes']
+SAVE_DIRS = ('Documents', 'Saved Games', 'AppData/Roaming', 'AppData/LocalLow', 'AppData/Local')
+
+
+def walk(root, excluded, files, state):
+    if not root.is_dir() or root.is_symlink(): return
+    for current, dirs, names in os.walk(root, followlinks=False):
+        dirs[:] = sorted(d for d in dirs if d not in excluded)
+        for name in sorted(names):
+            path = Path(current)/name
+            try: info = path.lstat()
+            except OSError: continue
+            if path.is_symlink():
+                files.append(path); continue
+            if not path.is_file(): continue  # sockets, fifos, devices
+            if info.st_size > FILE_LIMIT or state['bytes']+info.st_size > BUDGET:
+                state['omitidos'] += 1; continue
+            state['bytes'] += info.st_size; files.append(path)
+
+
+def prefix_saves():
+    for base in PREFIX_ROOTS:
+        root = HOME/base
+        if not root.is_dir(): continue
+        for users in sorted(root.glob('*/pfx/drive_c/users/*')) + sorted(root.glob('*/drive_c/users/*')):
+            if users.name == 'Public' or users.is_symlink(): continue
+            for sub in SAVE_DIRS:
+                yield users/sub
+
+
+def collect():
+    files, state = [], {'bytes': 0, 'omitidos': 0}
+    for rel, excluded in ROOTS:
+        walk(HOME/rel, excluded, files, state)
+    for folder in prefix_saves():
+        walk(folder, CACHES, files, state)
+    return files, state
+
+
+def compressor():
+    return ('--zstd', '.tar.zst') if shutil.which('zstd') else ('--gzip', '.tar.gz')
+
+
+def backups(folder):
+    return sorted(p for p in folder.glob(PREFIX+'*') if p.suffixes[-2:] in (['.tar', '.zst'], ['.tar', '.gz']))
+
+
+def create(folder, keep):
+    folder.mkdir(mode=0o700, parents=True, exist_ok=True)
+    for stale in folder.glob('.parcial-*'):
+        stale.unlink(missing_ok=True)
+    files, state = collect()
+    if not files: raise ValueError('no hay nada que respaldar todavia')
+    free = shutil.disk_usage(folder).free
+    if free < state['bytes']+256*1024**2:
+        raise ValueError(f'espacio insuficiente en {folder}: libres {free//1024**2} MB')
+    flag, ext = compressor()
+    stamp = time.strftime('%Y%m%d-%H%M%S')
+    final = folder/f'{PREFIX}{stamp}{ext}'
+    partial = folder/f'.parcial-{stamp}{ext}'
+    listing = folder/f'.parcial-{stamp}.lista'
+    listing.write_bytes(b'\0'.join(os.fsencode(p.relative_to(HOME).as_posix()) for p in files)+b'\0')
+    def abort(*_):
+        partial.unlink(missing_ok=True); listing.unlink(missing_ok=True); sys.exit(1)
+    signal.signal(signal.SIGTERM, abort)
+    try:
+        # Files may change or vanish while the desktop runs; tar exit 1 means
+        # "some file changed", which still leaves a valid archive.
+        result = subprocess.run([TAR, flag, '--force-local', '-c', '-f', partial.as_posix(), '-C', HOME.as_posix(), '--null',
+                                 '--no-recursion', '--ignore-failed-read', '-T', listing.as_posix()],
+                                capture_output=True, text=True)
+        if result.returncode not in (0, 1) or not partial.is_file():
+            raise ValueError('tar fallo: '+result.stderr.strip()[-200:])
+        os.chmod(partial, 0o600)
+        os.replace(partial, final)
+    finally:
+        partial.unlink(missing_ok=True); listing.unlink(missing_ok=True)
+    manifest = {'archivo': final.name, 'creado': stamp, 'archivos': len(files),
+                'bytes_originales': state['bytes'], 'bytes_comprimidos': final.stat().st_size,
+                'omitidos_por_tamano': state['omitidos']}
+    final.with_name(final.name+'.json').write_text(json.dumps(manifest)+'\n')
+    for old in backups(folder)[:-keep]:
+        old.unlink(missing_ok=True)
+        old.with_name(old.name+'.json').unlink(missing_ok=True)
+    return final, manifest
+
+
+def notify(title, text, urgency='normal'):
+    try: subprocess.run(['notify-send', '--app-name=ULTRA', '--icon=document-save', f'--urgency={urgency}', title, text], timeout=5)
+    except (OSError, subprocess.SubprocessError): pass
+
+
+def usb_folder(device):
+    doc = json.loads(Path('/run/ultra-usb/estado.json').read_text())
+    for entry in doc.get('unidades', []):
+        if entry.get('dispositivo') == device:
+            if not entry.get('escritura'): raise ValueError('la unidad USB esta en solo lectura')
+            root = Path(entry['ruta'])
+            if root.parent != Path('/run/media/ultra') or root.is_symlink(): raise ValueError('ruta USB inesperada')
+            return root/USB_DIR
+    raise ValueError('la unidad USB ya no esta montada')
+
+
+def restore(archive):
+    archive = Path(archive).resolve()
+    if not archive.is_file() or not archive.name.startswith(PREFIX): raise ValueError('elige un archivo ULTRA-respaldo')
+    target = HOME/'Restaurado'/time.strftime('%Y%m%d-%H%M%S')
+    target.mkdir(mode=0o700, parents=True)
+    flag = '--zstd' if archive.suffix == '.zst' else '--gzip'
+    # GNU tar drops leading "/" and refuses "..": members stay inside target.
+    subprocess.run([TAR, flag, '--force-local', '-x', '-f', archive.as_posix(), '-C', target.as_posix(), '--no-same-owner',
+                    '--no-overwrite-dir'], check=True, capture_output=True, timeout=3600)
+    return target
+
+
+def summary(manifest):
+    mb = manifest['bytes_comprimidos']/1024**2
+    extra = f'; {manifest["omitidos_por_tamano"]} archivos grandes omitidos' if manifest['omitidos_por_tamano'] else ''
+    return f'{manifest["archivos"]} archivos, {mb:.0f} MB{extra}'
+
+
+def main():
+    if os.geteuid() != 1000 or Path(os.environ.get('HOME', '')) != HOME:
+        raise ValueError('se requiere el usuario del escritorio con home persistente')
+    args = sys.argv[1:]
+    if args[:1] == ['crear']:
+        if '--auto' in args:
+            last = backups(LOCAL)[-1:] if LOCAL.is_dir() else []
+            if last and time.time()-last[0].stat().st_mtime < DAY:
+                print('Respaldo: el ultimo tiene menos de 24 h; nada que hacer'); return
+        final, manifest = create(LOCAL, KEEP_LOCAL)
+        print(f'Respaldo: {final} ({summary(manifest)})')
+        if '--auto' not in args: notify('Respaldo listo', summary(manifest))
+    elif len(args) == 2 and args[0] == 'usb':
+        notify('Respaldo en USB', 'Copiando configuracion y partidas; no retires la unidad.')
+        final, manifest = create(usb_folder(args[1]), KEEP_USB)
+        notify('Respaldo en USB listo', f'{summary(manifest)}. Expulsa con Super+U antes de retirarla.')
+    elif args == ['lista']:
+        for item in backups(LOCAL) if LOCAL.is_dir() else []:
+            print(item, f'{item.stat().st_size/1024**2:.0f} MB')
+    elif len(args) == 2 and args[0] == 'restaurar':
+        target = restore(args[1])
+        print(f'Restaurado en {target}; copia lo que necesites, nada se sobrescribio.')
+        notify('Respaldo restaurado', f'Archivos en {target}. Copia lo que necesites.')
+    else:
+        raise ValueError('Uso: ultra-respaldo crear [--auto] | usb sdX1 | lista | restaurar ARCHIVO')
+
+
+if __name__ == '__main__':
+    try: main()
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print('Respaldo:', error, file=sys.stderr)
+        if os.geteuid() == 1000: notify('Respaldo / revisar', str(error)[:240], 'critical')
+        sys.exit(1)

@@ -23,6 +23,8 @@ MENUS = {
         ('', 'Categorias', 'Super+Shift+Espacio', ['ultra-ambiente','menu']),
         ('', 'Personalizar', 'Super+Shift+P', ['ultra-personalizar','menu']),
         ('', 'Discord', 'Super+D', ['ultra-discord']),
+        ('', 'USB: abrir, respaldar, expulsar', 'Super+U', ['ultra-usb','menu']),
+        ('', 'Respaldo ahora', '', ['ultra-respaldo','crear']),
         ('', 'Sesion / encendido', '', ['ultra-sesion-control','menu']),
     ]),
     'captura': ('BMO-X // CAPTURA', '3dff9aff', [
@@ -51,6 +53,7 @@ MENUS = {
         ('', 'Personalizar', 'Super+Shift+P', ['ultra-personalizar','menu']),
         ('', 'Todos los atajos', 'Super+H', ['foot','/usr/bin/less','/etc/ultra/AYUDA.txt']),
         ('', 'Discord', 'Super+D', ['ultra-discord']),
+        ('', 'USB: abrir, respaldar, expulsar', 'Super+U', ['ultra-usb','menu']),
     ]),
 }
 MENUS['escritorios'] = ('BMO-X // ESCRITORIOS', '3dff9aff', [

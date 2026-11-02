@@ -17,6 +17,13 @@ done < /proc/self/status
     echo 'ROJO [CREDENCIALES]: privilegios inesperados'; exit 1;
 }
 echo 'VERDE [CREDENCIALES]: uid=1000 gid=1000 capacidades=0 NoNewPrivs=1'
+# Limits set by ultra-sesion for PipeWire's RLIMIT_RTPRIO path (no RTKit).
+rtprio=$(ulimit -r); rttime=$(ulimit -R 2>/dev/null || echo NA)
+if [[ $rtprio =~ ^[0-9]+$ ]] && ((rtprio >= 11)); then
+    echo "VERDE [AUDIO-RT]: rtprio=$rtprio nice_min=$((20-$(ulimit -e))) rttime_us=$rttime"
+else
+    echo "AMARILLO [AUDIO-RT]: rtprio=$rtprio; PipeWire funcionara sin tiempo real"
+fi
 if [[ ${ULTRA_COMPOSITOR:-cage} == hyprland ]]; then
     if [[ ${ULTRA_RENDER_MODE:-} == software ]]; then
         exec /usr/bin/bash /usr/local/libexec/ultra-hyprland software

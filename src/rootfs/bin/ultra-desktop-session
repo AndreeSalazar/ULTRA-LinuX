@@ -9,6 +9,7 @@ mkdir -p "$keyrings"
 chmod 0700 "$keyrings"
 children=()
 ultra-espacio vigilar > /dev/null 2>&1 & children+=("$!")
+ultra-usb vigilar > "$HOME/.cache/ultra/usb.log" 2>&1 & children+=("$!")
 finish() {
     wpctl status > "$XDG_RUNTIME_DIR/ultra-audio-estado.txt" 2>&1 || true
     for pid in "${children[@]}"; do kill "$pid" 2>/dev/null || true; done
@@ -24,6 +25,8 @@ pipewire-pulse > "$HOME/.cache/ultra/pipewire-pulse.log" 2>&1 & children+=("$!")
 wireplumber > "$HOME/.cache/ultra/wireplumber.log" 2>&1 & children+=("$!")
 if [[ $HOME == /juegos/usuarios/ultra ]]; then
     ultra-juegos-vivo vigilar > "$HOME/.cache/ultra/juegos-vivo.log" 2>&1 & children+=("$!")
+    # Daily local backup of settings and saves, idle I/O priority, after login settles.
+    (sleep 180; exec nice -n 19 ionice -c 3 ultra-respaldo crear --auto)         > "$HOME/.cache/ultra/respaldo.log" 2>&1 & children+=("$!")
 fi
 start-hyprland -- --config /etc/ultra/hyprland.lua
 exit $?

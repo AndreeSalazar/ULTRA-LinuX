@@ -16,8 +16,11 @@ meter_pid=''
 kernel_pid=''
 energia_pid=''
 sesion_control_pid=''
+usb_pid=''
 frames_mounted=0
 cleanup() {
+    # SIGTERM lets the USB supervisor sync and unmount every stick it mounted.
+    if [[ -n $usb_pid ]]; then kill "$usb_pid" 2>/dev/null || true; wait "$usb_pid" 2>/dev/null || true; fi
     if [[ -n $sesion_control_pid ]]; then kill "$sesion_control_pid" 2>/dev/null || true; wait "$sesion_control_pid" 2>/dev/null || true; fi
     if [[ -n $energia_pid ]]; then kill "$energia_pid" 2>/dev/null || true; wait "$energia_pid" 2>/dev/null || true; fi
     if [[ -n $meter_pid ]]; then
@@ -95,6 +98,8 @@ if [[ $compositor == hyprland ]]; then
     /usr/bin/python3 -I /usr/local/bin/ultra-sesion-control --supervisor > /run/ultra-escritorio/sesion-control.log 2>&1 9>&- &
     sesion_control_pid=$!
 fi
+/usr/bin/python3 -I /usr/local/bin/ultra-usb --supervisor > /run/ultra-escritorio/usb.log 2>&1 9>&- &
+usb_pid=$!
 if [[ ! -L /run/ultra-cuadros ]] && ! mountpoint -q /run/ultra-cuadros; then
     install -d -m 0700 -o 0 -g 0 /run/ultra-cuadros
     if mount -t tmpfs -o size=64M,mode=0700,uid=1000,gid=1000,nosuid,nodev,noexec ultra-cuadros /run/ultra-cuadros; then frames_mounted=1; fi
@@ -127,7 +132,13 @@ fi
 # Observer is bounded to ten minutes plus query time, and joined before export.
 /usr/bin/bash /usr/local/libexec/ultra-medir-sesion "$mode" > /run/ultra-escritorio/medicion.log 2>&1 9>&- &
 meter_pid=$!
-/usr/bin/bash -c 'if [[ -w /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs ]]; then printf "%s\n" "$$" > /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs || exit 1; fi; exec "$@"' ultra-limites \
+# Real-time audio without D-Bus/RTKit: PipeWire's module-rt tries RLIMIT_RTPRIO
+# first and clamps to it. Root raises the limits here, before setpriv drops to
+# ultra, so NoNewPrivs and the empty capability sets stay intact. RLIMIT_RTTIME
+# (200 ms of CPU without blocking) stops a runaway RT thread; nice -11 matches
+# PipeWire's nice.level. A refusal only costs RT, never the session.
+rt_limits='ulimit -H -r 88 && ulimit -S -r 88 && ulimit -H -e 31 && ulimit -S -e 31 && ulimit -H -R 200000 && ulimit -S -R 200000 || echo "AMARILLO [AUDIO-RT]: limites de tiempo real no aplicados; audio sin prioridad RT"'
+/usr/bin/bash -c "$rt_limits"'; if [[ -w /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs ]]; then printf "%s\n" "$$" > /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs || exit 1; fi; exec "$@"' ultra-limites \
 setpriv --reuid=ultra --regid=ultra --init-groups --no-new-privs \
     --inh-caps=-all --ambient-caps=-all --bounding-set=-all \
     /usr/bin/env -i "${client_env[@]}" /usr/bin/bash /usr/local/libexec/ultra-cliente "$@" \

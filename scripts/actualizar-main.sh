@@ -68,7 +68,7 @@ sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q > "$art/sistema-
 sudo install -m 0644 "$art/sistema-paquetes.txt" "$stage/etc/ultra/sistema-paquetes.txt"
 sudo pacman --root "$stage" --dbpath "$stage/var/lib/pacman" -Q nvidia-utils lib32-nvidia-utils > "$art/main-nvidia-despues.txt" 2>/dev/null || [[ $perfil != pc ]]
 cmp "$art/main-nvidia-antes.txt" "$art/main-nvidia-despues.txt"
-for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarjetas probar_registro_steam probar_lanzador_cyberpunk probar_heronite probar_gog_cyberpunk probar_descubrimiento_juegos probar_juegos_vivo probar_hud_lanzador probar_hud_heronite; do
+for test in probar_personalizar probar_modo_juego probar_fondo_vivo probar_tarjetas probar_registro_steam probar_lanzador_cyberpunk probar_heronite probar_gog_cyberpunk probar_descubrimiento_juegos probar_juegos_vivo probar_hud_lanzador probar_hud_heronite probar_usb probar_respaldo; do
     # Los bancos buscan src/rootfs; el taller usa lab/rootfs para empaquetar.
     [[ -d $base/src/rootfs ]] || ln -s ../lab/rootfs "$base/src/rootfs"
     [[ $(readlink -f "$base/src/rootfs") == "$lab/rootfs" ]] || { echo 'ROJO: banco apunta a otras fuentes rootfs'; exit 1; }
