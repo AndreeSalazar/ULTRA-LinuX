@@ -44,25 +44,18 @@ Con el informe del 2026-11-01 marca justo los 4 avisos reales: volumen 300 %, au
 ## Salud de los discos
 `ultra-comprobar-datos` lee solo el superbloque (`dumpe2fs -h`) de `/datos`, `/juegos` y `/personal` al entrar al escritorio. Detecta un cierre brusco o errores registrados por el kernel. Un ext4 montado no se repara en caliente: la reparación (`e2fsck`) queda para un paso sin montar.
 
-## Disco Personal (antiguo D:)
-D: (SSD Kingston de 120 GB) estaba vacío y ULTRA ya no lo necesita, porque Cyberpunk tiene su copia Linux verificada. El formateo lo hace el usuario una sola vez:
+## Disco Personal (D:)
+D: (SSD Kingston de 120 GB) estaba vacio y ULTRA ya no lo necesita, porque Cyberpunk tiene su copia Linux verificada.
 
-```
-ultra-entrar ultra-personal formatear
-```
+**Formateo:** con permiso del usuario, se formateo desde Windows (`Format-Volume`) como **exFAT `PERSONAL`**. Antes se comprobo que solo tenia un `desktop.ini` de 129 bytes.
+- **Por que exFAT:** Windows y ULTRA leen y escriben lo mismo, y no hay limite de 4 GB por archivo.
+- **Por que no FAT32:** Windows no formatea FAT32 por encima de 32 GB.
+- **Por que no se llama BMO:** el init solo admite una FAT32 `BMO`, y una segunda impediria arrancar.
 
-**Antes de borrar comprueba que:**
-- el UUID NTFS es el de `juegos.conf`;
-- la partición no está montada;
-- no es USB;
-- mide entre 80 y 140 GB;
-- solo contiene `$RECYCLE.BIN` y `System Volume Information`.
+**Montaje:** `ultra-personal montar` (desde `ultra-sesion`) busca un exFAT interno, no USB, con etiqueta `PERSONAL`. Lo monta en `/personal` con `uid=1000`, `dmask=0077`, `fmask=0177` y `noexec`. Al cerrar la sesion lo desmonta.
+- **Respaldos:** los diarios van a `/personal/ultra/respaldos` (ultimos 10), en otro disco fisico.
+- **Bibliotecas:** `ultra-bibliotecas` excluye la etiqueta, para no ponerlo en solo lectura.
 
-**Después:**
-1. pide escribir `FORMATEAR D`;
-2. cambia el tipo GPT a *Linux filesystem*, para que Windows no ofrezca formatearlo;
-3. crea ext4 `ULTRA-PERSONAL`.
+**Kernel:** no traia exFAT. Se anadieron `EXFAT_FS` (obligatorio) y `USB_UAS` a los perfiles generico y PC.
 
-Cada sesión lo monta en `/personal` (`~/Personal`), y los respaldos diarios van allí (últimos 10), en otro disco físico.
-
-Pruebas: `probar_sonido` (7), `probar_salud_personal` (11), `probar_sesion_control` (+4 de suspensión) y `probar_modopciones.c`. Falta validarlo en QEMU y en el PC, empezando por compilar el init con GCC 16 y `-fanalyzer`.
+Pruebas: `probar_sonido` (7), `probar_salud_personal` (9), `probar_sesion_control` (+4 de suspensión) y `probar_modopciones.c`. Falta validarlo en QEMU y en el PC, empezando por compilar el init con GCC 16 y `-fanalyzer`.

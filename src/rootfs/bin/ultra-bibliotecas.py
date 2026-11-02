@@ -327,7 +327,7 @@ def enumerate_volumes():
         uuid = node.get('uuid')
         if (not isinstance(uuid, str) or not UUID.fullmatch(uuid) or counts[uuid] != 1
                 or (node.get('parttype') or '').lower() in EXCLUDED
-                or node.get('label') in ('ULTRA-DATOS', 'ULTRA-SISTEMA-A', 'BMO', 'ULTRA-PERSONAL')):
+                or node.get('label') in ('ULTRA-DATOS', 'ULTRA-SISTEMA-A', 'BMO', 'ULTRA-PERSONAL', 'PERSONAL')):
             continue
         target = VOLUMES / uuid
         entry = {'uuid': uuid, 'label': node.get('label') or node['name'],

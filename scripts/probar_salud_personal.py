@@ -102,46 +102,32 @@ class Salud(unittest.TestCase):
 
 
 class Personal(unittest.TestCase):
-    def rows(self, **change):
-        part = dict(name='/dev/sdb1', type='part', size=str(119_999_000_000), fstype='ntfs', uuid='60A60325A602FAF4',
-                    label='Personal', tran=None, mountpoints=[None], pkname='/dev/sdb', partn=1)
-        part.update(change)
-        return [dict(name='/dev/sdb', type='disk', tran='sata', mountpoints=[None]), part]
+    def part(self, **change):
+        row = dict(name='/dev/sdb1', type='part', fstype='exfat', label='PERSONAL', tran='sata', mountpoints=[None])
+        row.update(change)
+        return row
 
-    def test_only_the_named_unmounted_internal_volume(self):
-        self.assertEqual(personal.find_ntfs(self.rows(), '60A60325A602FAF4')['name'], '/dev/sdb1')
-        for change in (dict(uuid='0000000000000000'), dict(mountpoints=['/run/x']), dict(tran='usb'),
-                       dict(size=str(1_000_000_000_000)), dict(fstype='ext4')):
-            with self.assertRaises(ValueError): personal.find_ntfs(self.rows(**change), '60A60325A602FAF4')
+    def test_finds_internal_exfat_personal_only(self):
+        self.assertEqual(personal.find_personal([self.part()])['name'], '/dev/sdb1')
+        self.assertEqual(personal.find_personal([self.part(fstype='ext4', label='ULTRA-PERSONAL')])['name'], '/dev/sdb1')
+        for other in (dict(tran='usb'), dict(label='Personal'), dict(fstype='ntfs'), dict(type='disk')):
+            self.assertIsNone(personal.find_personal([self.part(**other)]), other)
+        with self.assertRaises(ValueError): personal.find_personal([self.part(), self.part(name='/dev/sdc1')])
 
-    def test_format_needs_exact_confirmation_and_marks_linux_type(self):
+    def test_exfat_mount_is_private_and_never_formats(self):
         calls = []
-        with patch.object(personal.os, 'geteuid', return_value=0, create=True), \
-             patch.object(personal, 'blocks', lambda: self.rows()), \
-             patch.object(personal, 'personal_uuid', lambda: '60A60325A602FAF4'), \
-             patch.object(personal, 'check_empty', lambda device: None), \
-             patch.object(personal, 'run', lambda *a, **k: calls.append(a) or ''):
-            self.assertEqual(personal.format_personal(lambda prompt: 'formatear d'), 1)
-            self.assertEqual(calls, [], 'nothing written without exact text')
-            self.assertEqual(personal.format_personal(lambda prompt: 'FORMATEAR D'), 0)
-        self.assertEqual(calls[0], ('/usr/bin/sfdisk', '--part-type', '/dev/sdb', '1', personal.LINUX_TYPE))
-        self.assertEqual(calls[1][:4], ('/usr/bin/mkfs.ext4', '-F', '-q', '-L'))
-        self.assertEqual(calls[1][-1], '/dev/sdb1')
-
-    def test_non_empty_volume_refused(self):
-        def fake_run(*args, **kwargs):
-            if args[0].endswith('/mount'):
-                (Path(args[-1])/'Fotos').mkdir()
-            return ''
-        with patch.object(personal, 'run', fake_run):
-            with self.assertRaisesRegex(ValueError, 'Fotos'): personal.check_empty('/dev/sdb1')
-
-    def test_find_personal_ext4_not_usb(self):
-        rows = [dict(type='part', fstype='ext4', label='ULTRA-PERSONAL', tran='sata', name='/dev/sdb1'),
-                dict(type='part', fstype='ext4', label='ULTRA-PERSONAL', tran='usb', name='/dev/sdc1')]
-        self.assertEqual(personal.find_personal(rows)['name'], '/dev/sdb1')
-        with self.assertRaises(ValueError): personal.find_personal(rows[:1]*2)
-
+        free = type('V', (), {'f_bavail': 1, 'f_frsize': 1})()
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(personal, 'TARGET', Path(tmp)/'personal'), \
+                 patch.object(personal, 'USER_DIR', Path(tmp)/'personal/ultra'), \
+                 patch.object(personal, 'blocks', lambda: [self.part()]), \
+                 patch.object(personal.os, 'statvfs', lambda p: free, create=True), \
+                 patch.object(personal, 'run', lambda *a, **k: calls.append(a) or ''):
+                personal.mount_personal()
+        (call,) = calls
+        self.assertEqual(call[:3], ('/usr/bin/mount', '-t', 'exfat'))
+        self.assertTrue({'uid=1000', 'dmask=0077', 'fmask=0177', 'noexec', 'nosuid'} <= set(call[4].split(',')))
+        self.assertFalse(any('mkfs' in a[0] or 'sfdisk' in a[0] for a in calls))
 
 class Datos(unittest.TestCase):
     def test_superblock_fields(self):

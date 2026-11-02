@@ -30,7 +30,8 @@ if [[ $HOME == /juegos/usuarios/ultra ]]; then
     [[ -e $HOME/Personal || -L $HOME/Personal || ! -d /personal/ultra || ! -O /personal/ultra ]] || ln -s /personal/ultra "$HOME/Personal"
     ultra-juegos-vivo vigilar > "$HOME/.cache/ultra/juegos-vivo.log" 2>&1 & children+=("$!")
     # Daily local backup of settings and saves, idle I/O priority, after login settles.
-    (sleep 180; exec nice -n 19 ionice -c 3 ultra-respaldo crear --auto)         > "$HOME/.cache/ultra/respaldo.log" 2>&1 & children+=("$!")
+    (sleep 180; exec nice -n 19 ionice -c 3 ultra-respaldo crear --auto) \
+        > "$HOME/.cache/ultra/respaldo.log" 2>&1 & children+=("$!")
 fi
 start-hyprland -- --config /etc/ultra/hyprland.lua
 exit $?

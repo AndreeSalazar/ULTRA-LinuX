@@ -97,9 +97,8 @@ Sonido: Super+A abre ULTRA Sonido: volumen, graves, ecualizador de 5 bandas,
   Funciona en cualquier salida y evita la saturacion. Super+Alt+A: menu clasico.
 USB: Super+U abre, respalda o expulsa pendrives y discos USB (vfat, exFAT, NTFS, ext4).
   Se montan solos en /run/media/ultra; expulsa siempre antes de retirarlos.
-Disco Personal: el antiguo D: puede ser ext4 de ULTRA. Una vez, en la consola y sin
-  escritorio: ultra-entrar ultra-personal formatear (solo si D: esta vacio; pide
-  escribir FORMATEAR D). Luego se monta solo en /personal y ~/Personal.
+Disco Personal: D: es exFAT "PERSONAL" (112 GB), compartido con Windows. ULTRA lo
+  monta solo en /personal (acceso ~/Personal); tus respaldos van en /personal/ultra.
 Respaldo: cada dia se guarda configuracion, llavero y partidas en /personal/ultra/respaldos
   (otro SSD, ultimos 10) o, sin disco Personal, en ~/.local/share/ultra/respaldos
   (ultimos 5). 'ultra-respaldo restaurar ARCHIVO'

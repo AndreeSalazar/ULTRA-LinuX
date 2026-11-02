@@ -16,6 +16,8 @@ case $perfil in
                USB_XHCI_HCD USB_STORAGE USB_HID HID_GENERIC EXT4_FS VFAT_FS EFI EFI_STUB DRM DRM_SIMPLEDRM
                SYSFB_SIMPLEFB CPU_SUP_AMD MICROCODE_AMD X86_AMD_PSTATE AMD_IOMMU EROFS_FS EFI_PARTITION
                BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 NTFS3_FS
+               # exFAT: disco PERSONAL (antiguo D:) y pendrives; UAS: discos USB 3 a su velocidad.
+               EXFAT_FS USB_UAS
                # simpledrm alone draws nothing: text on the firmware screen needs fbdev emulation and fbcon.
                DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE
                # efivarfs built in: the init itself prepares the F11 entry of the tuned kernel.
@@ -32,7 +34,7 @@ case $perfil in
         # by one and init waited ~1.6 s for it (evidencias/pc-real/dmesg-*). That protects spinning
         # disks from a power surge; this PC has only SSDs, so the ports are scanned in parallel.
         cmdline="console=tty0 console=ttyS0,115200 rdinit=/init panic=-1 quiet libahci.ignore_sss=1 firmware_class.path=/sistema/usr/lib/firmware GLIBC_TUNABLES=glibc.cpu.hwcaps=SHSTK:glibc.cpu.x86_shstk=on"
-        required=(KFENCE PSI MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS FB_DEVICE OVERLAY_FS EROFS_FS_ZIP VIRTIO_BLK USER_NS) ;;
+        required=(KFENCE PSI MODULES BLK_DEV_NVME SATA_AHCI EXT4_FS EROFS_FS EFI_PARTITION VFAT_FS EXFAT_FS BLK_DEV_LOOP NLS_CODEPAGE_437 NLS_ISO8859_1 EFI_STUB USB_XHCI_HCD DRM_SIMPLEDRM DRM_FBDEV_EMULATION FRAMEBUFFER_CONSOLE EFIVAR_FS FB_DEVICE OVERLAY_FS EROFS_FS_ZIP VIRTIO_BLK USER_NS) ;;
     vigia) dir=tiny64-vigia
         extra=(KFENCE DEBUG_KERNEL KASAN KASAN_GENERIC KASAN_INLINE KASAN_STACK UBSAN UBSAN_BOUNDS UBSAN_SHIFT
                UBSAN_BOOL PROVE_LOCKING DETECT_HUNG_TASK SOFTLOCKUP_DETECTOR DEBUG_ATOMIC_SLEEP)

@@ -404,6 +404,20 @@ software sigue disponible si falla la ruta NVIDIA.
 | `generico` | Recuperación y compatibilidad, sin la pila NVIDIA del perfil PC |
 | `pc` | Configuración Zen 3 para el Ryzen 5 5600X y módulos NVIDIA compilados para su kernel |
 
+**El perfil genérico se adapta a cada PC.** En el primer arranque, el init en C
+recorre PCI y USB, elige solo los módulos que ese equipo necesita y los guarda en
+`PC.configuración`. Los arranques siguientes los cargan directamente, sin volver a
+detectar. Si cambia el hardware, la huella PCI lo nota y repite la detección. Las
+opciones de cada módulo salen de `modprobe.d` y de la línea de arranque
+(`src/modopciones.h`), igual que en una distribución con `modprobe`.
+
+> **Drivers de GPU propios: van aparte.** El perfil genérico arranca con el
+> framebuffer del firmware (`simpledrm`) y los drivers libres del kernel. Los
+> drivers con código o firmware propio del fabricante, como **NVIDIA**, no forman
+> parte de la detección genérica. Se compilan para un kernel concreto y se
+> instalan en el perfil `pc` (aquí, `nvidia-open` 615.78.08 para la RTX 3060).
+> Otra GPU con driver propio requiere su propio perfil.
+
 Los sistemas se empaquetan en EROFS de solo lectura. `A:\ULTRA\datos.ext4`
 conserva el estado del arranque por separado. El almacenamiento activo es la
 partición **ext4 ULTRA-DATOS**, antes F:, montada en `/juegos`. El archivo de
@@ -412,6 +426,11 @@ no el almacenamiento activo. La partición aporta
 el home persistente en `/juegos/usuarios/ultra`,
 las configuraciones, clientes, partidas y prefijos. Sin él, el escritorio puede
 funcionar con un home temporal en RAM; los lanzadores de juegos evitan descargar allí.
+
+**Disco Personal (D:, 112 GB):** exFAT con etiqueta `PERSONAL`, compartido con
+Windows y sin límite de 4 GB por archivo. ULTRA lo monta en `/personal`
+(`~/Personal`) y guarda allí los respaldos diarios, en otro SSD físico
+([detalles](docs/SONIDO-SALUD-PERSONAL-2026-11-02.md)).
 
 Cyberpunk reside en esa partición Linux: una base privada y una capa overlay
 de escritura forman `/juegos/Cyberpunk2077`. Ya no depende de la antigua copia
