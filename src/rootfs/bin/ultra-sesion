@@ -141,7 +141,7 @@ meter_pid=$!
 # ultra, so NoNewPrivs and the empty capability sets stay intact. RLIMIT_RTTIME
 # (200 ms of CPU without blocking) stops a runaway RT thread; nice -11 matches
 # PipeWire's nice.level. A refusal only costs RT, never the session.
-rt_limits='ulimit -H -r 88 && ulimit -S -r 88 && ulimit -H -e 31 && ulimit -S -e 31 && ulimit -H -R 200000 && ulimit -S -R 200000 || echo "AMARILLO [AUDIO-RT]: limites de tiempo real no aplicados; audio sin prioridad RT"'
+rt_limits='ulimit -H -r 88 && ulimit -S -r 88 && ulimit -H -e 31 && ulimit -S -e 31 && ulimit -S -R 200000 && ulimit -H -R 200000 || echo "AMARILLO [AUDIO-RT]: limites de tiempo real no aplicados; audio sin prioridad RT"'
 /usr/bin/bash -c "$rt_limits"'; if [[ -w /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs ]]; then printf "%s\n" "$$" > /sys/fs/cgroup/ultra-usuario/escritorio/cgroup.procs || exit 1; fi; exec "$@"' ultra-limites \
 setpriv --reuid=ultra --regid=ultra --init-groups --no-new-privs \
     --inh-caps=-all --ambient-caps=-all --bounding-set=-all \

@@ -127,6 +127,54 @@ def discover_selections(items, volumes):
     return list(result.values())
 
 
+def mount_points():
+    try: text = Path('/proc/self/mountinfo').read_text()
+    except FileNotFoundError: return []
+    return [Path(line.split()[4].replace('\\040', ' ')) for line in text.splitlines() if len(line.split()) > 4]
+
+
+def prune_oldest_generation(store):
+    """Remove the oldest previous generation of a library, if it is only stale game data.
+
+    Every Windows update of any game in the library starts a new generation, and the
+    renewal already moved prefixes (saves), shader cache and Proton runtimes forward.
+    What stays behind are game files Linux modified for an older Windows build, which
+    can never be reused. A generation that still holds Linux state is never removed.
+    """
+    generations = []
+    for path in store.parent.glob(store.name+'.anterior-*'):
+        suffix = path.name.rsplit('-', 1)[1]
+        if suffix.isdecimal(): generations.append((int(suffix), path))
+    if not generations:
+        raise ValueError('capas anteriores con nombres inesperados; revisar en Discos; no se borro el juego')
+    oldest = min(generations)[1]
+    info = oldest.lstat()
+    if (oldest.is_symlink() or not stat.S_ISDIR(info.st_mode) or info.st_uid != 0
+            or oldest.resolve() != oldest or oldest.parent != store.parent):
+        raise ValueError('capa anterior no regular; se conserva para revision')
+    if any(m == oldest or m.is_relative_to(oldest) for m in mount_points()):
+        raise ValueError('capa anterior montada; se conserva')
+    apps = oldest/'upper'/'steamapps'
+    for name in ('compatdata', 'shadercache'):
+        if (apps/name).exists() or (apps/name).is_symlink():
+            raise ValueError(f'la capa mas antigua aun guarda {name} (partidas o cache); '
+                             'se conserva para revisarla; no se borro el juego')
+    if apps.is_dir():
+        for index, manifest in enumerate(sorted(apps.glob('appmanifest_*.acf'))):
+            if index >= 2048: raise ValueError('demasiados manifiestos en la capa anterior; se conserva')
+            if manifest.is_symlink() or not manifest.is_file() or manifest.stat().st_size > LIMIT:
+                raise ValueError('manifiesto anterior no regular; se conserva')
+            row = parse_vdf(manifest.read_text(encoding='utf-8-sig', errors='replace')).get('AppState', {})
+            title = row.get('name', '') if isinstance(row, dict) else ''
+            if isinstance(title, str) and title.startswith(('Proton', 'Steam Linux Runtime')):
+                raise ValueError('la capa mas antigua aun guarda un runtime de Proton; se conserva')
+    if not shutil.rmtree.avoids_symlink_attacks:
+        raise ValueError('borrado sin proteccion de enlaces; se conserva')
+    shutil.rmtree(oldest)
+    print('CAPA ANTIGUA RETIRADA:', oldest.name, '; solo archivos de juego de una version Windows anterior')
+    return oldest
+
+
 def rotate_changed_store(store, identity):
     """Never combine an old writable overlay with a changed Windows lower."""
     if not (store.exists() or store.is_symlink()):
@@ -138,11 +186,11 @@ def rotate_changed_store(store, identity):
     if ({k: v for k, v in state.items() if k != 'version'} !=
             {k: v for k, v in identity.items() if k != 'version'}):
         raise ValueError('identidad de origen cambio; revisar la capa anterior')
-    # Keep a recoverable layer, but never accumulate unlimited generations.
+    # Keep recoverable layers, but never accumulate unlimited generations: at the
+    # limit the oldest one goes, and only when it holds no Linux state.
     previous = list(store.parent.glob(store.name+'.anterior-*'))
     if len(previous) >= MAX_PREVIOUS_STORES:
-        raise ValueError(f'limite de {MAX_PREVIOUS_STORES} capas anteriores conservadas; '
-                         'archivar y revisar desde Discos antes de renovar; no se borro el juego')
+        prune_oldest_generation(store)
     free = shutil.disk_usage(store.parent).free
     if free < 4*1024**3:
         raise ValueError('menos de 4 GiB libres; no se crea otra capa de biblioteca')

@@ -161,17 +161,15 @@ try:
     subprocess.run(['mount', '-o', 'remount,rw', str(source)], check=True)
     manifest.write_text(game_manifest(99999))
     subprocess.run(['mount', '-o', 'remount,ro,nosuid,nodev,noexec', str(source)], check=True)
-    before = (mod.PRIVATE/item['id']/'source.json').read_bytes()
-    try:
-        mod.prepare_folder(item, volume)
-    except ValueError as error:
-        assert 'limite de' in str(error)
-    else:
-        raise AssertionError('limite de respaldos ignorado')
-    assert (mod.PRIVATE/item['id']/'source.json').read_bytes() == before
+    oldest = min(mod.PRIVATE.glob(item['id']+'.anterior-*'), key=lambda p: int(p.name.rsplit('-', 1)[1]))
+    assert not (oldest/'upper/steamapps/compatdata').exists(), 'la renovacion movio el prefijo'
+    target = Path(mod.prepare_folder(item, volume))
+    # At the limit the oldest generation (only stale game files) goes; the library stays visible.
+    assert not oldest.exists()
     assert len(list(mod.PRIVATE.glob(item['id']+'.anterior-*'))) == mod.MAX_PREVIOUS_STORES
-    assert (mod.PRIVATE/item['id']/'upper/steamapps/compatdata/linux.txt').read_text() == 'PREFIJO'
-    passed('cuota agotada conserva generacion activa y respaldos; explica revision sin borrar ni inventar instalacion')
+    assert (target/'steamapps/compatdata/linux.txt').read_text() == 'PREFIJO'
+    assert (target/'steamapps/common/Proton - Experimental/proton').read_text() == 'RUNTIME LINUX'
+    passed('cuota agotada retira solo la generacion mas antigua sin estado Linux; la biblioteca sigue visible')
     bad_old, bad_new = data/'old-malicioso', data/'new-seguro'
     for store in (bad_old, bad_new):
         mod.checked_dir(store, 0o700)
