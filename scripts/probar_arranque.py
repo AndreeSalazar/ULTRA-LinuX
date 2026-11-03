@@ -617,8 +617,12 @@ def check_hyprland(conn, failures):
                 expect(bool(isolated), 'Brave: renderer UID1000 inicial, user/PID namespaces propios y seccomp activo')
                 # Fresh disposable profile: cancel first-run keyring provisioning.
                 # No test credentials are saved and libsecret/sandbox stay enabled.
-                for _ in range(3):
-                    if not any('gcr-prompter' in a.get('class', '').lower() for a in clients()): break
+                # gnome-keyring may re-raise the prompt a few times on a fresh profile.
+                for _ in range(8):
+                    if not any('gcr-prompter' in a.get('class', '').lower() for a in clients()):
+                        time.sleep(1.5)
+                        if not any('gcr-prompter' in a.get('class', '').lower() for a in clients()): break
+                        continue
                     if not focus_app('gcr-prompter'): break
                     mon.sendall(b'sendkey meta_l-q 30\n')
                     time.sleep(.8)
@@ -653,6 +657,24 @@ def check_hyprland(conn, failures):
                     mon.sendall(f'sendkey {key} 30\n'.encode())
                     time.sleep(.12)
                 loaded = wait_apps(lambda apps: any('brave' in a.get('class', '').lower() and 'Example Domain' in a.get('title', '') for a in apps))
+                if not loaded:
+                    # Brave 1.97's first-run infobar can take the first keystrokes typed right
+                    # after leaving full screen. Refocus the address bar and type slower, once.
+                    # A second gcr-prompter (keyring) can also appear and take the keys.
+                    print('AMARILLO [Brave: primera escritura perdida; se reintenta mas despacio]', flush=True)
+                    for _ in range(3):
+                        if not any('gcr-prompter' in a.get('class', '').lower() for a in clients()): break
+                        if not focus_app('gcr-prompter'): break
+                        print('AMARILLO [Brave: segundo dialogo de llavero cancelado]', flush=True)
+                        mon.sendall(b'sendkey meta_l-q 30\n')
+                        time.sleep(.8)
+                    focus_app('brave'); time.sleep(.5)
+                    mon.sendall(b'sendkey esc\n'); time.sleep(.5)
+                    mon.sendall(b'sendkey ctrl-l\n'); time.sleep(1.2)
+                    for key in url_keys:
+                        mon.sendall(f'sendkey {key} 60\n'.encode())
+                        time.sleep(.3)
+                    loaded = wait_apps(lambda apps: any('brave' in a.get('class', '').lower() and 'Example Domain' in a.get('title', '') for a in apps))
                 expect(bool(loaded), 'Brave: pagina HTTPS real cargada desde la barra de direcciones')
                 if not loaded:
                     conn.sendall(b'ultra-entrar /usr/bin/tail -n 90 /home/ultra/.cache/ultra/brave.log; ultra-entrar /usr/bin/cat /run/ultra-escritorio/red.log; echo BRAVE-HTTPS-DIAG-$((5+6))\n')
