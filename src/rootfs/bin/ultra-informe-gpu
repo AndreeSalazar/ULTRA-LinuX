@@ -118,9 +118,10 @@ tmp=$out.$$
     printf '\n[LANZAMIENTO DEL CLIENTE: puede faltar si la preparacion fallo]\n'
     [[ ! -r /run/ultra-escritorio/ultima.log ]] || tail -n 160 /run/ultra-escritorio/ultima.log
 } > "$tmp" 2>&1
-# Traffic light on top: what to look at first when reading from Windows.
+# Traffic light right after the header: what to look at first from Windows. The header
+# (up to its first blank line) stays first: ultra-escritorio reads modo= and compositor= there.
 if /usr/bin/python3 -I /usr/local/libexec/ultra-salud "$tmp" > "$tmp.salud" 2>/dev/null; then
-    cat -- "$tmp.salud" "$tmp" > "$tmp.todo" && mv -f -- "$tmp.todo" "$tmp"
+    { sed '/^$/q' "$tmp"; cat -- "$tmp.salud"; sed '1,/^$/d' "$tmp"; } > "$tmp.todo" && mv -f -- "$tmp.todo" "$tmp"
 fi
 rm -f -- "$tmp.salud" "$tmp.todo"
 mv -f -- "$tmp" "$out"

@@ -286,6 +286,11 @@ if [[ -n $cmdline ]]; then
     sudo chroot "$sistema" /usr/bin/groupadd -g 1000 ultra
     sudo chroot "$sistema" /usr/bin/useradd -u 1000 -g ultra -G render,audio -m -s /usr/bin/bash ultra
     sudo chroot "$sistema" /usr/bin/usermod -L ultra
+    # A Windows checkout can leave CRLF in a script: "#!/usr/bin/python\r" then fails
+    # only at run time (Super+R did). Text files in rootfs must be LF; binaries are skipped.
+    if crlf=$(grep -rlI $'\r' "$lab/rootfs/bin" "$lab/rootfs/desktop"); then
+        printf 'ROJO: finales de linea CRLF en %s\n' $crlf; exit 1
+    fi
     sudo install -d -m 0755 "$sistema/usr/local/libexec"
     for helper in ultra-sesion ultra-cliente ultra-menu ultra-hyprland ultra-preparar-nvidia ultra-informe-gpu ultra-medir-sesion ultra-medir-recursos ultra-preparar-red ultra-preparar-hora ultra-informe-red ultra-desktop-session ultra-preparar-juegos ultra-preparar-windows ultra-preparar-warframe ultra-preparar-bibliotecas ultra-bibliotecas.py ultra-iniciar-escritorio ultra-eventos-kernel ultra-preparar-limites ultra-crear-fondo ultra-salud ultra-comprobar-datos ultra-personal; do
         sudo install -m 0755 "$lab/rootfs/bin/$helper" "$sistema/usr/local/libexec/$helper"

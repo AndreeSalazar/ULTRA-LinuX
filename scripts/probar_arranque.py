@@ -683,6 +683,15 @@ def check_hyprland(conn, failures):
                 launcher = True
                 break
             time.sleep(1)
+        if not launcher:
+            # Diagnosis: does the bind exist, and does the same command work without the key?
+            conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 binds | grep -i -B2 -A6 "personalizar"; echo BINDS-R-$((6+6))\n')
+            transcript += response('BINDS-R-12')
+            conn.sendall(b'ultra-entrar /usr/bin/env XDG_RUNTIME_DIR=/run/user/1000 /usr/bin/hyprctl -i 0 dispatch "hl.dsp.exec_cmd(\\"sh -c \'ultra-personalizar lanzador > /tmp/ultra-lanzador.log 2>&1\'\\")"; sleep 2; test -n "$(pidof fuzzel)" && echo LANZADOR-MANUAL-$((7+7)); ultra-entrar /usr/bin/cat /tmp/ultra-lanzador.log; for c in /home/ultra/.config/ultra/tema-personal/fuzzel.ini /juegos/usuarios/ultra/.config/ultra/tema-personal/fuzzel.ini /etc/ultra/fuzzel.ini; do ultra-entrar /usr/bin/test -f $c && ultra-entrar /usr/bin/fuzzel --check-config --config=$c; done; echo MANUAL-FIN-$((7+8))\n')
+            manual = response('MANUAL-FIN-15')
+            transcript += manual
+            print(('AMARILLO' if 'LANZADOR-MANUAL-14' in manual else 'ROJO') + ' [diagnostico Super+R: '
+                  + ('el comando abre fuzzel; falla la tecla]' if 'LANZADOR-MANUAL-14' in manual else 'el comando tampoco abre fuzzel]'), flush=True)
         expect(launcher, 'Hyprland: Super+R abre Fuzzel')
         # QEMU may still hold Super+R when pidof first sees the launcher.
         time.sleep(.7)
