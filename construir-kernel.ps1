@@ -63,7 +63,7 @@ if($Accion -eq 'Compilar'){
     Invoke-Guest 'mkdir -p /home/builder/linux-reconstruido/lab/rootfs && tar xzmf /var/tmp/revision-fuentes.tar.gz -C /home/builder/linux-reconstruido'
     # Every installer the build calls from lab/ comes from this tree, never from a
     # copy left over in the workshop by an earlier manual transfer.
-    Invoke-Guest 'cd /home/builder/linux-reconstruido && cp -f scripts/instalar-*.sh scripts/preparar-fondos.py lab/'
+    Invoke-Guest 'cd /home/builder/linux-reconstruido && cp -f scripts/instalar-*.sh scripts/*.py lab/'
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/init.c') (Join-Path $project 'src/init.h') (Join-Path $project 'src/modopciones.h') (Join-Path $project 'src/particiones.c') (Join-Path $project 'src/hardware.c') (Join-Path $project 'src/tarjeta.c') (Join-Path $project 'src/efi.c') (Join-Path $project 'src/perfil.c') (Join-Path $project 'src/logo.c') (Join-Path $project 'src/sistema.c') (Join-Path $project 'scripts/build-baseline.sh') (Join-Path $project 'scripts/guardianes.sh') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'
     if($LASTEXITCODE -ne 0){throw 'ROJO: transferencia de fuentes incompleta.'}
     & scp.exe -i $key -P 12222 -o BatchMode=yes -o KexAlgorithms=curve25519-sha256 -o $known (Join-Path $project 'src/efi-order.h') 'builder@127.0.0.1:/home/builder/linux-reconstruido/lab/'

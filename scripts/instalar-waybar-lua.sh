@@ -30,10 +30,10 @@ meson setup "${opts[@]}" "$cache/build" "$src" --buildtype=release --wrap-mode=n
     -Dexperimental=true -Dlibnl=enabled -Dpulseaudio=enabled
 ninja -C "$cache/build" -j2
 candidate=/usr/local/libexec/waybar-lua-candidata
-sudo install -m 0755 "$cache/build/waybar" "$stage$candidate"
+sudo install -D -m 0755 "$cache/build/waybar" "$stage$candidate"
 sudo chroot "$stage" "$candidate" --version
 sudo chroot "$stage" /usr/bin/ldd "$candidate" > "$cache/bibliotecas.txt"
 ! grep -q 'not found' "$cache/bibliotecas.txt"
 sudo mv "$stage$candidate" "$stage/usr/bin/waybar"
 sha256sum "$archive" "$src/src/modules/hyprland/workspace.cpp" "$stage/usr/bin/waybar" > "$cache/SHA256SUMS"
-sudo install -m 0644 "$cache/SHA256SUMS" "$stage/etc/ultra/waybar-lua.sha256"
+sudo install -D -m 0644 "$cache/SHA256SUMS" "$stage/etc/ultra/waybar-lua.sha256"

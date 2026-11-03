@@ -215,14 +215,15 @@ if [[ -n $cmdline ]]; then
     # System A (Wayland stage W1): Arch's base system, installed with its own pacman into a
     # separate root, plus the modules of this kernel. Compatible with Arch, not a copy: the
     # packages come unchanged from Arch's repositories and their list is kept as evidence.
-    # Docs, man pages, translations and development headers stay out: a boot needs none.
+    # Docs, man pages and translations stay out: a boot needs none. C headers stay in:
+    # the image ships gcc/clang/Rust and the source review compiles inside this root.
     sistema="$art/sistema-a" datos="$art/datos-semilla"
     sudo rm -rf "$sistema"
     rm -rf "$datos" "$art/sistema-a.erofs" "$art/datos.ext4"
     mkdir -p "$datos"
     sudo mkdir -p "$sistema/var/lib/pacman"
     # DownloadUser out: pacman's own user cannot enter /home/builder, where the root is built.
-    sed -e '/^\[options\]/a NoExtract = usr/share/man/* usr/share/doc/* usr/share/info/* usr/share/locale/* usr/share/i18n/*\nNoExtract = usr/share/gtk-doc/* usr/share/help/* usr/include/*' \
+    sed -e '/^\[options\]/a NoExtract = usr/share/man/* usr/share/doc/* usr/share/info/* usr/share/locale/* usr/share/i18n/*\nNoExtract = usr/share/gtk-doc/* usr/share/help/*' \
         -e '/^DownloadUser/d' -e '/^#\[multilib\]/,+1s/^#//' /etc/pacman.conf > "$art/pacman-sistema.conf"
     # W1: the base. W2: the first Wayland window: cage (compositor), foot (terminal), seatd
     # (session), systemd only for its udevd (devices for libinput), and a font.
@@ -269,6 +270,9 @@ if [[ -n $cmdline ]]; then
         echo "AMARILLO [FONDO VIVO]: $motor no esta en los repositorios"
     done
     sudo pacman --root "$sistema" --dbpath "$sistema/var/lib/pacman" -Q > "$art/sistema-paquetes.txt"
+    # The installers below (carpetas, waybar, fondos) refuse a root without this mark;
+    # it is rewritten with the final contents once the image is complete.
+    printf 'ULTRA-SISTEMA-A\nkernel=%s\nbase=arch\nestado=en-construccion\n' "$release" | sudo tee "$sistema/ULTRA-SISTEMA" > /dev/null
     bash "$lab/instalar-brave.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-heroic.sh" "$sistema" "$art" "$base"
     bash "$lab/instalar-heronite.sh" "$sistema" "$art" "$base"
