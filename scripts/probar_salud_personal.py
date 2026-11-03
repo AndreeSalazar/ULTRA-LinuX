@@ -97,7 +97,7 @@ class Salud(unittest.TestCase):
         real = Path('A:/ULTRA/informe/gpu-7.3.0-rc7-pc-g32c52ec87d62.txt')
         if not real.is_file(): self.skipTest('informe real no disponible')
         text = '\n'.join(self.lines(real.read_text(encoding='utf-8', errors='replace')))
-        for expected in ('300%', '100 Mb/s', 'sin tiempo real', 'RTX 3060'):
+        for expected in ('300%', '100 Mb/s', 'RTX 3060', 'Audio RT'):
             self.assertIn(expected, text)
 
 

@@ -72,6 +72,22 @@ def check_games(text):
     return AMARILLO, 'Juegos', 'sin /juegos: el escritorio uso un home temporal'
 
 
+def check_libraries(text):
+    match = re.search(r'^BIBLIOTECAS: (\{.*\})$', text, re.M)
+    if not match: return None
+    try: doc = json.loads(match.group(1))
+    except ValueError: return AMARILLO, 'Bibliotecas', 'catalogo ilegible'
+    folders = doc.get('folders', []) if isinstance(doc, dict) else []
+    missing = [f for f in folders if isinstance(f, dict) and str(f.get('status', '')).startswith('no disponible')]
+    steam = [f for f in missing if f.get('kind') == 'steam']
+    if steam:
+        reason = steam[0]['status'].removeprefix('no disponible: ')[:90]
+        return AMARILLO, 'Steam Windows', f'{steam[0].get("relative", "biblioteca")} no visible en Linux: {reason}'
+    if missing:
+        return AMARILLO, 'Bibliotecas', f'{len(missing)} carpeta(s) no disponibles: {missing[0].get("relative", "?")}'
+    return VERDE, 'Bibliotecas', f'{len(folders)} carpeta(s) de juegos activas'
+
+
 def check_launcher(text):
     raw = section(text, 'HERONITE').strip().splitlines()
     try: doc = json.loads(raw[0]) if raw else {}
@@ -141,7 +157,7 @@ def check_red_lines(text):
 
 def summary(text, now=None):
     now = time.time() if now is None else now
-    checks = [check_session, check_gpu, check_audio, check_network, check_games, check_launcher,
+    checks = [check_session, check_gpu, check_audio, check_network, check_games, check_libraries, check_launcher,
               check_memory, check_temperature, check_disks, lambda t: check_backups(t, now), check_red_lines]
     results = []
     for rule in checks:

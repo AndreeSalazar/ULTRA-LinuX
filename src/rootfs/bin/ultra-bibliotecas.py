@@ -133,13 +133,48 @@ def mount_points():
     return [Path(line.split()[4].replace('\\040', ' ')) for line in text.splitlines() if len(line.split()) > 4]
 
 
+RESCUE = HOME/'Juegos'/'Partidas rescatadas'
+USER_UID = 1000
+
+
+def rescue_prefixes(prefixes, generation):
+    """Move an old generation's Proton prefixes into ~/Juegos/Partidas rescatadas."""
+    info = prefixes.lstat()
+    if info.st_uid != USER_UID:
+        raise ValueError('compatdata anterior con propietario inesperado; se conserva')
+    # Every component under the home must be a real directory of the desktop user.
+    current = RESCUE.parent.parent
+    for name in ('Juegos', 'Partidas rescatadas', generation):
+        current = current/name
+        if current.is_symlink(): raise ValueError('carpeta de rescate redirigida; se conserva la capa')
+        if not current.exists():
+            current.mkdir(mode=0o700)
+            os.chown(current, USER_UID, USER_UID)
+        value = current.lstat()
+        if not stat.S_ISDIR(value.st_mode) or value.st_uid != USER_UID:
+            raise ValueError('carpeta de rescate no pertenece al usuario; se conserva la capa')
+    target = current/'compatdata'
+    if target.exists() or target.is_symlink():
+        raise ValueError('ya existe un rescate para esta capa; se conserva para revision')
+    if os.stat(prefixes).st_dev != os.stat(current).st_dev:
+        raise ValueError('el rescate no esta en el mismo disco; se conserva la capa')
+    os.rename(prefixes, target)
+    note = current/'LEEME.txt'
+    note.write_text('Prefijos de Proton (partidas y ajustes) de una version anterior de tu biblioteca\n'
+                    'Steam de Windows. ULTRA los movio aqui antes de retirar archivos de juego viejos.\n'
+                    'Cada carpeta numerica es un juego (su AppID de Steam). Nada se borro.\n')
+    os.chown(note, USER_UID, USER_UID)
+    print('PARTIDAS RESCATADAS:', target)
+    return target
+
+
 def prune_oldest_generation(store):
     """Remove the oldest previous generation of a library, if it is only stale game data.
 
     Every Windows update of any game in the library starts a new generation, and the
     renewal already moved prefixes (saves), shader cache and Proton runtimes forward.
     What stays behind are game files Linux modified for an older Windows build, which
-    can never be reused. A generation that still holds Linux state is never removed.
+    can never be reused. Its Proton prefixes (saves) are rescued to the home first.
     """
     generations = []
     for path in store.parent.glob(store.name+'.anterior-*'):
@@ -154,22 +189,16 @@ def prune_oldest_generation(store):
         raise ValueError('capa anterior no regular; se conserva para revision')
     if any(m == oldest or m.is_relative_to(oldest) for m in mount_points()):
         raise ValueError('capa anterior montada; se conserva')
-    apps = oldest/'upper'/'steamapps'
-    for name in ('compatdata', 'shadercache'):
-        if (apps/name).exists() or (apps/name).is_symlink():
-            raise ValueError(f'la capa mas antigua aun guarda {name} (partidas o cache); '
-                             'se conserva para revisarla; no se borro el juego')
-    if apps.is_dir():
-        for index, manifest in enumerate(sorted(apps.glob('appmanifest_*.acf'))):
-            if index >= 2048: raise ValueError('demasiados manifiestos en la capa anterior; se conserva')
-            if manifest.is_symlink() or not manifest.is_file() or manifest.stat().st_size > LIMIT:
-                raise ValueError('manifiesto anterior no regular; se conserva')
-            row = parse_vdf(manifest.read_text(encoding='utf-8-sig', errors='replace')).get('AppState', {})
-            title = row.get('name', '') if isinstance(row, dict) else ''
-            if isinstance(title, str) and title.startswith(('Proton', 'Steam Linux Runtime')):
-                raise ValueError('la capa mas antigua aun guarda un runtime de Proton; se conserva')
     if not shutil.rmtree.avoids_symlink_attacks:
         raise ValueError('borrado sin proteccion de enlaces; se conserva')
+    apps = oldest/'upper'/'steamapps'
+    # Proton prefixes hold saves and settings: they move (same ext4, a rename) to the
+    # user's home before anything is removed. Shader cache and runtimes re-download.
+    prefixes = apps/'compatdata'
+    if prefixes.is_symlink():
+        raise ValueError('compatdata anterior es un enlace; se conserva para revision')
+    if prefixes.is_dir() and any(prefixes.iterdir()):
+        rescue_prefixes(prefixes, oldest.name)
     shutil.rmtree(oldest)
     print('CAPA ANTIGUA RETIRADA:', oldest.name, '; solo archivos de juego de una version Windows anterior')
     return oldest
