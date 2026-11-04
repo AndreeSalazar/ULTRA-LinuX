@@ -656,6 +656,7 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
         let lineas = if estimadas { format!("~{l} lineas (estimadas por tamano, aun sin contar)") } else if l == 0 && b.lineas.is_none() { "sin lineas (no es texto)".to_string() } else { format!("{l} lineas") };
         let mut t = if b.bloque { format!("{}/ (bloque de {} archivos)\n", b.ruta, b.archivos) } else { format!("{}\n", b.ruta) };
         t += &format!("{} · {}\n{} de {} · {} de toda la ciudad", legible(b.tam), lineas, por(b.del_distrito), if distrito.is_empty() { "la raiz" } else { distrito }, por(b.del_total));
+        if let Some(nota) = crate::notas::de(&b.ruta) { t += &format!("\n\n{nota}\n"); }
         let (err, av) = e.errores.conteo(&b.ruta);
         if err + av > 0 { t += &format!("\n{err} errores · {av} avisos"); }
         let n = e.proyecto.conteo(&b.ruta);
@@ -697,7 +698,9 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
         ficha(&pintor, rect, p, &t, c);
     } else if let (Some(p), Some(i)) = (resp.hover_pos(), distrito) {
         let d = &v3.ciudad.distritos[i];
-        let t = format!("{}/\n{} archivos · {} · {} del total\ndoble clic: enfocar", if d.ruta.is_empty() { "(raiz)" } else { &d.ruta }, d.archivos, legible(d.tam), por(d.porcentaje));
+        let mut t = format!("{}/\n{} archivos · {} · {} del total", if d.ruta.is_empty() { "(raiz)" } else { &d.ruta }, d.archivos, legible(d.tam), por(d.porcentaje));
+        if let Some(nota) = crate::notas::de(&d.ruta) { t += &format!("\n\n{nota}"); }
+        t += "\ndoble clic: enfocar";
         ficha(&pintor, rect, p, &t, c);
     }
     // Shift+arrastrar: banda; al soltar, al grupo los edificios cuya azotea cae dentro.

@@ -34,6 +34,7 @@ mod gpu;
 mod indice;
 mod mcp;
 mod museo_ui;
+mod notas;
 mod revision_ui;
 mod paneles;
 mod pintar_grafo;
@@ -304,6 +305,7 @@ impl App {
                             self.vigiladas.clear();
                             let disposicion = almacen::cargar(&almacen::archivo_orden(&self.carpeta));
                             let nombre = self.carpeta.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "/".into());
+                            notas::cargar(&self.carpeta);
                             self.despachar(Accion::Cargar { nombre, entradas, disposicion });
                             self.despachar(Accion::RutaRaiz(self.carpeta.to_string_lossy().into_owned()));
                         }

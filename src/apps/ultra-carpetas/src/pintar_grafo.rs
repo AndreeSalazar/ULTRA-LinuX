@@ -211,6 +211,7 @@ fn nodo_dentro(ui: &egui::Ui, pintor: &egui::Painter, n: &NodoGrafo, r: Rect, z:
     let tooltip = |base: String| {
         let pista = if editable { "\nclic derecho: abrir en el editor" } else if n.tipo == Tipo::Carpeta && !n.raiz { "\nE o la diana: enfocar esta carpeta" } else { "" };
         let mut t = base;
+        if let Some(nota) = crate::notas::de(&n.id) { t.push_str("\n\n"); t.push_str(&nota); }
         if let Some(rol) = n.rol { t.push_str("\n\n"); t.push_str(texto_rol(rol)); }
         if let Some(p) = &n.marcas.primero { t.push_str("\n\n"); t.push_str(p); }
         if let Some(m) = &n.marcas.museo {
