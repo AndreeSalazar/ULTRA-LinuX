@@ -4,6 +4,7 @@
 //! de procesos, para que "Detener" pare tambien a los hijos (cargo -> rustc -> tu programa).
 
 use std::io::{BufRead, BufReader, Read};
+#[cfg(unix)]
 use std::os::unix::process::CommandExt;
 use std::path::Path;
 use std::process::{Command, Stdio};
@@ -34,12 +35,14 @@ fn leer<R: Read + Send + 'static>(fuente: R, error: bool, tx: mpsc::Sender<Mensa
 
 impl Proceso {
     pub fn lanzar(carpeta: &Path, programa: &str, args: &[String], avisar: impl Fn() + Send + Sync + Clone + 'static) -> Result<Proceso, String> {
-        let mut hijo = Command::new(programa).args(args).current_dir(carpeta)
+        let mut orden = Command::new(programa);
+        orden.args(args).current_dir(carpeta)
             .stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped())
             // Salida limpia en la terminal: sin colores ANSI.
-            .env("TERM", "dumb").env("NO_COLOR", "1").env("CARGO_TERM_COLOR", "never").env("CLICOLOR", "0")
-            .process_group(0)
-            .spawn().map_err(|e| format!("no se pudo lanzar {programa}: {e}"))?;
+            .env("TERM", "dumb").env("NO_COLOR", "1").env("CARGO_TERM_COLOR", "never").env("CLICOLOR", "0");
+        #[cfg(unix)]
+        orden.process_group(0);
+        let mut hijo = orden.spawn().map_err(|e| format!("no se pudo lanzar {programa}: {e}"))?;
         let grupo = hijo.id();
         let (tx, rx) = mpsc::channel();
         let a = leer(hijo.stdout.take().expect("stdout"), false, tx.clone(), avisar.clone());
@@ -59,13 +62,18 @@ impl Proceso {
     pub fn recoger(&self, maximo: usize) -> Vec<Mensaje> { self.rx.try_iter().take(maximo).collect() }
 
     /// SIGTERM a todo el grupo (sin shell: el programa `kill` con el grupo en negativo).
+    /// En Windows, `taskkill /T` para el arbol entero.
     pub fn detener(&self) {
+        #[cfg(windows)]
+        let _ = Command::new("taskkill").args(["/T", "/F", "/PID", &self.grupo.to_string()]).stdin(Stdio::null())
+            .stdout(Stdio::null()).stderr(Stdio::null()).status();
+        #[cfg(unix)]
         let _ = Command::new("kill").args(["-TERM", "--", &format!("-{}", self.grupo)]).stdin(Stdio::null())
             .stdout(Stdio::null()).stderr(Stdio::null()).status();
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod pruebas {
     use super::*;
     use std::time::{Duration, Instant};

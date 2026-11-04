@@ -59,6 +59,7 @@ pub struct Proyecto { tx: Sender<Pedido>, rx: Receiver<Respuesta> }
 pub fn indexar(base: &Path, ocultos: bool) -> (Indice, bool) {
     let mut indice = Indice::default();
     let mut pila = vec![String::new()];
+    let ignoradas = if ocultos { Ignoradas::default() } else { Ignoradas::leer(base) };
     while let Some(rel) = pila.pop() {
         let dir = if rel.is_empty() { base.to_path_buf() } else { base.join(&rel) };
         let Ok(lectura) = std::fs::read_dir(&dir) else { continue };
@@ -78,15 +79,56 @@ pub fn indexar(base: &Path, ocultos: bool) -> (Indice, bool) {
         for (nombre, es_dir, _) in hijos.iter().rev() {
             if *es_dir && SALTAR.contains(&nombre.as_str()) { continue; }
             let ruta = if rel.is_empty() { nombre.clone() } else { format!("{rel}/{nombre}") };
+            if *es_dir && ignoradas.ignora(&ruta, nombre, true) { continue; }
             if *es_dir { pila.push(ruta); }
         }
         for (nombre, es_dir, tam) in hijos {
             if es_dir && SALTAR.contains(&nombre.as_str()) { continue; }
-            let ruta = if rel.is_empty() { nombre } else { format!("{rel}/{nombre}") };
+            let ruta = if rel.is_empty() { nombre.clone() } else { format!("{rel}/{nombre}") };
+            if ignoradas.ignora(&ruta, &nombre, es_dir) { continue; }
             if !indice.agregar_con(&ruta, es_dir, tam) { return (indice, true); }
         }
     }
     (indice, false)
+}
+
+/// Lo que el `.gitignore` de la raiz ignora: carpetas y archivos, con `*` y `?` (que no
+/// cruzan `/`). Un patron con `/` (o que empieza por `/`) va contra la ruta entera; sin `/`,
+/// contra el nombre en cualquier carpeta; si acaba en `/`, solo carpetas. Las negaciones
+/// (`!`), los `**` y los `[...]` se dejan pasar: mejor indexar de mas que esconder algo.
+#[derive(Default)]
+struct Ignoradas { patrones: Vec<Patron> }
+
+struct Patron { texto: String, ruta_entera: bool, solo_carpetas: bool }
+
+/// `*` (cualquier cosa sin `/`) y `?` (un caracter que no es `/`).
+fn encaja(p: &[u8], t: &[u8]) -> bool {
+    match (p.first(), t.first()) {
+        (None, None) => true,
+        (Some(b'*'), _) => encaja(&p[1..], t) || (t.first().is_some_and(|c| *c != b'/') && encaja(p, &t[1..])),
+        (Some(b'?'), Some(c)) if *c != b'/' => encaja(&p[1..], &t[1..]),
+        (Some(a), Some(b)) if a == b => encaja(&p[1..], &t[1..]),
+        _ => false,
+    }
+}
+
+impl Ignoradas {
+    fn leer(base: &Path) -> Ignoradas {
+        let mut i = Ignoradas::default();
+        let Ok(texto) = std::fs::read_to_string(base.join(".gitignore")) else { return i };
+        for l in texto.lines().map(str::trim) {
+            if l.is_empty() || l.starts_with(['#', '!']) || l.contains("**") || l.contains(['[', '\\']) { continue; }
+            let (cuerpo, solo_carpetas) = match l.strip_suffix('/') { Some(c) => (c, true), None => (l, false) };
+            let ruta_entera = cuerpo.contains('/');
+            let texto = cuerpo.trim_start_matches('/').to_string();
+            if !texto.is_empty() { i.patrones.push(Patron { texto, ruta_entera, solo_carpetas }); }
+        }
+        i
+    }
+
+    fn ignora(&self, ruta: &str, nombre: &str, es_dir: bool) -> bool {
+        self.patrones.iter().any(|p| (es_dir || !p.solo_carpetas) && encaja(p.texto.as_bytes(), if p.ruta_entera { ruta } else { nombre }.as_bytes()))
+    }
 }
 
 /// Extensiones que nunca son texto: ni se abren (la busqueda no gasta E/S en ellas).
@@ -320,6 +362,7 @@ mod pruebas {
             std::fs::write(p, t).unwrap();
         }
         std::fs::write(d.join("target/CACHEDIR.TAG"), "Signature: 8a477f597d28d172789f06886806bc55").unwrap();
+        #[cfg(unix)]
         std::os::unix::fs::symlink("/etc", d.join("enlace")).unwrap();
         d
     }
@@ -366,13 +409,44 @@ mod pruebas {
 }
 
 #[cfg(test)]
+mod gitignore {
+    use super::*;
+
+    #[test]
+    fn las_carpetas_del_gitignore_no_se_indexan() {
+        let d = std::env::temp_dir().join(format!("sg-gitignore-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for r in ["src/a.rs", "datos/referencia/x.c", "datos/propio/y.c", "otro/__pycache__/z.py", "salida/w.c"] {
+            let p = d.join(r);
+            std::fs::create_dir_all(p.parent().unwrap()).unwrap();
+            std::fs::write(p, "x").unwrap();
+        }
+        std::fs::write(d.join(".gitignore"), "/datos/referencia/\n__pycache__/\n*.log\n!salida/\nsalida/*.c\n/datos/propio/*.sarif\n").unwrap();
+        std::fs::write(d.join("datos/propio/grande.sarif"), "x").unwrap();
+        std::fs::write(d.join("src/notas.log"), "x").unwrap();
+        let (i, _) = indexar(&d, false);
+        let rutas: Vec<&str> = (0..i.len()).map(|k| i.ruta(k)).collect();
+        assert!(rutas.contains(&"src/a.rs") && rutas.contains(&"datos/propio/y.c"));
+        assert!(!rutas.iter().any(|r| r.starts_with("datos/referencia")), "{rutas:?}");
+        assert!(!rutas.iter().any(|r| r.contains("__pycache__")), "{rutas:?}");
+        assert!(!rutas.contains(&"salida/w.c"), "salida/*.c: el comodin vale");
+        assert!(!rutas.contains(&"datos/propio/grande.sarif") && !rutas.contains(&"src/notas.log"), "{rutas:?}");
+        assert!(encaja(b"*.log", b"a.log") && !encaja(b"src/*.c", b"src/x/y.c") && encaja(b"a?c", b"abc"));
+        let (todo, _) = indexar(&d, true);
+        assert!((0..todo.len()).any(|k| todo.ruta(k) == "datos/referencia/x.c"), "con ocultos se ve todo");
+        std::fs::remove_dir_all(&d).ok();
+    }
+}
+
+#[cfg(test)]
 mod medida {
     /// Cuanto tarda buscar en este mismo repositorio (no es una prueba de velocidad fija:
     /// imprime el tiempo; solo exige que termine).
     #[test]
     fn buscar_en_el_repositorio() {
         use super::*;
-        let raiz = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        // La raiz de SUPER GRAFO.
+        let raiz = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
         let t = Instant::now();
         let (i, _) = indexar(&raiz, false);
         let ti = t.elapsed();

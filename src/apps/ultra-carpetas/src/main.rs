@@ -16,6 +16,7 @@ mod casm_taller;
 mod casm_ui;
 mod camino_ui;
 mod ciclos_ui;
+mod sarif_externo;
 mod senales_ui;
 mod ciudad3d;
 mod combinar_ui;
@@ -24,6 +25,7 @@ mod cobertura_ub;
 mod consultas;
 mod disco;
 mod editor_ui;
+mod en_vivo;
 mod entradas;
 mod git;
 mod guardianes;
@@ -34,6 +36,7 @@ mod museo_ui;
 mod revision_ui;
 mod paneles;
 mod pintar_grafo;
+mod plataforma;
 mod proceso;
 mod puente;
 mod svg;
@@ -140,7 +143,7 @@ struct App {
 struct Geometria { version: u64, clave: u64, fuente: Arc<Vista>, vertices: Arc<Vec<gpu::Vertice>> }
 
 impl App {
-    fn new(cc: &eframe::CreationContext<'_>, carpeta: PathBuf) -> Self {
+    fn new(cc: &eframe::CreationContext<'_>, carpeta: PathBuf, banderas: &[String]) -> Self {
         egui_extras::install_image_loaders(&cc.egui_ctx);
         // Bufer de profundidad (24 bits): la ciudad en 3D tapa bien lo de atras.
         let profundidad = eframe::egui_wgpu::depth_format_from_bits(24, 0);
@@ -164,7 +167,20 @@ impl App {
         };
         let ajustes = almacen::cargar_ajustes(&almacen::archivo_ajustes(&almacen::base()));
         app.despachar(Accion::CargarAjustes(ajustes));
+        let raiz = carpeta.canonicalize().unwrap_or_else(|_| carpeta.clone()).to_string_lossy().to_string();
         app.abrir(carpeta, false);
+        // Banderas despues de la carpeta: abrir ya en la Ciudad, en vivo o con la cronologia.
+        let tiene = |b: &str| banderas.iter().any(|x| x == b);
+        if tiene("--ciudad") || tiene("--vivo") || tiene("--tiempo") {
+            // La orden recorre las tres vistas: hasta la Ciudad.
+            for _ in 0..3 { if app.estado.ajustes.modo == Modo::Ciudad { break; } app.despachar(Accion::Comando(Comando::Modo)); }
+        }
+        if let Some(m) = banderas.iter().find_map(|b| b.strip_prefix("--mirar=")) {
+            app.ciudad.mirar = m.split(',').map(|x| x.trim_matches('/').to_string()).filter(|x| !x.is_empty()).collect();
+            if app.estado.ajustes.modo != Modo::Ciudad { for _ in 0..3 { if app.estado.ajustes.modo == Modo::Ciudad { break; } app.despachar(Accion::Comando(Comando::Modo)); } }
+        }
+        if tiene("--vivo") { app.ciudad.vivo.encender(&raiz, &cc.egui_ctx); }
+        else if tiene("--tiempo") { app.ciudad.abrir_tiempo(&raiz, &cc.egui_ctx); }
         app
     }
 
@@ -185,7 +201,7 @@ impl App {
             Efecto::AbrirArchivo(rel) => {
                 // El nucleo solo pide rutas que leyo; aun asi, nada de "..", absolutas ni raras.
                 if !disco::ruta_limpia(&rel) { return; }
-                if let Err(e) = std::process::Command::new("xdg-open").arg(self.carpeta.join(&rel)).stdin(std::process::Stdio::null())
+                if let Err(e) = std::process::Command::new(if cfg!(windows) { "explorer" } else { "xdg-open" }).arg(self.carpeta.join(&rel)).stdin(std::process::Stdio::null())
                     .stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).spawn() {
                     self.error = Some(format!("No se pudo abrir {rel}: {e}"));
                 }
@@ -1091,13 +1107,14 @@ fn main() -> eframe::Result {
         }
         _ => {}
     }
+    let banderas: Vec<String> = std::env::args().skip(2).collect();
     let carpeta = std::env::args_os().nth(1).map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| "/".into())));
     let opciones = eframe::NativeOptions {
         renderer: eframe::Renderer::Wgpu,
         depth_buffer: 24,
-        viewport: egui::ViewportBuilder::default().with_title("ULTRA Carpetas").with_app_id("ultra-carpetas").with_inner_size([1280.0, 800.0]),
+        viewport: egui::ViewportBuilder::default().with_title("SUPER GRAFO").with_app_id("ultra-carpetas").with_inner_size([1280.0, 800.0]),
         ..Default::default()
     };
-    eframe::run_native("ultra-carpetas", opciones, Box::new(move |cc| Ok(Box::new(App::new(cc, carpeta)))))
+    eframe::run_native("ultra-carpetas", opciones, Box::new(move |cc| Ok(Box::new(App::new(cc, carpeta, &banderas)))))
 }

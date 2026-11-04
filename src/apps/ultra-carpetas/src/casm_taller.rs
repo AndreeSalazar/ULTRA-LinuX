@@ -82,6 +82,8 @@ mod pruebas {
     #[test]
     fn taller_de_este_repositorio() {
         let raiz = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        // Prueba del repositorio original (Linux Reconstruido): fuera de el, no hay nada que probar.
+        if !raiz.join("src/apps/ultra-carpetas").is_dir() { return; }
         let t = explorar(&raiz).expect("hay CASM/ en el repositorio");
         assert_eq!(t.carpeta, "CASM");
         assert!(t.katanas.iter().any(|k| k.regla == "NAME-UNDEFINED" && k.sitios.iter().any(|(a, _)| a == "CASM/src/frontend.c")));

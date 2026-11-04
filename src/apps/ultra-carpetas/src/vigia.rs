@@ -8,21 +8,34 @@
 //! Si inotify no esta (o se pasan las vigilancias del sistema), devuelve None y quien
 //! llama vuelve a sondear.
 
+#[cfg(target_os = "linux")]
 use inotify::{EventMask, Inotify, WatchDescriptor, WatchMask};
+#[cfg(target_os = "linux")]
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
+#[cfg(target_os = "linux")]
+use std::path::PathBuf;
 use std::sync::mpsc;
 use std::time::Duration;
 
 /// Como mucho tantas carpetas vigiladas (Chromium tiene decenas de miles). Si el sistema no
 /// deja tantas (`/proc/sys/fs/inotify/max_user_watches`), no hay inotify y se mira cada poco.
+#[cfg(target_os = "linux")]
 const MAX_CARPETAS: usize = 500_000;
 
+#[cfg(target_os = "linux")]
 fn relevante(nombre: &str) -> bool {
     carpetas_nucleo::dependencias::sigue(nombre) || carpetas_nucleo::museo::idioma(nombre).is_some() || nombre == "compile_commands.json"
 }
 
+/// Fuera de Linux no hay inotify: quien llama vuelve a sondear.
+#[cfg(not(target_os = "linux"))]
+pub fn iniciar(_raiz: &Path) -> Option<mpsc::Receiver<()>> {
+    None
+}
+
 /// Empieza a vigilar `raiz`; cada cambio que importa manda un `()`. None: sin inotify.
+#[cfg(target_os = "linux")]
 pub fn iniciar(raiz: &Path) -> Option<mpsc::Receiver<()>> {
     let raiz = raiz.canonicalize().ok()?;
     let mut ino = Inotify::init().ok()?;

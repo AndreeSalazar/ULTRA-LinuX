@@ -228,6 +228,11 @@ pub fn herramientas() -> Vec<Value> {
         h("mostrar", "Ensena algo en la ventana de la persona (solo mueve la vista): accion grupo (rutas, modo ciudad|grafo), revelar (ruta, linea), camino (a, b), aislar (rutas) o limpiar.",
           json!({ "accion": { "type": "string", "enum": ["grupo", "revelar", "camino", "aislar", "limpiar"] }, "rutas": rutas, "ruta": ruta, "linea": { "type": "integer", "minimum": 1 },
                   "a": ruta, "b": ruta, "modo": { "type": "string", "enum": ["ciudad", "grafo"] } }), &["accion"]),
+        h("vivo", "4D en vivo: que parte del programa que corre trabaja ahora (sus trazas en .super-grafo-vivo.jsonl; QUIMERA las escribe con QUIMERA_VIVO). Ms por segundo de cada carpeta en los ultimos segundos y el trafico entre carpetas (desde -> hasta).",
+          json!({ "segundos": { "type": "number", "description": "Cuantos segundos del final mirar (10 por defecto)" }, "limite": lim }), &[]),
+        h("tiempo", "4D: la ciudad en el tiempo. Con en (indice, commit o AAAA-MM-DD; por defecto el ultimo): cuantos archivos vivian, cuantas lineas, los fantasmas (ya borrados), lo que se toco en la ventana anterior (calientes) y lo que nacio o murio en ella. Con desde y en: que crecio, encogio, nacio o murio entre los dos. Lineas segun git --numstat.",
+          json!({ "en": { "description": "Commit: indice, id o AAAA-MM-DD" }, "desde": { "description": "Para comparar: el otro commit" },
+                  "ventana": { "type": "integer", "minimum": 1, "description": "Commits hacia atras que cuentan como recientes" }, "limite": lim }), &[]),
         h("cronologia", "Como se construyo el proyecto desde el primer commit (git), sin sacar versiones viejas: sin argumentos, como crecio por periodos (archivos, dependencias, ciclos, con el mapa de cada momento resuelto como hoy), en que orden nacieron las carpetas y una verificacion (lo reconstruido contra lo de hoy). ruta: cuando nacio un archivo o carpeta, quien, por que (asunto del commit), sus nombres anteriores y como crecio. a y b: que commit anadio la referencia que une a con b. ciclos: que commit cerro cada ciclo de hoy.",
           json!({ "ruta": ruta, "a": ruta, "b": ruta, "ciclos": { "type": "boolean" }, "periodos": { "type": "integer", "minimum": 1, "maximum": 100 },
                   "profundidad": { "type": "integer", "minimum": 1, "maximum": 4, "description": "carpetas de hasta tantos niveles en el orden de nacimiento (1 por defecto)" }, "limite": lim }), &[]),
@@ -296,9 +301,51 @@ impl Mapa {
             let (c, cortada, superficial) = crate::git::cronologia(&self.raiz)?;
             if c.commits.is_empty() { return Err("el repositorio no tiene commits".into()); }
             let rep = carpetas_nucleo::cronologia::reproducir(&c, periodos);
-            self.crono = Some(Crono { cabeza, c, rep, periodos, cortada, superficial, ms: t.elapsed().as_millis() });
+            let t4 = carpetas_nucleo::cuatro::construir(&c);
+            self.crono = Some(Crono { cabeza, c, rep, periodos, cortada, superficial, ms: t.elapsed().as_millis(), t4 });
         }
         Ok(self.crono.as_ref().expect("recien hecha"))
+    }
+
+    /// 4D en vivo: lo que trabajo en los ultimos `segundos` del programa que corre (de sus
+    /// trazas en `.super-grafo-vivo.jsonl`): ms por segundo de cada carpeta y el trafico.
+    fn vivo(&self, a: &Value) -> Result<Value, String> {
+        let n = limite(a);
+        let segundos = a.get("segundos").and_then(Value::as_f64).unwrap_or(10.0).clamp(0.5, 3600.0);
+        let (trazas, fin) = crate::en_vivo::ultimas(&self.raiz, segundos)?;
+        let r = crate::en_vivo::resumir(&trazas, segundos);
+        Ok(json!({ "segundos": segundos, "hasta_ms": fin, "trazas": r.trazas,
+                   "por_carpeta": { "total": r.por_ruta.len(), "lista": r.por_ruta.iter().take(n).map(|(x, ms)| json!({ "carpeta": x, "ms_por_segundo": (ms * 10.0).round() / 10.0 })).collect::<Vec<_>>() },
+                   "trafico": { "total": r.trafico.len(), "lista": r.trafico.iter().take(n).map(|(d, h, k)| json!({ "desde": d, "hasta": h, "veces": k })).collect::<Vec<_>>() },
+                   "nota": "ms por segundo sumados: el trabajo en paralelo (descargas, hilos) puede pasar de 1000" }))
+    }
+
+    /// 4D: como estaba el proyecto en un commit (`en`), o que cambio entre `desde` y `en`.
+    fn tiempo(&mut self, a: &Value) -> Result<Value, String> {
+        let n = limite(a);
+        let periodos = self.crono.as_ref().map_or(10, |c| c.periodos);
+        let cr = self.crono(periodos)?;
+        let (c, t4) = (&cr.c, &cr.t4);
+        let ultimo = c.commits.len() as u32 - 1;
+        let en = match a.get("en") { Some(v) => elegir_commit(c, v)?, None => ultimo };
+        let info = |i: u32| { let x = &c.commits[i as usize]; json!({ "commit": x.id, "indice": i, "fecha": fecha_iso(x.fecha), "asunto": x.asunto }) };
+        let ruta = |v: u32| t4.vidas[v as usize].ruta.clone();
+        let lista = |v: &[u32]| json!({ "total": v.len(), "lista": v.iter().take(n).map(|&x| ruta(x)).collect::<Vec<_>>() });
+        let aviso = (!t4.con_lineas).then_some("sin lineas de git (--numstat vacio): solo nacimientos y muertes");
+        if let Some(d) = a.get("desde") {
+            let desde = elegir_commit(c, d)?;
+            let k = t4.comparar(desde, en);
+            let cambio = |v: &[(u32, u32, u32)]| json!({ "total": v.len(), "lista": v.iter().take(n).map(|&(x, de, a)| json!({ "ruta": ruta(x), "de": de, "a": a })).collect::<Vec<_>>() });
+            return Ok(json!({ "desde": info(desde.min(en)), "hasta": info(desde.max(en)), "vivos": [k.vivos.0, k.vivos.1], "lineas": [k.lineas.0, k.lineas.1],
+                              "crecieron": cambio(&k.crecieron), "encogieron": cambio(&k.encogieron), "nacieron": lista(&k.nacieron), "murieron": lista(&k.murieron),
+                              "nota": "lineas segun git (--numstat); lo que nacio y murio entre medias no cuenta", "aviso": aviso }));
+        }
+        let ventana = a.get("ventana").and_then(Value::as_u64).map(|x| x.clamp(1, 10_000) as u32).unwrap_or((c.commits.len() as u32 / 20).max(1));
+        let m = t4.momento(en, ventana, n);
+        Ok(json!({ "en": info(en), "de_commits": c.commits.len(), "vivos": m.vivos, "lineas": m.lineas, "fantasmas": m.fantasmas, "ventana_commits": ventana,
+                   "calientes": m.calientes.iter().map(|&(v, k)| json!({ "ruta": ruta(v), "cambios": k, "lineas": t4.vidas[v as usize].lineas_en(en) })).collect::<Vec<_>>(),
+                   "nacieron": lista(&m.nacieron), "murieron": lista(&m.murieron), "aviso": aviso,
+                   "siguiente": "desde + en para comparar dos momentos; en acepta indice, commit o AAAA-MM-DD" }))
     }
 
     fn cronologia(&mut self, a: &Value) -> Result<Value, String> {
@@ -445,6 +492,8 @@ impl Mapa {
             }
         }
         self.revisiones.retain(|k, _| self.raiz.join(k).exists());
+        // El SARIF que el proyecto deja en su raiz (los guardianes de QUIMERA, por ejemplo).
+        leidos.extend(crate::sarif_externo::del_proyecto(&self.raiz));
         // Reparto justo bajo el tope (500): primero un error de cada archivo, despues el resto de
         // errores y al final los avisos. Asi un archivo con cientos no tapa el fallo de otro.
         let mut vistos: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
@@ -784,6 +833,8 @@ impl Mapa {
             "reanalizar" => { self.analizar(); Ok(self.resumen()) }
             "cambios" => Ok(self.cambios(limite(a))),
             "cronologia" => self.cronologia(a),
+            "tiempo" => self.tiempo(a),
+            "vivo" => self.vivo(a),
             "guardianes" => Ok(self.guardianes(limite(a))),
             "cobertura_ub" => crate::cobertura_ub::consultar(&self.raiz, limite(a)),
             "revision_estado" => crate::revision_ui::consultar(&self.raiz, limite(a)),
@@ -813,6 +864,8 @@ impl Mapa {
             "dependencias": an.dep.aristas,
             "sospechas": { "Seguridad": ejes[0], "Rendimiento": ejes[1], "Elegancia": ejes[2], "a_proposito": an.total_estudio },
             "diagnosticos_gcc": gcc,
+            "diagnosticos_marcados": { "total": self.estado.errores.total, "archivos": self.estado.errores.por_nodo.len(),
+                                       "sarif_del_proyecto": crate::sarif_externo::ARCHIVOS.iter().filter(|a| self.raiz.join(a).is_file()).collect::<Vec<_>>() },
             "fallo_conectado": { "archivos_que_fallan": k.fallos, "causas": k.conexion.causas.len(),
                                  "se_pueden_romper": k.conexion.roles.values().filter(|r| **r == Rol::Arrastra).count() },
             "ciclos": { "total": an.ciclos.total, "archivos": an.ciclos.archivos, "dependen_de_un_if": an.ciclos.condicionales },
@@ -845,7 +898,7 @@ impl Mapa {
         let dep = &self.estado.analisis.dep;
         let Some(id) = dep.id(&r) else {
             return Ok(json!({ "ruta": r, "dependencias": "ninguna conocida (no es C, C++, ASM, Rust ni Python, o nada lo usa ni usa nada)",
-                              "sospechas": self.sospechas_de(&r, n) }));
+                              "sospechas": self.sospechas_de(&r, n), "diagnosticos": self.diagnosticos_de(&r, n) }));
         };
         let usa: Vec<u32> = dep.usa_id(id).to_vec();
         let lo_usan: Vec<u32> = dep.usado_por_id(id).to_vec();
@@ -857,7 +910,15 @@ impl Mapa {
             "lo_usan": { "total": lo_usan.len(), "lista": lista_usan },
             "papel": self.estado.conectado.conexion.roles.get(&r).map(|x| rol(*x)),
             "sospechas": self.sospechas_de(&r, n),
+            "diagnosticos": self.diagnosticos_de(&r, n),
         }))
+    }
+
+    /// Lo que la terminal, GCC o el SARIF del proyecto (guardianes) marcaron en este archivo.
+    fn diagnosticos_de(&self, r: &str, n: usize) -> Value {
+        let v = self.estado.errores.por_nodo.get(r).map(|v| v.as_slice()).unwrap_or(&[]);
+        json!({ "total": v.len(), "lista": v.iter().take(n).map(|d| json!({
+            "linea": d.linea, "grave": d.grave, "mensaje": d.mensaje })).collect::<Vec<_>>() })
     }
 
     fn sospechas_de(&self, r: &str, n: usize) -> Value {
@@ -1181,7 +1242,22 @@ fn flags(a: &Value) -> Result<Vec<String>, String> {
 
 /// La cronologia leida y reproducida (con el commit de arriba cuando se leyo).
 struct Crono { cabeza: String, c: carpetas_nucleo::cronologia::Cronologia, rep: carpetas_nucleo::cronologia::Reproduccion,
-               periodos: usize, cortada: bool, superficial: bool, ms: u128 }
+               periodos: usize, cortada: bool, superficial: bool, ms: u128, t4: carpetas_nucleo::cuatro::Tiempo4 }
+
+/// Un commit por indice (numero), por su id (o el principio) o por fecha AAAA-MM-DD (el
+/// ultimo de ese dia o antes).
+fn elegir_commit(c: &carpetas_nucleo::cronologia::Cronologia, v: &Value) -> Result<u32, String> {
+    let n = c.commits.len() as u32;
+    if let Some(i) = v.as_u64() { return if (i as u32) < n { Ok(i as u32) } else { Err(format!("hay {n} commits (0..{})", n - 1)) }; }
+    let s = v.as_str().ok_or("un commit: indice, id o AAAA-MM-DD")?.trim();
+    let es_fecha = s.len() == 10 && s.as_bytes()[4] == b'-' && s.as_bytes()[7] == b'-';
+    if es_fecha {
+        let k = c.commits.partition_point(|x| fecha_iso(x.fecha).as_str() <= s) as u32;
+        return k.checked_sub(1).ok_or_else(|| format!("no hay commits hasta {s}"));
+    }
+    if s.len() < 4 { return Err("el id del commit necesita al menos 4 caracteres".into()); }
+    c.commits.iter().position(|x| x.id.starts_with(s) || s.starts_with(&x.id)).map(|i| i as u32).ok_or_else(|| format!("no conozco el commit {s}"))
+}
 
 /// Fecha Unix (UTC) como AAAA-MM-DD (Howard Hinnant, days_from_civil al reves).
 pub fn fecha_iso(s: u64) -> String {

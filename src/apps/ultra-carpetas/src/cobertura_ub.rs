@@ -69,7 +69,7 @@ fn resumir(v: &Value, limit: usize) -> Result<Value, String> {
         "pendientes":["tsan","msan","libfuzzer","cfi-lto"]}))
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod tests {
     use super::*;
     fn report() -> Value { json!({"schema":1,"kind":"ultra-llvm-ub-lab","production_certified":false,"cases":[

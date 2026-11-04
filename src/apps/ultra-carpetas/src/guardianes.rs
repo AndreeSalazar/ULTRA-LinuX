@@ -58,6 +58,8 @@ mod pruebas {
     #[test]
     fn lee_ultra_warn_del_perfil_real() {
         let raiz = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        // Prueba del repositorio original (Linux Reconstruido): fuera de el, no hay nada que probar.
+        if !raiz.join("src/apps/ultra-carpetas").is_dir() { return; }
         let p = leer(&raiz).expect("el perfil de produccion del repositorio");
         assert_eq!(p.origen, LUGAR);
         for f in ["-std=c17", "-Werror", "-Wconversion", "-Wnull-dereference", "-Wtrampolines"] { assert!(p.warn.iter().any(|x| x == f), "{f} en {:?}", p.warn); }

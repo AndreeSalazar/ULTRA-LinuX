@@ -10,10 +10,14 @@ authors = ["Eddi Salazar"]
 
 [dependencies]
 carpetas-nucleo = { path = "../carpetas-nucleo" }
-eframe = { version = "0.37", default-features = false, features = ["wgpu", "wayland", "x11", "default_fonts"] }
+eframe = { version = "0.37", default-features = false, features = ["wgpu", "default_fonts"] }
 egui_extras = { version = "0.37", default-features = false, features = ["svg"] }
 bytemuck = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# Solo en Linux: ventanas de Wayland/X11 y el vigia con inotify.
+[target.'cfg(target_os = "linux")'.dependencies]
+eframe = { version = "0.37", default-features = false, features = ["wayland", "x11"] }
 inotify = { version = "0.9", default-features = false }
 
 [profile.release]

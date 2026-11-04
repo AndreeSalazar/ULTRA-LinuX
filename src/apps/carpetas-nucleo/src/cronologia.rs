@@ -49,6 +49,9 @@ pub struct Cronologia {
     /// Por commit, en el mismo orden.
     pub eventos: Vec<Vec<Evento>>,
     pub refs: Vec<Vec<CambioRef>>,
+    /// Lectura 3 (`--numstat`), por commit: lineas que gana o pierde cada archivo (para la
+    /// ciudad en el tiempo, `cuatro`). Vacia si no se leyo.
+    pub lineas: Vec<Vec<(u32, i32)>>,
     /// Commits de la segunda lectura que no estaban en la primera (no deberia haber).
     pub sueltos: u32,
     ids_rutas: BTreeMap<String, u32>,
@@ -89,6 +92,7 @@ impl Cronologia {
             self.commits.push(Commit { id: id.to_string(), fecha: fecha.trim().parse().unwrap_or(0), autor, asunto });
             self.eventos.push(Vec::new());
             self.refs.push(Vec::new());
+            self.lineas.push(Vec::new());
             return;
         }
         if self.eventos.is_empty() { return; }
@@ -102,6 +106,23 @@ impl Cronologia {
             _ => return,
         };
         if let Some(v) = self.eventos.last_mut() { v.push(ev); }
+    }
+
+    /// Una linea de la lectura 3 (`--format=%x01%h --numstat -M`): la cabecera del commit y
+    /// `sumadas\tquitadas\truta`. Un binario (`-\t-`) no tiene lineas. En un cambio de nombre
+    /// la ruta viene como `viejo => nuevo` o `a/{viejo => nuevo}/b`: cuenta el nombre nuevo.
+    pub fn linea_numstat(&mut self, l: &str) {
+        if let Some(c) = l.strip_prefix(INICIO) {
+            let id = c.split(CAMPO).next().unwrap_or("").trim();
+            self.actual = self.ids_commits.get(id).copied();
+            return;
+        }
+        let Some(k) = self.actual else { return };
+        let mut p = l.splitn(3, '\t');
+        let (Some(mas), Some(menos), Some(ruta)) = (p.next(), p.next(), p.next()) else { return };
+        let (Ok(mas), Ok(menos)) = (mas.parse::<i32>(), menos.parse::<i32>()) else { return };
+        let r = self.ruta(&ruta_nueva(ruta));
+        if let Some(v) = self.lineas.get_mut(k as usize) { v.push((r, mas - menos)); }
     }
 
     /// Una linea de la lectura 2 (`--format=%x01%h%x02%ct -p -U0`): la cabecera del
@@ -128,6 +149,20 @@ impl Cronologia {
             self.refs[k as usize].push(CambioRef { ruta, suma, clase: clase_a(r.clase), texto: t });
         }
     }
+}
+
+/// El nombre nuevo de una ruta de `--numstat` con cambio de nombre: `a => b` da `b` y
+/// `src/{a => b}/x.rs` da `src/b/x.rs` (sin dobles barras si un lado esta vacio).
+pub fn ruta_nueva(r: &str) -> String {
+    if let (Some(i), Some(f)) = (r.find('{'), r.find('}')) {
+        if i < f {
+            if let Some((_, nuevo)) = r[i + 1..f].split_once(" => ") {
+                let s = alloc::format!("{}{}{}", &r[..i], nuevo, &r[f + 1..]);
+                return s.replace("//", "/");
+            }
+        }
+    }
+    match r.split_once(" => ") { Some((_, b)) => b.to_string(), None => r.to_string() }
 }
 
 /// Las rutas vivas en un momento, para resolver como hoy.

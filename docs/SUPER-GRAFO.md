@@ -10,6 +10,9 @@ El SUPER GRAFO (SG) de ULTRA Carpetas creció por capas:
 - **1D:** gestionar archivos.
 - **2D:** nodos.
 - **3D:** la Ciudad.
+- **4D:** el tiempo. La Ciudad en cualquier commit (altura de sus líneas de entonces, fantasmas
+  de lo borrado, naranja lo que se tocaba) y en vivo con el programa corriendo (tráfico entre
+  carpetas). Consultas `tiempo` y `vivo`. [Detalle](SUPER-GRAFO-4D-2026-11-04.md).
 
 La siguiente capa es que **se vuelva inteligente**: que cace con criterio y que se
 pueda medir cuánto acierta. Este documento fija con qué criterio. El detalle de lo

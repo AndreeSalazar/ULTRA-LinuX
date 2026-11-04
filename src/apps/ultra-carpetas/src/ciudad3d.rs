@@ -34,6 +34,8 @@ pub struct LineaTiempo {
     /// Los nacimientos de los archivos de hoy, ordenados (para contar los que ya existian).
     pub orden: Vec<u32>,
     pub ms: u128,
+    /// 4D: la vida de cada archivo que existio (lineas en cada commit, cambios, muerte).
+    pub t4: carpetas_nucleo::cuatro::Tiempo4,
 }
 
 impl LineaTiempo {
@@ -72,8 +74,9 @@ impl Tiempo {
                 let nace: std::collections::HashMap<String, u32> = rep.vivos.iter().filter_map(|k| Some((c.ruta_de(*k).to_string(), rep.vidas.get(k)?.nace))).collect();
                 let mut orden: Vec<u32> = nace.values().copied().collect();
                 orden.sort_unstable();
+                let t4 = carpetas_nucleo::cuatro::construir(&c);
                 Ok(LineaTiempo { commits: c.commits.iter().map(|x| (x.id.clone(), x.fecha, x.asunto.clone())).collect(), nace,
-                                 carpetas: rep.carpetas.into_iter().collect(), orden, ms: t.elapsed().as_millis() })
+                                 carpetas: rep.carpetas.into_iter().collect(), orden, ms: t.elapsed().as_millis(), t4 })
             });
             let _ = tx.send(r);
             ctx.request_repaint();
@@ -234,6 +237,21 @@ pub struct Vista3 {
     /// La cronologia (ciudad fantasma) y la version de ella con la que se hicieron las instancias.
     pub tiempo: Tiempo,
     nace_hecho: u64,
+    /// 4D. Por edificio: (vida, su altura en la ciudad armada, sus lineas de referencia).
+    cuatro: Vec<Option<(u32, f32, u32)>>,
+    /// Las instancias tal como se armaron (sin el tiempo aplicado).
+    base: Arc<Vec<Instancia>>,
+    /// El commit con el que se aplicaron el tiempo, y si la cronologia estaba puesta al armar.
+    t_hecho: Option<u32>,
+    activo_hecho: bool,
+    /// El momento (cifras del commit que se mira) para la leyenda.
+    pub momento: Option<carpetas_nucleo::cuatro::Momento>,
+    /// 4D en vivo: las trazas del programa que corre, y con que version se pintaron.
+    pub vivo: crate::en_vivo::Vivo,
+    vivo_hecho: Option<u64>,
+    resumen_vivo: crate::en_vivo::Resumen,
+    /// `--mirar=a,b`: al armarse la ciudad, la camara encuadra esas carpetas (una vez).
+    pub mirar: Vec<String>,
 }
 
 /// Cajas resaltadas como mucho: lo elegido, lo de debajo del raton y el grupo con sus puentes.
@@ -245,10 +263,27 @@ impl Vista3 {
         let a = c.acento;
         let clave = (e.ciudad.version, e.ajustes.altura_ciudad, e.ajustes.color_ciudad, e.ajustes.huella_ciudad, e.errores.total, e.proyecto.generacion, e.proyecto.total, [a.r(), a.g(), a.b()], e.historia.version,
                      e.conectado.clave.clone(), e.analisis.version);
-        if self.clave.as_ref() == Some(&clave) && self.nace_hecho == self.tiempo.version { return; }
+        if self.clave.as_ref() == Some(&clave) && self.nace_hecho == self.tiempo.version && self.activo_hecho == self.tiempo.activo { return; }
         self.nace_hecho = self.tiempo.version;
+        self.activo_hecho = self.tiempo.activo;
         let linea = self.tiempo.datos.clone();
-        let nace = |r: &str, carpeta: bool| linea.as_ref().map(|l| l.de(r, carpeta)).unwrap_or(0.0);
+        // 4D: con la cronologia puesta, los archivos borrados tambien tienen su solar (fantasmas),
+        // con lo mas que llegaron a medir. La ciudad se arma una vez y el tiempo solo la cambia.
+        let t4 = linea.as_ref().filter(|_| self.tiempo.activo).map(|l| &l.t4);
+        let fantasmas: std::collections::HashMap<&str, u32> = t4.map(|t| t.muertas().map(|(i, v)| (v.ruta.as_str(), i)).collect()).unwrap_or_default();
+        let mut archivos = std::borrow::Cow::Borrowed(&e.ciudad.archivos[..]);
+        if let Some(t) = t4 {
+            let v = archivos.to_mut();
+            for (r, i) in &fantasmas {
+                let m = t.vidas[*i as usize].maximo;
+                v.push(ArchivoCiudad { ruta: r.to_string(), tam: (m as u64).max(1) * 40, lineas: Some(m), archivos: 1, bloque: false });
+            }
+        }
+        let n_commits = linea.as_ref().map_or(1, |l| l.commits.len().saturating_sub(1).max(1)) as f32;
+        let nace = |r: &str, carpeta: bool| match (fantasmas.get(r), t4) {
+            (Some(i), Some(t)) => t.vidas[*i as usize].nace as f32 / n_commits,
+            _ => linea.as_ref().map(|l| l.de(r, carpeta)).unwrap_or(0.0),
+        };
         let t = std::time::Instant::now();
         let medida = |r: &str| match e.ajustes.altura_ciudad {
             Altura::Errores => { let (x, y) = e.errores.conteo(r); x * 3 + y }
@@ -256,7 +291,16 @@ impl Vista3 {
             Altura::Cambios => e.historia.datos.de(r).veces,
             _ => 0,
         };
-        let ciudad = carpetas_nucleo::ciudad::construir(&e.ciudad.raiz, &e.ciudad.archivos, e.ajustes.huella_ciudad, e.ajustes.altura_ciudad, &medida);
+        let ciudad = carpetas_nucleo::ciudad::construir(&e.ciudad.raiz, &archivos, e.ajustes.huella_ciudad, e.ajustes.altura_ciudad, &medida);
+        let ultimo = t4.map_or(0, |t| t.commits.saturating_sub(1));
+        self.cuatro = ciudad.edificios.iter().map(|b| {
+            let t = t4.filter(|_| !b.bloque)?;
+            match (t.hoy.get(&b.ruta), fantasmas.get(b.ruta.as_str())) {
+                (Some(&v), _) => Some((v, b.altura, t.vidas[v as usize].lineas_en(ultimo))),
+                (None, Some(&v)) => Some((v, b.altura, t.vidas[v as usize].maximo)),
+                _ => None,
+            }
+        }).collect();
         let mut v = Vec::with_capacity(ciudad.distritos.len() + ciudad.edificios.len());
         for d in &ciudad.distritos {
             // Terrazas: cada nivel algo mas claro; el suelo de la raiz casi negro.
@@ -279,10 +323,95 @@ impl Vista3 {
         }
         if self.raiz_vista != ciudad.raiz { self.camara = Camara3::default(); self.raiz_vista = ciudad.raiz.clone(); }
         self.ciudad = Arc::new(ciudad);
+        self.base = Arc::new(v.clone());
         self.instancias = Arc::new(v);
+        self.t_hecho = None;
         self.version_gpu += 1;
         self.clave = Some(clave);
         self.micros = t.elapsed().as_micros() as u64;
+    }
+
+    /// Pone la cronologia (como el boton «Ver como se construyo»).
+    pub fn abrir_tiempo(&mut self, raiz: &str, ctx: &egui::Context) {
+        self.tiempo.activo = true;
+        self.tiempo.jugando = false;
+        if self.tiempo.datos.is_none() { self.tiempo.pedir(raiz, ctx); }
+    }
+
+    /// 4D: aplica el commit que se mira a la ciudad armada. La altura sigue las lineas de
+    /// ese momento (con la altura por lineas); lo que se toco en la ventana reciente se
+    /// enciende en naranja; lo ya borrado es un fantasma gris y bajito. Lo que aun no nacio
+    /// lo resuelve la GPU (solar). Solo se rehace cuando cambia el commit.
+    fn en_el_tiempo(&mut self, altura: Altura) {
+        if self.vivo.activo { return; } // en vivo manda el presente
+        let Some(d) = self.tiempo.datos.clone().filter(|_| self.tiempo.activo) else {
+            if self.t_hecho.take().is_some() { self.instancias = self.base.clone(); self.version_gpu += 1; }
+            self.momento = None;
+            return;
+        };
+        let t4 = &d.t4;
+        let i = (self.tiempo.t.round().max(0.0) as u32).min(t4.commits.saturating_sub(1));
+        if self.t_hecho == Some(i) { return; }
+        let ventana = (t4.commits / 30).max(1);
+        let desde = i.checked_sub(ventana);
+        let calor: Vec<u32> = self.cuatro.iter().map(|x| x.map_or(0, |(v, ..)| t4.vidas[v as usize].cambios_entre(desde, i))).collect();
+        let max_calor = calor.iter().copied().max().unwrap_or(0).max(1) as f32;
+        let distritos = self.ciudad.distritos.len();
+        let mut v: Vec<Instancia> = self.base.as_ref().clone();
+        for (k, slot) in self.cuatro.iter().enumerate() {
+            let (Some((vida, alto, referencia)), Some(inst)) = (slot, v.get_mut(distritos + k)) else { continue };
+            let vida = &t4.vidas[*vida as usize];
+            if vida.fantasma_en(i) {
+                inst.alto[1] = 0.5;
+                inst.color = [0.30, 0.32, 0.40, 1.0];
+                continue;
+            }
+            if !vida.vivo_en(i) { continue; }
+            if altura == Altura::Lineas && *referencia > 0 && t4.con_lineas {
+                let r = (vida.lineas_en(i) as f32 / *referencia as f32).max(0.0);
+                inst.alto[1] = (1.0 + (alto - 1.0) * r.sqrt()).max(0.6);
+            }
+            if calor[k] > 0 {
+                let f = 0.35 + 0.5 * (calor[k] as f32 / max_calor).sqrt();
+                for (c, n) in inst.color.iter_mut().zip([1.0, 0.55, 0.15]) { *c += (n - *c) * f; }
+            }
+        }
+        self.instancias = Arc::new(v);
+        self.version_gpu += 1;
+        self.t_hecho = Some(i);
+        self.momento = Some(t4.momento(i, ventana, 3));
+    }
+
+    /// 4D en vivo: enciende lo que trabaja ahora (segun sus ms por segundo en la ventana) y
+    /// apaga un poco lo demas. Solo se rehace cuando llegan trazas o salen de la ventana.
+    fn en_vivo(&mut self) {
+        if !self.vivo.activo {
+            if self.vivo_hecho.take().is_some() { self.instancias = self.base.clone(); self.t_hecho = None; self.version_gpu += 1; }
+            return;
+        }
+        self.vivo.recoger();
+        if self.vivo_hecho == Some(self.vivo.version) { return; }
+        self.vivo_hecho = Some(self.vivo.version);
+        let r = self.vivo.resumen();
+        let max = r.por_ruta.first().map_or(1.0, |x| x.1).max(0.001);
+        let de = |ruta: &str| r.por_ruta.iter().find(|(x, _)| ruta == x || (ruta.len() > x.len() && ruta.starts_with(x.as_str()) && ruta.as_bytes()[x.len()] == b'/')).map(|x| x.1);
+        let mut v: Vec<Instancia> = self.base.as_ref().clone();
+        let distritos = self.ciudad.distritos.len();
+        let caliente = [1.0, 0.36, 0.10];
+        for (k, inst) in v.iter_mut().enumerate() {
+            let (ruta, fuerza) = if k < distritos { (&self.ciudad.distritos[k].ruta, 0.45) } else { (&self.ciudad.edificios[k - distritos].ruta, 1.0) };
+            match de(ruta) {
+                Some(ms) => {
+                    let f = fuerza * (0.30 + 0.70 * (ms / max).sqrt()) as f32;
+                    for (c, n) in inst.color.iter_mut().zip(caliente) { *c += (n - *c) * f; }
+                }
+                None if k >= distritos => { for c in inst.color.iter_mut().take(3) { *c *= 0.45; } }
+                None => {}
+            }
+        }
+        self.instancias = Arc::new(v);
+        self.version_gpu += 1;
+        self.resumen_vivo = r;
     }
 
     /// Edificio (o distrito) bajo el raton: el mas cercano que toca el rayo.
@@ -405,6 +534,20 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
         }
     }
     v3.preparar(e, c);
+    if !v3.mirar.is_empty() && !v3.ciudad.distritos.is_empty() {
+        // Encuadrar las carpetas pedidas: su caja en el suelo, vista desde algo mas lejos.
+        let cajas: Vec<[f32; 4]> = v3.ciudad.distritos.iter().filter(|d| v3.mirar.iter().any(|m| *m == d.ruta)).map(|d| d.rect).collect();
+        if !cajas.is_empty() {
+            let (x0, z0) = cajas.iter().fold((f32::MAX, f32::MAX), |(x, z), r| (x.min(r[0]), z.min(r[1])));
+            let (x1, z1) = cajas.iter().fold((f32::MIN, f32::MIN), |(x, z), r| (x.max(r[0] + r[2]), z.max(r[1] + r[3])));
+            v3.camara.objetivo = [(x0 + x1) / 2.0, 0.0, (z0 + z1) / 2.0];
+            v3.camara.distancia = ((x1 - x0).max(z1 - z0) * 1.6).max(60.0);
+        }
+        v3.mirar.clear();
+    }
+    v3.en_el_tiempo(e.ajustes.altura_ciudad);
+    v3.en_vivo();
+    if v3.vivo.activo { ui.ctx().request_repaint_after(std::time::Duration::from_millis(50)); }
     let aspecto = rect.width() / rect.height().max(1.0);
     // Camara: arrastrar = girar; central o derecho = mover; rueda = acercar.
     let shift = ui.input(|i| i.modifiers.shift);
@@ -497,6 +640,7 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
         pintor.galley(caja.center() - g.size() / 2.0, g, Color32::WHITE);
     }
 
+    if v3.vivo.activo { trafico_vivo(&pintor, &vp, rect, &v3.ciudad, &v3.resumen_vivo, ui.input(|i| i.time)); }
     if grupo {
         // Con camino, lo del grupo se apaga un poco para que el camino mande.
         cables(&pintor, &vp, rect, &v3.ciudad, k, &anclas, c, if camino.is_some() { 0.35 } else { 1.0 });
@@ -523,6 +667,20 @@ pub fn pintar(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, k: &crate::combina
                 Some((id, f, a)) => format!("\nnacio el {} ({id}): {a}", crate::consultas::fecha_iso(*f)),
                 None => "\ngit no lo conoce (sin commit, ignorado o generado)".to_string(),
             };
+            if v3.tiempo.activo {
+                let ahora = (v3.tiempo.t.round().max(0.0) as u32).min(d.t4.commits.saturating_sub(1));
+                if let Some(Some((vida, ..))) = bajo.and_then(|k| v3.cuatro.get(k)) {
+                    let vida = &d.t4.vidas[*vida as usize];
+                    t += &if vida.fantasma_en(ahora) {
+                        let m = vida.muere.unwrap_or(0) as usize;
+                        format!("\nFANTASMA: borrado el {} ({}): {}", crate::consultas::fecha_iso(d.commits[m].1), d.commits[m].0, d.commits[m].2)
+                    } else if vida.vivo_en(ahora) {
+                        format!("\nen este commit: {} lineas · tocado {} veces hasta aqui", vida.lineas_en(ahora), vida.cambios_entre(None, ahora))
+                    } else {
+                        format!("\naun no existe: nace en el commit {}", vida.nace + 1)
+                    };
+                }
+            }
         }
         if e.historia.lista && e.historia.sin.is_none() {
             let h = e.historia.datos.de(&b.ruta);
@@ -693,8 +851,74 @@ fn leyenda(ui: &mut egui::Ui, lienzo: Rect, v3: &mut Vista3, e: &Estado, c: &Col
                 if !ciudad.raiz.is_empty() && ui.small_button("Subir [U]").clicked() { acciones.push(Accion::Comando(Comando::SubirFoco)); }
             });
             tiempo_ui(ui, v3, e, c);
+            vivo_ui(ui, v3, e, c);
         });
     });
+}
+
+/// El centro (arriba) del distrito de una carpeta: el suyo, o el mas hondo que la contiene.
+fn centro_de(ciudad: &Ciudad, ruta: &str) -> Option<[f32; 3]> {
+    let d = ciudad.distritos.iter().filter(|d| !d.ruta.is_empty() && (ruta == d.ruta || ruta.starts_with(&(d.ruta.clone() + "/")))).max_by_key(|d| d.nivel)?;
+    Some([d.rect[0] + d.rect[2] / 2.0, d.base + 3.0, d.rect[1] + d.rect[3] / 2.0])
+}
+
+/// El trafico en vivo: un arco entre carpetas por cada `desde -> ruta`, mas grueso cuanto mas
+/// se repite, con puntos que viajan por el; y los ms por segundo sobre cada carpeta que trabaja.
+fn trafico_vivo(pintor: &egui::Painter, vp: &[[f32; 4]; 4], rect: Rect, ciudad: &Ciudad, r: &crate::en_vivo::Resumen, reloj: f64) {
+    let max = r.trafico.first().map_or(1, |x| x.2).max(1) as f32;
+    let color = Color32::from_rgb(255, 140, 50);
+    for (k, (desde, hasta, n)) in r.trafico.iter().take(24).enumerate() {
+        let (Some(a), Some(b)) = (centro_de(ciudad, desde), centro_de(ciudad, hasta)) else { continue };
+        let largo = ((b[0] - a[0]).powi(2) + (b[2] - a[2]).powi(2)).sqrt();
+        let punto = |s: f32| [a[0] + (b[0] - a[0]) * s, a[1] + (b[1] - a[1]) * s + largo * 0.25 * 4.0 * s * (1.0 - s), a[2] + (b[2] - a[2]) * s];
+        let puntos: Vec<Pos2> = (0..=24).filter_map(|i| proyectar(vp, punto(i as f32 / 24.0), rect)).collect();
+        if puntos.len() < 2 { continue; }
+        let f = (*n as f32 / max).sqrt();
+        pintor.add(egui::Shape::line(puntos, Stroke::new(1.0 + 4.0 * f, color.gamma_multiply(0.35 + 0.5 * f))));
+        // Puntos que viajan de `desde` a `hasta` (mas, cuanto mas trafico).
+        let cuantos = 1 + (f * 4.0) as usize;
+        for j in 0..cuantos {
+            let s = ((reloj * 0.6 + j as f64 / cuantos as f64 + k as f64 * 0.137) % 1.0) as f32;
+            if let Some(p) = proyectar(vp, punto(s), rect) { pintor.circle_filled(p, 2.5 + 2.0 * f, Color32::from_rgb(255, 220, 150)); }
+        }
+    }
+    for (ruta, ms) in r.por_ruta.iter().take(12) {
+        let Some(c) = centro_de(ciudad, ruta) else { continue };
+        let Some(p) = proyectar(vp, [c[0], c[1] + 8.0, c[2]], rect) else { continue };
+        let t = format!("{ruta}  {ms:.1} ms/s");
+        let g = pintor.layout_no_wrap(t, FontId::proportional(11.5), Color32::WHITE);
+        let caja = Rect::from_center_size(p - Vec2::new(0.0, 16.0), g.size() + Vec2::new(12.0, 6.0));
+        pintor.rect(caja, 5, Color32::from_rgba_unmultiplied(120, 40, 10, 210), Stroke::new(1.0, color), StrokeKind::Inside);
+        pintor.galley(caja.center() - g.size() / 2.0, g, Color32::WHITE);
+    }
+}
+
+/// La seccion EN VIVO de la leyenda.
+fn vivo_ui(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores) {
+    ui.add_space(6.0);
+    ui.separator();
+    let archivo = crate::en_vivo::ARCHIVO;
+    if !v3.vivo.activo {
+        if ui.button(egui::RichText::new("Ver en vivo (trazas)").color(c.acento)).on_hover_text(format!("Lo que trabaja AHORA en el programa que corre: se encienden sus carpetas y se ve el trafico entre ellas. El programa escribe {archivo} en esta carpeta (QUIMERA: QUIMERA_VIVO={archivo}).")).clicked() {
+            v3.vivo.encender(&e.raiz_absoluta, ui.ctx());
+            v3.tiempo.activo = false;
+            v3.tiempo.jugando = false;
+        }
+        return;
+    }
+    ui.label(egui::RichText::new("EN VIVO // lo que trabaja ahora").color(Color32::from_rgb(255, 140, 50)).strong().size(12.5));
+    if v3.vivo.total == 0 {
+        ui.label(egui::RichText::new(format!("esperando trazas en {archivo}…
+arranca el programa con QUIMERA_VIVO={archivo}")).color(c.tenue).size(11.0));
+    } else {
+        for (ruta, ms) in v3.resumen_vivo.por_ruta.iter().take(6) {
+            ui.label(egui::RichText::new(format!("{ruta}  ·  {ms:.1} ms/s")).color(c.texto).size(11.0));
+        }
+        let quieto = v3.vivo.ultima.is_none_or(|t| t.elapsed() > crate::en_vivo::VENTANA);
+        let estado = if quieto { "quieto: sin trazas nuevas".to_string() } else { format!("{} trazas · ventana de 2 s", crate::paneles::miles(v3.vivo.total)) };
+        ui.label(egui::RichText::new(estado).color(c.tenue).size(10.0));
+    }
+    if ui.small_button("Apagar").clicked() { v3.vivo.activo = false; }
 }
 
 /// La seccion TIEMPO de la leyenda: ver como se construyo, desde el primer commit.
@@ -730,6 +954,16 @@ fn tiempo_ui(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores) {
     // Cuantos archivos de hoy ya existian en ese commit.
     let ya = d.orden.partition_point(|x| *x as usize <= i);
     ui.label(egui::RichText::new(format!("{} de {} archivos de hoy ya existian", crate::paneles::miles(ya as u64), crate::paneles::miles(d.nace.len() as u64))).color(c.texto).size(11.0));
+    if let Some(m) = &v3.momento {
+        let mut linea = format!("{} archivos vivos · {} lineas", crate::paneles::miles(m.vivos as u64), crate::paneles::miles(m.lineas));
+        if m.fantasmas > 0 { linea += &format!(" · {} fantasmas", m.fantasmas); }
+        ui.label(egui::RichText::new(linea).color(c.texto).size(11.0));
+        if !m.calientes.is_empty() {
+            let nombres: Vec<&str> = m.calientes.iter().map(|(v, _)| d.t4.vidas[*v as usize].ruta.rsplit('/').next().unwrap_or("")).collect();
+            ui.label(egui::RichText::new(format!("cambiando ahora: {}", nombres.join(", "))).color(egui::Color32::from_rgb(255, 150, 60)).size(11.0));
+        }
+    }
+    let tm = &mut v3.tiempo;
     let mut t = tm.t;
     ui.spacing_mut().slider_width = 276.0;
     ui.add(egui::Slider::new(&mut t, 0.0..=fin.max(0.0)).show_value(false).text(""));
@@ -755,7 +989,8 @@ fn tiempo_ui(ui: &mut egui::Ui, v3: &mut Vista3, e: &Estado, c: &Colores) {
             ui.label(egui::RichText::new(format!("{k}  ·  {}", crate::consultas::fecha_iso(*f))).color(c.texto).size(11.0)).on_hover_text(a.as_str());
         }
     }
-    ui.label(egui::RichText::new(format!("leida en {:.1} s · oscuro = aun no existia · dorado = recien nacido", d.ms as f32 / 1000.0)).color(c.tenue).size(10.0));
+    let leyenda4 = if d.t4.con_lineas { " · la altura sigue sus lineas de cada momento" } else { "" };
+    ui.label(egui::RichText::new(format!("leida en {:.1} s · oscuro = aun no existia · dorado = recien nacido · naranja = cambiando ahora · gris = ya borrado (fantasma){leyenda4}", d.ms as f32 / 1000.0)).color(c.tenue).size(10.0));
 }
 
 #[cfg(test)]
@@ -913,6 +1148,7 @@ mod pruebas_tiempo {
             carpetas: [("src".to_string(), 0u32), ("docs".to_string(), 2)].into_iter().collect(),
             orden: vec![0, 4],
             ms: 0,
+            t4: carpetas_nucleo::cuatro::Tiempo4::default(),
         }
     }
 
@@ -935,6 +1171,50 @@ mod pruebas_tiempo {
         assert_eq!(t.ahora(), -1.0, "con datos pero apagado: hoy");
         t.activo = true;
         assert_eq!(t.ahora(), 0.5, "commit 2 de 0..4");
+    }
+
+    /// c0: nacen a.rs (10 lineas) y viejo.txt (3). c1: a.rs llega a 25. c2: muere viejo.txt.
+    /// c3: nada. c4: a.rs baja a 15.
+    fn t4() -> carpetas_nucleo::cuatro::Tiempo4 {
+        use carpetas_nucleo::cronologia::{Cronologia, CAMPO, INICIO};
+        let mut c = Cronologia::default();
+        let cab = |id: &str| format!("{INICIO}{id}{CAMPO}1{CAMPO}Ana{CAMPO}paso");
+        for l in [cab("c0"), "A\tsrc/a.rs".into(), "A\tviejo.txt".into(), cab("c1"), "M\tsrc/a.rs".into(), cab("c2"), "D\tviejo.txt".into(),
+                  cab("c3"), cab("c4"), "M\tsrc/a.rs".into()] { c.linea_archivos(&l); }
+        for l in [format!("{INICIO}c0"), "10\t0\tsrc/a.rs".into(), "3\t0\tviejo.txt".into(), format!("{INICIO}c1"), "15\t0\tsrc/a.rs".into(),
+                  format!("{INICIO}c2"), "0\t3\tviejo.txt".into(), format!("{INICIO}c4"), "0\t10\tsrc/a.rs".into()] { c.linea_numstat(&l); }
+        carpetas_nucleo::cuatro::construir(&c)
+    }
+
+    #[test]
+    fn en_4d_la_altura_sigue_las_lineas_lo_borrado_es_fantasma_y_lo_tocado_se_enciende() {
+        let t4 = t4();
+        let (a, viejo) = (t4.hoy["src/a.rs"], t4.muertas().next().unwrap().0);
+        let mut v3 = Vista3::default();
+        // Dos edificios sin distritos: a.rs (altura 10 con 15 lineas de hoy) y el fantasma (altura 10 con su maximo, 3).
+        v3.base = Arc::new(vec![Instancia { suelo: [0.0; 4], alto: [0.0, 10.0], color: [0.5, 0.5, 0.5, 1.0], nace: 0.0 }; 2]);
+        v3.cuatro = vec![Some((a, 10.0, 15)), Some((viejo, 10.0, 3))];
+        v3.tiempo.datos = Some(Arc::new(LineaTiempo { t4, ..linea() }));
+        v3.tiempo.activo = true;
+        let alto = |v3: &Vista3, k: usize| v3.instancias[k].alto[1];
+        v3.tiempo.t = 1.0;
+        v3.en_el_tiempo(Altura::Lineas);
+        assert!((alto(&v3, 0) - (1.0 + 9.0 * (25.0f32 / 15.0).sqrt())).abs() < 1e-3, "25 lineas en c1: mas alto que hoy ({})", alto(&v3, 0));
+        assert!(v3.instancias[0].color[0] > 0.6, "a.rs se toco en c1: naranja");
+        assert_eq!(alto(&v3, 1), 10.0, "viejo.txt vivia con su maximo");
+        v3.tiempo.t = 3.0;
+        v3.en_el_tiempo(Altura::Lineas);
+        assert_eq!(alto(&v3, 1), 0.5, "en c3 viejo.txt ya es un fantasma bajito");
+        assert_eq!(v3.instancias[0].color, [0.5, 0.5, 0.5, 1.0], "en c3 nadie toco a.rs");
+        let m = v3.momento.as_ref().unwrap();
+        assert_eq!((m.vivos, m.fantasmas), (1, 1));
+        v3.tiempo.t = 4.0;
+        v3.en_el_tiempo(Altura::Lineas);
+        assert_eq!(alto(&v3, 0), 10.0, "en el ultimo commit, la altura de hoy");
+        v3.tiempo.activo = false;
+        v3.en_el_tiempo(Altura::Lineas);
+        assert_eq!(v3.instancias[0].alto[1], 10.0, "al volver a hoy, la ciudad armada");
+        assert!(v3.momento.is_none());
     }
 
     #[test]

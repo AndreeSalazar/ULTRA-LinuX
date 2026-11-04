@@ -88,7 +88,7 @@ pub fn recoger(dir: &Path) -> Vec<Value> {
     v
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod pruebas {
     use super::*;
 

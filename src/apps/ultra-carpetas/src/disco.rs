@@ -108,7 +108,7 @@ fn mtime(base: &Path, ruta: &str) -> Option<SystemTime> {
     ruta_segura(base, ruta).and_then(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok())
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod pruebas {
     use super::*;
 

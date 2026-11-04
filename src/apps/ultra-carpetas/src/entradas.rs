@@ -32,7 +32,7 @@ pub fn listar(carpeta: &Path, ocultos: bool) -> std::io::Result<Vec<Entrada>> {
     Ok(salida)
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod pruebas {
     use super::*;
 

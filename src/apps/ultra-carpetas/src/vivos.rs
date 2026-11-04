@@ -91,7 +91,7 @@ impl Muestreador {
     pub fn recoger(&self) -> Option<Muestra> { self.rx.try_iter().last() }
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod pruebas {
     use super::*;
 

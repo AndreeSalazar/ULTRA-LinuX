@@ -47,15 +47,14 @@ pub fn guardar(ruta: &Path, json: &str) -> std::io::Result<()> {
     }
     let temporal = carpeta.join(format!(".{}.tmp", std::process::id()));
     {
-        use std::os::unix::fs::OpenOptionsExt;
-        let mut f = fs::OpenOptions::new().write(true).create(true).truncate(true).mode(0o600).open(&temporal)?;
+        let mut f = crate::plataforma::con_modo(fs::OpenOptions::new().write(true).create(true).truncate(true), 0o600).open(&temporal)?;
         f.write_all(json.as_bytes())?;
         f.sync_all()?;
     }
     fs::rename(&temporal, ruta)
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod pruebas {
     use super::*;
 

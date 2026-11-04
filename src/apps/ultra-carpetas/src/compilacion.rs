@@ -196,6 +196,8 @@ mod pruebas {
         assert_eq!(descartadas, peligrosas.len());
     }
 
+    // Rutas de compile_commands.json al estilo Unix: en Windows, pendiente (ver README).
+    #[cfg(unix)]
     #[test]
     fn solo_flags_seguras_y_rutas_absolutas() {
         let args: Vec<String> = ["gcc", "-Iinc", "-I", "otra", "-isystem", "/usr/x", "-DNDEBUG", "-D", "A=1", "-std=c17", "-O2", "-Wall", "-Werror",
@@ -206,6 +208,8 @@ mod pruebas {
         assert_eq!(d, 4, "-Werror, -fplugin, -Wl, y -B se descartan");
     }
 
+    // Rutas de compile_commands.json al estilo Unix: en Windows, pendiente (ver README).
+    #[cfg(unix)]
     #[test]
     fn lee_el_archivo_y_saca_las_bases() {
         let dir = std::env::temp_dir().join(format!("ultra-cc-{}", std::process::id()));

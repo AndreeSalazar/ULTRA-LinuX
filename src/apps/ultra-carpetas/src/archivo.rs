@@ -12,7 +12,7 @@ use crate::disco::ruta_limpia;
 use carpetas_nucleo::carriles::MAX_EDITOR;
 use std::fs;
 use std::io::{Read, Write};
-use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
+use crate::plataforma;
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
@@ -20,7 +20,7 @@ use std::time::SystemTime;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Huella { modificado: SystemTime, tam: u64, inodo: u64 }
 
-fn huella(m: &fs::Metadata) -> Huella { Huella { modificado: m.modified().unwrap_or(SystemTime::UNIX_EPOCH), tam: m.len(), inodo: m.ino() } }
+fn huella(m: &fs::Metadata) -> Huella { Huella { modificado: m.modified().unwrap_or(SystemTime::UNIX_EPOCH), tam: m.len(), inodo: plataforma::identidad(m).1 } }
 
 /// La ruta, solo si es un archivo normal y ningun tramo es un enlace.
 pub fn archivo_seguro(base: &Path, rel: &str) -> Result<PathBuf, String> {
@@ -44,7 +44,7 @@ pub fn leer(base: &Path, rel: &str) -> Result<(String, Huella), String> {
     if antes.len() > MAX_EDITOR { return Err(format!("{rel}: pasa de 2 MiB; el editor no lo abre")); }
     let mut f = fs::File::open(&ruta).map_err(|e| format!("{rel}: {e}"))?;
     let abierto = f.metadata().map_err(|e| e.to_string())?;
-    if (abierto.dev(), abierto.ino()) != (antes.dev(), antes.ino()) { return Err(format!("{rel}: cambio mientras se abria; vuelve a intentar")); }
+    if plataforma::identidad(&abierto) != plataforma::identidad(&antes) { return Err(format!("{rel}: cambio mientras se abria; vuelve a intentar")); }
     let mut bytes = Vec::with_capacity(abierto.len() as usize);
     Read::by_ref(&mut f).take(MAX_EDITOR + 1).read_to_end(&mut bytes).map_err(|e| format!("{rel}: {e}"))?;
     if bytes.len() as u64 > MAX_EDITOR { return Err(format!("{rel}: pasa de 2 MiB; el editor no lo abre")); }
@@ -64,19 +64,20 @@ pub fn guardar(base: &Path, rel: &str, texto: &str, esperada: Option<Huella>) ->
     let nombre = ruta.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
     let temporal = carpeta.join(format!(".{nombre}.ultra-{}.tmp", std::process::id()));
     let escribir = || -> std::io::Result<()> {
-        let mut f = fs::OpenOptions::new().write(true).create_new(true).mode(actual.permissions().mode() & 0o7777).open(&temporal)?;
+        let mut f = plataforma::con_modo(fs::OpenOptions::new().write(true).create_new(true), plataforma::modo(&actual)).open(&temporal)?;
         f.write_all(texto.as_bytes())?;
         f.sync_all()?;
-        fs::set_permissions(&temporal, fs::Permissions::from_mode(actual.permissions().mode() & 0o7777))?;
+        fs::set_permissions(&temporal, plataforma::permisos_como(&actual))?;
         fs::rename(&temporal, &ruta)
     };
     if let Err(e) = escribir() { let _ = fs::remove_file(&temporal); return Err(format!("no se pudo guardar {rel}: {e}")); }
     fs::symlink_metadata(&ruta).map(|m| huella(&m)).map_err(|e| e.to_string())
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod pruebas {
     use super::*;
+    use std::os::unix::fs::PermissionsExt;
 
     fn carpeta(nombre: &str) -> PathBuf {
         let d = std::env::temp_dir().join(format!("ultra-archivo-{nombre}-{}", std::process::id()));

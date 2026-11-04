@@ -40,6 +40,16 @@ Clang y Ciudad fantasma. La integracion corrige opciones importadas del compilad
 y evita entregar ejecutables viejos si falla una compilacion.
 [Cambios, motivos y validacion](docs/SUPER-GRAFO-INTEGRACION-2026-10-25.md).
 
+**SUPER GRAFO 4D:** la Ciudad en el tiempo. Mira cualquier commit con la altura de sus
+líneas de entonces, los archivos borrados como fantasmas y lo que se estaba tocando en
+naranja. **En vivo**, con el programa corriendo, enciende las carpetas que trabajan y dibuja
+el tráfico entre ellas. Lee también el SARIF del proyecto, respeta el `.gitignore` y compila en
+Windows. [Qué cambió y cómo se validó](docs/SUPER-GRAFO-4D-2026-11-04.md).
+
+<p align="center">
+  <img src="evidencias/super-grafo/2026-11-04/4d-en-vivo-quimera.png" alt="SUPER GRAFO 4D en vivo: QUIMERA cargando YouTube, con las carpetas que trabajan encendidas y el tráfico entre ellas" width="1000">
+</p>
+
 **Eficiencia CPU:** [perfiles reversibles y sensores separados](docs/ENERGIA-CPU-PERFILES-2026-10-25.md).
 Super+F8 permite elegir Eficiente (90 % del máximo previo), Fresco (80 %) u
 Original. Son límites de frecuencia, no porcentajes de vatios ahorrados; pueden

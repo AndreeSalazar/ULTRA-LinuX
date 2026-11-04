@@ -395,6 +395,8 @@ mod pruebas {
     #[test]
     fn analiza_este_repositorio() {
         let raiz = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        // Prueba del repositorio original (Linux Reconstruido): fuera de el, no hay nada que probar.
+        if !raiz.join("src/apps/ultra-carpetas").is_dir() { return; }
         let (i, _) = crate::indice::indexar(&raiz, false);
         let r = analizar_con(&i, &raiz, &|| true, None);
         eprintln!("{} archivos, {} KiB, {} rutas con aristas, {} aristas, {} con sospechas, {} ms", r.archivos, r.bytes / 1024, r.rutas.len(),
@@ -419,6 +421,8 @@ mod pruebas {
         assert!(!r.truncado);
     }
 
+    // Rutas de compile_commands.json al estilo Unix: en Windows, pendiente (ver README).
+    #[cfg(unix)]
     #[test]
     fn la_cache_solo_relee_lo_que_cambio_y_las_i_de_compile_commands_resuelven() {
         let dir = std::env::temp_dir().join(format!("ultra-cache-{}", std::process::id()));

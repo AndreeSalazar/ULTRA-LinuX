@@ -120,9 +120,13 @@ pub fn cronologia(base: &Path) -> Result<(Cronologia, bool, bool), String> {
                           "--format=%x01%h%x02%ct", "-G^[[:space:]]*(#[[:space:]]*(include|import)|(pub([(][^)]*[)])?[[:space:]]+)?mod[[:space:]]|use[[:space:]]|from[[:space:]].*import|import[[:space:]])", "--"]
         .iter().map(|x| x.to_string()).chain(CON_REFERENCIAS.iter().map(|x| x.to_string())).collect();
     let corte2 = en_flujo(base, &b, MAX_TIEMPO_CRONOLOGIA, |l| c.linea_refs(l))?;
+    // Lectura 3: las lineas que gana o pierde cada archivo en cada commit (la ciudad en 4D).
+    let n: Vec<String> = ["log", "--reverse", "--no-merges", "--no-color", "--relative", "--numstat", "-M", "--format=%x01%h"]
+        .iter().map(|x| x.to_string()).collect();
+    let corte3 = en_flujo(base, &n, MAX_TIEMPO_CRONOLOGIA, |l| c.linea_numstat(l))?;
     let mut superficial = false;
     let _ = en_flujo(base, &["rev-parse".into(), "--is-shallow-repository".into()], Duration::from_secs(10), |l| superficial = l.trim() == "true");
-    Ok((c, corte1 || corte2, superficial))
+    Ok((c, corte1 || corte2 || corte3, superficial))
 }
 
 impl Git {
@@ -155,6 +159,8 @@ mod pruebas {
     #[test]
     fn lee_la_historia_de_este_repositorio() {
         let raiz = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+        // Prueba del repositorio original (Linux Reconstruido): fuera de el, no hay nada que probar.
+        if !raiz.join("src/apps/ultra-carpetas").is_dir() { return; }
         let h = match leer(&raiz) { Ok(h) => h, Err(e) => { eprintln!("sin git aqui: {e}"); return; } };
         assert!(h.commits > 0 && !h.por_ruta.is_empty());
         assert!(h.por_ruta.keys().all(|k| !k.starts_with('/') && !k.contains("..")));
