@@ -17,6 +17,7 @@ mod casm_ui;
 mod camino_ui;
 mod ciclos_ui;
 mod sarif_externo;
+mod save;
 mod senales_ui;
 mod ciudad3d;
 mod combinar_ui;
@@ -88,6 +89,8 @@ type ClaveCasm = (PathBuf, bool, bool, Option<(String, u64, bool)>);
 
 struct App {
     estado: Estado,
+    /// «Save para SUPER GRAFO» en marcha (en otro hilo): su respuesta.
+    save: Option<std::sync::mpsc::Receiver<Result<String, String>>>,
     carpeta: PathBuf,
     atras: Vec<PathBuf>,
     error: Option<String>,
@@ -155,7 +158,7 @@ impl App {
         let ctx_proyecto = cc.egui_ctx.clone();
         let ctx_git = cc.egui_ctx.clone();
         let mut app = App {
-            estado: Estado { acento: acento(), ..Estado::default() }, carpeta: PathBuf::new(), atras: Vec::new(), error: None, contexto: cc.egui_ctx.clone(),
+            estado: Estado { acento: acento(), ..Estado::default() }, save: None, carpeta: PathBuf::new(), atras: Vec::new(), error: None, contexto: cc.egui_ctx.clone(),
             texto_paleta: String::new(), tema_aplicado: None, disco: Disco::nuevo(move || ctx.request_repaint()), generacion: 0,
             pendiente: None, vigiladas: Vec::new(), cache: None, medidas: Medidas::default(), iconos: svg::Iconos::nuevo(), tiempo_iconos: Cell::new(0),
             gpu_ok, geometria: None, subidas: Arc::new(AtomicU64::new(0)), cuadros: 0, proceso: None, texto_terminal: String::new(),
@@ -171,6 +174,7 @@ impl App {
         app.abrir(carpeta, false);
         // Banderas despues de la carpeta: abrir ya en la Ciudad, en vivo o con la cronologia.
         let tiene = |b: &str| banderas.iter().any(|x| x == b);
+        if tiene("--grafo") { for _ in 0..3 { if app.estado.ajustes.modo == Modo::Grafo { break; } app.despachar(Accion::Comando(Comando::Modo)); } }
         if tiene("--ciudad") || tiene("--vivo") || tiene("--tiempo") {
             // La orden recorre las tres vistas: hasta la Ciudad.
             for _ in 0..3 { if app.estado.ajustes.modo == Modo::Ciudad { break; } app.despachar(Accion::Comando(Comando::Modo)); }
@@ -182,6 +186,30 @@ impl App {
         if tiene("--vivo") { app.ciudad.vivo.encender(&raiz, &cc.egui_ctx); }
         else if tiene("--tiempo") { app.ciudad.abrir_tiempo(&raiz, &cc.egui_ctx); }
         app
+    }
+
+    /// «Save para SUPER GRAFO»: la consulta `guardar` en otro hilo (lee y analiza otra vez).
+    fn empezar_save(&mut self) {
+        let (tx, rx) = std::sync::mpsc::channel();
+        let (carpeta, ctx) = (self.carpeta.clone(), self.contexto.clone());
+        std::thread::Builder::new().name("super-grafo-save".into()).spawn(move || {
+            let r = consultas::Mapa::abrir(&carpeta).and_then(|mut m| m.ejecutar("guardar", &serde_json::json!({})))
+                .map(|v| format!("Save para SUPER GRAFO: {} crates en {} capas, guardado en super-grafo/ (orden.json, MAPA.md, mapa.json)", v["crates"], v["capas"]));
+            let _ = tx.send(r);
+            ctx.request_repaint();
+        }).ok();
+        self.save = Some(rx);
+    }
+
+    /// Al terminar el save, se vuelve a abrir la carpeta: el orden ya sale de super-grafo/.
+    fn recoger_save(&mut self) {
+        let Some(rx) = &self.save else { return };
+        let Ok(r) = rx.try_recv() else { return };
+        self.save = None;
+        match r {
+            Ok(m) => { let c = self.carpeta.clone(); self.abrir(c, false); self.estado.aviso = Some(m); }
+            Err(e) => self.error = Some(format!("No se pudo hacer el save: {e}")),
+        }
     }
 
     /// El unico camino para cambiar el estado: accion -> reducer -> efectos.
@@ -196,7 +224,7 @@ impl App {
                 if let Err(e) = almacen::guardar(&almacen::archivo_ajustes(&almacen::base()), &json) { self.error = Some(format!("No se pudo guardar los ajustes: {e}")); }
             }
             Efecto::Guardar(json) => {
-                if let Err(e) = almacen::guardar(&almacen::archivo_para(&almacen::base(), &self.carpeta), &json) { self.error = Some(format!("No se pudo guardar el orden: {e}")); }
+                if let Err(e) = almacen::guardar(&almacen::archivo_orden(&self.carpeta), &json) { self.error = Some(format!("No se pudo guardar el orden: {e}")); }
             }
             Efecto::AbrirArchivo(rel) => {
                 // El nucleo solo pide rutas que leyo; aun asi, nada de "..", absolutas ni raras.
@@ -274,7 +302,7 @@ impl App {
                             self.carpeta = pedida;
                             self.error = None;
                             self.vigiladas.clear();
-                            let disposicion = almacen::cargar(&almacen::archivo_para(&almacen::base(), &self.carpeta));
+                            let disposicion = almacen::cargar(&almacen::archivo_orden(&self.carpeta));
                             let nombre = self.carpeta.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "/".into());
                             self.despachar(Accion::Cargar { nombre, entradas, disposicion });
                             self.despachar(Accion::RutaRaiz(self.carpeta.to_string_lossy().into_owned()));
@@ -488,6 +516,7 @@ impl App {
 
     fn barra(&mut self, ui: &mut egui::Ui, c: &Colores) {
         let mut acciones = Vec::new();
+        let mut pedir_save = false;
         ui.horizontal(|ui| {
             ui.label(egui::RichText::new("BMO-X // CARPETAS").color(c.acento).strong().size(16.0));
             ui.add_space(10.0);
@@ -567,8 +596,14 @@ impl App {
                     .on_hover_text("Ir al siguiente error: abre el editor en la linea").clicked() { acciones.push(Accion::Comando(Comando::SiguienteError)); }
             }
             if ui.button("Comandos [Ctrl+Shift+P]").clicked() { acciones.push(Accion::Comando(Comando::Paleta)); }
+            let texto = if self.save.is_some() { "Guardando…" } else { "Save para SUPER GRAFO" };
+            if ui.add_enabled(self.save.is_none(), egui::Button::new(egui::RichText::new(texto).color(c.acento)))
+                .on_hover_text("Guarda la organizacion DENTRO del proyecto (carpeta super-grafo/): los crates por capas en el grafo, las carpetas desplegadas y un MAPA.md para retomar el trabajo. Desde entonces el orden se guarda alli.").clicked() {
+                pedir_save = true;
+            }
         });
         for a in acciones { self.despachar(a); }
+        if pedir_save { self.empezar_save(); }
     }
 
     /// Explorador como el de VS Code y el de tu TITAN: arbol sincronizado con el grafo.
@@ -1013,6 +1048,7 @@ impl eframe::App for App {
         self.recoger_vivos();
         self.recoger_proyecto();
         self.recoger_git();
+        self.recoger_save();
         self.recoger_casm();
         self.puente_vivo();
         self.teclado(&ctx);

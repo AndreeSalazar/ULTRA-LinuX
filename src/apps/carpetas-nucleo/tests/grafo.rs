@@ -19,7 +19,9 @@ fn estado_grafo() -> Estado {
 #[test]
 fn desplegar_pide_disco_y_acepta_solo_lo_pedido() {
     let mut s = estado_grafo();
-    assert_eq!(reducir(&mut s, Accion::Abrir("src".into())), vec![Efecto::LeerCarpeta("src".into())], "en grafo, abrir carpeta = desplegar");
+    let ef = reducir(&mut s, Accion::Abrir("src".into()));
+    assert_eq!(ef[0], Efecto::LeerCarpeta("src".into()), "en grafo, abrir carpeta = desplegar");
+    assert!(matches!(&ef[1], Efecto::Guardar(j) if j.contains("\"desplegadas\"") && j.contains("\"src\"")), "y se recuerda: {ef:?}");
     // Respuesta de algo no pedido o inventado: se ignora.
     reducir(&mut s, Accion::Contenido { ruta: "docs".into(), entradas: vec![e("x", Tipo::Otro, 1)] });
     reducir(&mut s, Accion::Contenido { ruta: "../etc".into(), entradas: vec![e("passwd", Tipo::Otro, 1)] });
@@ -29,9 +31,23 @@ fn desplegar_pide_disco_y_acepta_solo_lo_pedido() {
     assert_eq!(ids, ["", "src", "src/main.rs", "src/app", "docs", "Cargo.toml"]);
     // Abrir un archivo de una subcarpeta pide su ruta relativa.
     assert_eq!(reducir(&mut s, Accion::Abrir("src/main.rs".into())), vec![Efecto::AbrirArchivo("src/main.rs".into())]);
-    // Plegar no pide disco.
-    assert!(reducir(&mut s, Accion::Expandir("src".into())).is_empty());
+    // Plegar no pide disco (solo se recuerda).
+    let ef = reducir(&mut s, Accion::Expandir("src".into()));
+    assert!(matches!(ef.as_slice(), [Efecto::Guardar(j)] if j.contains("\"desplegadas\": []")), "{ef:?}");
     assert_eq!(visibles(&s).len(), 4);
+}
+
+#[test]
+fn las_carpetas_desplegadas_vuelven_al_abrir_nivel_a_nivel() {
+    let mut d = Disposicion::default();
+    d.desplegadas = ["src".to_string(), "src/app".to_string()].into_iter().collect();
+    let mut s = Estado::default();
+    let ef = reducir(&mut s, Accion::Cargar { nombre: "prueba".into(), entradas: vec![e("src", Tipo::Carpeta, 0), e("docs", Tipo::Carpeta, 0)], disposicion: d });
+    assert!(ef.contains(&Efecto::LeerCarpeta("src".into())), "la de arriba se pide al cargar: {ef:?}");
+    assert!(!ef.contains(&Efecto::LeerCarpeta("src/app".into())), "la de dentro espera a su padre");
+    let ef = reducir(&mut s, Accion::Contenido { ruta: "src".into(), entradas: vec![e("app", Tipo::Carpeta, 0)] });
+    assert!(ef.contains(&Efecto::LeerCarpeta("src/app".into())), "llego src: ahora src/app: {ef:?}");
+    assert!(s.expandidas.contains("src") && s.expandidas.contains("src/app") && s.por_desplegar.is_empty());
 }
 
 #[test]

@@ -25,6 +25,9 @@ pub struct Disposicion {
     /// Carpeta enfocada (relativa): la raiz del grafo y del explorador. "" = la abierta.
     #[serde(default)]
     pub foco: String,
+    /// Carpetas desplegadas (relativas): al volver a abrir, el grafo y el explorador quedan igual.
+    #[serde(default)]
+    pub desplegadas: BTreeSet<String>,
     #[serde(skip)]
     historial: Vec<(BTreeMap<String, [f32; 2]>, BTreeMap<String, [f32; 2]>)>,
 }

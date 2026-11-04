@@ -228,6 +228,8 @@ pub fn herramientas() -> Vec<Value> {
         h("mostrar", "Ensena algo en la ventana de la persona (solo mueve la vista): accion grupo (rutas, modo ciudad|grafo), revelar (ruta, linea), camino (a, b), aislar (rutas) o limpiar.",
           json!({ "accion": { "type": "string", "enum": ["grupo", "revelar", "camino", "aislar", "limpiar"] }, "rutas": rutas, "ruta": ruta, "linea": { "type": "integer", "minimum": 1 },
                   "a": ruta, "b": ruta, "modo": { "type": "string", "enum": ["ciudad", "grafo"] } }), &["accion"]),
+        h("guardar", "«Save para SUPER GRAFO»: organiza los crates del proyecto por capas en el grafo (por sus dependencias de Cargo.toml) y escribe la carpeta super-grafo/ del proyecto: orden.json (posiciones y carpetas desplegadas, que SUPER GRAFO usa desde entonces), MAPA.md y mapa.json (capas, dependencias, guardianes, lo mas grande y tocado, historia y en vivo) para retomar el trabajo.",
+          json!({}), &[]),
         h("vivo", "4D en vivo: que parte del programa que corre trabaja ahora (sus trazas en .super-grafo-vivo.jsonl; QUIMERA las escribe con QUIMERA_VIVO). Ms por segundo de cada carpeta en los ultimos segundos y el trafico entre carpetas (desde -> hasta).",
           json!({ "segundos": { "type": "number", "description": "Cuantos segundos del final mirar (10 por defecto)" }, "limite": lim }), &[]),
         h("tiempo", "4D: la ciudad en el tiempo. Con en (indice, commit o AAAA-MM-DD; por defecto el ultimo): cuantos archivos vivian, cuantas lineas, los fantasmas (ya borrados), lo que se toco en la ventana anterior (calientes) y lo que nacio o murio en ella. Con desde y en: que crecio, encogio, nacio o murio entre los dos. Lineas segun git --numstat.",
@@ -305,6 +307,77 @@ impl Mapa {
             self.crono = Some(Crono { cabeza, c, rep, periodos, cortada, superficial, ms: t.elapsed().as_millis(), t4 });
         }
         Ok(self.crono.as_ref().expect("recien hecha"))
+    }
+
+    /// «Save para SUPER GRAFO»: organiza los crates del proyecto por capas en el grafo y escribe
+    /// `super-grafo/` (orden.json, MAPA.md y mapa.json). Ver `save.rs`.
+    fn guardar(&mut self) -> Result<Value, String> {
+        use crate::save;
+        let rutas: Vec<String> = (0..self.indice.len()).filter(|k| !self.indice.es_carpeta(*k)).map(|k| self.indice.ruta(k).to_string()).collect();
+        let cs = save::crates(&self.raiz, &rutas);
+        let capa = save::capas(&cs);
+        // Lo de arriba del proyecto: carpetas y archivos sueltos de la raiz.
+        let arriba: Vec<String> = rutas.iter().map(|r| r.split('/').next().unwrap_or(r).to_string()).collect::<std::collections::BTreeSet<_>>().into_iter().collect();
+        let (pos, padres) = save::organizar(&cs, &capa, &arriba);
+        let nodos = pos.len();
+        save::escribir_orden(&self.raiz, pos, padres)?;
+        // La historia (si hay git): lo mas grande, lo mas tocado y como crecio.
+        let periodos = self.crono.as_ref().map_or(10, |c| c.periodos);
+        let historia = self.crono(periodos).ok().map(|cr| {
+            let (c, t4) = (&cr.c, &cr.t4);
+            let fin = t4.commits.saturating_sub(1);
+            let vivas: Vec<&carpetas_nucleo::cuatro::Vida4> = t4.hoy.values().map(|&v| &t4.vidas[v as usize]).collect();
+            let mut grandes: Vec<(String, u32)> = vivas.iter().filter(|v| v.ruta.ends_with(".rs")).map(|v| (v.ruta.clone(), v.lineas_en(fin))).collect();
+            grandes.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+            let mut tocados: Vec<(String, u32)> = vivas.iter().filter(|v| v.ruta.ends_with(".rs")).map(|v| (v.ruta.clone(), v.cambios.len() as u32)).collect();
+            tocados.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+            let k = t4.comparar(0, fin);
+            let (primero, ultimo) = (&c.commits[0], &c.commits[fin as usize]);
+            (grandes.into_iter().take(10).collect::<Vec<_>>(), tocados.into_iter().take(10).collect::<Vec<_>>(), c.commits.len(),
+             (fecha_iso(primero.fecha), fecha_iso(ultimo.fecha)), k.lineas, k.vivos, format!("{} ({})", ultimo.id, ultimo.asunto))
+        });
+        let vivo = crate::en_vivo::ultimas(&self.raiz, 10.0).ok().map(|(v, _)| crate::en_vivo::resumir(&v, 10.0));
+        let resumen = self.resumen();
+        let marcados = |ruta: &str| self.estado.errores.por_nodo.iter().filter(|(a, _)| a.starts_with(&format!("{ruta}/"))).map(|(_, d)| d.len()).sum::<usize>();
+        let lo_usan = |nombre: &str| cs.iter().filter(|c| c.usa.iter().any(|u| u == nombre)).map(|c| c.nombre.clone()).collect::<Vec<_>>();
+        let max_capa = capa.values().copied().max().unwrap_or(0);
+        let nombre = self.raiz.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+        let mut md = format!("# Mapa de {nombre} (SUPER GRAFO)\n\n> Generado por SUPER GRAFO el {}{}. Lo rehace «Save para SUPER GRAFO» (o `--consulta guardar`).\n> **Para retomar:** leer este mapa primero; para el detalle, preguntar a SUPER GRAFO (MCP: `resumen`, `archivo`, `tiempo`, `vivo`...) solo lo que haga falta.\n\n",
+                             fecha_iso(ahora_s()), historia.as_ref().map(|h| format!(", en el commit {}", h.6)).unwrap_or_default());
+        md += &format!("## Resumen\n\n- {} crates en {} capas (por sus dependencias de `Cargo.toml`), {} lineas de Rust.\n- {} archivos indexados, {} dependencias entre archivos, {} ciclos.\n- Sospechas del museo: {} de Seguridad, {} de Rendimiento, {} de Elegancia.\n- Marcados por SARIF o la terminal: {} archivos.\n\n",
+                       cs.len(), max_capa + 1, cs.iter().map(|c| c.lineas).sum::<u64>(), resumen["archivos_indexados"], resumen["dependencias"], resumen["ciclos"]["total"],
+                       resumen["sospechas"]["Seguridad"], resumen["sospechas"]["Rendimiento"], resumen["sospechas"]["Elegancia"], self.estado.errores.por_nodo.len());
+        md += "## Capas, de la base a la cima\n\nEn el grafo, cada capa es una columna (la 0 a la izquierda).\n\n";
+        let mut filas: Vec<Vec<String>> = Vec::new();
+        for n in 0..=max_capa {
+            for c in cs.iter().filter(|c| capa.get(&c.ruta) == Some(&n)) {
+                filas.push(vec![n.to_string(), format!("`{}`", c.nombre), format!("`{}`", c.ruta), c.archivos.to_string(), c.lineas.to_string(),
+                                c.usa.join(", "), lo_usan(&c.nombre).join(", "), marcados(&c.ruta).to_string()]);
+            }
+        }
+        md += &save::tabla(&["Capa", "Crate", "Carpeta", "Archivos", "Lineas", "Usa", "Lo usan", "Marcados"], &filas);
+        if let Some((grandes, tocados, commits, (desde, hasta), lineas, vivos, _)) = &historia {
+            md += "\n## Lo mas grande (lineas de Rust)\n\n";
+            md += &save::tabla(&["Archivo", "Lineas"], &grandes.iter().map(|(r, l)| vec![format!("`{r}`"), l.to_string()]).collect::<Vec<_>>());
+            md += "\n## Lo mas tocado (commits que lo cambiaron)\n\n";
+            md += &save::tabla(&["Archivo", "Cambios"], &tocados.iter().map(|(r, l)| vec![format!("`{r}`"), l.to_string()]).collect::<Vec<_>>());
+            md += &format!("\n## Historia\n\n{commits} commits, del {desde} al {hasta}. De {} a {} archivos y de {} a {} lineas (segun git).\n", vivos.0, vivos.1, lineas.0, lineas.1);
+        }
+        if let Some(r) = &vivo {
+            md += "\n## En vivo (lo ultimo que se vio, 10 s)\n\n";
+            md += &save::tabla(&["Carpeta", "ms por segundo"], &r.por_ruta.iter().take(8).map(|(x, ms)| vec![format!("`{x}`"), format!("{ms:.1}")]).collect::<Vec<_>>());
+            md += &format!("\nTrafico: {}.\n", r.trafico.iter().take(6).map(|(d, h, k)| format!("{d} -> {h} ({k})")).collect::<Vec<_>>().join(", "));
+        }
+        md += "\n## Como seguir\n\n- Ver el grafo organizado: abrir esta carpeta en SUPER GRAFO, vista Grafo (el orden esta en `super-grafo/orden.json`).\n- La Ciudad en el tiempo: `--tiempo`; en vivo: `--vivo` con el programa escribiendo `.super-grafo-vivo.jsonl`.\n- Rehacer este mapa: «Save para SUPER GRAFO» o `ultra-carpetas --consulta guardar <carpeta>`.\n";
+        let json = json!({ "crates": cs.iter().map(|c| json!({ "nombre": c.nombre, "ruta": c.ruta, "capa": capa.get(&c.ruta), "usa": c.usa, "lo_usan": lo_usan(&c.nombre),
+                                                             "archivos": c.archivos, "lineas": c.lineas, "marcados": marcados(&c.ruta) })).collect::<Vec<_>>(),
+                           "resumen": resumen, "historia": historia.as_ref().map(|h| json!({ "grandes": h.0, "tocados": h.1, "commits": h.2, "desde": h.3.0, "hasta": h.3.1, "lineas": [h.4.0, h.4.1], "archivos": [h.5.0, h.5.1] })),
+                           "vivo": vivo.as_ref().map(|r| json!({ "por_carpeta": r.por_ruta.iter().take(8).collect::<Vec<_>>(), "trafico": r.trafico.iter().take(8).collect::<Vec<_>>() })) });
+        let carpeta = self.raiz.join(crate::almacen::SAVE);
+        std::fs::write(carpeta.join("MAPA.md"), md).map_err(|e| format!("MAPA.md: {e}"))?;
+        std::fs::write(carpeta.join("mapa.json"), serde_json::to_string_pretty(&json).unwrap_or_default()).map_err(|e| format!("mapa.json: {e}"))?;
+        Ok(json!({ "carpeta": crate::almacen::SAVE, "archivos": ["orden.json", "MAPA.md", "mapa.json"], "crates": cs.len(), "capas": max_capa + 1, "nodos_organizados": nodos,
+                   "siguiente": "abrir la carpeta en SUPER GRAFO (vista Grafo) o leer super-grafo/MAPA.md" }))
     }
 
     /// 4D en vivo: lo que trabajo en los ultimos `segundos` del programa que corre (de sus
@@ -835,6 +908,7 @@ impl Mapa {
             "cronologia" => self.cronologia(a),
             "tiempo" => self.tiempo(a),
             "vivo" => self.vivo(a),
+            "guardar" => self.guardar(),
             "guardianes" => Ok(self.guardianes(limite(a))),
             "cobertura_ub" => crate::cobertura_ub::consultar(&self.raiz, limite(a)),
             "revision_estado" => crate::revision_ui::consultar(&self.raiz, limite(a)),

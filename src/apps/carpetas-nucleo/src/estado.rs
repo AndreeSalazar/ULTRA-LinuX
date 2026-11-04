@@ -262,6 +262,10 @@ pub struct Estado {
     pub arbol: BTreeMap<String, Vec<Entrada>>,
     /// Carpetas desplegadas: las comparten el grafo y el explorador.
     pub expandidas: BTreeSet<String>,
+    /// Carpetas guardadas como desplegadas que aun esperan a que se lea su padre.
+    pub por_desplegar: BTreeSet<String>,
+    /// Se estan restaurando las desplegadas: al llegar la ultima, el grafo encuadra todo.
+    pub restaurando: bool,
     pub camara: Camara,
     /// Sube con cada accion: la plataforma solo recalcula la Vista si cambio.
     pub version: u64,
@@ -324,7 +328,7 @@ impl Default for Estado {
         Estado { entradas: Vec::new(), disp: Disposicion::default(), seleccion: BTreeSet::new(), ocultos: false,
                  ancho: 1100.0, lienzo: [1100.0, 700.0], acento: HIELO, arrastrando: false, banda: None, paleta: None,
                  ajustes: Ajustes::default(), panel_ajustes: false, carriles: false, arbol: BTreeMap::new(),
-                 expandidas: BTreeSet::new(), camara: Camara::default(), version: 0, nombre_raiz: String::new(),
+                 expandidas: BTreeSet::new(), por_desplegar: BTreeSet::new(), restaurando: false, camara: Camara::default(), version: 0, nombre_raiz: String::new(),
                  version_contenido: 0, terminal: Terminal::default(), errores: Errores::default(), raiz_absoluta: String::new(),
                  editor: Pestanas::default(), procesos: Vec::new(), ir_a: None, proyecto: BusquedaProyecto::default(),
                  lateral: Lateral::Explorador, indice: InfoIndice::default(), revelar: None, revelado: (String::new(), 0), aviso: None,
@@ -340,7 +344,23 @@ fn padre_de(id: &str) -> (&str, &str) {
 
 impl Estado {
     fn nombres(&self) -> Vec<String> { self.entradas.iter().map(|e| e.nombre.clone()).collect() }
-    fn guardar(&self) -> Efecto { Efecto::Guardar(self.disp.a_json()) }
+    fn guardar(&self) -> Efecto {
+        let mut d = self.disp.clone();
+        d.desplegadas = self.carpetas_desplegadas().chain(self.por_desplegar.iter()).cloned().collect();
+        Efecto::Guardar(d.a_json())
+    }
+
+    /// Despliega las carpetas guardadas cuyo padre ya esta leido (`padre`): las de arriba al
+    /// cargar, y cada nivel cuando llega el contenido del anterior.
+    fn desplegar_guardadas(&mut self, padre: &str) -> Vec<Efecto> {
+        let listas: Vec<String> = self.por_desplegar.iter().filter(|p| p.rsplit_once('/').map_or("", |(a, _)| a) == padre).cloned().collect();
+        let mut ef = Vec::new();
+        for p in listas {
+            self.por_desplegar.remove(&p);
+            if !self.expandidas.contains(&p) { ef.extend(self.expandir(&p)); }
+        }
+        ef
+    }
     fn guardar_ajustes(&self) -> Efecto { Efecto::GuardarAjustes(self.ajustes.a_json()) }
 
     /// La entrada de una ruta relativa, solo si esta en lo leido (nunca se inventan rutas).
@@ -923,6 +943,10 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             // El foco guardado: se abre el camino hasta el (sus carpetas aun no estan leidas).
             let foco = e.disp.foco.clone();
             if !foco.is_empty() { e.revelar = Some(Revelar { enfocar: true, ..Revelar::a(&foco) }); efectos.extend(e.avanzar_revelar()); }
+            // Las carpetas que estaban desplegadas, nivel a nivel.
+            e.por_desplegar = e.disp.desplegadas.clone();
+            e.restaurando = !e.por_desplegar.is_empty();
+            efectos.extend(e.desplegar_guardadas(""));
             efectos
         }
         Accion::Refrescar(entradas) => {
@@ -934,10 +958,16 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             if ruta.is_empty() { return reducir(e, Accion::Refrescar(entradas)); }
             // Solo se acepta lo que se pidio y sigue desplegado (una respuesta tardia no ensucia nada).
             if !e.expandidas.contains(&ruta) || e.entrada(&ruta).map(|x| x.tipo) != Some(Tipo::Carpeta) { return vec![]; }
-            e.arbol.insert(ruta, entradas);
+            e.arbol.insert(ruta.clone(), entradas);
             let quedan: BTreeSet<String> = e.seleccion.iter().filter(|id| e.existe(id)).cloned().collect();
             e.seleccion = quedan;
             let mut ef = e.desplegar_errores();
+            ef.extend(e.desplegar_guardadas(&ruta));
+            // Restaurado todo (nada espera y cada desplegada ya tiene su contenido): encuadrar.
+            if e.restaurando && e.por_desplegar.is_empty() && e.carpetas_desplegadas().all(|c| e.arbol.contains_key(c)) {
+                e.restaurando = false;
+                if e.en_grafo() { e.encuadrar(); }
+            }
             ef.extend(e.avanzar_revelar());
             ef
         }
@@ -952,8 +982,19 @@ fn reducir_sin_ciudad(e: &mut Estado, accion: Accion) -> Vec<Efecto> {
             }
             vec![]
         }
-        Accion::Abrir(nombre) => e.abrir(&nombre),
-        Accion::Expandir(id) => e.expandir(&id),
+        Accion::Abrir(nombre) => {
+            let antes = e.expandidas.len();
+            let mut ef = e.abrir(&nombre);
+            if e.expandidas.len() != antes && !es_grupo(&nombre) { ef.push(e.guardar()); }
+            ef
+        }
+        Accion::Expandir(id) => {
+            // Lo que se abre o cierra a mano se recuerda (el save del proyecto).
+            let antes = e.expandidas.len();
+            let mut ef = e.expandir(&id);
+            if e.expandidas.len() != antes && !es_grupo(&id) { ef.push(e.guardar()); }
+            ef
+        }
         Accion::EmpezarArrastre(nombre) => {
             if e.disp.bloqueada || !e.existe(&nombre) { return vec![]; }
             if !e.seleccion.contains(&nombre) { e.seleccion = [nombre].into(); }

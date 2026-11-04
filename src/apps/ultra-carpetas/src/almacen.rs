@@ -11,7 +11,24 @@ pub fn base() -> PathBuf {
     if let Some(x) = std::env::var_os("XDG_CONFIG_HOME").filter(|v| !v.is_empty()) {
         return PathBuf::from(x).join("ultra/carpetas");
     }
+    // Windows: %APPDATA%\ultra\carpetas (alli no hay HOME).
+    #[cfg(windows)]
+    if let Some(x) = std::env::var_os("APPDATA").filter(|v| !v.is_empty()) {
+        return PathBuf::from(x).join("ultra").join("carpetas");
+    }
     PathBuf::from(std::env::var_os("HOME").unwrap_or_else(|| "/home/ultra".into())).join(".config/ultra/carpetas")
+}
+
+/// La carpeta del save del proyecto: si existe, el orden vive dentro del proyecto (y viaja con
+/// el, en git) en vez de en la configuracion del usuario.
+pub const SAVE: &str = "super-grafo";
+
+/// Donde se guarda el orden de `carpeta`: `carpeta/super-grafo/orden.json` si el proyecto
+/// tiene su save (y no es un enlace); si no, en la configuracion del usuario.
+pub fn archivo_orden(carpeta: &Path) -> PathBuf {
+    let save = carpeta.join(SAVE);
+    if fs::symlink_metadata(&save).is_ok_and(|m| m.is_dir()) { return save.join("orden.json"); }
+    archivo_para(&base(), carpeta)
 }
 
 pub fn archivo_para(base: &Path, carpeta: &Path) -> PathBuf {
