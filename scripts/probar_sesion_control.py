@@ -56,13 +56,6 @@ class Control(unittest.TestCase):
 
 class Suspension(unittest.TestCase):
     """NVIDIA-safe S3 on a fake /sys/power and /proc/driver/nvidia."""
-    class Tmp:
-        def mkdir(self, **_): pass
-        def is_symlink(self): return False
-        def lstat(self):
-            class Info: st_uid = 0; st_mode = 0o40700
-            return Info()
-
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();root=Path(self.tmp.name)
         self.power=root/'power';self.power.mkdir();(self.power/'state').write_text('freeze mem\n')
@@ -73,7 +66,7 @@ class Suspension(unittest.TestCase):
         def record(path,text,*a,**k):
             self.writes.append((path.name,text));return original(path,text,*a,**k)
         self.patches=[patch.object(app,'POWER',self.power),patch.object(app,'NVIDIA',self.gpu),
-                      patch.object(app,'NVIDIA_TMP',self.Tmp()),patch.object(Path,'write_text',record),
+                      patch.object(Path,'write_text',record),
                       patch.object(app.os,'sync',lambda:None,create=True)]
         for p in self.patches: p.start()
     def tearDown(self):
@@ -82,6 +75,11 @@ class Suspension(unittest.TestCase):
     def test_deep_and_nvidia_order(self):
         self.assertEqual(app.perform('suspender'),'reanudado')
         self.assertEqual(self.writes,[('mem_sleep','deep'),('suspend','suspend'),('state','mem'),('suspend','resume')])
+    def test_nvidia_notifier_handles_gpu_without_proc_writes(self):
+        with (self.gpu/'params').open('a') as params:
+            params.write('UseKernelSuspendNotifiers: 1\n')
+        self.assertEqual(app.perform('suspender'), 'reanudado')
+        self.assertEqual(self.writes, [('mem_sleep', 'deep'), ('state', 'mem')])
     def test_gpu_resumes_even_if_sleep_fails(self):
         original=Path.write_text
         def fail_state(path,text,*a,**k):
@@ -94,11 +92,11 @@ class Suspension(unittest.TestCase):
     def test_refuses_without_preserved_vram(self):
         (self.gpu/'params').write_text('PreserveVideoMemoryAllocations: 0\n')
         self.writes.clear()
-        with self.assertRaisesRegex(ValueError,'pantalla negra'): app.perform('suspender')
+        with self.assertRaisesRegex(ValueError,'memoria de video'): app.perform('suspender')
         self.assertNotIn(('state','mem'),self.writes)
-        self.assertFalse(app.nvidia_preserves())
     def test_without_nvidia_plain_s3(self):
-        (self.gpu/'suspend').unlink();(self.power/'mem_sleep').write_text('s2idle [deep]\n')
+        (self.gpu/'suspend').unlink();(self.gpu/'params').unlink()
+        (self.power/'mem_sleep').write_text('s2idle [deep]\n')
         self.writes.clear()
         app.perform('suspender')
         self.assertEqual(self.writes,[('state','mem')])

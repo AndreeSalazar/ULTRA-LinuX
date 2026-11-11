@@ -12,13 +12,16 @@ import subprocess
 import sys
 import tempfile
 
-DEFAULT = dict(sensitivity=0.0, accel_profile='', scroll_factor=1.0,
+DEFAULT = dict(sensitivity=0.0, accel_profile='adaptive', scroll_factor=1.0,
                left_handed=False, natural_scroll=False, kb_layout='us',
-               kb_options='', repeat_rate=25, repeat_delay=600)
+               kb_options='', repeat_rate=25, repeat_delay=600,
+               follow_mouse=1, hide_on_key_press=False)
+LEGACY_KEYS = DEFAULT.keys() - {'follow_mouse', 'hide_on_key_press'}
 
 
-def valid(data):
-    if not isinstance(data, dict) or set(data) != set(DEFAULT):
+def valid(data, *, legacy=False):
+    keys = LEGACY_KEYS if legacy else DEFAULT.keys()
+    if not isinstance(data, dict) or data.keys() != keys:
         raise ValueError('Formato de ajustes desconocido')
     for key, low, high in [('sensitivity', -1, 1), ('scroll_factor', .1, 5)]:
         v = data[key]
@@ -35,12 +38,23 @@ def valid(data):
         raise ValueError('Distribucion de teclado no admitida')
     if not isinstance(data['kb_options'], str) or not re.fullmatch(r'[A-Za-z0-9_:,+-]{0,160}', data['kb_options']):
         raise ValueError('Opciones de teclado no admitidas')
-    return dict(data)
+    if not legacy:
+        focus = data['follow_mouse']
+        if type(focus) is not int or not 0 <= focus <= 3:
+            raise ValueError('Modo de enfoque no admitido')
+        if type(data['hide_on_key_press']) is not bool:
+            raise ValueError('Valor booleano requerido: hide_on_key_press')
+    # Hyprland 0.57 reports an unset default but its runtime validator only
+    # accepts named profiles. Migrate the former "system" choice explicitly.
+    return {**data, 'accel_profile': data['accel_profile'] or DEFAULT['accel_profile']}
 
 
 def run(args):
     result = subprocess.run(args, capture_output=True, text=True, timeout=3, check=False)
-    if result.returncode or len(result.stdout) > 65536:
+    if result.returncode:
+        detail = (result.stderr.strip() or result.stdout.strip())[-200:]
+        raise ValueError('Hyprland no aplico el ajuste' + (': '+detail if detail else ''))
+    if len(result.stdout) > 65536:
         raise ValueError('Hyprland no respondio al ajuste')
     return result.stdout
 
@@ -48,7 +62,8 @@ def run(args):
 def snapshot():
     values = {}
     for key, default in DEFAULT.items():
-        row = json.loads(run(['hyprctl', '-j', 'getoption', 'input:'+key]))
+        section = 'cursor' if key == 'hide_on_key_press' else 'input'
+        row = json.loads(run(['hyprctl', '-j', 'getoption', section+':'+key]))
         if not isinstance(row, dict): raise ValueError('Respuesta de Hyprland desconocida')
         kind = 'bool' if type(default) is bool else 'int' if type(default) is int else 'float' if type(default) is float else 'str'
         if kind not in row: raise ValueError('Opcion no disponible: '+key)
@@ -61,7 +76,10 @@ def snapshot():
 
 def apply(data):
     data = valid(data)
-    lua = 'hl.config({input={'+','.join(k+'='+json.dumps(v) for k,v in data.items())+'}})'
+    hide_on_key_press = data.pop('hide_on_key_press')
+    inputs = ','.join(key+'='+json.dumps(value) for key, value in data.items())
+    lua = ('hl.config({input={'+inputs+'},cursor={hide_on_key_press='
+           +json.dumps(hide_on_key_press)+'}})')
     out = run(['hyprctl', 'eval', lua])
     if 'error' in out.lower(): raise ValueError('Hyprland rechazo los ajustes')
 
@@ -79,9 +97,10 @@ def read(path):
         raw = stream.read(8193)
     if len(raw) > 8192: raise ValueError('Perfil demasiado grande')
     doc = json.loads(raw)
-    if not isinstance(doc, dict) or set(doc) != {'schema', 'settings'} or doc['schema'] != 1:
+    if (not isinstance(doc, dict) or set(doc) != {'schema', 'settings'}
+            or type(doc['schema']) is not int or doc['schema'] not in (1, 2)):
         raise ValueError('Version del perfil desconocida')
-    return valid(doc['settings'])
+    return valid(doc['settings'], legacy=doc['schema'] == 1)
 
 
 def folder(home):
@@ -99,7 +118,7 @@ def save(path, data):
     try:
         with os.fdopen(fd, 'w') as stream:
             os.fchmod(stream.fileno(), 0o600)
-            json.dump({'schema':1, 'settings':valid(data)}, stream); stream.write('\n')
+            json.dump({'schema':2, 'settings':valid(data)}, stream); stream.write('\n')
             stream.flush(); os.fsync(stream.fileno())
         os.replace(name, path)
     finally:
@@ -107,9 +126,11 @@ def save(path, data):
 
 
 def commit(path, settings, persist):
-    settings = valid(settings)
+    legacy = isinstance(settings, dict) and settings.keys() == LEGACY_KEYS
+    settings = valid(settings, legacy=legacy)
     if path.is_symlink(): raise ValueError('Perfil redirigido')
     before = snapshot()
+    settings = {**before, **settings}
     try:
         apply(settings)
         if not matches(settings, snapshot()): raise ValueError('No se confirmaron todos los ajustes')
@@ -130,7 +151,9 @@ def main():
     fd = os.open(config/'entrada.lock', os.O_CREAT | os.O_WRONLY | os.O_NOFOLLOW | os.O_NONBLOCK, 0o600)
     with os.fdopen(fd, 'w') as lock:
         if not stat.S_ISREG(os.fstat(lock.fileno()).st_mode): raise ValueError('Bloqueo no regular')
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        # A reload can occur during a save. Wait for that transaction before
+        # reading its profile back into the compositor.
+        fcntl.flock(lock, fcntl.LOCK_EX)
         if action == 'estado':
             saved = read(path) if path.exists() or path.is_symlink() else None
             print(json.dumps({'schema':1, 'actual':snapshot(), 'guardado':saved})); return
@@ -139,7 +162,7 @@ def main():
         if action == 'guardar':
             raw = sys.stdin.read(8193)
             if len(raw.encode()) > 8192: raise ValueError('Ajustes demasiado grandes')
-            settings = valid(json.loads(raw))
+            settings = json.loads(raw)
         else: settings = read(path)
         result = commit(path, settings, action == 'guardar')
         print(json.dumps({'schema':1, 'actual':result, 'guardado':result}))

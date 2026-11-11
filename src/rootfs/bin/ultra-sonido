@@ -3,19 +3,18 @@
 """ULTRA Sonido: graves, ecualizador y 3D para todo el escritorio (UID 1000).
 
     ultra-sonido preparar          escribe el filtro de PipeWire con lo guardado (antes de pipewire)
-    ultra-sonido panel             abre o cierra el panel (Super+A)
+    ultra-sonido panel             abre o cierra el panel (Super+A o Super+Ctrl+A)
     ultra-sonido estado            JSON para el panel
     ultra-sonido escuchar          JSON en cada cambio (deflisten de eww)
     ultra-sonido poner CLAVE VAL   cambia un control en vivo y lo guarda
-    ultra-sonido perfil NOMBRE     plano, musica, juegos, peliculas, voz, graves
+    ultra-sonido perfil NOMBRE     plano, musica, juegos, peliculas, voz, graves, auriculares, fuerte
     ultra-sonido alternar          activa o deja el sonido original (sin borrar ajustes)
     ultra-sonido volumen N         volumen del dispositivo, 0-150 %
 
-Motor: un filter-chain de PipeWire con filtros internos (biquads, mezclador y
-retardo), sin plugins externos. WirePlumber lo coloca solo delante del
-dispositivo por defecto (smart filter), asi sigue al USB, HDMI o auriculares.
-Con todo en 0 es transparente. La ganancia se compensa para no saturar.
+WirePlumber enruta la reproducción de la salida por defecto por el filtro.
+El realce de intensidad usa un limitador estéreo después del ecualizador.
 """
+import fcntl
 import json
 import math
 import os
@@ -31,12 +30,15 @@ PW_CONF = HOME/'.config/pipewire/pipewire.conf.d/ultra-sonido.conf'
 EWW_DIR = HOME/'.cache/ultra/sonido-eww'
 EWW_SRC = Path('/etc/ultra')
 NODE = 'ultra_sonido'
+LIMITER = Path('/usr/lib/ladspa/fast_lookahead_limiter_1913.so')
+LOUDNESS_DB = 9.0
 
 # clave: (minimo, maximo, defecto)
 RANGES = {
     'graves': (-6.0, 12.0, 0.0), 'cuerpo': (-12.0, 12.0, 0.0), 'medios': (-12.0, 12.0, 0.0),
     'presencia': (-12.0, 12.0, 0.0), 'agudos': (-12.0, 12.0, 0.0),
     'amplitud': (0.0, 100.0, 0.0), 'auriculares': (0.0, 100.0, 0.0),
+    'intensidad': (0.0, 12.0, 0.0),
 }
 BANDS = [  # nombre, filtro, frecuencia, Q
     ('graves', 'bq_lowshelf', 90.0, 0.7), ('cuerpo', 'bq_peaking', 250.0, 1.0),
@@ -51,7 +53,10 @@ PROFILES = {
     'voz':       dict(graves=-3, cuerpo=-1, medios=3, presencia=4, agudos=0, amplitud=0, auriculares=0),
     'graves':    dict(graves=10, cuerpo=2, medios=-1, presencia=0, agudos=1, amplitud=20, auriculares=0),
     'auriculares': dict(graves=3, cuerpo=0, medios=0, presencia=2, agudos=1, amplitud=20, auriculares=60),
+    'fuerte':    dict(graves=3, cuerpo=0, medios=1, presencia=3, agudos=1, amplitud=0, auriculares=0, intensidad=LOUDNESS_DB),
 }
+for profile in PROFILES.values():
+    profile.setdefault('intensidad', 0.0)
 CROSSFEED_DELAY = 0.0003   # 0.3 ms: diferencia entre oidos
 CROSSFEED_CUTOFF = 700.0   # la cabeza tapa los agudos del lado opuesto
 
@@ -98,7 +103,7 @@ def save(state):
 
 
 # ---------- valores del grafo ----------
-def controls(state):
+def controls(state, limiter=False):
     """Todos los controles del grafo para un estado (en bypass todo neutro)."""
     on = state['activo']
     gains = {name: (float(state[name]) if on else 0.0) for name, *_ in BANDS}
@@ -114,12 +119,16 @@ def controls(state):
         values[f'mezcla_{side}:Gain 1'] = round(headroom*(1+width)/2, 5)   # mismo lado
         values[f'mezcla_{side}:Gain 2'] = round(headroom*(1-width)/2, 5)   # lado opuesto (resta = amplitud)
         values[f'mezcla_{side}:Gain 3'] = round(headroom*cross, 5)         # cruce de auriculares
+    if limiter:
+        gain = state['intensidad'] if on else 0.0
+        values['limite:Input gain (dB)'] = gain
+        values['limite:Limit (dB)'] = -1.0 if gain else 0.0
     return values
 
 
-def graph(state):
+def graph(state, limiter=False):
     """Texto SPA-JSON del filter-chain con los valores guardados como inicio."""
-    values = controls(state)
+    values = controls(state, limiter)
     nodes, links = [], []
     for side, other in (('l', 'r'), ('r', 'l')):
         previous = None
@@ -142,6 +151,15 @@ def graph(state):
                   f'{{ output = "{last}:Out" input = "cruce_paso_{side}:In" }}',
                   f'{{ output = "cruce_paso_{side}:Out" input = "cruce_retardo_{side}:In" }}',
                   f'{{ output = "cruce_retardo_{side}:Out" input = "mezcla_{other}:In 3" }}']
+    outputs = '"mezcla_l:Out" "mezcla_r:Out"'
+    if limiter:
+        nodes.append(f'{{ type = ladspa name = limite plugin = "{LIMITER}" '
+                     'label = fastLookaheadLimiter control = { '
+                     f'"Input gain (dB)" = {values["limite:Input gain (dB)"]} '
+                     f'"Limit (dB)" = {values["limite:Limit (dB)"]} "Release time (s)" = 0.12 }} }}')
+        links += ['{ output = "mezcla_l:Out" input = "limite:Input 1" }',
+                  '{ output = "mezcla_r:Out" input = "limite:Input 2" }']
+        outputs = '"limite:Output 1" "limite:Output 2"'
     indent = '\n                '
     return f'''# Generado por ultra-sonido; se reescribe en cada inicio de sesion.
 context.modules = [
@@ -156,7 +174,7 @@ context.modules = [
                 links = [{indent}{indent.join(links)}
                 ]
                 inputs  = [ "graves_l:In" "graves_r:In" ]
-                outputs = [ "mezcla_l:Out" "mezcla_r:Out" ]
+                outputs = [ {outputs} ]
             }}
             capture.props = {{
                 node.name      = "{NODE}"
@@ -178,24 +196,61 @@ context.modules = [
 
 
 # ---------- PipeWire en vivo ----------
-def node_id():
+def dump(*args):
     try:
-        raw = subprocess.run(['pw-dump'], capture_output=True, text=True, timeout=5, check=True).stdout
-        for obj in json.loads(raw):
-            props = (obj.get('info') or {}).get('props') or {}
-            if obj.get('type') == 'PipeWire:Interface:Node' and props.get('node.name') == NODE:
-                return obj['id']
+        raw = subprocess.run(['pw-dump', *args], capture_output=True, text=True, timeout=5, check=True).stdout
+        return json.loads(raw)
     except (OSError, ValueError, subprocess.SubprocessError): pass
-    return None
+    return []
+
+
+def audio_node(objects, name):
+    for obj in objects:
+        info = obj.get('info') or {}
+        if obj.get('type') == 'PipeWire:Interface:Node' and (info.get('props') or {}).get('node.name') == name:
+            return obj
+    return {}
+
+
+def live_controls(node):
+    values = {}
+    for prop in ((node.get('info') or {}).get('params') or {}).get('Props', []):
+        pairs = prop.get('params') or []
+        values.update(zip(pairs[::2], pairs[1::2]))
+    return values
+
+
+def expected_controls(state, actual):
+    limiter = 'limite:Input gain (dB)' in actual
+    if state['activo'] and state['intensidad'] and not limiter:
+        return None
+    return controls(state, limiter)
+
+
+def matches(expected, actual):
+    return expected is not None and all(
+        isinstance(actual.get(key), (int, float)) and abs(actual[key] - value) < 0.001
+        for key, value in expected.items()
+    )
 
 
 def apply(state):
-    ident = node_id()
+    node = audio_node(dump(), NODE)
+    ident = node.get('id')
     if ident is None: return False
-    params = ' '.join(f'"{k}" {v}' for k, v in controls(state).items())
+    actual = live_controls(node)
+    expected = expected_controls(state, actual)
+    if expected is None: return False
+    if matches(expected, actual): return True
+    params = ' '.join(f'"{key}" {float(value):.5f}' for key, value in expected.items())
     result = subprocess.run(['pw-cli', 'set-param', str(ident), 'Props', f'{{ params = [ {params} ] }}'],
                             capture_output=True, text=True, timeout=5)
-    return result.returncode == 0
+    if result.returncode: return False
+    for _ in range(3):
+        if matches(expected, live_controls(audio_node(dump(str(ident)), NODE))):
+            return True
+        time.sleep(.05)
+    return False
 
 
 def device():
@@ -219,7 +274,30 @@ def volume():
 def status(state=None):
     state = state or load()
     vol, muted = volume()
-    return dict(state, motor=node_id() is not None, dispositivo=device(), volumen=vol, silencio=muted)
+    objects = dump()
+    node = audio_node(objects, NODE)
+    output = audio_node(objects, NODE+'.salida')
+    actual = live_controls(node)
+    expected = expected_controls(state, actual)
+    device_name = device()
+    linked = any(obj.get('type') == 'PipeWire:Interface:Link'
+                 and (obj.get('info') or {}).get('output-node-id') == output.get('id')
+                 and (obj.get('info') or {}).get('state') == 'active' for obj in objects) if output else False
+    if not node:
+        message = 'Filtro no cargado · reinicia la sesión'
+    elif expected is None:
+        message = 'Limitador no disponible · actualiza o reinicia ULTRA'
+    elif not matches(expected, actual):
+        message = 'Ajustes guardados · aplicación pendiente'
+    elif not state['activo']:
+        message = 'Efectos desactivados'
+    elif not linked and device_name in ('ULTRA Sonido', 'sin dispositivo'):
+        message = 'Selecciona un dispositivo en Salidas y apps'
+    elif not linked:
+        message = 'Ajustes aplicados · esperando audio en la salida principal'
+    else:
+        message = 'Audio pasando por ULTRA Sonido'
+    return dict(state, motor=bool(node), mensaje=message, dispositivo=device_name, volumen=vol, silencio=muted)
 
 
 # ---------- panel eww ----------
@@ -240,10 +318,10 @@ def panel():
         for _ in range(30):
             if not eww('ping', timeout=2).returncode: break
             time.sleep(.1)
-    if 'sonido' in eww('active-windows').stdout:
-        eww('close', 'sonido')
-    else:
-        eww('open', 'sonido')
+    action = 'close' if 'sonido' in eww('active-windows').stdout else 'open'
+    result = eww(action, 'sonido')
+    if result.returncode:
+        raise ValueError(result.stderr.strip() or 'No se pudo abrir el panel de sonido')
 
 
 def listen():
@@ -260,30 +338,41 @@ def notify(text):
     except (OSError, subprocess.SubprocessError): pass
 
 
+def change(action, args):
+    STATE.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    with STATE.with_suffix('.lock').open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        state = load()
+        if action == 'poner':
+            state[args[1]] = clamp(args[1], args[2])
+            state['perfil'] = 'personal'
+        elif action == 'perfil':
+            state.update(PROFILES[args[1]], perfil=args[1], activo=True)
+        else:
+            state['activo'] = {'alternar': not state['activo'], 'activar': True, 'desactivar': False}[action]
+        save(state)
+        return apply(state)
+
+
 def main():
     if os.geteuid() != 1000: raise ValueError('abrir como usuario del escritorio')
     args = sys.argv[1:]
     action = args[0] if args else 'panel'
     if action == 'preparar':
-        atomic(PW_CONF, graph(load()), 0o644)
+        atomic(PW_CONF, graph(load(), LIMITER.is_file()), 0o644)
     elif action == 'panel': panel()
     elif action == 'estado': print(json.dumps(status()))
     elif action == 'escuchar': listen()
-    elif action == 'poner' and len(args) == 3 and args[1] in RANGES:
-        state = load(); state[args[1]] = clamp(args[1], args[2]); state['perfil'] = 'personal'
-        save(state); apply(state)
-    elif action == 'perfil' and len(args) == 2 and args[1] in PROFILES:
-        state = load(); state.update({k: float(v) for k, v in PROFILES[args[1]].items()})
-        state.update(perfil=args[1], activo=True); save(state)
-        if not apply(state): notify('Perfil guardado; se aplicara al reiniciar la sesion de audio.')
-    elif action in ('alternar', 'activar', 'desactivar'):
-        state = load(); state['activo'] = {'alternar': not state['activo'], 'activar': True, 'desactivar': False}[action]
-        save(state); apply(state)
+    elif (action == 'poner' and len(args) == 3 and args[1] in RANGES
+          or action == 'perfil' and len(args) == 2 and args[1] in PROFILES
+          or action in ('alternar', 'activar', 'desactivar') and len(args) == 1):
+        if not change(action, args) and action != 'poner':
+            notify('Ajustes guardados. El panel indica si el filtro está disponible.')
     elif action == 'volumen' and len(args) == 2:
         value = max(0, min(150, int(float(args[1]))))
-        subprocess.run(['wpctl', 'set-volume', '--limit', '1.5', '@DEFAULT_AUDIO_SINK@', f'{value}%'], timeout=3)
+        subprocess.run(['wpctl', 'set-volume', '--limit', '1.5', '@DEFAULT_AUDIO_SINK@', f'{value}%'], timeout=3, check=True)
     elif action == 'silencio':
-        subprocess.run(['wpctl', 'set-mute', '@DEFAULT_AUDIO_SINK@', 'toggle'], timeout=3)
+        subprocess.run(['wpctl', 'set-mute', '@DEFAULT_AUDIO_SINK@', 'toggle'], timeout=3, check=True)
     else:
         raise ValueError('Uso: ultra-sonido preparar|panel|estado|escuchar|poner CLAVE VALOR|perfil NOMBRE|alternar|volumen N')
 

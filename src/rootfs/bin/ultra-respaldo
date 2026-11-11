@@ -4,8 +4,9 @@
 
 Runs as the desktop user. Never deletes or changes the originals; restoring
 extracts into a new folder (~/Restaurado/<fecha>) for the user to copy back.
-Local copies keep the last 5; a USB stick keeps the last 3 in ULTRA-respaldos.
+Personal keeps the latest copy. Local keeps 5 and a USB stick keeps 3.
 """
+import fcntl
 import json
 import os
 from pathlib import Path
@@ -19,7 +20,7 @@ HOME = Path('/juegos/usuarios/ultra')
 LOCAL = HOME/'.local/share/ultra/respaldos'
 # Disco Personal (antiguo D:): otro SSD fisico, la copia diaria va alli si existe.
 PERSONAL = Path('/personal/ultra')
-KEEP_PERSONAL = 10
+KEEP_PERSONAL = 1
 USB_DIR = 'ULTRA-respaldos'
 PREFIX = 'ULTRA-respaldo-'
 KEEP_LOCAL, KEEP_USB = 5, 3
@@ -92,6 +93,15 @@ def backups(folder):
 
 def create(folder, keep):
     folder.mkdir(mode=0o700, parents=True, exist_ok=True)
+    fd = os.open(folder, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return create_locked(folder, keep)
+    finally:
+        os.close(fd)
+
+
+def create_locked(folder, keep):
     for stale in folder.glob('.parcial-*'):
         stale.unlink(missing_ok=True)
     files, state = collect()
@@ -124,7 +134,9 @@ def create(folder, keep):
                 'bytes_originales': state['bytes'], 'bytes_comprimidos': final.stat().st_size,
                 'omitidos_por_tamano': state['omitidos']}
     final.with_name(final.name+'.json').write_text(json.dumps(manifest)+'\n')
-    for old in backups(folder)[:-keep]:
+    previous = [p for p in backups(folder) if p != final]
+    expired = max(0, len(previous) - (keep - 1))
+    for old in previous[:expired]:
         old.unlink(missing_ok=True)
         old.with_name(old.name+'.json').unlink(missing_ok=True)
     return final, manifest

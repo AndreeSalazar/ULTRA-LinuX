@@ -2,7 +2,7 @@
 ;; BMO-X / Neon: ULTRA Sonido (eww). Graves, ecualizador y 3D en vivo. Super+A.
 ;; Datos: ultra-sonido escuchar (JSON en cada cambio). Cada control llama a ultra-sonido.
 
-(deflisten s :initial '{"activo":true,"perfil":"plano","graves":0,"cuerpo":0,"medios":0,"presencia":0,"agudos":0,"amplitud":0,"auriculares":0,"motor":false,"dispositivo":"--","volumen":0,"silencio":false}'
+(deflisten s :initial '{"activo":true,"perfil":"plano","graves":0,"cuerpo":0,"medios":0,"presencia":0,"agudos":0,"amplitud":0,"auriculares":0,"intensidad":0,"motor":false,"dispositivo":"--","mensaje":"Consultando audio…","volumen":0,"silencio":false}'
   `ultra-sonido escuchar`)
 
 (defwidget perfil [id texto]
@@ -19,12 +19,13 @@
     (label :class "detalle" :halign "start" :show-truncated false :text detalle)))
 
 (defwidget sonido []
-  (box :class "panel ${s.activo ? '' : 'apagado'}" :orientation "v" :space-evenly false :spacing 10
+  (box :class "panel ${s.activo ? '' : 'apagado'}" :orientation "v" :space-evenly false :spacing 7
     (box :class "cabecera" :orientation "h" :space-evenly false
       (label :class "marca" :halign "start" :hexpand true :show-truncated false :text "BMO-X // SONIDO")
       (button :class "cerrar" :onclick "ultra-sonido panel &" "✕"))
     (label :class "subtitulo" :halign "start" :show-truncated false :limit-width 46
-           :text "${s.dispositivo}${s.motor ? '' : ' · motor no cargado: reinicia la sesion'}")
+           :text {s.dispositivo})
+    (label :class "detalle" :halign "start" :wrap true :show-truncated false :text {s.mensaje})
 
     (box :class "maestro" :orientation "h" :space-evenly false :spacing 10
       (button :class "silencio ${s.silencio ? 'mudo' : ''}" :onclick "ultra-sonido silencio &" {s.silencio ? "󰝟" : "󰕾"})
@@ -34,7 +35,7 @@
 
     (box :class "interruptor" :orientation "h" :space-evenly false
       (label :class "nombre" :halign "start" :hexpand true :show-truncated false
-             :text {s.activo ? "MEJORAS ACTIVAS" : "SONIDO ORIGINAL"})
+             :text "EFECTOS DEL ESCRITORIO")
       (button :class "boton ${s.activo ? 'encendido' : ''}" :onclick "ultra-sonido alternar &"
               {s.activo ? "ACTIVO" : "APAGADO"}))
 
@@ -44,7 +45,9 @@
     (box :class "perfiles" :orientation "h" :space-evenly true :spacing 4
       (perfil :id "voz" :texto "VOZ") (perfil :id "graves" :texto "GRAVES+")
       (perfil :id "auriculares" :texto "AURIC. 3D")
-      (label :class "chip personal ${s.perfil == 'personal' ? 'elegido' : ''}" :text "PERSONAL"))
+      (perfil :id "fuerte" :texto "FUERTE"))
+
+    (control :clave "intensidad" :texto "INTENSIDAD" :detalle "Realce antes del limitador estéreo" :min 0 :max 12 :unidad "dB" :clase "graves")
 
     (label :class "seccion" :halign "start" :show-truncated false :text "GRAVES Y ECUALIZADOR")
     (control :clave "graves" :texto "GRAVES" :detalle "90 Hz · golpe y cuerpo" :min -6 :max 13 :unidad "dB" :clase "graves")
@@ -60,8 +63,7 @@
     (control :clave "auriculares" :texto "AURICULARES 3D" :detalle "sonido delante de ti, no dentro de la cabeza" :min 0 :max 101 :unidad "%" :clase "tresd")
 
     (box :class "pie" :orientation "h" :space-evenly false :spacing 8
-      (button :class "enlace" :onclick "pavucontrol &" "Salidas y apps")
-      (label :class "detalle" :halign "end" :hexpand true :show-truncated false :text "sin saturacion · se guarda solo"))))
+      (button :class "enlace" :onclick "pavucontrol &" "Salidas y apps"))))
 
 (defwindow sonido
   :monitor 0

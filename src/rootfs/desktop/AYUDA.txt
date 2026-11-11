@@ -28,7 +28,9 @@ SUPER + Shift + N   Recuperar el ultimo aviso cerrado (repetir para mas)
 SUPER + V           Portapapeles persistente: texto, imagenes y pines
 SUPER + Tab         Elegir escritorio 1..9; guia de organizacion
 SUPER + Shift + V   Portapapeles (atajo anterior compatible)
-SUPER + A           Audio maestro: salida, silencio y boost opcional hasta 500%
+SUPER + A           ULTRA Sonido: volumen, ecualizador y perfil Fuerte
+SUPER + Ctrl + A    Abre el mismo panel de sonido
+SUPER + Alt + A     Menu de audio maestro y salidas por aplicacion
 SUPER + F10         Juegos detectados y consumo CPU/RAM/GPU en vivo
 SUPER + F9          Tarjetas de equipo en vivo (eww): mostrar u ocultar
 SUPER + Esc         Administrador: cerrar procesos y limitar CPU/RAM de su arbol

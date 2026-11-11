@@ -94,5 +94,18 @@ class Respaldo(unittest.TestCase):
         other = self.home/'otro.tar.gz'; other.write_text('x')
         with self.assertRaises(ValueError): app.restore(other)
 
+    @unittest.skipUnless(GNU, 'requiere GNU tar')
+    def test_personal_rotates_only_after_success(self):
+        stamps = iter(('20261102-000000', '20261102-000001', '20261102-000002'))
+        with patch.object(app.time, 'strftime', side_effect=stamps):
+            first, _ = app.create(self.local, app.KEEP_PERSONAL)
+            with patch.object(app.subprocess, 'run', return_value=subprocess.CompletedProcess([], 2, '', 'fallo')):
+                with self.assertRaises(ValueError):
+                    app.create(self.local, app.KEEP_PERSONAL)
+            self.assertEqual(app.backups(self.local), [first])
+            newest, _ = app.create(self.local, app.KEEP_PERSONAL)
+        self.assertEqual(app.backups(self.local), [newest])
+        self.assertEqual(list(self.local.glob('*.json')), [newest.with_name(newest.name + '.json')])
+
 
 if __name__ == '__main__': unittest.main(verbosity=2)

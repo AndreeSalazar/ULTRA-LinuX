@@ -1,34 +1,40 @@
 # Sonido, suspension, semaforo y disco Personal (2026-11-02)
 
-## ULTRA Sonido (Super+A)
-Panel `eww` con el estilo BMO-X. Tiene volumen, encendido/apagado de las mejoras, 7 perfiles y 5 bandas:
+## ULTRA Sonido (Super+A o Super+Ctrl+A)
+Panel `eww` con el estilo BMO-X. Tiene volumen, encendido/apagado de los efectos, 8 perfiles y 5 bandas:
 graves 90 Hz, cuerpo 250 Hz, medios 1 kHz, presencia 3,5 kHz y agudos 9 kHz. El sonido 3D tiene dos controles:
 - **Amplitud**: matriz medio/lado que ensancha el escenario.
 - **Auriculares 3D**: cruce de 0,3 ms con paso bajo a 700 Hz, para que el sonido quede delante y no dentro de la cabeza.
 
-**Motor.** Es un `filter-chain` de PipeWire 1.6, solo con filtros internos (biquads, mezclador y retardo), sin plugins externos.
+**Fuerte** añade 9 dB de ganancia antes de un limitador estéreo de SWH.
+El control **Intensidad** ajusta esa ganancia de 0 a 12 dB. El límite de
+−1 dBFS se aplica a la salida del filtro, antes del volumen del dispositivo.
+
 - **Ubicación:** `ultra-sonido preparar` lo escribe con los valores guardados antes de que arranque PipeWire. Así empieza con tus ajustes.
-- **Cambios en vivo:** se aplican con `pw-cli set-param ... Props`.
+- **Cambios en vivo:** se aplican con `pw-cli set-param ... Props` y se releen de PipeWire. El panel distingue ajustes pendientes de audio que ya pasa por el filtro.
 - **Filtro inteligente de WirePlumber 0.5** (`filter.smart`): se coloca delante del dispositivo por defecto, sea USB, HDMI o auriculares, sin cambiar cuál es ese dispositivo.
-- **Apagado:** con las mejoras apagadas, la matriz queda en (1, 0, 0) y las bandas en 0 dB. Es el sonido original.
-- **Sin saturación:** la ganancia se compensa según el mayor realce, la amplitud y el cruce, y la señal mono nunca supera la unidad.
+- **Apagado:** la matriz queda en (1, 0, 0), las bandas y la intensidad en 0 dB.
+  El limitador, si está disponible, conserva su retardo de unos 5 ms.
 
-No se reemplazó PipeWire: es el motor que ya maneja ALSA, Bluetooth y las apps. Todo lo que oyes y controlas pasa ahora por ULTRA Sonido.
+## Suspensión con NVIDIA
 
-## Suspension con NVIDIA
-Sin systemd, nadie avisaba al driver antes de dormir. Ahora `ultra-sesion-control`:
-1. elige `deep` (S3) si el firmware lo ofrece;
-2. escribe `suspend` en `/proc/driver/nvidia/suspend`;
-3. duerme;
-4. escribe `resume` siempre, aunque falle la suspensión.
-
-Si el driver no conserva la VRAM, se niega a suspender en vez de volver con la pantalla negra.
+`ultra-sesion-control` elige `deep` (S3) cuando el firmware lo ofrece y
+solicita `mem` al kernel. NVIDIA Open 615 conserva la VRAM mediante sus
+notificadores de suspensión y usa memoria temporal del kernel. En el modo
+manual, el supervisor usa `/proc/driver/nvidia/suspend` y solicita la
+reanudación aun si falla la entrada en suspensión.
 
 **Opciones de módulo.** El init cargaba los módulos con `finit_module` y parámetros vacíos, así que `nvidia-drm.modeset=1` de `CONFIG_CMDLINE` nunca llegaba al driver. `modopciones.h` reúne las opciones como lo hace `modprobe`:
 - líneas `options` de `/sistema/usr/lib/modprobe.d` y luego de `/sistema/etc/modprobe.d`;
 - los `modulo.param=` de `/proc/cmdline`.
 
-Solo usa `options`: nunca `install`. Sus pruebas (`scripts/probar_modopciones.c`) pasan con ASan/UBSan y los flags de `guardianes.sh`. `etc/modprobe.d/ultra-nvidia.conf` activa `NVreg_PreserveVideoMemoryAllocations=1` y guarda la VRAM en `/juegos/.ultra-nvidia`.
+El lector admite directivas `options`. Sus pruebas (`scripts/probar_modopciones.c`)
+usan ASan/UBSan y los flags de `guardianes.sh`. `etc/modprobe.d/ultra-nvidia.conf`
+activa la conservación de VRAM y los notificadores del kernel.
+
+En OBS Studio, añade **Captura de pantalla (PipeWire)** y selecciona qué
+pantalla compartir en el portal de Hyprland. La receta de la imagen incluye
+OBS y ese portal.
 
 ## Semaforo del informe
 `ultra-salud` lee el informe terminado y pone arriba `[SALUD]`: rojo y amarillo primero, cada uno con qué hacer. Revisa:
@@ -53,7 +59,8 @@ D: (SSD Kingston de 120 GB) estaba vacio y ULTRA ya no lo necesita, porque Cyber
 - **Por que no se llama BMO:** el init solo admite una FAT32 `BMO`, y una segunda impediria arrancar.
 
 **Montaje:** `ultra-personal montar` (desde `ultra-sesion`) busca un exFAT interno, no USB, con etiqueta `PERSONAL`. Lo monta en `/personal` con `uid=1000`, `dmask=0077`, `fmask=0177` y `noexec`. Al cerrar la sesion lo desmonta.
-- **Respaldos:** los diarios van a `/personal/ultra/respaldos` (ultimos 10), en otro disco fisico.
+- **Respaldos:** la copia diaria va a `/personal/ultra/respaldos`, en otro disco
+  físico. Se conserva una copia. Las anteriores se retiran tras crear la nueva.
 - **Bibliotecas:** `ultra-bibliotecas` excluye la etiqueta, para no ponerlo en solo lectura.
 
 **Kernel:** no traia exFAT. Se anadieron `EXFAT_FS` (obligatorio) y `USB_UAS` a los perfiles generico y PC.

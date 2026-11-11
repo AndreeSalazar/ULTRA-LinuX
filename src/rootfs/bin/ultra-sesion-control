@@ -20,7 +20,6 @@ PENDING = Path('/run/ultra-escritorio/power-action')
 ACTIONS = ('apagar', 'reiniciar', 'suspender')
 POWER = Path('/sys/power')
 NVIDIA = Path('/proc/driver/nvidia')
-NVIDIA_TMP = Path('/juegos/.ultra-nvidia')
 
 
 def atomic(path, value, mode=0o644):
@@ -56,33 +55,30 @@ def supports_suspend():
     except OSError: return False
 
 
-def nvidia_preserves():
-    """True/False with the NVIDIA driver loaded, None without it."""
+def nvidia_params():
     try: params = (NVIDIA/'params').read_text()
-    except OSError: return None
-    return any(line.replace(' ', '') == 'PreserveVideoMemoryAllocations:1' for line in params.splitlines())
+    except FileNotFoundError: return {}
+    return {key.strip(): value.strip().strip('"') for key, sep, value in
+            (line.partition(':') for line in params.splitlines()) if sep}
 
 
 def suspend():
-    """S3 when the firmware offers it; NVIDIA saves VRAM first (no systemd here)."""
+    """S3 when firmware offers it, with VRAM preservation on NVIDIA."""
     try:
         modes = (POWER/'mem_sleep').read_text().split()
         if '[deep]' not in modes and 'deep' in modes: (POWER/'mem_sleep').write_text('deep')
     except OSError: pass
-    gpu = (NVIDIA/'suspend').exists()
-    if gpu:
-        if not nvidia_preserves():
-            raise ValueError('NVIDIA sin PreserveVideoMemoryAllocations: se evita volver con pantalla negra')
-        NVIDIA_TMP.mkdir(mode=0o700, exist_ok=True)
-        info = NVIDIA_TMP.lstat()
-        if NVIDIA_TMP.is_symlink() or info.st_uid != 0 or info.st_mode & 0o077:
-            raise ValueError('carpeta temporal NVIDIA insegura')
+    params = nvidia_params()
+    gpu = bool(params) or (NVIDIA/'suspend').exists()
+    if gpu and params.get('PreserveVideoMemoryAllocations') != '1':
+        raise ValueError('NVIDIA no tiene activada la conservación de la memoria de video')
+    manual_gpu = gpu and params.get('UseKernelSuspendNotifiers') != '1'
     os.sync()
-    if gpu: (NVIDIA/'suspend').write_text('suspend')
     try:
+        if manual_gpu: (NVIDIA/'suspend').write_text('suspend')
         (POWER/'state').write_text('mem')
     finally:
-        if gpu: (NVIDIA/'suspend').write_text('resume')
+        if manual_gpu: (NVIDIA/'suspend').write_text('resume')
 
 
 def perform(action):
@@ -112,7 +108,9 @@ def supervise():
         nonlocal stop
         stop = True
     signal.signal(signal.SIGTERM,terminate); signal.signal(signal.SIGINT,terminate)
-    atomic(PUBLIC/'estado.json',json.dumps({'activo':True,'suspension_disponible':supports_suspend() and nvidia_preserves() is not False})+'\n')
+    params = nvidia_params()
+    available = supports_suspend() and (not params or params.get('PreserveVideoMemoryAllocations') == '1')
+    atomic(PUBLIC/'estado.json',json.dumps({'activo':True,'suspension_disponible':available})+'\n')
     seen = []; rejected = 0
     while not stop:
         try:

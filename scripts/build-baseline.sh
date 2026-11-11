@@ -231,9 +231,10 @@ if [[ -n $cmdline ]]; then
         hyprland=SERIE fuzzel waybar thunar mousepad dbus tzdata chrony swaybg librsvg
         nss alsa-lib libcups libxcomposite libxdamage libxrandr ca-certificates curl iproute2 dhcpcd
         ethtool linux-firmware-realtek papirus-icon-theme otf-font-awesome mako libnotify
-        pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol kmod
+        pipewire pipewire-audio pipewire-alsa pipewire-pulse wireplumber alsa-utils pavucontrol swh-plugins kmod
         steam umu-launcher lib32-libpulse lib32-alsa-plugins lib32-libxtst lib32-libxrandr gawk procps-ng vulkan-tools e2fsprogs
         mesa-utils vulkan-validation-layers xdg-desktop-portal-gtk gnome-keyring libsecret xdg-utils desktop-file-utils zenity
+        obs-studio xdg-desktop-portal-hyprland qt6-wayland pipewire-jack
         mangohud=0.8.4-1 lib32-mangohud=0.8.4-1
         # Rust para el usuario: rustup instala las versiones en el home persistente; gcc enlaza.
         rustup gcc clang bubblewrap git pkgconf
@@ -263,6 +264,15 @@ if [[ -n $cmdline ]]; then
     sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \
         -S --noconfirm "${arch_pkgs[@]}" >> "$art/pacman-sistema.log" 2>&1 ||
         { tail -20 "$art/pacman-sistema.log"; echo 'ROJO: pacman no pudo instalar el sistema base de Arch'; exit 1; }
+    [[ -x $sistema/usr/bin/obs &&
+       -r $sistema/usr/share/xdg-desktop-portal/portals/hyprland.portal &&
+       -r $sistema/usr/lib/obs-modules/core/linux-pipewire.so ]] ||
+        { echo 'ROJO [OBS]: falta el ejecutable, el portal de Hyprland o la captura PipeWire'; exit 1; }
+    [[ -r $sistema/usr/lib/ladspa/fast_lookahead_limiter_1913.so ]] ||
+        { echo 'ROJO [SONIDO]: falta el limitador estéreo del perfil Fuerte'; exit 1; }
+    sudo install -d -m 0755 "$sistema/etc/xdg/xdg-desktop-portal"
+    printf '[preferred]\ndefault=gtk\norg.freedesktop.impl.portal.ScreenCast=hyprland\n' |
+        sudo tee "$sistema/etc/xdg/xdg-desktop-portal/hyprland-portals.conf" > /dev/null
     # Reproductor del fondo vivo: awww (antes swww). Opcional: sin el, el fondo queda estatico.
     for motor in awww swww; do
         if sudo pacman --config "$art/pacman-sistema.conf" --root "$sistema" --dbpath "$sistema/var/lib/pacman" \

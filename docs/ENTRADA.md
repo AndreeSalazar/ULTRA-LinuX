@@ -10,23 +10,30 @@ mientras espera una consulta.
 
 ## Controles
 
-- Mouse: sensibilidad -1 a 1, aceleracion del sistema/plana/adaptativa,
-  boton principal derecho e inversion y multiplicador de la rueda (0,1 a 5).
-- Presets Normal y Rapido: cambian solo sensibilidad y aceleracion en el formulario.
-- Teclado: US, espanol o latinoamericano; combinaciones US+espanol/latinoamericano
-  con Alt+Shift; repeticion entre 1 y 80 por segundo y retardo entre 100 y 1500 ms.
-- Zona para probar el puntero y campo de texto que nunca se guarda.
+- Puntero: botón principal izquierdo o derecho, sensibilidad de −1 a +1 y
+  aceleración plana o adaptativa. El perfil antiguo «Del sistema» se
+  interpreta como adaptativo al cargarlo.
+- Los ajustes predefinidos Lento (-0,50), Normal (0) y Rápido (+0,60) usan
+  aceleración plana.
+- Desplazamiento: dirección estándar o invertida, multiplicador de la rueda
+  de 0,1 a 5 y modos de enfoque de Hyprland. **Rueda sobre la inactiva**
+  separa el foco del puntero del teclado, con el comportamiento propio de las
+  ventanas flotantes de Hyprland.
+- Visibilidad: ocultar el puntero al escribir y zona para probar su movimiento.
+- La pestaña Teclado incluye distribuciones US, española y latinoamericana,
+  combinaciones con Alt+Mayús, repetición y un campo de prueba.
 - Aplicar y guardar, recuperar perfil, valores iniciales y consultar estado real.
-  Los cambios del formulario no se aplican hasta guardar; valores iniciales
-  tampoco modifica el escritorio por si solo.
+  El pie de la ventana mantiene visibles estas acciones al desplazarse. Pulsa
+  **Aplicar y guardar** para activar los cambios, incluidos los valores iniciales.
 
-El perfil se guarda como usuario en `~/.config/ultra/entrada.json`, version 1,
+El perfil se guarda como usuario en `~/.config/ultra/entrada.json`, versión 2,
 con permisos 0600 y sustitucion atomica. En el escritorio persistente corresponde
 a `/juegos/usuarios/ultra/.config/ultra/entrada.json`. Se recupera al iniciar
 el escritorio y en el evento `config.reloaded` de Hyprland. Sin perfil, no se
-modifican los ajustes existentes.
+modifican los ajustes existentes. Al recuperar un perfil de versión 1, el
+enfoque y la visibilidad conservan el valor que está activo en Hyprland.
 
-El helper `ultra-entrada` consulta, valida, aplica y relee las nueve opciones.
+El helper `ultra-entrada` consulta, valida, aplica y relee las once opciones.
 Si falla la comprobacion o la escritura, intenta recuperar el estado anterior;
 un fallo de recuperacion se informa. Rangos, tipos, campos y cadenas estan
 validados; no ejecuta texto del formulario como comandos de shell. No usa root,

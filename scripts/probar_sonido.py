@@ -90,13 +90,29 @@ class Grafo(unittest.TestCase):
         calls = []
         class Done:
             returncode = 0
-        with patch.object(app, 'node_id', return_value=57), \
+        state = dict(self.state, graves=3)
+        def node_for(values):
+            pairs = [item for pair in values.items() for item in pair]
+            return [{'id': 57, 'type': 'PipeWire:Interface:Node',
+                     'info': {'props': {'node.name': app.NODE}, 'params': {'Props': [{'params': pairs}]}}}]
+        original = node_for(app.controls(self.state))
+        with patch.object(app, 'dump', side_effect=[original, original, node_for(app.controls(state))]), \
+             patch.object(app.time, 'sleep'), \
              patch.object(app.subprocess, 'run', lambda args, **k: calls.append(args) or Done()):
-            self.assertTrue(app.apply(dict(self.state, graves=3)))
+            self.assertTrue(app.apply(state))
         args = calls[0]
         self.assertEqual(args[:4], ['pw-cli', 'set-param', '57', 'Props'])
         self.assertIn('"graves_l:Gain" 3.0', args[4])
         self.assertIn('"mezcla_r:Gain 3"', args[4])
+
+    def test_fuerte_requires_limiter_and_bypass_disables_gain(self):
+        state = dict(self.state, **app.PROFILES['fuerte'])
+        self.assertIsNone(app.expected_controls(state, app.controls(self.state)))
+        self.assertEqual(app.controls(state, True)['limite:Input gain (dB)'], 9.0)
+        self.assertEqual(app.controls(dict(state, activo=False), True)['limite:Input gain (dB)'], 0.0)
+        text = app.graph(state, True)
+        self.assertIn('input = "limite:Input 2"', text)
+        self.assertIn('outputs = [ "limite:Output 1" "limite:Output 2" ]', text)
 
 
 if __name__ == '__main__': unittest.main(verbosity=2)
